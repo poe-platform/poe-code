@@ -2,9 +2,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ShellLimitError } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
+import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
+import { jobsExtension } from "../../src/shell/extensions/jobs/index.js";
+import { readExtension } from "../../src/shell/extensions/read/index.js";
 
 for (const invocation of ["bash /job", "sh /job", "/job"]) test(`background review: script entry ${invocation}`, async () => {
-  const { shell, fs } = setup();
+  const { shell, fs } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
   try {
     await fs.writeFile("/job", new TextEncoder().encode('#!/bin/bash\nstatus 7 & p=$!; wait "$p"; say $?\n'), { mode: 0o755 });
     const result = await shell.exec(invocation);
@@ -15,7 +18,7 @@ for (const invocation of ["bash /job", "sh /job", "/job"]) test(`background revi
 });
 
 for (const redirect of ["<&0", "0<&0"]) test(`background review: explicit ${redirect} preserves caller input`, async () => {
-  const { shell } = setup();
+  const { shell } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
   try {
     const result = await shell.exec(`{ read x; args "$x"; } ${redirect} & wait`, { stdin: "input\n" });
     assert.equal(result.stdout, '["input"]');
@@ -24,7 +27,7 @@ for (const redirect of ["<&0", "0<&0"]) test(`background review: explicit ${redi
 });
 
 test("background review: borrowed input descriptor survives function return", async () => {
-  const { shell, commands } = setup();
+  const { shell, commands } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
   commands.register({ name: "later", async execute() { await new Promise<void>(resolve => setImmediate(resolve)); return { exitCode: 0 }; } });
   try {
     const result = await shell.exec('f() { { later; read x <&3; args "$x"; } & }; f 3<&0; wait', { stdin: "input\n" });
@@ -34,7 +37,7 @@ test("background review: borrowed input descriptor survives function return", as
 });
 
 test("background review: function local indexed snapshot outlives its function", async () => {
-  const { shell, commands } = setup();
+  const { shell, commands } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
   commands.register({ name: "later", async execute() { await new Promise<void>(resolve => setImmediate(resolve)); return { exitCode: 0 }; } });
   try {
     const result = await shell.exec('f() { local -a x; x=(a b); { later; args "${x[@]}"; } & }; f; wait');
@@ -44,7 +47,7 @@ test("background review: function local indexed snapshot outlives its function",
 });
 
 test("background review: explicitly inherited nonstandard output descriptor stays open", async () => {
-  const { shell, commands } = setup();
+  const { shell, commands } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
   commands.register({ name: "later", async execute() { await new Promise<void>(resolve => setImmediate(resolve)); return { exitCode: 0 }; } });
   try {
     const result = await shell.exec('{ { later; say child >&3; } & } 3>/out; wait; pass </out');
@@ -54,7 +57,7 @@ test("background review: explicitly inherited nonstandard output descriptor stay
 });
 
 test("background review: function-owned redirected output outlives the launching function", async () => {
-  const { shell, commands } = setup();
+  const { shell, commands } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
   commands.register({ name: "delayed", async execute({ stdout }) {
     await new Promise<void>(resolve => setImmediate(resolve));
     await stdout.write(new TextEncoder().encode("child\n"));
@@ -68,7 +71,7 @@ test("background review: function-owned redirected output outlives the launching
 });
 
 test("background review: redirected async pipeline releases command substitution capture", async () => {
-  const { shell, commands } = setup();
+  const { shell, commands } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
   let release!: () => void;
   const held = new Promise<void>(resolve => { release = resolve; });
   commands.register({ name: "hold", async execute({ signal }) {
@@ -91,7 +94,7 @@ test("background review: redirected async pipeline releases command substitution
 });
 
 for (const operand of ["nope", "0x1", "1e0", " 1", ""]) test(`background review: wait rejects nondecimal PID ${JSON.stringify(operand)}`, async () => {
-  const { shell } = setup();
+  const { shell } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
   try {
     const result = await shell.exec(`false & wait '${operand}'; say $?`);
     assert.equal(result.stdout, "1\n");
@@ -100,7 +103,7 @@ for (const operand of ["nope", "0x1", "1e0", " 1", ""]) test(`background review:
 });
 
 test("background review: wait -p unsets indexed binding before finding no eligible child", async () => {
-  const { shell } = setup();
+  const { shell } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
   try {
     const result = await shell.exec('a=(old second); wait -n -p a; say "$?"; args "${a[@]}"');
     assert.equal(result.stdout, '127\n[]');
@@ -109,7 +112,7 @@ test("background review: wait -p unsets indexed binding before finding no eligib
 });
 
 test("background review: wait -p invalid identifier is a binding error", async () => {
-  const { shell } = setup();
+  const { shell } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
   try {
     const result = await shell.exec('wait -n -p "a-b"; say $?');
     assert.equal(result.stdout, "1\n");
@@ -118,7 +121,7 @@ test("background review: wait -p invalid identifier is a binding error", async (
 });
 
 test("background review: wait -p records explicit child without -n", async () => {
-  const { shell } = setup();
+  const { shell } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
   try {
     const actual = await shell.exec('status 7 & p=$!; wait -p result "$p"; args "$?" "$result" "$p"');
     const [status, resultId, childId] = JSON.parse(actual.stdout) as string[];
@@ -130,7 +133,7 @@ test("background review: wait -p records explicit child without -n", async () =>
 });
 
 for (const reason of [null, 0, Object.freeze({ marker: "background cancellation" })]) test(`background review: cancellation ${JSON.stringify(reason)} preserves identity and awaits cooperative cleanup`, async () => {
-  const { shell, commands } = setup();
+  const { shell, commands } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
   let entered!: () => void;
   const ready = new Promise<void>(resolve => { entered = resolve; });
   let cleaned = false;
@@ -156,17 +159,17 @@ for (const reason of [null, 0, Object.freeze({ marker: "background cancellation"
 });
 
 test("background review: command budget rejects background launch before command side effects", async () => {
-  const { shell, commands } = setup();
+  const { shell, commands } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
   let started = 0;
   commands.register({ name: "mark", execute() { started++; return { exitCode: 0 }; } });
   try {
-    await assert.rejects(shell.exec("mark &", { limits: { maxCommands: 1 } }), error => error instanceof ShellLimitError && error.limit === "maxCommands");
+    await assert.rejects(shell.exec("true; mark &", { limits: { maxCommands: 1 } }), error => error instanceof ShellLimitError && error.limit === "maxCommands");
     assert.equal(started, 0);
   } finally { await shell.dispose(); }
 });
 
 test("background review: parallel jobs share the pipeline stage budget", async () => {
-  const { shell, commands } = setup();
+  const { shell, commands } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
   commands.register({ name: "hold", async execute({ signal }) {
     await new Promise<void>((_resolve, reject) => {
       if (signal.aborted) reject(signal.reason);

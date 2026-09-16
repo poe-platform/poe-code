@@ -1,0 +1,1561 @@
+{
+  "schema_version": 1,
+  "status": "Original XML operation tests and maintained integration checks passed; no whole-API or source-suite parity claim",
+  "authorities": ["../specs/pptx.md", "../specs/office-cli.md", "../specs/office-sdk.md"],
+  "inventory_sha256": {
+    "upstream-test-inventory.json": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+    "upstream-api-inventory.json": "cd6467079c8f93d5be57758646f3fcd3667a6a13a1782fb371320c378803b934"
+  },
+  "baseline": {
+    "unit_variants": 2700,
+    "bdd_examples": 973,
+    "api_records": 2407,
+    "complete_case_ledger": "test-case-map.json",
+    "complete_api_ledger": "public-api-map.json",
+    "candidate_unit_identities": 125,
+    "candidate_bdd_examples": 6,
+    "owned_view_obligations": 95
+  },
+  "selection": {
+    "unit_files": ["tests/opc/test_package.py", "tests/opc/test_serialized.py"],
+    "bdd_files": ["features/prs-open-save.feature"],
+    "api_suffixes": [".element", ".part"],
+    "rationale": "Whole-part XML byte inspection and constrained replacement supplement the audited package serialization behavior. No source whole-part replacement command is being copied. Every candidate parameter variant is retained; the complete ledgers preserve all remaining identities.",
+    "additional_node_id_terms": ["Describe_serialize_part_xml", "DescribeParseXml"]
+  },
+  "unit_candidates": [
+    {
+      "source_id": "tests/opc/test_package.py::Describe_RelatableMixin::it_can_find_a_part_related_by_reltype",
+      "source_file": "tests/opc/test_package.py",
+      "line": 56,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_RelatableMixin::it_can_establish_a_relationship_to_another_part",
+      "source_file": "tests/opc/test_package.py",
+      "line": 66,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_RelatableMixin::and_it_can_establish_a_relationship_to_an_external_link",
+      "source_file": "tests/opc/test_package.py",
+      "line": 76,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_RelatableMixin::it_can_find_a_related_part_by_rId",
+      "source_file": "tests/opc/test_package.py",
+      "line": 88,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_RelatableMixin::it_can_find_a_target_ref_URI_by_rId",
+      "source_file": "tests/opc/test_package.py",
+      "line": 101,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_open_a_pkg_file",
+      "source_file": "tests/opc/test_package.py",
+      "line": 136,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_drop_a_relationship",
+      "source_file": "tests/opc/test_package.py",
+      "line": 147,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_iterate_over_its_parts",
+      "source_file": "tests/opc/test_package.py",
+      "line": 154,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_iterate_over_its_relationships",
+      "source_file": "tests/opc/test_package.py",
+      "line": 172,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribeOpcPackage::it_provides_access_to_the_main_document_part",
+      "source_file": "tests/opc/test_package.py",
+      "line": 214,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_partname[ns0-1]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 226,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_partname[ns1-2]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 226,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_partname[ns2-3]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 226,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_partname[ns3-3]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 226,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_partname[ns4-3]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 226,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_save_to_a_pkg_file",
+      "source_file": "tests/opc/test_package.py",
+      "line": 248,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribeOpcPackage::it_loads_the_pkg_file_to_help",
+      "source_file": "tests/opc/test_package.py",
+      "line": 259,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribeOpcPackage::it_constructs_its_relationships_object_to_help",
+      "source_file": "tests/opc/test_package.py",
+      "line": 273,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_PackageLoader::it_provides_a_load_interface_classmethod",
+      "source_file": "tests/opc/test_package.py",
+      "line": 298,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_PackageLoader::it_loads_the_package_to_help",
+      "source_file": "tests/opc/test_package.py",
+      "line": 315,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_PackageLoader::it_loads_the_xml_relationships_from_the_package_to_help",
+      "source_file": "tests/opc/test_package.py",
+      "line": 337,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribePart::it_can_be_constructed_by_PartFactory",
+      "source_file": "tests/opc/test_package.py",
+      "line": 391,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribePart::it_uses_the_load_blob_as_its_blob",
+      "source_file": "tests/opc/test_package.py",
+      "line": 400,
+      "disposition": "partial-original-operation-evidence; not full source API adaptation",
+      "reason": "Owned original bytes, without implementing Part factory/model identity.",
+      "original_case": "returns original bytes and labels the bounded display separately",
+      "evidence": "../../packages/pptx/src/xml-parts.test.ts"
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribePart::it_can_change_its_blob",
+      "source_file": "tests/opc/test_package.py",
+      "line": 403,
+      "disposition": "partial-original-operation-evidence; not full source API adaptation",
+      "reason": "Validated XML-only replacement, deliberately rejecting arbitrary binary mutation.",
+      "original_case": "replaces text and retains every unrelated member exactly",
+      "evidence": "../../packages/pptx/src/xml-parts.test.ts"
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribePart::it_knows_its_content_type",
+      "source_file": "tests/opc/test_package.py",
+      "line": 408,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribePart::it_knows_the_package_it_belongs_to",
+      "source_file": "tests/opc/test_package.py",
+      "line": 411,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribePart::it_knows_its_partname",
+      "source_file": "tests/opc/test_package.py",
+      "line": 414,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribePart::it_can_change_its_partname",
+      "source_file": "tests/opc/test_package.py",
+      "line": 417,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribePart::it_provides_access_to_its_relationships_for_traversal",
+      "source_file": "tests/opc/test_package.py",
+      "line": 422,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribePart::it_can_load_a_blob_from_a_file_path_to_help",
+      "source_file": "tests/opc/test_package.py",
+      "line": 426,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribePart::it_can_load_a_blob_from_a_file_like_object_to_help",
+      "source_file": "tests/opc/test_package.py",
+      "line": 434,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribePart::it_constructs_its_relationships_object_to_help",
+      "source_file": "tests/opc/test_package.py",
+      "line": 438,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribeXmlPart::it_can_be_constructed_by_PartFactory",
+      "source_file": "tests/opc/test_package.py",
+      "line": 463,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribeXmlPart::it_can_serialize_to_xml",
+      "source_file": "tests/opc/test_package.py",
+      "line": 476,
+      "disposition": "partial-original-operation-evidence; not full source API adaptation",
+      "reason": "Replacement bytes survive serialization exactly; model XmlPart serializer remains unimplemented.",
+      "original_case": "replaces text and retains every unrelated member exactly",
+      "evidence": "../../packages/pptx/src/xml-parts.test.ts"
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribeXmlPart::it_can_drop_a_relationship[2-calls0]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 486,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Both relationship-reference-count variants remain individually deferred. This XML replacement profile rejects changes/removal of resource attributes; it does not implement relationship-drop semantics."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribeXmlPart::it_can_drop_a_relationship[1-calls1]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 486,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Both relationship-reference-count variants remain individually deferred. This XML replacement profile rejects changes/removal of resource attributes; it does not implement relationship-drop semantics."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribeXmlPart::it_knows_it_is_the_part_for_its_child_objects",
+      "source_file": "tests/opc/test_package.py",
+      "line": 499,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribePartFactory::it_constructs_custom_part_type_for_registered_content_types",
+      "source_file": "tests/opc/test_package.py",
+      "line": 513,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::DescribePartFactory::it_constructs_part_using_default_class_when_no_custom_registered",
+      "source_file": "tests/opc/test_package.py",
+      "line": 524,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_ContentTypeMap::it_can_construct_from_content_types_xml",
+      "source_file": "tests/opc/test_package.py",
+      "line": 550,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[/docProps/core.xml-application/vnd.openxmlformats-package.core-properties+xml]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 571,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[/ppt/presentation.xml-application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 571,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[/PPT/Presentation.XML-application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 571,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[/ppt/viewprops.xml-application/vnd.openxmlformats-officedocument.presentationml.viewProps+xml]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 571,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_ContentTypeMap::it_falls_back_to_case_insensitive_extension_default_match[/foo/bar.xml-application/xml]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 585,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_ContentTypeMap::it_falls_back_to_case_insensitive_extension_default_match[/FOO/BAR.Rels-application/vnd.openxmlformats-package.relationships+xml]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 585,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_ContentTypeMap::it_falls_back_to_case_insensitive_extension_default_match[/foo/bar.jpeg-image/jpeg]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 585,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_ContentTypeMap::it_raises_KeyError_on_partname_not_found",
+      "source_file": "tests/opc/test_package.py",
+      "line": 598,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_ContentTypeMap::it_raises_TypeError_on_key_not_instance_of_PackURI",
+      "source_file": "tests/opc/test_package.py",
+      "line": 605,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_knows_whether_it_contains_a_relationship_with_rId[rId1-True]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 620,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_knows_whether_it_contains_a_relationship_with_rId[rId2-False]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 620,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_has_dict_style_lookup_of_rel_by_rId",
+      "source_file": "tests/opc/test_package.py",
+      "line": 627,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::but_it_raises_KeyError_when_no_relationship_has_rId",
+      "source_file": "tests/opc/test_package.py",
+      "line": 631,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_can_iterate_the_rIds_of_the_relationships_it_contains",
+      "source_file": "tests/opc/test_package.py",
+      "line": 637,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_has_a_len",
+      "source_file": "tests/opc/test_package.py",
+      "line": 647,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_can_add_a_relationship_to_a_target_part",
+      "source_file": "tests/opc/test_package.py",
+      "line": 651,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::but_it_returns_an_existing_relationship_if_it_matches",
+      "source_file": "tests/opc/test_package.py",
+      "line": 662,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_can_add_an_external_relationship_to_a_URI",
+      "source_file": "tests/opc/test_package.py",
+      "line": 671,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::but_it_returns_an_existing_external_relationship_if_it_matches",
+      "source_file": "tests/opc/test_package.py",
+      "line": 686,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_can_load_from_the_xml_in_a_rels_part",
+      "source_file": "tests/opc/test_package.py",
+      "line": 697,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_can_find_a_part_with_reltype",
+      "source_file": "tests/opc/test_package.py",
+      "line": 714,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::but_it_raises_KeyError_when_there_is_no_such_part",
+      "source_file": "tests/opc/test_package.py",
+      "line": 723,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::and_it_raises_ValueError_when_there_is_more_than_one_part_with_reltype",
+      "source_file": "tests/opc/test_package.py",
+      "line": 734,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_can_pop_a_relationship_to_remove_it_from_the_collection",
+      "source_file": "tests/opc/test_package.py",
+      "line": 750,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_can_serialize_itself_to_XML",
+      "source_file": "tests/opc/test_package.py",
+      "line": 760,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_can_add_a_relationship_to_a_part_to_help",
+      "source_file": "tests/opc/test_package.py",
+      "line": 791,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::and_it_can_add_an_external_relationship_to_help",
+      "source_file": "tests/opc/test_package.py",
+      "line": 813,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_can_get_a_matching_relationship_to_help[http://url-True-rId1]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 829,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_can_get_a_matching_relationship_to_help[part_1-False-rId2]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 829,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_can_get_a_matching_relationship_to_help[http://foo-True-rId3]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 829,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_can_get_a_matching_relationship_to_help[part_2-False-rId4]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 829,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_can_get_a_matching_relationship_to_help[http://bar-True-None]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 829,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::but_it_returns_None_when_there_is_no_matching_relationship",
+      "source_file": "tests/opc/test_package.py",
+      "line": 868,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_finds_the_next_rId_to_help[rIds0-rId1]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 874,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_finds_the_next_rId_to_help[rIds1-rId2]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 874,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_finds_the_next_rId_to_help[rIds2-rId3]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 874,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_finds_the_next_rId_to_help[rIds3-rId3]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 874,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_finds_the_next_rId_to_help[rIds4-rId3]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 874,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_finds_the_next_rId_to_help[rIds5-rId4]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 874,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationships::it_collects_relationships_by_reltype_to_help",
+      "source_file": "tests/opc/test_package.py",
+      "line": 891,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationship::it_can_construct_from_xml",
+      "source_file": "tests/opc/test_package.py",
+      "line": 945,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationship::it_knows_whether_it_is_external[Internal-False]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 962,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationship::it_knows_whether_it_is_external[External-True]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 962,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationship::it_knows_whether_it_is_external[None-False]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 962,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationship::it_knows_its_relationship_type",
+      "source_file": "tests/opc/test_package.py",
+      "line": 970,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationship::it_knows_its_rId",
+      "source_file": "tests/opc/test_package.py",
+      "line": 974,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationship::it_provides_access_to_its_target_part",
+      "source_file": "tests/opc/test_package.py",
+      "line": 978,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationship::but_it_raises_ValueError_on_target_part_for_external_rel",
+      "source_file": "tests/opc/test_package.py",
+      "line": 982,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationship::it_knows_its_target_partname",
+      "source_file": "tests/opc/test_package.py",
+      "line": 990,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationship::but_it_raises_ValueError_on_target_partname_for_external_rel",
+      "source_file": "tests/opc/test_package.py",
+      "line": 996,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationship::it_knows_the_target_uri_for_an_external_rel",
+      "source_file": "tests/opc/test_package.py",
+      "line": 1007,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_package.py::Describe_Relationship::and_it_knows_the_relative_partname_for_an_internal_rel",
+      "source_file": "tests/opc/test_package.py",
+      "line": 1011,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::DescribePackageReader::it_knows_whether_it_contains_a_partname",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 50,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::DescribePackageReader::it_can_get_a_blob_by_partname",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 57,
+      "disposition": "partial-original-operation-evidence; not full source API adaptation",
+      "reason": "Existing canonical XML part selection returns owned bytes.",
+      "original_case": "returns original bytes and labels the bounded display separately",
+      "evidence": "../../packages/pptx/src/xml-parts.test.ts"
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::DescribePackageReader::it_can_get_the_rels_xml_for_a_partname",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 63,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::DescribePackageReader::but_it_returns_None_when_the_part_has_no_rels",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 69,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::DescribePackageReader::it_constructs_its_blob_reader_to_help",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 75,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::DescribePackageWriter::it_provides_a_write_interface_classmethod",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 96,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::DescribePackageWriter::it_can_write_a_package",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 107,
+      "disposition": "partial-original-operation-evidence; not full source API adaptation",
+      "reason": "Package byte result preserves every unrelated decoded entry; model save remains pending.",
+      "original_case": "replaces text and retains every unrelated member exactly",
+      "evidence": "../../packages/pptx/src/xml-parts.test.ts"
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::DescribePackageWriter::it_can_write_a_content_types_stream",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 127,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::DescribePackageWriter::it_can_write_a_sequence_of_parts",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 143,
+      "disposition": "partial-original-operation-evidence; not full source API adaptation",
+      "reason": "Every input member is retained with exact expected decoded bytes; helper-call choreography is not replicated.",
+      "original_case": "replaces text and retains every unrelated member exactly",
+      "evidence": "../../packages/pptx/src/xml-parts.test.ts"
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::DescribePackageWriter::it_can_write_a_pkg_rels_item",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 169,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_PhysPkgReader::it_constructs_ZipPkgReader_when_pkg_is_file_like",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 195,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_PhysPkgReader::and_it_constructs_DirPkgReader_when_pkg_is_a_dir",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 206,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_PhysPkgReader::and_it_constructs_ZipPkgReader_when_pkg_is_a_zip_file_path",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 217,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_PhysPkgReader::but_it_raises_when_pkg_path_is_not_a_package",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 228,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_DirPkgReader::it_knows_whether_it_contains_a_partname",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 247,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_DirPkgReader::it_can_retrieve_the_blob_for_a_pack_uri",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 251,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_DirPkgReader::but_it_raises_KeyError_when_requested_member_is_not_present",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 255,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_ZipPkgReader::it_knows_whether_it_contains_a_partname",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 272,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_ZipPkgReader::it_can_get_a_blob_by_partname",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 276,
+      "disposition": "partial-original-operation-evidence; not full source API adaptation",
+      "reason": "Existing canonical XML part selection returns owned bytes; no dependency-class emulation.",
+      "original_case": "returns original bytes and labels the bounded display separately",
+      "evidence": "../../packages/pptx/src/xml-parts.test.ts"
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_ZipPkgReader::but_it_raises_KeyError_when_requested_member_is_not_present",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 280,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_ZipPkgReader::it_loads_the_package_blobs_on_first_access_to_help",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 287,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_PhysPkgWriter::it_constructs_ZipPkgWriter_unconditionally",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 303,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_ZipPkgWriter::it_has_an__enter__method_for_context_management",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 318,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_ZipPkgWriter::and_it_closes_the_zip_archive_on_context__exit__",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 322,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_ZipPkgWriter::it_can_write_a_blob",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 326,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_ZipPkgWriter::it_provides_access_to_the_open_zip_file_to_help",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 338,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_ContentTypesItem::it_provides_an_interface_classmethod",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 359,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_ContentTypesItem::it_can_compose_content_types_xml",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 368,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_serialized.py::Describe_ContentTypesItem::it_computes_defaults_and_overrides_to_help",
+      "source_file": "tests/opc/test_serialized.py",
+      "line": 386,
+      "disposition": "related-foundation-only; retain exact existing case-ledger disposition",
+      "reason": "Explicit XML package operations do not implement the source factory, model, serialization helper or collection API."
+    },
+    {
+      "source_id": "tests/opc/test_oxml.py::Describe_serialize_part_xml::it_produces_properly_formatted_xml_for_an_opc_part",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 188,
+      "disposition": "partial-original-operation-evidence; no dependency-runtime emulation",
+      "original_case": "returns original bytes and labels the bounded display separately",
+      "evidence": "../../packages/pptx/src/xml-parts.test.ts",
+      "reason": "Explicit bounded parser and separately labeled pretty display preserve original bytes; no dependency XML object or private configured-parser API is mirrored."
+    },
+    {
+      "source_id": "tests/oxml/test___init__.py::DescribeParseXml::it_uses_oxml_configured_parser_to_parse_xml",
+      "source_file": "tests/oxml/test___init__.py",
+      "line": 22,
+      "disposition": "partial-original-operation-evidence; no dependency-runtime emulation",
+      "original_case": "returns original bytes and labels the bounded display separately",
+      "evidence": "../../packages/pptx/src/xml-parts.test.ts",
+      "reason": "Explicit bounded parser and separately labeled pretty display preserve original bytes; no dependency XML object or private configured-parser API is mirrored."
+    },
+    {
+      "source_id": "tests/oxml/test___init__.py::DescribeParseXml::it_prefers_to_parse_bytes",
+      "source_file": "tests/oxml/test___init__.py",
+      "line": 29,
+      "disposition": "partial-original-operation-evidence; no dependency-runtime emulation",
+      "original_case": "returns original bytes and labels the bounded display separately",
+      "evidence": "../../packages/pptx/src/xml-parts.test.ts",
+      "reason": "Explicit bounded parser and separately labeled pretty display preserve original bytes; no dependency XML object or private configured-parser API is mirrored."
+    },
+    {
+      "source_id": "tests/oxml/test___init__.py::DescribeParseXml::but_accepts_unicode_providing_there_is_no_encoding_declaration",
+      "source_file": "tests/oxml/test___init__.py",
+      "line": 32,
+      "disposition": "partial-original-operation-evidence; no dependency-runtime emulation",
+      "original_case": "returns original bytes and labels the bounded display separately",
+      "evidence": "../../packages/pptx/src/xml-parts.test.ts",
+      "reason": "Explicit bounded parser and separately labeled pretty display preserve original bytes; no dependency XML object or private configured-parser API is mirrored."
+    }
+  ],
+  "bdd_candidates": [
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 6,
+      "name": "Round-trip a basic presentation",
+      "disposition": "deferred-public-workflow; not counted as adapted",
+      "reason": "The Presentation factory, save and path/stream model workflows remain unimplemented; XML replacement acceptance supplies only package-level evidence."
+    },
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 12,
+      "name": "Start presentation from package stream",
+      "disposition": "deferred-public-workflow; not counted as adapted",
+      "reason": "The Presentation factory, save and path/stream model workflows remain unimplemented; XML replacement acceptance supplies only package-level evidence."
+    },
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 18,
+      "name": "Start presentation from package extracted into directory",
+      "disposition": "deferred-public-workflow; not counted as adapted",
+      "reason": "The Presentation factory, save and path/stream model workflows remain unimplemented; XML replacement acceptance supplies only package-level evidence."
+    },
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 24,
+      "name": "Save presentation to package stream",
+      "disposition": "deferred-public-workflow; not counted as adapted",
+      "reason": "The Presentation factory, save and path/stream model workflows remain unimplemented; XML replacement acceptance supplies only package-level evidence."
+    },
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 31,
+      "name": "Round-trip external relationships",
+      "disposition": "deferred-public-workflow; not counted as adapted",
+      "reason": "The Presentation factory, save and path/stream model workflows remain unimplemented; XML replacement acceptance supplies only package-level evidence."
+    },
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 37,
+      "name": "Load presentation with invalid image/jpg MIME-type",
+      "disposition": "deferred-public-workflow; not counted as adapted",
+      "reason": "The Presentation factory, save and path/stream model workflows remain unimplemented; XML replacement acceptance supplies only package-level evidence."
+    }
+  ],
+  "public_api_obligations": [
+    {
+      "source_id": "pptx.action.ActionSetting.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.action.Hyperlink.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.chart.axis.AxisTitle.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.chart.axis.MajorGridlines.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.chart.chart.Chart.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.chart.chart.Chart.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.chart.chart.ChartTitle.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.chart.marker.Marker.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.dml.chtfmt.ChartFormat.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.dml.fill._GradientStop.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.presentation.Presentation.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.presentation.Presentation.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.autoshape.Shape.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.autoshape.Shape.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.base.BaseShape.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.base.BaseShape.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.base._PlaceholderFormat.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.connector.Connector.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.connector.Connector.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.group.GroupShape.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.group.GroupShape.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.picture.Picture.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.picture.Picture.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.picture._MediaFormat.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.picture._MediaFormat.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.ChartPlaceholder.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.ChartPlaceholder.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.LayoutPlaceholder.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.LayoutPlaceholder.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.MasterPlaceholder.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.MasterPlaceholder.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.NotesSlidePlaceholder.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.NotesSlidePlaceholder.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PicturePlaceholder.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PicturePlaceholder.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderPicture.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderPicture.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.SlidePlaceholder.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.SlidePlaceholder.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.TablePlaceholder.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.TablePlaceholder.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.GroupShapes.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.GroupShapes.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.LayoutPlaceholders.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.LayoutPlaceholders.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.LayoutShapes.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.LayoutShapes.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.MasterPlaceholders.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.MasterPlaceholders.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.MasterShapes.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.MasterShapes.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.NotesSlidePlaceholders.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.NotesSlidePlaceholders.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.NotesSlideShapes.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.NotesSlideShapes.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.SlidePlaceholders.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.SlidePlaceholders.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.SlideShapes.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.SlideShapes.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.slide.NotesMaster.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.slide.NotesMaster.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.slide.NotesSlide.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.slide.NotesSlide.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.slide.Slide.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.slide.Slide.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayout.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayout.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayouts.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayouts.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.slide.SlideMaster.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.slide.SlideMaster.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.slide.SlideMasters.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.slide.SlideMasters.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.slide.Slides.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.slide.Slides.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.slide._Background.element",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.table.Table.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.table._Cell.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.table._CellCollection.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.table._Column.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.table._ColumnCollection.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.table._Row.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.table._RowCollection.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.text.text.TextFrame.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.text.text._Hyperlink.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.text.text._Paragraph.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    },
+    {
+      "source_id": "pptx.text.text._Run.part",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "disposition": "deferred-owned-model-view; not promoted by part operations",
+      "reason": "Retain inherited/direct public member and J09 ownership/mutation obligations, including underscore-prefixed types."
+    }
+  ],
+  "language_security_mappings": {
+    "J06": "Async bytes/byte-source/explicit-VFS admission with owned Uint8Array results; no ambient file opening. Replacement returns bytes; command publication uses explicit capabilities.",
+    "J09": "Bounded namespace parsing, existing canonical part selection, supported structure/graph validation. These operations are not live owner-bound element/part model views. Arbitrary XPath, host callbacks and dynamic property evaluation remain excluded.",
+    "J10": "Direct xml.get/xml.set operations use shared dotted IDs and camelCase options; retained model spellings and unsupported batch APIs remain unchanged."
+  },
+  "original_evidence": {
+    "sdk": "../../packages/pptx/src/xml-parts.test.ts",
+    "engine": "../../packages/pptx/src/command-xml.test.ts",
+    "adapter": "../../packages/safe-bash/tests/commands/pptx/selectors.test.ts",
+    "verification": "../plans/pptx-xml-part-operations.md",
+    "results": {
+      "sdkCases": 28,
+      "xmlCommandCases": 18,
+      "packageTests": 555,
+      "adapterTests": 42,
+      "fullMaintainedRoute": "passed",
+      "wholeApiCoverage": "not claimed"
+    }
+  },
+  "license": "Original TypeScript implementation and authored/memfs fixtures; no copied source/assets. Existing standalone research/legal notices retained unchanged."
+}

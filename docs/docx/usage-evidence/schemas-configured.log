@@ -1,0 +1,14 @@
+
+> docx@0.0.1 test:schemas
+> cd ../.. && vitest run --config packages/docx/vitest.schema.config.ts
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/tests/schema-interoperability.schema-test.ts (10 tests) 1942ms
+   ✓ rejects an original schema negative control: <w:p><w:unexpected/></w:p>  1127ms
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  19:05:24
+   Duration  2.91s (transform 756ms, setup 30ms, import 890ms, tests 1.94s, environment 0ms)

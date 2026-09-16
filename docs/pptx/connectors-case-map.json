@@ -1,0 +1,2518 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "58 direct unit variants, 69 neighboring/inherited shape variants, and 11 expanded connector BDD scenarios. No parameter/example collapse.",
+  "notice": "Research/provenance only. Existing upstream-license-notice.txt and test-case-map-notice.txt remain standalone; original TypeScript fixtures and test wording are independently authored.",
+  "wholePublicApiParity": false,
+  "rows": [
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1712",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_provides_access_to_its_click_action[p:sp/p:nvSpPr/p:cNvPr]",
+        "file": "tests/shapes/test_base.py",
+        "line": 50
+      },
+      "scope": "inherited-shape",
+      "status": "inherited-evidence-gap",
+      "originalTests": [],
+      "reason": "Neighboring/inherited shape behavior is retained individually; this receipt does not claim connector-specific acceptance for every shared member. Existing shapes/transform receipts remain separate."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1713",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_provides_access_to_its_click_action[p:grpSp/p:nvGrpSpPr/p:cNvPr]",
+        "file": "tests/shapes/test_base.py",
+        "line": 50
+      },
+      "scope": "inherited-shape",
+      "status": "inherited-evidence-gap",
+      "originalTests": [],
+      "reason": "Neighboring/inherited shape behavior is retained individually; this receipt does not claim connector-specific acceptance for every shared member. Existing shapes/transform receipts remain separate."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1714",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_provides_access_to_its_click_action[p:graphicFrame/p:nvGraphicFramePr/p:cNvPr]",
+        "file": "tests/shapes/test_base.py",
+        "line": 50
+      },
+      "scope": "inherited-shape",
+      "status": "inherited-evidence-gap",
+      "originalTests": [],
+      "reason": "Neighboring/inherited shape behavior is retained individually; this receipt does not claim connector-specific acceptance for every shared member. Existing shapes/transform receipts remain separate."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1715",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_provides_access_to_its_click_action[p:cxnSp/p:nvCxnSpPr/p:cNvPr]",
+        "file": "tests/shapes/test_base.py",
+        "line": 50
+      },
+      "scope": "direct-connector",
+      "status": "public-model-gap",
+      "originalTests": [],
+      "reason": "Connector live model/inherited formatting or automatic collection creation still needs specific evidence; no source obligation excluded."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1716",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_provides_access_to_its_click_action[p:pic/p:nvPicPr/p:cNvPr]",
+        "file": "tests/shapes/test_base.py",
+        "line": 50
+      },
+      "scope": "inherited-shape",
+      "status": "inherited-evidence-gap",
+      "originalTests": [],
+      "reason": "Neighboring/inherited shape behavior is retained individually; this receipt does not claim connector-specific acceptance for every shared member. Existing shapes/transform receipts remain separate."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1717",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture0]",
+        "file": "tests/shapes/test_base.py",
+        "line": 56
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/243",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1718",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture1]",
+        "file": "tests/shapes/test_base.py",
+        "line": 56
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/244",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1719",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture2]",
+        "file": "tests/shapes/test_base.py",
+        "line": 56
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/245",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1720",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture3]",
+        "file": "tests/shapes/test_base.py",
+        "line": 56
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/246",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1721",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture4]",
+        "file": "tests/shapes/test_base.py",
+        "line": 56
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/247",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1722",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_name",
+        "file": "tests/shapes/test_base.py",
+        "line": 60
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "escapes names and alternative text while retaining literal metadata values"
+        },
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "distinguishes empty metadata from absent metadata and removes optional overrides"
+        }
+      ],
+      "reason": "Shape names use the same cNvPr attribute across receivers; read five shapes independently, mutate supported p:sp. Non-p:sp semantic mutation remains outside this preset/textbox edit subset.",
+      "sharedReceipt": "shapes-case-map.json#/rows/248",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1723",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_name[name_set_fixture0]",
+        "file": "tests/shapes/test_base.py",
+        "line": 64
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "escapes names and alternative text while retaining literal metadata values"
+        },
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "distinguishes empty metadata from absent metadata and removes optional overrides"
+        },
+        {
+          "file": "packages/pptx/src/connectors-model.test.ts",
+          "title": "retains a live line format and mutable connector name in drawing XML"
+        }
+      ],
+      "reason": "Shape names use the same cNvPr attribute across receivers; read five shapes independently, mutate supported p:sp. Non-p:sp semantic mutation remains outside this preset/textbox edit subset.",
+      "sharedReceipt": "shapes-case-map.json#/rows/249",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1724",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_name[name_set_fixture1]",
+        "file": "tests/shapes/test_base.py",
+        "line": 64
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "escapes names and alternative text while retaining literal metadata values"
+        },
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "distinguishes empty metadata from absent metadata and removes optional overrides"
+        },
+        {
+          "file": "packages/pptx/src/connectors-model.test.ts",
+          "title": "retains a live line format and mutable connector name in drawing XML"
+        }
+      ],
+      "reason": "Shape names use the same cNvPr attribute across receivers; read five shapes independently, mutate supported p:sp. Non-p:sp semantic mutation remains outside this preset/textbox edit subset.",
+      "sharedReceipt": "shapes-case-map.json#/rows/250",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1725",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_name[name_set_fixture2]",
+        "file": "tests/shapes/test_base.py",
+        "line": 64
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "escapes names and alternative text while retaining literal metadata values"
+        },
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "distinguishes empty metadata from absent metadata and removes optional overrides"
+        },
+        {
+          "file": "packages/pptx/src/connectors-model.test.ts",
+          "title": "retains a live line format and mutable connector name in drawing XML"
+        }
+      ],
+      "reason": "Shape names use the same cNvPr attribute across receivers; read five shapes independently, mutate supported p:sp. Non-p:sp semantic mutation remains outside this preset/textbox edit subset.",
+      "sharedReceipt": "shapes-case-map.json#/rows/251",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1726",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_name[name_set_fixture3]",
+        "file": "tests/shapes/test_base.py",
+        "line": 64
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "escapes names and alternative text while retaining literal metadata values"
+        },
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "distinguishes empty metadata from absent metadata and removes optional overrides"
+        },
+        {
+          "file": "packages/pptx/src/connectors-model.test.ts",
+          "title": "retains a live line format and mutable connector name in drawing XML"
+        }
+      ],
+      "reason": "Shape names use the same cNvPr attribute across receivers; read five shapes independently, mutate supported p:sp. Non-p:sp semantic mutation remains outside this preset/textbox edit subset.",
+      "sharedReceipt": "shapes-case-map.json#/rows/252",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1727",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_name[name_set_fixture4]",
+        "file": "tests/shapes/test_base.py",
+        "line": 64
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "escapes names and alternative text while retaining literal metadata values"
+        },
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "distinguishes empty metadata from absent metadata and removes optional overrides"
+        },
+        {
+          "file": "packages/pptx/src/connectors-model.test.ts",
+          "title": "retains a live line format and mutable connector name in drawing XML"
+        }
+      ],
+      "reason": "Shape names use the same cNvPr attribute across receivers; read five shapes independently, mutate supported p:sp. Non-p:sp semantic mutation remains outside this preset/textbox edit subset.",
+      "sharedReceipt": "shapes-case-map.json#/rows/253",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1728",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:cxnSp/p:spPr-None-None]",
+        "file": "tests/shapes/test_base.py",
+        "line": 69
+      },
+      "scope": "direct-connector",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/254",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1729",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:cxnSp/p:spPr/a:xfrm-None-None]",
+        "file": "tests/shapes/test_base.py",
+        "line": 69
+      },
+      "scope": "direct-connector",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/255",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1730",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:cxnSp/p:spPr/a:xfrm/a:off{x=123,y=456}-123-456]",
+        "file": "tests/shapes/test_base.py",
+        "line": 69
+      },
+      "scope": "direct-connector",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/256",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1731",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:graphicFrame/p:xfrm-None-None]",
+        "file": "tests/shapes/test_base.py",
+        "line": 69
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/257",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1732",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:graphicFrame/p:xfrm/a:off{x=123,y=456}-123-456]",
+        "file": "tests/shapes/test_base.py",
+        "line": 69
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/258",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1733",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:grpSp/p:grpSpPr-None-None]",
+        "file": "tests/shapes/test_base.py",
+        "line": 69
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/259",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1734",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:grpSp/p:grpSpPr/a:xfrm/a:off{x=123,y=456}-123-456]",
+        "file": "tests/shapes/test_base.py",
+        "line": 69
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/260",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1735",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:pic/p:spPr-None-None]",
+        "file": "tests/shapes/test_base.py",
+        "line": 69
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/261",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1736",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:pic/p:spPr/a:xfrm-None-None]",
+        "file": "tests/shapes/test_base.py",
+        "line": 69
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/262",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1737",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:pic/p:spPr/a:xfrm/a:off{x=123,y=456}-123-456]",
+        "file": "tests/shapes/test_base.py",
+        "line": 69
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/263",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1738",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:sp/p:spPr-None-None]",
+        "file": "tests/shapes/test_base.py",
+        "line": 69
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/264",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1739",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:sp/p:spPr/a:xfrm-None-None]",
+        "file": "tests/shapes/test_base.py",
+        "line": 69
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/265",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1740",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:sp/p:spPr/a:xfrm/a:off{x=123,y=456}-123-456]",
+        "file": "tests/shapes/test_base.py",
+        "line": 69
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/266",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1741",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture0]",
+        "file": "tests/shapes/test_base.py",
+        "line": 111
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "creates sp position and size pairs with explicit integers"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/19",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1742",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture1]",
+        "file": "tests/shapes/test_base.py",
+        "line": 111
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "creates pic position and size pairs with explicit integers"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/20",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1743",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture2]",
+        "file": "tests/shapes/test_base.py",
+        "line": 111
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "creates graphicFrame position and size pairs with explicit integers"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/21",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1744",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture3]",
+        "file": "tests/shapes/test_base.py",
+        "line": 111
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "creates grpSp position and size pairs with explicit integers"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/22",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1745",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture4]",
+        "file": "tests/shapes/test_base.py",
+        "line": 111
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "creates cxnSp position and size pairs with explicit integers"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/23",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1746",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture0]",
+        "file": "tests/shapes/test_base.py",
+        "line": 117
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/272",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1747",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture1]",
+        "file": "tests/shapes/test_base.py",
+        "line": 117
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/273",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1748",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture2]",
+        "file": "tests/shapes/test_base.py",
+        "line": 117
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/274",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1749",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture3]",
+        "file": "tests/shapes/test_base.py",
+        "line": 117
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/275",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1750",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture4]",
+        "file": "tests/shapes/test_base.py",
+        "line": 117
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/276",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1751",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture5]",
+        "file": "tests/shapes/test_base.py",
+        "line": 117
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/277",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1752",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture6]",
+        "file": "tests/shapes/test_base.py",
+        "line": 117
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/278",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1753",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture7]",
+        "file": "tests/shapes/test_base.py",
+        "line": 117
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/279",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1754",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture8]",
+        "file": "tests/shapes/test_base.py",
+        "line": 117
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/280",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1755",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture9]",
+        "file": "tests/shapes/test_base.py",
+        "line": 117
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "reads local identity and explicit or absent geometry on %s"
+        }
+      ],
+      "reason": "Each of five OOXML shape element families is tested with literal local ID and coordinate pairs, absent transform, empty transform and explicit zero. Arbitrary positive IDs/names differ as original assets; absence and receiver distinctions are retained.",
+      "sharedReceipt": "shapes-case-map.json#/rows/281",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1756",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture0]",
+        "file": "tests/shapes/test_base.py",
+        "line": 122
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "creates sp position and size pairs with explicit integers"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/34",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1757",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture1]",
+        "file": "tests/shapes/test_base.py",
+        "line": 122
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "creates pic position and size pairs with explicit integers"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/35",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1758",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture2]",
+        "file": "tests/shapes/test_base.py",
+        "line": 122
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "creates graphicFrame position and size pairs with explicit integers"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/36",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1759",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture3]",
+        "file": "tests/shapes/test_base.py",
+        "line": 122
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "creates grpSp position and size pairs with explicit integers"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/37",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1760",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture4]",
+        "file": "tests/shapes/test_base.py",
+        "line": 122
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "creates cxnSp position and size pairs with explicit integers"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/38",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1761",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture0]",
+        "file": "tests/shapes/test_base.py",
+        "line": 128
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "reads precise angle $raw on $kind"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/39",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1762",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture1]",
+        "file": "tests/shapes/test_base.py",
+        "line": 128
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "reads precise angle $raw on $kind"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/40",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1763",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture2]",
+        "file": "tests/shapes/test_base.py",
+        "line": 128
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "reads precise angle $raw on $kind"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/41",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1764",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture3]",
+        "file": "tests/shapes/test_base.py",
+        "line": 128
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "reads precise angle $raw on $kind"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/42",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1765",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture4]",
+        "file": "tests/shapes/test_base.py",
+        "line": 128
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "reads precise angle $raw on $kind"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/43",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1766",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture0]",
+        "file": "tests/shapes/test_base.py",
+        "line": 132
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "writes angle $value on $kind from $initial"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/44",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1767",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture1]",
+        "file": "tests/shapes/test_base.py",
+        "line": 132
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "writes angle $value on $kind from $initial"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/45",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1768",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture2]",
+        "file": "tests/shapes/test_base.py",
+        "line": 132
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "writes angle $value on $kind from $initial"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/46",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1769",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture3]",
+        "file": "tests/shapes/test_base.py",
+        "line": 132
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "writes angle $value on $kind from $initial"
+        }
+      ],
+      "reason": "Shared shape-domain original parameter coverage applies to bounded transforms, including connector node family. This is not full live-model parity.",
+      "sharedReceipt": "transform-case-map.json#/rows/47",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1770",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_provides_access_to_its_shadow[p:sp/p:spPr]",
+        "file": "tests/shapes/test_base.py",
+        "line": 137
+      },
+      "scope": "inherited-shape",
+      "status": "inherited-evidence-gap",
+      "originalTests": [],
+      "reason": "Neighboring/inherited shape behavior is retained individually; this receipt does not claim connector-specific acceptance for every shared member. Existing shapes/transform receipts remain separate."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1771",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_provides_access_to_its_shadow[p:cxnSp/p:spPr]",
+        "file": "tests/shapes/test_base.py",
+        "line": 137
+      },
+      "scope": "direct-connector",
+      "status": "public-model-gap",
+      "originalTests": [],
+      "reason": "Connector live model/inherited formatting or automatic collection creation still needs specific evidence; no source obligation excluded."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1772",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_provides_access_to_its_shadow[p:pic/p:spPr]",
+        "file": "tests/shapes/test_base.py",
+        "line": 137
+      },
+      "scope": "inherited-shape",
+      "status": "inherited-evidence-gap",
+      "originalTests": [],
+      "reason": "Neighboring/inherited shape behavior is retained individually; this receipt does not claim connector-specific acceptance for every shared member. Existing shapes/transform receipts remain separate."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1773",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_the_part_it_belongs_to",
+        "file": "tests/shapes/test_base.py",
+        "line": 145
+      },
+      "scope": "inherited-shape",
+      "status": "inherited-evidence-gap",
+      "originalTests": [],
+      "reason": "Neighboring/inherited shape behavior is retained individually; this receipt does not claim connector-specific acceptance for every shared member. Existing shapes/transform receipts remain separate."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1774",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_it_doesnt_have_a_text_frame",
+        "file": "tests/shapes/test_base.py",
+        "line": 150
+      },
+      "scope": "inherited-shape",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        }
+      ],
+      "reason": "Direct neutral bounded model flags and integer LINE value asserted independently; no live presentation graph implied."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1775",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_whether_it_is_a_placeholder[True]",
+        "file": "tests/shapes/test_base.py",
+        "line": 154
+      },
+      "scope": "inherited-shape",
+      "status": "inherited-evidence-gap",
+      "originalTests": [],
+      "reason": "Neighboring/inherited shape behavior is retained individually; this receipt does not claim connector-specific acceptance for every shared member. Existing shapes/transform receipts remain separate."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1776",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_whether_it_is_a_placeholder[False]",
+        "file": "tests/shapes/test_base.py",
+        "line": 154
+      },
+      "scope": "inherited-shape",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        }
+      ],
+      "reason": "Direct neutral bounded model flags and integer LINE value asserted independently; no live presentation graph implied."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1777",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_provides_access_to_its_placeholder_format",
+        "file": "tests/shapes/test_base.py",
+        "line": 158
+      },
+      "scope": "inherited-shape",
+      "status": "inherited-evidence-gap",
+      "originalTests": [],
+      "reason": "Neighboring/inherited shape behavior is retained individually; this receipt does not claim connector-specific acceptance for every shared member. Existing shapes/transform receipts remain separate."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1778",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_raises_when_shape_is_not_a_placeholder",
+        "file": "tests/shapes/test_base.py",
+        "line": 164
+      },
+      "scope": "inherited-shape",
+      "status": "inherited-evidence-gap",
+      "originalTests": [],
+      "reason": "Neighboring/inherited shape behavior is retained individually; this receipt does not claim connector-specific acceptance for every shared member. Existing shapes/transform receipts remain separate."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1779",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_it_doesnt_contain_a_chart",
+        "file": "tests/shapes/test_base.py",
+        "line": 169
+      },
+      "scope": "inherited-shape",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        }
+      ],
+      "reason": "Direct neutral bounded model flags and integer LINE value asserted independently; no live presentation graph implied."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1780",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_it_doesnt_contain_a_table",
+        "file": "tests/shapes/test_base.py",
+        "line": 173
+      },
+      "scope": "inherited-shape",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        }
+      ],
+      "reason": "Direct neutral bounded model flags and integer LINE value asserted independently; no live presentation graph implied."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1781",
+        "identity": "tests/shapes/test_base.py::DescribeSubshape::it_knows_the_part_it_belongs_to",
+        "file": "tests/shapes/test_base.py",
+        "line": 579
+      },
+      "scope": "inherited-shape",
+      "status": "inherited-evidence-gap",
+      "originalTests": [],
+      "reason": "Neighboring/inherited shape behavior is retained individually; this receipt does not claim connector-specific acceptance for every shared member. Existing shapes/transform receipts remain separate."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1782",
+        "identity": "tests/shapes/test_base.py::Describe_PlaceholderFormat::it_knows_its_idx[idx_get_fixture0]",
+        "file": "tests/shapes/test_base.py",
+        "line": 594
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "preserves placeholder keys and optional metadata %s"
+        }
+      ],
+      "reason": "Original cases check sparse idx (zero,42,max uint32), omitted type/orient/sz defaults and explicit overrides. Model returns numeric PP_PLACEHOLDER values, raw inspection retains XML tokens. Full layout/master graph inheritance remains a separate obligation.",
+      "sharedReceipt": "shapes-case-map.json#/rows/308",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1783",
+        "identity": "tests/shapes/test_base.py::Describe_PlaceholderFormat::it_knows_its_idx[idx_get_fixture1]",
+        "file": "tests/shapes/test_base.py",
+        "line": 594
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "preserves placeholder keys and optional metadata %s"
+        }
+      ],
+      "reason": "Original cases check sparse idx (zero,42,max uint32), omitted type/orient/sz defaults and explicit overrides. Model returns numeric PP_PLACEHOLDER values, raw inspection retains XML tokens. Full layout/master graph inheritance remains a separate obligation.",
+      "sharedReceipt": "shapes-case-map.json#/rows/309",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1784",
+        "identity": "tests/shapes/test_base.py::Describe_PlaceholderFormat::it_knows_its_type[type_get_fixture0]",
+        "file": "tests/shapes/test_base.py",
+        "line": 598
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "preserves placeholder keys and optional metadata %s"
+        }
+      ],
+      "reason": "Original cases check sparse idx (zero,42,max uint32), omitted type/orient/sz defaults and explicit overrides. Model returns numeric PP_PLACEHOLDER values, raw inspection retains XML tokens. Full layout/master graph inheritance remains a separate obligation.",
+      "sharedReceipt": "shapes-case-map.json#/rows/310",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1785",
+        "identity": "tests/shapes/test_base.py::Describe_PlaceholderFormat::it_knows_its_type[type_get_fixture1]",
+        "file": "tests/shapes/test_base.py",
+        "line": 598
+      },
+      "scope": "inherited-shape",
+      "status": "shared-original-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "preserves placeholder keys and optional metadata %s"
+        }
+      ],
+      "reason": "Original cases check sparse idx (zero,42,max uint32), omitted type/orient/sz defaults and explicit overrides. Model returns numeric PP_PLACEHOLDER values, raw inspection retains XML tokens. Full layout/master graph inheritance remains a separate obligation.",
+      "sharedReceipt": "shapes-case-map.json#/rows/311",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1786",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_begin_point_x_location[begin_x_get_fixture0]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 20
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads beginX from box 42,6,24,32 with flips false,false"
+        }
+      ],
+      "reason": "Exact source coordinate/flip values and Length.emu getters asserted through neutral Connector model, alongside operation read. XML-owned view is not a live Presentation graph.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1787",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_begin_point_x_location[begin_x_get_fixture1]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 20
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads beginX from box 24,6,42,32 with flips true,false"
+        }
+      ],
+      "reason": "Exact source coordinate/flip values and Length.emu getters asserted through neutral Connector model, alongside operation read. XML-owned view is not a live Presentation graph.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1788",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture0]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 26
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes beginX with prior flip false assigned 5"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1789",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture1]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 26
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes beginX with prior flip false assigned 15"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1790",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture2]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 26
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes beginX with prior flip false assigned 25"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1791",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture3]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 26
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes beginX with prior flip true assigned 25"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1792",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture4]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 26
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes beginX with prior flip true assigned 15"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1793",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture5]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 26
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes beginX with prior flip true assigned 5"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1794",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_begin_point_y_location[begin_y_get_fixture0]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 31
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads beginY from box 6,40,32,60 with flips false,false"
+        }
+      ],
+      "reason": "Exact source coordinate/flip values and Length.emu getters asserted through neutral Connector model, alongside operation read. XML-owned view is not a live Presentation graph.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1795",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_begin_point_y_location[begin_y_get_fixture1]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 31
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads beginY from box 6,50,32,42 with flips false,true"
+        }
+      ],
+      "reason": "Exact source coordinate/flip values and Length.emu getters asserted through neutral Connector model, alongside operation read. XML-owned view is not a live Presentation graph.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1796",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture0]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 37
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes beginY with prior flip false assigned 5"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1797",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture1]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 37
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes beginY with prior flip false assigned 15"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1798",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture2]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 37
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes beginY with prior flip false assigned 25"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1799",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture3]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 37
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes beginY with prior flip true assigned 30"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1800",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture4]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 37
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes beginY with prior flip true assigned 15"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1801",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture5]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 37
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes beginY with prior flip true assigned 5"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1802",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_end_point_x_location[end_x_get_fixture0]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 42
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads endX from box 21,6,32,60 with flips false,false"
+        }
+      ],
+      "reason": "Exact source coordinate/flip values and Length.emu getters asserted through neutral Connector model, alongside operation read. XML-owned view is not a live Presentation graph.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1803",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_end_point_x_location[end_x_get_fixture1]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 42
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads endX from box 43,6,54,60 with flips true,false"
+        }
+      ],
+      "reason": "Exact source coordinate/flip values and Length.emu getters asserted through neutral Connector model, alongside operation read. XML-owned view is not a live Presentation graph.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1804",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture0]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 48
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes endX with prior flip false assigned 32"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1805",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture1]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 48
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes endX with prior flip false assigned 15"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1806",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture2]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 48
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes endX with prior flip false assigned 5"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1807",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture3]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 48
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes endX with prior flip true assigned 5"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1808",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture4]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 48
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes endX with prior flip true assigned 15"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1809",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture5]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 48
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes endX with prior flip true assigned 28"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1810",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_end_point_y_location[end_y_get_fixture0]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 53
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads endY from box 6,31,32,42 with flips false,false"
+        }
+      ],
+      "reason": "Exact source coordinate/flip values and Length.emu getters asserted through neutral Connector model, alongside operation read. XML-owned view is not a live Presentation graph.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1811",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_end_point_y_location[end_y_get_fixture1]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 53
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads endY from box 6,53,32,14 with flips false,true"
+        }
+      ],
+      "reason": "Exact source coordinate/flip values and Length.emu getters asserted through neutral Connector model, alongside operation read. XML-owned view is not a live Presentation graph.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1812",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture0]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 59
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes endY with prior flip false assigned 28"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1813",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture1]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 59
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes endY with prior flip false assigned 13"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1814",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture2]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 59
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes endY with prior flip false assigned 4"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1815",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture3]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 59
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes endY with prior flip true assigned 6"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1816",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture4]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 59
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes endY with prior flip true assigned 12"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1817",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture5]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 59
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes endY with prior flip true assigned 27"
+        }
+      ],
+      "reason": "Exact six-case coordinate values, flip transition, offset and extent checked through neutral Connector Length property setters with independent authored serialized XML expectations; no model graph parity claim.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1818",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_connect_its_begin_point_to_a_shape",
+        "file": "tests/shapes/test_connector.py",
+        "line": 64
+      },
+      "scope": "direct-connector",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "attaches and rebinds the begin endpoint to a picture site"
+        }
+      ],
+      "reason": "Both missing and existing attachment states asserted separately in the same original workflow; exact one-inch right midpoint retained. Public effects replace mock-only dispatch.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1819",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_connect_its_end_point_to_a_shape",
+        "file": "tests/shapes/test_connector.py",
+        "line": 72
+      },
+      "scope": "direct-connector",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "attaches and rebinds the end endpoint to a picture site"
+        }
+      ],
+      "reason": "Both missing and existing attachment states asserted separately in the same original workflow; exact one-inch right midpoint retained. Public effects replace mock-only dispatch.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1820",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_provides_access_to_its_line_format",
+        "file": "tests/shapes/test_connector.py",
+        "line": 80
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connectors-model.test.ts",
+          "title": "retains a live line format and mutable connector name in drawing XML"
+        }
+      ],
+      "reason": "Shared LineFormat callback remains live over the Connector XML snapshot; exact 91440 EMU width write/read and null reset asserted. No copied wrapper identity needed."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1821",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_shape_type",
+        "file": "tests/shapes/test_connector.py",
+        "line": 90
+      },
+      "scope": "direct-connector",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        }
+      ],
+      "reason": "Direct neutral bounded model flags and integer LINE value asserted independently; no live presentation graph implied."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1822",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_connects_its_begin_point_to_help[connect_begin_fixture0]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 93
+      },
+      "scope": "direct-connector",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "attaches and rebinds the begin endpoint to a picture site"
+        }
+      ],
+      "reason": "Both missing and existing attachment states asserted separately in the same original workflow; exact one-inch right midpoint retained. Public effects replace mock-only dispatch.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1823",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_connects_its_begin_point_to_help[connect_begin_fixture1]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 93
+      },
+      "scope": "direct-connector",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "attaches and rebinds the begin endpoint to a picture site"
+        }
+      ],
+      "reason": "Both missing and existing attachment states asserted separately in the same original workflow; exact one-inch right midpoint retained. Public effects replace mock-only dispatch.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1824",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_connects_its_end_point_to_help[connect_end_fixture0]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 98
+      },
+      "scope": "direct-connector",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "attaches and rebinds the end endpoint to a picture site"
+        }
+      ],
+      "reason": "Both missing and existing attachment states asserted separately in the same original workflow; exact one-inch right midpoint retained. Public effects replace mock-only dispatch.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1825",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_connects_its_end_point_to_help[connect_end_fixture1]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 98
+      },
+      "scope": "direct-connector",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "attaches and rebinds the end endpoint to a picture site"
+        }
+      ],
+      "reason": "Both missing and existing attachment states asserted separately in the same original workflow; exact one-inch right midpoint retained. Public effects replace mock-only dispatch.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1826",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_begin_point_to_help[move_begin_fixture0]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 103
+      },
+      "scope": "direct-connector",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes begin attachment at cardinal site 0"
+        }
+      ],
+      "reason": "All four cardinal-site coordinate/extent vectors retained literally. Observable metadata and XML geometry replace private helper invocation.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1827",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_begin_point_to_help[move_begin_fixture1]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 103
+      },
+      "scope": "direct-connector",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes begin attachment at cardinal site 1"
+        }
+      ],
+      "reason": "All four cardinal-site coordinate/extent vectors retained literally. Observable metadata and XML geometry replace private helper invocation.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1828",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_begin_point_to_help[move_begin_fixture2]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 103
+      },
+      "scope": "direct-connector",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes begin attachment at cardinal site 2"
+        }
+      ],
+      "reason": "All four cardinal-site coordinate/extent vectors retained literally. Observable metadata and XML geometry replace private helper invocation.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1829",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_begin_point_to_help[move_begin_fixture3]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 103
+      },
+      "scope": "direct-connector",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes begin attachment at cardinal site 3"
+        }
+      ],
+      "reason": "All four cardinal-site coordinate/extent vectors retained literally. Observable metadata and XML geometry replace private helper invocation.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1830",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_end_point_to_help[move_end_fixture0]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 108
+      },
+      "scope": "direct-connector",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes end attachment at cardinal site 0"
+        }
+      ],
+      "reason": "All four cardinal-site coordinate/extent vectors retained literally. Observable metadata and XML geometry replace private helper invocation.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1831",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_end_point_to_help[move_end_fixture1]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 108
+      },
+      "scope": "direct-connector",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes end attachment at cardinal site 1"
+        }
+      ],
+      "reason": "All four cardinal-site coordinate/extent vectors retained literally. Observable metadata and XML geometry replace private helper invocation.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1832",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_end_point_to_help[move_end_fixture2]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 108
+      },
+      "scope": "direct-connector",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes end attachment at cardinal site 2"
+        }
+      ],
+      "reason": "All four cardinal-site coordinate/extent vectors retained literally. Observable metadata and XML geometry replace private helper invocation.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1833",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_end_point_to_help[move_end_fixture3]",
+        "file": "tests/shapes/test_connector.py",
+        "line": 108
+      },
+      "scope": "direct-connector",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes end attachment at cardinal site 3"
+        }
+      ],
+      "reason": "All four cardinal-site coordinate/extent vectors retained literally. Observable metadata and XML geometry replace private helper invocation.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2008",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_connector_shape",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 327
+      },
+      "scope": "direct-connector",
+      "status": "public-model-gap",
+      "originalTests": [],
+      "reason": "Connector live model/inherited formatting or automatic collection creation still needs specific evidence; no source obligation excluded."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2026",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture0]",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 456
+      },
+      "scope": "direct-connector",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "creates independent endpoint quadrant 1,2 to 3,5"
+        }
+      ],
+      "reason": "Exact four orientation coordinate vectors and serialized flip/offset/extent assertions; assigned ID independently checked. Original name/style defaults intentionally avoid external template branding.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2027",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture1]",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 456
+      },
+      "scope": "direct-connector",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "creates independent endpoint quadrant 8,3 to 4,9"
+        }
+      ],
+      "reason": "Exact four orientation coordinate vectors and serialized flip/offset/extent assertions; assigned ID independently checked. Original name/style defaults intentionally avoid external template branding.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2028",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture2]",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 456
+      },
+      "scope": "direct-connector",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "creates independent endpoint quadrant 1,6 to 5,2"
+        }
+      ],
+      "reason": "Exact four orientation coordinate vectors and serialized flip/offset/extent assertions; assigned ID independently checked. Original name/style defaults intentionally avoid external template branding.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2029",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture3]",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 456
+      },
+      "scope": "direct-connector",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "creates independent endpoint quadrant 9,8 to 2,3"
+        }
+      ],
+      "reason": "Exact four orientation coordinate vectors and serialized flip/offset/extent assertions; assigned ID independently checked. Original name/style defaults intentionally avoid external template branding.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/550",
+        "identity": "Connector.begin_connect()",
+        "file": "features/shp-connector.feature",
+        "line": 7
+      },
+      "scope": "connector-bdd",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "attaches and rebinds the begin endpoint to a picture site"
+        },
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "binds the neutral begin method to the one-inch picture midpoint"
+        }
+      ],
+      "reason": "Both missing and existing attachment states asserted separately in the same original workflow; exact one-inch right midpoint retained. Public effects replace mock-only dispatch.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/551",
+        "identity": "Get Connector.begin_x/y -- @1.1 Connector begin point states",
+        "file": "features/shp-connector.feature",
+        "line": 21
+      },
+      "scope": "connector-bdd",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "round trips whole-inch beginX assignment"
+        }
+      ],
+      "reason": "The same original case first checks both x/y getters at the exact source whole-inch coordinates before assignment; Length mapping is tracked separately.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/552",
+        "identity": "Get Connector.end_x/y -- @1.1 Connector end point states",
+        "file": "features/shp-connector.feature",
+        "line": 31
+      },
+      "scope": "connector-bdd",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "round trips whole-inch endX assignment"
+        }
+      ],
+      "reason": "The same original case first checks both x/y getters at the exact source whole-inch coordinates before assignment; Length mapping is tracked separately.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/553",
+        "identity": "Set Connector.begin_x -- @1.1 Connector begin point assignment results",
+        "file": "features/shp-connector.feature",
+        "line": 41
+      },
+      "scope": "connector-bdd",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "round trips whole-inch beginX assignment"
+        }
+      ],
+      "reason": "Retains exact whole-inch assignment, reopens serialized XML and checks effective endpoint; synchronous operation effect, not a claim of live collection ownership.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/554",
+        "identity": "Set Connector.begin_y -- @1.1 Connector begin point assignment results",
+        "file": "features/shp-connector.feature",
+        "line": 51
+      },
+      "scope": "connector-bdd",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "round trips whole-inch beginY assignment"
+        }
+      ],
+      "reason": "Retains exact whole-inch assignment, reopens serialized XML and checks effective endpoint; synchronous operation effect, not a claim of live collection ownership.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/555",
+        "identity": "Connector.end_connect()",
+        "file": "features/shp-connector.feature",
+        "line": 54
+      },
+      "scope": "connector-bdd",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "attaches and rebinds the end endpoint to a picture site"
+        },
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "binds the neutral end method to the one-inch picture midpoint"
+        }
+      ],
+      "reason": "Both missing and existing attachment states asserted separately in the same original workflow; exact one-inch right midpoint retained. Public effects replace mock-only dispatch.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/556",
+        "identity": "Set Connector.end_x -- @1.1 Connector end point assignment results",
+        "file": "features/shp-connector.feature",
+        "line": 68
+      },
+      "scope": "connector-bdd",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "round trips whole-inch endX assignment"
+        }
+      ],
+      "reason": "Retains exact whole-inch assignment, reopens serialized XML and checks effective endpoint; synchronous operation effect, not a claim of live collection ownership.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/557",
+        "identity": "Set Connector.end_y -- @1.1 Connector end point assignment results",
+        "file": "features/shp-connector.feature",
+        "line": 78
+      },
+      "scope": "connector-bdd",
+      "status": "implemented-operation-behavior",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "round trips whole-inch endY assignment"
+        }
+      ],
+      "reason": "Retains exact whole-inch assignment, reopens serialized XML and checks effective endpoint; synchronous operation effect, not a claim of live collection ownership.",
+      "wholePublicApiParity": false
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/558",
+        "identity": "Connector.line",
+        "file": "features/shp-connector.feature",
+        "line": 81
+      },
+      "scope": "connector-bdd",
+      "status": "implemented-bounded-model",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/connectors-model.test.ts",
+          "title": "retains a live line format and mutable connector name in drawing XML"
+        }
+      ],
+      "reason": "Shared LineFormat callback remains live over the Connector XML snapshot; exact 91440 EMU width write/read and null reset asserted. No copied wrapper identity needed."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/621",
+        "identity": "GroupShapes.add_connector()",
+        "file": "features/shp-shapes.feature",
+        "line": 34
+      },
+      "scope": "connector-bdd",
+      "status": "public-model-gap",
+      "originalTests": [],
+      "reason": "Connector live model/inherited formatting or automatic collection creation still needs specific evidence; no source obligation excluded."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/666",
+        "identity": "SlideShapes.add_connector()",
+        "file": "features/shp-shapes.feature",
+        "line": 201
+      },
+      "scope": "connector-bdd",
+      "status": "public-model-gap",
+      "originalTests": [],
+      "reason": "Connector live model/inherited formatting or automatic collection creation still needs specific evidence; no source obligation excluded."
+    }
+  ],
+  "evidence": {
+    "command": "npx vitest run packages/pptx/src/connector-behavior-cases.test.ts packages/pptx/src/connectors-model.test.ts packages/pptx/src/shapes-regressions.test.ts packages/pptx/src/transform-behavior-cases.test.ts",
+    "tests": 404,
+    "passed": 404,
+    "ownedConnectorCases": 59,
+    "scope": "Focused direct and shared evidence; original in-memory XML cases. Maintained package checks separately recorded by root."
+  },
+  "counts": {
+    "directUnit": 58,
+    "inheritedNeighboringUnit": 69,
+    "bdd": 11,
+    "byStatus": {
+      "inherited-evidence-gap": 11,
+      "public-model-gap": 5,
+      "shared-original-behavior": 57,
+      "implemented-bounded-model": 41,
+      "implemented-operation-behavior": 24
+    }
+  }
+}

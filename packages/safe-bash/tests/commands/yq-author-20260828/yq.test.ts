@@ -26,7 +26,8 @@ test("inline continuation preserves quoting, inserted newlines, and comments", a
     ['"first\\\nsecond"', "firstsecond"],
     ['"open\\\n"', "open"],
     ["['a''\nb']", ["a' b"]],
-    ['[\n  1, # comment\n  2\n]', [1, "# comment 2"]],
+    ['[\n  1, # comment\n  2\n]', [1, 2]],
+    ['[\n  1, # [\n  2\n]', [1, 2]],
     ['[1] # [ ignored', [1]],
   ] as const) {
     assert.deepEqual(await run(["-o", "json", "-c", "."], input), {
@@ -38,7 +39,6 @@ test("inline continuation preserves quoting, inserted newlines, and comments", a
 test("inline continuation preserves malformed diagnostic positions", async () => {
   for (const [input, line, column] of [
     ["'first'\n'next'", 2, 1],
-    ['[\n  1, # [\n  2\n]', 1, 1],
     [']"open[\nclose"', 1, 1],
     ['][\nnext', 1, 1],
     ['[\n  1,\n', 1, 1],

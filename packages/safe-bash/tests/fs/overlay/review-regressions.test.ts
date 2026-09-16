@@ -16,6 +16,7 @@ class GetterStat implements FileStat {
   get type() { return this.#values.type; }
   get size() { return this.#values.size; }
   get allocatedBytes() { return this.#values.allocatedBytes; }
+  get ioBlockSize() { return this.#values.ioBlockSize; }
   get preferredIoBlockSize() { return this.#values.preferredIoBlockSize; }
   get mode() { return this.#values.mode; }
   get mtimeMs() { return this.#values.mtimeMs; }
@@ -26,14 +27,16 @@ class GetterStat implements FileStat {
   get identityScope() { return this.#values.identityScope; }
   get ino() { return this.#values.ino; }
   get dev() { return this.#values.dev; }
+  get rdevMajor() { return this.#values.rdevMajor; }
+  get rdevMinor() { return this.#values.rdevMinor; }
   get nlink() { return this.#values.nlink; }
   get uid() { return this.#values.uid; }
   get gid() { return this.#values.gid; }
 }
 
 const metadata: MutableStat = {
-  type: "file", size: 5, allocatedBytes: 4096, preferredIoBlockSize: 4096, mode: 0o100640, mtimeMs: 101, atimeMs: 102,
-  ctimeMs: 103, revision: 7, birthtimeMs: 104, identityScope: Symbol(), ino: 105, dev: 0, nlink: 1, uid: 0, gid: 0,
+  type: "file", size: 5, allocatedBytes: 4096, ioBlockSize: 1024, preferredIoBlockSize: 4096, mode: 0o100640, mtimeMs: 101, atimeMs: 102,
+  ctimeMs: 103, revision: 7, birthtimeMs: 104, identityScope: Symbol(), ino: 105, dev: 0, rdevMajor: 0, rdevMinor: 0, nlink: 1, uid: 0, gid: 0,
 };
 
 const shapes: Record<string, (values: MutableStat) => FileStat> = {
@@ -71,11 +74,22 @@ for (const [name, shape] of Object.entries(shapes)) {
       assert.deepEqual(lstat, metadata);
       assert.notEqual(stat, shaped);
       assert.notEqual(stat, lstat);
+      for (const copied of [stat, lstat]) {
+        for (const field of ["ioBlockSize", "rdevMajor", "rdevMinor"] as const) {
+          const descriptor = Object.getOwnPropertyDescriptor(copied, field);
+          assert.ok(descriptor);
+          assert.equal(descriptor.get, undefined);
+          assert.equal(descriptor.value, metadata[field]);
+        }
+      }
       const listing = await overlay.readdir("/");
       assert.deepEqual(listing, [{ name: "file", type: "file" }]);
       values.type = "directory";
       values.size = 1234;
       values.allocatedBytes = 8192;
+      values.ioBlockSize = 2048;
+      values.rdevMajor = 1;
+      values.rdevMinor = 3;
       values.preferredIoBlockSize = 8192;
       values.mode = 0o40700;
       values.mtimeMs = values.atimeMs = values.ctimeMs = 987;
@@ -87,6 +101,11 @@ for (const [name, shape] of Object.entries(shapes)) {
       assert.deepEqual(await overlay.lstat("/file"), values);
       Reflect.set(stat, "size", 222);
       Reflect.set(lstat, "uid", 333);
+      for (const field of ["ioBlockSize", "rdevMajor", "rdevMinor"] as const) {
+        Reflect.set(stat, field, 222);
+        Reflect.set(lstat, field, 333);
+        assert.equal(shaped[field], values[field]);
+      }
       Reflect.set(listing[0]!, "type", "symlink");
       assert.equal(shaped.size, 1234);
       assert.equal(shaped.uid, 654);
@@ -131,6 +150,10 @@ test("stat snapshots omit absent optional fields and backend-specific references
   const overlay = new OverlayFileSystem({ upper: new MemoryFileSystem(), lower });
   assert.deepEqual(await overlay.stat("/file"), required);
   assert.deepEqual(await overlay.lstat("/file"), required);
+  for (const method of ["stat", "lstat"] as const) {
+    const stat = await overlay[method]("/file");
+    for (const field of ["ioBlockSize", "rdevMajor", "rdevMinor"] as const) assert.equal(Object.hasOwn(stat, field), false);
+  }
 });
 
 test("capability metadata cannot be reassigned, redefined, or mutated", () => {

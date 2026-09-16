@@ -1,0 +1,1258 @@
+{
+  "schemaVersion": 1,
+  "scope": "Position/size/rotation/flip and explicit nested transforms; research/provenance receipt, not whole API parity.",
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "notice": "Original TypeScript wording and XML assets. Existing test-case-map-notice.txt and upstream-license-notice.txt retain research notices.",
+  "selection": "All base-shape position/dimension/rotation variants; all corresponding shared-shape BDD examples; adjacent group extent and placeholder inheritance obligations retained individually. No flip-specific baseline case was found. Unit helpers retain length-case-map.json coverage; custom builder geometry remains in path-case-map.json.",
+  "mappings": {
+    "original-domain-behavior-covered": "Original XML trees assert integer values and absent geometry across all five drawing kinds. Explicit rot=0 is equivalent to omitted default. Dimensions 321/654 and position 123/456 retain fixture semantics. Sequential dimensions require an existing second extent; initial pair creation is explicit.",
+    "domain-workflow-covered-model-gap": "Original XML and sequential typed mutations retain every expanded example value. Document-owned Picture/GroupShape/Connector/GraphicFrame live subclasses remain pending. Domain tests do not count as complete public model parity.",
+    "deferred-adjacent-api": "Group collection extent recalculation and inherited placeholder resolution remain pending. Local transform assignment retains child mapping rather than automatic collection resizing. No parity claim."
+  },
+  "counts": {
+    "deferred-adjacent-api": 21,
+    "original-domain-behavior-covered": 42,
+    "domain-workflow-covered-model-gap": 30
+  },
+  "rows": [
+    {
+      "id": "presentation-unit-4db98acaf844",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1355",
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_recalculate_its_pos_and_size[recalc_fixture0]",
+        "behavior": "test-case-map.json#/rows/1355/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-dbcc7b8936f2",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1356",
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_recalculate_its_pos_and_size[recalc_fixture1]",
+        "behavior": "test-case-map.json#/rows/1356/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-39755adea5dd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1357",
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_calculates_its_child_extents_to_help[child_exts_fixture0]",
+        "behavior": "test-case-map.json#/rows/1357/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-b55abecd44fc",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1358",
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_calculates_its_child_extents_to_help[child_exts_fixture1]",
+        "behavior": "test-case-map.json#/rows/1358/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-625bde34d404",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1359",
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_calculates_its_child_extents_to_help[child_exts_fixture2]",
+        "behavior": "test-case-map.json#/rows/1359/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-c131dd494437",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1360",
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_calculates_its_child_extents_to_help[child_exts_fixture3]",
+        "behavior": "test-case-map.json#/rows/1360/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-76e42746c2d9",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1728",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:cxnSp/p:spPr-None-None]",
+        "behavior": "test-case-map.json#/rows/1728/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads cxnSp placement with %s transform"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-08c4394c24a3",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1729",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:cxnSp/p:spPr/a:xfrm-None-None]",
+        "behavior": "test-case-map.json#/rows/1729/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads cxnSp placement with %s transform"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-5fb4d9864425",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1730",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:cxnSp/p:spPr/a:xfrm/a:off{x=123,y=456}-123-456]",
+        "behavior": "test-case-map.json#/rows/1730/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads cxnSp placement with %s transform"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-2c2cb7aa90b7",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1731",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:graphicFrame/p:xfrm-None-None]",
+        "behavior": "test-case-map.json#/rows/1731/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads graphicFrame placement with %s transform"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-e714235fd1ad",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1732",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:graphicFrame/p:xfrm/a:off{x=123,y=456}-123-456]",
+        "behavior": "test-case-map.json#/rows/1732/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads graphicFrame placement with %s transform"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-e2b40b866239",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1733",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:grpSp/p:grpSpPr-None-None]",
+        "behavior": "test-case-map.json#/rows/1733/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads grpSp placement with %s transform"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-2e200a6f73c8",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1734",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:grpSp/p:grpSpPr/a:xfrm/a:off{x=123,y=456}-123-456]",
+        "behavior": "test-case-map.json#/rows/1734/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads grpSp placement with %s transform"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-ed4157706b63",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1735",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:pic/p:spPr-None-None]",
+        "behavior": "test-case-map.json#/rows/1735/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads pic placement with %s transform"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-4c466983b192",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1736",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:pic/p:spPr/a:xfrm-None-None]",
+        "behavior": "test-case-map.json#/rows/1736/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads pic placement with %s transform"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-8d7b6feb6cf2",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1737",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:pic/p:spPr/a:xfrm/a:off{x=123,y=456}-123-456]",
+        "behavior": "test-case-map.json#/rows/1737/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads pic placement with %s transform"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-39bae7189001",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1738",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:sp/p:spPr-None-None]",
+        "behavior": "test-case-map.json#/rows/1738/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads sp placement with %s transform"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-5a059940a887",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1739",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:sp/p:spPr/a:xfrm-None-None]",
+        "behavior": "test-case-map.json#/rows/1739/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads sp placement with %s transform"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-d7b64f111e8f",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1740",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:sp/p:spPr/a:xfrm/a:off{x=123,y=456}-123-456]",
+        "behavior": "test-case-map.json#/rows/1740/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads sp placement with %s transform"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-3ecf394c0911",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1741",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture0]",
+        "behavior": "test-case-map.json#/rows/1741/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates sp position and size pairs with explicit integers"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-7230abe8e022",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1742",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture1]",
+        "behavior": "test-case-map.json#/rows/1742/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates pic position and size pairs with explicit integers"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-4e1e5cdb0db6",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1743",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture2]",
+        "behavior": "test-case-map.json#/rows/1743/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates graphicFrame position and size pairs with explicit integers"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-c2a5758f5298",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1744",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture3]",
+        "behavior": "test-case-map.json#/rows/1744/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates grpSp position and size pairs with explicit integers"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-3d3ae447ece8",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1745",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture4]",
+        "behavior": "test-case-map.json#/rows/1745/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates cxnSp position and size pairs with explicit integers"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-56b741f5e668",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1746",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture0]",
+        "behavior": "test-case-map.json#/rows/1746/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads sp dimensions when present=%s"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-fa2c65600cd9",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1747",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture1]",
+        "behavior": "test-case-map.json#/rows/1747/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads sp dimensions when present=%s"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-180fde955b00",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1748",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture2]",
+        "behavior": "test-case-map.json#/rows/1748/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads pic dimensions when present=%s"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-e507a153f5d4",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1749",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture3]",
+        "behavior": "test-case-map.json#/rows/1749/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads pic dimensions when present=%s"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-5c2217395fb0",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1750",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture4]",
+        "behavior": "test-case-map.json#/rows/1750/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads graphicFrame dimensions when present=%s"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-28c305907552",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1751",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture5]",
+        "behavior": "test-case-map.json#/rows/1751/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads graphicFrame dimensions when present=%s"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-9a4fbbf69350",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1752",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture6]",
+        "behavior": "test-case-map.json#/rows/1752/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads grpSp dimensions when present=%s"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-67c7f5f4e6fa",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1753",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture7]",
+        "behavior": "test-case-map.json#/rows/1753/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads grpSp dimensions when present=%s"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-a1a0cdd7a5a0",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1754",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture8]",
+        "behavior": "test-case-map.json#/rows/1754/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads cxnSp dimensions when present=%s"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-d314679744ab",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1755",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture9]",
+        "behavior": "test-case-map.json#/rows/1755/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads cxnSp dimensions when present=%s"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-cda6903da132",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1756",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture0]",
+        "behavior": "test-case-map.json#/rows/1756/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates sp position and size pairs with explicit integers"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-2bfa131db235",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1757",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture1]",
+        "behavior": "test-case-map.json#/rows/1757/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates pic position and size pairs with explicit integers"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-bbc0854f5fc3",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1758",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture2]",
+        "behavior": "test-case-map.json#/rows/1758/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates graphicFrame position and size pairs with explicit integers"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-e6b4b8b903b9",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1759",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture3]",
+        "behavior": "test-case-map.json#/rows/1759/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates grpSp position and size pairs with explicit integers"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-d74fe505494d",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1760",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture4]",
+        "behavior": "test-case-map.json#/rows/1760/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates cxnSp position and size pairs with explicit integers"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-d70a62f394de",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1761",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture0]",
+        "behavior": "test-case-map.json#/rows/1761/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads precise angle $raw on $kind"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-f98bdd685a54",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1762",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture1]",
+        "behavior": "test-case-map.json#/rows/1762/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads precise angle $raw on $kind"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-0fd52fff5d01",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1763",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture2]",
+        "behavior": "test-case-map.json#/rows/1763/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads precise angle $raw on $kind"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-0bb19c10dd7a",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1764",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture3]",
+        "behavior": "test-case-map.json#/rows/1764/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads precise angle $raw on $kind"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-f01cfc94ac03",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1765",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture4]",
+        "behavior": "test-case-map.json#/rows/1765/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads precise angle $raw on $kind"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-a085489c6747",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1766",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture0]",
+        "behavior": "test-case-map.json#/rows/1766/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "writes angle $value on $kind from $initial"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-a8cb919f6853",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1767",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture1]",
+        "behavior": "test-case-map.json#/rows/1767/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "writes angle $value on $kind from $initial"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-7eaf052dafdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1768",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture2]",
+        "behavior": "test-case-map.json#/rows/1768/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "writes angle $value on $kind from $initial"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-c6be790cf4bd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1769",
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture3]",
+        "behavior": "test-case-map.json#/rows/1769/original_behavior"
+      },
+      "status": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "writes angle $value on $kind from $initial"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-407e8f2198c6",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1934",
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_override_dimensions_when_present[override_fixture0]",
+        "behavior": "test-case-map.json#/rows/1934/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-d245852e14ed",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1935",
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_override_dimensions_when_present[override_fixture1]",
+        "behavior": "test-case-map.json#/rows/1935/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-814aa5be8fac",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1936",
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_override_dimensions_when_present[override_fixture2]",
+        "behavior": "test-case-map.json#/rows/1936/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-228cff6076fa",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1937",
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_override_dimensions_when_present[override_fixture3]",
+        "behavior": "test-case-map.json#/rows/1937/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-922c74849100",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1938",
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_inherited_dims_when_no_override[left]",
+        "behavior": "test-case-map.json#/rows/1938/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-d08235375bd4",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1939",
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_inherited_dims_when_no_override[top]",
+        "behavior": "test-case-map.json#/rows/1939/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-a0f9690c6f70",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1940",
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_inherited_dims_when_no_override[width]",
+        "behavior": "test-case-map.json#/rows/1940/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-f6e0cd7f8399",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1941",
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_inherited_dims_when_no_override[height]",
+        "behavior": "test-case-map.json#/rows/1941/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-814d423146eb",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1942",
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_gets_an_inherited_dim_value_to_help[base_val_fixture0]",
+        "behavior": "test-case-map.json#/rows/1942/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-dbc064696f0e",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1943",
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_gets_an_inherited_dim_value_to_help[base_val_fixture1]",
+        "behavior": "test-case-map.json#/rows/1943/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-69b48b29dbd7",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1945",
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_can_override_inherited_dimensions[dim_set_fixture0]",
+        "behavior": "test-case-map.json#/rows/1945/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-e664fc4f118c",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1946",
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_can_override_inherited_dimensions[dim_set_fixture1]",
+        "behavior": "test-case-map.json#/rows/1946/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-19c6035c70ea",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1947",
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_can_override_inherited_dimensions[dim_set_fixture2]",
+        "behavior": "test-case-map.json#/rows/1947/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-8bb27a1b2a6e",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1948",
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_can_override_inherited_dimensions[dim_set_fixture3]",
+        "behavior": "test-case-map.json#/rows/1948/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-05b8ac8f620d",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2033",
+        "identity": "tests/shapes/test_shapetree.py::DescribeGroupShapes::it_recalculates_its_extents_to_help",
+        "behavior": "test-case-map.json#/rows/2033/original_behavior"
+      },
+      "status": "deferred-adjacent-api",
+      "originalTest": null,
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-95343b0e00c9",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/725",
+        "identity": "Get shape.left and shape.top -- @1.1 Shape types",
+        "behavior": "test-case-map.json#/rows/3425/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes sp authored placement"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-c2f28358c74e",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/726",
+        "identity": "Get shape.left and shape.top -- @1.2 Shape types",
+        "behavior": "test-case-map.json#/rows/3426/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes pic authored placement"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-1300dc0a05ad",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/727",
+        "identity": "Get shape.left and shape.top -- @1.3 Shape types",
+        "behavior": "test-case-map.json#/rows/3427/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes graphicFrame authored placement"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-23b8e1562e6b",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/728",
+        "identity": "Get shape.left and shape.top -- @1.4 Shape types",
+        "behavior": "test-case-map.json#/rows/3428/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes grpSp authored placement"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-f0c2d856774c",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/729",
+        "identity": "Get shape.left and shape.top -- @1.5 Shape types",
+        "behavior": "test-case-map.json#/rows/3429/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes cxnSp authored placement"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-08354ef9d8a6",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/730",
+        "identity": "Set shape.left and shape.top -- @1.1 Shape types",
+        "behavior": "test-case-map.json#/rows/3430/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates sp placement independently"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-7108bbc01dd7",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/731",
+        "identity": "Set shape.left and shape.top -- @1.2 Shape types",
+        "behavior": "test-case-map.json#/rows/3431/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates pic placement independently"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-11f56d08cc01",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/732",
+        "identity": "Set shape.left and shape.top -- @1.3 Shape types",
+        "behavior": "test-case-map.json#/rows/3432/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates graphicFrame placement independently"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-4c2390ab073a",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/733",
+        "identity": "Set shape.left and shape.top -- @1.4 Shape types",
+        "behavior": "test-case-map.json#/rows/3433/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates grpSp placement independently"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-ef1cce8de130",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/734",
+        "identity": "Set shape.left and shape.top -- @1.5 Shape types",
+        "behavior": "test-case-map.json#/rows/3434/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates cxnSp placement independently"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-5f6988110799",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/750",
+        "identity": "Get shape.rotation -- @1.1 Shape types",
+        "behavior": "test-case-map.json#/rows/3450/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes sp authored rotation"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-cc81690913ca",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/751",
+        "identity": "Get shape.rotation -- @1.2 Shape types",
+        "behavior": "test-case-map.json#/rows/3451/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes pic authored rotation"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-932bb180678a",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/752",
+        "identity": "Get shape.rotation -- @1.3 Shape types",
+        "behavior": "test-case-map.json#/rows/3452/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes graphicFrame authored rotation"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-80f715bf0564",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/753",
+        "identity": "Get shape.rotation -- @1.4 Shape types",
+        "behavior": "test-case-map.json#/rows/3453/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes grpSp authored rotation"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-fc58773e53b3",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/754",
+        "identity": "Get shape.rotation -- @1.5 Shape types",
+        "behavior": "test-case-map.json#/rows/3454/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes cxnSp authored rotation"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-c46e31f5f6a7",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/755",
+        "identity": "Set shape.rotation -- @1.1 Shape types",
+        "behavior": "test-case-map.json#/rows/3455/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates sp normalized rotation"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-c04bca83ad07",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/756",
+        "identity": "Set shape.rotation -- @1.2 Shape types",
+        "behavior": "test-case-map.json#/rows/3456/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates pic normalized rotation"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-c24795812e92",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/757",
+        "identity": "Set shape.rotation -- @1.3 Shape types",
+        "behavior": "test-case-map.json#/rows/3457/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates graphicFrame normalized rotation"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-0067489a1739",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/758",
+        "identity": "Set shape.rotation -- @1.4 Shape types",
+        "behavior": "test-case-map.json#/rows/3458/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates grpSp normalized rotation"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-ed2e5cd1b441",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/759",
+        "identity": "Set shape.rotation -- @1.5 Shape types",
+        "behavior": "test-case-map.json#/rows/3459/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates cxnSp normalized rotation"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-31d6c6149195",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/770",
+        "identity": "Get shape.width and shape.height -- @1.1 Shape types",
+        "behavior": "test-case-map.json#/rows/3470/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes sp authored dimensions"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-afa982545f7c",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/771",
+        "identity": "Get shape.width and shape.height -- @1.2 Shape types",
+        "behavior": "test-case-map.json#/rows/3471/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes pic authored dimensions"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-cdb67063a55a",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/772",
+        "identity": "Get shape.width and shape.height -- @1.3 Shape types",
+        "behavior": "test-case-map.json#/rows/3472/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes graphicFrame authored dimensions"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-85e3698e6e3c",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/773",
+        "identity": "Get shape.width and shape.height -- @1.4 Shape types",
+        "behavior": "test-case-map.json#/rows/3473/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes grpSp authored dimensions"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-65e897bc01c8",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/774",
+        "identity": "Get shape.width and shape.height -- @1.5 Shape types",
+        "behavior": "test-case-map.json#/rows/3474/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes cxnSp authored dimensions"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-56d934e24ea9",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/775",
+        "identity": "Set shape.width and shape.height -- @1.1 Shape types",
+        "behavior": "test-case-map.json#/rows/3475/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates sp dimensions independently"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-b59954dd8990",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/776",
+        "identity": "Set shape.width and shape.height -- @1.2 Shape types",
+        "behavior": "test-case-map.json#/rows/3476/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates pic dimensions independently"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-ad0370d8ed33",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/777",
+        "identity": "Set shape.width and shape.height -- @1.3 Shape types",
+        "behavior": "test-case-map.json#/rows/3477/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates graphicFrame dimensions independently"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-d353dd924e07",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/778",
+        "identity": "Set shape.width and shape.height -- @1.4 Shape types",
+        "behavior": "test-case-map.json#/rows/3478/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates grpSp dimensions independently"
+      },
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-a826c3064d64",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/779",
+        "identity": "Set shape.width and shape.height -- @1.5 Shape types",
+        "behavior": "test-case-map.json#/rows/3479/original_behavior"
+      },
+      "status": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates cxnSp dimensions independently"
+      },
+      "wholePublicApiParity": false
+    }
+  ]
+}

@@ -1,0 +1,3594 @@
+{
+  "schemaVersion": 1,
+  "scope": "Every inventoried shape-owned inherited geometry, identity/XML ownership, sequence order and connector endpoint member relevant to selection operations; underscore-prefixed public records are included.",
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "languageSecurityMapping": {
+    "names": "Neutral model snake_case member names remain primary; operation JSON is camelCase.",
+    "arguments": "Source positional defaults remain positional optional arguments; keyword-only arguments use a trailing typed object. undefined selects defaults; null is explicit absence only.",
+    "properties": "Live owner-bound properties use direct access/assignment; getters and setters remain separate obligations. No raw XML constructor or dynamic arbitrary method dispatch.",
+    "collections": "Zero-based numeric lookup, length and Symbol.iterator; negative lookup uses at only where supported, sparse placeholders retain keys, no blanket slice promise. Equality is explicit equals rather than JS wrapper identity.",
+    "numbers": "Finite safe integer EMUs, unit conversion rounds halfway away from zero once; no coercion or unsafe arithmetic.",
+    "security": "Async bytes admission/publication through explicit supplied capabilities. No implicit host paths, network, clock, fonts or native runtime.",
+    "errors": "Neutral stable operation errors; pending model ValueError/TypeError/IndexError/KeyError/InvalidHandleError contracts are not replaced by a coverage claim."
+  },
+  "drift": [
+    "The direct selection operations have no source public-model counterpart and are additional bounded commands.",
+    "Historical inventories describe audit-time implementation status; this receipt claims only its linked operation evidence, never all 2407 records.",
+    "Leading underscores do not remove inherited or documented public APIs. Exact target declarations/defaults are retained from the public register as proposed obligations.",
+    "command-coverage.json records historical proposed move position-only and direct-and-batch routes. Current format specification and generated executable schema govern coordinateSystem, order modes, direct-operation availability and allowEmpty; this receipt does not promise batch execution."
+  ],
+  "operations": [
+    {
+      "sdk": "mutateShapeSelection(input: BinaryInput, options: ShapeSelectionOptions, context: SelectionContext)",
+      "options": "action move|align|distribute|duplicate; required coordinateSystem slide|group; explicit Location[] or common selection; order xor position / alignment / axis / offsetX and offsetY Length",
+      "cli": [
+        "shapes move",
+        "shapes align",
+        "shapes distribute",
+        "shapes duplicate"
+      ],
+      "implementation": "../../packages/pptx/src/shape-selection.ts",
+      "tests": [
+        "../../packages/pptx/src/shape-selection.test.ts",
+        "../../packages/pptx/src/command-shape-selection.test.ts",
+        "../../packages/pptx/src/shape-selection-sdk.test.ts"
+      ],
+      "modelParity": false,
+      "batchPromise": false,
+      "return": "Promise resolving to serialized bytes, mutation metadata, affected count and resulting selection records; exact inferred type is exported by the implementation."
+    }
+  ],
+  "counts": {
+    "rows": 233
+  },
+  "rows": [
+    {
+      "sourceId": "pptx.shapes.autoshape.AdjustmentCollection.__getitem__",
+      "source": "upstream-api-inventory.json#/objects/1564",
+      "declaredOn": "pptx.shapes.autoshape.AdjustmentCollection",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1564",
+        "signature": "readonly [index: number]: number; at(index: number): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.autoshape.AdjustmentCollection.__iter__",
+      "source": "upstream-api-inventory.json#/objects/1566",
+      "declaredOn": "pptx.shapes.autoshape.AdjustmentCollection",
+      "discovery": "sequence-ABC-or-indexed-iteration",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1566",
+        "signature": "[Symbol.iterator](): IterableIterator<number>"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.autoshape.AdjustmentCollection.__len__",
+      "source": "upstream-api-inventory.json#/objects/1567",
+      "declaredOn": "pptx.shapes.autoshape.AdjustmentCollection",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1567",
+        "signature": "readonly length: number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.autoshape.Shape.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1570",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1570",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.autoshape.Shape.element",
+      "source": "upstream-api-inventory.json#/objects/1575",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1575",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.autoshape.Shape.height",
+      "source": "upstream-api-inventory.json#/objects/1580",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1580",
+        "signature": "get height(): Length; set height(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.autoshape.Shape.left",
+      "source": "upstream-api-inventory.json#/objects/1582",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1582",
+        "signature": "get left(): Length; set left(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.autoshape.Shape.part",
+      "source": "upstream-api-inventory.json#/objects/1585",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1585",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.autoshape.Shape.rotation",
+      "source": "upstream-api-inventory.json#/objects/1587",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1587",
+        "signature": "get rotation(): number; set rotation(value: number)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.autoshape.Shape.shape_id",
+      "source": "upstream-api-inventory.json#/objects/1589",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1589",
+        "signature": "get shape_id(): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.autoshape.Shape.top",
+      "source": "upstream-api-inventory.json#/objects/1593",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1593",
+        "signature": "get top(): Length; set top(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.autoshape.Shape.width",
+      "source": "upstream-api-inventory.json#/objects/1594",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1594",
+        "signature": "get width(): Length; set width(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.base.BaseShape.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1596",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1596",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.base.BaseShape.element",
+      "source": "upstream-api-inventory.json#/objects/1599",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1599",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.base.BaseShape.height",
+      "source": "upstream-api-inventory.json#/objects/1603",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1603",
+        "signature": "get height(): Length; set height(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.base.BaseShape.left",
+      "source": "upstream-api-inventory.json#/objects/1605",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1605",
+        "signature": "get left(): Length; set left(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.base.BaseShape.part",
+      "source": "upstream-api-inventory.json#/objects/1607",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "returned-interface-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1607",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.base.BaseShape.rotation",
+      "source": "upstream-api-inventory.json#/objects/1609",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1609",
+        "signature": "get rotation(): number; set rotation(value: number)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.base.BaseShape.shape_id",
+      "source": "upstream-api-inventory.json#/objects/1611",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1611",
+        "signature": "get shape_id(): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.base.BaseShape.top",
+      "source": "upstream-api-inventory.json#/objects/1613",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1613",
+        "signature": "get top(): Length; set top(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.base.BaseShape.width",
+      "source": "upstream-api-inventory.json#/objects/1614",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1614",
+        "signature": "get width(): Length; set width(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.base._PlaceholderFormat.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1616",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1616",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.base._PlaceholderFormat.element",
+      "source": "upstream-api-inventory.json#/objects/1618",
+      "declaredOn": "pptx.shapes.base._PlaceholderFormat",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1618",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1622",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1622",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.begin_connect",
+      "source": "upstream-api-inventory.json#/objects/1624",
+      "declaredOn": "pptx.shapes.connector.Connector",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1624",
+        "signature": "begin_connect(shape: BaseShape, cxn_pt_idx: number): void"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.begin_x",
+      "source": "upstream-api-inventory.json#/objects/1625",
+      "declaredOn": "pptx.shapes.connector.Connector",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1625",
+        "signature": "get begin_x(): Length; set begin_x(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.begin_y",
+      "source": "upstream-api-inventory.json#/objects/1626",
+      "declaredOn": "pptx.shapes.connector.Connector",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1626",
+        "signature": "get begin_y(): Length; set begin_y(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.element",
+      "source": "upstream-api-inventory.json#/objects/1628",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1628",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.end_connect",
+      "source": "upstream-api-inventory.json#/objects/1629",
+      "declaredOn": "pptx.shapes.connector.Connector",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1629",
+        "signature": "end_connect(shape: BaseShape, cxn_pt_idx: number): void"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.end_x",
+      "source": "upstream-api-inventory.json#/objects/1630",
+      "declaredOn": "pptx.shapes.connector.Connector",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1630",
+        "signature": "get end_x(): Length; set end_x(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.end_y",
+      "source": "upstream-api-inventory.json#/objects/1631",
+      "declaredOn": "pptx.shapes.connector.Connector",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1631",
+        "signature": "get end_y(): Length; set end_y(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.height",
+      "source": "upstream-api-inventory.json#/objects/1635",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1635",
+        "signature": "get height(): Length; set height(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.left",
+      "source": "upstream-api-inventory.json#/objects/1637",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1637",
+        "signature": "get left(): Length; set left(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.part",
+      "source": "upstream-api-inventory.json#/objects/1640",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1640",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.rotation",
+      "source": "upstream-api-inventory.json#/objects/1642",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1642",
+        "signature": "get rotation(): number; set rotation(value: number)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.shape_id",
+      "source": "upstream-api-inventory.json#/objects/1644",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1644",
+        "signature": "get shape_id(): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.top",
+      "source": "upstream-api-inventory.json#/objects/1646",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1646",
+        "signature": "get top(): Length; set top(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.width",
+      "source": "upstream-api-inventory.json#/objects/1647",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1647",
+        "signature": "get width(): Length; set width(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.__contains__",
+      "source": "upstream-api-inventory.json#/objects/1649",
+      "declaredOn": "collections.abc.Sequence",
+      "discovery": "inherited-sequence-ABC",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1649",
+        "signature": "includes(value: DrawingOperation): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.__getitem__",
+      "source": "upstream-api-inventory.json#/objects/1650",
+      "declaredOn": "pptx.shapes.freeform.FreeformBuilder",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1650",
+        "signature": "readonly [index: number]: DrawingOperation; at(index: number): DrawingOperation; slice(start?: number, end?: number, step?: number): ReadonlyArray<DrawingOperation>"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.__iter__",
+      "source": "upstream-api-inventory.json#/objects/1652",
+      "declaredOn": "pptx.shapes.freeform.FreeformBuilder",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1652",
+        "signature": "[Symbol.iterator](): IterableIterator<DrawingOperation>"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.__len__",
+      "source": "upstream-api-inventory.json#/objects/1653",
+      "declaredOn": "pptx.shapes.freeform.FreeformBuilder",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1653",
+        "signature": "readonly length: number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.__reversed__",
+      "source": "upstream-api-inventory.json#/objects/1654",
+      "declaredOn": "collections.abc.Sequence",
+      "discovery": "inherited-sequence-ABC",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1654",
+        "signature": "reversed(): Iterable<DrawingOperation>"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.count",
+      "source": "upstream-api-inventory.json#/objects/1658",
+      "declaredOn": "collections.abc.Sequence",
+      "discovery": "inherited-sequence-ABC",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1658",
+        "signature": "count(value: DrawingOperation): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.index",
+      "source": "upstream-api-inventory.json#/objects/1659",
+      "declaredOn": "collections.abc.Sequence",
+      "discovery": "inherited-sequence-ABC",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1659",
+        "signature": "index(value: DrawingOperation, start?: number, stop?: number): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1672",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1672",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.element",
+      "source": "upstream-api-inventory.json#/objects/1677",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1677",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.height",
+      "source": "upstream-api-inventory.json#/objects/1681",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1681",
+        "signature": "get height(): Length; set height(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.left",
+      "source": "upstream-api-inventory.json#/objects/1683",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1683",
+        "signature": "get left(): Length; set left(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.part",
+      "source": "upstream-api-inventory.json#/objects/1686",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1686",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.rotation",
+      "source": "upstream-api-inventory.json#/objects/1688",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1688",
+        "signature": "get rotation(): number; set rotation(value: number)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.shape_id",
+      "source": "upstream-api-inventory.json#/objects/1690",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1690",
+        "signature": "get shape_id(): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.top",
+      "source": "upstream-api-inventory.json#/objects/1693",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1693",
+        "signature": "get top(): Length; set top(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.width",
+      "source": "upstream-api-inventory.json#/objects/1694",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1694",
+        "signature": "get width(): Length; set width(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm._OleFormat.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1696",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1696",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm._OleFormat.element",
+      "source": "upstream-api-inventory.json#/objects/1699",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "returned-interface/protocol-review",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1699",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm._OleFormat.part",
+      "source": "upstream-api-inventory.json#/objects/1701",
+      "declaredOn": "pptx.shared.ParentedElementProxy",
+      "discovery": "returned-interface/protocol-review",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1701",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1705",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1705",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.element",
+      "source": "upstream-api-inventory.json#/objects/1708",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1708",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.height",
+      "source": "upstream-api-inventory.json#/objects/1712",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1712",
+        "signature": "get height(): Length; set height(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.left",
+      "source": "upstream-api-inventory.json#/objects/1714",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1714",
+        "signature": "get left(): Length; set left(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.part",
+      "source": "upstream-api-inventory.json#/objects/1716",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1716",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.rotation",
+      "source": "upstream-api-inventory.json#/objects/1718",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1718",
+        "signature": "get rotation(): number; set rotation(value: number)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.shape_id",
+      "source": "upstream-api-inventory.json#/objects/1720",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1720",
+        "signature": "get shape_id(): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.shapes",
+      "source": "upstream-api-inventory.json#/objects/1722",
+      "declaredOn": "pptx.shapes.group.GroupShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1722",
+        "signature": "get shapes(): GroupShapes"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.top",
+      "source": "upstream-api-inventory.json#/objects/1723",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1723",
+        "signature": "get top(): Length; set top(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.width",
+      "source": "upstream-api-inventory.json#/objects/1724",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1724",
+        "signature": "get width(): Length; set width(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1726",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1726",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.element",
+      "source": "upstream-api-inventory.json#/objects/1733",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "returned-interface/protocol-review",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1733",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.height",
+      "source": "upstream-api-inventory.json#/objects/1738",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "returned-interface/protocol-review",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1738",
+        "signature": "get height(): Length; set height(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.left",
+      "source": "upstream-api-inventory.json#/objects/1740",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "returned-interface/protocol-review",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1740",
+        "signature": "get left(): Length; set left(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.part",
+      "source": "upstream-api-inventory.json#/objects/1746",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "returned-interface/protocol-review",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1746",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.rotation",
+      "source": "upstream-api-inventory.json#/objects/1749",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "returned-interface/protocol-review",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1749",
+        "signature": "get rotation(): number; set rotation(value: number)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.shape_id",
+      "source": "upstream-api-inventory.json#/objects/1751",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "returned-interface/protocol-review",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1751",
+        "signature": "get shape_id(): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.top",
+      "source": "upstream-api-inventory.json#/objects/1753",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "returned-interface/protocol-review",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1753",
+        "signature": "get top(): Length; set top(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.width",
+      "source": "upstream-api-inventory.json#/objects/1754",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "returned-interface/protocol-review",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1754",
+        "signature": "get width(): Length; set width(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Picture.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1756",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1756",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Picture.element",
+      "source": "upstream-api-inventory.json#/objects/1764",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1764",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Picture.height",
+      "source": "upstream-api-inventory.json#/objects/1768",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1768",
+        "signature": "get height(): Length; set height(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Picture.left",
+      "source": "upstream-api-inventory.json#/objects/1771",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1771",
+        "signature": "get left(): Length; set left(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Picture.part",
+      "source": "upstream-api-inventory.json#/objects/1774",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1774",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Picture.rotation",
+      "source": "upstream-api-inventory.json#/objects/1776",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1776",
+        "signature": "get rotation(): number; set rotation(value: number)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Picture.shape_id",
+      "source": "upstream-api-inventory.json#/objects/1778",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1778",
+        "signature": "get shape_id(): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Picture.top",
+      "source": "upstream-api-inventory.json#/objects/1780",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1780",
+        "signature": "get top(): Length; set top(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Picture.width",
+      "source": "upstream-api-inventory.json#/objects/1781",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1781",
+        "signature": "get width(): Length; set width(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture._MediaFormat.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1783",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1783",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture._MediaFormat.element",
+      "source": "upstream-api-inventory.json#/objects/1785",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "returned-interface/protocol-review",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1785",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.picture._MediaFormat.part",
+      "source": "upstream-api-inventory.json#/objects/1787",
+      "declaredOn": "pptx.shared.ParentedElementProxy",
+      "discovery": "returned-interface/protocol-review",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1787",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1789",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1789",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.element",
+      "source": "upstream-api-inventory.json#/objects/1794",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1794",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.height",
+      "source": "upstream-api-inventory.json#/objects/1800",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1800",
+        "signature": "get height(): Length | null; set height(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.left",
+      "source": "upstream-api-inventory.json#/objects/1803",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1803",
+        "signature": "get left(): Length | null; set left(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.part",
+      "source": "upstream-api-inventory.json#/objects/1807",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1807",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.rotation",
+      "source": "upstream-api-inventory.json#/objects/1809",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1809",
+        "signature": "get rotation(): number; set rotation(value: number)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.shape_id",
+      "source": "upstream-api-inventory.json#/objects/1811",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1811",
+        "signature": "get shape_id(): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.top",
+      "source": "upstream-api-inventory.json#/objects/1815",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1815",
+        "signature": "get top(): Length | null; set top(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.width",
+      "source": "upstream-api-inventory.json#/objects/1816",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1816",
+        "signature": "get width(): Length | null; set width(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1818",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1818",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.element",
+      "source": "upstream-api-inventory.json#/objects/1823",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1823",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.height",
+      "source": "upstream-api-inventory.json#/objects/1828",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1828",
+        "signature": "get height(): Length | null; set height(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.left",
+      "source": "upstream-api-inventory.json#/objects/1830",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1830",
+        "signature": "get left(): Length | null; set left(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.part",
+      "source": "upstream-api-inventory.json#/objects/1833",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1833",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.rotation",
+      "source": "upstream-api-inventory.json#/objects/1835",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1835",
+        "signature": "get rotation(): number; set rotation(value: number)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.shape_id",
+      "source": "upstream-api-inventory.json#/objects/1837",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1837",
+        "signature": "get shape_id(): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.top",
+      "source": "upstream-api-inventory.json#/objects/1841",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1841",
+        "signature": "get top(): Length | null; set top(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.width",
+      "source": "upstream-api-inventory.json#/objects/1842",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1842",
+        "signature": "get width(): Length | null; set width(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1844",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1844",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.element",
+      "source": "upstream-api-inventory.json#/objects/1849",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1849",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.height",
+      "source": "upstream-api-inventory.json#/objects/1854",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1854",
+        "signature": "get height(): Length; set height(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.left",
+      "source": "upstream-api-inventory.json#/objects/1857",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1857",
+        "signature": "get left(): Length; set left(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.part",
+      "source": "upstream-api-inventory.json#/objects/1861",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1861",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.rotation",
+      "source": "upstream-api-inventory.json#/objects/1864",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1864",
+        "signature": "get rotation(): number; set rotation(value: number)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.shape_id",
+      "source": "upstream-api-inventory.json#/objects/1866",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1866",
+        "signature": "get shape_id(): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.top",
+      "source": "upstream-api-inventory.json#/objects/1871",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1871",
+        "signature": "get top(): Length; set top(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.width",
+      "source": "upstream-api-inventory.json#/objects/1872",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1872",
+        "signature": "get width(): Length; set width(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1874",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1874",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.element",
+      "source": "upstream-api-inventory.json#/objects/1879",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1879",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.height",
+      "source": "upstream-api-inventory.json#/objects/1884",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1884",
+        "signature": "get height(): Length | null; set height(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.left",
+      "source": "upstream-api-inventory.json#/objects/1886",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1886",
+        "signature": "get left(): Length | null; set left(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.part",
+      "source": "upstream-api-inventory.json#/objects/1889",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1889",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.rotation",
+      "source": "upstream-api-inventory.json#/objects/1891",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1891",
+        "signature": "get rotation(): number; set rotation(value: number)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.shape_id",
+      "source": "upstream-api-inventory.json#/objects/1893",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1893",
+        "signature": "get shape_id(): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.top",
+      "source": "upstream-api-inventory.json#/objects/1897",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1897",
+        "signature": "get top(): Length | null; set top(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.width",
+      "source": "upstream-api-inventory.json#/objects/1898",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1898",
+        "signature": "get width(): Length | null; set width(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1900",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1900",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.element",
+      "source": "upstream-api-inventory.json#/objects/1905",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1905",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.height",
+      "source": "upstream-api-inventory.json#/objects/1911",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1911",
+        "signature": "get height(): Length | null; set height(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.left",
+      "source": "upstream-api-inventory.json#/objects/1914",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1914",
+        "signature": "get left(): Length | null; set left(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.part",
+      "source": "upstream-api-inventory.json#/objects/1918",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1918",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.rotation",
+      "source": "upstream-api-inventory.json#/objects/1920",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1920",
+        "signature": "get rotation(): number; set rotation(value: number)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.shape_id",
+      "source": "upstream-api-inventory.json#/objects/1922",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1922",
+        "signature": "get shape_id(): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.top",
+      "source": "upstream-api-inventory.json#/objects/1926",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1926",
+        "signature": "get top(): Length | null; set top(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.width",
+      "source": "upstream-api-inventory.json#/objects/1927",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1927",
+        "signature": "get width(): Length | null; set width(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1929",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1929",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.element",
+      "source": "upstream-api-inventory.json#/objects/1934",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1934",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.height",
+      "source": "upstream-api-inventory.json#/objects/1938",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1938",
+        "signature": "get height(): Length; set height(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.left",
+      "source": "upstream-api-inventory.json#/objects/1940",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1940",
+        "signature": "get left(): Length; set left(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.part",
+      "source": "upstream-api-inventory.json#/objects/1943",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1943",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.rotation",
+      "source": "upstream-api-inventory.json#/objects/1945",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1945",
+        "signature": "get rotation(): number; set rotation(value: number)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.shape_id",
+      "source": "upstream-api-inventory.json#/objects/1947",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1947",
+        "signature": "get shape_id(): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.top",
+      "source": "upstream-api-inventory.json#/objects/1950",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1950",
+        "signature": "get top(): Length; set top(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.width",
+      "source": "upstream-api-inventory.json#/objects/1951",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1951",
+        "signature": "get width(): Length; set width(value: Length)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1953",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1953",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.element",
+      "source": "upstream-api-inventory.json#/objects/1961",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1961",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.height",
+      "source": "upstream-api-inventory.json#/objects/1965",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1965",
+        "signature": "get height(): Length | null; set height(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.left",
+      "source": "upstream-api-inventory.json#/objects/1968",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1968",
+        "signature": "get left(): Length | null; set left(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.part",
+      "source": "upstream-api-inventory.json#/objects/1971",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1971",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.rotation",
+      "source": "upstream-api-inventory.json#/objects/1973",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1973",
+        "signature": "get rotation(): number; set rotation(value: number)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.shape_id",
+      "source": "upstream-api-inventory.json#/objects/1975",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1975",
+        "signature": "get shape_id(): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.top",
+      "source": "upstream-api-inventory.json#/objects/1977",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1977",
+        "signature": "get top(): Length | null; set top(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.width",
+      "source": "upstream-api-inventory.json#/objects/1978",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1978",
+        "signature": "get width(): Length | null; set width(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1980",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1980",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.element",
+      "source": "upstream-api-inventory.json#/objects/1985",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1985",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.height",
+      "source": "upstream-api-inventory.json#/objects/1990",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1990",
+        "signature": "get height(): Length | null; set height(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.left",
+      "source": "upstream-api-inventory.json#/objects/1992",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1992",
+        "signature": "get left(): Length | null; set left(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.part",
+      "source": "upstream-api-inventory.json#/objects/1995",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1995",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.rotation",
+      "source": "upstream-api-inventory.json#/objects/1997",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1997",
+        "signature": "get rotation(): number; set rotation(value: number)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.shape_id",
+      "source": "upstream-api-inventory.json#/objects/1999",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/1999",
+        "signature": "get shape_id(): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.top",
+      "source": "upstream-api-inventory.json#/objects/2003",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2003",
+        "signature": "get top(): Length | null; set top(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.width",
+      "source": "upstream-api-inventory.json#/objects/2004",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2004",
+        "signature": "get width(): Length | null; set width(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.__eq__",
+      "source": "upstream-api-inventory.json#/objects/2006",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2006",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.element",
+      "source": "upstream-api-inventory.json#/objects/2011",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2011",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.height",
+      "source": "upstream-api-inventory.json#/objects/2017",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2017",
+        "signature": "get height(): Length | null; set height(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.left",
+      "source": "upstream-api-inventory.json#/objects/2020",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2020",
+        "signature": "get left(): Length | null; set left(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.part",
+      "source": "upstream-api-inventory.json#/objects/2024",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2024",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.rotation",
+      "source": "upstream-api-inventory.json#/objects/2026",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2026",
+        "signature": "get rotation(): number; set rotation(value: number)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.shape_id",
+      "source": "upstream-api-inventory.json#/objects/2028",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2028",
+        "signature": "get shape_id(): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.top",
+      "source": "upstream-api-inventory.json#/objects/2032",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2032",
+        "signature": "get top(): Length | null; set top(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.width",
+      "source": "upstream-api-inventory.json#/objects/2033",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2033",
+        "signature": "get width(): Length | null; set width(value: Length | null)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.__eq__",
+      "source": "upstream-api-inventory.json#/objects/2035",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2035",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.__getitem__",
+      "source": "upstream-api-inventory.json#/objects/2036",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2036",
+        "signature": "readonly [index: number]: BaseShape; at(index: number): BaseShape"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.__iter__",
+      "source": "upstream-api-inventory.json#/objects/2038",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2038",
+        "signature": "[Symbol.iterator](): IterableIterator<BaseShape>"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.__len__",
+      "source": "upstream-api-inventory.json#/objects/2039",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2039",
+        "signature": "readonly length: number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.element",
+      "source": "upstream-api-inventory.json#/objects/2048",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2048",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.index",
+      "source": "upstream-api-inventory.json#/objects/2049",
+      "declaredOn": "pptx.shapes.shapetree._BaseGroupShapes",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2049",
+        "signature": "index(shape: BaseShape): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.part",
+      "source": "upstream-api-inventory.json#/objects/2051",
+      "declaredOn": "pptx.shared.ParentedElementProxy",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2051",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.turbo_add_enabled",
+      "source": "upstream-api-inventory.json#/objects/2052",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2052",
+        "signature": "get turbo_add_enabled(): boolean; set turbo_add_enabled(value: boolean)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.LayoutPlaceholders.__eq__",
+      "source": "upstream-api-inventory.json#/objects/2054",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2054",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.LayoutPlaceholders.__getitem__",
+      "source": "upstream-api-inventory.json#/objects/2055",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2055",
+        "signature": "readonly [index: number]: BaseShape; at(index: number): BaseShape"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.LayoutPlaceholders.__iter__",
+      "source": "upstream-api-inventory.json#/objects/2057",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2057",
+        "signature": "[Symbol.iterator](): IterableIterator<BaseShape>"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.LayoutPlaceholders.__len__",
+      "source": "upstream-api-inventory.json#/objects/2058",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2058",
+        "signature": "readonly length: number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.LayoutPlaceholders.element",
+      "source": "upstream-api-inventory.json#/objects/2059",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2059",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.LayoutPlaceholders.part",
+      "source": "upstream-api-inventory.json#/objects/2062",
+      "declaredOn": "pptx.shared.ParentedElementProxy",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2062",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.LayoutPlaceholders.turbo_add_enabled",
+      "source": "upstream-api-inventory.json#/objects/2063",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2063",
+        "signature": "get turbo_add_enabled(): boolean; set turbo_add_enabled(value: boolean)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.LayoutShapes.__eq__",
+      "source": "upstream-api-inventory.json#/objects/2065",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2065",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.LayoutShapes.__getitem__",
+      "source": "upstream-api-inventory.json#/objects/2066",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2066",
+        "signature": "readonly [index: number]: BaseShape; at(index: number): BaseShape"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.LayoutShapes.__iter__",
+      "source": "upstream-api-inventory.json#/objects/2068",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2068",
+        "signature": "[Symbol.iterator](): IterableIterator<BaseShape>"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.LayoutShapes.__len__",
+      "source": "upstream-api-inventory.json#/objects/2069",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2069",
+        "signature": "readonly length: number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.LayoutShapes.element",
+      "source": "upstream-api-inventory.json#/objects/2070",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2070",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.LayoutShapes.part",
+      "source": "upstream-api-inventory.json#/objects/2072",
+      "declaredOn": "pptx.shared.ParentedElementProxy",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2072",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.LayoutShapes.turbo_add_enabled",
+      "source": "upstream-api-inventory.json#/objects/2073",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2073",
+        "signature": "get turbo_add_enabled(): boolean; set turbo_add_enabled(value: boolean)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.MasterPlaceholders.__eq__",
+      "source": "upstream-api-inventory.json#/objects/2075",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2075",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.MasterPlaceholders.__getitem__",
+      "source": "upstream-api-inventory.json#/objects/2076",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2076",
+        "signature": "readonly [index: number]: BaseShape; at(index: number): BaseShape"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.MasterPlaceholders.__iter__",
+      "source": "upstream-api-inventory.json#/objects/2078",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2078",
+        "signature": "[Symbol.iterator](): IterableIterator<BaseShape>"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.MasterPlaceholders.__len__",
+      "source": "upstream-api-inventory.json#/objects/2079",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2079",
+        "signature": "readonly length: number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.MasterPlaceholders.element",
+      "source": "upstream-api-inventory.json#/objects/2080",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2080",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.MasterPlaceholders.part",
+      "source": "upstream-api-inventory.json#/objects/2083",
+      "declaredOn": "pptx.shared.ParentedElementProxy",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2083",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.MasterPlaceholders.turbo_add_enabled",
+      "source": "upstream-api-inventory.json#/objects/2084",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2084",
+        "signature": "get turbo_add_enabled(): boolean; set turbo_add_enabled(value: boolean)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.MasterShapes.__eq__",
+      "source": "upstream-api-inventory.json#/objects/2086",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2086",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.MasterShapes.__getitem__",
+      "source": "upstream-api-inventory.json#/objects/2087",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2087",
+        "signature": "readonly [index: number]: BaseShape; at(index: number): BaseShape"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.MasterShapes.__iter__",
+      "source": "upstream-api-inventory.json#/objects/2089",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2089",
+        "signature": "[Symbol.iterator](): IterableIterator<BaseShape>"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.MasterShapes.__len__",
+      "source": "upstream-api-inventory.json#/objects/2090",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2090",
+        "signature": "readonly length: number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.MasterShapes.element",
+      "source": "upstream-api-inventory.json#/objects/2091",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2091",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.MasterShapes.part",
+      "source": "upstream-api-inventory.json#/objects/2093",
+      "declaredOn": "pptx.shared.ParentedElementProxy",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2093",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.MasterShapes.turbo_add_enabled",
+      "source": "upstream-api-inventory.json#/objects/2094",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2094",
+        "signature": "get turbo_add_enabled(): boolean; set turbo_add_enabled(value: boolean)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.__eq__",
+      "source": "upstream-api-inventory.json#/objects/2096",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2096",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.__getitem__",
+      "source": "upstream-api-inventory.json#/objects/2097",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2097",
+        "signature": "readonly [index: number]: BaseShape; at(index: number): BaseShape"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.__iter__",
+      "source": "upstream-api-inventory.json#/objects/2099",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2099",
+        "signature": "[Symbol.iterator](): IterableIterator<BaseShape>"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.__len__",
+      "source": "upstream-api-inventory.json#/objects/2100",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2100",
+        "signature": "readonly length: number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.element",
+      "source": "upstream-api-inventory.json#/objects/2101",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2101",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.part",
+      "source": "upstream-api-inventory.json#/objects/2104",
+      "declaredOn": "pptx.shared.ParentedElementProxy",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2104",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.turbo_add_enabled",
+      "source": "upstream-api-inventory.json#/objects/2105",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2105",
+        "signature": "get turbo_add_enabled(): boolean; set turbo_add_enabled(value: boolean)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.__eq__",
+      "source": "upstream-api-inventory.json#/objects/2107",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2107",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.__getitem__",
+      "source": "upstream-api-inventory.json#/objects/2108",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2108",
+        "signature": "readonly [index: number]: BaseShape; at(index: number): BaseShape"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.__iter__",
+      "source": "upstream-api-inventory.json#/objects/2110",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2110",
+        "signature": "[Symbol.iterator](): IterableIterator<BaseShape>"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.__len__",
+      "source": "upstream-api-inventory.json#/objects/2111",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2111",
+        "signature": "readonly length: number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.element",
+      "source": "upstream-api-inventory.json#/objects/2112",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2112",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.part",
+      "source": "upstream-api-inventory.json#/objects/2114",
+      "declaredOn": "pptx.shared.ParentedElementProxy",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2114",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.turbo_add_enabled",
+      "source": "upstream-api-inventory.json#/objects/2115",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2115",
+        "signature": "get turbo_add_enabled(): boolean; set turbo_add_enabled(value: boolean)"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlidePlaceholders.__eq__",
+      "source": "upstream-api-inventory.json#/objects/2117",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2117",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlidePlaceholders.__getitem__",
+      "source": "upstream-api-inventory.json#/objects/2118",
+      "declaredOn": "pptx.shapes.shapetree.SlidePlaceholders",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2118",
+        "signature": "readonly [index: number]: SlidePlaceholder | PicturePlaceholder | TablePlaceholder | ChartPlaceholder | PlaceholderPicture | PlaceholderGraphicFrame"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlidePlaceholders.__iter__",
+      "source": "upstream-api-inventory.json#/objects/2120",
+      "declaredOn": "pptx.shapes.shapetree.SlidePlaceholders",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2120",
+        "signature": "[Symbol.iterator](): IterableIterator<SlidePlaceholder | PicturePlaceholder | TablePlaceholder | ChartPlaceholder | PlaceholderPicture | PlaceholderGraphicFrame>"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlidePlaceholders.__len__",
+      "source": "upstream-api-inventory.json#/objects/2121",
+      "declaredOn": "pptx.shapes.shapetree.SlidePlaceholders",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2121",
+        "signature": "readonly length: number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlidePlaceholders.element",
+      "source": "upstream-api-inventory.json#/objects/2122",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2122",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlidePlaceholders.part",
+      "source": "upstream-api-inventory.json#/objects/2124",
+      "declaredOn": "pptx.shared.ParentedElementProxy",
+      "discovery": "inherited-member",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2124",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.__eq__",
+      "source": "upstream-api-inventory.json#/objects/2126",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2126",
+        "signature": "equals(other: ModelComparable): boolean"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.__getitem__",
+      "source": "upstream-api-inventory.json#/objects/2127",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2127",
+        "signature": "readonly [index: number]: BaseShape; at(index: number): BaseShape"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.__iter__",
+      "source": "upstream-api-inventory.json#/objects/2129",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2129",
+        "signature": "[Symbol.iterator](): IterableIterator<BaseShape>"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.__len__",
+      "source": "upstream-api-inventory.json#/objects/2130",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "protocol",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2130",
+        "signature": "readonly length: number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.element",
+      "source": "upstream-api-inventory.json#/objects/2141",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2141",
+        "signature": "get element(): XmlElementView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.index",
+      "source": "upstream-api-inventory.json#/objects/2142",
+      "declaredOn": "pptx.shapes.shapetree._BaseGroupShapes",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2142",
+        "signature": "index(shape: BaseShape): number"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.part",
+      "source": "upstream-api-inventory.json#/objects/2144",
+      "declaredOn": "pptx.shared.ParentedElementProxy",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2144",
+        "signature": "get part(): PartView"
+      },
+      "status": "live-model-obligation-retained"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.turbo_add_enabled",
+      "source": "upstream-api-inventory.json#/objects/2147",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "discovery": "autodoc-expanded",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "target": {
+        "register": "public-api-map.json#/rows/2147",
+        "signature": "get turbo_add_enabled(): boolean; set turbo_add_enabled(value: boolean)"
+      },
+      "status": "live-model-obligation-retained"
+    }
+  ],
+  "wholePublicApiParity": false,
+  "disposition": "F25 bounded package operations do not certify the adjacent inherited live model member or collection protocol. These neighboring obligations remain visible without blocking the bounded feature."
+}

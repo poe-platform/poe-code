@@ -50,6 +50,39 @@ function wrapped(fs: FileSystem, overrides: Partial<FileSystem>): FileSystem {
   } });
 }
 
+test("zip codec keeps selection order and empty, stored binary, and deflated payload bytes", async () => {
+  const payloads = [new Uint8Array(), Uint8Array.of(0, 255, 128, 10, 0, 254), new Uint8Array(1024).fill(173)];
+  const names = ["z-empty", "a-binary", "m-repeated"];
+  const metadata = { modified: new Date(1_700_000_000_000), mode: 0o100640, directory: false, symlink: false };
+  const entries = [];
+  for (const [index, payload] of payloads.entries()) entries.push(await makeZipEntry(names[index]!, payload, metadata, limits, signal));
+  assert.deepEqual(entries.map(entry => entry.method), [0, 0, 8]);
+  const input = { entries, comment: Buffer.from("original archive note") };
+  const bytes = await writeZipArchive(input, limits, signal);
+  assert.deepEqual(await writeZipArchive(input, limits, signal), bytes);
+  const archive = await readZipArchive(bytes, limits, signal);
+  assert.deepEqual(archive.entries.map(entry => entry.name), names);
+  assert.deepEqual(archive.entries.map(entry => entry.method), [0, 0, 8]);
+  assert.deepEqual(archive.comment, new Uint8Array(input.comment));
+  for (const [index, entry] of archive.entries.entries()) {
+    assert.deepEqual(await collectBytes(decodeZipEntry(entry, limits, signal), { maxBytes: limits.maxEntryBytes, signal }), payloads[index]);
+    assert.equal(entry.mode, metadata.mode);
+    assert.equal(entry.modified.getTime(), metadata.modified.getTime());
+  }
+});
+
+test("zip codec retains local DOS clock fields and exact second timestamps", async () => {
+  const modified = new Date(2024, 5, 12, 13, 14, 15);
+  const entry = await makeZipEntry("clock", Uint8Array.of(1, 2), { modified, mode: 0o100644, directory: false, symlink: false }, limits, signal);
+  const bytes = await writeZipArchive({ entries: [entry], comment: new Uint8Array() }, limits, signal);
+  const header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  assert.equal(header.getUint16(10, true), (13 << 11) | (14 << 5) | 8);
+  assert.equal(header.getUint16(12, true), ((2024 - 1980) << 9) | (6 << 5) | 12);
+  const archive = await readZipArchive(bytes, limits, signal);
+  assert.equal(archive.entries[0]!.modified.getTime(), modified.getTime());
+  assert.deepEqual(await writeZipArchive(archive, limits, signal), bytes);
+});
+
 test("zip creates a valid archive with native progress and extension rules", async () => {
   const fs = await fixture();
   for (const archive of ["bundle", "explicit.zip", "a.tar", ".hidden"]) {

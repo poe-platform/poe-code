@@ -1289,8 +1289,8 @@ tasks:
   - id: sdk-live-object-model
     title: Implement live SDK objects and documented setters
     status:
-      implement: done
-      test: done
+      implement: open
+      test: open
     prompt: |
       Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
       docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
@@ -1325,8 +1325,8 @@ tasks:
   - id: sdk-collections-values
     title: Implement complete collections units colors and enums
     status:
-      implement: done
-      test: done
+      implement: open
+      test: open
     prompt: |
       Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
       docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
@@ -1361,8 +1361,8 @@ tasks:
   - id: sdk-async-capabilities
     title: Implement consistent async I/O and context mappings
     status:
-      implement: done
-      test: done
+      implement: open
+      test: open
     prompt: |
       Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
       docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
@@ -2814,8 +2814,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: tracked-text-edits
     title: Create tracked text insertion and deletion
     prompt: |
@@ -2863,8 +2863,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: accept-reject-revisions
     title: Accept and reject supported selected revisions
     prompt: |
@@ -2913,8 +2913,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: content-control-values
     title: Implement content control inspection and filling
     prompt: |
@@ -2962,8 +2962,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: repeat-controls-and-bindings
     title: Implement bounded repeat controls and data binding
     prompt: |
@@ -3012,8 +3012,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: custom-xml-and-glossary
     title: Preserve custom XML glossary and ancillary document parts
     prompt: |
@@ -3061,8 +3061,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: typed-document-properties
     title: Implement core extended and custom properties
     prompt: |
@@ -3110,8 +3110,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: image-inventory-extraction
     title: Inspect and extract inline floating and shared images
     prompt: |
@@ -3159,8 +3159,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: raster-image-insertion
     title: Insert PNG and JPEG with correct dimensions and alt text
     prompt: |
@@ -3178,7 +3178,7 @@ tasks:
       Validate PNG/JPEG/GIF/BMP/TIFF signatures and bounded dimension/DPI headers under F32 and the complete public API map; reject
       extension/type mismatch and oversized/overflow dimensions. Insert inline
       DrawingML with correct media/content type/relationship/drawing IDs. Accept
-      checked unit values and explicit aspect-ratio policy. CLI pixel inputs use its documented 96-DPI convention; the model API preserves documented native DPI/fallback sizing. Require/allow alt text and decorative intent according to schema.
+      checked unit values and explicit aspect-ratio policy. CLI dimensions accept shared physical units only; implicit pixels/px are rejected. Omitted CLI/model dimensions use native per-axis DPI with independent 72-DPI fallback. Require/allow alt text and decorative intent according to schema.
       Test original authored images, alpha PNG, portrait/landscape JPEG and placement
       in body/table/header/note without rasterization dependencies.
 
@@ -3208,13 +3208,13 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: sdk-image-format-api
-    title: Complete image sizing and metadata parity
+    title: Implement bounded image metadata and sizing API
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
     prompt: |-
       Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
       docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
@@ -3225,7 +3225,7 @@ tasks:
       reduce meaningful cases into original small unit tests before cleanup. No README
       edits, ambient host I/O, native runtime or implicit network.
 
-      Reconcile every accepted source image format and tested header/DPI/size behavior, including GIF/BMP/TIFF beyond PNG/JPEG. Implement bounded characterization, source aspect ratio/native-size defaults and original file/stream equivalents under explicit VFS capabilities. Add all missing API edge cases; no imported binary test fixtures or external decoders at runtime without policy-compliant explicit design.
+      Reconcile every accepted source image format and tested header/DPI/size behavior, including GIF/BMP/TIFF beyond PNG/JPEG. Implement bounded characterization, the sole contract's physical native aspect ratio/native-size defaults and original file/stream equivalents under explicit VFS capabilities. Add all missing API edge cases; no imported binary test fixtures or external decoders at runtime without policy-compliant explicit design.
 
       Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
       command/SDK contracts. Use plural resources (images, tables, properties), text
@@ -3291,8 +3291,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: floating-image-layout
     title: Edit floating image geometry crop rotation and wrapping
     prompt: |
@@ -3341,8 +3341,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: svg-and-image-fallbacks
     title: Preserve vector formats and support explicit SVG fallback insertion
     prompt: |
@@ -3390,8 +3390,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: shapes-and-text-boxes
     title: Inspect shapes and edit supported text-box stories
     prompt: |
@@ -3439,8 +3439,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: charts-and-workbooks
     title: Inspect charts and preserve embedded workbook relationships
     prompt: |
@@ -3489,8 +3489,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: smartart-and-diagrams
     title: Preserve SmartArt diagrams and extension graphics
     prompt: |
@@ -3538,8 +3538,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: omml-equations
     title: Inspect preserve and explicitly insert validated OMML
     prompt: |
@@ -3784,8 +3784,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: deterministic-dummy-text
     title: Generate seeded dummy text without privacy claims
     prompt: |
@@ -4033,8 +4033,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: safe-docx-extraction
     title: Extract admitted document parts into owned VFS destinations
     prompt: |
@@ -4083,8 +4083,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: validated-docx-packing
     title: Reconstruct a DOCX from an explicit virtual directory
     prompt: |
@@ -4132,13 +4132,13 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: schema-capability-discovery
     title: Expose exhaustive schemas help and capabilities
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
     prompt: |-
       Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
       docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
@@ -4431,8 +4431,8 @@ tasks:
 
       Record the distinction between census and product ceilings: ordinary seed inspection used 512 MiB expanded and 5 million XML nodes, whereas the proposed product defaults are 256 MiB and 2 million. Exercise default rejection and explicit large-profile success through actual public SDK and Shell, including at least two successful large/dense round trips plus targeted edits. Do not label generated inputs as downloaded or claim the unfulfilled two-input 20 MiB/100 MiB acquisition regime.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: corpus-text-structure-qa
     title: Execute real-report text table field and structure QA
     prompt: |
@@ -4673,8 +4673,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: audit-upstream-test-completeness
     title: Verify complete upstream test accounting
     status:
@@ -4715,8 +4715,8 @@ tasks:
   - id: cross-format-cli-conformance
     title: Verify cross-format command consistency
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
     prompt: |-
       Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
       docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
@@ -5002,7 +5002,7 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
+      implement: done
 steps:
   implement:
     prompt: |-
@@ -5122,3 +5122,16 @@ Comments/revisions, Strict and meaningful RTL/CJK behavior remain evidence gaps.
 Execution order puts API mapping and contract reconciliation before product code; bounded ZIP/XML/OPC/publication before SDK and command construction; SDK primitives before feature use; all assigned source cases enter the owning feature's red/green cycle. Later adaptation tasks close any residual variants before adversarial/corpus acceptance. Selector/schema work precedes public consumers and paired QA. The final cross-workspace gate follows whole-API, ergonomic and visual corrections. No later task may begin merely because a worker on the current task is waiting.
 
 A task closes only with owned-file changes, exact applicable case/API/feature mappings, verified checks and atomic local commits during execution. Preserve red/green evidence and distinguish structural assertions, actual SDK/Shell results, renderer evidence and unavailable cases. Deferred public APIs remain blocking gaps. A later product correction invalidates affected earlier evidence and requires scoped requalification before the final gate. README permission remains a separate documentation-delivery constraint; keep complete usage/config/environment drafts under docs/docx.
+
+## Verified teardown reconciliation, 2026-09-15
+
+[The teardown report](../docx/teardown-verification-20260915.md) and its
+[107-task delivery register](../docx/teardown-verification-20260915.json) distinguish
+recorded completion from verified acceptance and atomic owned delivery. Task 87
+has bounded verified local delivery at `16baffa4c20229ef4ad00b64eefe5bf745b48bcd`.
+SDK graph/collections/async/views, rich table-section-review API, complete source
+adaptations, paired conformance, whole API, ergonomic QA and the final cross-workspace
+gate remain open for the concrete gaps recorded there. Completed research/campaign
+records do not certify whole format or object-model conformance. Unrelated earlier
+status edits are preserved without endorsing them or staging them in teardown.
+README permission remains pending. No push or publication is authorized.

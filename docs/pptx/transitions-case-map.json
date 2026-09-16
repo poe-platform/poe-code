@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "scope": "F44 bounded transitions; additive format behavior, not whole public model parity",
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "inventoryHashes": {
+    "docs/pptx/upstream-test-inventory.json": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+    "docs/pptx/upstream-api-inventory.json": "cd6467079c8f93d5be57758646f3fcd3667a6a13a1782fb371320c378803b934"
+  },
+  "review": {
+    "method": "Case-insensitive complete JSON record search for transition, morph, advTm, advClick; reviewed audit family descriptions and absence of transition API family.",
+    "terms": [
+      "transition",
+      "morph",
+      "advtm",
+      "advclick"
+    ],
+    "unitDenominator": 2700,
+    "bddDenominator": 973,
+    "apiDenominator": 2407
+  },
+  "unitCases": [],
+  "bddCases": [],
+  "publicApiRows": [],
+  "disposition": "No direct transition cases or public transition members in pinned baseline. New original tests are required by F44. Existing graph/slide/package/public API obligations retain prior dispositions.",
+  "originalEvidence": [
+    {
+      "file": "packages/pptx/src/transitions.test.ts",
+      "variants": 46,
+      "assertions": [
+        "Independent saved ZIP/XML values for four kinds and eight directional variants",
+        "Namespaced duration, Strict dialect, aliases and compatibility tokens",
+        "Zero/default/boundary milliseconds and explicit null automatic advance clearing",
+        "Malformed imported values, duplicate nodes, option conflicts and no coercion",
+        "Sound XML, exact relationship payloads and media bytes retained",
+        "Selected removal, absence and all selection counts",
+        "Unsupported effects, actual Morph namespace and MCE branches retained",
+        "Single-owner add and missing kind/update rejection"
+      ]
+    },
+    {
+      "file": "packages/pptx/src/command-transitions.test.ts",
+      "variants": 20,
+      "assertions": [
+        "All five paths, four effects and public SDK equivalence",
+        "JSON output matches executable operation schemas",
+        "Pre-read/pre-publication flag conflicts and units",
+        "Empty singleton get, allowEmpty and add cardinality",
+        "Closed options, capabilities and readable bounded help",
+        "Unfiltered multi-slide and empty-deck lists; token with all retains its one owner"
+      ]
+    },
+    {
+      "file": "packages/safe-bash/tests/commands/pptx/transitions.test.ts",
+      "variants": 1,
+      "assertions": [
+        "Public exports through virtual .sh script and quoted VFS paths",
+        "SDK and CLI byte equality, timing readback, null clearing",
+        "Invalid seconds fail without corrupting in-place output"
+      ]
+    }
+  ],
+  "wholePublicApiCoverage": "partial; no existing public member reclassified or removed",
+  "validation": {
+    "pptxSuite": {
+      "files": 144,
+      "tests": 3890,
+      "status": "passed"
+    },
+    "focusedCommandTests": 20,
+    "adapterTests": 1,
+    "integrationInventoryTests": 107,
+    "lint": "passed: npm run lint --workspace=pptx (ESLint and both TypeScript projects)",
+    "build": "passed: npm run build:workspaces -- --workspace=pptx (3 maintained build tasks; ENOSPC retry after clearing npm download cache)",
+    "screenshots": "Final exported help, list and error output visually inspected"
+  }
+}

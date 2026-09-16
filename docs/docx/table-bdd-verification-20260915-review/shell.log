@@ -1,0 +1,160 @@
+TAP version 13
+# Subtest: docx pack reads a quoted Unicode VFS inventory and preserves every admitted payload
+ok 1 - docx pack reads a quoted Unicode VFS inventory and preserves every admitted payload
+  ---
+  duration_ms: 153.791667
+  type: 'test'
+  ...
+# Subtest: docx pack consumes stdin inventory with explicit VFS records through a shell pipe
+ok 2 - docx pack consumes stdin inventory with explicit VFS records through a shell pipe
+  ---
+  duration_ms: 117.461334
+  type: 'test'
+  ...
+# Subtest: docx pack rejects a missing relationship payload before binary publication
+ok 3 - docx pack rejects a missing relationship payload before binary publication
+  ---
+  duration_ms: 61.1095
+  type: 'test'
+  ...
+# Subtest: docx pack output conflicts preserve existing files and reject input-tree destinations
+ok 4 - docx pack output conflicts preserve existing files and reject input-tree destinations
+  ---
+  duration_ms: 90.0605
+  type: 'test'
+  ...
+# Subtest: docx pack refuses VFS payload symlinks even when their target is admitted
+ok 5 - docx pack refuses VFS payload symlinks even when their target is admitted
+  ---
+  duration_ms: 54.720583
+  type: 'test'
+  ...
+# Subtest: docx pack cancellation during VFS admission leaves stdout unpublished
+ok 6 - docx pack cancellation during VFS admission leaves stdout unpublished
+  ---
+  duration_ms: 53.427291
+  type: 'test'
+  ...
+# Subtest: docx registers only by opt-in and refuses collisions before deliberate replacement
+ok 7 - docx registers only by opt-in and refuses collisions before deliberate replacement
+  ---
+  duration_ms: 2.968083
+  type: 'test'
+  ...
+# Subtest: docx dispatch preserves literal byte arguments streams and SDK archive behavior
+ok 8 - docx dispatch preserves literal byte arguments streams and SDK archive behavior
+  ---
+  duration_ms: 101.520417
+  type: 'test'
+  ...
+# Subtest: docx validates explicit configuration before registry mutation
+ok 9 - docx validates explicit configuration before registry mutation
+  ---
+  duration_ms: 0.205375
+  type: 'test'
+  ...
+# Subtest: docx cancellation waits for registered cleanup and rejects invalid exit statuses
+ok 10 - docx cancellation waits for registered cleanup and rejects invalid exit statuses
+  ---
+  duration_ms: 1.761375
+  type: 'test'
+  ...
+# Subtest: docx shared grammar rejects invalid byte text and conflicting stdin before handler I/O
+ok 11 - docx shared grammar rejects invalid byte text and conflicting stdin before handler I/O
+  ---
+  duration_ms: 3.4815
+  type: 'test'
+  ...
+# Subtest: docx grammar dispatch keeps quoted JSON Unicode and shell syntax literal
+ok 12 - docx grammar dispatch keeps quoted JSON Unicode and shell syntax literal
+  ---
+  duration_ms: 0.889334
+  type: 'test'
+  ...
+# Subtest: docx parsed invocation preserves binary stdin stdout without text conversion
+ok 13 - docx parsed invocation preserves binary stdin stdout without text conversion
+  ---
+  duration_ms: 0.75775
+  type: 'test'
+  ...
+# Subtest: docx discovery executes through Shell without document handler or stream acquisition
+ok 14 - docx discovery executes through Shell without document handler or stream acquisition
+  ---
+  duration_ms: 163.150125
+  type: 'test'
+  ...
+# Subtest: docx human source diagnostics escape terminal controls while JSON remains one structured value
+ok 15 - docx human source diagnostics escape terminal controls while JSON remains one structured value
+  ---
+  duration_ms: 1.340625
+  type: 'test'
+  ...
+# Subtest: docx read-only engine inspects stdin through Shell without filesystem mutation
+ok 16 - docx read-only engine inspects stdin through Shell without filesystem mutation
+  ---
+  duration_ms: 129.9585
+  type: 'test'
+  ...
+# Subtest: inline picture handles admit VFS bytes and publish typed sizing through a virtual script
+ok 17 - inline picture handles admit VFS bytes and publish typed sizing through a virtual script
+  ---
+  duration_ms: 271.065792
+  type: 'test'
+  ...
+# Subtest: run picture traversal exposes a closed drawing image metadata handle
+ok 18 - run picture traversal exposes a closed drawing image metadata handle
+  ---
+  duration_ms: 77.480917
+  type: 'test'
+  ...
+# Subtest: invalid picture extents reject before publishing admitted bytes or earlier edits
+ok 19 - invalid picture extents reject before publishing admitted bytes or earlier edits
+  ---
+  duration_ms: 47.6435
+  type: 'test'
+  ...
+# Subtest: inline picture byte descriptors retain numeric EMU sizing through binary publication
+ok 20 - inline picture byte descriptors retain numeric EMU sizing through binary publication
+  ---
+  duration_ms: 103.025208
+  type: 'test'
+  ...
+# Subtest: table model growth and formatting publish through a virtual script and binary pipe
+ok 21 - table model growth and formatting publish through a virtual script and binary pipe
+  ---
+  duration_ms: 225.33125
+  type: 'test'
+  ...
+# Subtest: table model rectangle merges preserve ordered content and dry runs publish no bytes
+ok 22 - table model rectangle merges preserve ordered content and dry runs publish no bytes
+  ---
+  duration_ms: 158.382291
+  type: 'test'
+  ...
+# Subtest: table model slices use checked zero based bounds through binary stdin
+ok 23 - table model slices use checked zero based bounds through binary stdin
+  ---
+  duration_ms: 42.980959
+  type: 'test'
+  ...
+# Subtest: invalid table model bounds fail before publication and retain existing destinations
+ok 24 - invalid table model bounds fail before publication and retain existing destinations
+  ---
+  duration_ms: 84.144667
+  type: 'test'
+  ...
+# Subtest: partial overlap table model merges reject without publishing earlier edits
+ok 25 - partial overlap table model merges reject without publishing earlier edits
+  ---
+  duration_ms: 42.999584
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1593.90225

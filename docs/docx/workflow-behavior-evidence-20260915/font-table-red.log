@@ -1,0 +1,240 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts (189 tests | 1 failed) 7164ms
+   ✓ workflow-352 observes cell grid_span read 45ms
+   ✓ workflow-353 observes cell grid_span read 38ms
+   ✓ workflow-354 observes cell grid_span read 39ms
+   ✓ workflow-355 observes cell vertical_alignment read 39ms
+   ✓ workflow-356 observes cell vertical_alignment read 37ms
+   ✓ workflow-357 observes cell vertical_alignment read 39ms
+   ✓ workflow-358 observes cell vertical_alignment transition 40ms
+   ✓ workflow-359 observes cell vertical_alignment transition 39ms
+   ✓ workflow-360 observes cell vertical_alignment transition 38ms
+   ✓ workflow-361 observes cell vertical_alignment transition 37ms
+   ✓ workflow-362 observes cell width read 37ms
+   ✓ workflow-363 observes cell width read 37ms
+   ✓ workflow-364 observes cell width transition 40ms
+   × workflow-365 observes cell width transition 41ms
+   ✓ workflow-367 observes column width read 36ms
+   ✓ workflow-368 observes column width read 38ms
+   ✓ workflow-369 observes column width transition 37ms
+   ✓ workflow-370 observes column width transition 37ms
+   ✓ workflow-371 observes column width transition 37ms
+   ✓ workflow-372 observes column width transition 37ms
+   ✓ workflow-373 observes column width transition 38ms
+   ✓ workflow-392 observes table alignment read 36ms
+   ✓ workflow-393 observes table alignment read 37ms
+   ✓ workflow-394 observes table alignment read 37ms
+   ✓ workflow-395 observes table alignment read 38ms
+   ✓ workflow-396 observes table alignment transition 38ms
+   ✓ workflow-397 observes table alignment transition 39ms
+   ✓ workflow-398 observes table alignment transition 39ms
+   ✓ workflow-399 observes table alignment transition 39ms
+   ✓ workflow-400 observes table autofit read 38ms
+   ✓ workflow-401 observes table autofit read 38ms
+   ✓ workflow-402 observes table autofit read 36ms
+   ✓ workflow-403 observes table autofit transition 38ms
+   ✓ workflow-404 observes table autofit transition 38ms
+   ✓ workflow-405 observes table autofit transition 38ms
+   ✓ workflow-406 observes table autofit transition 39ms
+   ✓ workflow-407 observes table autofit transition 40ms
+   ✓ workflow-408 observes table autofit transition 38ms
+   ✓ workflow-409 observes table table_direction read 38ms
+   ✓ workflow-410 observes table table_direction read 38ms
+   ✓ workflow-411 observes table table_direction read 38ms
+   ✓ workflow-412 observes table table_direction transition 39ms
+   ✓ workflow-413 observes table table_direction transition 39ms
+   ✓ workflow-414 observes table table_direction transition 38ms
+   ✓ workflow-415 observes row grid_cols_after read 36ms
+   ✓ workflow-416 observes row grid_cols_after read 38ms
+   ✓ workflow-417 observes row grid_cols_after read 35ms
+   ✓ workflow-418 observes row grid_cols_before read 37ms
+   ✓ workflow-419 observes row grid_cols_before read 38ms
+   ✓ workflow-420 observes row grid_cols_before read 38ms
+   ✓ workflow-421 observes row height_rule read 38ms
+   ✓ workflow-422 observes row height_rule read 38ms
+   ✓ workflow-423 observes row height_rule read 39ms
+   ✓ workflow-424 observes row height_rule transition 38ms
+   ✓ workflow-425 observes row height_rule transition 36ms
+   ✓ workflow-426 observes row height_rule transition 38ms
+   ✓ workflow-427 observes row height_rule transition 39ms
+   ✓ workflow-428 observes row height read 38ms
+   ✓ workflow-429 observes row height read 39ms
+   ✓ workflow-430 observes row height read 39ms
+   ✓ workflow-431 observes row height transition 39ms
+   ✓ workflow-432 observes row height transition 38ms
+   ✓ workflow-433 observes row height transition 39ms
+   ✓ workflow-434 observes row height transition 38ms
+   ✓ workflow-163 observes font underline variant 38ms
+   ✓ workflow-164 observes font underline variant 37ms
+   ✓ workflow-165 observes font underline variant 38ms
+   ✓ workflow-166 observes font underline variant 37ms
+   ✓ workflow-167 observes font underline variant 40ms
+   ✓ workflow-168 observes font underline variant 38ms
+   ✓ workflow-169 observes font underline variant 39ms
+   ✓ workflow-170 observes font underline variant 40ms
+   ✓ workflow-171 observes font underline variant 36ms
+   ✓ workflow-172 observes font underline variant 39ms
+   ✓ workflow-173 observes font underline variant 40ms
+   ✓ workflow-174 observes font underline variant 39ms
+   ✓ workflow-175 observes font underline variant 39ms
+   ✓ workflow-176 observes font underline variant 36ms
+   ✓ workflow-470 observes font highlight_color variant 37ms
+   ✓ workflow-471 observes font highlight_color variant 39ms
+   ✓ workflow-472 observes font highlight_color variant 36ms
+   ✓ workflow-473 observes font highlight_color variant 39ms
+   ✓ workflow-474 observes font highlight_color variant 39ms
+   ✓ workflow-475 observes font highlight_color variant 39ms
+   ✓ workflow-476 observes font name variant 37ms
+   ✓ workflow-477 observes font name variant 37ms
+   ✓ workflow-478 observes font name variant 39ms
+   ✓ workflow-479 observes font name variant 36ms
+   ✓ workflow-480 observes font name variant 38ms
+   ✓ workflow-481 observes font size variant 37ms
+   ✓ workflow-482 observes font size variant 37ms
+   ✓ workflow-483 observes font size variant 38ms
+   ✓ workflow-484 observes font size variant 37ms
+   ✓ workflow-485 observes font size variant 38ms
+   ✓ workflow-487 observes font underline variant 38ms
+   ✓ workflow-488 observes font underline variant 36ms
+   ✓ workflow-489 observes font underline variant 38ms
+   ✓ workflow-490 observes font underline variant 37ms
+   ✓ workflow-491 observes font underline variant 36ms
+   ✓ workflow-492 observes font underline variant 36ms
+   ✓ workflow-493 observes font underline variant 39ms
+   ✓ workflow-494 observes font underline variant 38ms
+   ✓ workflow-495 observes font underline variant 39ms
+   ✓ workflow-496 observes font underline variant 37ms
+   ✓ workflow-497 observes font underline variant 38ms
+   ✓ workflow-498 observes font underline variant 39ms
+   ✓ workflow-499 observes font underline variant 39ms
+   ✓ workflow-500 observes font underline variant 39ms
+   ✓ workflow-501 observes font vertical alignment variant 35ms
+   ✓ workflow-502 observes font vertical alignment variant 36ms
+   ✓ workflow-503 observes font vertical alignment variant 38ms
+   ✓ workflow-504 observes font vertical alignment variant 38ms
+   ✓ workflow-505 observes font vertical alignment variant 37ms
+   ✓ workflow-506 observes font vertical alignment variant 38ms
+   ✓ workflow-507 observes font vertical alignment variant 38ms
+   ✓ workflow-508 observes font vertical alignment variant 36ms
+   ✓ workflow-509 observes font vertical alignment variant 39ms
+   ✓ workflow-510 observes font vertical alignment variant 38ms
+   ✓ workflow-511 observes font vertical alignment variant 37ms
+   ✓ workflow-512 observes font vertical alignment variant 36ms
+   ✓ workflow-513 observes font vertical alignment variant 37ms
+   ✓ workflow-514 observes font vertical alignment variant 38ms
+   ✓ workflow-515 observes font vertical alignment variant 37ms
+   ✓ workflow-516 observes font vertical alignment variant 38ms
+   ✓ workflow-517 observes font vertical alignment variant 38ms
+   ✓ workflow-518 observes font vertical alignment variant 37ms
+   ✓ workflow-519 observes font vertical alignment variant 38ms
+   ✓ workflow-520 observes font vertical alignment variant 37ms
+   ✓ workflow-521 observes font vertical alignment variant 37ms
+   ✓ workflow-522 observes font all_caps variant 39ms
+   ✓ workflow-523 observes font bold variant 39ms
+   ✓ workflow-524 observes font complex_script variant 39ms
+   ✓ workflow-525 observes font cs_bold variant 38ms
+   ✓ workflow-526 observes font cs_italic variant 39ms
+   ✓ workflow-527 observes font double_strike variant 37ms
+   ✓ workflow-528 observes font emboss variant 38ms
+   ✓ workflow-529 observes font hidden variant 38ms
+   ✓ workflow-530 observes font italic variant 34ms
+   ✓ workflow-531 observes font imprint variant 37ms
+   ✓ workflow-532 observes font math variant 38ms
+   ✓ workflow-533 observes font no_proof variant 36ms
+   ✓ workflow-534 observes font outline variant 37ms
+   ✓ workflow-535 observes font rtl variant 37ms
+   ✓ workflow-536 observes font shadow variant 38ms
+   ✓ workflow-537 observes font small_caps variant 38ms
+   ✓ workflow-538 observes font snap_to_grid variant 37ms
+   ✓ workflow-539 observes font spec_vanish variant 39ms
+   ✓ workflow-540 observes font strike variant 38ms
+   ✓ workflow-541 observes font web_hidden variant 37ms
+   ✓ workflow-542 observes font all_caps variant 38ms
+   ✓ workflow-543 observes font bold variant 37ms
+   ✓ workflow-544 observes font complex_script variant 38ms
+   ✓ workflow-545 observes font cs_bold variant 37ms
+   ✓ workflow-546 observes font cs_italic variant 37ms
+   ✓ workflow-547 observes font double_strike variant 38ms
+   ✓ workflow-548 observes font emboss variant 39ms
+   ✓ workflow-549 observes font hidden variant 38ms
+   ✓ workflow-550 observes font italic variant 39ms
+   ✓ workflow-551 observes font imprint variant 39ms
+   ✓ workflow-552 observes font math variant 39ms
+   ✓ workflow-553 observes font no_proof variant 39ms
+   ✓ workflow-554 observes font outline variant 40ms
+   ✓ workflow-555 observes font rtl variant 40ms
+   ✓ workflow-556 observes font shadow variant 37ms
+   ✓ workflow-557 observes font small_caps variant 39ms
+   ✓ workflow-558 observes font snap_to_grid variant 40ms
+   ✓ workflow-559 observes font spec_vanish variant 39ms
+   ✓ workflow-560 observes font strike variant 40ms
+   ✓ workflow-561 observes font web_hidden variant 39ms
+   ✓ workflow-562 observes font all_caps variant 38ms
+   ✓ workflow-563 observes font bold variant 37ms
+   ✓ workflow-564 observes font complex_script variant 37ms
+   ✓ workflow-565 observes font cs_bold variant 34ms
+   ✓ workflow-566 observes font cs_italic variant 37ms
+   ✓ workflow-567 observes font double_strike variant 38ms
+   ✓ workflow-568 observes font emboss variant 38ms
+   ✓ workflow-569 observes font hidden variant 36ms
+   ✓ workflow-570 observes font italic variant 38ms
+   ✓ workflow-571 observes font imprint variant 38ms
+   ✓ workflow-572 observes font math variant 38ms
+   ✓ workflow-573 observes font no_proof variant 37ms
+   ✓ workflow-574 observes font outline variant 37ms
+   ✓ workflow-575 observes font rtl variant 36ms
+   ✓ workflow-576 observes font shadow variant 38ms
+   ✓ workflow-577 observes font small_caps variant 39ms
+   ✓ workflow-578 observes font snap_to_grid variant 38ms
+   ✓ workflow-579 observes font spec_vanish variant 38ms
+   ✓ workflow-580 observes font strike variant 37ms
+   ✓ workflow-581 observes font web_hidden variant 39ms
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-365 observes cell width transition
+Error: The XML edit cannot establish faithful preservation.
+ ❯ unsupported packages/docx/src/xml-write.ts:24:9
+     22|
+     23| function unsupported(): never {
+     24|   throw new UnsupportedEditError("The XML edit cannot establish faithf…
+       |         ^
+     25| }
+     26|
+ ❯ DocumentXmlEditor.#assertOwnedEdit packages/docx/src/xml-write.ts:466:116
+ ❯ DocumentXmlEditor.setQualifiedAttribute packages/docx/src/xml-write.ts:435:10
+ ❯ packages/docx/src/table-model.ts:91:13
+ ❯ ModelStore.change packages/docx/src/model-store.ts:328:7
+ ❯ properties packages/docx/src/table-model.ts:84:9
+ ❯ _Cell.set width [as width] packages/docx/src/table-model.ts:397:5
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:105:8
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'unsupported-edit' }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-365 observes cell width transition
+Error: The XML edit cannot establish faithful preservation.
+ ❯ unsupported packages/docx/src/xml-write.ts:24:9
+     22|
+     23| function unsupported(): never {
+     24|   throw new UnsupportedEditError("The XML edit cannot establish faithf…
+       |         ^
+     25| }
+     26|
+ ❯ DocumentXmlEditor.#assertOwnedEdit packages/docx/src/xml-write.ts:466:116
+ ❯ DocumentXmlEditor.setQualifiedAttribute packages/docx/src/xml-write.ts:435:10
+ ❯ packages/docx/src/table-model.ts:91:13
+ ❯ ModelStore.change packages/docx/src/model-store.ts:328:7
+ ❯ properties packages/docx/src/table-model.ts:84:9
+ ❯ _Cell.set width [as width] packages/docx/src/table-model.ts:397:5
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:105:8
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 188 passed (189)
+   Start at  22:42:27
+   Duration  8.21s (transform 820ms, setup 28ms, import 963ms, tests 7.16s, environment 0ms)
+

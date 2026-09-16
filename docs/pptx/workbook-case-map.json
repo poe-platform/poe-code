@@ -1,0 +1,2315 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "Complete workbook writer tests, all series rewriter cases, data builder tests, chart parts, chart replacement and seven expanded replacement scenarios. Supplemental series cache writer cases included. This is bounded operation evidence, not whole-public-API parity.",
+  "sourceFiles": [
+    {
+      "path": "tests/chart/test_xlsx.py",
+      "sha256": "dba8c1d3c5f4c86f07e949d934f4691e47196903b98f8da1edc1d5e429028f3a"
+    },
+    {
+      "path": "tests/chart/test_data.py",
+      "sha256": "811c01e0ff0c89a847501e3e0576d57a873172b13b283916c0a8a01194f1183f"
+    },
+    {
+      "path": "tests/chart/test_xmlwriter.py",
+      "sha256": "d521fbe1ebee80bbdbb6234887e47b693db9207a315df57933e1de59a58e0acc"
+    },
+    {
+      "path": "tests/parts/test_chart.py",
+      "sha256": "4154cfe6f76cba81c6b96243e9bf9b0fabbc08529da464ea82121108f46df068"
+    },
+    {
+      "path": "features/cht-replace-data.feature",
+      "sha256": "ffa8445e4a373b83d8fa3c86e5c38f60f95014929d09e4b27a734ea98df7f1df"
+    },
+    {
+      "path": "src/pptx/chart/xlsx.py",
+      "sha256": "13b66371154c86d16b19fd4d854177ea7f10ae783ac4e80864bdb15832e30b17"
+    }
+  ],
+  "counts": {
+    "total": 180,
+    "byStatus": {
+      "partial-operation-equivalent": 28,
+      "unsupported-public-model": 66,
+      "language-mapped": 6,
+      "architecture-mapped": 1,
+      "adapted-bounded-behavior": 51,
+      "partial-serialization-default": 3,
+      "intentional-layout-mapping": 2,
+      "intentional-value-mapping": 13,
+      "partial-series-cloning": 1,
+      "unsupported-combination": 2,
+      "adapted-operation-scenario": 7
+    }
+  },
+  "rows": [
+    {
+      "id": "presentation-unit-bb659b35a170",
+      "source": "upstream-test-inventory.json#/unit_cases/344",
+      "identity": "tests/chart/test_chart.py::DescribeChart::it_can_replace_the_chart_data",
+      "baseline": "chart-inventory-case-map.json#/rows/344",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/344/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "setCharts and charts replace implement bounded replacement; live Chart.replace_data remains an explicit public API gap.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#publishes consistent data through CLI policy %s and preserves dry-run destinations",
+        "packages/pptx/src/chart-workbook-ranges.test.ts#synchronizes growing, same-size, and shrinking datasets for %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-fa1edabc1342",
+      "source": "upstream-test-inventory.json#/unit_cases/364",
+      "identity": "tests/chart/test_data.py::DescribeChartData::it_is_a_CategoryChartData_object",
+      "baseline": "chart-inventory-case-map.json#/rows/364",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/364/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-98395ec04525",
+      "source": "upstream-test-inventory.json#/unit_cases/365",
+      "identity": "tests/chart/test_data.py::Describe_BaseChartData::it_can_generate_chart_part_XML_for_its_data",
+      "baseline": "chart-inventory-case-map.json#/rows/365",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/365/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-e91f8b9fbbf2",
+      "source": "upstream-test-inventory.json#/unit_cases/366",
+      "identity": "tests/chart/test_data.py::Describe_BaseChartData::it_knows_its_number_format[number_format_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/366",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/366/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Dataset/category/series string formats are supported; per-point formats and live number_format getters/setters remain public model gaps. Numeric coercion and empty data differ explicitly.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes"
+      ]
+    },
+    {
+      "id": "presentation-unit-db59b6652cc5",
+      "source": "upstream-test-inventory.json#/unit_cases/367",
+      "identity": "tests/chart/test_data.py::Describe_BaseChartData::it_knows_its_number_format[number_format_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/367",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/367/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Dataset/category/series string formats are supported; per-point formats and live number_format getters/setters remain public model gaps. Numeric coercion and empty data differ explicitly.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes"
+      ]
+    },
+    {
+      "id": "presentation-unit-ce19f7f13d84",
+      "source": "upstream-test-inventory.json#/unit_cases/368",
+      "identity": "tests/chart/test_data.py::Describe_BaseSeriesData::it_knows_its_name[name_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/368",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/368/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-8fe7d3edeed8",
+      "source": "upstream-test-inventory.json#/unit_cases/369",
+      "identity": "tests/chart/test_data.py::Describe_BaseSeriesData::it_knows_its_name[name_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/369",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/369/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-4de80e39e890",
+      "source": "upstream-test-inventory.json#/unit_cases/370",
+      "identity": "tests/chart/test_data.py::Describe_BaseSeriesData::it_knows_its_number_format[number_format_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/370",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/370/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Dataset/category/series string formats are supported; per-point formats and live number_format getters/setters remain public model gaps. Numeric coercion and empty data differ explicitly.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes"
+      ]
+    },
+    {
+      "id": "presentation-unit-7ac2c080bd67",
+      "source": "upstream-test-inventory.json#/unit_cases/371",
+      "identity": "tests/chart/test_data.py::Describe_BaseSeriesData::it_knows_its_number_format[number_format_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/371",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/371/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Dataset/category/series string formats are supported; per-point formats and live number_format getters/setters remain public model gaps. Numeric coercion and empty data differ explicitly.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes"
+      ]
+    },
+    {
+      "id": "presentation-unit-e24b887d3806",
+      "source": "upstream-test-inventory.json#/unit_cases/372",
+      "identity": "tests/chart/test_data.py::Describe_BaseDataPoint::it_knows_its_number_format[number_format_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/372",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/372/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Dataset/category/series string formats are supported; per-point formats and live number_format getters/setters remain public model gaps. Numeric coercion and empty data differ explicitly.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes"
+      ]
+    },
+    {
+      "id": "presentation-unit-e42e969ee36f",
+      "source": "upstream-test-inventory.json#/unit_cases/373",
+      "identity": "tests/chart/test_data.py::Describe_BaseDataPoint::it_knows_its_number_format[number_format_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/373",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/373/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Dataset/category/series string formats are supported; per-point formats and live number_format getters/setters remain public model gaps. Numeric coercion and empty data differ explicitly.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes"
+      ]
+    },
+    {
+      "id": "presentation-unit-d13fa8fc36d6",
+      "source": "upstream-test-inventory.json#/unit_cases/374",
+      "identity": "tests/chart/test_data.py::DescribeCategoryChartData::it_is_a__BaseChartData_object",
+      "baseline": "chart-inventory-case-map.json#/rows/374",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/374/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-4b32c5897a94",
+      "source": "upstream-test-inventory.json#/unit_cases/375",
+      "identity": "tests/chart/test_data.py::DescribeCategoryChartData::it_knows_the_categories_range_ref",
+      "baseline": "chart-inventory-case-map.json#/rows/375",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/375/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Actual formula ranges are covered; the public live helper/member itself remains unimplemented.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#keeps category depth %s and leaf count %s aligned with series %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-342b054894e4",
+      "source": "upstream-test-inventory.json#/unit_cases/376",
+      "identity": "tests/chart/test_data.py::DescribeCategoryChartData::it_knows_the_values_range_ref_for_a_series",
+      "baseline": "chart-inventory-case-map.json#/rows/376",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/376/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Actual formula ranges are covered; the public live helper/member itself remains unimplemented.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#keeps category depth %s and leaf count %s aligned with series %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-fca22f19bada",
+      "source": "upstream-test-inventory.json#/unit_cases/377",
+      "identity": "tests/chart/test_data.py::DescribeCategoryChartData::it_provides_access_to_its_categories",
+      "baseline": "chart-inventory-case-map.json#/rows/377",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/377/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-26bd546c9e7c",
+      "source": "upstream-test-inventory.json#/unit_cases/378",
+      "identity": "tests/chart/test_data.py::DescribeCategoryChartData::it_can_add_a_category",
+      "baseline": "chart-inventory-case-map.json#/rows/378",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/378/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-2e1b419d0d97",
+      "source": "upstream-test-inventory.json#/unit_cases/379",
+      "identity": "tests/chart/test_data.py::DescribeCategoryChartData::it_can_add_a_series",
+      "baseline": "chart-inventory-case-map.json#/rows/379",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/379/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-b688afb7d45c",
+      "source": "upstream-test-inventory.json#/unit_cases/380",
+      "identity": "tests/chart/test_data.py::DescribeCategoryChartData::it_can_set_its_categories",
+      "baseline": "chart-inventory-case-map.json#/rows/380",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/380/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-385e587b6a7d",
+      "source": "upstream-test-inventory.json#/unit_cases/381",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_numeric[are_numeric_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/381",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/381/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-cf892bd49117",
+      "source": "upstream-test-inventory.json#/unit_cases/382",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_numeric[are_numeric_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/382",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/382/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-3d6f63d396d4",
+      "source": "upstream-test-inventory.json#/unit_cases/383",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_numeric[are_numeric_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/383",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/383/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-e1fffe00f0ee",
+      "source": "upstream-test-inventory.json#/unit_cases/384",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_numeric[are_numeric_fixture3]",
+      "baseline": "chart-inventory-case-map.json#/rows/384",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/384/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-daee5d4288d6",
+      "source": "upstream-test-inventory.json#/unit_cases/385",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_numeric[are_numeric_fixture4]",
+      "baseline": "chart-inventory-case-map.json#/rows/385",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/385/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-b291bee3ed1e",
+      "source": "upstream-test-inventory.json#/unit_cases/386",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_dates[are_dates_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/386",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/386/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-060f260b37d8",
+      "source": "upstream-test-inventory.json#/unit_cases/387",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_dates[are_dates_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/387",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/387/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-c448a138902b",
+      "source": "upstream-test-inventory.json#/unit_cases/388",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_dates[are_dates_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/388",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/388/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-c277b88a731a",
+      "source": "upstream-test-inventory.json#/unit_cases/389",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_dates[are_dates_fixture3]",
+      "baseline": "chart-inventory-case-map.json#/rows/389",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/389/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-094c7b7ab990",
+      "source": "upstream-test-inventory.json#/unit_cases/390",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_dates[are_dates_fixture4]",
+      "baseline": "chart-inventory-case-map.json#/rows/390",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/390/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-4cc43bb2b2e4",
+      "source": "upstream-test-inventory.json#/unit_cases/391",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_the_category_hierarchy_depth[depth_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/391",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/391/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-03fb6d4ddc10",
+      "source": "upstream-test-inventory.json#/unit_cases/392",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_the_category_hierarchy_depth[depth_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/392",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/392/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-6f5f1ddd118d",
+      "source": "upstream-test-inventory.json#/unit_cases/393",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_the_category_hierarchy_depth[depth_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/393",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/393/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-380b18be5cc0",
+      "source": "upstream-test-inventory.json#/unit_cases/394",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_the_category_hierarchy_depth[depth_fixture3]",
+      "baseline": "chart-inventory-case-map.json#/rows/394",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/394/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-d20c899ebc67",
+      "source": "upstream-test-inventory.json#/unit_cases/395",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_the_category_hierarchy_depth[depth_fixture4]",
+      "baseline": "chart-inventory-case-map.json#/rows/395",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/395/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-6f2f5a3ed70e",
+      "source": "upstream-test-inventory.json#/unit_cases/396",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_the_idx_of_a_category",
+      "baseline": "chart-inventory-case-map.json#/rows/396",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/396/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-5facd7db43de",
+      "source": "upstream-test-inventory.json#/unit_cases/397",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_its_leaf_category_count[leaf_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/397",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/397/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-f3bb03ed23d1",
+      "source": "upstream-test-inventory.json#/unit_cases/398",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_its_leaf_category_count[leaf_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/398",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/398/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-4c082f73a050",
+      "source": "upstream-test-inventory.json#/unit_cases/399",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_its_leaf_category_count[leaf_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/399",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/399/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-ccf1118fff7c",
+      "source": "upstream-test-inventory.json#/unit_cases/400",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_its_levels[levels_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/400",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/400/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-7272a4e0efe1",
+      "source": "upstream-test-inventory.json#/unit_cases/401",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_its_levels[levels_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/401",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/401/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-1432d6601a10",
+      "source": "upstream-test-inventory.json#/unit_cases/402",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_its_number_format[number_format_get_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/402",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/402/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Dataset/category/series string formats are supported; per-point formats and live number_format getters/setters remain public model gaps. Numeric coercion and empty data differ explicitly.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes"
+      ]
+    },
+    {
+      "id": "presentation-unit-4876591559b1",
+      "source": "upstream-test-inventory.json#/unit_cases/403",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_its_number_format[number_format_get_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/403",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/403/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Dataset/category/series string formats are supported; per-point formats and live number_format getters/setters remain public model gaps. Numeric coercion and empty data differ explicitly.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes"
+      ]
+    },
+    {
+      "id": "presentation-unit-fa74dedd6797",
+      "source": "upstream-test-inventory.json#/unit_cases/404",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_its_number_format[number_format_get_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/404",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/404/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Dataset/category/series string formats are supported; per-point formats and live number_format getters/setters remain public model gaps. Numeric coercion and empty data differ explicitly.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes"
+      ]
+    },
+    {
+      "id": "presentation-unit-f7289653e1d9",
+      "source": "upstream-test-inventory.json#/unit_cases/405",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_its_number_format[number_format_get_fixture3]",
+      "baseline": "chart-inventory-case-map.json#/rows/405",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/405/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Dataset/category/series string formats are supported; per-point formats and live number_format getters/setters remain public model gaps. Numeric coercion and empty data differ explicitly.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes"
+      ]
+    },
+    {
+      "id": "presentation-unit-6b591f894829",
+      "source": "upstream-test-inventory.json#/unit_cases/406",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_its_number_format[number_format_get_fixture4]",
+      "baseline": "chart-inventory-case-map.json#/rows/406",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/406/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Dataset/category/series string formats are supported; per-point formats and live number_format getters/setters remain public model gaps. Numeric coercion and empty data differ explicitly.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes"
+      ]
+    },
+    {
+      "id": "presentation-unit-a5457df20fff",
+      "source": "upstream-test-inventory.json#/unit_cases/407",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_knows_its_number_format[number_format_get_fixture5]",
+      "baseline": "chart-inventory-case-map.json#/rows/407",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/407/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Dataset/category/series string formats are supported; per-point formats and live number_format getters/setters remain public model gaps. Numeric coercion and empty data differ explicitly.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes"
+      ]
+    },
+    {
+      "id": "presentation-unit-5551edf1b70b",
+      "source": "upstream-test-inventory.json#/unit_cases/408",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_can_change_its_number_format[number_format_set_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/408",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/408/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Dataset/category/series string formats are supported; per-point formats and live number_format getters/setters remain public model gaps. Numeric coercion and empty data differ explicitly.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes"
+      ]
+    },
+    {
+      "id": "presentation-unit-574bce2d3e89",
+      "source": "upstream-test-inventory.json#/unit_cases/409",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_can_change_its_number_format[number_format_set_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/409",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/409/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Dataset/category/series string formats are supported; per-point formats and live number_format getters/setters remain public model gaps. Numeric coercion and empty data differ explicitly.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes"
+      ]
+    },
+    {
+      "id": "presentation-unit-0825c70fada0",
+      "source": "upstream-test-inventory.json#/unit_cases/410",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_raises_on_category_depth_not_uniform",
+      "baseline": "chart-inventory-case-map.json#/rows/410",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/410/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-b7a13f65a449",
+      "source": "upstream-test-inventory.json#/unit_cases/411",
+      "identity": "tests/chart/test_data.py::DescribeCategories::it_can_add_a_category",
+      "baseline": "chart-inventory-case-map.json#/rows/411",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/411/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-856ec66535bc",
+      "source": "upstream-test-inventory.json#/unit_cases/412",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_knows_its_depth[depth_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/412",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/412/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-f1afe9af03bc",
+      "source": "upstream-test-inventory.json#/unit_cases/413",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_knows_its_depth[depth_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/413",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/413/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-0ee04a908c8a",
+      "source": "upstream-test-inventory.json#/unit_cases/414",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_knows_its_depth[depth_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/414",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/414/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-db20c365c761",
+      "source": "upstream-test-inventory.json#/unit_cases/415",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_knows_its_depth[depth_fixture3]",
+      "baseline": "chart-inventory-case-map.json#/rows/415",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/415/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-b8fea6847c02",
+      "source": "upstream-test-inventory.json#/unit_cases/416",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_knows_its_idx[Categories]",
+      "baseline": "chart-inventory-case-map.json#/rows/416",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/416/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-e7636fd2fc54",
+      "source": "upstream-test-inventory.json#/unit_cases/417",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_knows_its_idx[Category]",
+      "baseline": "chart-inventory-case-map.json#/rows/417",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/417/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-071b8ddf17fe",
+      "source": "upstream-test-inventory.json#/unit_cases/418",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_knows_the_index_of_a_sub_category",
+      "baseline": "chart-inventory-case-map.json#/rows/418",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/418/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-b4c9c957a3c8",
+      "source": "upstream-test-inventory.json#/unit_cases/419",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_knows_its_leaf_category_count[leaf_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/419",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/419/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-a653f2289455",
+      "source": "upstream-test-inventory.json#/unit_cases/420",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_knows_its_leaf_category_count[leaf_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/420",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/420/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-f16b318a09f7",
+      "source": "upstream-test-inventory.json#/unit_cases/421",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_knows_its_leaf_category_count[leaf_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/421",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/421/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-ce0b370f5aa7",
+      "source": "upstream-test-inventory.json#/unit_cases/422",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_raises_on_depth_not_uniform",
+      "baseline": "chart-inventory-case-map.json#/rows/422",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/422/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-ff44f1b6734b",
+      "source": "upstream-test-inventory.json#/unit_cases/423",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_knows_its_label[label_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/423",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/423/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-a94b3817b06f",
+      "source": "upstream-test-inventory.json#/unit_cases/424",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_knows_its_label[label_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/424",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/424/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-442d530b8789",
+      "source": "upstream-test-inventory.json#/unit_cases/425",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_knows_its_numeric_string_value[num_str_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/425",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/425/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-64c43843f4c3",
+      "source": "upstream-test-inventory.json#/unit_cases/426",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_knows_its_numeric_string_value[num_str_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/426",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/426/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-38e072c6268f",
+      "source": "upstream-test-inventory.json#/unit_cases/427",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_knows_its_numeric_string_value[num_str_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/427",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/427/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-777586eb62ba",
+      "source": "upstream-test-inventory.json#/unit_cases/428",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_knows_its_numeric_string_value[num_str_fixture3]",
+      "baseline": "chart-inventory-case-map.json#/rows/428",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/428/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-fcadd84490ce",
+      "source": "upstream-test-inventory.json#/unit_cases/429",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_provides_access_to_its_sub_categories",
+      "baseline": "chart-inventory-case-map.json#/rows/429",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/429/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-5576d7757b18",
+      "source": "upstream-test-inventory.json#/unit_cases/430",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_can_add_a_sub_category",
+      "baseline": "chart-inventory-case-map.json#/rows/430",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/430/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-c4424112d084",
+      "source": "upstream-test-inventory.json#/unit_cases/431",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_calculates_an_excel_date_number_to_help[excel_date_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/431",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/431/selectedParameters",
+      "status": "language-mapped",
+      "wholeRowParity": false,
+      "reason": "All four source dates/epochs have independent serial assertions plus 1900 discontinuity and 1904 origin. UTC-Z operation strings replace Python date/datetime; live model UTC Date support remains outstanding.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#keeps date %s in epoch %s consistent through worksheet and cache replacement"
+      ]
+    },
+    {
+      "id": "presentation-unit-0dab8feedb32",
+      "source": "upstream-test-inventory.json#/unit_cases/432",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_calculates_an_excel_date_number_to_help[excel_date_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/432",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/432/selectedParameters",
+      "status": "language-mapped",
+      "wholeRowParity": false,
+      "reason": "All four source dates/epochs have independent serial assertions plus 1900 discontinuity and 1904 origin. UTC-Z operation strings replace Python date/datetime; live model UTC Date support remains outstanding.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#keeps date %s in epoch %s consistent through worksheet and cache replacement"
+      ]
+    },
+    {
+      "id": "presentation-unit-a693a0c631dd",
+      "source": "upstream-test-inventory.json#/unit_cases/433",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_calculates_an_excel_date_number_to_help[excel_date_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/433",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/433/selectedParameters",
+      "status": "language-mapped",
+      "wholeRowParity": false,
+      "reason": "All four source dates/epochs have independent serial assertions plus 1900 discontinuity and 1904 origin. UTC-Z operation strings replace Python date/datetime; live model UTC Date support remains outstanding.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#keeps date %s in epoch %s consistent through worksheet and cache replacement"
+      ]
+    },
+    {
+      "id": "presentation-unit-d5e8666157f6",
+      "source": "upstream-test-inventory.json#/unit_cases/434",
+      "identity": "tests/chart/test_data.py::DescribeCategory::it_calculates_an_excel_date_number_to_help[excel_date_fixture3]",
+      "baseline": "chart-inventory-case-map.json#/rows/434",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/434/selectedParameters",
+      "status": "language-mapped",
+      "wholeRowParity": false,
+      "reason": "All four source dates/epochs have independent serial assertions plus 1900 discontinuity and 1904 origin. UTC-Z operation strings replace Python date/datetime; live model UTC Date support remains outstanding.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#keeps date %s in epoch %s consistent through worksheet and cache replacement"
+      ]
+    },
+    {
+      "id": "presentation-unit-ff844244f708",
+      "source": "upstream-test-inventory.json#/unit_cases/435",
+      "identity": "tests/chart/test_data.py::DescribeCategorySeriesData::it_knows_the_categories_range_ref",
+      "baseline": "chart-inventory-case-map.json#/rows/435",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/435/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Actual formula ranges are covered; the public live helper/member itself remains unimplemented.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#keeps category depth %s and leaf count %s aligned with series %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-2a6412cf81ba",
+      "source": "upstream-test-inventory.json#/unit_cases/436",
+      "identity": "tests/chart/test_data.py::DescribeCategorySeriesData::it_knows_its_values",
+      "baseline": "chart-inventory-case-map.json#/rows/436",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/436/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-f2b13a4c3674",
+      "source": "upstream-test-inventory.json#/unit_cases/437",
+      "identity": "tests/chart/test_data.py::DescribeCategorySeriesData::it_knows_its_values_range_ref",
+      "baseline": "chart-inventory-case-map.json#/rows/437",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/437/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Actual formula ranges are covered; the public live helper/member itself remains unimplemented.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#keeps category depth %s and leaf count %s aligned with series %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-1174d027d479",
+      "source": "upstream-test-inventory.json#/unit_cases/438",
+      "identity": "tests/chart/test_data.py::DescribeCategorySeriesData::it_provides_access_to_the_chart_categories",
+      "baseline": "chart-inventory-case-map.json#/rows/438",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/438/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-d431ceadd2b4",
+      "source": "upstream-test-inventory.json#/unit_cases/439",
+      "identity": "tests/chart/test_data.py::DescribeCategorySeriesData::it_can_add_a_data_point",
+      "baseline": "chart-inventory-case-map.json#/rows/439",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/439/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-ac0e3bcf087a",
+      "source": "upstream-test-inventory.json#/unit_cases/440",
+      "identity": "tests/chart/test_data.py::DescribeBubbleChartData::it_can_add_a_series",
+      "baseline": "chart-inventory-case-map.json#/rows/440",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/440/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-fbe0fae53606",
+      "source": "upstream-test-inventory.json#/unit_cases/441",
+      "identity": "tests/chart/test_data.py::DescribeXyChartData::it_is_a__BaseChartData_object",
+      "baseline": "chart-inventory-case-map.json#/rows/441",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/441/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-269535d0b9b8",
+      "source": "upstream-test-inventory.json#/unit_cases/442",
+      "identity": "tests/chart/test_data.py::DescribeXyChartData::it_can_add_a_series",
+      "baseline": "chart-inventory-case-map.json#/rows/442",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/442/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-3a40ea156a29",
+      "source": "upstream-test-inventory.json#/unit_cases/443",
+      "identity": "tests/chart/test_data.py::DescribeBubbleSeriesData::it_can_add_a_data_point",
+      "baseline": "chart-inventory-case-map.json#/rows/443",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/443/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-fafde3657099",
+      "source": "upstream-test-inventory.json#/unit_cases/444",
+      "identity": "tests/chart/test_data.py::DescribeXySeriesData::it_is_a__BaseSeriesData_object",
+      "baseline": "chart-inventory-case-map.json#/rows/444",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/444/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-058d76848972",
+      "source": "upstream-test-inventory.json#/unit_cases/445",
+      "identity": "tests/chart/test_data.py::DescribeXySeriesData::it_can_add_a_data_point",
+      "baseline": "chart-inventory-case-map.json#/rows/445",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/445/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-c4bcc6616083",
+      "source": "upstream-test-inventory.json#/unit_cases/446",
+      "identity": "tests/chart/test_data.py::DescribeCategoryDataPoint::it_is_a__BaseDataPoint_object",
+      "baseline": "chart-inventory-case-map.json#/rows/446",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/446/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-893884d3e4d3",
+      "source": "upstream-test-inventory.json#/unit_cases/447",
+      "identity": "tests/chart/test_data.py::DescribeCategoryDataPoint::it_knows_its_value",
+      "baseline": "chart-inventory-case-map.json#/rows/447",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/447/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-cdd47e2566a0",
+      "source": "upstream-test-inventory.json#/unit_cases/448",
+      "identity": "tests/chart/test_data.py::DescribeXyDataPoint::it_is_a__BaseDataPoint_object",
+      "baseline": "chart-inventory-case-map.json#/rows/448",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/448/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-0af33d459548",
+      "source": "upstream-test-inventory.json#/unit_cases/449",
+      "identity": "tests/chart/test_data.py::DescribeXyDataPoint::it_knows_its_x_y_values",
+      "baseline": "chart-inventory-case-map.json#/rows/449",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/449/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-6a3c39f8d042",
+      "source": "upstream-test-inventory.json#/unit_cases/450",
+      "identity": "tests/chart/test_data.py::DescribeBubbleDataPoint::it_is_an_XyDataPoint_subclass",
+      "baseline": "chart-inventory-case-map.json#/rows/450",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/450/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-fd430d956039",
+      "source": "upstream-test-inventory.json#/unit_cases/451",
+      "identity": "tests/chart/test_data.py::DescribeBubbleDataPoint::it_knows_its_x_y_size_values",
+      "baseline": "chart-inventory-case-map.json#/rows/451",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/451/selectedParameters",
+      "status": "unsupported-public-model",
+      "wholeRowParity": false,
+      "reason": "The typed operation accepts detached ChartData records; this live builder/member remains in the public API ledger, including inherited and untested declarations.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-a0b7ae79ecda",
+      "source": "upstream-test-inventory.json#/unit_cases/817",
+      "identity": "tests/chart/test_xlsx.py::Describe_BaseWorkbookWriter::it_can_generate_a_chart_data_Excel_blob",
+      "baseline": "chart-inventory-case-map.json#/rows/817",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/817/selectedParameters",
+      "status": "language-mapped",
+      "wholeRowParity": false,
+      "reason": "Async bounded Uint8Array archive output and original memfs I/O replace context-manager/BytesIO lifecycle; no host filesystem writer is exposed.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook.test.ts#writes original deterministic worksheet cells with missing indices retained"
+      ]
+    },
+    {
+      "id": "presentation-unit-8cbc0ed3c526",
+      "source": "upstream-test-inventory.json#/unit_cases/818",
+      "identity": "tests/chart/test_xlsx.py::Describe_BaseWorkbookWriter::it_can_open_a_worksheet_in_a_context",
+      "baseline": "chart-inventory-case-map.json#/rows/818",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/818/selectedParameters",
+      "status": "language-mapped",
+      "wholeRowParity": false,
+      "reason": "Async bounded Uint8Array archive output and original memfs I/O replace context-manager/BytesIO lifecycle; no host filesystem writer is exposed.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook.test.ts#writes original deterministic worksheet cells with missing indices retained"
+      ]
+    },
+    {
+      "id": "presentation-unit-02dbca90aaab",
+      "source": "upstream-test-inventory.json#/unit_cases/819",
+      "identity": "tests/chart/test_xlsx.py::Describe_BaseWorkbookWriter::it_raises_on_no_override_of_populate",
+      "baseline": "chart-inventory-case-map.json#/rows/819",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/819/selectedParameters",
+      "status": "architecture-mapped",
+      "wholeRowParity": false,
+      "reason": "Private abstract writer dispatch has no target superclass; no documented public member is excluded by underscore spelling.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-c8aa1249e4be",
+      "source": "upstream-test-inventory.json#/unit_cases/820",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_knows_the_categories_range_ref[categories_ref_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/820",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/820/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#keeps category depth %s and leaf count %s aligned with series %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-f4f442ac18f2",
+      "source": "upstream-test-inventory.json#/unit_cases/821",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_knows_the_categories_range_ref[categories_ref_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/821",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/821/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#keeps category depth %s and leaf count %s aligned with series %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-c0776959e13e",
+      "source": "upstream-test-inventory.json#/unit_cases/822",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_knows_the_categories_range_ref[categories_ref_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/822",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/822/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#keeps category depth %s and leaf count %s aligned with series %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-f72decd4d646",
+      "source": "upstream-test-inventory.json#/unit_cases/823",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_knows_the_categories_range_ref[categories_ref_fixture3]",
+      "baseline": "chart-inventory-case-map.json#/rows/823",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/823/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#keeps category depth %s and leaf count %s aligned with series %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-b2ff2a7dc9ff",
+      "source": "upstream-test-inventory.json#/unit_cases/824",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_raises_on_cat_ref_on_no_categories",
+      "baseline": "chart-inventory-case-map.json#/rows/824",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/824/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#rejects an absent category range before producing chart bytes"
+      ]
+    },
+    {
+      "id": "presentation-unit-ecdea9a4d5a8",
+      "source": "upstream-test-inventory.json#/unit_cases/825",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_knows_the_ref_for_a_series_name[ser_name_ref_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/825",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/825/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#keeps category depth %s and leaf count %s aligned with series %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-089fb9bf8381",
+      "source": "upstream-test-inventory.json#/unit_cases/826",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_knows_the_ref_for_a_series_name[ser_name_ref_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/826",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/826/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#keeps category depth %s and leaf count %s aligned with series %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-81588323c1ef",
+      "source": "upstream-test-inventory.json#/unit_cases/827",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_knows_the_ref_for_a_series_name[ser_name_ref_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/827",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/827/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#keeps category depth %s and leaf count %s aligned with series %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-1935be426db5",
+      "source": "upstream-test-inventory.json#/unit_cases/828",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_knows_the_ref_for_a_series_name[ser_name_ref_fixture3]",
+      "baseline": "chart-inventory-case-map.json#/rows/828",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/828/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#keeps category depth %s and leaf count %s aligned with series %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-51ffbe28ceac",
+      "source": "upstream-test-inventory.json#/unit_cases/829",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_knows_the_values_range_ref[values_ref_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/829",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/829/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#keeps category depth %s and leaf count %s aligned with series %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-762c7f3f7c54",
+      "source": "upstream-test-inventory.json#/unit_cases/830",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_knows_the_values_range_ref[values_ref_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/830",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/830/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#keeps category depth %s and leaf count %s aligned with series %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-e282ad9ea9a2",
+      "source": "upstream-test-inventory.json#/unit_cases/831",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_knows_the_values_range_ref[values_ref_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/831",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/831/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#keeps category depth %s and leaf count %s aligned with series %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-c7412093d9ba",
+      "source": "upstream-test-inventory.json#/unit_cases/832",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_knows_the_values_range_ref[values_ref_fixture3]",
+      "baseline": "chart-inventory-case-map.json#/rows/832",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/832/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#keeps category depth %s and leaf count %s aligned with series %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-f5c9d4ba0730",
+      "source": "upstream-test-inventory.json#/unit_cases/833",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_can_populate_a_worksheet_with_chart_data",
+      "baseline": "chart-inventory-case-map.json#/rows/833",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/833/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#places outer category levels before leaf labels and shifts the values column",
+        "packages/pptx/src/chart-data-expansion.test.ts#applies category, inherited, and overridden numeric formats to worksheet cells",
+        "packages/pptx/src/chart-workbook.test.ts#writes original deterministic worksheet cells with missing indices retained"
+      ]
+    },
+    {
+      "id": "presentation-unit-341d12727b46",
+      "source": "upstream-test-inventory.json#/unit_cases/834",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_calculates_a_column_reference_to_help[col_ref_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/834",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/834/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#addresses worksheet column %s as %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-f4187a9d1344",
+      "source": "upstream-test-inventory.json#/unit_cases/835",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_calculates_a_column_reference_to_help[col_ref_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/835",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/835/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#addresses worksheet column %s as %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-64485f30e0da",
+      "source": "upstream-test-inventory.json#/unit_cases/836",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_calculates_a_column_reference_to_help[col_ref_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/836",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/836/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#addresses worksheet column %s as %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-20571ff73bca",
+      "source": "upstream-test-inventory.json#/unit_cases/837",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_calculates_a_column_reference_to_help[col_ref_fixture3]",
+      "baseline": "chart-inventory-case-map.json#/rows/837",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/837/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#addresses worksheet column %s as %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-61fe6ab2b03f",
+      "source": "upstream-test-inventory.json#/unit_cases/838",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_calculates_a_column_reference_to_help[col_ref_fixture4]",
+      "baseline": "chart-inventory-case-map.json#/rows/838",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/838/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#addresses worksheet column %s as %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-60970de73de0",
+      "source": "upstream-test-inventory.json#/unit_cases/839",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_calculates_a_column_reference_to_help[col_ref_fixture5]",
+      "baseline": "chart-inventory-case-map.json#/rows/839",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/839/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#addresses worksheet column %s as %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-28d8527a509d",
+      "source": "upstream-test-inventory.json#/unit_cases/840",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_calculates_a_column_reference_to_help[col_ref_fixture6]",
+      "baseline": "chart-inventory-case-map.json#/rows/840",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/840/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#addresses worksheet column %s as %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-11c5105fca33",
+      "source": "upstream-test-inventory.json#/unit_cases/841",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_calculates_a_column_reference_to_help[col_ref_fixture7]",
+      "baseline": "chart-inventory-case-map.json#/rows/841",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/841/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#addresses worksheet column %s as %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-92ca236e4034",
+      "source": "upstream-test-inventory.json#/unit_cases/842",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_calculates_a_column_reference_to_help[col_ref_fixture8]",
+      "baseline": "chart-inventory-case-map.json#/rows/842",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/842/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#addresses worksheet column %s as %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-3976000758b0",
+      "source": "upstream-test-inventory.json#/unit_cases/843",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_calculates_a_column_reference_to_help[col_ref_fixture9]",
+      "baseline": "chart-inventory-case-map.json#/rows/843",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/843/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#addresses worksheet column %s as %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-a1483b0d1c02",
+      "source": "upstream-test-inventory.json#/unit_cases/844",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_calculates_a_column_reference_to_help[col_ref_fixture10]",
+      "baseline": "chart-inventory-case-map.json#/rows/844",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/844/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#addresses worksheet column %s as %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-5ebeb15e60c5",
+      "source": "upstream-test-inventory.json#/unit_cases/845",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_calculates_a_column_reference_to_help[col_ref_fixture11]",
+      "baseline": "chart-inventory-case-map.json#/rows/845",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/845/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#addresses worksheet column %s as %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-328ef66ac9b2",
+      "source": "upstream-test-inventory.json#/unit_cases/846",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_calculates_a_column_reference_to_help[col_ref_fixture12]",
+      "baseline": "chart-inventory-case-map.json#/rows/846",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/846/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#addresses worksheet column %s as %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-c3c5830324e5",
+      "source": "upstream-test-inventory.json#/unit_cases/847",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_calculates_a_column_reference_to_help[col_ref_fixture13]",
+      "baseline": "chart-inventory-case-map.json#/rows/847",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/847/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#addresses worksheet column %s as %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-3b8cf8b0f984",
+      "source": "upstream-test-inventory.json#/unit_cases/848",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_raises_on_col_number_out_of_range[0]",
+      "baseline": "chart-inventory-case-map.json#/rows/848",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/848/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#rejects invalid worksheet column ordinal %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-9c5d50095aae",
+      "source": "upstream-test-inventory.json#/unit_cases/849",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_raises_on_col_number_out_of_range[-1]",
+      "baseline": "chart-inventory-case-map.json#/rows/849",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/849/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#rejects invalid worksheet column ordinal %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-2767a1c32982",
+      "source": "upstream-test-inventory.json#/unit_cases/850",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_raises_on_col_number_out_of_range[16385]",
+      "baseline": "chart-inventory-case-map.json#/rows/850",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/850/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#rejects invalid worksheet column ordinal %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-71df31def885",
+      "source": "upstream-test-inventory.json#/unit_cases/851",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_raises_on_col_number_out_of_range[30433]",
+      "baseline": "chart-inventory-case-map.json#/rows/851",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/851/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-values.test.ts#rejects invalid worksheet column ordinal %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-a3fd7f957d5d",
+      "source": "upstream-test-inventory.json#/unit_cases/852",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_writes_categories_to_help[write_cats_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/852",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/852/selectedParameters",
+      "status": "partial-serialization-default",
+      "wholeRowParity": false,
+      "reason": "Outer-to-inner columns, sparse labels and formats are supported. Source default category column width 10 is not imposed on generated sheets; imported column metadata is preserved.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#places outer category levels before leaf labels and shifts the values column",
+        "packages/pptx/src/chart-data-expansion.test.ts#applies category, inherited, and overridden numeric formats to worksheet cells"
+      ]
+    },
+    {
+      "id": "presentation-unit-4e3a2b422e28",
+      "source": "upstream-test-inventory.json#/unit_cases/853",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_writes_categories_to_help[write_cats_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/853",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/853/selectedParameters",
+      "status": "partial-serialization-default",
+      "wholeRowParity": false,
+      "reason": "Outer-to-inner columns, sparse labels and formats are supported. Source default category column width 10 is not imposed on generated sheets; imported column metadata is preserved.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#places outer category levels before leaf labels and shifts the values column",
+        "packages/pptx/src/chart-data-expansion.test.ts#applies category, inherited, and overridden numeric formats to worksheet cells"
+      ]
+    },
+    {
+      "id": "presentation-unit-0ff9385125cd",
+      "source": "upstream-test-inventory.json#/unit_cases/854",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_writes_a_category_column_to_help",
+      "baseline": "chart-inventory-case-map.json#/rows/854",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/854/selectedParameters",
+      "status": "partial-serialization-default",
+      "wholeRowParity": false,
+      "reason": "Outer-to-inner columns, sparse labels and formats are supported. Source default category column width 10 is not imposed on generated sheets; imported column metadata is preserved.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#places outer category levels before leaf labels and shifts the values column",
+        "packages/pptx/src/chart-data-expansion.test.ts#applies category, inherited, and overridden numeric formats to worksheet cells"
+      ]
+    },
+    {
+      "id": "presentation-unit-d1d40dbb663d",
+      "source": "upstream-test-inventory.json#/unit_cases/855",
+      "identity": "tests/chart/test_xlsx.py::DescribeCategoryWorkbookWriter::it_writes_series_to_help",
+      "baseline": "chart-inventory-case-map.json#/rows/855",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/855/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original assertions cover observable worksheet/range behavior without reproducing mock call paths or dependency wrapper identity.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#places outer category levels before leaf labels and shifts the values column",
+        "packages/pptx/src/chart-data-expansion.test.ts#applies category, inherited, and overridden numeric formats to worksheet cells",
+        "packages/pptx/src/chart-workbook.test.ts#writes original deterministic worksheet cells with missing indices retained"
+      ]
+    },
+    {
+      "id": "presentation-unit-a6298d47c37e",
+      "source": "upstream-test-inventory.json#/unit_cases/856",
+      "identity": "tests/chart/test_xlsx.py::DescribeBubbleWorkbookWriter::it_can_populate_a_worksheet_with_chart_data",
+      "baseline": "chart-inventory-case-map.json#/rows/856",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/856/selectedParameters",
+      "status": "intentional-layout-mapping",
+      "wholeRowParity": false,
+      "reason": "Generated bubble triples are adjacent columns instead of stacked rows. Point order, size/value alignment and zero sizes are retained; imported stacked direct ranges are accepted and canonicalized.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#writes adjacent bubble triples including zero sizes and independent series lengths",
+        "packages/pptx/src/chart-workbook-ranges.test.ts#rewrites vertically stacked simple %s series",
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes"
+      ]
+    },
+    {
+      "id": "presentation-unit-b1a484567bd5",
+      "source": "upstream-test-inventory.json#/unit_cases/857",
+      "identity": "tests/chart/test_xlsx.py::DescribeXyWorkbookWriter::it_can_populate_a_worksheet_with_chart_data",
+      "baseline": "chart-inventory-case-map.json#/rows/857",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/857/selectedParameters",
+      "status": "intentional-layout-mapping",
+      "wholeRowParity": false,
+      "reason": "Generated XY pairs are adjacent columns instead of stacked rows. Imported stacked ranges are accepted; unsorted x values and distinct series lengths are retained.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook.test.ts#keeps each scatter series pair adjacent and orders points without sorting",
+        "packages/pptx/src/chart-workbook-ranges.test.ts#rewrites vertically stacked simple %s series",
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes"
+      ]
+    },
+    {
+      "id": "presentation-unit-582cd6434e08",
+      "source": "upstream-test-inventory.json#/unit_cases/887",
+      "identity": "tests/chart/test_xmlwriter.py::DescribeSeriesXmlRewriterFactory::it_contructs_an_xml_rewriter_for_a_chart_type[call_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/887",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/887/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "All eight factory variants and grow/same/shrink are exercised through original full chart/workbook operations, replacing private rewriter identity assertions.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#synchronizes growing, same-size, and shrinking datasets for %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-48994931ae86",
+      "source": "upstream-test-inventory.json#/unit_cases/888",
+      "identity": "tests/chart/test_xmlwriter.py::DescribeSeriesXmlRewriterFactory::it_contructs_an_xml_rewriter_for_a_chart_type[call_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/888",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/888/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "All eight factory variants and grow/same/shrink are exercised through original full chart/workbook operations, replacing private rewriter identity assertions.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#synchronizes growing, same-size, and shrinking datasets for %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-f10f60b4bdf9",
+      "source": "upstream-test-inventory.json#/unit_cases/889",
+      "identity": "tests/chart/test_xmlwriter.py::DescribeSeriesXmlRewriterFactory::it_contructs_an_xml_rewriter_for_a_chart_type[call_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/889",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/889/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "All eight factory variants and grow/same/shrink are exercised through original full chart/workbook operations, replacing private rewriter identity assertions.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#synchronizes growing, same-size, and shrinking datasets for %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-ced6b474d255",
+      "source": "upstream-test-inventory.json#/unit_cases/890",
+      "identity": "tests/chart/test_xmlwriter.py::DescribeSeriesXmlRewriterFactory::it_contructs_an_xml_rewriter_for_a_chart_type[call_fixture3]",
+      "baseline": "chart-inventory-case-map.json#/rows/890",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/890/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "All eight factory variants and grow/same/shrink are exercised through original full chart/workbook operations, replacing private rewriter identity assertions.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#synchronizes growing, same-size, and shrinking datasets for %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-139c97558f57",
+      "source": "upstream-test-inventory.json#/unit_cases/891",
+      "identity": "tests/chart/test_xmlwriter.py::DescribeSeriesXmlRewriterFactory::it_contructs_an_xml_rewriter_for_a_chart_type[call_fixture4]",
+      "baseline": "chart-inventory-case-map.json#/rows/891",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/891/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "All eight factory variants and grow/same/shrink are exercised through original full chart/workbook operations, replacing private rewriter identity assertions.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#synchronizes growing, same-size, and shrinking datasets for %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-4502c59faf4e",
+      "source": "upstream-test-inventory.json#/unit_cases/892",
+      "identity": "tests/chart/test_xmlwriter.py::DescribeSeriesXmlRewriterFactory::it_contructs_an_xml_rewriter_for_a_chart_type[call_fixture5]",
+      "baseline": "chart-inventory-case-map.json#/rows/892",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/892/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "All eight factory variants and grow/same/shrink are exercised through original full chart/workbook operations, replacing private rewriter identity assertions.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#synchronizes growing, same-size, and shrinking datasets for %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-c28f9cd672c7",
+      "source": "upstream-test-inventory.json#/unit_cases/893",
+      "identity": "tests/chart/test_xmlwriter.py::DescribeSeriesXmlRewriterFactory::it_contructs_an_xml_rewriter_for_a_chart_type[call_fixture6]",
+      "baseline": "chart-inventory-case-map.json#/rows/893",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/893/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "All eight factory variants and grow/same/shrink are exercised through original full chart/workbook operations, replacing private rewriter identity assertions.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#synchronizes growing, same-size, and shrinking datasets for %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-5f0bbb235a68",
+      "source": "upstream-test-inventory.json#/unit_cases/894",
+      "identity": "tests/chart/test_xmlwriter.py::DescribeSeriesXmlRewriterFactory::it_contructs_an_xml_rewriter_for_a_chart_type[call_fixture7]",
+      "baseline": "chart-inventory-case-map.json#/rows/894",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/894/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "All eight factory variants and grow/same/shrink are exercised through original full chart/workbook operations, replacing private rewriter identity assertions.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#synchronizes growing, same-size, and shrinking datasets for %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-b097e1b25a72",
+      "source": "upstream-test-inventory.json#/unit_cases/929",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_BubbleSeriesXmlWriter::it_knows_its_bubbleSize_XML[bubbleSize_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/929",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/929/selectedParameters",
+      "status": "intentional-value-mapping",
+      "wholeRowParity": false,
+      "reason": "Empty/reversed data ranges, null series names and numeric number-format coercion from these source fixtures are not admitted by the nonempty typed operation. Dataset x/size and series y formats are kept consistent across cells and caches, resolving the source writer/cache discrepancy.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes",
+        "packages/pptx/src/chart-workbook-values.test.ts#rejects an absent category range before producing chart bytes"
+      ]
+    },
+    {
+      "id": "presentation-unit-b3904ebd7f07",
+      "source": "upstream-test-inventory.json#/unit_cases/930",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_BubbleSeriesXmlWriter::it_knows_its_bubbleSize_XML[bubbleSize_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/930",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/930/selectedParameters",
+      "status": "intentional-value-mapping",
+      "wholeRowParity": false,
+      "reason": "Empty/reversed data ranges, null series names and numeric number-format coercion from these source fixtures are not admitted by the nonempty typed operation. Dataset x/size and series y formats are kept consistent across cells and caches, resolving the source writer/cache discrepancy.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes",
+        "packages/pptx/src/chart-workbook-values.test.ts#rejects an absent category range before producing chart bytes"
+      ]
+    },
+    {
+      "id": "presentation-unit-2f84903c824c",
+      "source": "upstream-test-inventory.json#/unit_cases/931",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_BubbleSeriesXmlWriter::it_knows_its_bubbleSize_XML[bubbleSize_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/931",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/931/selectedParameters",
+      "status": "intentional-value-mapping",
+      "wholeRowParity": false,
+      "reason": "Empty/reversed data ranges, null series names and numeric number-format coercion from these source fixtures are not admitted by the nonempty typed operation. Dataset x/size and series y formats are kept consistent across cells and caches, resolving the source writer/cache discrepancy.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes",
+        "packages/pptx/src/chart-workbook-values.test.ts#rejects an absent category range before producing chart bytes"
+      ]
+    },
+    {
+      "id": "presentation-unit-89ad18ae1557",
+      "source": "upstream-test-inventory.json#/unit_cases/932",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_BubbleSeriesXmlWriter::it_knows_its_bubbleSize_XML[bubbleSize_fixture3]",
+      "baseline": "chart-inventory-case-map.json#/rows/932",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/932/selectedParameters",
+      "status": "intentional-value-mapping",
+      "wholeRowParity": false,
+      "reason": "Empty/reversed data ranges, null series names and numeric number-format coercion from these source fixtures are not admitted by the nonempty typed operation. Dataset x/size and series y formats are kept consistent across cells and caches, resolving the source writer/cache discrepancy.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes",
+        "packages/pptx/src/chart-workbook-values.test.ts#rejects an absent category range before producing chart bytes"
+      ]
+    },
+    {
+      "id": "presentation-unit-2b52bf64f9d9",
+      "source": "upstream-test-inventory.json#/unit_cases/933",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_CategorySeriesXmlWriter::it_knows_its_val_XML",
+      "baseline": "chart-inventory-case-map.json#/rows/933",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/933/selectedParameters",
+      "status": "intentional-value-mapping",
+      "wholeRowParity": false,
+      "reason": "Empty/reversed data ranges, null series names and numeric number-format coercion from these source fixtures are not admitted by the nonempty typed operation. Dataset x/size and series y formats are kept consistent across cells and caches, resolving the source writer/cache discrepancy.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes",
+        "packages/pptx/src/chart-workbook-values.test.ts#rejects an absent category range before producing chart bytes"
+      ]
+    },
+    {
+      "id": "presentation-unit-eab8f27ec6af",
+      "source": "upstream-test-inventory.json#/unit_cases/934",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_XySeriesXmlWriter::it_knows_its_xVal_XML[xVal_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/934",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/934/selectedParameters",
+      "status": "intentional-value-mapping",
+      "wholeRowParity": false,
+      "reason": "Empty/reversed data ranges, null series names and numeric number-format coercion from these source fixtures are not admitted by the nonempty typed operation. Dataset x/size and series y formats are kept consistent across cells and caches, resolving the source writer/cache discrepancy.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes",
+        "packages/pptx/src/chart-workbook-values.test.ts#rejects an absent category range before producing chart bytes"
+      ]
+    },
+    {
+      "id": "presentation-unit-9ac3c6b50466",
+      "source": "upstream-test-inventory.json#/unit_cases/935",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_XySeriesXmlWriter::it_knows_its_xVal_XML[xVal_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/935",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/935/selectedParameters",
+      "status": "intentional-value-mapping",
+      "wholeRowParity": false,
+      "reason": "Empty/reversed data ranges, null series names and numeric number-format coercion from these source fixtures are not admitted by the nonempty typed operation. Dataset x/size and series y formats are kept consistent across cells and caches, resolving the source writer/cache discrepancy.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes",
+        "packages/pptx/src/chart-workbook-values.test.ts#rejects an absent category range before producing chart bytes"
+      ]
+    },
+    {
+      "id": "presentation-unit-0ae6cabd69eb",
+      "source": "upstream-test-inventory.json#/unit_cases/936",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_XySeriesXmlWriter::it_knows_its_xVal_XML[xVal_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/936",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/936/selectedParameters",
+      "status": "intentional-value-mapping",
+      "wholeRowParity": false,
+      "reason": "Empty/reversed data ranges, null series names and numeric number-format coercion from these source fixtures are not admitted by the nonempty typed operation. Dataset x/size and series y formats are kept consistent across cells and caches, resolving the source writer/cache discrepancy.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes",
+        "packages/pptx/src/chart-workbook-values.test.ts#rejects an absent category range before producing chart bytes"
+      ]
+    },
+    {
+      "id": "presentation-unit-e6652fd91df5",
+      "source": "upstream-test-inventory.json#/unit_cases/937",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_XySeriesXmlWriter::it_knows_its_xVal_XML[xVal_fixture3]",
+      "baseline": "chart-inventory-case-map.json#/rows/937",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/937/selectedParameters",
+      "status": "intentional-value-mapping",
+      "wholeRowParity": false,
+      "reason": "Empty/reversed data ranges, null series names and numeric number-format coercion from these source fixtures are not admitted by the nonempty typed operation. Dataset x/size and series y formats are kept consistent across cells and caches, resolving the source writer/cache discrepancy.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes",
+        "packages/pptx/src/chart-workbook-values.test.ts#rejects an absent category range before producing chart bytes"
+      ]
+    },
+    {
+      "id": "presentation-unit-7a9f10e04297",
+      "source": "upstream-test-inventory.json#/unit_cases/938",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_XySeriesXmlWriter::it_knows_its_yVal_XML[yVal_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/938",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/938/selectedParameters",
+      "status": "intentional-value-mapping",
+      "wholeRowParity": false,
+      "reason": "Empty/reversed data ranges, null series names and numeric number-format coercion from these source fixtures are not admitted by the nonempty typed operation. Dataset x/size and series y formats are kept consistent across cells and caches, resolving the source writer/cache discrepancy.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes",
+        "packages/pptx/src/chart-workbook-values.test.ts#rejects an absent category range before producing chart bytes"
+      ]
+    },
+    {
+      "id": "presentation-unit-b4dc6f8e4974",
+      "source": "upstream-test-inventory.json#/unit_cases/939",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_XySeriesXmlWriter::it_knows_its_yVal_XML[yVal_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/939",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/939/selectedParameters",
+      "status": "intentional-value-mapping",
+      "wholeRowParity": false,
+      "reason": "Empty/reversed data ranges, null series names and numeric number-format coercion from these source fixtures are not admitted by the nonempty typed operation. Dataset x/size and series y formats are kept consistent across cells and caches, resolving the source writer/cache discrepancy.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes",
+        "packages/pptx/src/chart-workbook-values.test.ts#rejects an absent category range before producing chart bytes"
+      ]
+    },
+    {
+      "id": "presentation-unit-69718a61a30f",
+      "source": "upstream-test-inventory.json#/unit_cases/940",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_XySeriesXmlWriter::it_knows_its_yVal_XML[yVal_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/940",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/940/selectedParameters",
+      "status": "intentional-value-mapping",
+      "wholeRowParity": false,
+      "reason": "Empty/reversed data ranges, null series names and numeric number-format coercion from these source fixtures are not admitted by the nonempty typed operation. Dataset x/size and series y formats are kept consistent across cells and caches, resolving the source writer/cache discrepancy.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes",
+        "packages/pptx/src/chart-workbook-values.test.ts#rejects an absent category range before producing chart bytes"
+      ]
+    },
+    {
+      "id": "presentation-unit-fe79b648e382",
+      "source": "upstream-test-inventory.json#/unit_cases/941",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_XySeriesXmlWriter::it_knows_its_yVal_XML[yVal_fixture3]",
+      "baseline": "chart-inventory-case-map.json#/rows/941",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/941/selectedParameters",
+      "status": "intentional-value-mapping",
+      "wholeRowParity": false,
+      "reason": "Empty/reversed data ranges, null series names and numeric number-format coercion from these source fixtures are not admitted by the nonempty typed operation. Dataset x/size and series y formats are kept consistent across cells and caches, resolving the source writer/cache discrepancy.",
+      "originalTests": [
+        "packages/pptx/src/chart-data-expansion.test.ts#formats bubble coordinates and sizes from data while y values use the series override",
+        "packages/pptx/src/chart-workbook-strings.test.ts#preserves tabs and line breaks inside number format attributes",
+        "packages/pptx/src/chart-workbook-values.test.ts#rejects an absent category range before producing chart bytes"
+      ]
+    },
+    {
+      "id": "presentation-unit-de97faf1c1e6",
+      "source": "upstream-test-inventory.json#/unit_cases/942",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_BaseSeriesXmlRewriter::it_can_replace_series_data",
+      "baseline": "chart-inventory-case-map.json#/rows/942",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/942/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "All eight factory variants and grow/same/shrink are exercised through original full chart/workbook operations, replacing private rewriter identity assertions.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#synchronizes growing, same-size, and shrinking datasets for %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-fc9d8515b201",
+      "source": "upstream-test-inventory.json#/unit_cases/943",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_BaseSeriesXmlRewriter::it_adjusts_the_ser_count_to_help[adjust_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/943",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/943/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "All eight factory variants and grow/same/shrink are exercised through original full chart/workbook operations, replacing private rewriter identity assertions.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#synchronizes growing, same-size, and shrinking datasets for %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-75337fd989c3",
+      "source": "upstream-test-inventory.json#/unit_cases/944",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_BaseSeriesXmlRewriter::it_adjusts_the_ser_count_to_help[adjust_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/944",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/944/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "All eight factory variants and grow/same/shrink are exercised through original full chart/workbook operations, replacing private rewriter identity assertions.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#synchronizes growing, same-size, and shrinking datasets for %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-c9ba563cb569",
+      "source": "upstream-test-inventory.json#/unit_cases/945",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_BaseSeriesXmlRewriter::it_adjusts_the_ser_count_to_help[adjust_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/945",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/945/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "All eight factory variants and grow/same/shrink are exercised through original full chart/workbook operations, replacing private rewriter identity assertions.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#synchronizes growing, same-size, and shrinking datasets for %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-123bc88729c4",
+      "source": "upstream-test-inventory.json#/unit_cases/946",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_BaseSeriesXmlRewriter::it_adds_cloned_sers_to_help[clone_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/946",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/946/selectedParameters",
+      "status": "partial-series-cloning",
+      "wholeRowParity": false,
+      "reason": "Fresh idx/order values are allocated above imported maxima. New series use supported generated formatting rather than cloning arbitrary existing decoration; full cloning remains a gap.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#allocates unique series identities when growing imported series"
+      ]
+    },
+    {
+      "id": "presentation-unit-94b18e2cdfc2",
+      "source": "upstream-test-inventory.json#/unit_cases/947",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_BaseSeriesXmlRewriter::it_adds_cloned_sers_to_help[clone_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/947",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/947/selectedParameters",
+      "status": "unsupported-combination",
+      "wholeRowParity": false,
+      "reason": "Multiple plots cannot be safely reconstructed by the bounded operation; preserved on unrelated edits and rejected for data replacement.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-50b99eb14537",
+      "source": "upstream-test-inventory.json#/unit_cases/948",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_BaseSeriesXmlRewriter::it_trims_sers_to_help[trim_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/948",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/948/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Trim removes highest declared display orders while retaining surviving series identities, cells and references.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#trims series by declared display order while preserving surviving identities"
+      ]
+    },
+    {
+      "id": "presentation-unit-0715a271a259",
+      "source": "upstream-test-inventory.json#/unit_cases/949",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_BaseSeriesXmlRewriter::it_trims_sers_to_help[trim_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/949",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/949/selectedParameters",
+      "status": "unsupported-combination",
+      "wholeRowParity": false,
+      "reason": "Cross-plot deletion and removal of an emptied secondary plot remain outside the single-plot edit contract.",
+      "originalTests": []
+    },
+    {
+      "id": "presentation-unit-9edd1e1dc5cb",
+      "source": "upstream-test-inventory.json#/unit_cases/950",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_BubbleSeriesXmlRewriter::it_can_rewrite_a_ser_element",
+      "baseline": "chart-inventory-case-map.json#/rows/950",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/950/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original replacement operations update the name and category/XY/bubble channels while retaining existing nondata XML. Category numeric/date variants additionally map to retained family/date tests.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#synchronizes growing, same-size, and shrinking datasets for %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-fc4d23a945da",
+      "source": "upstream-test-inventory.json#/unit_cases/951",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_CategorySeriesXmlRewriter::it_can_rewrite_a_ser_element[rewrite_fixture0]",
+      "baseline": "chart-inventory-case-map.json#/rows/951",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/951/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original replacement operations update the name and category/XY/bubble channels while retaining existing nondata XML. Category numeric/date variants additionally map to retained family/date tests.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#synchronizes growing, same-size, and shrinking datasets for %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-077e063b1930",
+      "source": "upstream-test-inventory.json#/unit_cases/952",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_CategorySeriesXmlRewriter::it_can_rewrite_a_ser_element[rewrite_fixture1]",
+      "baseline": "chart-inventory-case-map.json#/rows/952",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/952/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original package replacement changes string categories to numeric caches and cells, retains unsorted 42/24 labels and existing series decoration, and synchronizes formula ranges.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#replaces string categories with unsorted numeric labels while retaining series decoration"
+      ]
+    },
+    {
+      "id": "presentation-unit-8a7579691d03",
+      "source": "upstream-test-inventory.json#/unit_cases/953",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_CategorySeriesXmlRewriter::it_can_rewrite_a_ser_element[rewrite_fixture2]",
+      "baseline": "chart-inventory-case-map.json#/rows/953",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/953/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original replacement operations update the name and category/XY/bubble channels while retaining existing nondata XML. Category numeric/date variants additionally map to retained family/date tests.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#synchronizes growing, same-size, and shrinking datasets for %s",
+        "packages/pptx/src/chart-workbook-ranges.test.ts#keeps date %s in epoch %s consistent through worksheet and cache replacement"
+      ]
+    },
+    {
+      "id": "presentation-unit-e8cf18895359",
+      "source": "upstream-test-inventory.json#/unit_cases/954",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_XySeriesXmlRewriter::it_can_rewrite_a_ser_element",
+      "baseline": "chart-inventory-case-map.json#/rows/954",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/954/selectedParameters",
+      "status": "adapted-bounded-behavior",
+      "wholeRowParity": false,
+      "reason": "Original replacement operations update the name and category/XY/bubble channels while retaining existing nondata XML. Category numeric/date variants additionally map to retained family/date tests.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#synchronizes growing, same-size, and shrinking datasets for %s"
+      ]
+    },
+    {
+      "id": "presentation-unit-783ace46fe84",
+      "source": "upstream-test-inventory.json#/unit_cases/1536",
+      "identity": "tests/parts/test_chart.py::DescribeChartPart::it_can_construct_from_chart_type_and_data",
+      "baseline": "chart-inventory-case-map.json#/rows/972",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/972/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Creation owns an embedded workbook and replacement updates its bytes/relationships atomically. Public ChartPart/ChartWorkbook proxies, direct xlsx_part assignment, and adding a missing workbook during imported-chart replacement remain unsupported.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook.test.ts#writes original deterministic worksheet cells with missing indices retained",
+        "packages/pptx/src/chart-workbook-ranges.test.ts#publishes consistent data through CLI policy %s and preserves dry-run destinations"
+      ]
+    },
+    {
+      "id": "presentation-unit-1bcc7d2ff8ee",
+      "source": "upstream-test-inventory.json#/unit_cases/1537",
+      "identity": "tests/parts/test_chart.py::DescribeChartPart::it_provides_access_to_the_chart_object",
+      "baseline": "chart-inventory-case-map.json#/rows/973",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/973/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Creation owns an embedded workbook and replacement updates its bytes/relationships atomically. Public ChartPart/ChartWorkbook proxies, direct xlsx_part assignment, and adding a missing workbook during imported-chart replacement remain unsupported.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook.test.ts#writes original deterministic worksheet cells with missing indices retained",
+        "packages/pptx/src/chart-workbook-ranges.test.ts#publishes consistent data through CLI policy %s and preserves dry-run destinations"
+      ]
+    },
+    {
+      "id": "presentation-unit-c8b4f9da37fa",
+      "source": "upstream-test-inventory.json#/unit_cases/1538",
+      "identity": "tests/parts/test_chart.py::DescribeChartPart::it_provides_access_to_the_chart_workbook",
+      "baseline": "chart-inventory-case-map.json#/rows/974",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/974/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Creation owns an embedded workbook and replacement updates its bytes/relationships atomically. Public ChartPart/ChartWorkbook proxies, direct xlsx_part assignment, and adding a missing workbook during imported-chart replacement remain unsupported.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook.test.ts#writes original deterministic worksheet cells with missing indices retained",
+        "packages/pptx/src/chart-workbook-ranges.test.ts#publishes consistent data through CLI policy %s and preserves dry-run destinations"
+      ]
+    },
+    {
+      "id": "presentation-unit-8b5ed1914f3e",
+      "source": "upstream-test-inventory.json#/unit_cases/1539",
+      "identity": "tests/parts/test_chart.py::DescribeChartWorkbook::it_can_get_the_chart_xlsx_part",
+      "baseline": "chart-inventory-case-map.json#/rows/975",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/975/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Creation owns an embedded workbook and replacement updates its bytes/relationships atomically. Public ChartPart/ChartWorkbook proxies, direct xlsx_part assignment, and adding a missing workbook during imported-chart replacement remain unsupported.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook.test.ts#writes original deterministic worksheet cells with missing indices retained",
+        "packages/pptx/src/chart-workbook-ranges.test.ts#publishes consistent data through CLI policy %s and preserves dry-run destinations"
+      ]
+    },
+    {
+      "id": "presentation-unit-3ba0eab53b64",
+      "source": "upstream-test-inventory.json#/unit_cases/1540",
+      "identity": "tests/parts/test_chart.py::DescribeChartWorkbook::but_it_returns_None_when_the_chart_has_no_xlsx_part",
+      "baseline": "chart-inventory-case-map.json#/rows/976",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/976/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Creation owns an embedded workbook and replacement updates its bytes/relationships atomically. Public ChartPart/ChartWorkbook proxies, direct xlsx_part assignment, and adding a missing workbook during imported-chart replacement remain unsupported.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook.test.ts#writes original deterministic worksheet cells with missing indices retained",
+        "packages/pptx/src/chart-workbook-ranges.test.ts#publishes consistent data through CLI policy %s and preserves dry-run destinations"
+      ]
+    },
+    {
+      "id": "presentation-unit-e13d3fd03b5f",
+      "source": "upstream-test-inventory.json#/unit_cases/1541",
+      "identity": "tests/parts/test_chart.py::DescribeChartWorkbook::it_can_change_the_chart_xlsx_part[c:chartSpace{r:a=b}-c:chartSpace{r:a=b}/c:externalData{r:id=rId42}/c:autoUpdate{val=0}]",
+      "baseline": "chart-inventory-case-map.json#/rows/977",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/977/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Creation owns an embedded workbook and replacement updates its bytes/relationships atomically. Public ChartPart/ChartWorkbook proxies, direct xlsx_part assignment, and adding a missing workbook during imported-chart replacement remain unsupported.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook.test.ts#writes original deterministic worksheet cells with missing indices retained",
+        "packages/pptx/src/chart-workbook-ranges.test.ts#publishes consistent data through CLI policy %s and preserves dry-run destinations"
+      ]
+    },
+    {
+      "id": "presentation-unit-9504818cd1eb",
+      "source": "upstream-test-inventory.json#/unit_cases/1542",
+      "identity": "tests/parts/test_chart.py::DescribeChartWorkbook::it_can_change_the_chart_xlsx_part[c:chartSpace/c:externalData{r:id=rId66}-c:chartSpace/c:externalData{r:id=rId42}]",
+      "baseline": "chart-inventory-case-map.json#/rows/978",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/978/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Creation owns an embedded workbook and replacement updates its bytes/relationships atomically. Public ChartPart/ChartWorkbook proxies, direct xlsx_part assignment, and adding a missing workbook during imported-chart replacement remain unsupported.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook.test.ts#writes original deterministic worksheet cells with missing indices retained",
+        "packages/pptx/src/chart-workbook-ranges.test.ts#publishes consistent data through CLI policy %s and preserves dry-run destinations"
+      ]
+    },
+    {
+      "id": "presentation-unit-254f5fafb386",
+      "source": "upstream-test-inventory.json#/unit_cases/1543",
+      "identity": "tests/parts/test_chart.py::DescribeChartWorkbook::it_adds_an_xlsx_part_on_update_if_needed",
+      "baseline": "chart-inventory-case-map.json#/rows/979",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/979/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Creation owns an embedded workbook and replacement updates its bytes/relationships atomically. Public ChartPart/ChartWorkbook proxies, direct xlsx_part assignment, and adding a missing workbook during imported-chart replacement remain unsupported.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook.test.ts#writes original deterministic worksheet cells with missing indices retained",
+        "packages/pptx/src/chart-workbook-ranges.test.ts#publishes consistent data through CLI policy %s and preserves dry-run destinations"
+      ]
+    },
+    {
+      "id": "presentation-unit-060a1005d41d",
+      "source": "upstream-test-inventory.json#/unit_cases/1544",
+      "identity": "tests/parts/test_chart.py::DescribeChartWorkbook::but_it_replaces_the_xlsx_blob_when_the_part_exists",
+      "baseline": "chart-inventory-case-map.json#/rows/980",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/980/selectedParameters",
+      "status": "partial-operation-equivalent",
+      "wholeRowParity": false,
+      "reason": "Creation owns an embedded workbook and replacement updates its bytes/relationships atomically. Public ChartPart/ChartWorkbook proxies, direct xlsx_part assignment, and adding a missing workbook during imported-chart replacement remain unsupported.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook.test.ts#writes original deterministic worksheet cells with missing indices retained",
+        "packages/pptx/src/chart-workbook-ranges.test.ts#publishes consistent data through CLI policy %s and preserves dry-run destinations"
+      ]
+    },
+    {
+      "id": "presentation-bdd-bbbe3958706a",
+      "source": "upstream-test-inventory.json#/bdd_cases/384",
+      "identity": "Replace category chart data -- @1.1 Replacement chart data",
+      "baseline": "chart-inventory-case-map.json#/rows/1307",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/1307/expandedExample",
+      "status": "adapted-operation-scenario",
+      "wholeRowParity": false,
+      "reason": "All seven original dimension/type transitions have original full package assertions for names, point counts, cells and ranges. Live model getter/collection assertions remain separate API gaps.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#replaces %s dimensions %sx%s with %sx%s"
+      ]
+    },
+    {
+      "id": "presentation-bdd-25a1a8b2539f",
+      "source": "upstream-test-inventory.json#/bdd_cases/385",
+      "identity": "Replace category chart data -- @1.2 Replacement chart data",
+      "baseline": "chart-inventory-case-map.json#/rows/1308",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/1308/expandedExample",
+      "status": "adapted-operation-scenario",
+      "wholeRowParity": false,
+      "reason": "All seven original dimension/type transitions have original full package assertions for names, point counts, cells and ranges. Live model getter/collection assertions remain separate API gaps.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#replaces %s dimensions %sx%s with %sx%s"
+      ]
+    },
+    {
+      "id": "presentation-bdd-224837d0138d",
+      "source": "upstream-test-inventory.json#/bdd_cases/386",
+      "identity": "Replace category chart data -- @1.3 Replacement chart data",
+      "baseline": "chart-inventory-case-map.json#/rows/1309",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/1309/expandedExample",
+      "status": "adapted-operation-scenario",
+      "wholeRowParity": false,
+      "reason": "All seven original dimension/type transitions have original full package assertions for names, point counts, cells and ranges. Live model getter/collection assertions remain separate API gaps.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#replaces %s dimensions %sx%s with %sx%s"
+      ]
+    },
+    {
+      "id": "presentation-bdd-c001c1897e94",
+      "source": "upstream-test-inventory.json#/bdd_cases/387",
+      "identity": "Replace category chart data -- @1.4 Replacement chart data",
+      "baseline": "chart-inventory-case-map.json#/rows/1310",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/1310/expandedExample",
+      "status": "adapted-operation-scenario",
+      "wholeRowParity": false,
+      "reason": "All seven original dimension/type transitions have original full package assertions for names, point counts, cells and ranges. Live model getter/collection assertions remain separate API gaps.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#replaces %s dimensions %sx%s with %sx%s"
+      ]
+    },
+    {
+      "id": "presentation-bdd-ec6f01f5af2d",
+      "source": "upstream-test-inventory.json#/bdd_cases/388",
+      "identity": "Replace category chart data -- @1.5 Replacement chart data",
+      "baseline": "chart-inventory-case-map.json#/rows/1311",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/1311/expandedExample",
+      "status": "adapted-operation-scenario",
+      "wholeRowParity": false,
+      "reason": "All seven original dimension/type transitions have original full package assertions for names, point counts, cells and ranges. Live model getter/collection assertions remain separate API gaps.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#replaces %s dimensions %sx%s with %sx%s"
+      ]
+    },
+    {
+      "id": "presentation-bdd-dc3bebed4cdc",
+      "source": "upstream-test-inventory.json#/bdd_cases/389",
+      "identity": "Replace XY chart data",
+      "baseline": "chart-inventory-case-map.json#/rows/1312",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/1312/expandedExample",
+      "status": "adapted-operation-scenario",
+      "wholeRowParity": false,
+      "reason": "All seven original dimension/type transitions have original full package assertions for names, point counts, cells and ranges. Live model getter/collection assertions remain separate API gaps.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#replaces %s dimensions %sx%s with %sx%s"
+      ]
+    },
+    {
+      "id": "presentation-bdd-1cafc2bc209d",
+      "source": "upstream-test-inventory.json#/bdd_cases/390",
+      "identity": "Replace Bubble chart data",
+      "baseline": "chart-inventory-case-map.json#/rows/1313",
+      "parameterEvidence": "chart-inventory-case-map.json#/rows/1313/expandedExample",
+      "status": "adapted-operation-scenario",
+      "wholeRowParity": false,
+      "reason": "All seven original dimension/type transitions have original full package assertions for names, point counts, cells and ranges. Live model getter/collection assertions remain separate API gaps.",
+      "originalTests": [
+        "packages/pptx/src/chart-workbook-ranges.test.ts#replaces %s dimensions %sx%s with %sx%s"
+      ]
+    }
+  ]
+}

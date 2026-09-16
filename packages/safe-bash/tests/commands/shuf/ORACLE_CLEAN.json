@@ -1,0 +1,27 @@
+{
+  "classification": "scoped clean-native-oracle acceptance; not a whole-repository or release certificate",
+  "date": "2026-09-04",
+  "path": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/shuf",
+  "sha256": "cc33253093868fd2253de5561e980f879821e148ce43245350693fa6169375bc",
+  "sourceArchiveSha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+  "buildProvenance": "Root supplied a fresh configure/default-make-only build after identifying stale pre-generated-getopt objects in the initial build. This worker did not compile an oracle.",
+  "admission": "Bounded regular executable lstat; bounded streaming SHA256; --version; LC_ALL=C; argv0=shuf",
+  "versionFirstLine": "shuf (GNU coreutils) 9.7",
+  "profile": "GNU coreutils 9.7; Darwin arm64; LC_ALL=C; 64-bit size_t and uintmax_t",
+  "runtimeCommand": "node --import tsx --test --test-concurrency=1 packages/safe-bash/tests/commands/shuf/*.test.ts",
+  "focusedRun": { "tests": 284, "passed": 284, "failed": 0, "skipped": 0, "cancelled": 0, "durationMs": 1921.165917 },
+  "testFiles": ["behavior.test.ts", "lifecycle.test.ts", "parity.test.ts"],
+  "initialDiagnosticCasesReconfirmed": 8,
+  "initialRecord": "ORACLE_INITIAL.json",
+  "parserChangesRequiredForCleanOracle": false,
+  "typecheck": "Passed strict NodeNext noEmit for the command entry point and all three focused test files, including their actual shared Shell graph.",
+  "visualCheck": "Help and ambiguous-option output rendered and inspected as an in-memory terminal PNG using the existing repository renderer; no screenshot file created.",
+  "hostFixtureFilesCreatedByTests": 0,
+  "nativeTransport": "stdin and /dev/fd/3 entropy pipes; /dev/fd/4 output capture; /dev/null for empty entropy; no disk fixture writes",
+  "sourceFiles": {
+    "src/shuf.c": "2537adb961d8e20c2e080f4f3d4f38d3d3919910deced72683a7d743ec99bee5",
+    "lib/randint.c": "085f9b23bb64081b621d46b85b29dee31f1ac9e2bfadef4bc975af609b4601ec",
+    "lib/randperm.c": "a9820f3c0f05a723d1f7dc2a5f67126cc51c6fa94df94dd8a04ba200d937e999",
+    "lib/randread.c": "e2a26cf662465a36e161ff36ff0cb842a9bb519c62a4aaed5aa66c5b5bc73f53"
+  }
+}

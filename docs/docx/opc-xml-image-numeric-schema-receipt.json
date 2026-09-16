@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "task": "adapt-upstream-opc-xml-images",
+  "kind": "numeric-schema",
+  "baseline": "a1db5f058",
+  "tests": [
+    {
+      "path": "packages/docx/src/numeric-property-command.test.ts",
+      "sha256": "e66a5b2a78aed046d9526eff381bbfdd2fd04893529c2dee5214a2d9792540fa",
+      "assertions": [
+        {
+          "title": "checks SDK and CLI priority assignment 0",
+          "status": "passed"
+        },
+        {
+          "title": "checks SDK and CLI priority assignment null",
+          "status": "passed"
+        },
+        {
+          "title": "checks SDK and CLI priority assignment 24",
+          "status": "passed"
+        },
+        {
+          "title": "checks SDK and CLI priority assignment 0.5",
+          "status": "passed"
+        },
+        {
+          "title": "checks SDK and CLI priority assignment -4",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "path": "packages/docx/src/numeric-property-schema-contract.test.ts",
+      "sha256": "220984a4d37092137e1fe3693f47147a09bb6d2381fae7b3758b186133004bf7",
+      "assertions": [
+        {
+          "title": "declares checked nullable priority for model.styles.style.BaseStyle.priority.set",
+          "status": "passed"
+        },
+        {
+          "title": "declares checked nullable priority for model.styles.style.CharacterStyle.priority.set",
+          "status": "passed"
+        },
+        {
+          "title": "declares checked nullable priority for model.styles.style.ParagraphStyle.priority.set",
+          "status": "passed"
+        },
+        {
+          "title": "declares checked nullable priority for model.styles.style._TableStyle.priority.set",
+          "status": "passed"
+        },
+        {
+          "title": "declares checked nullable priority for model.styles.style._NumberingStyle.priority.set",
+          "status": "passed"
+        },
+        {
+          "title": "declares checked nullable priority for model.styles.latent.LatentStyles.default_priority.set",
+          "status": "passed"
+        },
+        {
+          "title": "declares checked nullable priority for model.styles.latent._LatentStyle.priority.set",
+          "status": "passed"
+        },
+        {
+          "title": "declares checked positive revision across all input surfaces",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "red_evidence": {
+    "command": "npx vitest run packages/docx/src/numeric-property-schema-contract.test.ts",
+    "result": "Eight independently parameterized declarations failed before changing product declarations: generic number versus checked integer bounds.",
+    "retention": "Original failing tool execution observed before modification; separate raw report was not retained. Draft fixture failures are excluded."
+  },
+  "checks": {
+    "unit": {
+      "command": "npm test --workspace=docx",
+      "passed": 3987,
+      "skipped": 4,
+      "files": 201,
+      "duration_seconds": 167.66,
+      "log_sha256": "b3df74f83100a581cb88bc27d501415898821b23594b7de969026427188334d4",
+      "skips": "Existing cross-format PPTX pending paths; not counted as passes."
+    },
+    "lint": {
+      "command": "npm run lint --workspace=docx",
+      "exit_code": 0,
+      "errors": 0,
+      "warnings": 1,
+      "warning": "Existing operation-types.test.ts unused type-only variable.",
+      "log_sha256": "84c1834281fa8da3f8c09b0303161b9df2250ed57bcf81ada9496816a62a8619"
+    },
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=docx",
+      "exit_code": 0,
+      "log_sha256": "fc1bf5d0a2e72b95835347ff2f0dcb493f71933967ee91eb771cb9ce9450fbb4"
+    }
+  },
+  "screenshot": {
+    "command": "npm run screenshot-poe-code -- --no-header --output /tmp/docx-adaptation-qa/schema.png bash --root /tmp/docx-adaptation-qa -c 'cat schema.txt'",
+    "transcript_sha256": "0ead769b0844380b444c1f78a7844cc0d1ced5f3de43be54fdd37aa4a79efe27",
+    "png_sha256": "4b6020a8ddc0c3192d95a2a70bca636f61f9ba56603ae925f16d90669918ae65",
+    "inspection": "Inspected PNG; full operation/argument or error/status/affected text readable with wrapping, no clipped content.",
+    "disposition": "Disposable actual built public-engine transcript; PNG not a canonical fixture."
+  }
+}

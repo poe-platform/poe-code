@@ -1,0 +1,126 @@
+{
+  "root": "/work",
+  "workflows": {
+    "filesystem": {
+      "status": "failed",
+      "error": "[Errno 138] Not supported: '/work/documents with spaces ünicode 日本語/temporary ü 5qpgefrb/tmp_ayhqm2e λ.bin'",
+      "traceback": "Traceback (most recent call last):\n  File \"/work/documents.py\", line 340, in <module>\n    RESULT[\"workflows\"][name] = {\"status\": \"passed\", **probe()}\n                                                       ~~~~~^^\n  File \"/work/documents.py\", line 87, in filesystem_probe\n    with tempfile.NamedTemporaryFile(dir=directory, suffix=\" λ.bin\") as stream:\n         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/lib/python314.zip/tempfile.py\", line 603, in NamedTemporaryFile\n    file = _io.open(dir, mode, buffering=buffering,\n                    newline=newline, encoding=encoding, errors=errors,\n                    opener=opener)\n  File \"/lib/python314.zip/tempfile.py\", line 600, in opener\n    fd, name = _mkstemp_inner(dir, prefix, suffix, flags, output_type)\n               ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/lib/python314.zip/tempfile.py\", line 257, in _mkstemp_inner\n    fd = _os.open(file, flags, 0o600)\nOSError: [Errno 138] Not supported: '/work/documents with spaces ünicode 日本語/temporary ü 5qpgefrb/tmp_ayhqm2e λ.bin'\n"
+    },
+    "pillow_image": {
+      "status": "passed",
+      "size": [
+        24,
+        16
+      ],
+      "native_features": {
+        "pil": "12.2.0",
+        "freetype2": "2.13.3",
+        "webp": "1.2.2",
+        "jpg": "9.0",
+        "zlib": "1.3.1",
+        "libtiff": "4.4.0"
+      }
+    },
+    "python_docx": {
+      "status": "passed",
+      "assertions": [
+        "heading/paragraph/table/image create reopen edit",
+        "BytesIO reopen",
+        "ZIP CRC and image/relationship parts"
+      ],
+      "parts": 18,
+      "libxml_version": [
+        2,
+        9,
+        10
+      ],
+      "libxslt_version": [
+        1,
+        1,
+        33
+      ]
+    },
+    "openpyxl": {
+      "status": "failed",
+      "error": "[Errno 138] Not supported: '/work/documents with spaces ünicode 日本語/openpyxl.vj6dgukf'",
+      "traceback": "Traceback (most recent call last):\n  File \"/work/documents.py\", line 340, in <module>\n    RESULT[\"workflows\"][name] = {\"status\": \"passed\", **probe()}\n                                                       ~~~~~^^\n  File \"/work/documents.py\", line 178, in openpyxl_probe\n    workbook.save(target)\n    ~~~~~~~~~~~~~^^^^^^^^\n  File \"/lib/python3.14/site-packages/openpyxl/workbook/workbook.py\", line 386, in save\n    save_workbook(self, filename)\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File \"/lib/python3.14/site-packages/openpyxl/writer/excel.py\", line 294, in save_workbook\n    writer.save()\n    ~~~~~~~~~~~^^\n  File \"/lib/python3.14/site-packages/openpyxl/writer/excel.py\", line 275, in save\n    self.write_data()\n    ~~~~~~~~~~~~~~~^^\n  File \"/lib/python3.14/site-packages/openpyxl/writer/excel.py\", line 77, in write_data\n    self._write_worksheets()\n    ~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/lib/python3.14/site-packages/openpyxl/writer/excel.py\", line 215, in _write_worksheets\n    self.write_worksheet(ws)\n    ~~~~~~~~~~~~~~~~~~~~^^^^\n  File \"/lib/python3.14/site-packages/openpyxl/writer/excel.py\", line 199, in write_worksheet\n    writer = WorksheetWriter(ws)\n  File \"/lib/python3.14/site-packages/openpyxl/worksheet/_writer.py\", line 52, in __init__\n    out = create_temporary_file()\n  File \"/lib/python3.14/site-packages/openpyxl/worksheet/_writer.py\", line 36, in create_temporary_file\n    fobj = NamedTemporaryFile(mode='w+', suffix=suffix,\n                              prefix='openpyxl.', delete=False)\n  File \"/lib/python314.zip/tempfile.py\", line 603, in NamedTemporaryFile\n    file = _io.open(dir, mode, buffering=buffering,\n                    newline=newline, encoding=encoding, errors=errors,\n                    opener=opener)\n  File \"/lib/python314.zip/tempfile.py\", line 600, in opener\n    fd, name = _mkstemp_inner(dir, prefix, suffix, flags, output_type)\n               ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/lib/python314.zip/tempfile.py\", line 257, in _mkstemp_inner\n    fd = _os.open(file, flags, 0o600)\nOSError: [Errno 138] Not supported: '/work/documents with spaces ünicode 日本語/openpyxl.vj6dgukf'\n"
+    },
+    "xlsxwriter": {
+      "status": "failed",
+      "error": "[Errno 138] Not supported: '/work/documents with spaces ünicode 日本語/tmp73r06qs_'",
+      "traceback": "Traceback (most recent call last):\n  File \"/lib/python3.14/site-packages/xlsxwriter/workbook.py\", line 387, in close\n    self._store_workbook()\n    ~~~~~~~~~~~~~~~~~~~~^^\n  File \"/lib/python3.14/site-packages/xlsxwriter/workbook.py\", line 803, in _store_workbook\n    xml_files = packager._create_package()\n  File \"/lib/python3.14/site-packages/xlsxwriter/packager.py\", line 138, in _create_package\n    self._write_content_types_file()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/lib/python3.14/site-packages/xlsxwriter/packager.py\", line 499, in _write_content_types_file\n    content._set_xml_writer(self._filename(\"[Content_Types].xml\"))\n                            ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/lib/python3.14/site-packages/xlsxwriter/packager.py\", line 175, in _filename\n    (fd, os_filename) = tempfile.mkstemp(dir=self.tmpdir)\n                        ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/lib/python314.zip/tempfile.py\", line 358, in mkstemp\n    return _mkstemp_inner(dir, prefix, suffix, flags, output_type)\n  File \"/lib/python314.zip/tempfile.py\", line 257, in _mkstemp_inner\n    fd = _os.open(file, flags, 0o600)\nOSError: [Errno 138] Not supported: '/work/documents with spaces ünicode 日本語/tmp73r06qs_'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/work/documents.py\", line 340, in <module>\n    RESULT[\"workflows\"][name] = {\"status\": \"passed\", **probe()}\n                                                       ~~~~~^^\n  File \"/work/documents.py\", line 209, in xlsxwriter_probe\n    with xlsxwriter.Workbook(str(target), {\"tmpdir\": str(WORK)}) as workbook:\n         ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/lib/python3.14/site-packages/xlsxwriter/workbook.py\", line 186, in __exit__\n    self.close()\n    ~~~~~~~~~~^^\n  File \"/lib/python3.14/site-packages/xlsxwriter/workbook.py\", line 389, in close\n    raise FileCreateError(e)\nxlsxwriter.exceptions.FileCreateError: [Errno 138] Not supported: '/work/documents with spaces ünicode 日本語/tmp73r06qs_'\n"
+    },
+    "fpdf2_pypdf": {
+      "status": "passed",
+      "assertions": [
+        "fpdf2 distribution identity; legacy fpdf absent",
+        "3 pages; embedded TTF/image resources",
+        "Unicode text/metadata extraction",
+        "split/merge/roundtrip",
+        "BytesIO seek write/read"
+      ]
+    }
+  },
+  "artifacts": {
+    "documents with spaces ünicode 日本語/large boundary ü.bin": {
+      "bytes": 98560,
+      "sha256": "bbcc27e35e90b925b1dbdf9d44a62d1a44ec079b4b28f7a91955ef0a1a5c5c49"
+    },
+    "documents with spaces ünicode 日本語/image fixture ü.png": {
+      "bytes": 85,
+      "sha256": "e47a155ee6efc7b6fe048ef539fece1167330e675eb3aa67482d4c79289ca136"
+    },
+    "documents with spaces ünicode 日本語/heading table café.docx": {
+      "bytes": 37308,
+      "sha256": "dbc0611d9fd05e6cef85affbd1f04755962ba53321d31682ea4b1c9a6d1af86b"
+    },
+    "documents with spaces ünicode 日本語/multi page café.pdf": {
+      "bytes": 8719,
+      "sha256": "49243e60c976c9fe71d4759cfb0bfa0cb3904f84afe5c7330c92e9ad1d00171e"
+    },
+    "documents with spaces ünicode 日本語/split page ü.pdf": {
+      "bytes": 7693,
+      "sha256": "3d0dee4b1aec7f01b02f9d40e0f8ccf78d5579f80e84c4cce813876f2f3f7bb7"
+    },
+    "documents with spaces ünicode 日本語/merged round trip ü.pdf": {
+      "bytes": 15796,
+      "sha256": "d3aa91dab39e4ee0bfb0c3efe946cb816adfb91c4f7e201c5328132762760245"
+    },
+    "documents with spaces ünicode 日本語/rendered page ü.png": {
+      "bytes": 2381,
+      "sha256": "3ac2bc1f4e3218492cf7a0926cd4499ece3fab7808ab393ed4ea46291fd96bee"
+    }
+  },
+  "versions": {
+    "python-docx": "1.2.0",
+    "openpyxl": "3.1.5",
+    "XlsxWriter": "3.2.9",
+    "pypdf": "6.18.1",
+    "fpdf2": "2.8.8",
+    "lxml": "6.0.2",
+    "Pillow": "12.2.0",
+    "fonttools": "4.65.0",
+    "defusedxml": "0.7.1",
+    "et-xmlfile": "2.0.0",
+    "typing-extensions": "4.16.0",
+    "PyMuPDF": "1.27.2.2"
+  },
+  "default_temp_directory": "/tmp",
+  "qualified_temp_directory": "/work/documents with spaces ünicode 日本語",
+  "priority_passed": false,
+  "pymupdf": {
+    "status": "passed",
+    "assertions": [
+      "page rendering PNG",
+      "structured text and image blocks"
+    ],
+    "pixels": [
+      298,
+      421
+    ]
+  },
+  "reportlab": {
+    "status": "not_needed",
+    "reason": "Only evaluate ReportLab when a required PDF generation feature is missing; extraction/rendering are separate concerns"
+  }
+}

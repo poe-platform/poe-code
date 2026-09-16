@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/discovery.test.ts (22 tests) 270ms
+ ✓ packages/docx/src/style-formatting-schema.test.ts (24 tests) 86ms
+ ✓ packages/docx/src/discovery-completeness.test.ts (11 tests) 778ms
+
+ Test Files  3 passed (3)
+      Tests  57 passed (57)
+   Start at  23:06:05
+   Duration  2.04s (transform 1.73s, setup 74ms, import 2.07s, tests 1.13s, environment 0ms)
+

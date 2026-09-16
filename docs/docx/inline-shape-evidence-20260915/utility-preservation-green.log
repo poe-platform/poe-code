@@ -1,0 +1,79 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/raster-operation-contract.test.ts (7 tests) 71ms
+ ❯ packages/docx/src/image-insertion.test.ts (39 tests | 1 failed) 4396ms
+   ✓ inserts one exact native SVG and supplied fallback occurrence (false) 171ms
+   ✓ inserts one exact native SVG and supplied fallback occurrence (true) 145ms
+   ✓ uses admitted supplied raster format bytes as SVG fallback 111ms
+   ✓ uses admitted supplied raster format bytes as SVG fallback 113ms
+   ✓ uses admitted supplied raster format bytes as SVG fallback 110ms
+   ✓ uses admitted supplied raster format bytes as SVG fallback 104ms
+   ✓ uses admitted supplied raster format bytes as SVG fallback 109ms
+   ✓ sizes native SVG from fallback per-axis physical density and one-size ratio 109ms
+   ✓ uses supplied fallback dimensions for SVG contain fitting 106ms
+   ✓ uses supplied fallback dimensions for SVG cover fitting 108ms
+   ✓ uses supplied fallback dimensions for SVG stretch fitting 108ms
+   ✓ owns both reused SVG/fallback producers and completes them before publication 107ms
+   ✓ refuses unsafe SVG before opening fallback and refuses missing/invalid fallback without output 112ms
+   ✓ observes cancellation during fallback acquisition and closes the admitted producer 39ms
+   ✓ preserves an existing native pair and noncanonical retained writer URI during unrelated insertion 279ms
+   ✓ appends an original inline image while preserving paragraph source (false) 131ms
+   ✓ appends an original inline image while preserving paragraph source (true) 126ms
+   ✓ uses unique body and selected cell containers without choosing an existing paragraph 279ms
+   ✓ applies explicit contain fit and checked dimensions 95ms
+   ✓ applies explicit cover fit and checked dimensions 95ms
+   ✓ applies explicit stretch fit and checked dimensions 95ms
+   ✓ rounds explicit extents halfway away and scales one dimension 96ms
+   ✓ scales one explicit dimension from the unrounded native physical ratio 92ms
+   ✓ refuses range and floating insertion without publication 55ms
+   ✓ sizes exact JPEG bytes with independent physical axes (12,6) 96ms
+   ✓ sizes exact JPEG bytes with independent physical axes (6,12) 96ms
+   ✓ sizes exact JPEG bytes with independent physical axes (12,6) 94ms
+   ✓ creates owner-local image relationships in explicit header containers 147ms
+   ✓ creates owner-local image relationships in explicit footnotes containers 146ms
+   ✓ owns producer-reused media chunks and reserves admission before publication 96ms
+   ✓ refuses mismatch and prepublication admission failures without effects 59ms
+   ✓ admits request and file identity descriptors before image acquisition 22ms
+   ✓ does not serialize an unused JSON envelope on a dry-run SDK call 72ms
+   ✓ allocates fresh media, relationship and numeric drawing identifiers without orphan adoption 230ms
+   ✓ reports canonical binary media capacity as a resource limit before publication 40ms
+   ✓ uses two explicit extents despite native dimensions below one EMU (undefined) 94ms
+   ✓ uses two explicit extents despite native dimensions below one EMU (stretch) 91ms
+   ✓ refuses escaped alternative text exceeding its owner XML before escaping or rendering 39ms
+   × admits exact escaped UTF-8 owner size and refuses one byte below before escaping 181ms
+FAIL packages/docx/src/image-insertion.test.ts > admits exact escaped UTF-8 owner size and refuses one byte below before escaping
+AssertionError: expected [ [ '&"<海🌿\n' ] ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ packages/docx/src/image-insertion.test.ts:229:66
+
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/image-insertion.test.ts > admits exact escaped UTF-8 owner size and refuses one byte below before escaping
+AssertionError: expected [ [ '&"<海🌿\n' ] ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ packages/docx/src/image-insertion.test.ts:229:66
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 45 passed (46)
+   Start at  23:03:53
+   Duration  5.49s (transform 1.46s, setup 60ms, import 1.76s, tests 4.47s, environment 0ms)
+

@@ -20,6 +20,7 @@ import {
 import { publishBundleOutputs } from "./publish-bundle.mjs";
 import { setBinExecutable } from "./set-bin-executable.mjs";
 import { rewriteWorkspaceDts } from "./rewrite-workspace-dts.mjs";
+import { rewriteWorkspaceRuntime } from "./rewrite-workspace-runtime.mjs";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(currentDir, "..");
@@ -264,6 +265,33 @@ await publishBundleOutputs(shellBundle, {
   workingDirectory: rootDir
 });
 consumerBuilds.push(shellBundle);
+
+consumerBuilds.push(await esbuild.build({
+  absWorkingDir: rootDir,
+  entryPoints: [path.join(rootDir, "packages/docx/src/index.ts")],
+  outfile: path.join(rootDir, "packages/docx/dist/index.js"),
+  alias: { ...workspaceAliases, "@poe-code/safe-fs/core": "poe-code/safe-fs/core", "@poe-code/safe-fs/xml": "poe-code/safe-fs/core" },
+  external: ["poe-code/safe-fs/core"],
+  bundle: true,
+  platform: "browser",
+  conditions: ["workerd", "worker", "browser"],
+  format: "esm",
+  target: "es2022",
+  sourcemap: true,
+  metafile: true
+}));
+
+const officePackage = packageJsons.find(({ dir }) => dir === "office-package");
+assert(officePackage, "Missing shared office package workspace");
+const officeRoutes = Object.fromEntries(
+  Object.entries(officePackage.pkg.exports).map(([key, value]) => [
+    officePackage.pkg.name + (key === "." ? "" : key.slice(1)),
+    path.resolve(packagesDir, officePackage.dir, value.import)
+  ])
+);
+for (const directory of ["safe-bash", "pptx"]) {
+  await rewriteWorkspaceRuntime(path.join(packagesDir, directory, "dist"), officeRoutes);
+}
 
 // Bundle memory into a single esm file so consumers of poe-code/memory
 // don't need @poe-code/* workspace deps at runtime.

@@ -1,0 +1,716 @@
+TAP version 13
+# \# safe-bash discovery: 2 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash shard: 1/1; 2 files; estimated 30 ms; membership 7955701a002a942db5b76a329515a8f95e64fd1bfe200e3e03a2dc2a4ecc8a2d
+# \# safe-bash phase: 2 files; concurrency 1
+# \# safe-bash discovery: 3 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash shard: 1/1; 3 files; estimated 40 ms; membership f8f5925edabd2bf0db7f617d7f71ff08966e889b4e8fa44768d8bfaae5ce65f6
+# \# safe-bash phase: 2 files; concurrency 2
+# \# safe-bash phase: 1 files; concurrency 1
+# \# safe-bash discovery: 3 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash shard: 1/1; 3 files; estimated 40 ms; membership f8f5925edabd2bf0db7f617d7f71ff08966e889b4e8fa44768d8bfaae5ce65f6
+# \# safe-bash phase: 2 files; concurrency 2
+# \# safe-bash discovery: 3 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash shard: 1/1; 3 files; estimated 40 ms; membership f8f5925edabd2bf0db7f617d7f71ff08966e889b4e8fa44768d8bfaae5ce65f6
+# \# safe-bash phase: 2 files; concurrency 2
+# \# safe-bash discovery: 3 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash shard: 1/1; 3 files; estimated 40 ms; membership f8f5925edabd2bf0db7f617d7f71ff08966e889b4e8fa44768d8bfaae5ce65f6
+# \# safe-bash phase: 2 files; concurrency 2
+# \# safe-bash discovery: 4 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash shard: 1/4; 1 files; estimated 5000 ms; membership 32690a69eaa6e351a31d2856671d0213b78cba19f4ba9574266da505236f71c5
+# \# safe-bash phase: 1 files; concurrency 1
+# \# safe-bash discovery: 4 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash shard: 2/4; 1 files; estimated 20 ms; membership 32690a69eaa6e351a31d2856671d0213b78cba19f4ba9574266da505236f71c5
+# \# safe-bash phase: 1 files; concurrency 1
+# \# safe-bash discovery: 4 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash shard: 3/4; 1 files; estimated 10 ms; membership 32690a69eaa6e351a31d2856671d0213b78cba19f4ba9574266da505236f71c5
+# \# safe-bash phase: 1 files; concurrency 1
+# \# safe-bash discovery: 4 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash shard: 4/4; 1 files; estimated 10 ms; membership 32690a69eaa6e351a31d2856671d0213b78cba19f4ba9574266da505236f71c5
+# \# safe-bash phase: 1 files; concurrency 1
+# \# safe-bash discovery: 1 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash shard: 4/4; 0 files; estimated 0 ms; membership e3b3a3413c62898e447c63f986fcf34d09d7cbe2619d5e31774dd53012996d09
+# Subtest: Pyodide real-runtime verification has explicit opt-in entries and a pinned runtime
+ok 1 - Pyodide real-runtime verification has explicit opt-in entries and a pinned runtime
+  ---
+  duration_ms: 14.702875
+  type: 'test'
+  ...
+# Subtest: Bash shards: env parsing is opt-in and strictly bounded
+ok 2 - Bash shards: env parsing is opt-in and strictly bounded
+  ---
+  duration_ms: 1.332458
+  type: 'test'
+  ...
+# Subtest: Bash shards: longest-first balancing is deterministic with stable ties
+ok 3 - Bash shards: longest-first balancing is deterministic with stable ties
+  ---
+  duration_ms: 0.320792
+  type: 'test'
+  ...
+# Subtest: Bash shards: discovery is membership; missing weights and new files cannot disappear
+ok 4 - Bash shards: discovery is membership; missing weights and new files cannot disappear
+  ---
+  duration_ms: 0.366833
+  type: 'test'
+  ...
+# Subtest: Bash shards: only reviewed unchanged pure files enter the parallel phase
+ok 5 - Bash shards: only reviewed unchanged pure files enter the parallel phase
+  ---
+  duration_ms: 0.430875
+  type: 'test'
+  ...
+# Subtest: Bash shards: new and symlinked files stay serial without reading link targets
+ok 6 - Bash shards: new and symlinked files stay serial without reading link targets
+  ---
+  duration_ms: 0.265167
+  type: 'test'
+  ...
+# Subtest: Bash shards: a singleton reviewed group needs no extra runner process
+ok 7 - Bash shards: a singleton reviewed group needs no extra runner process
+  ---
+  duration_ms: 1.011125
+  type: 'test'
+  ...
+# Subtest: Bash shards: the executable rejects invalid opt-ins before discovery or test execution
+ok 8 - Bash shards: the executable rejects invalid opt-ins before discovery or test execution
+  ---
+  duration_ms: 82.071458
+  type: 'test'
+  ...
+# Subtest: Bash shards: controlled arguments preserve selectors and reject scheduler bypasses
+ok 9 - Bash shards: controlled arguments preserve selectors and reject scheduler bypasses
+  ---
+  duration_ms: 0.502375
+  type: 'test'
+  ...
+# Subtest: Bash shards: phases are sequential, bounded, and strip scheduling env from children
+ok 10 - Bash shards: phases are sequential, bounded, and strip scheduling env from children
+  ---
+  duration_ms: 0.660167
+  type: 'test'
+  ...
+# Subtest: Bash shards: failure or termination prevents later phases without retries
+ok 11 - Bash shards: failure or termination prevents later phases without retries
+  ---
+  duration_ms: 0.620292
+  type: 'test'
+  ...
+# Subtest: Bash shards: all four runner selections cover discovery exactly once including new files
+ok 12 - Bash shards: all four runner selections cover discovery exactly once including new files
+  ---
+  duration_ms: 0.607792
+  type: 'test'
+  ...
+# Subtest: Bash shards: empty shards do not accidentally invoke Node discovery
+ok 13 - Bash shards: empty shards do not accidentally invoke Node discovery
+  ---
+  duration_ms: 0.141667
+  type: 'test'
+  ...
+# Subtest: Bash shards: maintained discovery union is dynamic, without profile-only members
+ok 14 - Bash shards: maintained discovery union is dynamic, without profile-only members
+  ---
+  duration_ms: 582.504458
+  type: 'test'
+  ...
+# \# safe-bash discovery: 4 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash shard: 1/1; 4 files; estimated 20000 ms; membership 1044c55afdf9574482779e67f76a40bf5bae64409171b29be79eb4cc53603d3e
+# \# safe-bash phase: 2 files; concurrency 2
+# \# safe-bash phase: 2 files; concurrency 1
+# \# safe-bash discovery: 4 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash shard: 1/1; 4 files; estimated 20000 ms; membership 1044c55afdf9574482779e67f76a40bf5bae64409171b29be79eb4cc53603d3e
+# \# safe-bash phase: 2 files; concurrency 2
+# \# safe-bash discovery: 4 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash shard: 1/1; 4 files; estimated 20000 ms; membership 1044c55afdf9574482779e67f76a40bf5bae64409171b29be79eb4cc53603d3e
+# \# safe-bash phase: 2 files; concurrency 2
+# \# safe-bash phase: 2 files; concurrency 1
+# \# safe-bash discovery: 1 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash discovery: 1 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash discovery: 1 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash discovery: 2 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash discovery: 2 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash discovery: 2 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash discovery: 2 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash discovery: 2 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash discovery: 2 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash discovery: 2 active TypeScript test files; 1 authenticated fixture roots; 1 held evidence roots
+# \# safe-bash discovery: 1155 active TypeScript test files; 6 authenticated fixture roots; 5 held evidence roots
+# Subtest: Bash shards: real workers rendezvous in pairs, retire before serial work, and forward failures
+ok 15 - Bash shards: real workers rendezvous in pairs, retire before serial work, and forward failures
+  ---
+  duration_ms: 766.395542
+  type: 'test'
+  ...
+# Subtest: Git fixture cleanup removes obsolete roots without opening payloads
+ok 16 - Git fixture cleanup removes obsolete roots without opening payloads
+  ---
+  duration_ms: 3.070875
+  type: 'test'
+  ...
+# Subtest: Git fixture cleanup retains historical identities but removes their live admissions
+ok 17 - Git fixture cleanup retains historical identities but removes their live admissions
+  ---
+  duration_ms: 6.670333
+  type: 'test'
+  ...
+# Subtest: runner exposes no native qualification selector
+ok 18 - runner exposes no native qualification selector
+  ---
+  duration_ms: 0.112208
+  type: 'test'
+  ...
+# Subtest: optional scripting leaves stay outside the default build and package exports
+ok 19 - optional scripting leaves stay outside the default build and package exports
+  ---
+  duration_ms: 3.586667
+  type: 'test'
+  ...
+# Subtest: five-record successors admit only literal subjects and preserve retained owners and live neighbors
+ok 20 - five-record successors admit only literal subjects and preserve retained owners and live neighbors
+  ---
+  duration_ms: 3.301167
+  type: 'test'
+  ...
+# Subtest: five-record successor schema rejects retargeting roles selectors and directories before reads
+ok 21 - five-record successor schema rejects retargeting roles selectors and directories before reads
+  ---
+  duration_ms: 7.035708
+  type: 'test'
+  ...
+# Subtest: five-record successors reject contradictory owner rows before any subject read
+ok 22 - five-record successors reject contradictory owner rows before any subject read
+  ---
+  duration_ms: 10.598916
+  type: 'test'
+  ...
+# Subtest: five-record prototype requires canonical own source maps not predecessor or diagnostic roles
+ok 23 - five-record prototype requires canonical own source maps not predecessor or diagnostic roles
+  ---
+  duration_ms: 2.796417
+  type: 'test'
+  ...
+# Subtest: five-record refusal requires the same positive binding raw result and restored rows
+ok 24 - five-record refusal requires the same positive binding raw result and restored rows
+  ---
+  duration_ms: 9.085209
+  type: 'test'
+  ...
+# Subtest: five-record successors refuse held aliases ancestors and invalid literals before content reads
+ok 25 - five-record successors refuse held aliases ancestors and invalid literals before content reads
+  ---
+  duration_ms: 4.057625
+  type: 'test'
+  ...
+# Subtest: five-record successors reject metadata aliases symlinks special files and oversize before payload reads
+ok 26 - five-record successors reject metadata aliases symlinks special files and oversize before payload reads
+  ---
+  duration_ms: 11.450417
+  type: 'test'
+  ...
+# Subtest: five-record successors reject separate owner and member hash or size drift
+ok 27 - five-record successors reject separate owner and member hash or size drift
+  ---
+  duration_ms: 5.040709
+  type: 'test'
+  ...
+# Subtest: archived operational tooling admits exactly28 literal programs without reading the other12 members
+ok 28 - archived operational tooling admits exactly28 literal programs without reading the other12 members
+  ---
+  duration_ms: 3.585291
+  type: 'test'
+  ...
+# Subtest: archived operational schema refuses unsupported roles selectors extra members and current roots before reads
+ok 29 - archived operational schema refuses unsupported roles selectors extra members and current roots before reads
+  ---
+  duration_ms: 3.324375
+  type: 'test'
+  ...
+# Subtest: archived operational selectors bind the complete DRIVER map before program reads
+ok 30 - archived operational selectors bind the complete DRIVER map before program reads
+  ---
+  duration_ms: 4.324
+  type: 'test'
+  ...
+# Subtest: archived operational admission refuses held aliases and nonliteral metadata before content reads
+ok 31 - archived operational admission refuses held aliases and nonliteral metadata before content reads
+  ---
+  duration_ms: 2.782375
+  type: 'test'
+  ...
+# Subtest: archived operational admission rejects metadata aliases ancestors symlinks special files and oversized inputs
+ok 32 - archived operational admission rejects metadata aliases ancestors symlinks special files and oversized inputs
+  ---
+  duration_ms: 4.353417
+  type: 'test'
+  ...
+# Subtest: archived operational bindings reject independent size and hash drift while retaining new neighbors
+ok 33 - archived operational bindings reject independent size and hash drift while retaining new neighbors
+  ---
+  duration_ms: 5.523042
+  type: 'test'
+  ...
+# Subtest: controlled executable fixtures retain distinct paths with identical hashes and keep drivers linted
+ok 34 - controlled executable fixtures retain distinct paths with identical hashes and keep drivers linted
+  ---
+  duration_ms: 0.351833
+  type: 'test'
+  ...
+# Subtest: controlled executable fixture schema refuses malformed selectors before content reads
+ok 35 - controlled executable fixture schema refuses malformed selectors before content reads
+  ---
+  duration_ms: 1.45075
+  type: 'test'
+  ...
+# Subtest: controlled executable fixtures bind exact owner rows and reject relocation before subject reads
+ok 36 - controlled executable fixtures bind exact owner rows and reject relocation before subject reads
+  ---
+  duration_ms: 1.702375
+  type: 'test'
+  ...
+# Subtest: controlled executable fixtures reject owner and subject size or hash drift
+ok 37 - controlled executable fixtures reject owner and subject size or hash drift
+  ---
+  duration_ms: 0.793333
+  type: 'test'
+  ...
+# Subtest: controlled executable fixtures refuse held paths and aliases before owner or subject content reads
+ok 38 - controlled executable fixtures refuse held paths and aliases before owner or subject content reads
+  ---
+  duration_ms: 0.411
+  type: 'test'
+  ...
+# Subtest: controlled executable fixture admission refuses aliases, symlinks, ancestors and special files before payload reads
+ok 39 - controlled executable fixture admission refuses aliases, symlinks, ancestors and special files before payload reads
+  ---
+  duration_ms: 0.882334
+  type: 'test'
+  ...
+# Subtest: controlled executable fixture census refuses new code and held descendants without content reads
+ok 40 - controlled executable fixture census refuses new code and held descendants without content reads
+  ---
+  duration_ms: 0.822834
+  type: 'test'
+  ...
+# Subtest: controlled executable fixtures cannot exclude their retained producer driver or validator
+ok 41 - controlled executable fixtures cannot exclude their retained producer driver or validator
+  ---
+  duration_ms: 0.848375
+  type: 'test'
+  ...
+# Subtest: lint inventory authenticates literal captures without excluding a live neighboring input
+ok 42 - lint inventory authenticates literal captures without excluding a live neighboring input
+  ---
+  duration_ms: 0.141834
+  type: 'test'
+  ...
+# Subtest: lint inventory permits independently sealed historical provenance, not self-excluded producers
+ok 43 - lint inventory permits independently sealed historical provenance, not self-excluded producers
+  ---
+  duration_ms: 0.31975
+  type: 'test'
+  ...
+# Subtest: frozen lint inventory authenticates exact size and SHA before any owner or member reads
+ok 44 - frozen lint inventory authenticates exact size and SHA before any owner or member reads
+  ---
+  duration_ms: 4.766917
+  type: 'test'
+  ...
+# Subtest: frozen lint inventory adds only its 1804 literal exclusions and preserves current tests and consumers
+ok 45 - frozen lint inventory adds only its 1804 literal exclusions and preserves current tests and consumers
+  ---
+  duration_ms: 5598.967083
+  type: 'test'
+  ...
+# Subtest: lint inventory rejects malformed or held metadata before reading selected bytes
+ok 46 - lint inventory rejects malformed or held metadata before reading selected bytes
+  ---
+  duration_ms: 2.398666
+  type: 'test'
+  ...
+# Subtest: lint inventory rejects duplicate records, owners, members and case aliases
+ok 47 - lint inventory rejects duplicate records, owners, members and case aliases
+  ---
+  duration_ms: 0.361792
+  type: 'test'
+  ...
+# Subtest: lint inventory rejects size and hash tampering and owner ancestry before payload reads
+ok 48 - lint inventory rejects size and hash tampering and owner ancestry before payload reads
+  ---
+  duration_ms: 0.575
+  type: 'test'
+  ...
+# Subtest: lint inventory census rejects new unbound code without reading or broadly excluding it
+ok 49 - lint inventory census rejects new unbound code without reading or broadly excluding it
+  ---
+  duration_ms: 0.185375
+  type: 'test'
+  ...
+# Subtest: lint inventory treats declared negative symlink targets as metadata and never follows them
+ok 50 - lint inventory treats declared negative symlink targets as metadata and never follows them
+  ---
+  duration_ms: 0.475667
+  type: 'test'
+  ...
+# Subtest: lint inventory admits declared leaf kind before any replacement-directory descent: symlink
+ok 51 - lint inventory admits declared leaf kind before any replacement-directory descent: symlink
+  ---
+  duration_ms: 0.44525
+  type: 'test'
+  ...
+# Subtest: lint inventory admits declared leaf kind before any replacement-directory descent: regular member
+ok 52 - lint inventory admits declared leaf kind before any replacement-directory descent: regular member
+  ---
+  duration_ms: 0.2605
+  type: 'test'
+  ...
+# Subtest: lint inventory admits declared leaf kind before a descendant provenance read
+ok 53 - lint inventory admits declared leaf kind before a descendant provenance read
+  ---
+  duration_ms: 0.287333
+  type: 'test'
+  ...
+# Subtest: lint inventory admits generated-negative inputs while keeping their maintained producer and validator linted
+ok 54 - lint inventory admits generated-negative inputs while keeping their maintained producer and validator linted
+  ---
+  duration_ms: 0.206917
+  type: 'test'
+  ...
+# Subtest: lint inventory rejects held census descendants, aliases and special members without reading them
+ok 55 - lint inventory rejects held census descendants, aliases and special members without reading them
+  ---
+  duration_ms: 0.509334
+  type: 'test'
+  ...
+# Subtest: boundary paths reject globs, traversal, and whole source or test trees
+ok 56 - boundary paths reject globs, traversal, and whole source or test trees
+  ---
+  duration_ms: 0.163917
+  type: 'test'
+  ...
+# Subtest: fixture owners authenticate before exclusion without reading held content
+ok 57 - fixture owners authenticate before exclusion without reading held content
+  ---
+  duration_ms: 0.104833
+  type: 'test'
+  ...
+# Subtest: discovery preserves YQ and neighboring failures while pruning explicit data roots
+ok 58 - discovery preserves YQ and neighboring failures while pruning explicit data roots
+  ---
+  duration_ms: 0.052042
+  type: 'test'
+  ...
+# Subtest: maintained discovery includes both exact op adapter suites
+ok 59 - maintained discovery includes both exact op adapter suites
+  ---
+  duration_ms: 0.037958
+  type: 'test'
+  ...
+# Subtest: empty discovery fails rather than reporting a green suite
+ok 60 - empty discovery fails rather than reporting a green suite
+  ---
+  duration_ms: 0.042625
+  type: 'test'
+  ...
+# Subtest: integration exclusions retain exact files and directory boundaries
+ok 61 - integration exclusions retain exact files and directory boundaries
+  ---
+  duration_ms: 0.017958
+  type: 'test'
+  ...
+# Subtest: lint admission reads only classification metadata and retains current inputs
+ok 62 - lint admission reads only classification metadata and retains current inputs
+  ---
+  duration_ms: 1.914708
+  type: 'test'
+  ...
+# Subtest: retired whole-gate alias refuses all arguments before legacy activity
+ok 63 - retired whole-gate alias refuses all arguments before legacy activity
+  ---
+  duration_ms: 2.515041
+  type: 'test'
+  ...
+# Subtest: retired whole-gate diagnostic names current routes without claiming validation
+ok 64 - retired whole-gate diagnostic names current routes without claiming validation
+  ---
+  duration_ms: 0.541875
+  type: 'test'
+  ...
+# Subtest: retired whole-gate controls reject success and external-effect regressions
+ok 65 - retired whole-gate controls reject success and external-effect regressions
+  ---
+  duration_ms: 2.113333
+  type: 'test'
+  ...
+# Subtest: runner forwards serial options and preserves real failure status
+ok 66 - runner forwards serial options and preserves real failure status
+  ---
+  duration_ms: 0.239541
+  type: 'test'
+  ...
+# Subtest: runner defaults to serial execution and preserves explicit concurrency overrides verbatim
+ok 67 - runner defaults to serial execution and preserves explicit concurrency overrides verbatim
+  ---
+  duration_ms: 0.291667
+  type: 'test'
+  ...
+# Subtest: default normal runner passes every discovered active file to serial Node execution
+ok 68 - default normal runner passes every discovered active file to serial Node execution
+  ---
+  duration_ms: 827.182416
+  type: 'test'
+  ...
+# Subtest: repository boundaries preserve unaccepted YQ as active source tests
+ok 69 - repository boundaries preserve unaccepted YQ as active source tests
+  ---
+  duration_ms: 391.817375
+  type: 'test'
+  ...
+# Subtest: optional node workerd acceptance remains admitted current input
+ok 70 - optional node workerd acceptance remains admitted current input
+  ---
+  duration_ms: 5.219958
+  type: 'test'
+  ...
+# Subtest: UTF-8 literal workerd acceptance remains admitted current input
+ok 71 - UTF-8 literal workerd acceptance remains admitted current input
+  ---
+  duration_ms: 3.4235
+  type: 'test'
+  ...
+# Subtest: published root mirrors only declared subpaths and keeps the feature isolated
+ok 72 - published root mirrors only declared subpaths and keeps the feature isolated
+  ---
+  duration_ms: 0.975458
+  type: 'test'
+  ...
+# Subtest: Turbo admits maintained tests with a build dependency and prunes exact held inputs
+ok 73 - Turbo admits maintained tests with a build dependency and prunes exact held inputs
+  ---
+  duration_ms: 2.21425
+  type: 'test'
+  ...
+# Subtest: sealed type inputs authenticate owner records before they can leave current compilation
+ok 74 - sealed type inputs authenticate owner records before they can leave current compilation
+  ---
+  duration_ms: 0.768542
+  type: 'test'
+  ...
+# Subtest: shared type reader rejects held and nonliteral paths before any filesystem access
+ok 75 - shared type reader rejects held and nonliteral paths before any filesystem access
+  ---
+  duration_ms: 0.154917
+  type: 'test'
+  ...
+# Subtest: source7 inventory admits exactly the already sealed thirteen-entry source delta
+ok 76 - source7 inventory admits exactly the already sealed thirteen-entry source delta
+  ---
+  duration_ms: 7.603667
+  type: 'test'
+  ...
+# Subtest: native declaration classification admits the current maintained preflight without dropping routes
+ok 77 - native declaration classification admits the current maintained preflight without dropping routes
+  ---
+  duration_ms: 241.713625
+  type: 'test'
+  ...
+# Subtest: native declaration classification adds only three exact authenticated declaration entries
+ok 78 - native declaration classification adds only three exact authenticated declaration entries
+  ---
+  duration_ms: 1.695667
+  type: 'test'
+  ...
+# Subtest: native declaration classification rejects changed and missing declaration contents
+ok 79 - native declaration classification rejects changed and missing declaration contents
+  ---
+  duration_ms: 1.842375
+  type: 'test'
+  ...
+# Subtest: native declaration classification rejects unknown mts and absent tracked declarations before payload reads
+ok 80 - native declaration classification rejects unknown mts and absent tracked declarations before payload reads
+  ---
+  duration_ms: 0.340667
+  type: 'test'
+  ...
+# Subtest: native declaration classification cannot override existing entries or hide declarations as held evidence
+ok 81 - native declaration classification cannot override existing entries or hide declarations as held evidence
+  ---
+  duration_ms: 0.273291
+  type: 'test'
+  ...
+# Subtest: native declaration classification preserves current and negative consumer route guards
+ok 82 - native declaration classification preserves current and negative consumer route guards
+  ---
+  duration_ms: 0.629792
+  type: 'test'
+  ...
+# Subtest: current standalone inventory explicitly admits the shell parse-limits consumer
+ok 83 - current standalone inventory explicitly admits the shell parse-limits consumer
+  ---
+  duration_ms: 4.301083
+  type: 'test'
+  ...
+# Subtest: source7 standalone union preserves old and new inventory epochs without double counting
+ok 84 - source7 standalone union preserves old and new inventory epochs without double counting
+  ---
+  duration_ms: 0.099541
+  type: 'test'
+  ...
+# Subtest: source7 standalone union refuses duplicate and conflicting owner admissions
+ok 85 - source7 standalone union refuses duplicate and conflicting owner admissions
+  ---
+  duration_ms: 0.14775
+  type: 'test'
+  ...
+# Subtest: legacy readers authenticate inventories before staged, captured or historical reads
+ok 86 - legacy readers authenticate inventories before staged, captured or historical reads
+  ---
+  duration_ms: 1.30275
+  type: 'test'
+  ...
+# Subtest: staged owner ancestry is admitted before owner or consumer bytes are read
+ok 87 - staged owner ancestry is admitted before owner or consumer bytes are read
+  ---
+  duration_ms: 2.014875
+  type: 'test'
+  ...
+# Subtest: standalone admission retains held evidence accounting without fabricating hash verification
+ok 88 - standalone admission retains held evidence accounting without fabricating hash verification
+  ---
+  duration_ms: 0.144375
+  type: 'test'
+  ...
+# Subtest: built package prerequisites include nested platform conditions and preserve denials
+ok 89 - built package prerequisites include nested platform conditions and preserve denials
+  ---
+  duration_ms: 0.835709
+  type: 'test'
+  ...
+# Subtest: alternate typecheck emission guards output before compilation and preserves failures
+ok 90 - alternate typecheck emission guards output before compilation and preserves failures
+  ---
+  duration_ms: 0.183917
+  type: 'test'
+  ...
+# Subtest: current integration type accounting retains exact frozen owners and every active test
+ok 91 - current integration type accounting retains exact frozen owners and every active test
+  ---
+  duration_ms: 401.252583
+  type: 'test'
+  ...
+# Subtest: import-origin retirement preserves 789 historical identities and admits only 752 retained synthetic subjects without execution or outward exclusions
+ok 92 - import-origin retirement preserves 789 historical identities and admits only 752 retained synthetic subjects without execution or outward exclusions
+  ---
+  duration_ms: 801.922333
+  type: 'test'
+  ...
+# Subtest: import-origin retirement refuses record substitutions before any content read
+ok 93 - import-origin retirement refuses record substitutions before any content read
+  ---
+  duration_ms: 33.907375
+  type: 'test'
+  ...
+# Subtest: import-origin retirement validates the decision qualifications and complete original tuple schema
+ok 94 - import-origin retirement validates the decision qualifications and complete original tuple schema
+  ---
+  duration_ms: 46.134208
+  type: 'test'
+  ...
+# Subtest: import-origin retirement rejects owner and subject byte drift and never reads a subject before receipt admission
+ok 95 - import-origin retirement rejects owner and subject byte drift and never reads a subject before receipt admission
+  ---
+  duration_ms: 30.645333
+  type: 'test'
+  ...
+# Subtest: import-origin retirement rejects held aliases and nonliteral paths before metadata or payload
+ok 96 - import-origin retirement rejects held aliases and nonliteral paths before metadata or payload
+  ---
+  duration_ms: 17.313917
+  type: 'test'
+  ...
+# Subtest: import-origin retirement denies replacement kinds and ancestor aliases before descendant access
+ok 97 - import-origin retirement denies replacement kinds and ancestor aliases before descendant access
+  ---
+  duration_ms: 33.392208
+  type: 'test'
+  ...
+# Subtest: import-origin retirement preserves only the four retained independently bound provenance overlaps
+ok 98 - import-origin retirement preserves only the four retained independently bound provenance overlaps
+  ---
+  duration_ms: 797.899917
+  type: 'test'
+  ...
+# Subtest: import-origin retirement preserves pinned inventory and root receipt data without member reads
+ok 99 - import-origin retirement preserves pinned inventory and root receipt data without member reads
+  ---
+  duration_ms: 7.408709
+  type: 'test'
+  ...
+# Subtest: import-origin R2 records the exact five-owner dual role and seven current associations
+ok 100 - import-origin R2 records the exact five-owner dual role and seven current associations
+  ---
+  duration_ms: 2.44575
+  type: 'test'
+  ...
+# Subtest: import-origin R2 authenticates each of four retained owners twice after receipt validation across six uses
+ok 101 - import-origin R2 authenticates each of four retained owners twice after receipt validation across six uses
+  ---
+  duration_ms: 371.6505
+  type: 'test'
+  ...
+# Subtest: import-origin R2 invalid receipt admits zero payloads for each current provenance owner
+ok 102 - import-origin R2 invalid receipt admits zero payloads for each current provenance owner
+  ---
+  duration_ms: 74.036042
+  type: 'test'
+  ...
+# Subtest: import-origin R2 partial owner failure closes and stops at tests/stress/regex-execution/production-review/freeze.mjs
+ok 103 - import-origin R2 partial owner failure closes and stops at tests/stress/regex-execution/production-review/freeze.mjs
+  ---
+  duration_ms: 43.182458
+  type: 'test'
+  ...
+# Subtest: import-origin R2 partial owner failure closes and stops at tests/comparison/breadth-continuation-20260828/executor-v7/test-worker.mjs
+ok 104 - import-origin R2 partial owner failure closes and stops at tests/comparison/breadth-continuation-20260828/executor-v7/test-worker.mjs
+  ---
+  duration_ms: 45.359458
+  type: 'test'
+  ...
+# Subtest: import-origin R2 partial owner failure closes and stops at tests/compatibility/bash-conditional-author-20260829/run-v5.mjs
+ok 105 - import-origin R2 partial owner failure closes and stops at tests/compatibility/bash-conditional-author-20260829/run-v5.mjs
+  ---
+  duration_ms: 44.484416
+  type: 'test'
+  ...
+# Subtest: import-origin R2 partial owner failure closes and stops at tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/seal-v2.mjs
+ok 106 - import-origin R2 partial owner failure closes and stops at tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/seal-v2.mjs
+  ---
+  duration_ms: 49.649083
+  type: 'test'
+  ...
+# Subtest: import-origin R2 actual guard preserves falsey read and cleanup identities without omission
+ok 107 - import-origin R2 actual guard preserves falsey read and cleanup identities without omission
+  ---
+  duration_ms: 730.002125
+  type: 'test'
+  ...
+# Subtest: import-origin R2 missing payload and same-hash unlisted owner do not inherit provenance admission
+ok 108 - import-origin R2 missing payload and same-hash unlisted owner do not inherit provenance admission
+  ---
+  duration_ms: 206.633458
+  type: 'test'
+  ...
+# Subtest: import-origin R2 operational inventory pin rejects missing swapped and relocated association metadata
+ok 109 - import-origin R2 operational inventory pin rejects missing swapped and relocated association metadata
+  ---
+  duration_ms: 8.607625
+  type: 'test'
+  ...
+1..109
+# tests 109
+# suites 0
+# pass 109
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12559.868875

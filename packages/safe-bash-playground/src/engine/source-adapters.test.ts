@@ -42,4 +42,45 @@ describe("pinned browser source adapters", () => {
       instrumentRootState("export class Shell { async #execute() { const state = {}; } }")
     ).toThrow("structure changed");
   });
+
+  it("observes the assigned root state while retaining extensions and failure cleanup", async () => {
+    const source = `export class Shell {
+      run(options) { return this.#execute(options); }
+      async #execute(options) {
+        let state;
+        try {
+          const cwd = "/";
+          const extensions = { definitions: ["read"] };
+          state = { cwd, extensions };
+          state.cwd = "/next";
+          if (options.fail) throw new Error("execution failed");
+          return state.extensions.definitions;
+        } finally { options.cleaned = true; }
+      }
+    }`;
+    const code = instrumentRootState(source);
+    const { Shell } = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
+    for (const fail of [false, true]) {
+      const states: unknown[] = [];
+      const paths: string[] = [];
+      const options = { fail, cleaned: false, onState: (value: unknown) => states.push(value), onCwd: (value: string) => paths.push(value) };
+      const result = new Shell().run(options);
+      if (fail) await expect(result).rejects.toThrow("execution failed");
+      else expect(await result).toEqual(["read"]);
+      expect(options.cleaned).toBe(true);
+      expect(states).toEqual([{ cwd: "/next" }]);
+      expect(Object.isFrozen(states[0])).toBe(true);
+      expect(paths).toEqual(["/next"]);
+    }
+  });
+
+  it("rejects assigned state binding and placement drift", () => {
+    for (const body of [
+      'state = { cwd };',
+      'let state = other; state = { cwd };',
+      'let state; state = { directory: cwd };',
+      'let state; state = { cwd }; state = { cwd };',
+      'let state; const nested = () => { state = { cwd }; };',
+    ]) expect(() => instrumentRootState(`class Shell { async #execute(options) { ${body} } }`)).toThrow("structure changed");
+  });
 });

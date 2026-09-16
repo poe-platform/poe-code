@@ -386,7 +386,7 @@ test("frozen host descriptors, method receivers, capabilities and optional absen
 test("Shell adds device methods while retaining ordinary per-path capability identity", async context => {
   const capabilities = Object.freeze({ read: true, descriptorWriteStream: true });
   const specific = Object.freeze({ readOnly: true, descriptorWriteStream: false,
-    streamingRead: false, streamingWrite: false, streamingAppend: false, retainedRead: false });
+    open: false, streamingRead: false, streamingWrite: false, streamingAppend: false, retainedRead: false });
   const memory = new MemoryFileSystem();
   const filesystem = Object.freeze({
     capabilities,
@@ -401,6 +401,7 @@ test("Shell adds device methods while retaining ordinary per-path capability ide
     assert.equal(typeof fs.readStream, "function");
     assert.equal(typeof fs.writeStream, "function");
     assert.equal(typeof fs.openReadFile, "function");
+    assert.equal(typeof fs.open, "function");
     assert.equal((await fs.stat("/dev/null")).type, "character");
     const device = await fs.capabilitiesFor!("/dev/null");
     assert.equal(device.streamingWrite, true);
@@ -420,7 +421,7 @@ test("Shell normalizes absent optional methods without changing the backing capa
   commands.register({ name: "normalized-view", async execute({ fs }) {
     const actual = await fs.capabilitiesFor!("/selected");
     assert.notEqual(actual, capabilities);
-    assert.deepEqual(actual, { read: true, streamingRead: false, streamingWrite: false,
+    assert.deepEqual(actual, { read: true, open: false, streamingRead: false, streamingWrite: false,
       streamingAppend: false, retainedRead: false, descriptorWriteStream: false });
     assert.deepEqual(capabilities, { read: true, streamingRead: true, streamingWrite: true,
       streamingAppend: true, retainedRead: true, descriptorWriteStream: true });

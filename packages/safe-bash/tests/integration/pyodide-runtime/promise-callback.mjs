@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import { loadPyodide } from './node_modules/pyodide/pyodide.mjs';
+const pyodide = await loadPyodide({ indexURL: new URL('./node_modules/pyodide/', import.meta.url).pathname });
+pyodide.FS.writeFile('/probe', 'actual');
+const node = pyodide.FS.lookupPath('/probe').node;
+const original = node.stream_ops;
+const pending = [];
+let called = 0;
+node.stream_ops = { ...original, read(stream, buffer, offset) {
+  called++;
+  buffer.set(new TextEncoder().encode('actual'), offset);
+  const operation = new Promise(resolve => setTimeout(() => resolve(6), 1));
+  pending.push(operation);
+  return operation;
+} };
+const result = pyodide.runPython("open('/probe', 'rb').read(6)").toJs();
+await Promise.all(pending);
+const asyncResult = (await pyodide.runPythonAsync("open('/probe', 'rb').read(6)")).toJs();
+await Promise.all(pending);
+assert.equal(called, 2);
+assert.notDeepEqual([...result], [...new TextEncoder().encode('actual')]);
+assert.notDeepEqual([...asyncResult], [...new TextEncoder().encode('actual')]);
+const canRunSync = await pyodide.runPythonAsync('from pyodide.ffi import can_run_sync\ncan_run_sync()');
+console.log(JSON.stringify({ node: process.version, canRunSync, version: pyodide.version, promiseWasAwaited: false, pythonReadBytes: [...result], pythonAsyncEntryReadBytes: [...asyncResult], callbackCalls: called, JSPI: typeof WebAssembly.Suspending }));

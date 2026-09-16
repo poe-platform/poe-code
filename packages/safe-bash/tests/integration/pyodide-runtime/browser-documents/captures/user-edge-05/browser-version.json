@@ -1,0 +1,10 @@
+{
+  "source": "navigator.userAgentData.getHighEntropyValues(['fullVersionList'])",
+  "fullVersionList": [
+    {"brand": "Google Chrome", "version": "153.0.8010.36"},
+    {"brand": "Not_A Brand", "version": "8.0.0.0"},
+    {"brand": "Chromium", "version": "153.0.8010.36"}
+  ],
+  "mobile": false,
+  "platform": "macOS"
+}

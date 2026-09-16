@@ -1,0 +1,2941 @@
+{
+  "schemaVersion": 1,
+  "task": "charts-and-workbooks",
+  "contract": "docs/specs/docx.md",
+  "sharedContracts": [
+    "docs/specs/office-cli.md",
+    "docs/specs/office-sdk.md"
+  ],
+  "status": "independently reviewed; exact campaign cleanup complete; full-annex limitations retained",
+  "prerequisites": {
+    "maintainedProof": "/tmp/docx74-root-maintained-proof-v3.json",
+    "independentProductApproval": "/tmp/docx74-reviewer-final-approval-v2.json",
+    "frozenProductInputs": 21,
+    "afterExecutionAuthentication": "/tmp/docx74-qa-frozen-after-execution-v1.json"
+  },
+  "provenance": {
+    "id": "nz-ghg-inventory-2025-vol-2",
+    "title": "Greenhouse Gas Inventory 2025 Volume 2 annexes",
+    "publisher": "NZ Ministry for the Environment",
+    "sourceUrl": "https://environment.govt.nz/assets/publications/GhG-Inventory/GHG-Inventory-2025/GHG-Inventory-2025-Vol-2.docx",
+    "finalUrl": "https://environment.govt.nz/assets/publications/GhG-Inventory/GHG-Inventory-2025/GHG-Inventory-2025-Vol-2.docx",
+    "retrievedAt": "2026-09-12T17:48:02.963214+00:00",
+    "sourceSha256": "21b3adeb1df3b3c03e722c7c5efd01aab5a26aafe4659305ca8ed146515d3c8e",
+    "sourceBytes": 7944279,
+    "manifest": "docs/docx/corpus-manifest.json",
+    "corpusReport": "docs/docx/corpus-report.md",
+    "license": {
+      "publisher_terms": "CC BY 4.0 unless item-specific terms differ. Logos, emblems, trademarks, design elements, photography/imagery and third-party material excluded; express permission needed for imagery reuse.",
+      "evidence_url": "https://environment.govt.nz/about-this-site/copyright/",
+      "image_and_logo_rights": "Not universally cleared; agency terms exclude logos and/or third-party imagery. Retain original material only in disposable local QA cache.",
+      "redistribution": "not_authorized_by_this_manifest",
+      "use_scope": "disposable local QA fixture; do not ship or commit the binary",
+      "additional_review": "Check document-specific third-party notices before deriving or publishing outputs; unit regressions must use original text and authored media.",
+      "verified_at": "2026-09-14T05:34:02.759753+00:00",
+      "review_evidence": "corpus-audit-20260914.json#publisher_reviews",
+      "reuse_state": "restricted-assets-not-cleared",
+      "asset_clearance": "Not established. Notice indicators reviewed; no document passages or assets adapted/published."
+    },
+    "acquisition": "Existing authenticated manifest input only; no network or new download.",
+    "restriction": "Private disposable QA only. Copied corpus assets are neither product assets nor canonical fixtures; no public redistribution, workbook activation, formula evaluation, external refresh or rendering."
+  },
+  "profiles": {
+    "normal": {
+      "limits": {
+        "compressedInput": 67108864,
+        "expandedPackage": 268435456,
+        "zipEntries": 10000,
+        "xmlPartBytes": 33554432,
+        "xmlNodes": 2000000,
+        "xmlDepth": 256,
+        "embeddedMediaBytes": 67108864,
+        "retainedBytes": 536870912,
+        "serializedOutput": 268435456,
+        "batchOperations": 1000,
+        "matches": 100000,
+        "insertedNodes": 1000000,
+        "tableCells": 100000,
+        "tableRows": 10000,
+        "tableColumns": 1024,
+        "diagnosticBytes": 65536,
+        "work": 536870912
+      },
+      "archiveLimits": {
+        "maxArchiveBytes": 67108864,
+        "maxEntryBytes": 33554432,
+        "maxTotalBytes": 268435456,
+        "maxMembers": 10000,
+        "maxPathBytes": 4096,
+        "maxDepth": 256,
+        "maxExtraBytes": 65536,
+        "maxCommentBytes": 65535,
+        "maxRetainedBytes": 536870912,
+        "chunkSize": 65536
+      }
+    },
+    "dense": {
+      "limits": {
+        "compressedInput": 67108864,
+        "expandedPackage": 268435456,
+        "zipEntries": 10000,
+        "xmlPartBytes": 134217728,
+        "xmlNodes": 8000000,
+        "xmlDepth": 256,
+        "embeddedMediaBytes": 67108864,
+        "retainedBytes": 4294967296,
+        "serializedOutput": 268435456,
+        "batchOperations": 1000,
+        "matches": 100000,
+        "insertedNodes": 1000000,
+        "tableCells": 100000,
+        "tableRows": 10000,
+        "tableColumns": 1024,
+        "diagnosticBytes": 65536,
+        "work": 17179869184
+      },
+      "archiveLimits": {
+        "maxArchiveBytes": 67108864,
+        "maxEntryBytes": 134217728,
+        "maxTotalBytes": 268435456,
+        "maxMembers": 10000,
+        "maxPathBytes": 4096,
+        "maxDepth": 256,
+        "maxExtraBytes": 65536,
+        "maxCommentBytes": 65535,
+        "maxRetainedBytes": 4294967296,
+        "chunkSize": 65536
+      }
+    },
+    "nodeOldSpaceMiB": 2048,
+    "carrierQualification": "separate corpus-derived QA adaptation; never canonical fixture or full annex qualification",
+    "note": "Pre-first-operation correction: normal engine derives XML ceiling from maxEntryBytes; retain original setup profilev1, no product operation attempted under it."
+  },
+  "profilePreparation": {
+    "firstDeclaration": "/tmp/docx74-qa-predeclared-profiles-v1.json",
+    "correction": "Normal archive entry ceiling set to 32MiB before any product operation; v1 retained. Dense profile unchanged. No raised retry after resource failure.",
+    "supervision": "Every product invocation/render has independent external120second from-launch process supervision, separate boundedstdout/stderr,64MiB combined cap. Tool displays have separate external wall-clock observation, with explicit force-preemption limitation."
+  },
+  "operations": [
+    {
+      "id": "annex-sdk-default-v1",
+      "supervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 0.9428435000008903,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-annex-sdk-default-v1.stdout.txt",
+            "bytes": 388,
+            "sha256": "50ddf222506fb7111d83560652e652d17d7784fd7060e13553744b4e416ecf28"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-annex-sdk-default-v1.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "outcome": {
+        "ok": false,
+        "code": "limit-exceeded",
+        "message": "Archive limit exceeded.",
+        "usage": {
+          "compressedInput": 7944279,
+          "expandedPackage": 0,
+          "zipEntries": 0,
+          "xmlPartBytes": 0,
+          "xmlNodes": 0,
+          "xmlDepth": 0,
+          "embeddedMediaBytes": 0,
+          "retainedBytes": 39918003,
+          "serializedOutput": 0,
+          "batchOperations": 0,
+          "matches": 0,
+          "insertedNodes": 0,
+          "tableCells": 0,
+          "tableRows": 0,
+          "tableColumns": 0,
+          "diagnosticBytes": 0,
+          "work": 71498511
+        }
+      }
+    },
+    {
+      "id": "annex-shell-normal-v1",
+      "supervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 4.012213666996104,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-annex-shell-normal-v1.stdout.txt",
+            "bytes": 114,
+            "sha256": "08b811616174352f31789ff3424fa8a76ad350fca9e2098e70c47e851e301719"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-annex-shell-normal-v1.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "outcome": {
+        "exitCode": 4,
+        "stdoutBytes": 0,
+        "stderr": "docx: Document operation failed: limit-exceeded\n",
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "annex-sdk-dense-v1",
+      "supervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 26.894074083000305,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-annex-sdk-dense-v1.stdout.txt",
+            "bytes": 5832,
+            "sha256": "3082b63d37ec30c6d09f7c8cf4c684a797bd07b852bf9b1340dfef2b81709556"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-annex-sdk-dense-v1.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "outcome": {
+        "ok": true,
+        "items": [
+          {
+            "part": {
+              "name": "/word/charts/chart1.xml",
+              "contentType": "application/vnd.openxmlformats-officedocument.drawingml.chart+xml",
+              "bytes": 29193,
+              "sha256": "92439d4cf54e85504925086c6cb6b41f1bbab42666c7d8a66f4e56b0169cae3a"
+            },
+            "chartTypes": [
+              "lineChart"
+            ],
+            "groups": 1,
+            "series": 2,
+            "caches": 6,
+            "workbooks": [],
+            "resources": [
+              {
+                "role": "color",
+                "status": "internal",
+                "target": {
+                  "name": "/word/charts/colors1.xml",
+                  "contentType": "application/vnd.ms-office.chartcolorstyle+xml",
+                  "bytes": 878,
+                  "sha256": "04fefba7d31853fa0aa636e5c8b8e308fc3126a9b48a1f4490947fff91d5a92f"
+                }
+              },
+              {
+                "role": "style",
+                "status": "internal",
+                "target": {
+                  "name": "/word/charts/style1.xml",
+                  "contentType": "application/vnd.ms-office.chartstyle+xml",
+                  "bytes": 9863,
+                  "sha256": "77cdb029b8649d777a06ba38f8fa0ba9ca94393a15b79b4fd1160faf5941c722"
+                }
+              }
+            ],
+            "graphParts": [
+              {
+                "name": "/word/charts/chart1.xml",
+                "contentType": "application/vnd.openxmlformats-officedocument.drawingml.chart+xml",
+                "bytes": 29193,
+                "sha256": "92439d4cf54e85504925086c6cb6b41f1bbab42666c7d8a66f4e56b0169cae3a"
+              },
+              {
+                "name": "/word/charts/colors1.xml",
+                "contentType": "application/vnd.ms-office.chartcolorstyle+xml",
+                "bytes": 878,
+                "sha256": "04fefba7d31853fa0aa636e5c8b8e308fc3126a9b48a1f4490947fff91d5a92f"
+              },
+              {
+                "name": "/word/charts/style1.xml",
+                "contentType": "application/vnd.ms-office.chartstyle+xml",
+                "bytes": 9863,
+                "sha256": "77cdb029b8649d777a06ba38f8fa0ba9ca94393a15b79b4fd1160faf5941c722"
+              },
+              {
+                "name": "/word/theme/themeOverride1.xml",
+                "contentType": "application/vnd.openxmlformats-officedocument.themeOverride+xml",
+                "bytes": 6437,
+                "sha256": "d825e5a2a5f61b4fa4d5be11ca714b5d1fe294a34a3583d98d5d6acd5963a54b"
+              }
+            ],
+            "issueCount": 0
+          },
+          {
+            "part": {
+              "name": "/word/charts/chart2.xml",
+              "contentType": "application/vnd.openxmlformats-officedocument.drawingml.chart+xml",
+              "bytes": 28200,
+              "sha256": "e8abe4c6ef07567adcceda61af942e447b695ebaa00c20e09c86423e7706d133"
+            },
+            "chartTypes": [
+              "lineChart"
+            ],
+            "groups": 1,
+            "series": 2,
+            "caches": 6,
+            "workbooks": [],
+            "resources": [
+              {
+                "role": "color",
+                "status": "internal",
+                "target": {
+                  "name": "/word/charts/colors2.xml",
+                  "contentType": "application/vnd.ms-office.chartcolorstyle+xml",
+                  "bytes": 878,
+                  "sha256": "04fefba7d31853fa0aa636e5c8b8e308fc3126a9b48a1f4490947fff91d5a92f"
+                }
+              },
+              {
+                "role": "style",
+                "status": "internal",
+                "target": {
+                  "name": "/word/charts/style2.xml",
+                  "contentType": "application/vnd.ms-office.chartstyle+xml",
+                  "bytes": 9863,
+                  "sha256": "77cdb029b8649d777a06ba38f8fa0ba9ca94393a15b79b4fd1160faf5941c722"
+                }
+              }
+            ],
+            "graphParts": [
+              {
+                "name": "/word/charts/chart2.xml",
+                "contentType": "application/vnd.openxmlformats-officedocument.drawingml.chart+xml",
+                "bytes": 28200,
+                "sha256": "e8abe4c6ef07567adcceda61af942e447b695ebaa00c20e09c86423e7706d133"
+              },
+              {
+                "name": "/word/charts/colors2.xml",
+                "contentType": "application/vnd.ms-office.chartcolorstyle+xml",
+                "bytes": 878,
+                "sha256": "04fefba7d31853fa0aa636e5c8b8e308fc3126a9b48a1f4490947fff91d5a92f"
+              },
+              {
+                "name": "/word/charts/style2.xml",
+                "contentType": "application/vnd.ms-office.chartstyle+xml",
+                "bytes": 9863,
+                "sha256": "77cdb029b8649d777a06ba38f8fa0ba9ca94393a15b79b4fd1160faf5941c722"
+              },
+              {
+                "name": "/word/theme/themeOverride2.xml",
+                "contentType": "application/vnd.openxmlformats-officedocument.themeOverride+xml",
+                "bytes": 6437,
+                "sha256": "d825e5a2a5f61b4fa4d5be11ca714b5d1fe294a34a3583d98d5d6acd5963a54b"
+              }
+            ],
+            "issueCount": 0
+          },
+          {
+            "part": {
+              "name": "/word/charts/chart3.xml",
+              "contentType": "application/vnd.openxmlformats-officedocument.drawingml.chart+xml",
+              "bytes": 16560,
+              "sha256": "27194e855905cf3925a6dc5d4eba8839a8266f40746257c52dda0bac516046b7"
+            },
+            "chartTypes": [
+              "lineChart"
+            ],
+            "groups": 1,
+            "series": 5,
+            "caches": 14,
+            "workbooks": [
+              "/word/embeddings/Microsoft_Excel_Worksheet.xlsx"
+            ],
+            "resources": [
+              {
+                "role": "color",
+                "status": "internal",
+                "target": {
+                  "name": "/word/charts/colors3.xml",
+                  "contentType": "application/vnd.ms-office.chartcolorstyle+xml",
+                  "bytes": 878,
+                  "sha256": "04fefba7d31853fa0aa636e5c8b8e308fc3126a9b48a1f4490947fff91d5a92f"
+                }
+              },
+              {
+                "role": "style",
+                "status": "internal",
+                "target": {
+                  "name": "/word/charts/style3.xml",
+                  "contentType": "application/vnd.ms-office.chartstyle+xml",
+                  "bytes": 9863,
+                  "sha256": "77cdb029b8649d777a06ba38f8fa0ba9ca94393a15b79b4fd1160faf5941c722"
+                }
+              },
+              {
+                "role": "workbook",
+                "status": "internal",
+                "target": {
+                  "name": "/word/embeddings/Microsoft_Excel_Worksheet.xlsx",
+                  "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                  "bytes": 120626,
+                  "sha256": "0b35e6a74e465a3baa6368c70fdd530abe1518fc3a6d788d8ec1691da252ae4f"
+                }
+              }
+            ],
+            "graphParts": [
+              {
+                "name": "/word/charts/chart3.xml",
+                "contentType": "application/vnd.openxmlformats-officedocument.drawingml.chart+xml",
+                "bytes": 16560,
+                "sha256": "27194e855905cf3925a6dc5d4eba8839a8266f40746257c52dda0bac516046b7"
+              },
+              {
+                "name": "/word/charts/colors3.xml",
+                "contentType": "application/vnd.ms-office.chartcolorstyle+xml",
+                "bytes": 878,
+                "sha256": "04fefba7d31853fa0aa636e5c8b8e308fc3126a9b48a1f4490947fff91d5a92f"
+              },
+              {
+                "name": "/word/charts/style3.xml",
+                "contentType": "application/vnd.ms-office.chartstyle+xml",
+                "bytes": 9863,
+                "sha256": "77cdb029b8649d777a06ba38f8fa0ba9ca94393a15b79b4fd1160faf5941c722"
+              },
+              {
+                "name": "/word/embeddings/Microsoft_Excel_Worksheet.xlsx",
+                "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "bytes": 120626,
+                "sha256": "0b35e6a74e465a3baa6368c70fdd530abe1518fc3a6d788d8ec1691da252ae4f"
+              },
+              {
+                "name": "/word/theme/themeOverride3.xml",
+                "contentType": "application/vnd.openxmlformats-officedocument.themeOverride+xml",
+                "bytes": 6441,
+                "sha256": "658f219a6f51d076172b4e673077dd55a8a7d8d7db47f9cd9757bc1e452f5a38"
+              }
+            ],
+            "issueCount": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "partial-chart-inventory",
+            "message": "Some chart semantics are opaque, malformed or ambiguous; cached data is stored metadata with unknown freshness."
+          }
+        ],
+        "usage": {
+          "compressedInput": 7944279,
+          "expandedPackage": 47777441,
+          "zipEntries": 131,
+          "xmlPartBytes": 0,
+          "xmlNodes": 3091324,
+          "xmlDepth": 0,
+          "embeddedMediaBytes": 0,
+          "retainedBytes": 980174088,
+          "serializedOutput": 0,
+          "batchOperations": 0,
+          "matches": 1989,
+          "insertedNodes": 0,
+          "tableCells": 0,
+          "tableRows": 0,
+          "tableColumns": 0,
+          "diagnosticBytes": 636,
+          "work": 3752179794
+        }
+      }
+    },
+    {
+      "id": "annex-body-edit-dense-v1",
+      "supervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 0.9654044579947367,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-annex-body-edit-dense-v1.stdout.txt",
+            "bytes": 392,
+            "sha256": "e46a53d0586d5162a8dc49697be13ae5903dc998c44aa4e6d3d06485545735cb"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-annex-body-edit-dense-v1.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "outcome": {
+        "ok": false,
+        "code": "usage",
+        "message": "Choose exactly one text match cardinality.",
+        "published": 0,
+        "usage": {
+          "compressedInput": 0,
+          "expandedPackage": 0,
+          "zipEntries": 0,
+          "xmlPartBytes": 0,
+          "xmlNodes": 0,
+          "xmlDepth": 0,
+          "embeddedMediaBytes": 0,
+          "retainedBytes": 0,
+          "serializedOutput": 0,
+          "batchOperations": 0,
+          "matches": 0,
+          "insertedNodes": 0,
+          "tableCells": 0,
+          "tableRows": 0,
+          "tableColumns": 0,
+          "diagnosticBytes": 0,
+          "work": 0
+        }
+      }
+    },
+    {
+      "id": "annex-body-edit-dense-v2",
+      "supervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 27.533283500000834,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-annex-body-edit-dense-v2.stdout.txt",
+            "bytes": 429,
+            "sha256": "4b4e335b791b96619e41ab617f7e8607599e933eaca4d8eab1a0e9baf882dfbf"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-annex-body-edit-dense-v2.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "outcome": {
+        "ok": false,
+        "code": "limit-exceeded",
+        "message": "Validation byte limit exceeded.",
+        "published": 0,
+        "usage": {
+          "compressedInput": 7944279,
+          "expandedPackage": 47777441,
+          "zipEntries": 131,
+          "xmlPartBytes": 0,
+          "xmlNodes": 3083167,
+          "xmlDepth": 0,
+          "embeddedMediaBytes": 0,
+          "retainedBytes": 1064902682,
+          "serializedOutput": 0,
+          "batchOperations": 0,
+          "matches": 0,
+          "insertedNodes": 0,
+          "tableCells": 0,
+          "tableRows": 0,
+          "tableColumns": 0,
+          "diagnosticBytes": 0,
+          "work": 3838856486
+        }
+      }
+    },
+    {
+      "id": "carrier-sdk-dense-v1",
+      "supervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 1.1898361669882433,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-carrier-sdk-dense-v1.stdout.txt",
+            "bytes": 428,
+            "sha256": "e0c12e34ec5b5c523fa5f36837374764452d2a6275fe93f7816bcf2facfcda08"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-carrier-sdk-dense-v1.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "outcome": {
+        "ok": true,
+        "items": 3,
+        "detailsExactToAnnex": true,
+        "referencesExactToAnnex": true,
+        "warningsEqual": true,
+        "usage": {
+          "compressedInput": 255101,
+          "expandedPackage": 252543,
+          "zipEntries": 20,
+          "xmlPartBytes": 0,
+          "xmlNodes": 17762,
+          "xmlDepth": 0,
+          "embeddedMediaBytes": 0,
+          "retainedBytes": 7033242,
+          "serializedOutput": 0,
+          "batchOperations": 0,
+          "matches": 1989,
+          "insertedNodes": 0,
+          "tableCells": 0,
+          "tableRows": 0,
+          "tableColumns": 0,
+          "diagnosticBytes": 636,
+          "work": 21140851
+        }
+      }
+    },
+    {
+      "id": "carrier-shell-normal-v1",
+      "supervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 1.9771593749901513,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-carrier-shell-normal-v1.stdout.txt",
+            "bytes": 92,
+            "sha256": "aeb54b51cee13092135973658fd58c52a4133b03b7164a180df9e28309209a10"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-carrier-shell-normal-v1.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "outcome": {
+        "exitCode": 0,
+        "items": 3,
+        "exactSdkItems": true,
+        "exactSdkWarnings": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "carrier-body-edit-sdk-v1",
+      "supervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 1.6841662919905502,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-carrier-body-edit-sdk-v1.stdout.txt",
+            "bytes": 1673,
+            "sha256": "90878cfbab6e4c25ce7db2664dc3471319f4c19e11d76f7e052bc12b4becbca4"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-carrier-body-edit-sdk-v1.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "outcome": {
+        "ok": true,
+        "result": {
+          "changed": true,
+          "changes": [
+            {
+              "kind": "replace",
+              "before": {
+                "kind": "paragraph",
+                "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI5ZDk5OTBlMWIzM2Y2MDI0MWFjODQyN2Q5ZTFlMGM3ZTRhZjRjNDc3MzQwYjlhODBjMmQ2ZTI4NGVlYTcxNTJkIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwXSwicmFuZ2UiOm51bGx9",
+                "value": {
+                  "version": 1,
+                  "sourceSha256": "9d9990e1b33f60241ac8427d9e1e0c7e4af4c477340b9a80c2d6e284eea7152d",
+                  "generation": 0,
+                  "part": "/word/document.xml",
+                  "story": "/word/document.xml#body",
+                  "path": [
+                    0,
+                    0
+                  ],
+                  "range": null
+                },
+                "positions": {
+                  "section": 1,
+                  "paragraph": 1
+                }
+              },
+              "after": {
+                "kind": "paragraph",
+                "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI5ZDk5OTBlMWIzM2Y2MDI0MWFjODQyN2Q5ZTFlMGM3ZTRhZjRjNDc3MzQwYjlhODBjMmQ2ZTI4NGVlYTcxNTJkIiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwXSwicmFuZ2UiOm51bGx9",
+                "value": {
+                  "version": 1,
+                  "sourceSha256": "9d9990e1b33f60241ac8427d9e1e0c7e4af4c477340b9a80c2d6e284eea7152d",
+                  "generation": 1,
+                  "part": "/word/document.xml",
+                  "story": "/word/document.xml#body",
+                  "path": [
+                    0,
+                    0
+                  ],
+                  "range": null
+                },
+                "positions": {
+                  "section": 1,
+                  "paragraph": 1
+                }
+              }
+            }
+          ],
+          "dryRun": false,
+          "output": {
+            "path": "-",
+            "bytes": 255192,
+            "sha256": "a99d0f76ba40c8902b3cd70eb7a1b24f4a528505624ef0a4432b39efcd6fa1f4"
+          }
+        },
+        "published": 255192,
+        "usage": {
+          "compressedInput": 255101,
+          "expandedPackage": 252543,
+          "zipEntries": 20,
+          "xmlPartBytes": 0,
+          "xmlNodes": 106690,
+          "xmlDepth": 0,
+          "embeddedMediaBytes": 0,
+          "retainedBytes": 30308756,
+          "serializedOutput": 255192,
+          "batchOperations": 0,
+          "matches": 0,
+          "insertedNodes": 9,
+          "tableCells": 0,
+          "tableRows": 0,
+          "tableColumns": 0,
+          "diagnosticBytes": 0,
+          "work": 55956637
+        }
+      }
+    },
+    {
+      "id": "carrier-body-edit-shell-v1",
+      "supervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 2.5221580420038663,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-carrier-body-edit-shell-v1.stdout.txt",
+            "bytes": 84,
+            "sha256": "dd24bd3023044a2cbfe3edf6c5eaa43ea63596dc3254ae76ac3c5de84c344c9f"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-carrier-body-edit-shell-v1.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "outcome": {
+        "exitCode": 0,
+        "stdoutBytes": 0,
+        "stderr": "",
+        "published": 255192,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "carrier-sdk-normal-v1",
+      "supervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 1.2457331250043353,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-carrier-sdk-normal-v1.stdout.txt",
+            "bytes": 425,
+            "sha256": "b738aa1d8812efaf08acccf217728475a76aa044947d519973fd1b11db9e57f1"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-carrier-sdk-normal-v1.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "outcome": {
+        "ok": true,
+        "items": 3,
+        "completeDataEqual": true,
+        "warningsEqual": true,
+        "allItemLocationsEqual": true,
+        "usage": {
+          "compressedInput": 255101,
+          "expandedPackage": 252543,
+          "zipEntries": 20,
+          "xmlPartBytes": 0,
+          "xmlNodes": 17762,
+          "xmlDepth": 0,
+          "embeddedMediaBytes": 0,
+          "retainedBytes": 7033242,
+          "serializedOutput": 0,
+          "batchOperations": 0,
+          "matches": 1989,
+          "insertedNodes": 0,
+          "tableCells": 0,
+          "tableRows": 0,
+          "tableColumns": 0,
+          "diagnosticBytes": 636,
+          "work": 21140851
+        }
+      }
+    },
+    {
+      "id": "carrier-body-edit-normal-v1",
+      "supervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 1.61474841699237,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-carrier-body-edit-normal-v1.stdout.txt",
+            "bytes": 533,
+            "sha256": "ab536712e51fe0e26f6403dc324d769254f8bca46690eb64d3e2ffe5b148ee2d"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-carrier-body-edit-normal-v1.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "outcome": {
+        "ok": true,
+        "changed": true,
+        "changes": 1,
+        "published": 255192,
+        "outputSha256": "a99d0f76ba40c8902b3cd70eb7a1b24f4a528505624ef0a4432b39efcd6fa1f4",
+        "fullOutputEqualToShell": true,
+        "fullOutputEqualToDenseSdk": true,
+        "usage": {
+          "compressedInput": 255101,
+          "expandedPackage": 252543,
+          "zipEntries": 20,
+          "xmlPartBytes": 0,
+          "xmlNodes": 106690,
+          "xmlDepth": 0,
+          "embeddedMediaBytes": 0,
+          "retainedBytes": 30308756,
+          "serializedOutput": 255192,
+          "batchOperations": 0,
+          "matches": 0,
+          "insertedNodes": 9,
+          "tableCells": 0,
+          "tableRows": 0,
+          "tableColumns": 0,
+          "diagnosticBytes": 0,
+          "work": 55956637
+        }
+      }
+    },
+    {
+      "id": "carrier-shell-script-v1",
+      "supervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 1.9738304170023184,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-carrier-shell-script-v1.stdout.txt",
+            "bytes": 340,
+            "sha256": "7e46b8ceecfb73f102b6fd358edb38d6d91141ca73e71ea238357f70627752df"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-carrier-shell-script-v1.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "outcome": {
+        "exitCode": 0,
+        "stdoutBytes": 101917,
+        "completeOutputEqualToDirectShell": true,
+        "stderr": "docx: partial-chart-inventory: Some chart semantics are opaque, malformed or ambiguous; cached data is stored metadata with unknown freshness.\n",
+        "inputUnchanged": true,
+        "scriptInput": "actual MemoryFileSystem /work/read-charts.sh; no saved host QA driver"
+      }
+    },
+    {
+      "id": "screenshot-help-v1",
+      "supervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 1.7729869999893708,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-screenshot-help-v1.stdout.txt",
+            "bytes": 73,
+            "sha256": "752ee7400d11106faa93911faa9e1c31eed462a69c604d7e25456881846462d3"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-screenshot-help-v1.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "outcome": {
+        "exitCode": 0,
+        "transcriptBytes": 656,
+        "imageBytes": 294466,
+        "stderrBytes": 0
+      }
+    },
+    {
+      "id": "screenshot-selector-error-v1",
+      "supervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 1.5365871249960037,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-screenshot-selector-error-v1.stdout.txt",
+            "bytes": 74,
+            "sha256": "4f3d20e7a4779ced1c7eb9b333fa3e03e706177db33608a1cac53aaf5e248652"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-screenshot-selector-error-v1.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "outcome": {
+        "exitCode": 2,
+        "transcriptBytes": 295,
+        "imageBytes": 118379,
+        "stderrBytes": 47
+      }
+    },
+    {
+      "id": "screenshot-carrier-read-v1",
+      "supervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 2.1016963750007562,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-screenshot-carrier-read-v1.stdout.txt",
+            "bytes": 75,
+            "sha256": "d1ecb948c52da0719cdc4bdafa42ec6bd2898ff16f4cc8f1d3ab7a574a4dd51b"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-screenshot-carrier-read-v1.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "outcome": {
+        "exitCode": 0,
+        "transcriptBytes": 322,
+        "imageBytes": 139835,
+        "stderrBytes": 143
+      }
+    }
+  ],
+  "fullAnnex": {
+    "defaultSdk": "limit-exceeded before expanded payload admission",
+    "normalShell": "exit4 limit-exceeded; input unchanged; narrower profile unqualified for this annex",
+    "denseSdk": "succeeded under predeclared ceilings; physical stored-data inventory only",
+    "bodyEdit": "Initial missing match-cardinality usage failure before I/O retained. Corrected first:true under same fixed dense ceilings fails validation byte limit; zero publication. Full annex edit/round-trip/parity remains unqualified.",
+    "chartDefinitionCount": 3,
+    "seriesCount": 9,
+    "cacheCount": 26,
+    "inertClosurePartCount": 13,
+    "charts": [
+      {
+        "definition": {
+          "name": "/word/charts/chart1.xml",
+          "contentType": "application/vnd.openxmlformats-officedocument.drawingml.chart+xml",
+          "bytes": 29193,
+          "sha256": "92439d4cf54e85504925086c6cb6b41f1bbab42666c7d8a66f4e56b0169cae3a"
+        },
+        "status": "decoded",
+        "chartTypes": [
+          "lineChart"
+        ],
+        "plotGroups": [
+          {
+            "type": "lineChart",
+            "path": [
+              5,
+              1,
+              1
+            ]
+          }
+        ],
+        "seriesCount": 2,
+        "series": [
+          {
+            "group": 0,
+            "labelProvenance": "cached",
+            "cachedValueCount": 100,
+            "issues": 0,
+            "sources": [
+              {
+                "role": "label",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "string",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "1"
+                    ],
+                    "pointCount": 1,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              },
+              {
+                "role": "category",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "numeric",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "101"
+                    ],
+                    "pointCount": 101,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              },
+              {
+                "role": "value",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "numeric",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "101"
+                    ],
+                    "pointCount": 100,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "group": 0,
+            "labelProvenance": "ambiguous",
+            "cachedValueCount": 101,
+            "issues": 1,
+            "sources": [
+              {
+                "role": "label",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "string",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "1"
+                    ],
+                    "pointCount": 0,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              },
+              {
+                "role": "category",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "numeric",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "101"
+                    ],
+                    "pointCount": 101,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              },
+              {
+                "role": "value",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "numeric",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "101"
+                    ],
+                    "pointCount": 101,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "externalData": [
+          {
+            "relationshipId": "rId4",
+            "autoUpdate": [
+              "0"
+            ],
+            "bindingStatus": "wrong-relationship-type"
+          }
+        ],
+        "workbookParts": [],
+        "resources": [
+          {
+            "role": "color",
+            "relationshipId": "rId2",
+            "status": "internal",
+            "target": {
+              "name": "/word/charts/colors1.xml",
+              "contentType": "application/vnd.ms-office.chartcolorstyle+xml",
+              "bytes": 878,
+              "sha256": "04fefba7d31853fa0aa636e5c8b8e308fc3126a9b48a1f4490947fff91d5a92f"
+            },
+            "issues": []
+          },
+          {
+            "role": "style",
+            "relationshipId": "rId1",
+            "status": "internal",
+            "target": {
+              "name": "/word/charts/style1.xml",
+              "contentType": "application/vnd.ms-office.chartstyle+xml",
+              "bytes": 9863,
+              "sha256": "77cdb029b8649d777a06ba38f8fa0ba9ca94393a15b79b4fd1160faf5941c722"
+            },
+            "issues": []
+          }
+        ],
+        "graphParts": [
+          {
+            "name": "/word/charts/chart1.xml",
+            "contentType": "application/vnd.openxmlformats-officedocument.drawingml.chart+xml",
+            "bytes": 29193,
+            "sha256": "92439d4cf54e85504925086c6cb6b41f1bbab42666c7d8a66f4e56b0169cae3a"
+          },
+          {
+            "name": "/word/charts/colors1.xml",
+            "contentType": "application/vnd.ms-office.chartcolorstyle+xml",
+            "bytes": 878,
+            "sha256": "04fefba7d31853fa0aa636e5c8b8e308fc3126a9b48a1f4490947fff91d5a92f"
+          },
+          {
+            "name": "/word/charts/style1.xml",
+            "contentType": "application/vnd.ms-office.chartstyle+xml",
+            "bytes": 9863,
+            "sha256": "77cdb029b8649d777a06ba38f8fa0ba9ca94393a15b79b4fd1160faf5941c722"
+          },
+          {
+            "name": "/word/theme/themeOverride1.xml",
+            "contentType": "application/vnd.openxmlformats-officedocument.themeOverride+xml",
+            "bytes": 6437,
+            "sha256": "d825e5a2a5f61b4fa4d5be11ca714b5d1fe294a34a3583d98d5d6acd5963a54b"
+          }
+        ],
+        "physicalReferences": [
+          {
+            "owner": "/word/charts/chart1.xml",
+            "id": "rId1",
+            "type": "http://schemas.microsoft.com/office/2011/relationships/chartStyle",
+            "target": "style1.xml",
+            "external": false
+          },
+          {
+            "owner": "/word/charts/chart1.xml",
+            "id": "rId2",
+            "type": "http://schemas.microsoft.com/office/2011/relationships/chartColorStyle",
+            "target": "colors1.xml",
+            "external": false
+          },
+          {
+            "owner": "/word/charts/chart1.xml",
+            "id": "rId3",
+            "type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/themeOverride",
+            "target": "../theme/themeOverride1.xml",
+            "external": false
+          },
+          {
+            "owner": "/word/charts/chart1.xml",
+            "id": "rId4",
+            "type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/oleObject",
+            "target": "https://piritahi.cohesion.net.nz/Sites/POL/NR/CC/AgriculturalGasInventory/2022%20Inventory/2022%20ag%20inventory_results_data_tables_graphs%20final.xlsx",
+            "external": true
+          },
+          {
+            "owner": "/word/document.xml",
+            "id": "rId43",
+            "type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart",
+            "target": "charts/chart1.xml",
+            "external": false
+          }
+        ],
+        "issueCodes": []
+      },
+      {
+        "definition": {
+          "name": "/word/charts/chart2.xml",
+          "contentType": "application/vnd.openxmlformats-officedocument.drawingml.chart+xml",
+          "bytes": 28200,
+          "sha256": "e8abe4c6ef07567adcceda61af942e447b695ebaa00c20e09c86423e7706d133"
+        },
+        "status": "decoded",
+        "chartTypes": [
+          "lineChart"
+        ],
+        "plotGroups": [
+          {
+            "type": "lineChart",
+            "path": [
+              5,
+              1,
+              1
+            ]
+          }
+        ],
+        "seriesCount": 2,
+        "series": [
+          {
+            "group": 0,
+            "labelProvenance": "cached",
+            "cachedValueCount": 100,
+            "issues": 0,
+            "sources": [
+              {
+                "role": "label",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "string",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "1"
+                    ],
+                    "pointCount": 1,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              },
+              {
+                "role": "category",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "numeric",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "101"
+                    ],
+                    "pointCount": 101,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              },
+              {
+                "role": "value",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "numeric",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "101"
+                    ],
+                    "pointCount": 100,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "group": 0,
+            "labelProvenance": "ambiguous",
+            "cachedValueCount": 101,
+            "issues": 1,
+            "sources": [
+              {
+                "role": "label",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "string",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "1"
+                    ],
+                    "pointCount": 0,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              },
+              {
+                "role": "category",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "numeric",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "101"
+                    ],
+                    "pointCount": 101,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              },
+              {
+                "role": "value",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "numeric",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "101"
+                    ],
+                    "pointCount": 101,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "externalData": [
+          {
+            "relationshipId": "rId4",
+            "autoUpdate": [
+              "0"
+            ],
+            "bindingStatus": "wrong-relationship-type"
+          }
+        ],
+        "workbookParts": [],
+        "resources": [
+          {
+            "role": "color",
+            "relationshipId": "rId2",
+            "status": "internal",
+            "target": {
+              "name": "/word/charts/colors2.xml",
+              "contentType": "application/vnd.ms-office.chartcolorstyle+xml",
+              "bytes": 878,
+              "sha256": "04fefba7d31853fa0aa636e5c8b8e308fc3126a9b48a1f4490947fff91d5a92f"
+            },
+            "issues": []
+          },
+          {
+            "role": "style",
+            "relationshipId": "rId1",
+            "status": "internal",
+            "target": {
+              "name": "/word/charts/style2.xml",
+              "contentType": "application/vnd.ms-office.chartstyle+xml",
+              "bytes": 9863,
+              "sha256": "77cdb029b8649d777a06ba38f8fa0ba9ca94393a15b79b4fd1160faf5941c722"
+            },
+            "issues": []
+          }
+        ],
+        "graphParts": [
+          {
+            "name": "/word/charts/chart2.xml",
+            "contentType": "application/vnd.openxmlformats-officedocument.drawingml.chart+xml",
+            "bytes": 28200,
+            "sha256": "e8abe4c6ef07567adcceda61af942e447b695ebaa00c20e09c86423e7706d133"
+          },
+          {
+            "name": "/word/charts/colors2.xml",
+            "contentType": "application/vnd.ms-office.chartcolorstyle+xml",
+            "bytes": 878,
+            "sha256": "04fefba7d31853fa0aa636e5c8b8e308fc3126a9b48a1f4490947fff91d5a92f"
+          },
+          {
+            "name": "/word/charts/style2.xml",
+            "contentType": "application/vnd.ms-office.chartstyle+xml",
+            "bytes": 9863,
+            "sha256": "77cdb029b8649d777a06ba38f8fa0ba9ca94393a15b79b4fd1160faf5941c722"
+          },
+          {
+            "name": "/word/theme/themeOverride2.xml",
+            "contentType": "application/vnd.openxmlformats-officedocument.themeOverride+xml",
+            "bytes": 6437,
+            "sha256": "d825e5a2a5f61b4fa4d5be11ca714b5d1fe294a34a3583d98d5d6acd5963a54b"
+          }
+        ],
+        "physicalReferences": [
+          {
+            "owner": "/word/charts/chart2.xml",
+            "id": "rId1",
+            "type": "http://schemas.microsoft.com/office/2011/relationships/chartStyle",
+            "target": "style2.xml",
+            "external": false
+          },
+          {
+            "owner": "/word/charts/chart2.xml",
+            "id": "rId2",
+            "type": "http://schemas.microsoft.com/office/2011/relationships/chartColorStyle",
+            "target": "colors2.xml",
+            "external": false
+          },
+          {
+            "owner": "/word/charts/chart2.xml",
+            "id": "rId3",
+            "type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/themeOverride",
+            "target": "../theme/themeOverride2.xml",
+            "external": false
+          },
+          {
+            "owner": "/word/charts/chart2.xml",
+            "id": "rId4",
+            "type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/oleObject",
+            "target": "https://piritahi.cohesion.net.nz/Sites/POL/NR/CC/AgriculturalGasInventory/2020%20Inventory/2020%20results_data_tables_graphs.xlsx",
+            "external": true
+          },
+          {
+            "owner": "/word/document.xml",
+            "id": "rId44",
+            "type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart",
+            "target": "charts/chart2.xml",
+            "external": false
+          }
+        ],
+        "issueCodes": []
+      },
+      {
+        "definition": {
+          "name": "/word/charts/chart3.xml",
+          "contentType": "application/vnd.openxmlformats-officedocument.drawingml.chart+xml",
+          "bytes": 16560,
+          "sha256": "27194e855905cf3925a6dc5d4eba8839a8266f40746257c52dda0bac516046b7"
+        },
+        "status": "decoded",
+        "chartTypes": [
+          "lineChart"
+        ],
+        "plotGroups": [
+          {
+            "type": "lineChart",
+            "path": [
+              5,
+              1,
+              1
+            ]
+          }
+        ],
+        "seriesCount": 5,
+        "series": [
+          {
+            "group": 0,
+            "labelProvenance": "cached",
+            "cachedValueCount": 10,
+            "issues": 0,
+            "sources": [
+              {
+                "role": "label",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "string",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "1"
+                    ],
+                    "pointCount": 1,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              },
+              {
+                "role": "category",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "numeric",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "10"
+                    ],
+                    "pointCount": 10,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              },
+              {
+                "role": "value",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "numeric",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "10"
+                    ],
+                    "pointCount": 10,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "group": 0,
+            "labelProvenance": "cached",
+            "cachedValueCount": 10,
+            "issues": 0,
+            "sources": [
+              {
+                "role": "label",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "string",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "1"
+                    ],
+                    "pointCount": 1,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              },
+              {
+                "role": "category",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "numeric",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "10"
+                    ],
+                    "pointCount": 10,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              },
+              {
+                "role": "value",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "numeric",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "10"
+                    ],
+                    "pointCount": 10,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "group": 0,
+            "labelProvenance": "literal",
+            "cachedValueCount": 10,
+            "issues": 0,
+            "sources": [
+              {
+                "role": "label",
+                "kind": "literal",
+                "formulaCount": 0,
+                "literalCount": 1,
+                "issues": 0,
+                "caches": []
+              },
+              {
+                "role": "category",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "numeric",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "10"
+                    ],
+                    "pointCount": 10,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              },
+              {
+                "role": "value",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "numeric",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "10"
+                    ],
+                    "pointCount": 10,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "group": 0,
+            "labelProvenance": "cached",
+            "cachedValueCount": 10,
+            "issues": 0,
+            "sources": [
+              {
+                "role": "label",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "string",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "1"
+                    ],
+                    "pointCount": 1,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              },
+              {
+                "role": "category",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "numeric",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "10"
+                    ],
+                    "pointCount": 10,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              },
+              {
+                "role": "value",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "numeric",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "10"
+                    ],
+                    "pointCount": 10,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "group": 0,
+            "labelProvenance": "cached",
+            "cachedValueCount": 10,
+            "issues": 0,
+            "sources": [
+              {
+                "role": "label",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "string",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "1"
+                    ],
+                    "pointCount": 1,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              },
+              {
+                "role": "category",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "numeric",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "10"
+                    ],
+                    "pointCount": 10,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              },
+              {
+                "role": "value",
+                "kind": "reference",
+                "formulaCount": 1,
+                "literalCount": 0,
+                "issues": 0,
+                "caches": [
+                  {
+                    "kind": "numeric",
+                    "cached": true,
+                    "freshness": "unknown",
+                    "declaredCounts": [
+                      "10"
+                    ],
+                    "pointCount": 10,
+                    "missingIndices": 0,
+                    "duplicateIndexCount": 0,
+                    "levelCount": 0,
+                    "levelPointCount": 0,
+                    "issues": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "externalData": [
+          {
+            "relationshipId": "rId4",
+            "autoUpdate": [
+              "0"
+            ],
+            "bindingStatus": "internal"
+          }
+        ],
+        "workbookParts": [
+          "/word/embeddings/Microsoft_Excel_Worksheet.xlsx"
+        ],
+        "resources": [
+          {
+            "role": "color",
+            "relationshipId": "rId2",
+            "status": "internal",
+            "target": {
+              "name": "/word/charts/colors3.xml",
+              "contentType": "application/vnd.ms-office.chartcolorstyle+xml",
+              "bytes": 878,
+              "sha256": "04fefba7d31853fa0aa636e5c8b8e308fc3126a9b48a1f4490947fff91d5a92f"
+            },
+            "issues": []
+          },
+          {
+            "role": "style",
+            "relationshipId": "rId1",
+            "status": "internal",
+            "target": {
+              "name": "/word/charts/style3.xml",
+              "contentType": "application/vnd.ms-office.chartstyle+xml",
+              "bytes": 9863,
+              "sha256": "77cdb029b8649d777a06ba38f8fa0ba9ca94393a15b79b4fd1160faf5941c722"
+            },
+            "issues": []
+          },
+          {
+            "role": "workbook",
+            "relationshipId": "rId4",
+            "status": "internal",
+            "target": {
+              "name": "/word/embeddings/Microsoft_Excel_Worksheet.xlsx",
+              "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "bytes": 120626,
+              "sha256": "0b35e6a74e465a3baa6368c70fdd530abe1518fc3a6d788d8ec1691da252ae4f"
+            },
+            "issues": []
+          }
+        ],
+        "graphParts": [
+          {
+            "name": "/word/charts/chart3.xml",
+            "contentType": "application/vnd.openxmlformats-officedocument.drawingml.chart+xml",
+            "bytes": 16560,
+            "sha256": "27194e855905cf3925a6dc5d4eba8839a8266f40746257c52dda0bac516046b7"
+          },
+          {
+            "name": "/word/charts/colors3.xml",
+            "contentType": "application/vnd.ms-office.chartcolorstyle+xml",
+            "bytes": 878,
+            "sha256": "04fefba7d31853fa0aa636e5c8b8e308fc3126a9b48a1f4490947fff91d5a92f"
+          },
+          {
+            "name": "/word/charts/style3.xml",
+            "contentType": "application/vnd.ms-office.chartstyle+xml",
+            "bytes": 9863,
+            "sha256": "77cdb029b8649d777a06ba38f8fa0ba9ca94393a15b79b4fd1160faf5941c722"
+          },
+          {
+            "name": "/word/embeddings/Microsoft_Excel_Worksheet.xlsx",
+            "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "bytes": 120626,
+            "sha256": "0b35e6a74e465a3baa6368c70fdd530abe1518fc3a6d788d8ec1691da252ae4f"
+          },
+          {
+            "name": "/word/theme/themeOverride3.xml",
+            "contentType": "application/vnd.openxmlformats-officedocument.themeOverride+xml",
+            "bytes": 6441,
+            "sha256": "658f219a6f51d076172b4e673077dd55a8a7d8d7db47f9cd9757bc1e452f5a38"
+          }
+        ],
+        "physicalReferences": [
+          {
+            "owner": "/word/charts/chart3.xml",
+            "id": "rId1",
+            "type": "http://schemas.microsoft.com/office/2011/relationships/chartStyle",
+            "target": "style3.xml",
+            "external": false
+          },
+          {
+            "owner": "/word/charts/chart3.xml",
+            "id": "rId2",
+            "type": "http://schemas.microsoft.com/office/2011/relationships/chartColorStyle",
+            "target": "colors3.xml",
+            "external": false
+          },
+          {
+            "owner": "/word/charts/chart3.xml",
+            "id": "rId3",
+            "type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/themeOverride",
+            "target": "../theme/themeOverride3.xml",
+            "external": false
+          },
+          {
+            "owner": "/word/charts/chart3.xml",
+            "id": "rId4",
+            "type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/package",
+            "target": "../embeddings/Microsoft_Excel_Worksheet.xlsx",
+            "external": false
+          },
+          {
+            "owner": "/word/document.xml",
+            "id": "rId114",
+            "type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart",
+            "target": "charts/chart3.xml",
+            "external": false
+          }
+        ],
+        "issueCodes": []
+      }
+    ],
+    "warnings": [
+      {
+        "code": "partial-chart-inventory",
+        "message": "Some chart semantics are opaque, malformed or ambiguous; cached data is stored metadata with unknown freshness."
+      }
+    ],
+    "independentGraphComparisons": [
+      {
+        "definition": "/word/charts/chart1.xml",
+        "graphPartsExact": true,
+        "physicalReferencesExact": true,
+        "closureCount": 4,
+        "referenceCount": 5
+      },
+      {
+        "definition": "/word/charts/chart2.xml",
+        "graphPartsExact": true,
+        "physicalReferencesExact": true,
+        "closureCount": 4,
+        "referenceCount": 5
+      },
+      {
+        "definition": "/word/charts/chart3.xml",
+        "graphPartsExact": true,
+        "physicalReferencesExact": true,
+        "closureCount": 5,
+        "referenceCount": 5
+      }
+    ]
+  },
+  "carrier": {
+    "qualification": "separate corpus-derived QA adaptation; not canonical unit fixture/full annex qualification",
+    "preparation": {
+      "qualification": "separate corpus-derived QA adaptation; not canonical unit fixture/full annex qualification",
+      "sourceSha256": "21b3adeb1df3b3c03e722c7c5efd01aab5a26aafe4659305ca8ed146515d3c8e",
+      "carrierBytes": 255101,
+      "carrierSha256": "9d9990e1b33f60241ac8427d9e1e0c7e4af4c477340b9a80c2d6e284eea7152d",
+      "copiedMembers": [
+        {
+          "name": "word/charts/_rels/chart1.xml.rels",
+          "bytes": 844,
+          "sha256": "a6b1cf4282471b892703e0b918c97156bdabb250fb7eea9d2ead92281c2d7d1b"
+        },
+        {
+          "name": "word/charts/_rels/chart2.xml.rels",
+          "bytes": 821,
+          "sha256": "b80fc8506ad639f1087f4bdd37f7b62aecd11e343ba7be8931dcfe1d74e5d148"
+        },
+        {
+          "name": "word/charts/_rels/chart3.xml.rels",
+          "bytes": 712,
+          "sha256": "cd5d152a47c268da1d6c356ddf5a33dccdc28b17d4b0a620efd6c75a59571306"
+        },
+        {
+          "name": "word/charts/chart1.xml",
+          "bytes": 29193,
+          "sha256": "92439d4cf54e85504925086c6cb6b41f1bbab42666c7d8a66f4e56b0169cae3a"
+        },
+        {
+          "name": "word/charts/chart2.xml",
+          "bytes": 28200,
+          "sha256": "e8abe4c6ef07567adcceda61af942e447b695ebaa00c20e09c86423e7706d133"
+        },
+        {
+          "name": "word/charts/chart3.xml",
+          "bytes": 16560,
+          "sha256": "27194e855905cf3925a6dc5d4eba8839a8266f40746257c52dda0bac516046b7"
+        },
+        {
+          "name": "word/charts/colors1.xml",
+          "bytes": 878,
+          "sha256": "04fefba7d31853fa0aa636e5c8b8e308fc3126a9b48a1f4490947fff91d5a92f"
+        },
+        {
+          "name": "word/charts/colors2.xml",
+          "bytes": 878,
+          "sha256": "04fefba7d31853fa0aa636e5c8b8e308fc3126a9b48a1f4490947fff91d5a92f"
+        },
+        {
+          "name": "word/charts/colors3.xml",
+          "bytes": 878,
+          "sha256": "04fefba7d31853fa0aa636e5c8b8e308fc3126a9b48a1f4490947fff91d5a92f"
+        },
+        {
+          "name": "word/charts/style1.xml",
+          "bytes": 9863,
+          "sha256": "77cdb029b8649d777a06ba38f8fa0ba9ca94393a15b79b4fd1160faf5941c722"
+        },
+        {
+          "name": "word/charts/style2.xml",
+          "bytes": 9863,
+          "sha256": "77cdb029b8649d777a06ba38f8fa0ba9ca94393a15b79b4fd1160faf5941c722"
+        },
+        {
+          "name": "word/charts/style3.xml",
+          "bytes": 9863,
+          "sha256": "77cdb029b8649d777a06ba38f8fa0ba9ca94393a15b79b4fd1160faf5941c722"
+        },
+        {
+          "name": "word/embeddings/Microsoft_Excel_Worksheet.xlsx",
+          "bytes": 120626,
+          "sha256": "0b35e6a74e465a3baa6368c70fdd530abe1518fc3a6d788d8ec1691da252ae4f"
+        },
+        {
+          "name": "word/theme/themeOverride1.xml",
+          "bytes": 6437,
+          "sha256": "d825e5a2a5f61b4fa4d5be11ca714b5d1fe294a34a3583d98d5d6acd5963a54b"
+        },
+        {
+          "name": "word/theme/themeOverride2.xml",
+          "bytes": 6437,
+          "sha256": "d825e5a2a5f61b4fa4d5be11ca714b5d1fe294a34a3583d98d5d6acd5963a54b"
+        },
+        {
+          "name": "word/theme/themeOverride3.xml",
+          "bytes": 6441,
+          "sha256": "658f219a6f51d076172b4e673077dd55a8a7d8d7db47f9cd9757bc1e452f5a38"
+        }
+      ],
+      "regeneratedMembers": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "word/document.xml",
+        "word/_rels/document.xml.rels"
+      ],
+      "sourceIncomingEdges": [
+        {
+          "owner": "word/document.xml",
+          "id": "rId114",
+          "type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart",
+          "targetRaw": "charts/chart3.xml",
+          "external": false,
+          "target": "word/charts/chart3.xml"
+        },
+        {
+          "owner": "word/document.xml",
+          "id": "rId43",
+          "type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart",
+          "targetRaw": "charts/chart1.xml",
+          "external": false,
+          "target": "word/charts/chart1.xml"
+        },
+        {
+          "owner": "word/document.xml",
+          "id": "rId44",
+          "type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart",
+          "targetRaw": "charts/chart2.xml",
+          "external": false,
+          "target": "word/charts/chart2.xml"
+        }
+      ],
+      "allCopiedPayloadsExact": true,
+      "allMemberOrder": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "word/document.xml",
+        "word/_rels/document.xml.rels",
+        "word/charts/_rels/chart3.xml.rels",
+        "word/charts/chart1.xml",
+        "word/charts/style1.xml",
+        "word/charts/colors1.xml",
+        "word/theme/themeOverride1.xml",
+        "word/charts/chart2.xml",
+        "word/charts/style2.xml",
+        "word/charts/colors2.xml",
+        "word/theme/themeOverride2.xml",
+        "word/charts/chart3.xml",
+        "word/charts/style3.xml",
+        "word/charts/colors3.xml",
+        "word/theme/themeOverride3.xml",
+        "word/embeddings/Microsoft_Excel_Worksheet.xlsx",
+        "word/charts/_rels/chart1.xml.rels",
+        "word/charts/_rels/chart2.xml.rels"
+      ],
+      "predeclaredProfile": "normal and dense from /tmp/docx74-qa-predeclared-profiles-v2.json"
+    },
+    "normalParity": {
+      "qualification": "ordinary SDK and actual normalShell matching ceilings; complete inputread data/warnings/location equality and deterministic store-output equality, plus genuine virtual .sh workflow",
+      "completeReadDataWarningsLocationsEqual": true,
+      "virtualShCompleteOutputEqual": true,
+      "threeCompleteEditOutputsEqual": true,
+      "editOutputs": [
+        {
+          "name": "carrier-body-edit.docx",
+          "bytes": 255192,
+          "sha256": "a99d0f76ba40c8902b3cd70eb7a1b24f4a528505624ef0a4432b39efcd6fa1f4",
+          "all19OtherMembersExact": true,
+          "memberOrderExact": true,
+          "allRelationshipGraphPayloadsExact": true
+        },
+        {
+          "name": "carrier-shell-body-edit.docx",
+          "bytes": 255192,
+          "sha256": "a99d0f76ba40c8902b3cd70eb7a1b24f4a528505624ef0a4432b39efcd6fa1f4",
+          "all19OtherMembersExact": true,
+          "memberOrderExact": true,
+          "allRelationshipGraphPayloadsExact": true
+        },
+        {
+          "name": "carrier-body-edit-normal.docx",
+          "bytes": 255192,
+          "sha256": "a99d0f76ba40c8902b3cd70eb7a1b24f4a528505624ef0a4432b39efcd6fa1f4",
+          "all19OtherMembersExact": true,
+          "memberOrderExact": true,
+          "allRelationshipGraphPayloadsExact": true
+        }
+      ]
+    },
+    "denseAndNormalProfilesSeparate": true,
+    "canonicalFixture": false,
+    "newRealDownload": false,
+    "fullAnnexQualification": false,
+    "independentPreservation": [
+      {
+        "output": "carrier-body-edit.docx",
+        "bytes": 255192,
+        "sha256": "a99d0f76ba40c8902b3cd70eb7a1b24f4a528505624ef0a4432b39efcd6fa1f4",
+        "memberOrderExact": true,
+        "all19OtherMemberPayloadsExact": true,
+        "copied16ClosurePayloadsExact": true,
+        "allRelationshipPayloadsAndGraphExact": true,
+        "documentOutsideTargetTextElementExact": true,
+        "targetTextUpdated": true
+      },
+      {
+        "output": "carrier-shell-body-edit.docx",
+        "bytes": 255192,
+        "sha256": "a99d0f76ba40c8902b3cd70eb7a1b24f4a528505624ef0a4432b39efcd6fa1f4",
+        "memberOrderExact": true,
+        "all19OtherMemberPayloadsExact": true,
+        "copied16ClosurePayloadsExact": true,
+        "allRelationshipPayloadsAndGraphExact": true,
+        "documentOutsideTargetTextElementExact": true,
+        "targetTextUpdated": true
+      }
+    ],
+    "editedDocumentPayloadEqualsAcrossSdkAndShell": true
+  },
+  "screenshots": [
+    {
+      "id": "help",
+      "path": "tmp/docx74-charts-qa/help-100-columns.png",
+      "transcript": "tmp/docx74-charts-qa/help-100-columns.transcript.txt",
+      "columns": 100,
+      "renderSupervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 1.2387145420070738,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-screenshot-help-100-columns-v1.stdout.txt",
+            "bytes": 154,
+            "sha256": "6e722108dcdf963fe2cf103430ccddb0cc2730a896cf4df833db14bc6d6b557a"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-screenshot-help-100-columns-v1.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "displayAdmission": {
+        "path": "tmp/docx74-charts-qa/help-100-columns.png",
+        "bytes": 238353,
+        "sha256": "9ccd6883b81d228e8aae30f5da3bd11b5e5167c06db84149641b6b9787f2dc59",
+        "width": 3525,
+        "height": 1274,
+        "startMonotonic": 131102.166513416
+      },
+      "displaySupervision": {
+        "completedWithin120Seconds": true,
+        "seconds": 8.168114874977618,
+        "independentExternalWatchdog": true,
+        "limitSeconds": 120,
+        "qualification": "external wall-clock observation of tool display; OS watchdog cannot forcibly terminate remote view_image tool"
+      },
+      "inspected": true,
+      "assessment": "All transcript content readable; no clipping or removed characters. Exact hard terminal line wrap can split words."
+    },
+    {
+      "id": "annex-read",
+      "path": "tmp/docx74-charts-qa/annex-read-100-columns.png",
+      "transcript": "tmp/docx74-charts-qa/annex-read-100-columns.transcript.txt",
+      "columns": 100,
+      "renderSupervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 1.1059962079743855,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-screenshot-annex-read-100-columns-v1.stdout.txt",
+            "bytes": 91,
+            "sha256": "f853efcdd0945b84319f89dcc42c22c76d8b06abbf179231a01f095941f34c9e"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-screenshot-annex-read-100-columns-v1.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "displayAdmission": {
+        "path": "tmp/docx74-charts-qa/annex-read-100-columns.png",
+        "bytes": 38752,
+        "sha256": "af48730b8be82d9a8a6450ad5ff8926222ef2972da09813cc6ee2c89ec27b8ec",
+        "width": 1742,
+        "height": 535,
+        "startMonotonic": 131102.222132291
+      },
+      "displaySupervision": {
+        "completedWithin120Seconds": true,
+        "seconds": 8.165305625007022,
+        "independentExternalWatchdog": true,
+        "limitSeconds": 120,
+        "qualification": "external wall-clock observation of tool display; OS watchdog cannot forcibly terminate remote view_image tool"
+      },
+      "inspected": true,
+      "assessment": "All transcript content readable; no clipping or removed characters. Exact hard terminal line wrap can split words."
+    },
+    {
+      "id": "selector-error",
+      "path": "tmp/docx74-charts-qa/selector-error-100-columns.png",
+      "transcript": "tmp/docx74-charts-qa/selector-error-100-columns.transcript.txt",
+      "columns": 100,
+      "renderSupervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 1.0316285410081036,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-screenshot-selector-error-100-columns-v1.stdout.txt",
+            "bytes": 92,
+            "sha256": "ea2c1bc6f7a87f6fc0bf04ea0e1a7aa8063231777be806d53ca7b55f847ab424"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-screenshot-selector-error-100-columns-v1.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "displayAdmission": {
+        "path": "tmp/docx74-charts-qa/selector-error-100-columns.png",
+        "bytes": 112330,
+        "sha256": "0c98959f68a839e13710d1e04047c79c60fc7f90670153f4ca895f2caf409bf9",
+        "width": 3525,
+        "height": 670,
+        "startMonotonic": 131102.255554875
+      },
+      "displaySupervision": {
+        "completedWithin120Seconds": true,
+        "seconds": 8.09337270798278,
+        "independentExternalWatchdog": true,
+        "limitSeconds": 120,
+        "qualification": "external wall-clock observation of tool display; OS watchdog cannot forcibly terminate remote view_image tool"
+      },
+      "inspected": true,
+      "assessment": "All transcript content readable; no clipping or removed characters. Exact hard terminal line wrap can split words."
+    },
+    {
+      "id": "carrier-read",
+      "path": "tmp/docx74-charts-qa/carrier-read-100-columns.png",
+      "transcript": "tmp/docx74-charts-qa/carrier-read-100-columns.transcript.txt",
+      "columns": 100,
+      "renderSupervision": {
+        "commandKind": "node",
+        "status": 0,
+        "reason": null,
+        "seconds": 1.011317083000904,
+        "externalDeadlineSeconds": 120,
+        "combinedOutputCap": 67108864,
+        "outputs": {
+          "stdout": {
+            "path": "/tmp/docx74-qa-screenshot-carrier-read-100-columns-v1.stdout.txt",
+            "bytes": 92,
+            "sha256": "fc7d4e2be17cb5131eb7a01899d92969e74833af46b008cedcce3ffe6d3a86be"
+          },
+          "stderr": {
+            "path": "/tmp/docx74-qa-screenshot-carrier-read-100-columns-v1.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "displayAdmission": {
+        "path": "tmp/docx74-charts-qa/carrier-read-100-columns.png",
+        "bytes": 133068,
+        "sha256": "52f394782400c0fda882bbf292ce07643f1ea109e198930db822c6d9ae4c9753",
+        "width": 3525,
+        "height": 871,
+        "startMonotonic": 131102.244789083
+      },
+      "displaySupervision": {
+        "completedWithin120Seconds": true,
+        "seconds": 8.099354708014289,
+        "independentExternalWatchdog": true,
+        "limitSeconds": 120,
+        "qualification": "external wall-clock observation of tool display; OS watchdog cannot forcibly terminate remote view_image tool"
+      },
+      "inspected": true,
+      "assessment": "All transcript content readable; no clipping or removed characters. Exact hard terminal line wrap can split words."
+    }
+  ],
+  "firstArtifactFailure": {
+    "phase": "before display PNG admission",
+    "width": 14361,
+    "height": 1006,
+    "bytes": 294466,
+    "widthCap": 8192,
+    "heightCap": 16384,
+    "status": "dimension ceiling refused; not displayed, no raised cap or retry"
+  },
+  "visualizationQualification": "Original four unwrapped terminal PNGs retained. Separate100column views hard-wrap unchanged actual transcripts; no product retry or capincrease. Remote view_image cannot be force-killed by the external OS watchdog; observed completion is recorded.",
+  "unresolved": {
+    "productDefectsValidated": [],
+    "unqualified": [
+      "Full-annex ordinary read under default ceilings",
+      "Full-annex body edit and round-trip under dense profile",
+      "Full-annex same-profile SDK/Shell parity",
+      "Chart rendering/formula evaluation/workbook consistency/refresh"
+    ],
+    "limitsAreNotRssGuarantees": true
+  },
+  "campaign": {
+    "manifest": "/tmp/docx74-qa-campaign-manifest-v1.json",
+    "files": [
+      {
+        "name": "source-annex.docx",
+        "role": "authenticated immutable corpus input",
+        "path": "tmp/docx74-charts-qa/source-annex.docx",
+        "bytes": 7944279,
+        "sha256": "21b3adeb1df3b3c03e722c7c5efd01aab5a26aafe4659305ca8ed146515d3c8e",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369514324,
+          "mode": 33024,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "annex-sdk-dense.json",
+        "role": "raw private full SDK snapshot",
+        "path": "tmp/docx74-charts-qa/annex-sdk-dense.json",
+        "bytes": 100230,
+        "sha256": "11ec35e70d410acc4a0956df886bba049d24498f0ad693f82399c3a3e1be6a88",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369516842,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "annex-body-find.json",
+        "role": "private original body find selector",
+        "path": "tmp/docx74-charts-qa/annex-body-find.json",
+        "bytes": 134,
+        "sha256": "4292191f2f3dbe3fd73bcfddfe896d35f7e18dc4ded2cee9f788c0dba1b27bcb",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369520127,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "carrier.docx",
+        "role": "separate QA-only authored carrier with exact corpus closure",
+        "path": "tmp/docx74-charts-qa/carrier.docx",
+        "bytes": 255101,
+        "sha256": "9d9990e1b33f60241ac8427d9e1e0c7e4af4c477340b9a80c2d6e284eea7152d",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369523662,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "carrier-sdk.json",
+        "role": "private carrier SDK snapshot",
+        "path": "tmp/docx74-charts-qa/carrier-sdk.json",
+        "bytes": 100230,
+        "sha256": "82f82cbc1569913e4978bfc560deba55cd81cb4912d1a13e9c42dbb7609b2c0f",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369524111,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "carrier-shell.json",
+        "role": "private actual normal Shell snapshot",
+        "path": "tmp/docx74-charts-qa/carrier-shell.json",
+        "bytes": 101917,
+        "sha256": "387649a1b1a4d96079995420d032f6fe96770d464c141e1790a2ab5a4423203f",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369525106,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "carrier-body-edit.docx",
+        "role": "unrelated public SDK carrier edit",
+        "path": "tmp/docx74-charts-qa/carrier-body-edit.docx",
+        "bytes": 255192,
+        "sha256": "a99d0f76ba40c8902b3cd70eb7a1b24f4a528505624ef0a4432b39efcd6fa1f4",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369524869,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "carrier-shell-body-edit.docx",
+        "role": "actual normal Shell carrier edit",
+        "path": "tmp/docx74-charts-qa/carrier-shell-body-edit.docx",
+        "bytes": 255192,
+        "sha256": "a99d0f76ba40c8902b3cd70eb7a1b24f4a528505624ef0a4432b39efcd6fa1f4",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369525736,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "shell-help.transcript.txt",
+        "role": "actual normal Shell help",
+        "path": "tmp/docx74-charts-qa/shell-help.transcript.txt",
+        "bytes": 656,
+        "sha256": "2fa31e0b2c398aa40841617e20d6a1e3b79649405d272e8e4dd3d3a4190a6b0e",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369525741,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "shell-annex-read.transcript.txt",
+        "role": "actual normal Shell read-or-limit",
+        "path": "tmp/docx74-charts-qa/shell-annex-read.transcript.txt",
+        "bytes": 87,
+        "sha256": "a481521e94e49317bbf5f618c2dd49a689cab0bef928bad2e4f6f48ee90b4ece",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369515712,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "shell-selector-error.transcript.txt",
+        "role": "actual normal Shell inapplicable selector",
+        "path": "tmp/docx74-charts-qa/shell-selector-error.transcript.txt",
+        "bytes": 295,
+        "sha256": "d23cf98598bc8c30831ba36a82100cab11341be5eb5d1b9c34b56224a1e767b0",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369525762,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "shell-carrier-read.transcript.txt",
+        "role": "actual normal Shell adapted inventory",
+        "path": "tmp/docx74-charts-qa/shell-carrier-read.transcript.txt",
+        "bytes": 322,
+        "sha256": "f56c2d09627b05da1183d025c3646a4cd925514e9b31111666964323bb3e42f8",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369525774,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "help.png",
+        "role": "actual terminal help PNG",
+        "path": "tmp/docx74-charts-qa/help.png",
+        "bytes": 294466,
+        "sha256": "b7f7f4aa85f084727b395f5ea0ab82f6a81b1ed76662aa60a0be4be29ee7c382",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369525745,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "annex-read.png",
+        "role": "actual terminal annex limit PNG",
+        "path": "tmp/docx74-charts-qa/annex-read.png",
+        "bytes": 38752,
+        "sha256": "af48730b8be82d9a8a6450ad5ff8926222ef2972da09813cc6ee2c89ec27b8ec",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369525863,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "selector-error.png",
+        "role": "actual terminal selector error PNG",
+        "path": "tmp/docx74-charts-qa/selector-error.png",
+        "bytes": 118379,
+        "sha256": "5ea79c9b2f6f595c048a4d91dbef6cf53221531ff5dfe34c6a592aa921c2fc6b",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369525763,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "carrier-read.png",
+        "role": "actual terminal carrier inventory PNG",
+        "path": "tmp/docx74-charts-qa/carrier-read.png",
+        "bytes": 139835,
+        "sha256": "d7837cb3c1fc0fad4fdec9e6698dfce8cc26c8e58678bc5e51fb7b5be597784a",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369525775,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "carrier-sdk-normal.json",
+        "role": "private ordinary SDK complete read snapshot",
+        "path": "tmp/docx74-charts-qa/carrier-sdk-normal.json",
+        "bytes": 100230,
+        "sha256": "82f82cbc1569913e4978bfc560deba55cd81cb4912d1a13e9c42dbb7609b2c0f",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369529177,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "carrier-body-edit-normal.docx",
+        "role": "ordinary SDK unrelated carrier edit",
+        "path": "tmp/docx74-charts-qa/carrier-body-edit-normal.docx",
+        "bytes": 255192,
+        "sha256": "a99d0f76ba40c8902b3cd70eb7a1b24f4a528505624ef0a4432b39efcd6fa1f4",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369529309,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "carrier-shell-script.json",
+        "role": "actual normalShell chart read via virtual .sh input",
+        "path": "tmp/docx74-charts-qa/carrier-shell-script.json",
+        "bytes": 101917,
+        "sha256": "387649a1b1a4d96079995420d032f6fe96770d464c141e1790a2ab5a4423203f",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369529480,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "help-100-columns.transcript.txt",
+        "role": "separate fixed100column visualization of exact actual help text; linewrap only",
+        "path": "tmp/docx74-charts-qa/help-100-columns.transcript.txt",
+        "bytes": 660,
+        "sha256": "3b2af03cfa38a4c6d420f0b124a1d2cee6efb431f44eab7a9354bc4271a291d3",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369536194,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "help-100-columns.png",
+        "role": "separate bounded fixed100column help visualization; originalwidePNGretained",
+        "path": "tmp/docx74-charts-qa/help-100-columns.png",
+        "bytes": 238353,
+        "sha256": "9ccd6883b81d228e8aae30f5da3bd11b5e5167c06db84149641b6b9787f2dc59",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369536195,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "annex-read-100-columns.transcript.txt",
+        "role": "separate100column terminal visualization of unchanged actual transcript",
+        "path": "tmp/docx74-charts-qa/annex-read-100-columns.transcript.txt",
+        "bytes": 87,
+        "sha256": "a481521e94e49317bbf5f618c2dd49a689cab0bef928bad2e4f6f48ee90b4ece",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369537789,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "annex-read-100-columns.png",
+        "role": "separate bounded100column terminal PNG; originalretained",
+        "path": "tmp/docx74-charts-qa/annex-read-100-columns.png",
+        "bytes": 38752,
+        "sha256": "af48730b8be82d9a8a6450ad5ff8926222ef2972da09813cc6ee2c89ec27b8ec",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369537792,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "selector-error-100-columns.transcript.txt",
+        "role": "separate100column terminal visualization of unchanged actual transcript",
+        "path": "tmp/docx74-charts-qa/selector-error-100-columns.transcript.txt",
+        "bytes": 296,
+        "sha256": "2fa18d1f8779a0e9aadb7fa1bfa77750b67ced399c1353fb67dbc6ef51a90e8d",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369537831,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "selector-error-100-columns.png",
+        "role": "separate bounded100column terminal PNG; originalretained",
+        "path": "tmp/docx74-charts-qa/selector-error-100-columns.png",
+        "bytes": 112330,
+        "sha256": "0c98959f68a839e13710d1e04047c79c60fc7f90670153f4ca895f2caf409bf9",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369537832,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "carrier-read-100-columns.transcript.txt",
+        "role": "separate100column terminal visualization of unchanged actual transcript",
+        "path": "tmp/docx74-charts-qa/carrier-read-100-columns.transcript.txt",
+        "bytes": 323,
+        "sha256": "0b5698fa2c0324a52751808025037333233918036f71dedea1ffb36dd0800584",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369537873,
+          "mode": 33188,
+          "nlink": 1
+        }
+      },
+      {
+        "name": "carrier-read-100-columns.png",
+        "role": "separate bounded100column terminal PNG; originalretained",
+        "path": "tmp/docx74-charts-qa/carrier-read-100-columns.png",
+        "bytes": 133068,
+        "sha256": "52f394782400c0fda882bbf292ce07643f1ea109e198930db822c6d9ae4c9753",
+        "identity": {
+          "dev": 16777234,
+          "ino": 369537874,
+          "mode": 33188,
+          "nlink": 1
+        }
+      }
+    ],
+    "totalLogicalBytes": 10586275,
+    "declaredButNotCreated": [
+      {
+        "name": "annex-body-edit.docx",
+        "role": "admitted unrelated SDK edit output if successful"
+      }
+    ],
+    "cleanupStatus": "exact owned campaign cleanup complete",
+    "cleanup": {
+      "receipt": {
+        "path": "/tmp/docx74-qa-owned-cleanup-v1.json",
+        "bytes": 5785,
+        "sha256": "71a07a5336c815bed6791ed8976ff92b4a3df523e2e90a9a1c351a0c0a99c81f"
+      },
+      "deletedFiles": 27,
+      "deletedLogicalBytes": 10586275,
+      "directoryRetainedEmpty": true,
+      "originalSourceNotOwnedOrMutated": true
+    },
+    "metadataRetainedAfterDeletion": true
+  },
+  "researchOnly": true,
+  "sourceEdits": 0,
+  "review": {
+    "approved": true,
+    "proof": {
+      "path": "/tmp/docx74-reviewer-qa-final-approval-v1.json",
+      "bytes": 32179,
+      "sha256": "eb5023cce16abb04dd9c96ce8f4ec28bd2d8ca75cd90db2a803497e0238b0a10"
+    },
+    "rootDisplayProofs": [
+      {
+        "path": "/tmp/docx74-root-display-admission-failure-v1.json",
+        "bytes": 465,
+        "sha256": "8ecb0cc5eb8b74f86141de2cc4dde3e3099846a4ced7e4041501084a4100eac4"
+      },
+      {
+        "path": "/tmp/docx74-root-display-batch-v2.admission.json",
+        "bytes": 1791,
+        "sha256": "022345533fd0c6ee1c5298a2231a8c835df7030f1aa41887ce0c92ba1ed14851"
+      },
+      {
+        "path": "/tmp/docx74-root-display-help-v2.done.json",
+        "bytes": 216,
+        "sha256": "eb64efa339dcfcb41722dd92b18903d65d99c2692ae7fe70adf7c764e84a8d4a"
+      },
+      {
+        "path": "/tmp/docx74-root-display-help-v2.supervision.json",
+        "bytes": 673,
+        "sha256": "0301ea26dc82d3d2804d7384d39dc11658b6c29b19378921bc35258a81997660"
+      },
+      {
+        "path": "/tmp/docx74-root-display-annex-read-v2.done.json",
+        "bytes": 221,
+        "sha256": "45f6bff47f12fbdb2e31c24a403960192c81ce641e5cab5c56aab681ad481844"
+      },
+      {
+        "path": "/tmp/docx74-root-display-annex-read-v2.supervision.json",
+        "bytes": 689,
+        "sha256": "5dfb6a03a50776882a4af7dbebafb12a52ddd89c758c243a056c85bbfec4837b"
+      },
+      {
+        "path": "/tmp/docx74-root-display-selector-error-v2.done.json",
+        "bytes": 225,
+        "sha256": "68a1d8f5e115f2d15ccbe9481a58532d07fdec1dc4315245db54e945885aa5e2"
+      },
+      {
+        "path": "/tmp/docx74-root-display-selector-error-v2.supervision.json",
+        "bytes": 702,
+        "sha256": "2a9b030a0cdd34a37d2f6be0ea9e50b9105ab7a86553fb003638f7c200be8e38"
+      },
+      {
+        "path": "/tmp/docx74-root-display-carrier-read-v2.done.json",
+        "bytes": 223,
+        "sha256": "e7d1df9ae1cc6a585ca5738a29e41a5f3dd944df2d18645b6e24f9406e6c5000"
+      },
+      {
+        "path": "/tmp/docx74-root-display-carrier-read-v2.supervision.json",
+        "bytes": 696,
+        "sha256": "31e8e51de454020e93b61caa2b224635c989794c6f1b5e59c418eb5a658a5aad"
+      }
+    ],
+    "approvalBoundPriorQa": {
+      "bytes": 99553,
+      "sha256": "fb8f0b6f5129b3a69f928d15a4dc86b27ac9973786b280b16b6106720ec799ad"
+    },
+    "scope": "Recorded QA execution, provenance/outcome qualifications, screenshots and preservation; no full-annex edit/parity qualification."
+  }
+}

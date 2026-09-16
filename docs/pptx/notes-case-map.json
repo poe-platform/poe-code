@@ -1,0 +1,850 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "selection": "Every unit variant or expanded BDD row mentioning notes in the pinned inventory, 35 unit rows and 11 BDD rows. Shared base shape/text behavior remains in the complete inventory.",
+  "notice": "Research/provenance only. Original assets and wording; existing standalone MIT notices retained.",
+  "rows": [
+    {
+      "inventoryPointer": "unit_cases/1456",
+      "source": {
+        "node_id": "tests/oxml/test_slide.py::DescribeCT_NotesMaster::it_can_create_a_default_notesMaster_element",
+        "source_file": "tests/oxml/test_slide.py",
+        "line": 13,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation/reuse, actual notes relationship lookup, one shared master for several notes slides, and duplicate/import master graph assertions cover bounded association. Noncreating reads remain distinct from planned creating notes_master accessors; multiple competing import masters reject unchanged."
+    },
+    {
+      "inventoryPointer": "unit_cases/1457",
+      "source": {
+        "node_id": "tests/oxml/test_slide.py::DescribeCT_NotesSlide::it_can_create_a_new_notes_element",
+        "source_file": "tests/oxml/test_slide.py",
+        "line": 21,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original absent creation/existing reuse, three eligible placeholders, reciprocal notes-slide relationships, remove/duplicate/import and CLI script cases cover the package invariant. Default XML/assets are original; live creating notes_slide getter and public part wrappers remain gaps."
+    },
+    {
+      "inventoryPointer": "unit_cases/1621",
+      "source": {
+        "node_id": "tests/parts/test_presentation.py::DescribePresentationPart::it_provides_access_to_an_existing_notes_master_part",
+        "source_file": "tests/parts/test_presentation.py",
+        "line": 43,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation/reuse, actual notes relationship lookup, one shared master for several notes slides, and duplicate/import master graph assertions cover bounded association. Noncreating reads remain distinct from planned creating notes_master accessors; multiple competing import masters reject unchanged."
+    },
+    {
+      "inventoryPointer": "unit_cases/1622",
+      "source": {
+        "node_id": "tests/parts/test_presentation.py::DescribePresentationPart::but_it_adds_a_notes_master_part_when_needed",
+        "source_file": "tests/parts/test_presentation.py",
+        "line": 58,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation/reuse, actual notes relationship lookup, one shared master for several notes slides, and duplicate/import master graph assertions cover bounded association. Noncreating reads remain distinct from planned creating notes_master accessors; multiple competing import masters reject unchanged."
+    },
+    {
+      "inventoryPointer": "unit_cases/1623",
+      "source": {
+        "node_id": "tests/parts/test_presentation.py::DescribePresentationPart::it_provides_access_to_its_notes_master",
+        "source_file": "tests/parts/test_presentation.py",
+        "line": 76,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation/reuse, actual notes relationship lookup, one shared master for several notes slides, and duplicate/import master graph assertions cover bounded association. Noncreating reads remain distinct from planned creating notes_master accessors; multiple competing import masters reject unchanged."
+    },
+    {
+      "inventoryPointer": "unit_cases/1637",
+      "source": {
+        "node_id": "tests/parts/test_slide.py::DescribeNotesMasterPart::it_can_create_a_notes_master_part",
+        "source_file": "tests/parts/test_slide.py",
+        "line": 87,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation/reuse, actual notes relationship lookup, one shared master for several notes slides, and duplicate/import master graph assertions cover bounded association. Noncreating reads remain distinct from planned creating notes_master accessors; multiple competing import masters reject unchanged."
+    },
+    {
+      "inventoryPointer": "unit_cases/1638",
+      "source": {
+        "node_id": "tests/parts/test_slide.py::DescribeNotesMasterPart::it_provides_access_to_its_notes_master",
+        "source_file": "tests/parts/test_slide.py",
+        "line": 109,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation/reuse, actual notes relationship lookup, one shared master for several notes slides, and duplicate/import master graph assertions cover bounded association. Noncreating reads remain distinct from planned creating notes_master accessors; multiple competing import masters reject unchanged."
+    },
+    {
+      "inventoryPointer": "unit_cases/1639",
+      "source": {
+        "node_id": "tests/parts/test_slide.py::DescribeNotesMasterPart::it_creates_a_new_notes_master_part_to_help",
+        "source_file": "tests/parts/test_slide.py",
+        "line": 122,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation/reuse, actual notes relationship lookup, one shared master for several notes slides, and duplicate/import master graph assertions cover bounded association. Noncreating reads remain distinct from planned creating notes_master accessors; multiple competing import masters reject unchanged."
+    },
+    {
+      "inventoryPointer": "unit_cases/1640",
+      "source": {
+        "node_id": "tests/parts/test_slide.py::DescribeNotesMasterPart::it_creates_a_new_theme_part_to_help",
+        "source_file": "tests/parts/test_slide.py",
+        "line": 146,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation graph validation and independent package assertions cover registered original notes master/theme association. Existing original theme is reused explicitly rather than copying a reference template; the public NotesMasterPart creator and live part model remain gaps."
+    },
+    {
+      "inventoryPointer": "unit_cases/1641",
+      "source": {
+        "node_id": "tests/parts/test_slide.py::DescribeNotesSlidePart::it_can_create_a_notes_slide_part",
+        "source_file": "tests/parts/test_slide.py",
+        "line": 185,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original absent creation/existing reuse, three eligible placeholders, reciprocal notes-slide relationships, remove/duplicate/import and CLI script cases cover the package invariant. Default XML/assets are original; live creating notes_slide getter and public part wrappers remain gaps."
+    },
+    {
+      "inventoryPointer": "unit_cases/1642",
+      "source": {
+        "node_id": "tests/parts/test_slide.py::DescribeNotesSlidePart::it_provides_access_to_the_notes_master",
+        "source_file": "tests/parts/test_slide.py",
+        "line": 214,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation/reuse, actual notes relationship lookup, one shared master for several notes slides, and duplicate/import master graph assertions cover bounded association. Noncreating reads remain distinct from planned creating notes_master accessors; multiple competing import masters reject unchanged."
+    },
+    {
+      "inventoryPointer": "unit_cases/1643",
+      "source": {
+        "node_id": "tests/parts/test_slide.py::DescribeNotesSlidePart::it_provides_access_to_its_notes_slide",
+        "source_file": "tests/parts/test_slide.py",
+        "line": 226,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original absent creation/existing reuse, three eligible placeholders, reciprocal notes-slide relationships, remove/duplicate/import and CLI script cases cover the package invariant. Default XML/assets are original; live creating notes_slide getter and public part wrappers remain gaps."
+    },
+    {
+      "inventoryPointer": "unit_cases/1644",
+      "source": {
+        "node_id": "tests/parts/test_slide.py::DescribeNotesSlidePart::it_adds_a_notes_slide_part_to_help",
+        "source_file": "tests/parts/test_slide.py",
+        "line": 236,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original absent creation/existing reuse, three eligible placeholders, reciprocal notes-slide relationships, remove/duplicate/import and CLI script cases cover the package invariant. Default XML/assets are original; live creating notes_slide getter and public part wrappers remain gaps."
+    },
+    {
+      "inventoryPointer": "unit_cases/1646",
+      "source": {
+        "node_id": "tests/parts/test_slide.py::DescribeSlidePart::it_knows_whether_it_has_a_notes_slide[True]",
+        "source_file": "tests/parts/test_slide.py",
+        "line": 300,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original absent/present notes reads independently assert no part creation, [] versus one association and unchanged input bytes; CLI list/get and SDK agree. Direct has_notes_slide live property remains a gap."
+    },
+    {
+      "inventoryPointer": "unit_cases/1647",
+      "source": {
+        "node_id": "tests/parts/test_slide.py::DescribeSlidePart::it_knows_whether_it_has_a_notes_slide[False]",
+        "source_file": "tests/parts/test_slide.py",
+        "line": 300,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original absent/present notes reads independently assert no part creation, [] versus one association and unchanged input bytes; CLI list/get and SDK agree. Direct has_notes_slide live property remains a gap."
+    },
+    {
+      "inventoryPointer": "unit_cases/1658",
+      "source": {
+        "node_id": "tests/parts/test_slide.py::DescribeSlidePart::it_gets_its_notes_slide_to_help[True]",
+        "source_file": "tests/parts/test_slide.py",
+        "line": 397,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original absent creation/existing reuse, three eligible placeholders, reciprocal notes-slide relationships, remove/duplicate/import and CLI script cases cover the package invariant. Default XML/assets are original; live creating notes_slide getter and public part wrappers remain gaps."
+    },
+    {
+      "inventoryPointer": "unit_cases/1659",
+      "source": {
+        "node_id": "tests/parts/test_slide.py::DescribeSlidePart::it_gets_its_notes_slide_to_help[False]",
+        "source_file": "tests/parts/test_slide.py",
+        "line": 397,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original absent creation/existing reuse, three eligible placeholders, reciprocal notes-slide relationships, remove/duplicate/import and CLI script cases cover the package invariant. Default XML/assets are original; live creating notes_slide getter and public part wrappers remain gaps."
+    },
+    {
+      "inventoryPointer": "unit_cases/1660",
+      "source": {
+        "node_id": "tests/parts/test_slide.py::DescribeSlidePart::it_adds_a_notes_slide_part_to_help",
+        "source_file": "tests/parts/test_slide.py",
+        "line": 406,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original absent creation/existing reuse, three eligible placeholders, reciprocal notes-slide relationships, remove/duplicate/import and CLI script cases cover the package invariant. Default XML/assets are original; live creating notes_slide getter and public part wrappers remain gaps."
+    },
+    {
+      "inventoryPointer": "unit_cases/1970",
+      "source": {
+        "node_id": "tests/shapes/test_placeholder.py::DescribeNotesSlidePlaceholder::it_finds_its_base_placeholder_to_help",
+        "source_file": "tests/shapes/test_placeholder.py",
+        "line": 391,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "planned-public-behavior-gap",
+      "originalEvidence": [],
+      "mapping": "Notes placeholder direct/inherited geometry must resolve by placeholder type against the associated master with per-axis local overrides. Explicit text scopes do not prove this public geometry behavior; original live-model acceptance remains required."
+    },
+    {
+      "inventoryPointer": "unit_cases/2036",
+      "source": {
+        "node_id": "tests/shapes/test_shapetree.py::DescribeNotesSlidePlaceholders::it_brokers_access_to_its_shape_factory",
+        "source_file": "tests/shapes/test_shapetree.py",
+        "line": 900,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation independently asserts three distinct placeholder roles; explicit note shape edits preserve free shapes/other placeholders. Returned live shape/placeholder collections, type dispatch and iteration remain missing public-model acceptance, not dismissed as private merely because factory names are private."
+    },
+    {
+      "inventoryPointer": "unit_cases/2037",
+      "source": {
+        "node_id": "tests/shapes/test_shapetree.py::DescribeNotesSlideShapes::it_knows_notes_slide_placeholder_basenames[basename_fixture0]",
+        "source_file": "tests/shapes/test_shapetree.py",
+        "line": 931,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "planned-public-behavior-gap",
+      "originalEvidence": [],
+      "mapping": "BODY and HEADER naming parameter variants are individually retained. Original default parts have neutral names, but the documented placeholder basename helper is not exposed or claimed covered."
+    },
+    {
+      "inventoryPointer": "unit_cases/2038",
+      "source": {
+        "node_id": "tests/shapes/test_shapetree.py::DescribeNotesSlideShapes::it_knows_notes_slide_placeholder_basenames[basename_fixture1]",
+        "source_file": "tests/shapes/test_shapetree.py",
+        "line": 931,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "planned-public-behavior-gap",
+      "originalEvidence": [],
+      "mapping": "BODY and HEADER naming parameter variants are individually retained. Original default parts have neutral names, but the documented placeholder basename helper is not exposed or claimed covered."
+    },
+    {
+      "inventoryPointer": "unit_cases/2039",
+      "source": {
+        "node_id": "tests/shapes/test_shapetree.py::DescribeNotesSlideShapes::it_brokers_access_to_its_shape_factory",
+        "source_file": "tests/shapes/test_shapetree.py",
+        "line": 935,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation independently asserts three distinct placeholder roles; explicit note shape edits preserve free shapes/other placeholders. Returned live shape/placeholder collections, type dispatch and iteration remain missing public-model acceptance, not dismissed as private merely because factory names are private."
+    },
+    {
+      "inventoryPointer": "unit_cases/2128",
+      "source": {
+        "node_id": "tests/shapes/test_shapetree.py::Describe_NotesSlideShapeFactory::it_constructs_the_right_shape_for_an_element[factory_fixture0]",
+        "source_file": "tests/shapes/test_shapetree.py",
+        "line": 2335,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation independently asserts three distinct placeholder roles; explicit note shape edits preserve free shapes/other placeholders. Returned live shape/placeholder collections, type dispatch and iteration remain missing public-model acceptance, not dismissed as private merely because factory names are private."
+    },
+    {
+      "inventoryPointer": "unit_cases/2129",
+      "source": {
+        "node_id": "tests/shapes/test_shapetree.py::Describe_NotesSlideShapeFactory::it_constructs_the_right_shape_for_an_element[factory_fixture1]",
+        "source_file": "tests/shapes/test_shapetree.py",
+        "line": 2335,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation independently asserts three distinct placeholder roles; explicit note shape edits preserve free shapes/other placeholders. Returned live shape/placeholder collections, type dispatch and iteration remain missing public-model acceptance, not dismissed as private merely because factory names are private."
+    },
+    {
+      "inventoryPointer": "unit_cases/2224",
+      "source": {
+        "node_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_notes_master",
+        "source_file": "tests/test_presentation.py",
+        "line": 44,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation/reuse, actual notes relationship lookup, one shared master for several notes slides, and duplicate/import master graph assertions cover bounded association. Noncreating reads remain distinct from planned creating notes_master accessors; multiple competing import masters reject unchanged."
+    },
+    {
+      "inventoryPointer": "unit_cases/2249",
+      "source": {
+        "node_id": "tests/test_slide.py::DescribeNotesSlide::it_can_clone_the_notes_master_placeholders",
+        "source_file": "tests/test_slide.py",
+        "line": 170,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original custom-master test clones only image/body/number placeholders, excludes date/footer, clears master text and preserves original master bytes. This replaces private forwarding/mock assertions with observable serialized behavior; live clone method remains a gap."
+    },
+    {
+      "inventoryPointer": "unit_cases/2250",
+      "source": {
+        "node_id": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_shapes",
+        "source_file": "tests/test_slide.py",
+        "line": 182,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation independently asserts three distinct placeholder roles; explicit note shape edits preserve free shapes/other placeholders. Returned live shape/placeholder collections, type dispatch and iteration remain missing public-model acceptance, not dismissed as private merely because factory names are private."
+    },
+    {
+      "inventoryPointer": "unit_cases/2251",
+      "source": {
+        "node_id": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_placeholders",
+        "source_file": "tests/test_slide.py",
+        "line": 188,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation independently asserts three distinct placeholder roles; explicit note shape edits preserve free shapes/other placeholders. Returned live shape/placeholder collections, type dispatch and iteration remain missing public-model acceptance, not dismissed as private merely because factory names are private."
+    },
+    {
+      "inventoryPointer": "unit_cases/2252",
+      "source": {
+        "node_id": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_notes_placeholder[notes_ph_fixture0]",
+        "source_file": "tests/test_slide.py",
+        "line": 199,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original empty-body versus absent-body cases assert empty string versus null; each of slide image, number, date, header and footer is excluded from speaker selection. Explicit speaker set and scoped text edits cover bounded text mutation. Live notes_placeholder/notes_text_frame objects remain unimplemented."
+    },
+    {
+      "inventoryPointer": "unit_cases/2253",
+      "source": {
+        "node_id": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_notes_placeholder[notes_ph_fixture1]",
+        "source_file": "tests/test_slide.py",
+        "line": 199,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original empty-body versus absent-body cases assert empty string versus null; each of slide image, number, date, header and footer is excluded from speaker selection. Explicit speaker set and scoped text edits cover bounded text mutation. Live notes_placeholder/notes_text_frame objects remain unimplemented."
+    },
+    {
+      "inventoryPointer": "unit_cases/2254",
+      "source": {
+        "node_id": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_notes_text_frame[True]",
+        "source_file": "tests/test_slide.py",
+        "line": 204,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original empty-body versus absent-body cases assert empty string versus null; each of slide image, number, date, header and footer is excluded from speaker selection. Explicit speaker set and scoped text edits cover bounded text mutation. Live notes_placeholder/notes_text_frame objects remain unimplemented."
+    },
+    {
+      "inventoryPointer": "unit_cases/2255",
+      "source": {
+        "node_id": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_notes_text_frame[False]",
+        "source_file": "tests/test_slide.py",
+        "line": 204,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original empty-body versus absent-body cases assert empty string versus null; each of slide image, number, date, header and footer is excluded from speaker selection. Explicit speaker set and scoped text edits cover bounded text mutation. Live notes_placeholder/notes_text_frame objects remain unimplemented."
+    },
+    {
+      "inventoryPointer": "unit_cases/2260",
+      "source": {
+        "node_id": "tests/test_slide.py::DescribeSlide::it_knows_whether_it_has_a_notes_slide",
+        "source_file": "tests/test_slide.py",
+        "line": 317,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original absent/present notes reads independently assert no part creation, [] versus one association and unchanged input bytes; CLI list/get and SDK agree. Direct has_notes_slide live property remains a gap."
+    },
+    {
+      "inventoryPointer": "unit_cases/2265",
+      "source": {
+        "node_id": "tests/test_slide.py::DescribeSlide::it_provides_access_to_its_notes_slide",
+        "source_file": "tests/test_slide.py",
+        "line": 341,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original absent creation/existing reuse, three eligible placeholders, reciprocal notes-slide relationships, remove/duplicate/import and CLI script cases cover the package invariant. Default XML/assets are original; live creating notes_slide getter and public part wrappers remain gaps."
+    },
+    {
+      "inventoryPointer": "bdd_cases/492",
+      "source": {
+        "source_file": "features/ph-inherit-props.feature",
+        "line": 19,
+        "name": "NotesSlide placeholder direct property settings",
+        "template_name": "NotesSlide placeholder direct property settings",
+        "template_line": 19,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "planned-public-behavior-gap",
+      "originalEvidence": [],
+      "mapping": "Notes placeholder direct/inherited geometry must resolve by placeholder type against the associated master with per-axis local overrides. Explicit text scopes do not prove this public geometry behavior; original live-model acceptance remains required."
+    },
+    {
+      "inventoryPointer": "bdd_cases/493",
+      "source": {
+        "source_file": "features/ph-inherit-props.feature",
+        "line": 23,
+        "name": "NotesSlide placeholder inherited property settings",
+        "template_name": "NotesSlide placeholder inherited property settings",
+        "template_line": 23,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "planned-public-behavior-gap",
+      "originalEvidence": [],
+      "mapping": "Notes placeholder direct/inherited geometry must resolve by placeholder type against the associated master with per-axis local overrides. Explicit text scopes do not prove this public geometry behavior; original live-model acceptance remains required."
+    },
+    {
+      "inventoryPointer": "bdd_cases/542",
+      "source": {
+        "source_file": "features/prs-presentation-props.feature",
+        "line": 27,
+        "name": "Presentation.notes_master -- @1.1 Notes master states",
+        "template_name": "Presentation.notes_master -- @1.1 Notes master states",
+        "template_line": 27,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation/reuse, actual notes relationship lookup, one shared master for several notes slides, and duplicate/import master graph assertions cover bounded association. Noncreating reads remain distinct from planned creating notes_master accessors; multiple competing import masters reject unchanged."
+    },
+    {
+      "inventoryPointer": "bdd_cases/543",
+      "source": {
+        "source_file": "features/prs-presentation-props.feature",
+        "line": 28,
+        "name": "Presentation.notes_master -- @1.2 Notes master states",
+        "template_name": "Presentation.notes_master -- @1.2 Notes master states",
+        "template_line": 28,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation/reuse, actual notes relationship lookup, one shared master for several notes slides, and duplicate/import master graph assertions cover bounded association. Noncreating reads remain distinct from planned creating notes_master accessors; multiple competing import masters reject unchanged."
+    },
+    {
+      "inventoryPointer": "bdd_cases/787",
+      "source": {
+        "source_file": "features/sld-slide.feature",
+        "line": 33,
+        "name": "Slide.has_notes_slide -- @1.1 Slide.has_notes_slide states",
+        "template_name": "Slide.has_notes_slide -- @1.1 Slide.has_notes_slide states",
+        "template_line": 33,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original absent/present notes reads independently assert no part creation, [] versus one association and unchanged input bytes; CLI list/get and SDK agree. Direct has_notes_slide live property remains a gap."
+    },
+    {
+      "inventoryPointer": "bdd_cases/788",
+      "source": {
+        "source_file": "features/sld-slide.feature",
+        "line": 34,
+        "name": "Slide.has_notes_slide -- @1.2 Slide.has_notes_slide states",
+        "template_name": "Slide.has_notes_slide -- @1.2 Slide.has_notes_slide states",
+        "template_line": 34,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original absent/present notes reads independently assert no part creation, [] versus one association and unchanged input bytes; CLI list/get and SDK agree. Direct has_notes_slide live property remains a gap."
+    },
+    {
+      "inventoryPointer": "bdd_cases/791",
+      "source": {
+        "source_file": "features/sld-slide.feature",
+        "line": 54,
+        "name": "Slide.notes_slide -- @1.1 Slide.notes_slide states",
+        "template_name": "Slide.notes_slide -- @1.1 Slide.notes_slide states",
+        "template_line": 54,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original absent creation/existing reuse, three eligible placeholders, reciprocal notes-slide relationships, remove/duplicate/import and CLI script cases cover the package invariant. Default XML/assets are original; live creating notes_slide getter and public part wrappers remain gaps."
+    },
+    {
+      "inventoryPointer": "bdd_cases/792",
+      "source": {
+        "source_file": "features/sld-slide.feature",
+        "line": 55,
+        "name": "Slide.notes_slide -- @1.2 Slide.notes_slide states",
+        "template_name": "Slide.notes_slide -- @1.2 Slide.notes_slide states",
+        "template_line": 55,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original absent creation/existing reuse, three eligible placeholders, reciprocal notes-slide relationships, remove/duplicate/import and CLI script cases cover the package invariant. Default XML/assets are original; live creating notes_slide getter and public part wrappers remain gaps."
+    },
+    {
+      "inventoryPointer": "bdd_cases/807",
+      "source": {
+        "source_file": "features/sld-slide.feature",
+        "line": 129,
+        "name": "NotesSlide.placeholders",
+        "template_name": "NotesSlide.placeholders",
+        "template_line": 129,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original creation independently asserts three distinct placeholder roles; explicit note shape edits preserve free shapes/other placeholders. Returned live shape/placeholder collections, type dispatch and iteration remain missing public-model acceptance, not dismissed as private merely because factory names are private."
+    },
+    {
+      "inventoryPointer": "bdd_cases/808",
+      "source": {
+        "source_file": "features/sld-slide.feature",
+        "line": 135,
+        "name": "NotesSlide.notes_placeholder",
+        "template_name": "NotesSlide.notes_placeholder",
+        "template_line": 135,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original empty-body versus absent-body cases assert empty string versus null; each of slide image, number, date, header and footer is excluded from speaker selection. Explicit speaker set and scoped text edits cover bounded text mutation. Live notes_placeholder/notes_text_frame objects remain unimplemented."
+    },
+    {
+      "inventoryPointer": "bdd_cases/809",
+      "source": {
+        "source_file": "features/sld-slide.feature",
+        "line": 140,
+        "name": "NotesSlide.notes_text_frame",
+        "template_name": "NotesSlide.notes_text_frame",
+        "template_line": 140,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-operation; live-model-gap",
+      "originalEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-graph.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "mapping": "Original empty-body versus absent-body cases assert empty string versus null; each of slide image, number, date, header and footer is excluded from speaker selection. Explicit speaker set and scoped text edits cover bounded text mutation. Live notes_placeholder/notes_text_frame objects remain unimplemented."
+    }
+  ],
+  "verification": "Focused original SDK/CLI and independent review tests pass; final maintained receipt in notes-evidence.md. Every selected parameter/example is retained. Planned geometry/helper/live-model gaps are not counted as complete adaptation.",
+  "counts": {
+    "unit": 35,
+    "bdd": 11,
+    "rows": 46
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "time": "2026-09-14T03:15:05.914Z",
+  "files": [
+    {
+      "path": "dist/index.js",
+      "before": "a627f891c7a027c67a17a77c61fd67e99687c1c2c6b1cd24c69b252d8aa4e1e5",
+      "after": "a627f891c7a027c67a17a77c61fd67e99687c1c2c6b1cd24c69b252d8aa4e1e5"
+    },
+    {
+      "path": "dist/bin.cjs",
+      "before": "9b4721da6c5c39def402605d85f67d918f6a2c44ac28eb531228e7824b64e59b",
+      "after": "9b4721da6c5c39def402605d85f67d918f6a2c44ac28eb531228e7824b64e59b"
+    },
+    {
+      "path": "packages/safe-bash/dist/index.js",
+      "before": "539a80c3468d2042bbc174797f74c1de6da4d0c81f1ded40a9311e7a18d147b6",
+      "after": "539a80c3468d2042bbc174797f74c1de6da4d0c81f1ded40a9311e7a18d147b6"
+    },
+    {
+      "path": "packages/safe-bash/dist/commands/python/node.js",
+      "before": "12730b92aa8c8c70fce840b1d35413915dbc5ddc4521cde084f0910e5b52b631",
+      "after": "12730b92aa8c8c70fce840b1d35413915dbc5ddc4521cde084f0910e5b52b631"
+    },
+    {
+      "path": "packages/safe-bash/dist/commands/python/worker.js",
+      "before": "254a271aa2efbbbde3057be1cb627447e0f3783fa89d38b524d4a69d99bebc4b",
+      "after": "254a271aa2efbbbde3057be1cb627447e0f3783fa89d38b524d4a69d99bebc4b"
+    },
+    {
+      "path": "packages/safe-fs/dist/core.js",
+      "before": "dcfa5d5099964bf2dbc46426bd820cfac481e7cc194a1af47b2051ac9d30b777",
+      "after": "dcfa5d5099964bf2dbc46426bd820cfac481e7cc194a1af47b2051ac9d30b777"
+    },
+    {
+      "path": "packages/safe-bash/tests/integration/pyodide-runtime/public-command-parity.test.mjs",
+      "before": "4b762da9f3ede73fae228e16549ba73dbc93279642ddab373fa2b2123da87935",
+      "after": "4b762da9f3ede73fae228e16549ba73dbc93279642ddab373fa2b2123da87935"
+    },
+    {
+      "path": "packages/safe-bash/tests/integration/pyodide-runtime/public-documents.test.mjs",
+      "before": "0aad81fa521d69fde5e49ba584107f437fa2e72af25ba92367e8a6a5c6e2a150",
+      "after": "0aad81fa521d69fde5e49ba584107f437fa2e72af25ba92367e8a6a5c6e2a150"
+    },
+    {
+      "path": "packages/safe-bash/tests/integration/pyodide-runtime/public-lifecycle.test.mjs",
+      "before": "42ef62d3020b259f69a5c5326aef3bb933e2149f903fb50fce803d6c23633872",
+      "after": "42ef62d3020b259f69a5c5326aef3bb933e2149f903fb50fce803d6c23633872"
+    },
+    {
+      "path": "packages/safe-bash/tests/integration/pyodide-runtime/public-runtime-fixture.mjs",
+      "before": "94bd153fa0a5bd2fdc8b3e09f786eaa0b6b3f106a09593c66060f9559dfa1d21",
+      "after": "94bd153fa0a5bd2fdc8b3e09f786eaa0b6b3f106a09593c66060f9559dfa1d21"
+    },
+    {
+      "path": "packages/safe-bash/tests/integration/pyodide-runtime/fixtures/documents-create.py",
+      "before": "92723dcf14269ed66462a7cb0ed6d56835751ae8898cac34b9be4141d5a6f94e",
+      "after": "92723dcf14269ed66462a7cb0ed6d56835751ae8898cac34b9be4141d5a6f94e"
+    },
+    {
+      "path": "packages/safe-bash/tests/integration/pyodide-runtime/fixtures/documents-edit.py",
+      "before": "db0a79aebe3fc641aae730f3dc5fdf9655c0016a6083c7f8dcdf362ad9cbde0b",
+      "after": "db0a79aebe3fc641aae730f3dc5fdf9655c0016a6083c7f8dcdf362ad9cbde0b"
+    },
+    {
+      "path": "packages/safe-bash/tests/integration/pyodide-runtime/fixtures/documents-streams.py",
+      "before": "4cf9d9b8c7f0729dbbb7bb36347bc24479398d343d40d8839ea0e01970dca561",
+      "after": "4cf9d9b8c7f0729dbbb7bb36347bc24479398d343d40d8839ea0e01970dca561"
+    },
+    {
+      "path": "packages/safe-bash/tests/integration/pyodide-runtime/fixtures/documents-verify.py",
+      "before": "6e3575a3266fac9c44bcc57fcf2d670af99224207f7d4af6d178d42341ee4b76",
+      "after": "6e3575a3266fac9c44bcc57fcf2d670af99224207f7d4af6d178d42341ee4b76"
+    }
+  ],
+  "examples": [
+    {
+      "heading": "## Setup and ordinary Python usage",
+      "language": "js",
+      "sha256": "e500e7f560cb7373189c2c96c97a329bceaf2c99edc213bfdbdb0e6fd0bd3fb9",
+      "stillPresent": true
+    },
+    {
+      "heading": "## Setup and ordinary Python usage",
+      "language": "sh",
+      "sha256": "510b41901bd49cc8d4677f5d916641afc46776b91c5a9bc738383db46ba12d82",
+      "stillPresent": true
+    },
+    {
+      "heading": "## Installation, local wheels and offline reuse",
+      "language": "sh",
+      "sha256": "cfcfdb711a9e858d5998c36c90336a56f9ce9e95b07191a66c513ef497903151",
+      "stillPresent": true
+    },
+    {
+      "heading": "### DOCX: `docx_report.py`",
+      "language": "python",
+      "sha256": "2a8367882774713578da1c385421d5293be7f9074e873b27ea9078a4327fc5a9",
+      "stillPresent": true
+    },
+    {
+      "heading": "### XLSX: `xlsx_report.py`",
+      "language": "python",
+      "sha256": "6af8e0095d650b240086c757d83db98a01710e2e2023b0a047994b8b8e5262c6",
+      "stillPresent": true
+    },
+    {
+      "heading": "### PDF: `pdf_report.py`",
+      "language": "python",
+      "sha256": "da5fc6b91ecc031dc4334579e04ea45edbbae68f0ff40b6264eea4773afa6c35",
+      "stillPresent": true
+    },
+    {
+      "heading": "### Pinned installation inputs",
+      "language": "python",
+      "sha256": "2f1eaf3dd29e0515851711da1f289afd3d76afb8b4c6715ebc9331f7f09f15b6",
+      "stillPresent": true
+    }
+  ],
+  "unchanged": true
+}

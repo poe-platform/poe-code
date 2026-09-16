@@ -11,6 +11,7 @@ import type {
 } from "../../contracts/filesystem.js";
 import { davChild, davChildren, parseXml, scalar, XmlResponseLimitError } from "./xml.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
+import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import type { XmlElement } from "./xml.js";
 import { assertCallbackAuthorityAllowed, compareEntries, registerEntryAuthority } from "../mount/comparison.js";
 import { compareWebDavResources, ownedResponseIdentifier, recordOwnedResourceStat, registerResourceQuery, resourceIdentifier } from "./resource-id.js";
@@ -183,7 +184,13 @@ function statusCode(element: XmlElement): number {
 }
 
 export class WebDavFileSystem implements FileSystem {
+  async open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
+    options.signal?.throwIfAborted();
+    throw new FsError("ENOTSUP", { syscall: "open", path });
+  }
+
   readonly capabilities = Object.freeze({
+    open: false,
     read: true, stat: true, readdir: true, realpath: true, access: true,
     write: true, append: true, exclusiveCreate: true, explicitDirectories: true, implicitDirectories: false,
     mkdir: true, recursiveMkdir: true, remove: true, recursiveRemove: true, rename: true, atomicRenameNoReplace: false, copy: true,

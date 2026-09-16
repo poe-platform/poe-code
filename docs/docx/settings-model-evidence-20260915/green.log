@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/settings-model.test.ts (7 tests) 388ms
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  22:47:04
+   Duration  1.46s (transform 843ms, setup 31ms, import 987ms, tests 388ms, environment 0ms)
+

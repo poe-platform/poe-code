@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "status": "original_TypeScript_designs_not_implemented",
+  "source_assets_reused": false,
+  "downloaded_fixture_count": 0,
+  "implementation_files": [],
+  "executed": false,
+  "authority": ["../specs/pptx.md", "../specs/office-cli.md", "../specs/office-sdk.md"],
+  "cases": [
+    {
+      "id": "chart-roots-exclude-style-parts",
+      "features": ["F36", "F38"],
+      "basis": "measured-directory-overcount",
+      "language": "TypeScript",
+      "arrange": "Author one bar chart with separate style/color XML, a tiny internal workbook and an unrelated orphan style part.",
+      "act": "Inspect through SDK operation and charts list --json; replace unrelated slide text; save to an in-memory sink and reopen.",
+      "expected": "Exactly one chart is listed. Style/color XML is never counted as extra charts; untouched parts retain hashes. c:externalData with an internal package relationship is not classified as a network source.",
+      "fixture_policy": "Original in-memory bytes/objects in memfs; no downloads, host paths, native runtime, network, ambient time or copied XML/assets.",
+      "status": "specified_not_implemented"
+    },
+    {
+      "id": "cjk-runs-cross-format-boundary",
+      "features": ["F16", "F20"],
+      "basis": "measured-slide-text",
+      "language": "TypeScript",
+      "arrange": "Author adjacent runs containing 青 and 空 followed by cafe plus a combining acute mark; use original formatting and explicit language metadata.",
+      "act": "Use text replace with find 青空, with 海, exactly one occurrence; compare SDK operation output and CLI JSON.",
+      "expected": "One match across the two runs is replaced; unrelated combining sequence and formatting remain. No font discovery or network occurs; slide-text census is independent of font-list labels.",
+      "fixture_policy": "Original in-memory bytes/objects in memfs; no downloads, host paths, native runtime, network, ambient time or copied XML/assets.",
+      "status": "specified_not_implemented"
+    },
+    {
+      "id": "signature-origin-mutation-refusal",
+      "features": ["F02", "F55"],
+      "basis": "unavailable-real-signature",
+      "language": "TypeScript",
+      "arrange": "Author a tiny OPC signature-origin relationship and XMLDSig structure using nontrusted dummy signature bytes; it is an indicator fixture, not a cryptographically valid signature.",
+      "act": "Inspect then attempt properties set with the default signature policy.",
+      "expected": "Report signature presence without claiming verified validity; mutation refuses before publication with ordinary exit 1 and unchanged destination. Do not contact certificate or revocation URLs.",
+      "fixture_policy": "Original in-memory bytes/objects in memfs; no downloads, host paths, native runtime, network, ambient time or copied XML/assets.",
+      "status": "specified_not_implemented"
+    },
+    {
+      "id": "strict-dialect-preservation",
+      "features": ["F03", "F04"],
+      "basis": "unavailable-real-strict",
+      "language": "TypeScript",
+      "arrange": "Author a two-slide Strict package with original text and Strict relationship namespaces.",
+      "act": "Replace one literal text value; serialize and reopen using bytes only.",
+      "expected": "Strict namespaces and content type remain; unrelated part hashes survive. A separate deliberately mixed-dialect variant is rejected before publication rather than silently converted.",
+      "fixture_policy": "Original in-memory bytes/objects in memfs; no downloads, host paths, native runtime, network, ambient time or copied XML/assets.",
+      "status": "specified_not_implemented"
+    },
+    {
+      "id": "diagram-graph-retention",
+      "features": ["F40"],
+      "basis": "unavailable-real-smartart",
+      "language": "TypeScript",
+      "arrange": "Author a minimal diagram data/layout/style/color/fallback graph with original node labels and stable relationship IDs.",
+      "act": "Edit an unrelated notes paragraph; inspect capabilities and serialize.",
+      "expected": "Capabilities report diagram preservation without layout editing. Every untouched diagram part and relationship survives. Unsupported diagram mutation fails visibly; no diagram renderer runs.",
+      "fixture_policy": "Original in-memory bytes/objects in memfs; no downloads, host paths, native runtime, network, ambient time or copied XML/assets.",
+      "status": "specified_not_implemented"
+    },
+    {
+      "id": "threaded-comment-retention",
+      "features": ["F50"],
+      "basis": "unavailable-real-modern-comments",
+      "language": "TypeScript",
+      "arrange": "Author an extension comment thread with two original authors, one reply and explicit UTC timestamps, plus an unknown extension attribute.",
+      "act": "Edit slide text outside the comment anchor and reopen; request unsupported thread editing separately.",
+      "expected": "Preserve thread IDs, reply ownership, timestamps and unknown attribute; no implicit timestamp update. Unsupported editing is reported without dropping the thread.",
+      "fixture_policy": "Original in-memory bytes/objects in memfs; no downloads, host paths, native runtime, network, ambient time or copied XML/assets.",
+      "status": "specified_not_implemented"
+    },
+    {
+      "id": "rtl-mixed-run-replacement",
+      "features": ["F16", "F20"],
+      "basis": "unavailable-real-rtl",
+      "language": "TypeScript",
+      "arrange": "Author an RTL paragraph with original Arabic text مرحبا and Latin token A7, with an explicit bidi flag and two differently formatted runs.",
+      "act": "Replace A7 with B8 in slide-local scope; serialize and reopen.",
+      "expected": "Preserve logical text order, bidi metadata and unaffected formatting. No claim of visual shaping or font fallback correctness without supplied metrics and later independent rendering.",
+      "fixture_policy": "Original in-memory bytes/objects in memfs; no downloads, host paths, native runtime, network, ambient time or copied XML/assets.",
+      "status": "specified_not_implemented"
+    },
+    {
+      "id": "many-slide-order-with-small-media",
+      "features": ["F07", "F08"],
+      "basis": "unavailable-real-many-slide",
+      "language": "TypeScript",
+      "arrange": "Author 301 minimal slides with unique neutral IDs, one tiny shared image and references from a custom show.",
+      "act": "Move the last slide to position 2 through SDK operations and CLI one-based selectors; serialize and reopen.",
+      "expected": "Order has 301 unique stable IDs with the moved slide second; custom-show references and shared media remain valid. This synthetic design never increases the real-download count.",
+      "fixture_policy": "Original in-memory bytes/objects in memfs; no downloads, host paths, native runtime, network, ambient time or copied XML/assets.",
+      "status": "specified_not_implemented"
+    }
+  ]
+}

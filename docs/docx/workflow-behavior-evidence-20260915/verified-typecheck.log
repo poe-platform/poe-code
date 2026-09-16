@@ -1,0 +1,5 @@
+packages/docx/src/inline-shape-model.test.ts(85,53): error TS2345: Argument of type '{ width: number; }' is not assignable to parameter of type 'number'.
+packages/docx/src/workflow-behavior-variants.test.ts(3018,158): error TS2322: Type '(path: string) => Promise<Uint8Array<ArrayBuffer>[]>' is not assignable to type '(path: string, options: { readonly signal: AbortSignal; readonly maxBytes: number; }) => ByteSource | Promise<ByteSource>'.
+  Type 'Promise<Uint8Array<ArrayBuffer>[]>' is not assignable to type 'ByteSource | Promise<ByteSource>'.
+    Type 'Promise<Uint8Array<ArrayBuffer>[]>' is not assignable to type 'Promise<ByteSource>'.
+      Property '[Symbol.asyncIterator]' is missing in type 'Uint8Array<ArrayBuffer>[]' but required in type 'AsyncIterable<Uint8Array<ArrayBufferLike>>'.

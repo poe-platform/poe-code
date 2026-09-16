@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 1,
+  "kind": "research-provenance",
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "Designated slide graph repetition with literal per-record bindings; original additive operation, not a full public-model parity claim.",
+  "sourceInventories": {
+    "unitCases": 2700,
+    "expandedBddCases": 973,
+    "publicApiRecords": 2407
+  },
+  "directRepeatSourceCases": 0,
+  "directRepeatPublicApiRecords": 0,
+  "selection": "Review exact unit node IDs, BDD name/source_file (not template_name metadata), API source_id, and existing slide-copy/template dependency ledgers. Lexical candidates are individually disposed below; component ledgers retain every selected variant and expanded example.",
+  "candidateRows": [
+    {
+      "inventoryPointer": "upstream-test-inventory.json#/unit_cases/946",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_BaseSeriesXmlRewriter::it_adds_cloned_sers_to_help[clone_fixture0]",
+      "sourceFile": "tests/chart/test_xmlwriter.py",
+      "sourceLine": 462,
+      "disposition": "adjacent-obligation-retained",
+      "reason": "Series-count adjustment while rewriting a chart; chart preservation during repeat does not implement this mutation.",
+      "retainedLedger": "chart-inventory-case-map.json"
+    },
+    {
+      "inventoryPointer": "upstream-test-inventory.json#/unit_cases/947",
+      "identity": "tests/chart/test_xmlwriter.py::Describe_BaseSeriesXmlRewriter::it_adds_cloned_sers_to_help[clone_fixture1]",
+      "sourceFile": "tests/chart/test_xmlwriter.py",
+      "sourceLine": 462,
+      "disposition": "adjacent-obligation-retained",
+      "reason": "Series-count adjustment while rewriting a chart; chart preservation during repeat does not implement this mutation.",
+      "retainedLedger": "chart-inventory-case-map.json"
+    },
+    {
+      "inventoryPointer": "upstream-test-inventory.json#/unit_cases/1988",
+      "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_clone_a_placeholder",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 139,
+      "disposition": "adjacent-obligation-retained",
+      "reason": "Placeholder creation/filtering; graph duplication preserves existing placeholders and is not an implementation of the live creation API.",
+      "retainedLedger": "slide-insertion-case-accounting.json"
+    },
+    {
+      "inventoryPointer": "upstream-test-inventory.json#/unit_cases/2068",
+      "identity": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_can_clone_placeholder_shapes_from_a_layout",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1268,
+      "disposition": "adjacent-obligation-retained",
+      "reason": "Placeholder creation/filtering; graph duplication preserves existing placeholders and is not an implementation of the live creation API.",
+      "retainedLedger": "slide-insertion-case-accounting.json"
+    },
+    {
+      "inventoryPointer": "upstream-test-inventory.json#/unit_cases/2181",
+      "identity": "tests/test_api.py::DescribePresentation::it_opens_default_template_on_no_path_provided",
+      "sourceFile": "tests/test_api.py",
+      "sourceLine": 18,
+      "disposition": "adjacent-obligation-retained",
+      "reason": "Default deck creation; no designated-slide repetition or record binding.",
+      "retainedLedger": "creation-case-map.json"
+    },
+    {
+      "inventoryPointer": "upstream-test-inventory.json#/unit_cases/2249",
+      "identity": "tests/test_slide.py::DescribeNotesSlide::it_can_clone_the_notes_master_placeholders",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 170,
+      "disposition": "adjacent-obligation-retained",
+      "reason": "Creating notes placeholders; repeat preserves and clones existing notes graph and does not claim creating accessor parity.",
+      "retainedLedger": "notes-case-map.json"
+    },
+    {
+      "inventoryPointer": "upstream-test-inventory.json#/unit_cases/2279",
+      "identity": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture0]",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 600,
+      "disposition": "adjacent-obligation-retained",
+      "reason": "Placeholder creation/filtering; graph duplication preserves existing placeholders and is not an implementation of the live creation API.",
+      "retainedLedger": "slide-insertion-case-accounting.json"
+    },
+    {
+      "inventoryPointer": "upstream-test-inventory.json#/unit_cases/2280",
+      "identity": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture1]",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 600,
+      "disposition": "adjacent-obligation-retained",
+      "reason": "Placeholder creation/filtering; graph duplication preserves existing placeholders and is not an implementation of the live creation API.",
+      "retainedLedger": "slide-insertion-case-accounting.json"
+    },
+    {
+      "inventoryPointer": "upstream-test-inventory.json#/unit_cases/2281",
+      "identity": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture2]",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 600,
+      "disposition": "adjacent-obligation-retained",
+      "reason": "Placeholder creation/filtering; graph duplication preserves existing placeholders and is not an implementation of the live creation API.",
+      "retainedLedger": "slide-insertion-case-accounting.json"
+    },
+    {
+      "inventoryPointer": "upstream-test-inventory.json#/unit_cases/2282",
+      "identity": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture3]",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 600,
+      "disposition": "adjacent-obligation-retained",
+      "reason": "Placeholder creation/filtering; graph duplication preserves existing placeholders and is not an implementation of the live creation API.",
+      "retainedLedger": "slide-insertion-case-accounting.json"
+    },
+    {
+      "inventoryPointer": "upstream-test-inventory.json#/unit_cases/2474",
+      "identity": "tests/text/test_fonts.py::Describe_Stream::it_can_read_fields_from_a_template",
+      "sourceFile": "tests/text/test_fonts.py",
+      "sourceLine": 354,
+      "disposition": "adjacent-obligation-retained",
+      "reason": "Binary font-field decoding; unrelated to slide template records.",
+      "retainedLedger": "test-case-map.json"
+    },
+    {
+      "inventoryPointer": "upstream-test-inventory.json#/bdd_cases/533",
+      "identity": "Create a minimal presentation from the default template",
+      "sourceFile": "features/prs-default-template.feature",
+      "sourceLine": 6,
+      "disposition": "adjacent-obligation-retained",
+      "reason": "Default deck creation; no designated-slide repetition or record binding.",
+      "retainedLedger": "creation-case-map.json"
+    }
+  ],
+  "componentLedgers": [
+    {
+      "ledger": "slide-copy-case-accounting.json#/rows",
+      "exactRows": 18,
+      "disposition": "Retain each exact source identity and its existing partial/deferred/language/security disposition. Repeat composition adds graph-preservation and binding assertions; no new source parity count."
+    },
+    {
+      "ledger": "slide-removal-case-accounting.json#/rows",
+      "exactRows": 124,
+      "disposition": "Retain each exact source identity and its existing partial/deferred/language/security disposition. Repeat composition adds graph-preservation and binding assertions; no new source parity count."
+    },
+    {
+      "ledger": "text-replacement-accounting.json#/unitCases",
+      "exactRows": 49,
+      "disposition": "Retain each exact source identity and its existing partial/deferred/language/security disposition. Repeat composition adds graph-preservation and binding assertions; no new source parity count."
+    },
+    {
+      "ledger": "text-replacement-accounting.json#/bddCases",
+      "exactRows": 23,
+      "disposition": "Retain each exact source identity and its existing partial/deferred/language/security disposition. Repeat composition adds graph-preservation and binding assertions; no new source parity count."
+    },
+    {
+      "ledger": "tables-case-map.json#/rows",
+      "exactRows": 212,
+      "disposition": "Retain each exact source identity and its existing partial/deferred/language/security disposition. Repeat composition adds graph-preservation and binding assertions; no new source parity count."
+    },
+    {
+      "ledger": "image-replacement-case-map.json#/rows",
+      "exactRows": 125,
+      "disposition": "Retain each exact source identity and its existing partial/deferred/language/security disposition. Repeat composition adds graph-preservation and binding assertions; no new source parity count."
+    },
+    {
+      "ledger": "notes-case-map.json#/rows",
+      "exactRows": 46,
+      "disposition": "Retain each exact source identity and its existing partial/deferred/language/security disposition. Repeat composition adds graph-preservation and binding assertions; no new source parity count."
+    },
+    {
+      "ledger": "animation-case-map.json#/rows",
+      "exactRows": 54,
+      "disposition": "Retain each exact source identity and its existing partial/deferred/language/security disposition. Repeat composition adds graph-preservation and binding assertions; no new source parity count."
+    },
+    {
+      "ledger": "chart-inventory-case-map.json#/rows",
+      "exactRows": 1407,
+      "disposition": "Retain each exact source identity and its existing partial/deferred/language/security disposition. Repeat composition adds graph-preservation and binding assertions; no new source parity count."
+    }
+  ],
+  "wholeApiObligations": {
+    "ledger": "public-api-map.json",
+    "status": "Unchanged; inherited and underscore-prefixed returned interfaces, helpers, enums, collections and APIs without source tests remain public obligations. Repeat is an operation, not a replacement for Slides or Presentation live objects."
+  },
+  "originalEvidenceStatus": "Original implementation cases pass; exact staged package 175 files / 4344 tests and actual CLI 9 cases verified. See docs/plans/pptx-template-repeat.md for final checks and corpus limitations. These are new behavior cases, not added source-parity counts.",
+  "originalBehaviorCases": [
+    "Zero records removes only designated prototypes and leaves other slides ordered.",
+    "One record creates a graph-owned bound replacement.",
+    "Many records expand in record order then requested prototype order, at the first selected source position.",
+    "Repeated identical calls have identical output IDs and bytes.",
+    "Notes ownership and chart/workbook dependencies belong to the correct instances.",
+    "Shared-media reuses admitted media while isolated-instance separates media dependencies.",
+    "Timing targets and intra-record slide links refer to copied objects.",
+    "Aggregate payload, slide, part, relationship and serialized output limits apply across the whole repeat.",
+    "A later invalid record returns no output and does not alter source or destination.",
+    "SDK operation and CLI template apply accept the same typed repeat JSON."
+  ],
+  "legal": "Original wording and assets; retain upstream-license-notice.txt and test-case-map-notice.txt separately. No source implementation or corpus bytes copied.",
+  "originalTestFiles": [
+    "packages/pptx/src/template-repeat.test.ts",
+    "packages/pptx/src/slide-copy-media-policy.test.ts",
+    "packages/pptx/src/command-template.test.ts",
+    "packages/pptx/src/command-slide-copy.test.ts",
+    "packages/safe-bash/tests/commands/pptx/template-repeat.test.ts"
+  ]
+}

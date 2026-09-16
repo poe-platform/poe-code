@@ -88,11 +88,11 @@ for (const [name, control, expected] of [
   ["empty IFS", { ifs: "", value: " a b " }, [" a b "]],
   ["empty unquoted value", { ifs: "", value: "" }, []],
   ["empty quoted value", { ifs: "", value: "", script: 'inspect "$value"' }, [""]],
-  ["BMP separator", { ifs: "é", value: "cafééx" }, ["caf", "", "x"]],
-  ["astral separator", { ifs: "🙂", value: "a🙂🙂b" }, ["a", "", "b"]],
+  ["BMP separator", { ifs: "é", value: "cafééx", locale: "en_US.UTF-8" }, ["caf", "", "x"]],
+  ["astral separator", { ifs: "🙂", value: "a🙂🙂b", locale: "en_US.UTF-8" }, ["a", "", "b"]],
   ["multiple separator scalars", { ifs: "ab", value: "1ab2ba3" }, ["1", "", "2", "", "3"]],
   ["no Unicode normalization", { ifs: "é", value: "ae\u0301b" }, ["ae\u0301b"]],
-  ["NBSP is nonwhitespace", { ifs: "\u00a0", value: "\u00a0a\u00a0\u00a0b\u00a0" }, ["", "a", "", "b"]],
+  ["NBSP is nonwhitespace", { ifs: "\u00a0", value: "\u00a0a\u00a0\u00a0b\u00a0", locale: "en_US.UTF-8" }, ["", "a", "", "b"]],
   ["CR is nonwhitespace", { ifs: "\r", value: "\ra\r\rb" }, ["", "a", "", "b"]],
   ["IFS mutation between words", { ifs: ":", value: "a:b", script: 'inspect $value; IFS=b; inspect $value' }, ["a:"]],
   ["IFS assignment during a word", { ifs: "", value: "a:b", script: 'inspect ${IFS:=:}$value' }, ["", "a", "b"]],
@@ -106,7 +106,7 @@ for (const [name, control, expected] of [
 test("single-character membership retains UTF-16 substring semantics, including isolated surrogates", async () => {
   for (const ifs of ["🙂", "\ud83d", "\ude42", "\ud83dX\ude42", "é", "\u0301"]) {
     for (const value of ["🙂", "\ud83d", "\ude42", "é", "\u0301", "x"]) {
-      const calls = await inspect({ ifs, value });
+      const calls = await inspect({ ifs, value, locale: "en_US.UTF-8" });
       assert.deepEqual(calls[0]!.text, ifs.includes(value) ? [""] : [value], JSON.stringify({ ifs, value }));
     }
   }
@@ -116,7 +116,10 @@ for (const locale of ["C", "POSIX", "en_US.UTF-8"]) {
   for (const ifs of [" ", "é", "", "�"]) {
     test(`raw IFS semantics: locale=${locale}, IFS=${JSON.stringify(ifs)}`, async () => {
       const calls = await inspect({ ifs, bytes: Uint8Array.of(255, 32, 195, 169, 65), locale });
-      const expected = ifs === " " ? [[255], [195, 169, 65]] : ifs === "é" ? [[239, 191, 189, 32], [65]] : ifs === "�" ? [[], [32, 195, 169, 65]] : [[255, 32, 195, 169, 65]];
+      // GNU Bash5.2.37 keeps FF distinct from UTF-8 U+FFFD and splits multibyte IFS by byte in C/POSIX.
+      const expected = ifs === " " ? [[255], [195, 169, 65]] : ifs === "é"
+        ? locale === "en_US.UTF-8" ? [[255, 32], [65]] : [[255, 32], [], [65]]
+        : [[255, 32, 195, 169, 65]];
       assert.deepEqual(calls[0]!.bytes, expected);
     });
   }

@@ -1,0 +1,123 @@
+import { expectTypeOf, it } from "vitest";
+import { inspectDocumentDiagrams, type DiagramRole, type DiagramPart, type DiagramIssue, type DiagramRoleEvidence, type DiagramBinding, type DiagramObservation, type DiagramDetails, type DiagramRecord, type DiagramInspectionData, type DocxOperationArguments, type DocxBatchItem } from "./index.js";
+import type { ArchiveContext } from "./archive.js";
+it("exports original closed diagram types and the public async inspector", () => {
+  expectTypeOf(inspectDocumentDiagrams).parameters.toEqualTypeOf<[Uint8Array, DocxOperationArguments<"diagrams.list">, ArchiveContext]>();
+  expectTypeOf(inspectDocumentDiagrams).returns.toEqualTypeOf<Promise<DiagramInspectionData>>();
+  expectTypeOf<DiagramRole>().toEqualTypeOf<"data" | "layout" | "style" | "color" | "drawing">();
+  expectTypeOf<keyof DiagramPart>().toEqualTypeOf<"name" | "contentType" | "bytes" | "sha256">();
+  expectTypeOf<keyof DiagramIssue>().toEqualTypeOf<"code" | "part" | "path" | "message">();
+  expectTypeOf<keyof DiagramRoleEvidence>().toEqualTypeOf<"role" | "part" | "evidence" | "root" | "status">();
+  expectTypeOf<keyof DiagramBinding>().toEqualTypeOf<"role" | "attribute" | "relationshipId" | "reference" | "status" | "target" | "issues">();
+  expectTypeOf<keyof DiagramObservation>().toEqualTypeOf<"kind" | "part" | "path" | "namespace" | "localName" | "uri" | "active" | "bindings" | "issues">();
+  expectTypeOf<keyof DiagramDetails>().toEqualTypeOf<"kind" | "parts" | "roles" | "observations" | "issues">();
+  expectTypeOf<keyof DiagramRecord>().toEqualTypeOf<"kind" | "location" | "name" | "properties" | "references" | "support" | "details">();
+});
+import type { DocxBatchArgumentMap } from "./operation-types.js";
+it("keeps equation fragments explicit and physical inventory package-global", () => {
+  expectTypeOf<keyof DocxOperationArguments<"equations.list">>().toEqualTypeOf<"json" | "limit">();
+  expectTypeOf<DocxBatchArgumentMap["equations.list"]>().toEqualTypeOf<Readonly<Record<string, never>>>();
+  for (const operation of ["equations.add", "equations.replace"] as const) {
+    expectTypeOf<DocxOperationArguments<typeof operation>["select"]>().toEqualTypeOf<string>();
+    expectTypeOf<DocxBatchArgumentMap[typeof operation]["select"]>().toEqualTypeOf<string>();
+    expectTypeOf<Extract<keyof DocxOperationArguments<typeof operation>, "scope" | "paragraph" | "all">>().toEqualTypeOf<never>();
+  }
+});
+it("keeps diagram options package-global in direct and declared batch types", () => {
+  expectTypeOf<keyof DocxOperationArguments<"diagrams.list">>().toEqualTypeOf<"json" | "limit">();
+  expectTypeOf<DocxBatchArgumentMap["diagrams.list"]>().toEqualTypeOf<Readonly<Record<string, never>>>();
+  // @ts-expect-error Physical diagram inventory has no scoped selection.
+  const invalid: DocxBatchArgumentMap["diagrams.list"] = { scope: "body" };
+  expectTypeOf(invalid).toMatchTypeOf<DocxBatchArgumentMap["diagrams.list"]>();
+});
+it("keeps physical chart inventory options package-wide in direct and batch types", () => {
+  expectTypeOf<keyof DocxOperationArguments<"charts.list">>().toEqualTypeOf<"json" | "limit">();
+  expectTypeOf<DocxBatchArgumentMap["charts.list"]>().toEqualTypeOf<Readonly<Record<string, never>>>();
+  // @ts-expect-error Package-wide chart inventory has no batch selection fields.
+  const invalid: DocxBatchArgumentMap["charts.list"] = { scope: "body" };
+  expectTypeOf(invalid).toMatchTypeOf<DocxBatchArgumentMap["charts.list"]>();
+});
+it("keeps shape utility transports limited to applicable owners and plain text assignment", () => {
+  type Invalid = "image" | "link" | "control" | "revision" | "field" | "bookmark" | "shared" | "width" | "height";
+  expectTypeOf<Extract<keyof DocxOperationArguments<"shapes.list">, Invalid>>().toEqualTypeOf<never>();
+  expectTypeOf<Extract<keyof DocxBatchArgumentMap["shapes.set"], Invalid>>().toEqualTypeOf<never>();
+  expectTypeOf<DocxOperationArguments<"shapes.set">["text"]>().toEqualTypeOf<string>();
+});
+it("keeps native layout SDK fields semantic, optional and axis-specific", () => {
+  expectTypeOf<DocxOperationArguments<"images.set">["allowOverlap"]>().toEqualTypeOf<boolean | undefined>();
+  expectTypeOf<DocxOperationArguments<"images.set">["verticalRelativeFrom"]>().toEqualTypeOf<"page" | "margin" | "paragraph" | "line" | "topMargin" | "bottomMargin" | "insideMargin" | "outsideMargin" | undefined>();
+  type Invalid = "wrapPolygonJson" | "link" | "control" | "revision" | "shape" | "field" | "bookmark";
+  expectTypeOf<Extract<keyof DocxOperationArguments<"images.set">, Invalid>>().toEqualTypeOf<never>();
+  const direct: DocxOperationArguments<"images.set"> = { all: true, lockAspect: false, wrapPolygon: { start: { x: 0, y: 0 }, lineTo: [{ x: 0, y: 1 }, { x: 1, y: 1 }] } };
+  expectTypeOf(direct).toMatchTypeOf<DocxOperationArguments<"images.set">>();
+});
+it("omits never-applicable selectors from direct and batch image replacement", () => {
+  type Invalid = "all" | "link" | "control" | "revision" | "shape" | "field" | "bookmark";
+  expectTypeOf<Extract<keyof DocxOperationArguments<"images.replace">, Invalid>>().toEqualTypeOf<never>();
+  expectTypeOf<Extract<keyof DocxBatchArgumentMap["images.replace"], Invalid>>().toEqualTypeOf<never>();
+});
+it("keeps image factory typed transports byte-only and capability-context-only", () => {
+  // @ts-expect-error Blob factories cannot acquire VFS paths.
+  const directBlob: DocxOperationArguments<"model.image.image.Image.from_blob.call"> = { blob: { kind: "vfs", path: "/Map.PNG", capability: "command" } };
+  // @ts-expect-error Batch blob factories cannot acquire VFS paths.
+  const batchBlob: DocxBatchArgumentMap["model.image.image.Image.from_blob.call"] = { blob: { kind: "vfs", path: "/Map.PNG", capability: "command" } };
+  // @ts-expect-error Factory contexts have no document author authority.
+  const directFile: DocxOperationArguments<"model.image.image.Image.from_file.call"> = { imageDescriptor: new Uint8Array(), context: { author: "Harbor" } };
+  // @ts-expect-error Batch contexts have no template acquisition authority.
+  const batchFile: DocxBatchArgumentMap["model.image.image.Image.from_file.call"] = { imageDescriptor: new Uint8Array(), context: { template: { kind: "bytes", base64: "AA==" } } };
+  expectTypeOf(directBlob).toMatchTypeOf<DocxOperationArguments<"model.image.image.Image.from_blob.call">>();
+  expectTypeOf(batchBlob).toMatchTypeOf<DocxBatchArgumentMap["model.image.image.Image.from_blob.call"]>();
+  expectTypeOf(directFile).toMatchTypeOf<DocxOperationArguments<"model.image.image.Image.from_file.call">>();
+  expectTypeOf(batchFile).toMatchTypeOf<DocxBatchArgumentMap["model.image.image.Image.from_file.call"]>();
+});
+
+it("keeps image decorative intent optional and removes all from direct and batch insertion", () => {
+  expectTypeOf<DocxOperationArguments<"images.add">["decorative"]>().toEqualTypeOf<boolean | undefined>();
+  expectTypeOf<DocxBatchArgumentMap["images.add"]["decorative"]>().toEqualTypeOf<boolean | undefined>();
+  // @ts-expect-error Image insertion has one explicit owner and no all flag.
+  const direct: DocxOperationArguments<"images.add"> = { file: { kind: "bytes", base64: "AA==" }, all: true };
+  // @ts-expect-error Batch insertion has the same single-owner intent.
+  const batch: DocxBatchArgumentMap["images.add"] = { file: { kind: "bytes", base64: "AA==" }, all: true };
+  expectTypeOf(direct).toMatchTypeOf<DocxOperationArguments<"images.add">>();
+  expectTypeOf(batch).toMatchTypeOf<DocxBatchArgumentMap["images.add"]>();
+});
+it("removes never-applicable image insertion selectors from both typed transports", () => {
+  type Invalid = "run" | "image" | "link" | "control" | "revision" | "shape" | "field" | "bookmark";
+  expectTypeOf<Extract<keyof DocxOperationArguments<"images.add">, Invalid>>().toEqualTypeOf<never>();
+  expectTypeOf<Extract<keyof DocxBatchArgumentMap["images.add"], Invalid>>().toEqualTypeOf<never>();
+});
+
+it("retains required, optional and nullable operation argument types", () => {
+  expectTypeOf<DocxOperationArguments<"text.replace">["find"]>().toEqualTypeOf<string>();
+  expectTypeOf<DocxOperationArguments<"text.replace">["with"]>().toEqualTypeOf<string>();
+  expectTypeOf<DocxOperationArguments<"text.replace">["first"]>().toEqualTypeOf<boolean | undefined>();
+  expectTypeOf<DocxOperationArguments<"model.text.run.Run.bold.set">["value"]>().toEqualTypeOf<boolean | null>();
+  expectTypeOf<DocxOperationArguments<"properties.set">["type"]>().toEqualTypeOf<"string" | "boolean" | "integer" | "number" | "date" | undefined>();
+  expectTypeOf<DocxOperationArguments<"create">["kind"]>().toEqualTypeOf<"docx" | "dotx" | undefined>();
+});
+
+it("keeps publication outside typed batch items and requires model receivers", () => {
+  // @ts-expect-error Batch items do not carry publication destinations.
+  const nestedOutput: DocxBatchItem = { operation: "text.replace", arguments: { find: "draft", with: "final", output: "final.docx" } };
+  // @ts-expect-error This model member requires an explicit receiver.
+  const missingReceiver: DocxBatchItem = { operation: "model.text.run.Run.bold.set", arguments: { value: true } };
+  expectTypeOf(nestedOutput).toMatchTypeOf<DocxBatchItem>();
+  expectTypeOf(missingReceiver).toMatchTypeOf<DocxBatchItem>();
+});
+
+it("allows explicit optional undefined and closes empty model arguments", () => {
+  const absent: DocxOperationArguments<"paragraphs.set"> = { text: undefined, style: undefined };
+  // @ts-expect-error A no-argument getter has no extension fields.
+  const extra: DocxOperationArguments<"model.text.run.Run.bold.get"> = { unexpected: true };
+  expectTypeOf(absent).toMatchTypeOf<DocxOperationArguments<"paragraphs.set">>();
+  expectTypeOf(extra).toMatchTypeOf<DocxOperationArguments<"model.text.run.Run.bold.get">>();
+});
+
+it("keeps direct table lengths aligned with the admitted unit schema", () => {
+  // @ts-expect-error Direct row-height flags exclude twips; nested content accepts them.
+  const rowHeight: DocxOperationArguments<"tables.add"> = { rows: 1, cols: 1, rowHeight: { value: 1, unit: "twip" } };
+  // @ts-expect-error Direct cell-margin flags exclude twips; nested content accepts them.
+  const cellMargin: DocxOperationArguments<"tables.add"> = { rows: 1, cols: 1, cellMargin: { value: 1, unit: "twip" } };
+  expectTypeOf(rowHeight).toMatchTypeOf<DocxOperationArguments<"tables.add">>();
+  expectTypeOf(cellMargin).toMatchTypeOf<DocxOperationArguments<"tables.add">>();
+});

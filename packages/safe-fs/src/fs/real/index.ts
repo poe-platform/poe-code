@@ -2,6 +2,8 @@ import { constants, type Stats } from "node:fs";
 import * as native from "node:fs/promises";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { nativeAllocatedBytes } from "./allocation.js";
+import { openFileDescriptor } from "../descriptor.js";
+import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
 import { callNativeSeekEnd, loadNativeSeekBinding } from "../../node/native-seek.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
@@ -46,6 +48,7 @@ function fileStat(stats: Stats): FileStat {
   return {
     type: fileType(stats), size: stats.size, mode: stats.mode,
     ...(allocatedBytes === undefined ? {} : { allocatedBytes }),
+    ...(Number.isSafeInteger(stats.blksize) && stats.blksize > 0 ? { ioBlockSize: stats.blksize } : {}),
     ...(Number.isSafeInteger(preferredIoBlockSize) && preferredIoBlockSize > 0 ? { preferredIoBlockSize } : {}),
     atimeMs: stats.atimeMs, mtimeMs: stats.mtimeMs, ctimeMs: stats.ctimeMs,
     birthtimeMs: stats.birthtimeMs, ino: stats.ino, dev: stats.dev,
@@ -112,7 +115,7 @@ function nativeError(error: unknown): FsError {
  */
 export class RealFileSystem implements FileSystem {
   readonly capabilities: FileSystemCapabilities = Object.freeze({
-    read: true, stat: true, readdir: true, realpath: true, access: true,
+    read: true, stat: true, readdir: true, realpath: true, access: true, open: true,
     write: true, append: true, exclusiveCreate: true, explicitDirectories: true, implicitDirectories: false,
     mkdir: true, recursiveMkdir: true, remove: true, removeDirectory: true, recursiveRemove: true,
     rename: true, atomicRenameNoReplace: false, copy: true, exclusiveCopy: true, readlink: true, truncate: true,
@@ -270,6 +273,54 @@ export class RealFileSystem implements FileSystem {
     if (resolve(path) === root) throw new FsError("EBUSY", { message: "the filesystem root cannot be removed or replaced" });
   }
 
+  open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
+    return openFileDescriptor<{ handle: native.FileHandle | undefined }>(path, options, {
+      positionedRead: true, positionedWrite: true, truncate: true, synchronization: "storage",
+    }, async admitted => {
+      let handle: native.FileHandle | undefined;
+      try {
+        const target = await this.path(path, {
+          ...admitted, followFinal: admitted.creation !== "exclusive",
+          ...(admitted.creation === "never" ? {} : { missing: "final" as const }),
+        });
+        let flags = (admitted.access === "read" ? constants.O_RDONLY : admitted.access === "write" ? constants.O_WRONLY : constants.O_RDWR)
+          | constants.O_NOFOLLOW | constants.O_NONBLOCK;
+        if (admitted.creation !== "never") flags |= constants.O_CREAT;
+        if (admitted.creation === "exclusive") flags |= constants.O_EXCL;
+        if (admitted.append) flags |= constants.O_APPEND;
+        handle = await native.open(target, flags, admitted.mode);
+        admitted.signal?.throwIfAborted();
+        const stat = await handle.stat();
+        if (stat.isDirectory()) throw new FsError("EISDIR");
+        if (!stat.isFile()) throw new FsError("ENOTSUP");
+        admitted.signal?.throwIfAborted();
+        if (admitted.truncate) await handle.truncate(0);
+        const resource: { handle: native.FileHandle | undefined } = { handle };
+        handle = undefined;
+        return {
+          resource,
+          stat: (retained, forwarded) => this.operation("fstat", path, forwarded, async () => fileStat(await retained.handle!.stat())),
+          read: (retained, buffer, position, forwarded) => this.operation("read", path, forwarded,
+            async () => (await retained.handle!.read(buffer, 0, buffer.byteLength, position)).bytesRead),
+          write: (retained, buffer, position, forwarded) => this.operation("write", path, forwarded,
+            async () => (await retained.handle!.write(buffer, 0, buffer.byteLength, position)).bytesWritten),
+          truncate: (retained, length, forwarded) => this.operation("ftruncate", path, forwarded, () => retained.handle!.truncate(length)),
+          sync: (retained, dataOnly, forwarded) => this.operation(dataOnly ? "fdatasync" : "fsync", path, forwarded,
+            () => dataOnly ? retained.handle!.datasync() : retained.handle!.sync()),
+          close: async retained => {
+            try { await this.operation("close", path, {}, () => retained.handle!.close()); }
+            finally { retained.handle = undefined; }
+          },
+        };
+      } catch (error) {
+        if (handle) await finishCleanup(() => handle!.close(), true);
+        handle = undefined;
+        admitted.signal?.throwIfAborted();
+        throw new FsError(nativeError(error).code, { syscall: "open", path });
+      }
+    });
+  }
+
   private protectTerminal(path: string): void {
     const terminal = path.split("/").filter(Boolean).at(-1);
     if (terminal === "." || terminal === "..") throw new FsError("EINVAL");
@@ -379,6 +430,16 @@ export class RealFileSystem implements FileSystem {
     });
   }
 
+  async unlink(path: string, options: FsOptions = {}): Promise<void> {
+    return this.operation("unlink", path, options, async () => {
+      const target = await this.path(path, { ...options, followFinal: false });
+      this.protectTerminal(path);
+      this.protectRoot(target, await this.root(options));
+      options.signal?.throwIfAborted();
+      await native.unlink(target);
+    });
+  }
+
   async rename(source: string, destination: string, options: RenameOptions = {}): Promise<void> {
     return this.operation("rename", source, options, async () => {
       if (options.noReplace) throw new FsError("ENOTSUP", { syscall: "rename", path: source, dest: destination });
@@ -480,10 +541,13 @@ export class RealFileSystem implements FileSystem {
 
   async utimes(path: string, atimeMs: number, mtimeMs: number, options: FsOptions = {}): Promise<void> {
     return this.operation("utimes", path, options, async () => {
-      if (!Number.isFinite(atimeMs) || !Number.isFinite(mtimeMs)) throw new FsError("EINVAL");
+      if (!Number.isFinite(atimeMs) || !Number.isFinite(mtimeMs)
+        || Math.abs(atimeMs) > 8.64e15 || Math.abs(mtimeMs) > 8.64e15) throw new FsError("EINVAL");
       const target = await this.path(path, options);
       options.signal?.throwIfAborted();
-      await native.utimes(target, new Date(atimeMs), new Date(mtimeMs));
+      const atimeSeconds = atimeMs / 1000;
+      const mtimeSeconds = mtimeMs / 1000;
+      await native.utimes(target, atimeSeconds < 0 ? String(atimeSeconds) : atimeSeconds, mtimeSeconds < 0 ? String(mtimeSeconds) : mtimeSeconds);
     });
   }
 

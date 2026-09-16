@@ -1,0 +1,306 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/table-behavior-variants.test.ts (177 tests | 5 failed) 6788ms
+     ✓ 'table alignment boundary 78' 45ms
+     ✓ 'table alignment boundary 79' 38ms
+     ✓ 'table alignment boundary 80' 39ms
+     ✓ 'table alignment boundary 81' 38ms
+     ✓ 'table alignment boundary 82' 40ms
+     ✓ 'table alignment boundary 83' 40ms
+     ✓ 'table alignment boundary 84' 38ms
+     ✓ 'table autofit boundary 85' 39ms
+     ✓ 'table autofit boundary 86' 38ms
+     ✓ 'table autofit boundary 87' 36ms
+     ✓ 'table autofit boundary 88' 38ms
+     ✓ 'table autofit boundary 89' 39ms
+     ✓ 'table autofit boundary 90' 39ms
+     ✓ 'table autofit boundary 91' 38ms
+     ✓ 'table autofit boundary 92' 40ms
+     ✓ 'table table_direction boundary 94' 38ms
+     ✓ 'table table_direction boundary 95' 38ms
+     ✓ 'table table_direction boundary 96' 38ms
+     ✓ 'table table_direction boundary 97' 38ms
+     ✓ 'table table_direction boundary 98' 39ms
+     ✓ 'table table_direction boundary 99' 38ms
+     ✓ 'table table_direction boundary 100' 38ms
+     ✓ 'table table_direction boundary 101' 37ms
+     ✓ 'cell grid_span boundary 112' 38ms
+     ✓ 'cell grid_span boundary 113' 36ms
+     ✓ 'cell grid_span boundary 114' 38ms
+     ✓ 'cell grid_span boundary 115' 36ms
+     ✓ 'cell vertical_alignment boundary 124' 37ms
+     ✓ 'cell vertical_alignment boundary 125' 37ms
+     ✓ 'cell vertical_alignment boundary 126' 38ms
+     ✓ 'cell vertical_alignment boundary 127' 38ms
+     ✓ 'cell vertical_alignment boundary 128' 39ms
+     ✓ 'cell vertical_alignment boundary 129' 37ms
+     ✓ 'cell vertical_alignment boundary 130' 39ms
+     ✓ 'cell vertical_alignment boundary 131' 39ms
+     ✓ 'cell vertical_alignment boundary 132' 38ms
+     ✓ 'cell vertical_alignment boundary 133' 38ms
+     ✓ 'cell width boundary 134' 36ms
+     ✓ 'cell width boundary 135' 35ms
+     ✓ 'cell width boundary 136' 38ms
+     ✓ 'cell width boundary 137' 37ms
+     ✓ 'cell width boundary 138' 38ms
+     ✓ 'cell width boundary 139' 38ms
+     ✓ 'column width boundary 153' 37ms
+     ✓ 'column width boundary 154' 38ms
+     ✓ 'column width boundary 155' 38ms
+     ✓ 'column width boundary 156' 39ms
+     ✓ 'column width boundary 157' 38ms
+     ✓ 'column width boundary 158' 37ms
+     ✓ 'column width boundary 159' 37ms
+     ✓ 'column width boundary 160' 37ms
+     ✓ 'column width boundary 161' 38ms
+     ✓ 'column width boundary 162' 37ms
+     ✓ 'row grid_cols_after boundary 167' 38ms
+     ✓ 'row grid_cols_after boundary 168' 38ms
+     ✓ 'row grid_cols_after boundary 169' 37ms
+     ✓ 'row grid_cols_after boundary 170' 37ms
+     ✓ 'row grid_cols_before boundary 171' 37ms
+     ✓ 'row grid_cols_before boundary 172' 37ms
+     ✓ 'row grid_cols_before boundary 173' 35ms
+     ✓ 'row grid_cols_before boundary 174' 38ms
+     ✓ 'row height boundary 175' 37ms
+     ✓ 'row height boundary 176' 39ms
+     ✓ 'row height boundary 177' 38ms
+     ✓ 'row height boundary 178' 39ms
+     ✓ 'row height boundary 179' 38ms
+     ✓ 'row height boundary 180' 40ms
+     ✓ 'row height boundary 181' 37ms
+     ✓ 'row height boundary 182' 41ms
+     ✓ 'row height boundary 183' 43ms
+     ✓ 'row height boundary 184' 43ms
+     ✓ 'row height boundary 185' 42ms
+     ✓ 'row height boundary 186' 45ms
+     ✓ 'row height boundary 187' 41ms
+     ✓ 'row height_rule boundary 188' 38ms
+     ✓ 'row height_rule boundary 189' 36ms
+     ✓ 'row height_rule boundary 190' 38ms
+     ✓ 'row height_rule boundary 191' 36ms
+     ✓ 'row height_rule boundary 192' 38ms
+     ✓ 'row height_rule boundary 193' 38ms
+     ✓ 'row height_rule boundary 194' 36ms
+     ✓ 'row height_rule boundary 195' 39ms
+     ✓ 'row height_rule boundary 196' 39ms
+     ✓ 'row height_rule boundary 197' 38ms
+     ✓ 'row height_rule boundary 198' 37ms
+     ✓ 'row height_rule boundary 199' 38ms
+     ✓ 'row height_rule boundary 200' 37ms
+     ✓ rejects incomplete endpoint rectangle 1:0,0-1,0 41ms
+     ✓ rejects incomplete endpoint rectangle 1:1,0-0,0 39ms
+     ✓ rejects incomplete endpoint rectangle 2:0,2-0,1 39ms
+     ✓ rejects incomplete endpoint rectangle 5:0,1-1,0 41ms
+     ✓ rejects incomplete endpoint rectangle 5:1,0-2,1 40ms
+     ✓ rejects incomplete endpoint rectangle 6:1,0-0,1 40ms
+     ✓ rejects incomplete endpoint rectangle 6:0,1-1,2 40ms
+   ✓ 'physical cell top boundary 1' 39ms
+   ✓ 'physical cell top boundary 2' 41ms
+   ✓ 'physical cell top boundary 3' 43ms
+   ✓ 'physical cell top boundary 4' 41ms
+   ✓ 'physical cell left boundary 5' 40ms
+   ✓ 'physical cell left boundary 6' 39ms
+   ✓ 'physical cell left boundary 7' 39ms
+   ✓ 'physical cell left boundary 8' 35ms
+   ✓ 'physical cell bottom boundary 9' 37ms
+   ✓ 'physical cell bottom boundary 10' 38ms
+   ✓ 'physical cell bottom boundary 11' 39ms
+   ✓ 'physical cell bottom boundary 12' 39ms
+   ✓ 'physical cell right boundary 13' 38ms
+   ✓ 'physical cell right boundary 14' 35ms
+   ✓ 'physical cell right boundary 15' 38ms
+   ✓ 'rectangle endpoint boundary 1' 39ms
+   ✓ 'rectangle endpoint boundary 2' 39ms
+   ✓ 'rectangle endpoint boundary 3' 40ms
+   ✓ 'rectangle endpoint boundary 4' 40ms
+   ✓ 'rectangle endpoint boundary 5' 40ms
+   ✓ 'rectangle endpoint boundary 6' 40ms
+   ✓ 'rectangle endpoint boundary 7' 39ms
+   ✓ 'rectangle endpoint boundary 8' 40ms
+   ✓ 'rectangle endpoint boundary 9' 40ms
+   ✓ 'rectangle endpoint boundary 10' 39ms
+   ✓ row sequence length 0 37ms
+   ✓ row sequence length 1 35ms
+   ✓ row sequence length 2 37ms
+   ✓ row sequence length 3 38ms
+   ✓ row sequence bounds 0:0 38ms
+   ✓ row sequence bounds 0:1 38ms
+   ✓ row sequence bounds 0:-1 38ms
+   ✓ row sequence bounds 1:1 36ms
+   ✓ row sequence bounds 1:-2 38ms
+   ✓ row sequence bounds 3:3 38ms
+   ✓ row sequence bounds 3:-4 37ms
+   ✓ row exclusive slice 1:3 38ms
+   ✓ row exclusive slice 0:-1 38ms
+   ✓ physical offset with omitted prefix 0:0:0 38ms
+   ✓ physical offset with omitted prefix 0:1:1 38ms
+   ✓ physical offset with omitted prefix 2:0:2 37ms
+   ✓ physical offset with omitted prefix 2:1:3 38ms
+   ✓ physical offset with omitted prefix 4:2:6 37ms
+   ✓ logical alias layout 0 39ms
+   ✓ logical alias layout 1 39ms
+   ✓ logical alias layout 2 39ms
+   ✓ logical alias layout 3 37ms
+   ✓ logical alias layout 4 39ms
+   ✓ span growth 0:0:0:2:1 39ms
+   ✓ span growth 0:0:1:1:2 37ms
+   ✓ span growth 0:1:1:2:2 41ms
+   ✓ span growth 1:0:0:2:2 40ms
+   × span growth 2:0:0:2:2 41ms
+   ✓ span growth 2:1:2:1:2 39ms
+   ✓ merge width presence true:true 39ms
+   ✓ merge width presence false:false 39ms
+   ✓ merge width presence false:true 38ms
+   ✓ merge width presence true:false 39ms
+   × horizontal absorption 1:1:0:false 38ms
+   × horizontal absorption 1:1:1:false 39ms
+   ✓ horizontal absorption 1:1:0:true 39ms
+   × horizontal absorption 2:1:0:false 39ms
+   × horizontal absorption 1:2:0:false 39ms
+   ✓ direct cell text boundary "" 38ms
+   ✓ direct cell text boundary "Harbor" 37ms
+   ✓ direct cell text boundary "Harbor\nSounding" 38ms
+   ✓ direct cell text boundary "Harbor" 36ms
+   ✓ direct cell text boundary "Ti\tde\nReef\n" 37ms
+   ✓ whole cell text assignment "Harbor" 37ms
+   ✓ whole cell text assignment "Ti\tde\rReef\n" 37ms
+   ✓ rejects whole cell replacement that would erase a nested table 39ms
+   ✓ direct nested table count 0:false 39ms
+   ✓ direct nested table count 1:false 38ms
+   ✓ direct nested table count 2:false 38ms
+   ✓ direct nested table count 1:true 37ms
+   ✓ direct nested table count 2:true 37ms
+   ✓ cell paragraph append boundary "" 38ms
+   ✓ cell paragraph append boundary "<w:p><w:r><w:t></w:t></w:r></w:p>" 38ms
+   ✓ cell paragraph append boundary "<w:tbl><w:tblGrid><w:gridCol/></w:tblGrid><w:tr><w:tc><w:tcPr></w:tcPr><w:p><w:r><w:t>Nested</w:t></w:r></w:p></w:tc></w:tr></w:tbl>" 38ms
+   ✓ row aliases width 1 height 1 row 0 38ms
+   ✓ row aliases width 2 height 1 row 0 39ms
+   ✓ row aliases width 1 height 2 row 1 38ms
+   ✓ row aliases width 2 height 2 row 1 37ms
+FAIL packages/docx/src/table-behavior-variants.test.ts > span growth 2:0:0:2:2
+RangeError: Merge endpoints do not define a rectangle.
+ ❯ _Cell.merge packages/docx/src/table-model.ts:432:15
+    430|           (aStart < bStart && aEnd > bEnd) ||
+    431|           (bStart < aStart && bEnd > aEnd))
+    432|         throw new InvalidValueError("Merge endpoints do not define a r…
+       |               ^
+    433|     }
+    434|     const top = Math.min(a.row, b.row),
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1078:45
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'usage' }
+FAIL packages/docx/src/table-behavior-variants.test.ts > horizontal absorption 1:1:0:false
+AssertionError: expected '\n' to be '' // Object.is equality
+
+- Expected
++ Received
+
++
++
+
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1093:23
+    1091|   const merged = table.cell(0,start!).merge(table.cell(0,start!+first!…
+    1092|   expect(merged.grid_span).toBe(first!+second!);
+    1093|   expect(merged.text).toBe(text ? "Tide\nReef" : "");
+       |                       ^
+    1094|   expect(table.grid().physical[0]).toHaveLength(start!+1);
+    1095| });
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > horizontal absorption 1:1:1:false
+AssertionError: expected '\n' to be '' // Object.is equality
+
+- Expected
++ Received
+
++
++
+
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1093:23
+    1091|   const merged = table.cell(0,start!).merge(table.cell(0,start!+first!…
+    1092|   expect(merged.grid_span).toBe(first!+second!);
+    1093|   expect(merged.text).toBe(text ? "Tide\nReef" : "");
+       |                       ^
+    1094|   expect(table.grid().physical[0]).toHaveLength(start!+1);
+    1095| });
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > horizontal absorption 2:1:0:false
+AssertionError: expected '\n' to be '' // Object.is equality
+
+- Expected
++ Received
+
++
++
+
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1093:23
+    1091|   const merged = table.cell(0,start!).merge(table.cell(0,start!+first!…
+    1092|   expect(merged.grid_span).toBe(first!+second!);
+    1093|   expect(merged.text).toBe(text ? "Tide\nReef" : "");
+       |                       ^
+    1094|   expect(table.grid().physical[0]).toHaveLength(start!+1);
+    1095| });
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > horizontal absorption 1:2:0:false
+AssertionError: expected '\n' to be '' // Object.is equality
+
+- Expected
++ Received
+
++
++
+
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1093:23
+    1091|   const merged = table.cell(0,start!).merge(table.cell(0,start!+first!…
+    1092|   expect(merged.grid_span).toBe(first!+second!);
+    1093|   expect(merged.text).toBe(text ? "Tide\nReef" : "");
+       |                       ^
+    1094|   expect(table.grid().physical[0]).toHaveLength(start!+1);
+    1095| });
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > span growth 2:0:0:2:2
+RangeError: Merge endpoints do not define a rectangle.
+ ❯ _Cell.merge packages/docx/src/table-model.ts:432:15
+    430|           (aStart < bStart && aEnd > bEnd) ||
+    431|           (bStart < aStart && bEnd > aEnd))
+    432|         throw new InvalidValueError("Merge endpoints do not define a r…
+       |               ^
+    433|     }
+    434|     const top = Math.min(a.row, b.row),
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1078:45
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > horizontal absorption 1:1:0:false
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > horizontal absorption 1:1:1:false
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > horizontal absorption 2:1:0:false
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > horizontal absorption 1:2:0:false
+AssertionError: expected '\n' to be '' // Object.is equality
+
+- Expected
++ Received
+
++
++
+
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1093:23
+    1091|   const merged = table.cell(0,start!).merge(table.cell(0,start!+first!…
+    1092|   expect(merged.grid_span).toBe(first!+second!);
+    1093|   expect(merged.text).toBe(text ? "Tide\nReef" : "");
+       |                       ^
+    1094|   expect(table.grid().physical[0]).toHaveLength(start!+1);
+    1095| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 172 passed (177)
+   Start at  22:46:09
+   Duration  7.81s (transform 799ms, setup 28ms, import 939ms, tests 6.79s, environment 0ms)
+

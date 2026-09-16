@@ -1,0 +1,964 @@
+{
+  "schema_version": 1,
+  "scope": "Read-only effective text style inventory; research/provenance only",
+  "source_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "case_inventory": "upstream-test-inventory.json",
+  "case_ledger": "test-case-map.json",
+  "api_inventory": "upstream-api-inventory.json",
+  "rules": [
+    "No source-row deletion or case merging. Every selected parameter identity is retained here.",
+    "Ten original isolated getter variants establish read behavior, not whole-model API coverage.",
+    "Color transforms and unsupported kinds remain explicitly unresolved. The live object/API cases remain visible and unimplemented.",
+    "No source implementation or fixture assets copied; tests use original XML. Existing research license notices remain intact."
+  ],
+  "rows": [
+    {
+      "case_id": "presentation-unit-4e87ff74bec1",
+      "source": "upstream-test-inventory.json#/unit_cases/971",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_the_type_of_its_color[none]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-e6ed28db89e7",
+      "source": "upstream-test-inventory.json#/unit_cases/972",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_the_type_of_its_color[hsl]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-4b76ab99eb9e",
+      "source": "upstream-test-inventory.json#/unit_cases/973",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_the_type_of_its_color[prst]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-183a3e7d9a52",
+      "source": "upstream-test-inventory.json#/unit_cases/974",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_the_type_of_its_color[scheme]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-bf313ca4ca9d",
+      "source": "upstream-test-inventory.json#/unit_cases/975",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_the_type_of_its_color[scrgb]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-b98c7f56cb3d",
+      "source": "upstream-test-inventory.json#/unit_cases/976",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_the_type_of_its_color[srgb]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-a4a751ff034f",
+      "source": "upstream-test-inventory.json#/unit_cases/977",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_the_type_of_its_color[sys]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-d94159b9fbb6",
+      "source": "upstream-test-inventory.json#/unit_cases/978",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_the_RGB_value_of_an_RGB_color",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-5d2e92a9ab0d",
+      "source": "upstream-test-inventory.json#/unit_cases/979",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_raises_on_rgb_get_for_colors_other_than_rgb[none]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-bee197fc7079",
+      "source": "upstream-test-inventory.json#/unit_cases/980",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_raises_on_rgb_get_for_colors_other_than_rgb[hsl]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-885efeefa286",
+      "source": "upstream-test-inventory.json#/unit_cases/981",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_raises_on_rgb_get_for_colors_other_than_rgb[prst]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-a8c0dab71815",
+      "source": "upstream-test-inventory.json#/unit_cases/982",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_raises_on_rgb_get_for_colors_other_than_rgb[scheme]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-0b54802b5533",
+      "source": "upstream-test-inventory.json#/unit_cases/983",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_raises_on_rgb_get_for_colors_other_than_rgb[scrgb]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-97d4fe9630cf",
+      "source": "upstream-test-inventory.json#/unit_cases/984",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_raises_on_rgb_get_for_colors_other_than_rgb[sys]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-2eadccf02bec",
+      "source": "upstream-test-inventory.json#/unit_cases/985",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_the_theme_color_of_a_theme_color[hsl]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-1ee22100fde8",
+      "source": "upstream-test-inventory.json#/unit_cases/986",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_the_theme_color_of_a_theme_color[prst]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-aa56f70b9ad9",
+      "source": "upstream-test-inventory.json#/unit_cases/987",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_the_theme_color_of_a_theme_color[scheme]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-66e6c25dd3ea",
+      "source": "upstream-test-inventory.json#/unit_cases/988",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_the_theme_color_of_a_theme_color[scrgb]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-4b42c576b4bd",
+      "source": "upstream-test-inventory.json#/unit_cases/989",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_the_theme_color_of_a_theme_color[srgb]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-15d6aa0f92c8",
+      "source": "upstream-test-inventory.json#/unit_cases/990",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_the_theme_color_of_a_theme_color[sys]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-e8c2771b5a1b",
+      "source": "upstream-test-inventory.json#/unit_cases/991",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_raises_on_theme_color_get_for_NoneColor",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-8cef70590ba8",
+      "source": "upstream-test-inventory.json#/unit_cases/992",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_its_brightness_adjustment[hsl]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-740eef46b0bd",
+      "source": "upstream-test-inventory.json#/unit_cases/993",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_its_brightness_adjustment[prst]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-0732e9b6a73b",
+      "source": "upstream-test-inventory.json#/unit_cases/994",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_its_brightness_adjustment[scheme]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-cef0fd0f0837",
+      "source": "upstream-test-inventory.json#/unit_cases/995",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_its_brightness_adjustment[scrgb]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-b1eea0eab2f9",
+      "source": "upstream-test-inventory.json#/unit_cases/996",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_its_brightness_adjustment[srgb]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-a2e29ebd5f81",
+      "source": "upstream-test-inventory.json#/unit_cases/997",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_knows_its_brightness_adjustment[sys]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-e649cccf2083",
+      "source": "upstream-test-inventory.json#/unit_cases/998",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_itself_to_an_RGB_color[none]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-462efb342d8a",
+      "source": "upstream-test-inventory.json#/unit_cases/999",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_itself_to_an_RGB_color[hsl]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-4c36d7ea2de4",
+      "source": "upstream-test-inventory.json#/unit_cases/1000",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_itself_to_an_RGB_color[prst]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-997d7e207d5b",
+      "source": "upstream-test-inventory.json#/unit_cases/1001",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_itself_to_an_RGB_color[scheme]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-d7b00039b9bc",
+      "source": "upstream-test-inventory.json#/unit_cases/1002",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_itself_to_an_RGB_color[scrgb]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-53eb2fcde650",
+      "source": "upstream-test-inventory.json#/unit_cases/1003",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_itself_to_an_RGB_color[srgb]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-9ce10496444d",
+      "source": "upstream-test-inventory.json#/unit_cases/1004",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_itself_to_an_RGB_color[sys]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-0ab2635f4d42",
+      "source": "upstream-test-inventory.json#/unit_cases/1005",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_raises_on_assign_non_RGBColor_type_to_rgb",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-f225da420726",
+      "source": "upstream-test-inventory.json#/unit_cases/1006",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_itself_to_a_theme_color[none]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-b461f69110e1",
+      "source": "upstream-test-inventory.json#/unit_cases/1007",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_itself_to_a_theme_color[hsl]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-04e8adbefb66",
+      "source": "upstream-test-inventory.json#/unit_cases/1008",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_itself_to_a_theme_color[prst]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-09201ac3712e",
+      "source": "upstream-test-inventory.json#/unit_cases/1009",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_itself_to_a_theme_color[scheme]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-a8e43fe8f3af",
+      "source": "upstream-test-inventory.json#/unit_cases/1010",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_itself_to_a_theme_color[scrgb]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-db933e8534e4",
+      "source": "upstream-test-inventory.json#/unit_cases/1011",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_itself_to_a_theme_color[srgb]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-03a3b1ca92e3",
+      "source": "upstream-test-inventory.json#/unit_cases/1012",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_itself_to_a_theme_color[sys]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-8083d478c0cf",
+      "source": "upstream-test-inventory.json#/unit_cases/1013",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_its_brightness_adjustment[0 to 0]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-078dbb0b42a0",
+      "source": "upstream-test-inventory.json#/unit_cases/1014",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_its_brightness_adjustment[0 to -0.4]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-efafb0a45dcc",
+      "source": "upstream-test-inventory.json#/unit_cases/1015",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_its_brightness_adjustment[0.15 to 0.25]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-889449b0f6f7",
+      "source": "upstream-test-inventory.json#/unit_cases/1016",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_its_brightness_adjustment[0.15 to -0.15]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-d28bc1b5d4b4",
+      "source": "upstream-test-inventory.json#/unit_cases/1017",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_its_brightness_adjustment[-0.25 to 0.4]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-2ac2bed2fda6",
+      "source": "upstream-test-inventory.json#/unit_cases/1018",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_its_brightness_adjustment[-0.3 to -0.4]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-a6c7702362e1",
+      "source": "upstream-test-inventory.json#/unit_cases/1019",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_can_set_its_brightness_adjustment[-0.4 to 0]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-ee77c3516ef3",
+      "source": "upstream-test-inventory.json#/unit_cases/1020",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_raises_on_attempt_to_set_brightness_out_of_range",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-b576e9020c90",
+      "source": "upstream-test-inventory.json#/unit_cases/1021",
+      "identity": "tests/dml/test_color.py::DescribeColorFormat::it_raises_on_attempt_to_set_brightness_on_None_color_type",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-851ef5a7f943",
+      "source": "upstream-test-inventory.json#/unit_cases/1022",
+      "identity": "tests/dml/test_color.py::DescribeRGBColor::it_is_natively_constructed_using_three_ints_0_to_255",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-cf1d01d44aca",
+      "source": "upstream-test-inventory.json#/unit_cases/1023",
+      "identity": "tests/dml/test_color.py::DescribeRGBColor::it_can_construct_from_a_hex_string_rgb_value",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-99641a1ca557",
+      "source": "upstream-test-inventory.json#/unit_cases/1024",
+      "identity": "tests/dml/test_color.py::DescribeRGBColor::it_can_provide_a_hex_string_rgb_value",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-e1c4aaf4cfcb",
+      "source": "upstream-test-inventory.json#/unit_cases/1379",
+      "identity": "tests/oxml/test_dml.py::DescribeCT_SchemeColor::it_is_used_by_the_parser_for_a_schemeClr_element",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-686122ff04ec",
+      "source": "upstream-test-inventory.json#/unit_cases/1380",
+      "identity": "tests/oxml/test_dml.py::DescribeCT_SchemeColor::it_knows_the_theme_color_idx",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-b2469d7e016c",
+      "source": "upstream-test-inventory.json#/unit_cases/1381",
+      "identity": "tests/oxml/test_dml.py::DescribeCT_SchemeColor::it_can_set_the_scheme_color_value",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-e61a135e558c",
+      "source": "upstream-test-inventory.json#/unit_cases/2579",
+      "identity": "tests/text/test_text.py::DescribeFont::it_knows_its_bold_setting[bold_get_fixture0]",
+      "disposition": "read_behavior_verified_model_api_pending",
+      "original_test": "packages/pptx/src/text-style-resolution.test.ts > reads isolated bold",
+      "reason": "Each parameter variant is retained in the isolated getter table. Original typeface text replaces the arbitrary source label; 304800 EMU is independently asserted as 24 points in this display inventory, not a change to the model unit contract."
+    },
+    {
+      "case_id": "presentation-unit-a7b25ad9fd8d",
+      "source": "upstream-test-inventory.json#/unit_cases/2580",
+      "identity": "tests/text/test_text.py::DescribeFont::it_knows_its_bold_setting[bold_get_fixture1]",
+      "disposition": "read_behavior_verified_model_api_pending",
+      "original_test": "packages/pptx/src/text-style-resolution.test.ts > reads isolated bold",
+      "reason": "Each parameter variant is retained in the isolated getter table. Original typeface text replaces the arbitrary source label; 304800 EMU is independently asserted as 24 points in this display inventory, not a change to the model unit contract."
+    },
+    {
+      "case_id": "presentation-unit-8429324d5f3a",
+      "source": "upstream-test-inventory.json#/unit_cases/2581",
+      "identity": "tests/text/test_text.py::DescribeFont::it_knows_its_bold_setting[bold_get_fixture2]",
+      "disposition": "read_behavior_verified_model_api_pending",
+      "original_test": "packages/pptx/src/text-style-resolution.test.ts > reads isolated bold",
+      "reason": "Each parameter variant is retained in the isolated getter table. Original typeface text replaces the arbitrary source label; 304800 EMU is independently asserted as 24 points in this display inventory, not a change to the model unit contract."
+    },
+    {
+      "case_id": "presentation-unit-219d79d4584d",
+      "source": "upstream-test-inventory.json#/unit_cases/2582",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_bold_setting[bold_set_fixture0]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-f4ac8e8b5710",
+      "source": "upstream-test-inventory.json#/unit_cases/2583",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_bold_setting[bold_set_fixture1]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-73a9db141d4e",
+      "source": "upstream-test-inventory.json#/unit_cases/2584",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_bold_setting[bold_set_fixture2]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-65681b909600",
+      "source": "upstream-test-inventory.json#/unit_cases/2585",
+      "identity": "tests/text/test_text.py::DescribeFont::it_knows_its_italic_setting[italic_get_fixture0]",
+      "disposition": "read_behavior_verified_model_api_pending",
+      "original_test": "packages/pptx/src/text-style-resolution.test.ts > reads isolated italic",
+      "reason": "Each parameter variant is retained in the isolated getter table. Original typeface text replaces the arbitrary source label; 304800 EMU is independently asserted as 24 points in this display inventory, not a change to the model unit contract."
+    },
+    {
+      "case_id": "presentation-unit-15743dfa2a91",
+      "source": "upstream-test-inventory.json#/unit_cases/2586",
+      "identity": "tests/text/test_text.py::DescribeFont::it_knows_its_italic_setting[italic_get_fixture1]",
+      "disposition": "read_behavior_verified_model_api_pending",
+      "original_test": "packages/pptx/src/text-style-resolution.test.ts > reads isolated italic",
+      "reason": "Each parameter variant is retained in the isolated getter table. Original typeface text replaces the arbitrary source label; 304800 EMU is independently asserted as 24 points in this display inventory, not a change to the model unit contract."
+    },
+    {
+      "case_id": "presentation-unit-f99e5bfd52d5",
+      "source": "upstream-test-inventory.json#/unit_cases/2587",
+      "identity": "tests/text/test_text.py::DescribeFont::it_knows_its_italic_setting[italic_get_fixture2]",
+      "disposition": "read_behavior_verified_model_api_pending",
+      "original_test": "packages/pptx/src/text-style-resolution.test.ts > reads isolated italic",
+      "reason": "Each parameter variant is retained in the isolated getter table. Original typeface text replaces the arbitrary source label; 304800 EMU is independently asserted as 24 points in this display inventory, not a change to the model unit contract."
+    },
+    {
+      "case_id": "presentation-unit-9c493d19cb5d",
+      "source": "upstream-test-inventory.json#/unit_cases/2588",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_italic_setting[italic_set_fixture0]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-af0e064c3abf",
+      "source": "upstream-test-inventory.json#/unit_cases/2589",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_italic_setting[italic_set_fixture1]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-b2793eeafcfb",
+      "source": "upstream-test-inventory.json#/unit_cases/2590",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_italic_setting[italic_set_fixture2]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-c5133c14ae95",
+      "source": "upstream-test-inventory.json#/unit_cases/2591",
+      "identity": "tests/text/test_text.py::DescribeFont::it_knows_its_language_id[language_id_get_fixture0]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-70954c623850",
+      "source": "upstream-test-inventory.json#/unit_cases/2592",
+      "identity": "tests/text/test_text.py::DescribeFont::it_knows_its_language_id[language_id_get_fixture1]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-537f42e200d3",
+      "source": "upstream-test-inventory.json#/unit_cases/2593",
+      "identity": "tests/text/test_text.py::DescribeFont::it_knows_its_language_id[language_id_get_fixture2]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-664bdeb551aa",
+      "source": "upstream-test-inventory.json#/unit_cases/2594",
+      "identity": "tests/text/test_text.py::DescribeFont::it_knows_its_language_id[language_id_get_fixture3]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-0cbcc68640a8",
+      "source": "upstream-test-inventory.json#/unit_cases/2595",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_language_id_setting[language_id_set_fixture0]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-b1ed784ba3b6",
+      "source": "upstream-test-inventory.json#/unit_cases/2596",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_language_id_setting[language_id_set_fixture1]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-7a463ae3cb44",
+      "source": "upstream-test-inventory.json#/unit_cases/2597",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_language_id_setting[language_id_set_fixture2]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-0e266d34ddee",
+      "source": "upstream-test-inventory.json#/unit_cases/2598",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_language_id_setting[language_id_set_fixture3]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-b99f7748f24a",
+      "source": "upstream-test-inventory.json#/unit_cases/2599",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_language_id_setting[language_id_set_fixture4]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-cfec37ab0369",
+      "source": "upstream-test-inventory.json#/unit_cases/2600",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_language_id_setting[language_id_set_fixture5]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-004a763e0fe6",
+      "source": "upstream-test-inventory.json#/unit_cases/2601",
+      "identity": "tests/text/test_text.py::DescribeFont::it_knows_its_underline_setting[underline_get_fixture0]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-28e835da501d",
+      "source": "upstream-test-inventory.json#/unit_cases/2602",
+      "identity": "tests/text/test_text.py::DescribeFont::it_knows_its_underline_setting[underline_get_fixture1]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-8404e0b70bae",
+      "source": "upstream-test-inventory.json#/unit_cases/2603",
+      "identity": "tests/text/test_text.py::DescribeFont::it_knows_its_underline_setting[underline_get_fixture2]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-1e9de3a0ddb2",
+      "source": "upstream-test-inventory.json#/unit_cases/2604",
+      "identity": "tests/text/test_text.py::DescribeFont::it_knows_its_underline_setting[underline_get_fixture3]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-e3d005e3521c",
+      "source": "upstream-test-inventory.json#/unit_cases/2605",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_underline_setting[underline_set_fixture0]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-a986e80c6d9d",
+      "source": "upstream-test-inventory.json#/unit_cases/2606",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_underline_setting[underline_set_fixture1]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-b271a0cd3187",
+      "source": "upstream-test-inventory.json#/unit_cases/2607",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_underline_setting[underline_set_fixture2]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-faaa1c7649fb",
+      "source": "upstream-test-inventory.json#/unit_cases/2608",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_underline_setting[underline_set_fixture3]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-4be95af76b78",
+      "source": "upstream-test-inventory.json#/unit_cases/2609",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_underline_setting[underline_set_fixture4]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-b6d679b97a1f",
+      "source": "upstream-test-inventory.json#/unit_cases/2610",
+      "identity": "tests/text/test_text.py::DescribeFont::it_knows_its_size[size_get_fixture0]",
+      "disposition": "read_behavior_verified_model_api_pending",
+      "original_test": "packages/pptx/src/text-style-resolution.test.ts > reads isolated size",
+      "reason": "Each parameter variant is retained in the isolated getter table. Original typeface text replaces the arbitrary source label; 304800 EMU is independently asserted as 24 points in this display inventory, not a change to the model unit contract."
+    },
+    {
+      "case_id": "presentation-unit-25f48516eba5",
+      "source": "upstream-test-inventory.json#/unit_cases/2611",
+      "identity": "tests/text/test_text.py::DescribeFont::it_knows_its_size[size_get_fixture1]",
+      "disposition": "read_behavior_verified_model_api_pending",
+      "original_test": "packages/pptx/src/text-style-resolution.test.ts > reads isolated size",
+      "reason": "Each parameter variant is retained in the isolated getter table. Original typeface text replaces the arbitrary source label; 304800 EMU is independently asserted as 24 points in this display inventory, not a change to the model unit contract."
+    },
+    {
+      "case_id": "presentation-unit-b9002d183c07",
+      "source": "upstream-test-inventory.json#/unit_cases/2612",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_size[size_set_fixture0]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-9de3fc1e776d",
+      "source": "upstream-test-inventory.json#/unit_cases/2613",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_size[size_set_fixture1]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-553cf920aa58",
+      "source": "upstream-test-inventory.json#/unit_cases/2614",
+      "identity": "tests/text/test_text.py::DescribeFont::it_knows_its_latin_typeface[name_get_fixture0]",
+      "disposition": "read_behavior_verified_model_api_pending",
+      "original_test": "packages/pptx/src/text-style-resolution.test.ts > reads isolated typeface",
+      "reason": "Each parameter variant is retained in the isolated getter table. Original typeface text replaces the arbitrary source label; 304800 EMU is independently asserted as 24 points in this display inventory, not a change to the model unit contract."
+    },
+    {
+      "case_id": "presentation-unit-241860800f0f",
+      "source": "upstream-test-inventory.json#/unit_cases/2615",
+      "identity": "tests/text/test_text.py::DescribeFont::it_knows_its_latin_typeface[name_get_fixture1]",
+      "disposition": "read_behavior_verified_model_api_pending",
+      "original_test": "packages/pptx/src/text-style-resolution.test.ts > reads isolated typeface",
+      "reason": "Each parameter variant is retained in the isolated getter table. Original typeface text replaces the arbitrary source label; 304800 EMU is independently asserted as 24 points in this display inventory, not a change to the model unit contract."
+    },
+    {
+      "case_id": "presentation-unit-21d415302229",
+      "source": "upstream-test-inventory.json#/unit_cases/2616",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_latin_typeface[name_set_fixture0]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-0e5c4f4360d0",
+      "source": "upstream-test-inventory.json#/unit_cases/2617",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_latin_typeface[name_set_fixture1]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-66967783c4fd",
+      "source": "upstream-test-inventory.json#/unit_cases/2618",
+      "identity": "tests/text/test_text.py::DescribeFont::it_can_change_its_latin_typeface[name_set_fixture2]",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-765f46580507",
+      "source": "upstream-test-inventory.json#/unit_cases/2619",
+      "identity": "tests/text/test_text.py::DescribeFont::it_provides_access_to_its_color",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-unit-a038442712cd",
+      "source": "upstream-test-inventory.json#/unit_cases/2620",
+      "identity": "tests/text/test_text.py::DescribeFont::it_provides_access_to_its_fill",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-bdd-0db9ee238f86",
+      "source": "upstream-test-inventory.json#/bdd_cases/859",
+      "identity": "Get font color type -- @1.1 Color type settings",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-bdd-af2cc29680d6",
+      "source": "upstream-test-inventory.json#/bdd_cases/860",
+      "identity": "Get font color type -- @1.2 Color type settings",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-bdd-e8eac1bb95aa",
+      "source": "upstream-test-inventory.json#/bdd_cases/861",
+      "identity": "Get font color type -- @1.3 Color type settings",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-bdd-2fb9e201b010",
+      "source": "upstream-test-inventory.json#/bdd_cases/862",
+      "identity": "Get font RGB color",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-bdd-a8a3261ed4f4",
+      "source": "upstream-test-inventory.json#/bdd_cases/863",
+      "identity": "Get font theme color",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-bdd-33e2ba9e2c6c",
+      "source": "upstream-test-inventory.json#/bdd_cases/864",
+      "identity": "Get font color brightness -- @1.1 Color brightness settings",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-bdd-0ca94b6cc83d",
+      "source": "upstream-test-inventory.json#/bdd_cases/865",
+      "identity": "Get font color brightness -- @1.2 Color brightness settings",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-bdd-e4334eb60057",
+      "source": "upstream-test-inventory.json#/bdd_cases/866",
+      "identity": "Get font color brightness -- @1.3 Color brightness settings",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-bdd-37fc44deff85",
+      "source": "upstream-test-inventory.json#/bdd_cases/867",
+      "identity": "Set font color -- @1.1 Color types",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-bdd-721fa3f81200",
+      "source": "upstream-test-inventory.json#/bdd_cases/868",
+      "identity": "Set font color -- @1.2 Color types",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-bdd-037511d844c0",
+      "source": "upstream-test-inventory.json#/bdd_cases/869",
+      "identity": "Set font color brightness -- @1.1 Color types",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-bdd-1602eef76eb4",
+      "source": "upstream-test-inventory.json#/bdd_cases/870",
+      "identity": "Set font color brightness -- @1.2 Color types",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    },
+    {
+      "case_id": "presentation-bdd-a63c00765185",
+      "source": "upstream-test-inventory.json#/bdd_cases/871",
+      "identity": "Set font color brightness -- @1.3 Color types",
+      "disposition": "adjacent_model_or_color_editing_obligation",
+      "original_test": null,
+      "reason": "The source case exercises the live Font/ColorFormat object, color transforms, enum access or setters. This task adds a read-only effective-style inventory; it does not claim that model API or close this source case. Existing whole-API and case-ledger obligations remain open."
+    }
+  ],
+  "api_rows": [
+    {
+      "source_id": "pptx.text.text.Font",
+      "status": "model_api_pending",
+      "mapping": "J01/J02/J04/J06: retain neutral property names and live direct access in the future model; this read-only async operation inventory is not a model getter implementation."
+    },
+    {
+      "source_id": "pptx.text.text.Font.__init__",
+      "status": "model_api_pending",
+      "mapping": "J01/J02/J04/J06: retain neutral property names and live direct access in the future model; this read-only async operation inventory is not a model getter implementation."
+    },
+    {
+      "source_id": "pptx.text.text.Font.bold",
+      "status": "model_api_pending",
+      "mapping": "J01/J02/J04/J06: retain neutral property names and live direct access in the future model; this read-only async operation inventory is not a model getter implementation."
+    },
+    {
+      "source_id": "pptx.text.text.Font.color",
+      "status": "model_api_pending",
+      "mapping": "J01/J02/J04/J06: retain neutral property names and live direct access in the future model; this read-only async operation inventory is not a model getter implementation."
+    },
+    {
+      "source_id": "pptx.text.text.Font.fill",
+      "status": "model_api_pending",
+      "mapping": "J01/J02/J04/J06: retain neutral property names and live direct access in the future model; this read-only async operation inventory is not a model getter implementation."
+    },
+    {
+      "source_id": "pptx.text.text.Font.italic",
+      "status": "model_api_pending",
+      "mapping": "J01/J02/J04/J06: retain neutral property names and live direct access in the future model; this read-only async operation inventory is not a model getter implementation."
+    },
+    {
+      "source_id": "pptx.text.text.Font.language_id",
+      "status": "model_api_pending",
+      "mapping": "J01/J02/J04/J06: retain neutral property names and live direct access in the future model; this read-only async operation inventory is not a model getter implementation."
+    },
+    {
+      "source_id": "pptx.text.text.Font.name",
+      "status": "model_api_pending",
+      "mapping": "J01/J02/J04/J06: retain neutral property names and live direct access in the future model; this read-only async operation inventory is not a model getter implementation."
+    },
+    {
+      "source_id": "pptx.text.text.Font.size",
+      "status": "model_api_pending",
+      "mapping": "J01/J02/J04/J06: retain neutral property names and live direct access in the future model; this read-only async operation inventory is not a model getter implementation."
+    },
+    {
+      "source_id": "pptx.text.text.Font.underline",
+      "status": "model_api_pending",
+      "mapping": "J01/J02/J04/J06: retain neutral property names and live direct access in the future model; this read-only async operation inventory is not a model getter implementation."
+    }
+  ]
+}

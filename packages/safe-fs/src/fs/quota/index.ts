@@ -171,6 +171,10 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
     if (projected > options.maxBytes) throw new FileSystemQuotaError(options.maxBytes);
   };
   const mutations: Partial<FileSystem> = {
+    async open(path, openOptions) {
+      openOptions.signal?.throwIfAborted();
+      throw new FsError("ENOTSUP", { syscall: "open", path });
+    },
     openResizeFile(path, resizeOptions = {}) {
       return mutate(async () => {
         let retained: FileResizeHandle | undefined;
@@ -294,7 +298,7 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
   // capabilities and methods without violating invariants on own properties.
   return new Proxy(Object.create(fs) as FileSystem, {
     get(_target, property) {
-      if (property === "removeEntryConditional" || property === "writeFileConditional" || property === "removeFileConditional" || property === "resizeFile" || property === "canonicalizeMissingTarget" || property === "createStagedFile" || property === "publishStagedFile" || property === "removeStagedFile" || property === "prepareDirectory") return undefined;
+      if (property === "removeEntryConditional" || property === "unlink" || property === "writeFileConditional" || property === "removeFileConditional" || property === "resizeFile" || property === "canonicalizeMissingTarget" || property === "createStagedFile" || property === "publishStagedFile" || property === "removeStagedFile" || property === "prepareDirectory") return undefined;
       if (property === "capabilities") return quotaCapabilities(retainedResizeCapabilities(fs, retainedReadCapabilities(fs)));
       if (property === "capabilitiesFor") return async (path: string, fsOptions?: FsOptions) => {
         const capabilities = await fs.capabilitiesFor?.(path, fsOptions) ?? fs.capabilities;

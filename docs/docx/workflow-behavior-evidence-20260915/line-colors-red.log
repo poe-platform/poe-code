@@ -1,0 +1,516 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts (307 tests | 7 failed) 11989ms
+   ✓ workflow-352 observes cell grid_span read 46ms
+   ✓ workflow-353 observes cell grid_span read 41ms
+   ✓ workflow-354 observes cell grid_span read 41ms
+   ✓ workflow-355 observes cell vertical_alignment read 40ms
+   ✓ workflow-356 observes cell vertical_alignment read 40ms
+   ✓ workflow-357 observes cell vertical_alignment read 41ms
+   ✓ workflow-358 observes cell vertical_alignment transition 44ms
+   ✓ workflow-359 observes cell vertical_alignment transition 40ms
+   ✓ workflow-360 observes cell vertical_alignment transition 39ms
+   ✓ workflow-361 observes cell vertical_alignment transition 40ms
+   ✓ workflow-362 observes cell width read 38ms
+   ✓ workflow-363 observes cell width read 39ms
+   ✓ workflow-364 observes cell width transition 39ms
+   ✓ workflow-365 observes cell width transition 39ms
+   ✓ workflow-367 observes column width read 37ms
+   ✓ workflow-368 observes column width read 37ms
+   ✓ workflow-369 observes column width transition 39ms
+   ✓ workflow-370 observes column width transition 39ms
+   ✓ workflow-371 observes column width transition 39ms
+   ✓ workflow-372 observes column width transition 40ms
+   ✓ workflow-373 observes column width transition 39ms
+   ✓ workflow-392 observes table alignment read 39ms
+   ✓ workflow-393 observes table alignment read 39ms
+   ✓ workflow-394 observes table alignment read 38ms
+   ✓ workflow-395 observes table alignment read 41ms
+   ✓ workflow-396 observes table alignment transition 44ms
+   ✓ workflow-397 observes table alignment transition 42ms
+   ✓ workflow-398 observes table alignment transition 44ms
+   ✓ workflow-399 observes table alignment transition 42ms
+   ✓ workflow-400 observes table autofit read 39ms
+   ✓ workflow-401 observes table autofit read 37ms
+   ✓ workflow-402 observes table autofit read 39ms
+   ✓ workflow-403 observes table autofit transition 39ms
+   ✓ workflow-404 observes table autofit transition 39ms
+   ✓ workflow-405 observes table autofit transition 39ms
+   ✓ workflow-406 observes table autofit transition 38ms
+   ✓ workflow-407 observes table autofit transition 38ms
+   ✓ workflow-408 observes table autofit transition 37ms
+   ✓ workflow-409 observes table table_direction read 38ms
+   ✓ workflow-410 observes table table_direction read 37ms
+   ✓ workflow-411 observes table table_direction read 38ms
+   ✓ workflow-412 observes table table_direction transition 36ms
+   ✓ workflow-413 observes table table_direction transition 37ms
+   ✓ workflow-414 observes table table_direction transition 37ms
+   ✓ workflow-415 observes row grid_cols_after read 38ms
+   ✓ workflow-416 observes row grid_cols_after read 38ms
+   ✓ workflow-417 observes row grid_cols_after read 37ms
+   ✓ workflow-418 observes row grid_cols_before read 37ms
+   ✓ workflow-419 observes row grid_cols_before read 37ms
+   ✓ workflow-420 observes row grid_cols_before read 38ms
+   ✓ workflow-421 observes row height_rule read 38ms
+   ✓ workflow-422 observes row height_rule read 38ms
+   ✓ workflow-423 observes row height_rule read 37ms
+   ✓ workflow-424 observes row height_rule transition 37ms
+   ✓ workflow-425 observes row height_rule transition 37ms
+   ✓ workflow-426 observes row height_rule transition 37ms
+   ✓ workflow-427 observes row height_rule transition 38ms
+   ✓ workflow-428 observes row height read 38ms
+   ✓ workflow-429 observes row height read 37ms
+   ✓ workflow-430 observes row height read 38ms
+   ✓ workflow-431 observes row height transition 37ms
+   ✓ workflow-432 observes row height transition 37ms
+   ✓ workflow-433 observes row height transition 38ms
+   ✓ workflow-434 observes row height transition 38ms
+   ✓ workflow-163 observes font underline variant 37ms
+   ✓ workflow-164 observes font underline variant 36ms
+   ✓ workflow-165 observes font underline variant 37ms
+   ✓ workflow-166 observes font underline variant 37ms
+   ✓ workflow-167 observes font underline variant 40ms
+   ✓ workflow-168 observes font underline variant 38ms
+   ✓ workflow-169 observes font underline variant 39ms
+   ✓ workflow-170 observes font underline variant 39ms
+   ✓ workflow-171 observes font underline variant 39ms
+   ✓ workflow-172 observes font underline variant 38ms
+   ✓ workflow-173 observes font underline variant 39ms
+   ✓ workflow-174 observes font underline variant 38ms
+   ✓ workflow-175 observes font underline variant 39ms
+   ✓ workflow-176 observes font underline variant 39ms
+   ✓ workflow-470 observes font highlight_color variant 38ms
+   ✓ workflow-471 observes font highlight_color variant 38ms
+   ✓ workflow-472 observes font highlight_color variant 37ms
+   ✓ workflow-473 observes font highlight_color variant 37ms
+   ✓ workflow-474 observes font highlight_color variant 37ms
+   ✓ workflow-475 observes font highlight_color variant 39ms
+   ✓ workflow-476 observes font name variant 38ms
+   ✓ workflow-477 observes font name variant 37ms
+   ✓ workflow-478 observes font name variant 37ms
+   ✓ workflow-479 observes font name variant 37ms
+   ✓ workflow-480 observes font name variant 38ms
+   ✓ workflow-481 observes font size variant 38ms
+   ✓ workflow-482 observes font size variant 37ms
+   ✓ workflow-483 observes font size variant 39ms
+   ✓ workflow-484 observes font size variant 39ms
+   ✓ workflow-485 observes font size variant 39ms
+   ✓ workflow-487 observes font underline variant 38ms
+   ✓ workflow-488 observes font underline variant 38ms
+   ✓ workflow-489 observes font underline variant 36ms
+   ✓ workflow-490 observes font underline variant 38ms
+   ✓ workflow-491 observes font underline variant 38ms
+   ✓ workflow-492 observes font underline variant 37ms
+   ✓ workflow-493 observes font underline variant 38ms
+   ✓ workflow-494 observes font underline variant 38ms
+   ✓ workflow-495 observes font underline variant 39ms
+   ✓ workflow-496 observes font underline variant 39ms
+   ✓ workflow-497 observes font underline variant 39ms
+   ✓ workflow-498 observes font underline variant 38ms
+   ✓ workflow-499 observes font underline variant 38ms
+   ✓ workflow-500 observes font underline variant 37ms
+   ✓ workflow-501 observes font vertical alignment variant 37ms
+   ✓ workflow-502 observes font vertical alignment variant 38ms
+   ✓ workflow-503 observes font vertical alignment variant 35ms
+   ✓ workflow-504 observes font vertical alignment variant 39ms
+   ✓ workflow-505 observes font vertical alignment variant 36ms
+   ✓ workflow-506 observes font vertical alignment variant 36ms
+   ✓ workflow-507 observes font vertical alignment variant 39ms
+   ✓ workflow-508 observes font vertical alignment variant 37ms
+   ✓ workflow-509 observes font vertical alignment variant 37ms
+   ✓ workflow-510 observes font vertical alignment variant 38ms
+   ✓ workflow-511 observes font vertical alignment variant 38ms
+   ✓ workflow-512 observes font vertical alignment variant 37ms
+   ✓ workflow-513 observes font vertical alignment variant 38ms
+   ✓ workflow-514 observes font vertical alignment variant 38ms
+   ✓ workflow-515 observes font vertical alignment variant 37ms
+   ✓ workflow-516 observes font vertical alignment variant 39ms
+   ✓ workflow-517 observes font vertical alignment variant 39ms
+   ✓ workflow-518 observes font vertical alignment variant 39ms
+   ✓ workflow-519 observes font vertical alignment variant 40ms
+   ✓ workflow-520 observes font vertical alignment variant 37ms
+   ✓ workflow-521 observes font vertical alignment variant 38ms
+   ✓ workflow-522 observes font all_caps variant 38ms
+   ✓ workflow-523 observes font bold variant 39ms
+   ✓ workflow-524 observes font complex_script variant 38ms
+   ✓ workflow-525 observes font cs_bold variant 39ms
+   ✓ workflow-526 observes font cs_italic variant 37ms
+   ✓ workflow-527 observes font double_strike variant 38ms
+   ✓ workflow-528 observes font emboss variant 40ms
+   ✓ workflow-529 observes font hidden variant 37ms
+   ✓ workflow-530 observes font italic variant 38ms
+   ✓ workflow-531 observes font imprint variant 39ms
+   ✓ workflow-532 observes font math variant 39ms
+   ✓ workflow-533 observes font no_proof variant 39ms
+   ✓ workflow-534 observes font outline variant 39ms
+   ✓ workflow-535 observes font rtl variant 38ms
+   ✓ workflow-536 observes font shadow variant 37ms
+   ✓ workflow-537 observes font small_caps variant 39ms
+   ✓ workflow-538 observes font snap_to_grid variant 38ms
+   ✓ workflow-539 observes font spec_vanish variant 38ms
+   ✓ workflow-540 observes font strike variant 36ms
+   ✓ workflow-541 observes font web_hidden variant 37ms
+   ✓ workflow-542 observes font all_caps variant 36ms
+   ✓ workflow-543 observes font bold variant 37ms
+   ✓ workflow-544 observes font complex_script variant 39ms
+   ✓ workflow-545 observes font cs_bold variant 37ms
+   ✓ workflow-546 observes font cs_italic variant 40ms
+   ✓ workflow-547 observes font double_strike variant 40ms
+   ✓ workflow-548 observes font emboss variant 39ms
+   ✓ workflow-549 observes font hidden variant 42ms
+   ✓ workflow-550 observes font italic variant 43ms
+   ✓ workflow-551 observes font imprint variant 44ms
+   ✓ workflow-552 observes font math variant 44ms
+   ✓ workflow-553 observes font no_proof variant 42ms
+   ✓ workflow-554 observes font outline variant 43ms
+   ✓ workflow-555 observes font rtl variant 41ms
+   ✓ workflow-556 observes font shadow variant 39ms
+   ✓ workflow-557 observes font small_caps variant 38ms
+   ✓ workflow-558 observes font snap_to_grid variant 39ms
+   ✓ workflow-559 observes font spec_vanish variant 38ms
+   ✓ workflow-560 observes font strike variant 37ms
+   ✓ workflow-561 observes font web_hidden variant 38ms
+   ✓ workflow-562 observes font all_caps variant 38ms
+   ✓ workflow-563 observes font bold variant 39ms
+   ✓ workflow-564 observes font complex_script variant 38ms
+   ✓ workflow-565 observes font cs_bold variant 39ms
+   ✓ workflow-566 observes font cs_italic variant 38ms
+   ✓ workflow-567 observes font double_strike variant 38ms
+   ✓ workflow-568 observes font emboss variant 37ms
+   ✓ workflow-569 observes font hidden variant 39ms
+   ✓ workflow-570 observes font italic variant 39ms
+   ✓ workflow-571 observes font imprint variant 39ms
+   ✓ workflow-572 observes font math variant 39ms
+   ✓ workflow-573 observes font no_proof variant 39ms
+   ✓ workflow-574 observes font outline variant 39ms
+   ✓ workflow-575 observes font rtl variant 41ms
+   ✓ workflow-576 observes font shadow variant 40ms
+   ✓ workflow-577 observes font small_caps variant 43ms
+   ✓ workflow-578 observes font snap_to_grid variant 46ms
+   ✓ workflow-579 observes font spec_vanish variant 43ms
+   ✓ workflow-580 observes font strike variant 41ms
+   ✓ workflow-581 observes font web_hidden variant 38ms
+   ✓ workflow-583 observes paragraph alignment variant 38ms
+   ✓ workflow-584 observes paragraph alignment variant 37ms
+   ✓ workflow-585 observes paragraph alignment variant 38ms
+   ✓ workflow-586 observes paragraph alignment variant 38ms
+   ✓ workflow-587 observes paragraph alignment variant 38ms
+   ✓ workflow-588 observes paragraph alignment variant 36ms
+   ✓ workflow-589 observes paragraph space_before variant 37ms
+   ✓ workflow-590 observes paragraph space_before variant 35ms
+   ✓ workflow-591 observes paragraph space_after variant 36ms
+   ✓ workflow-592 observes paragraph space_after variant 38ms
+   ✓ workflow-593 observes paragraph space_before variant 38ms
+   ✓ workflow-594 observes paragraph space_before variant 39ms
+   ✓ workflow-595 observes paragraph space_before variant 39ms
+   ✓ workflow-596 observes paragraph space_after variant 37ms
+   ✓ workflow-597 observes paragraph space_after variant 39ms
+   ✓ workflow-598 observes paragraph space_after variant 37ms
+   ✓ workflow-611 observes paragraph first_line_indent variant 36ms
+   ✓ workflow-612 observes paragraph first_line_indent variant 36ms
+   ✓ workflow-613 observes paragraph first_line_indent variant 38ms
+   ✓ workflow-614 observes paragraph left_indent variant 38ms
+   ✓ workflow-615 observes paragraph left_indent variant 38ms
+   ✓ workflow-616 observes paragraph right_indent variant 38ms
+   ✓ workflow-617 observes paragraph right_indent variant 40ms
+   ✓ workflow-618 observes paragraph first_line_indent variant 38ms
+   ✓ workflow-619 observes paragraph first_line_indent variant 37ms
+   ✓ workflow-620 observes paragraph first_line_indent variant 40ms
+   ✓ workflow-621 observes paragraph left_indent variant 38ms
+   ✓ workflow-622 observes paragraph left_indent variant 39ms
+   ✓ workflow-623 observes paragraph left_indent variant 37ms
+   ✓ workflow-624 observes paragraph right_indent variant 37ms
+   ✓ workflow-625 observes paragraph right_indent variant 38ms
+   ✓ workflow-626 observes paragraph right_indent variant 38ms
+   ✓ workflow-627 observes paragraph keep_together variant 35ms
+   ✓ workflow-628 observes paragraph keep_together variant 36ms
+   ✓ workflow-629 observes paragraph keep_together variant 37ms
+   ✓ workflow-630 observes paragraph keep_with_next variant 38ms
+   ✓ workflow-631 observes paragraph keep_with_next variant 38ms
+   ✓ workflow-632 observes paragraph keep_with_next variant 38ms
+   ✓ workflow-633 observes paragraph page_break_before variant 42ms
+   ✓ workflow-634 observes paragraph page_break_before variant 38ms
+   ✓ workflow-635 observes paragraph page_break_before variant 37ms
+   ✓ workflow-636 observes paragraph widow_control variant 36ms
+   ✓ workflow-637 observes paragraph widow_control variant 37ms
+   ✓ workflow-638 observes paragraph widow_control variant 36ms
+   ✓ workflow-639 observes paragraph keep_together variant 37ms
+   ✓ workflow-640 observes paragraph keep_together variant 38ms
+   ✓ workflow-641 observes paragraph keep_together variant 37ms
+   ✓ workflow-642 observes paragraph keep_with_next variant 37ms
+   ✓ workflow-643 observes paragraph keep_with_next variant 35ms
+   ✓ workflow-644 observes paragraph keep_with_next variant 38ms
+   ✓ workflow-645 observes paragraph page_break_before variant 36ms
+   ✓ workflow-646 observes paragraph page_break_before variant 37ms
+   ✓ workflow-647 observes paragraph page_break_before variant 38ms
+   ✓ workflow-648 observes paragraph widow_control variant 36ms
+   ✓ workflow-649 observes paragraph widow_control variant 38ms
+   ✓ workflow-650 observes paragraph widow_control variant 39ms
+   ✓ workflow-339 observes logical grid content variant 47ms
+   ✓ workflow-340 observes logical grid content variant 47ms
+   ✓ workflow-341 observes logical grid content variant 47ms
+   ✓ workflow-342 observes logical grid content variant 45ms
+   ✓ workflow-343 observes logical grid content variant 47ms
+   ✓ workflow-344 observes logical grid content variant 45ms
+   ✓ workflow-345 observes logical grid content variant 47ms
+   ✓ workflow-346 observes logical grid content variant 45ms
+   ✓ workflow-347 observes logical grid content variant 45ms
+   ✓ workflow-348 observes logical grid content variant 45ms
+   ✓ workflow-349 observes logical grid content variant 45ms
+   ✓ workflow-350 observes logical grid content variant 46ms
+   ✓ workflow-378 observes logical grid content variant 48ms
+   ✓ workflow-379 observes logical grid content variant 48ms
+   ✓ workflow-380 observes logical grid content variant 47ms
+   ✓ workflow-381 observes logical grid content variant 48ms
+   ✓ workflow-382 observes logical grid content variant 49ms
+   ✓ workflow-383 observes logical grid content variant 49ms
+   ✓ workflow-384 observes logical grid content variant 46ms
+   ✓ workflow-385 observes logical grid content variant 48ms
+   ✓ workflow-386 observes logical grid content variant 47ms
+   ✓ workflow-387 observes logical grid content variant 48ms
+   ✓ workflow-388 observes logical grid content variant 46ms
+   ✓ workflow-389 observes logical grid content variant 48ms
+   ✓ workflow-390 observes logical grid content variant 46ms
+   ✓ workflow-391 observes logical grid content variant 47ms
+   ✓ workflow-446 observes font color type variant 38ms
+   ✓ workflow-447 observes font color type variant 37ms
+   ✓ workflow-448 observes font color type variant 36ms
+   ✓ workflow-449 observes font color type variant 37ms
+   ✓ workflow-450 observes font color rgb variant 38ms
+   ✓ workflow-451 observes font color rgb variant 38ms
+   ✓ workflow-452 observes font color rgb variant 38ms
+   ✓ workflow-453 observes font color rgb variant 37ms
+   ✓ workflow-454 observes font color rgb variant 39ms
+   ✓ workflow-455 observes font color rgb variant 39ms
+   ✓ workflow-456 observes font color rgb variant 38ms
+   ✓ workflow-457 observes font color rgb variant 38ms
+   ✓ workflow-458 observes font color rgb variant 38ms
+   ✓ workflow-459 observes font color rgb variant 37ms
+   ✓ workflow-460 observes font color theme_color variant 36ms
+   ✓ workflow-461 observes font color theme_color variant 38ms
+   ✓ workflow-462 observes font color theme_color variant 38ms
+   ✓ workflow-463 observes font color theme_color variant 38ms
+   ✓ workflow-464 observes font color theme_color variant 39ms
+   ✓ workflow-465 observes font color theme_color variant 39ms
+   ✓ workflow-466 observes font color theme_color variant 38ms
+   ✓ workflow-467 observes font color theme_color variant 39ms
+   ✓ workflow-468 observes font color theme_color variant 39ms
+   ✓ workflow-469 observes font color theme_color variant 39ms
+   ✓ workflow-599 observes line spacing variant 37ms
+   × workflow-600 observes line spacing variant 40ms
+   ✓ workflow-601 observes line spacing variant 38ms
+   × workflow-602 observes line spacing variant 38ms
+   ✓ workflow-603 observes line spacing variant 38ms
+   × workflow-604 observes line spacing variant 38ms
+   × workflow-605 observes line spacing variant 38ms
+   × workflow-606 observes line spacing variant 38ms
+   ✓ workflow-607 observes line spacing variant 38ms
+   ✓ workflow-608 observes line spacing variant 37ms
+   × workflow-609 observes line spacing variant 39ms
+   × workflow-610 observes line spacing variant 39ms
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-600 observes line spacing variant
+AssertionError: expected LengthValue{ value: 280, unit: 'twip' } to deeply equal LengthValue{ value: 177800, …(1) }
+
+- Expected
++ Received
+
+  LengthValue {
+-   "unit": "emu",
+-   "value": 177800,
++   "unit": "twip",
++   "value": 280,
+  }
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:2051:30
+    2049|  const document = await Document(await textFixture("<w:p><w:pPr><w:spa…
+    2050|  const target = document.paragraphs[0]!.paragraph_format;
+    2051|  expect(target.line_spacing).toEqual(Length(177800));
+       |                              ^
+    2052| expect(target.line_spacing_rule).toEqual(WD_LINE_SPACING.EXACTLY);
+    2053| });
+
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-602 observes line spacing variant
+AssertionError: expected LengthValue{ value: 280, unit: 'twip' } to deeply equal LengthValue{ value: 177800, …(1) }
+
+- Expected
++ Received
+
+  LengthValue {
+-   "unit": "emu",
+-   "value": 177800,
++   "unit": "twip",
++   "value": 280,
+  }
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:2066:29
+    2064|  const target = document.paragraphs[0]!.paragraph_format;
+    2065|  target.line_spacing = Pt(14);
+    2066| expect(target.line_spacing).toEqual(Length(177800));
+       |                             ^
+    2067| expect(target.line_spacing_rule).toEqual(WD_LINE_SPACING.EXACTLY);
+    2068| });
+
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-604 observes line spacing variant
+TypeError: Invalid line spacing.
+ ❯ ParagraphFormat.set line_spacing [as line_spacing] packages/docx/src/formatting-model.ts:160:209
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:2081:9
+
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-605 observes line spacing variant
+TypeError: Invalid line spacing.
+ ❯ ParagraphFormat.set line_spacing [as line_spacing] packages/docx/src/formatting-model.ts:160:209
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:2089:9
+
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-606 observes line spacing variant
+TypeError: Invalid line spacing.
+ ❯ ParagraphFormat.set line_spacing [as line_spacing] packages/docx/src/formatting-model.ts:160:209
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:2097:9
+
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-609 observes line spacing variant
+AssertionError: expected LengthValue{ value: 280, unit: 'twip' } to deeply equal LengthValue{ value: 177800, …(1) }
+
+- Expected
++ Received
+
+  LengthValue {
+-   "unit": "emu",
+-   "value": 177800,
++   "unit": "twip",
++   "value": 280,
+  }
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:2122:29
+    2120|  const target = document.paragraphs[0]!.paragraph_format;
+    2121|  target.line_spacing_rule = WD_LINE_SPACING.AT_LEAST;
+    2122| expect(target.line_spacing).toEqual(Length(177800));
+       |                             ^
+    2123| expect(target.line_spacing_rule).toEqual(WD_LINE_SPACING.AT_LEAST);
+    2124| });
+
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-610 observes line spacing variant
+AssertionError: expected 1.1666666666666667 to be close to 1.1666, received difference is 0.00006666666666665932, but expected 0.000049999999999999996
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:2130:29
+    2128|  const target = document.paragraphs[0]!.paragraph_format;
+    2129|  target.line_spacing_rule = null;
+    2130| expect(target.line_spacing).toBeCloseTo(1.1666, 4);
+       |                             ^
+    2131| expect(target.line_spacing_rule).toEqual(WD_LINE_SPACING.MULTIPLE);
+    2132| });
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-600 observes line spacing variant
+AssertionError: expected LengthValue{ value: 280, unit: 'twip' } to deeply equal LengthValue{ value: 177800, …(1) }
+
+- Expected
++ Received
+
+  LengthValue {
+-   "unit": "emu",
+-   "value": 177800,
++   "unit": "twip",
++   "value": 280,
+  }
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:2051:30
+    2049|  const document = await Document(await textFixture("<w:p><w:pPr><w:spa…
+    2050|  const target = document.paragraphs[0]!.paragraph_format;
+    2051|  expect(target.line_spacing).toEqual(Length(177800));
+       |                              ^
+    2052| expect(target.line_spacing_rule).toEqual(WD_LINE_SPACING.EXACTLY);
+    2053| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-602 observes line spacing variant
+AssertionError: expected LengthValue{ value: 280, unit: 'twip' } to deeply equal LengthValue{ value: 177800, …(1) }
+
+- Expected
++ Received
+
+  LengthValue {
+-   "unit": "emu",
+-   "value": 177800,
++   "unit": "twip",
++   "value": 280,
+  }
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:2066:29
+    2064|  const target = document.paragraphs[0]!.paragraph_format;
+    2065|  target.line_spacing = Pt(14);
+    2066| expect(target.line_spacing).toEqual(Length(177800));
+       |                             ^
+    2067| expect(target.line_spacing_rule).toEqual(WD_LINE_SPACING.EXACTLY);
+    2068| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-604 observes line spacing variant
+TypeError: Invalid line spacing.
+ ❯ ParagraphFormat.set line_spacing [as line_spacing] packages/docx/src/formatting-model.ts:160:209
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:2081:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-605 observes line spacing variant
+TypeError: Invalid line spacing.
+ ❯ ParagraphFormat.set line_spacing [as line_spacing] packages/docx/src/formatting-model.ts:160:209
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:2089:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-606 observes line spacing variant
+TypeError: Invalid line spacing.
+ ❯ ParagraphFormat.set line_spacing [as line_spacing] packages/docx/src/formatting-model.ts:160:209
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:2097:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-609 observes line spacing variant
+AssertionError: expected LengthValue{ value: 280, unit: 'twip' } to deeply equal LengthValue{ value: 177800, …(1) }
+
+- Expected
++ Received
+
+  LengthValue {
+-   "unit": "emu",
+-   "value": 177800,
++   "unit": "twip",
++   "value": 280,
+  }
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:2122:29
+    2120|  const target = document.paragraphs[0]!.paragraph_format;
+    2121|  target.line_spacing_rule = WD_LINE_SPACING.AT_LEAST;
+    2122| expect(target.line_spacing).toEqual(Length(177800));
+       |                             ^
+    2123| expect(target.line_spacing_rule).toEqual(WD_LINE_SPACING.AT_LEAST);
+    2124| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-610 observes line spacing variant
+AssertionError: expected 1.1666666666666667 to be close to 1.1666, received difference is 0.00006666666666665932, but expected 0.000049999999999999996
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:2130:29
+    2128|  const target = document.paragraphs[0]!.paragraph_format;
+    2129|  target.line_spacing_rule = null;
+    2130| expect(target.line_spacing).toBeCloseTo(1.1666, 4);
+       |                             ^
+    2131| expect(target.line_spacing_rule).toEqual(WD_LINE_SPACING.MULTIPLE);
+    2132| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed | 300 passed (307)
+   Start at  22:45:51
+   Duration  13.03s (transform 807ms, setup 27ms, import 953ms, tests 11.99s, environment 0ms)
+

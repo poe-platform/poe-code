@@ -1,0 +1,658 @@
+{
+  "schema_version": 1,
+  "source_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "Length helpers required by direct paragraph model spacing; original portable numeric values only.",
+  "counts": {
+    "unit_rows": 13,
+    "bdd_rows": 0,
+    "api_rows": 56
+  },
+  "verification": "All 13 source unit variants have original literal assertions; seven-class inherited accessor matrix covers all 56 API rows. Engine reports 27 passing original cases; maintained package check remains coordinator record.",
+  "mapping": "JavaScript class instances with explicit .emu and unit getters; no numeric subclass coercion. Safe integer EMUs, finite bounds, half-away-from-zero rounding exactly once. centipoints getter floors division including negative values. No I/O.",
+  "unit_cases": [
+    {
+      "source_id": "tests/test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture0]",
+      "status": "original-case-implemented",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "constructor": "Length",
+      "input": 914400,
+      "expected_emu": 914400,
+      "source_expected_emu": 914400,
+      "disposition": "same-value",
+      "target_test": "converts fractional authored length %s"
+    },
+    {
+      "source_id": "tests/test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture1]",
+      "status": "original-case-implemented",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "constructor": "Inches",
+      "input": 1.1,
+      "expected_emu": 1005840,
+      "source_expected_emu": 1005840,
+      "disposition": "same-value",
+      "target_test": "converts fractional authored length %s"
+    },
+    {
+      "source_id": "tests/test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture2]",
+      "status": "original-case-implemented",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "constructor": "Centipoints",
+      "input": 12.5,
+      "expected_emu": 1588,
+      "source_expected_emu": 1587,
+      "disposition": "intentional-J05-rounding-mapping",
+      "target_test": "stores converted lengths independently %s"
+    },
+    {
+      "source_id": "tests/test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture3]",
+      "status": "original-case-implemented",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "constructor": "Cm",
+      "input": 2.53,
+      "expected_emu": 910800,
+      "source_expected_emu": 910799,
+      "disposition": "intentional-J05-rounding-mapping",
+      "target_test": "stores converted lengths independently %s"
+    },
+    {
+      "source_id": "tests/test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture4]",
+      "status": "original-case-implemented",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "constructor": "Emu",
+      "input": 9144.9,
+      "expected_emu": 9145,
+      "source_expected_emu": 9144,
+      "disposition": "intentional-J05-rounding-mapping",
+      "target_test": "stores converted lengths independently %s"
+    },
+    {
+      "source_id": "tests/test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture5]",
+      "status": "original-case-implemented",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "constructor": "Mm",
+      "input": 13.8,
+      "expected_emu": 496800,
+      "source_expected_emu": 496800,
+      "disposition": "same-value",
+      "target_test": "converts fractional authored length %s"
+    },
+    {
+      "source_id": "tests/test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture6]",
+      "status": "original-case-implemented",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "constructor": "Pt",
+      "input": 24.5,
+      "expected_emu": 311150,
+      "source_expected_emu": 311150,
+      "disposition": "same-value",
+      "target_test": "converts fractional authored length %s"
+    },
+    {
+      "source_id": "tests/test_util.py::DescribeLength::it_can_self_convert_to_convenient_units[units_fixture0]",
+      "status": "original-case-implemented",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "input_emu": 914400,
+      "accessor": "inches",
+      "expected": 1,
+      "disposition": "same-value",
+      "target_test": "stores converted lengths independently %s"
+    },
+    {
+      "source_id": "tests/test_util.py::DescribeLength::it_can_self_convert_to_convenient_units[units_fixture1]",
+      "status": "original-case-implemented",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "input_emu": 914400,
+      "accessor": "centipoints",
+      "expected": 7200,
+      "disposition": "same-value",
+      "target_test": "stores converted lengths independently %s"
+    },
+    {
+      "source_id": "tests/test_util.py::DescribeLength::it_can_self_convert_to_convenient_units[units_fixture2]",
+      "status": "original-case-implemented",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "input_emu": 914400,
+      "accessor": "cm",
+      "expected": 2.54,
+      "disposition": "same-value",
+      "target_test": "stores converted lengths independently %s"
+    },
+    {
+      "source_id": "tests/test_util.py::DescribeLength::it_can_self_convert_to_convenient_units[units_fixture3]",
+      "status": "original-case-implemented",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "input_emu": 914400,
+      "accessor": "emu",
+      "expected": 914400,
+      "disposition": "same-value",
+      "target_test": "inherits every unit accessor %s"
+    },
+    {
+      "source_id": "tests/test_util.py::DescribeLength::it_can_self_convert_to_convenient_units[units_fixture4]",
+      "status": "original-case-implemented",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "input_emu": 914400,
+      "accessor": "mm",
+      "expected": 25.4,
+      "disposition": "same-value",
+      "target_test": "stores converted lengths independently %s"
+    },
+    {
+      "source_id": "tests/test_util.py::DescribeLength::it_can_self_convert_to_convenient_units[units_fixture5]",
+      "status": "original-case-implemented",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "input_emu": 914400,
+      "accessor": "pt",
+      "expected": 72,
+      "disposition": "same-value",
+      "target_test": "stores converted lengths independently %s"
+    }
+  ],
+  "api_cases": [
+    {
+      "source_id": "pptx.util.Centipoints",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Centipoints"
+    },
+    {
+      "source_id": "pptx.util.Centipoints.__new__",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Centipoints"
+    },
+    {
+      "source_id": "pptx.util.Centipoints.centipoints",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Centipoints"
+    },
+    {
+      "source_id": "pptx.util.Centipoints.cm",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Centipoints"
+    },
+    {
+      "source_id": "pptx.util.Centipoints.emu",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Centipoints"
+    },
+    {
+      "source_id": "pptx.util.Centipoints.inches",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Centipoints"
+    },
+    {
+      "source_id": "pptx.util.Centipoints.mm",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Centipoints"
+    },
+    {
+      "source_id": "pptx.util.Centipoints.pt",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Centipoints"
+    },
+    {
+      "source_id": "pptx.util.Cm",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Cm"
+    },
+    {
+      "source_id": "pptx.util.Cm.__new__",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Cm"
+    },
+    {
+      "source_id": "pptx.util.Cm.centipoints",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Cm"
+    },
+    {
+      "source_id": "pptx.util.Cm.cm",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Cm"
+    },
+    {
+      "source_id": "pptx.util.Cm.emu",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Cm"
+    },
+    {
+      "source_id": "pptx.util.Cm.inches",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Cm"
+    },
+    {
+      "source_id": "pptx.util.Cm.mm",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Cm"
+    },
+    {
+      "source_id": "pptx.util.Cm.pt",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Cm"
+    },
+    {
+      "source_id": "pptx.util.Emu",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Emu"
+    },
+    {
+      "source_id": "pptx.util.Emu.__new__",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Emu"
+    },
+    {
+      "source_id": "pptx.util.Emu.centipoints",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Emu"
+    },
+    {
+      "source_id": "pptx.util.Emu.cm",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Emu"
+    },
+    {
+      "source_id": "pptx.util.Emu.emu",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Emu"
+    },
+    {
+      "source_id": "pptx.util.Emu.inches",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Emu"
+    },
+    {
+      "source_id": "pptx.util.Emu.mm",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Emu"
+    },
+    {
+      "source_id": "pptx.util.Emu.pt",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Emu"
+    },
+    {
+      "source_id": "pptx.util.Inches",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Inches"
+    },
+    {
+      "source_id": "pptx.util.Inches.__new__",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Inches"
+    },
+    {
+      "source_id": "pptx.util.Inches.centipoints",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Inches"
+    },
+    {
+      "source_id": "pptx.util.Inches.cm",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Inches"
+    },
+    {
+      "source_id": "pptx.util.Inches.emu",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Inches"
+    },
+    {
+      "source_id": "pptx.util.Inches.inches",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Inches"
+    },
+    {
+      "source_id": "pptx.util.Inches.mm",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Inches"
+    },
+    {
+      "source_id": "pptx.util.Inches.pt",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Inches"
+    },
+    {
+      "source_id": "pptx.util.Length",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Length"
+    },
+    {
+      "source_id": "pptx.util.Length.__new__",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Length"
+    },
+    {
+      "source_id": "pptx.util.Length.centipoints",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Length"
+    },
+    {
+      "source_id": "pptx.util.Length.cm",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Length"
+    },
+    {
+      "source_id": "pptx.util.Length.emu",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Length"
+    },
+    {
+      "source_id": "pptx.util.Length.inches",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Length"
+    },
+    {
+      "source_id": "pptx.util.Length.mm",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Length"
+    },
+    {
+      "source_id": "pptx.util.Length.pt",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Length"
+    },
+    {
+      "source_id": "pptx.util.Mm",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Mm"
+    },
+    {
+      "source_id": "pptx.util.Mm.__new__",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Mm"
+    },
+    {
+      "source_id": "pptx.util.Mm.centipoints",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Mm"
+    },
+    {
+      "source_id": "pptx.util.Mm.cm",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Mm"
+    },
+    {
+      "source_id": "pptx.util.Mm.emu",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Mm"
+    },
+    {
+      "source_id": "pptx.util.Mm.inches",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Mm"
+    },
+    {
+      "source_id": "pptx.util.Mm.mm",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Mm"
+    },
+    {
+      "source_id": "pptx.util.Mm.pt",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Mm"
+    },
+    {
+      "source_id": "pptx.util.Pt",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Pt"
+    },
+    {
+      "source_id": "pptx.util.Pt.__new__",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Pt"
+    },
+    {
+      "source_id": "pptx.util.Pt.centipoints",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Pt"
+    },
+    {
+      "source_id": "pptx.util.Pt.cm",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Pt"
+    },
+    {
+      "source_id": "pptx.util.Pt.emu",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Pt"
+    },
+    {
+      "source_id": "pptx.util.Pt.inches",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Pt"
+    },
+    {
+      "source_id": "pptx.util.Pt.mm",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Pt"
+    },
+    {
+      "source_id": "pptx.util.Pt.pt",
+      "status": "implemented-inherited-matrix",
+      "target_file": "packages/pptx/src/length.test.ts",
+      "mapping_rules": ["J01", "J02", "J05"],
+      "disposition": "Constructor subclasses inherit all six public conversion getters; inherited API rows remain independently enumerated.",
+      "target_test": "inherits every unit accessor %s",
+      "target_constructor": "Pt"
+    }
+  ],
+  "legal_notice": "docs/pptx/test-case-map-notice.txt"
+}

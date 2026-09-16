@@ -1,4 +1,7 @@
 import type { ByteSource } from "./io.js";
+import type { FileDescriptor, OpenFileOptions } from "./descriptor.js";
+
+export type { FileDescriptor, FileDescriptorCapabilities, OpenFileOptions } from "./descriptor.js";
 
 export type FileType = "file" | "directory" | "symlink" | "character";
 export type EntryComparison = "same" | "distinct" | "unknown";
@@ -7,6 +10,7 @@ export interface FileStat {
   readonly type: FileType;
   readonly size: number;
   readonly allocatedBytes?: number;
+  readonly ioBlockSize?: number;
   readonly preferredIoBlockSize?: number;
   readonly mode: number;
   readonly mtimeMs: number;
@@ -17,6 +21,8 @@ export interface FileStat {
   readonly identityScope?: object | symbol;
   readonly ino?: number;
   readonly dev?: number;
+  readonly rdevMajor?: number;
+  readonly rdevMinor?: number;
   readonly nlink?: number;
   readonly uid?: number;
   readonly gid?: number;
@@ -28,6 +34,7 @@ export interface DirectoryEntry {
 }
 
 export interface FileSystemCapabilities {
+  readonly open?: boolean;
   readonly readOnly?: boolean;
   readonly read?: boolean;
   readonly stat?: boolean;
@@ -51,6 +58,7 @@ export interface FileSystemCapabilities {
   readonly truncate?: boolean;
   readonly streamingAppend?: boolean;
   readonly randomAccessWrite?: boolean;
+  readonly independentWriteStreams?: boolean;
   readonly symlinks?: boolean;
   readonly hardlinks?: boolean;
   readonly permissions?: boolean;
@@ -222,6 +230,7 @@ export interface FileSystem {
   removeEntryConditional?(path: string, options: ConditionalRemoveEntryOptions): Promise<void>;
   removeFileConditional?(path: string, options: ConditionalRemoveFileOptions): Promise<void>;
   readonly capabilities: FileSystemCapabilities;
+  open?(path: string, options: OpenFileOptions): Promise<FileDescriptor>;
   prepareDirectory?(path: string, options: PrepareDirectoryOptions): Promise<FileStat>;
   createStagedFile?(directoryPath: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions): Promise<FileStaging>;
   publishStagedFile?(staging: FileStaging, destination: string, options: PublishStagedFileOptions): Promise<void>;
@@ -241,6 +250,8 @@ export interface FileSystem {
   readdir(path: string, options?: ReadDirectoryOptions): Promise<DirectoryEntry[]>;
   mkdir(path: string, options?: MkdirOptions): Promise<void>;
   rm(path: string, options?: RemoveOptions): Promise<void>;
+  /** Atomic final-entry removal; every directory is refused, including raced replacements. */
+  unlink?(path: string, options?: FsOptions): Promise<void>;
   rmdir?(path: string, options?: FsOptions): Promise<void>;
   rename(source: string, destination: string, options?: RenameOptions): Promise<void>;
   copyFile(source: string, destination: string, options?: CopyFileOptions): Promise<void>;

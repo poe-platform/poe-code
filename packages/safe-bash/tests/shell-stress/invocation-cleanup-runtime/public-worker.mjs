@@ -29,7 +29,20 @@ const event = (name, detail = {}) => { const recorded = { sequence: ++sequence, 
 assert.equal(digest(readFileSync(fileURLToPath(import.meta.url))), manifest.probeHash);
 assert.equal(digest(readFileSync(join(snapshot, "package.json"))), manifest.packageHash);
 const packageManifest = JSON.parse(readFileSync(join(snapshot, "package.json"), "utf8"));
-assert.deepEqual(Object.fromEntries(manifest.runtimeDependencies.map(dependency => [dependency.name, dependency.version])), packageManifest.dependencies ?? {});
+const hasRuntimeDependencies = Object.keys(packageManifest.dependencies ?? {}).length > 0;
+const declaredDependencies = hasRuntimeDependencies ? packageManifest.dependencies : Object.fromEntries(
+  Object.entries(packageManifest.devDependencies ?? {}).filter(([name]) => ["@noble/hashes", "pako", "@poe-code/office-package"].includes(name)));
+if (!hasRuntimeDependencies && Object.keys(declaredDependencies).length) assert.deepEqual(declaredDependencies, {
+  "@noble/hashes": "2.4.0", pako: "3.0.1",
+  ...(Object.hasOwn(declaredDependencies, "@poe-code/office-package") ? { "@poe-code/office-package": "*" } : {}),
+}, "Pinned development dependency profile changed");
+assert.deepEqual(Object.fromEntries(manifest.runtimeDependencies.map(dependency => {
+  if (dependency.name === "@poe-code/office-package") {
+    assert.equal(dependency.version, JSON.parse(readFileSync(join(snapshot, `node_modules/${dependency.name}/package.json`), "utf8")).version);
+    return [dependency.name, "*"];
+  }
+  return [dependency.name, dependency.version];
+})), declaredDependencies);
 const publicEntry = realpathSync(join(snapshot, packageManifest.exports["."].import));
 assert.equal(publicEntry, join(snapshot, "dist/index.js"));
 
@@ -69,9 +82,12 @@ function runtimeResolution(specifier, context, nextResolve) {
     assert.ok(parent, "Dependency import must have an admitted parent");
     emitted(join(snapshot, parent));
     if (fromDependency) {
-      assert.equal(fromDependency, dependency, "Dependency runtime must not escape its package");
-      assert.ok(specifier.startsWith("./") || specifier.startsWith("../"), "Dependency runtime requires relative internal edges");
-      assert.equal(target.path, posix.normalize(posix.join(posix.dirname(parent), specifier)), `Uncaptured dependency runtime edge: ${specifier}`);
+      const sharedCompression = fromDependency.name === "@poe-code/office-package" && parent === "node_modules/@poe-code/office-package/dist/compression.js" && dependency.name === "pako" && specifier === "pako" && target.path === dependency.entries.pako;
+      if (!sharedCompression) {
+        assert.equal(fromDependency, dependency, "Dependency runtime must not escape its package");
+        assert.ok(specifier.startsWith("./") || specifier.startsWith("../"), "Dependency runtime requires relative internal edges");
+        assert.equal(target.path, posix.normalize(posix.join(posix.dirname(parent), specifier)), `Uncaptured dependency runtime edge: ${specifier}`);
+      }
     } else {
       assert.ok(parent.startsWith("dist/"), "Dependency public import must originate in admitted shell output");
       assert.equal(dependency.entries[specifier], target.path, `Unadmitted dependency public route: ${specifier}`);

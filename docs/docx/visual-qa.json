@@ -1,0 +1,986 @@
+{
+  "schemaVersion": 1,
+  "task": "visual-cli-and-document-qa",
+  "date": "2026-09-15",
+  "status": "executed-with-explicit-visual-limitations",
+  "branch": "main",
+  "testedHead": "8aed951021dff383562991382a1883ca582fe5c5",
+  "testedWorktree": "Includes unrelated uncommitted changes; not a clean-HEAD certification.",
+  "artifactsRoot": "/tmp/docx-visual-20260915",
+  "renderer": {
+    "skillBundle": "26.909.12148",
+    "manifestVersion": "25.2-headless-codex.1",
+    "actualVersion": "LibreOfficeDev 26.8.0.0.alpha0 2c87e51eeaa2b413ff4ae097b2705eea1995d8e5",
+    "python": "3.12.14",
+    "node": "v24.19.0",
+    "dependencyLoader": "Not exposed; managed runtime manifest resolved from filesystem."
+  },
+  "contracts": [
+    {
+      "path": "docs/specs/docx.md",
+      "sha256": "3c70e7b9f600f0bef7aa321405cf482559831783eb38b061a7ad60472e918136"
+    },
+    {
+      "path": "docs/specs/office-cli.md",
+      "sha256": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce"
+    },
+    {
+      "path": "docs/specs/office-sdk.md",
+      "sha256": "1b2dd9f411621ebdc6ce24974e48f6143e0d3c9fe1191200207dfd6a3ddbfe64"
+    },
+    {
+      "path": "docs/docx/upstream-api-audit.md",
+      "sha256": "09a14366c1a659e484653b0e2d8c6fe205ece28adf8748db7cb75c76af1bc269"
+    },
+    {
+      "path": "docs/docx/upstream-api-inventory.json",
+      "sha256": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac"
+    }
+  ],
+  "inventory": {
+    "historical": true,
+    "objects": 920,
+    "declaredObjects": 920,
+    "coverage": {
+      "planned": 410,
+      "security-mapped": 378,
+      "language-mapped": 124,
+      "documentation-error": 8
+    },
+    "adaptation": {
+      "unmapped_not_implemented": 920
+    },
+    "promotedByThisTask": 0
+  },
+  "commands": [
+    {
+      "id": "help",
+      "source": "docx help text replace",
+      "exitCode": 0,
+      "stdoutSha256": "e7d324b45308db50d384b63793057070427831c203e495e535928e4ae13d5363",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "schema",
+      "source": "docx schema text replace --json",
+      "exitCode": 0,
+      "stdoutSha256": "679bc32eb4cb8f05153d465bf189d02a20e83d61dc45e9f9f16ca31eed51fa3c",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "capabilities",
+      "source": "docx capabilities --json",
+      "exitCode": 0,
+      "stdoutSha256": "917c4fdd51827a012ea3eb1b734ab03595f50c40e1e7fe82cd59a3dc2827c443",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "version",
+      "source": "docx version",
+      "exitCode": 0,
+      "stdoutSha256": "6e0d7e5318ab9646c92e33a24aca40592706650e17db926e5cbb61f997f7842c",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "replace",
+      "source": "docx text replace original.docx --find Draft --with Final --first -o edited.docx --json",
+      "exitCode": 3,
+      "stdoutSha256": "1d80ceb0258c80754170f2482cf6db18801b93a52670d3b84a59a464ba52bdc2",
+      "stderrSha256": "6a74303cda33bd0e24f1fcb8feb02f288121b183a15abbc0bbee0e6e3a8b14e0"
+    },
+    {
+      "id": "text",
+      "source": "docx text edited.docx --scope body",
+      "exitCode": 3,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "6cf1a0769d64c0fdb93581b8f410a177c2a2ccc3812d52a6c463278e86f94066"
+    },
+    {
+      "id": "json",
+      "source": "docx text edited.docx --scope body --json",
+      "exitCode": 3,
+      "stdoutSha256": "2372307d2d7e08d8d697c0db335db719441e6eb1484a021bfd3045cd165781c6",
+      "stderrSha256": "6cf1a0769d64c0fdb93581b8f410a177c2a2ccc3812d52a6c463278e86f94066"
+    },
+    {
+      "id": "images",
+      "source": "docx images list edited.docx --json",
+      "exitCode": 3,
+      "stdoutSha256": "c06e651270f531fd38413aad4e762e005414d4cc1166be5597ebf01cd7a0d825",
+      "stderrSha256": "6cf1a0769d64c0fdb93581b8f410a177c2a2ccc3812d52a6c463278e86f94066"
+    },
+    {
+      "id": "tables",
+      "source": "docx tables list edited.docx --json",
+      "exitCode": 1,
+      "stdoutSha256": "18152d7892a2dbeb655896f1325f51d6bb0e136f2c6969ec5639f5a321cd436b",
+      "stderrSha256": "582a44b50624228a3481b85ed1c3ccdc0355269da7ba336490d3be29712fb240"
+    },
+    {
+      "id": "notes",
+      "source": "docx notes list edited.docx --json",
+      "exitCode": 3,
+      "stdoutSha256": "d78bc0dfc8551f0960495dc73099d9fa59ab655274fe394ec1ac683ac68b2d7b",
+      "stderrSha256": "6cf1a0769d64c0fdb93581b8f410a177c2a2ccc3812d52a6c463278e86f94066"
+    },
+    {
+      "id": "comments",
+      "source": "docx comments list edited.docx --json",
+      "exitCode": 3,
+      "stdoutSha256": "4fc1cc749a3ee8757829241f3fba064f5fc9424d97d0e5dc00fea3fddbe3d1e0",
+      "stderrSha256": "6cf1a0769d64c0fdb93581b8f410a177c2a2ccc3812d52a6c463278e86f94066"
+    },
+    {
+      "id": "revisions",
+      "source": "docx revisions list edited.docx --json",
+      "exitCode": 3,
+      "stdoutSha256": "0e816b1ad980dc13c6acfb939a5db954b2344462bb6ddd9fb65a76fb5914f267",
+      "stderrSha256": "6cf1a0769d64c0fdb93581b8f410a177c2a2ccc3812d52a6c463278e86f94066"
+    },
+    {
+      "id": "sections",
+      "source": "docx sections list edited.docx --json",
+      "exitCode": 3,
+      "stdoutSha256": "4a1b1a73f9f6136dd60850d08a489254009d169bc5bc440d7afcda22337a733d",
+      "stderrSha256": "6cf1a0769d64c0fdb93581b8f410a177c2a2ccc3812d52a6c463278e86f94066"
+    },
+    {
+      "id": "validate",
+      "source": "docx validate edited.docx --json",
+      "exitCode": 3,
+      "stdoutSha256": "68eb425341db7f61df8d254620b3e0c801193b920c45bcf365fdca229b4301d4",
+      "stderrSha256": "6cf1a0769d64c0fdb93581b8f410a177c2a2ccc3812d52a6c463278e86f94066"
+    },
+    {
+      "id": "conflicting",
+      "source": "docx text replace original.docx --find Draft --with Final --first --all --json",
+      "exitCode": 2,
+      "stdoutSha256": "ba77d93d6850d96ea1035adc5fd302d526b08d5aca2697e1dff90026c2614b99",
+      "stderrSha256": "b3b1c6f772d816012cee9b884125529d8b155d5d1fb81232f53d820acb9d3c0f"
+    },
+    {
+      "id": "missing",
+      "source": "docx text absent.docx --json",
+      "exitCode": 3,
+      "stdoutSha256": "2372307d2d7e08d8d697c0db335db719441e6eb1484a021bfd3045cd165781c6",
+      "stderrSha256": "6cf1a0769d64c0fdb93581b8f410a177c2a2ccc3812d52a6c463278e86f94066"
+    },
+    {
+      "id": "malformed",
+      "source": "docx text malformed.docx --json",
+      "exitCode": 1,
+      "stdoutSha256": "386a8fbf6b108fb0f05ed73c43818db306a33e917e4f2014707e20a1c1bce947",
+      "stderrSha256": "7de7a5a586b0a70769fac68e775cda4128185eb0f6c79b3cb8f42e449229aa23"
+    },
+    {
+      "id": "binary-replace",
+      "source": "docx text replace original.docx --find Draft --with Final --first -o -",
+      "exitCode": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteCount": 11120
+    },
+    {
+      "id": "text-final",
+      "source": "docx text edited.docx --scope body",
+      "exitCode": 0,
+      "stdoutSha256": "6f4daa73cfe03a9395bc63287d23693f0540ec9036c2d96eafd82a3a03eb7b5c",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "json-final",
+      "source": "docx text edited.docx --scope body --json",
+      "exitCode": 0,
+      "stdoutSha256": "a2fac8ac05363296c963f888e089f3a080dc3d861fe1a981101f4c4f7b95a281",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "images-final",
+      "source": "docx images list edited.docx --json",
+      "exitCode": 0,
+      "stdoutSha256": "b1bcebc3a739b62a64b4bb88062b276dbc7f108d3051b350e6d67727dd4ae6f9",
+      "stderrSha256": "70c42ae7aa2371de1495b2b1b190906ea101f2ca4bc48e54e5ad0c0378c9396a"
+    },
+    {
+      "id": "notes-final",
+      "source": "docx notes list edited.docx --json",
+      "exitCode": 0,
+      "stdoutSha256": "1e453785a0cf329fd15ebf4a8088e5596ffcd5e4054d9c170609e02a6e099477",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "comments-final",
+      "source": "docx comments list edited.docx --json",
+      "exitCode": 0,
+      "stdoutSha256": "62be29191d36b20c66f252e2d81b8a5cc8970c7bee07baf92e1591b0295bc5a4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "revisions-final",
+      "source": "docx revisions list edited.docx --json",
+      "exitCode": 0,
+      "stdoutSha256": "0541a7a7cfd12e117624e023503bfcbe781e63a85ed78a66fa30eba7cb002326",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "sections-final",
+      "source": "docx sections list edited.docx --json",
+      "exitCode": 0,
+      "stdoutSha256": "d17d3c8b379de2a817251e660564e31cab0eaa50c0198a40576d00bc66ae8ca2",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "validate-final",
+      "source": "docx validate edited.docx --json",
+      "exitCode": 0,
+      "stdoutSha256": "2113e0f2e207d452f5c8da101b73145ccc008df9d0f95783e18a0c1a981ef54f",
+      "stderrSha256": "07d302e957b3729e05fe6b818b85b9b522c9d0ea0347cdd296d12281f99d7ee3"
+    }
+  ],
+  "corpus": [
+    {
+      "id": "gst-reforms-interim-appendixb",
+      "inputSha256": "a31019aed3f706fdbfa8a51469456f3e26e2b5e98a6a9d0623e0e2cc268912cb",
+      "status": "refused",
+      "code": "usage",
+      "message": "Invalid archive writer options."
+    },
+    {
+      "id": "hk-values-story-teacher",
+      "inputSha256": "a96c37ee8b824ae0f2bc8cab0ffddfd40c37f1b3a642d18a24a827db1e0121b3",
+      "status": "refused",
+      "code": "usage",
+      "message": "Invalid archive writer options."
+    },
+    {
+      "id": "wa-outcome-standards-tracked",
+      "inputSha256": "870e805a921cd4f09c6ea5c29da969dd44569e81f7c30c3a8c943630287c20a6",
+      "status": "refused",
+      "code": "unsupported-edit",
+      "message": "Affected text includes protected or unsupported structures."
+    },
+    {
+      "id": "gst-reforms-interim-appendixb",
+      "inputPath": ".cache/docx-corpus/gst-reforms-interim-appendixb.docx",
+      "inputSha256": "a31019aed3f706fdbfa8a51469456f3e26e2b5e98a6a9d0623e0e2cc268912cb",
+      "outputSha256": "13f8406903286a2ee755d9fde222d8673eef902bfd559573e43a1a1dd124f0b6",
+      "outputBytes": 620466,
+      "findSha256": "708840a0a1a42e3c8333e860d0a4c0e9bd8c5b8d7a14d0896346e61028ce075a",
+      "findScalars": 64,
+      "segmentOrdinal": 1,
+      "operation": "text.replace",
+      "options": {
+        "first": true,
+        "output": "-"
+      },
+      "encoding": {
+        "order": "input",
+        "compression": "store"
+      },
+      "changed": true,
+      "status": "edited"
+    },
+    {
+      "id": "hk-values-story-teacher",
+      "inputPath": ".cache/docx-corpus/gap-20260914/hk-story.docx",
+      "inputSha256": "a96c37ee8b824ae0f2bc8cab0ffddfd40c37f1b3a642d18a24a827db1e0121b3",
+      "outputSha256": "144a05de6302b23a4e224aac369b990a7e4ba2e09a95a1cb32cafee8eeaa9467",
+      "outputBytes": 208943,
+      "findSha256": "b269e4a0914bdda584d38bae797de9bd901ca4c150034266a3e4f1b22e3ddd7e",
+      "findScalars": 1,
+      "segmentOrdinal": 1,
+      "operation": "text.replace",
+      "options": {
+        "first": true,
+        "output": "-"
+      },
+      "encoding": {
+        "order": "input",
+        "compression": "store"
+      },
+      "changed": true,
+      "status": "edited"
+    },
+    {
+      "id": "wa-outcome-standards-tracked",
+      "inputPath": ".cache/docx-corpus/gap-20260914/wa-tracked.docx",
+      "inputSha256": "870e805a921cd4f09c6ea5c29da969dd44569e81f7c30c3a8c943630287c20a6",
+      "outputSha256": "21dbb417f2c3140c3fff390e158f710f1dd66371c2fc8667a237c2651a14e8af",
+      "outputBytes": 1483467,
+      "findSha256": "d0480fdaf4e2a6de593cfc1c41d72004c76e5a7d49ff8caacd9dcba0f24d62f2",
+      "findScalars": 22,
+      "segmentOrdinal": 4,
+      "operation": "text.replace",
+      "options": {
+        "first": true,
+        "output": "-"
+      },
+      "encoding": {
+        "order": "input",
+        "compression": "store"
+      },
+      "changed": true,
+      "status": "edited"
+    }
+  ],
+  "structural": [
+    {
+      "id": "original",
+      "inputSha256": "8602e26bfca5271b4a4043682777a2aca3aee28350326cf6eb508239bfdcdbad",
+      "outputSha256": "c677c711100a8fedafc47b42deffc07d4e2a9e75f7f6a7d8f0bae115be99d3ae",
+      "members": 10,
+      "dirtyParts": ["word/document.xml"],
+      "zipCrcValid": true,
+      "untouchedPayloadsEqual": true,
+      "internalTargetsExist": true,
+      "subtreeComparisons": {
+        "ins": {
+          "count": 1,
+          "unchangedCount": 1
+        },
+        "del": {
+          "count": 1,
+          "unchangedCount": 1
+        },
+        "rPrChange": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "pPrChange": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "commentRangeStart": {
+          "count": 1,
+          "unchangedCount": 1
+        },
+        "commentRangeEnd": {
+          "count": 1,
+          "unchangedCount": 1
+        },
+        "commentReference": {
+          "count": 1,
+          "unchangedCount": 1
+        },
+        "footnoteReference": {
+          "count": 1,
+          "unchangedCount": 1
+        },
+        "endnoteReference": {
+          "count": 1,
+          "unchangedCount": 1
+        },
+        "sectPr": {
+          "count": 2,
+          "unchangedCount": 2
+        },
+        "tbl": {
+          "count": 1,
+          "unchangedCount": 1
+        },
+        "drawing": {
+          "count": 1,
+          "unchangedCount": 1
+        },
+        "numPr": {
+          "count": 2,
+          "unchangedCount": 2
+        }
+      },
+      "selectedReviewChanges": [],
+      "rtlCjkLogicalCharactersEqual": true,
+      "renderedPages": [
+        {
+          "page": 1,
+          "editedSha256": "6a52ea3c06e37274e9c1d732a311d11d63379476f35f78eea7a988f50392074a",
+          "baselineSha256": "f221806d7ff1362fb1f4de702225ce64c97bebef3a102afde8473d38528f1d8a",
+          "pixelsEqual": false
+        },
+        {
+          "page": 2,
+          "editedSha256": "06d855e35c60a30303c0ae96e92237af53ca331b871144275faf2f8563acb136",
+          "baselineSha256": "06d855e35c60a30303c0ae96e92237af53ca331b871144275faf2f8563acb136",
+          "pixelsEqual": true
+        },
+        {
+          "page": 3,
+          "editedSha256": "413c97acf36a33789ad97dac6d985283ad69c0c5fae997d3d6fa23f7e84de49f",
+          "baselineSha256": "413c97acf36a33789ad97dac6d985283ad69c0c5fae997d3d6fa23f7e84de49f",
+          "pixelsEqual": true
+        }
+      ]
+    },
+    {
+      "id": "appendix",
+      "inputSha256": "a31019aed3f706fdbfa8a51469456f3e26e2b5e98a6a9d0623e0e2cc268912cb",
+      "outputSha256": "13f8406903286a2ee755d9fde222d8673eef902bfd559573e43a1a1dd124f0b6",
+      "members": 41,
+      "dirtyParts": ["word/document.xml"],
+      "zipCrcValid": true,
+      "untouchedPayloadsEqual": true,
+      "internalTargetsExist": true,
+      "subtreeComparisons": {
+        "ins": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "del": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "rPrChange": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "pPrChange": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "commentRangeStart": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "commentRangeEnd": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "commentReference": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "footnoteReference": {
+          "count": 9,
+          "unchangedCount": 9
+        },
+        "endnoteReference": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "sectPr": {
+          "count": 2,
+          "unchangedCount": 2
+        },
+        "tbl": {
+          "count": 6,
+          "unchangedCount": 6
+        },
+        "drawing": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "numPr": {
+          "count": 0,
+          "unchangedCount": 0
+        }
+      },
+      "selectedReviewChanges": [],
+      "rtlCjkLogicalCharactersEqual": true,
+      "renderedPages": [
+        {
+          "page": 1,
+          "editedSha256": "830202a810a6cf10b2a44fe6cb1fc1aa09276a1791083e0fee8d53fcef51a5ef",
+          "baselineSha256": "dfdaa9d04fc4a4cc3c9a3e4608b463c9de819156bdf297c67881b0363085da7a",
+          "pixelsEqual": false
+        },
+        {
+          "page": 2,
+          "editedSha256": "9f60ef50f8f34727e16cfe5a8a109818325f13c0bc7d157ab0c0b55bbe7e07e0",
+          "baselineSha256": "9f60ef50f8f34727e16cfe5a8a109818325f13c0bc7d157ab0c0b55bbe7e07e0",
+          "pixelsEqual": true
+        },
+        {
+          "page": 3,
+          "editedSha256": "d8fbf82bc328007be608e7d724c466377d50051d4a2651de53541b781d6a99e0",
+          "baselineSha256": "d8fbf82bc328007be608e7d724c466377d50051d4a2651de53541b781d6a99e0",
+          "pixelsEqual": true
+        },
+        {
+          "page": 4,
+          "editedSha256": "5aa839b58e3e2da7e759ef63ea3348933935a3255a1d643f9a6d6c08c5a0d00b",
+          "baselineSha256": "5aa839b58e3e2da7e759ef63ea3348933935a3255a1d643f9a6d6c08c5a0d00b",
+          "pixelsEqual": true
+        },
+        {
+          "page": 5,
+          "editedSha256": "76a0eb820287dd7defd80b20693ab04c015d5a4c7261beeaac363de1290867e4",
+          "baselineSha256": "76a0eb820287dd7defd80b20693ab04c015d5a4c7261beeaac363de1290867e4",
+          "pixelsEqual": true
+        },
+        {
+          "page": 6,
+          "editedSha256": "d92f6e1949748468818e638a3f9a58ab96ce7e18bdcd5ecb620f687288435bd1",
+          "baselineSha256": "d92f6e1949748468818e638a3f9a58ab96ce7e18bdcd5ecb620f687288435bd1",
+          "pixelsEqual": true
+        },
+        {
+          "page": 7,
+          "editedSha256": "268b611ff9cf45acd5f3d4b79a91e0f5bc65babd1f51c9745ce34e2fed67cbca",
+          "baselineSha256": "268b611ff9cf45acd5f3d4b79a91e0f5bc65babd1f51c9745ce34e2fed67cbca",
+          "pixelsEqual": true
+        },
+        {
+          "page": 8,
+          "editedSha256": "6d8b85a44f76723a954ca3a9803f3a286fe123e93adce7aaddc20195f37f4e83",
+          "baselineSha256": "6d8b85a44f76723a954ca3a9803f3a286fe123e93adce7aaddc20195f37f4e83",
+          "pixelsEqual": true
+        },
+        {
+          "page": 9,
+          "editedSha256": "320e96bcc258c2d820b153a3c59976f735485add3c680d684e673a096605b6f2",
+          "baselineSha256": "320e96bcc258c2d820b153a3c59976f735485add3c680d684e673a096605b6f2",
+          "pixelsEqual": true
+        },
+        {
+          "page": 10,
+          "editedSha256": "17ae0730b8845b7aea83375838e1ff92db153594e55413cd418a6ee3ea2502dd",
+          "baselineSha256": "17ae0730b8845b7aea83375838e1ff92db153594e55413cd418a6ee3ea2502dd",
+          "pixelsEqual": true
+        },
+        {
+          "page": 11,
+          "editedSha256": "114ba8d31e0cad22d98dfb72a77f20f3ff78ca03eba4ae0c01045b2cad38f5cf",
+          "baselineSha256": "114ba8d31e0cad22d98dfb72a77f20f3ff78ca03eba4ae0c01045b2cad38f5cf",
+          "pixelsEqual": true
+        },
+        {
+          "page": 12,
+          "editedSha256": "36446a0e4c63660605671e9403442ba7d2bfed641397ea3b5e0d3797228ba677",
+          "baselineSha256": "36446a0e4c63660605671e9403442ba7d2bfed641397ea3b5e0d3797228ba677",
+          "pixelsEqual": true
+        },
+        {
+          "page": 13,
+          "editedSha256": "821af0a8e96dbd4b496db61d276d3b6fcf126f490266cc892da69ea0ae6fd000",
+          "baselineSha256": "821af0a8e96dbd4b496db61d276d3b6fcf126f490266cc892da69ea0ae6fd000",
+          "pixelsEqual": true
+        },
+        {
+          "page": 14,
+          "editedSha256": "86dd80411c1005c6d0d8517ee3f0af674d56dc4de561ebf0718458609c41f828",
+          "baselineSha256": "86dd80411c1005c6d0d8517ee3f0af674d56dc4de561ebf0718458609c41f828",
+          "pixelsEqual": true
+        },
+        {
+          "page": 15,
+          "editedSha256": "4c735d5d24849ae13cd06a5de7d31ae24d7769fd7fa7cc2a07559e4175acfeb4",
+          "baselineSha256": "4c735d5d24849ae13cd06a5de7d31ae24d7769fd7fa7cc2a07559e4175acfeb4",
+          "pixelsEqual": true
+        }
+      ]
+    },
+    {
+      "id": "cjk",
+      "inputSha256": "a96c37ee8b824ae0f2bc8cab0ffddfd40c37f1b3a642d18a24a827db1e0121b3",
+      "outputSha256": "144a05de6302b23a4e224aac369b990a7e4ba2e09a95a1cb32cafee8eeaa9467",
+      "members": 17,
+      "dirtyParts": ["word/document.xml"],
+      "zipCrcValid": true,
+      "untouchedPayloadsEqual": true,
+      "internalTargetsExist": true,
+      "subtreeComparisons": {
+        "ins": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "del": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "rPrChange": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "pPrChange": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "commentRangeStart": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "commentRangeEnd": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "commentReference": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "footnoteReference": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "endnoteReference": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "sectPr": {
+          "count": 1,
+          "unchangedCount": 1
+        },
+        "tbl": {
+          "count": 1,
+          "unchangedCount": 1
+        },
+        "drawing": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "numPr": {
+          "count": 8,
+          "unchangedCount": 8
+        }
+      },
+      "selectedReviewChanges": [],
+      "rtlCjkLogicalCharactersEqual": true,
+      "renderedPages": [
+        {
+          "page": 1,
+          "editedSha256": "e314f7ed9df1319922646abb3c9058163cf0cffbeb2d7a6986d98fae98d245c8",
+          "baselineSha256": "910b9bb745c44bce8b4620150ced476ae2c1b8a395053c0f78cb3c8d5a9aeae2",
+          "pixelsEqual": false
+        },
+        {
+          "page": 2,
+          "editedSha256": "094c418e1cc3b832f01914dc8f88f8a02a62b6437db30e6126f52ad3ce02976f",
+          "baselineSha256": "094c418e1cc3b832f01914dc8f88f8a02a62b6437db30e6126f52ad3ce02976f",
+          "pixelsEqual": true
+        },
+        {
+          "page": 3,
+          "editedSha256": "7a537faa7071c1af6906a0ce839a5a15fe8b9d5b1595bb1862c5a754a4a35878",
+          "baselineSha256": "7a537faa7071c1af6906a0ce839a5a15fe8b9d5b1595bb1862c5a754a4a35878",
+          "pixelsEqual": true
+        }
+      ]
+    },
+    {
+      "id": "tracked",
+      "inputSha256": "870e805a921cd4f09c6ea5c29da969dd44569e81f7c30c3a8c943630287c20a6",
+      "outputSha256": "21dbb417f2c3140c3fff390e158f710f1dd66371c2fc8667a237c2651a14e8af",
+      "members": 50,
+      "dirtyParts": ["word/document.xml"],
+      "zipCrcValid": true,
+      "untouchedPayloadsEqual": true,
+      "internalTargetsExist": true,
+      "subtreeComparisons": {
+        "ins": {
+          "count": 199,
+          "unchangedCount": 198
+        },
+        "del": {
+          "count": 345,
+          "unchangedCount": 345
+        },
+        "rPrChange": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "pPrChange": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "commentRangeStart": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "commentRangeEnd": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "commentReference": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "footnoteReference": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "endnoteReference": {
+          "count": 0,
+          "unchangedCount": 0
+        },
+        "sectPr": {
+          "count": 3,
+          "unchangedCount": 3
+        },
+        "tbl": {
+          "count": 1,
+          "unchangedCount": 1
+        },
+        "drawing": {
+          "count": 6,
+          "unchangedCount": 6
+        },
+        "numPr": {
+          "count": 194,
+          "unchangedCount": 194
+        }
+      },
+      "selectedReviewChanges": [
+        {
+          "kind": "ins",
+          "ordinal": 3,
+          "attributesEqual": true,
+          "textChange": "original text plus QA suffix"
+        }
+      ],
+      "rtlCjkLogicalCharactersEqual": true,
+      "renderedPages": [
+        {
+          "page": 1,
+          "editedSha256": "1b5cd8386ceba96ca07a6ba0aa5209ace41b65c2bf57c774ef8a97f791de16b8",
+          "baselineSha256": "74aa82ea16a34268c013fe9adfea23159eb109c63ec336b4e4a7f90662f6dc61",
+          "pixelsEqual": false
+        },
+        {
+          "page": 2,
+          "editedSha256": "7f6f7fc6c86ecae736e15ed6c879561a33524c7d6a045a94b97c7dfce681ba53",
+          "baselineSha256": "2f69e9317cacac4d28bae0a155dcd3d851376300dbc09e4aa628b046de47f02c",
+          "pixelsEqual": false
+        },
+        {
+          "page": 3,
+          "editedSha256": "146fdaec53a1669856c09b1e9a2ee884b9681d4a0a7ccf700e28964341f306bc",
+          "baselineSha256": "f8006dc472f5c33c696cf1b303262725abad95ee327f8e1487534ed253116260",
+          "pixelsEqual": false
+        },
+        {
+          "page": 4,
+          "editedSha256": "aed98b2f3a77d86d18ef6792bc124d7e3b3ad33c895c20d81ea040006b13972c",
+          "baselineSha256": "54a1f73c77fca9987e8d33ff48a7d5180ac97497f42cf8f92e196b315122071c",
+          "pixelsEqual": false
+        },
+        {
+          "page": 5,
+          "editedSha256": "8f06bd6736773e94b30f1f601508cb278e8fa582ff46fee02431961b40d83b88",
+          "baselineSha256": "31c1f110aa8e75b5d834b8d2cec502530af56b4f03e32793127e2861a27683bc",
+          "pixelsEqual": false
+        },
+        {
+          "page": 6,
+          "editedSha256": "403c73b1f70451dcf2f5b5e9ada2649fc45d323e2575ea5b5b14072186a657de",
+          "baselineSha256": "facb1b1b90da996726f54d3a9300604fb0e80c24ded44bef4c2324d5df5354d9",
+          "pixelsEqual": false
+        },
+        {
+          "page": 7,
+          "editedSha256": "ccbeaadd011b1d2d09ad948feb5bd1dde58ac1d0c36c052d462b72f1bfe71234",
+          "baselineSha256": "a7c230ac401064fd41bbbb5e0758431b21fba2803049252428407395fff8415b",
+          "pixelsEqual": false
+        },
+        {
+          "page": 8,
+          "editedSha256": "21b8120cf0b94572f840d9454dd15a55e89050f7c6bd7ed634648cc6aaa0a125",
+          "baselineSha256": "583d3ab40643ffc588d7314b5be302042d6e99bb83fdafe5ee450f528eaab6f8",
+          "pixelsEqual": false
+        },
+        {
+          "page": 9,
+          "editedSha256": "ef036deb460d6edc75e1c76a6562672b91cedce239e4ec67dd83fc4454afb7e5",
+          "baselineSha256": "180705100936a52862078e74cce16454ac76d42464658381e1412d0b8c6787c7",
+          "pixelsEqual": false
+        },
+        {
+          "page": 10,
+          "editedSha256": "a801701da0dc8550cda0180abd0193725027f96fb044196a65f744b4ef0d5f1c",
+          "baselineSha256": "076693af89275473ae5cb6a422a5aac643d3a1cf38b0dfaf5c9ccaef0f4276b0",
+          "pixelsEqual": false
+        },
+        {
+          "page": 11,
+          "editedSha256": "780a8bda27107460f4a1477dac8c661d6b8b97f589b998931466ba94039f6599",
+          "baselineSha256": "face552424dc386dcfcd4a9315daf810917fffcfbbcb8eaa7bb6e4b25ef6e6ac",
+          "pixelsEqual": false
+        },
+        {
+          "page": 12,
+          "editedSha256": "0f2ef68924cf828d5957d90d1261f195425ae7ff504aaab94fa951a71e44675c",
+          "baselineSha256": "4dae9cac71cdc35d20275032048ecc86a94e3f1d9ea5485e653993c1e7cb3dfb",
+          "pixelsEqual": false
+        },
+        {
+          "page": 13,
+          "editedSha256": "3a82d8a8474c5315897f79f7ee99501157d6774fd0f06d7cf740807f0f462237",
+          "baselineSha256": "59d059e3a544a491d6072fea79fa0d9f591aef4b4446550c1a59ea99ef37a04b",
+          "pixelsEqual": false
+        },
+        {
+          "page": 14,
+          "editedSha256": "fcff352f21d97e5fafd82635dfdc223a6572529d62e3f7284ee55ea563601874",
+          "baselineSha256": "74535224ed92b702fa572dccc374279b805a67f6d0e5184bf43e918ca090e913",
+          "pixelsEqual": false
+        },
+        {
+          "page": 15,
+          "editedSha256": "0066c8c9119ee4f6d8aec2091e51240042559ce7500b1050b5b99aee57b075d9",
+          "baselineSha256": "9c384957ea5d37f531e0018490a81468b95601c96f7a6f9b996dbac34d6155ba",
+          "pixelsEqual": false
+        },
+        {
+          "page": 16,
+          "editedSha256": "75408a0838ed0fd4512c8e37168a4bf263fdf0eb08f54cec92afd80e7f463f58",
+          "baselineSha256": "07a8e9f97e57cc9af0cb478da3f253f6ab7c0ac21c9abc8749dd1c09a68c3701",
+          "pixelsEqual": false
+        },
+        {
+          "page": 17,
+          "editedSha256": "847f582ebbc7c0ae925081c11239c1ffb6bd2daa302ed34c167ab5d7440737ea",
+          "baselineSha256": "8add5f26c887e0406a40960d7500665bd4203a6a2e968b329a499affa240bc2f",
+          "pixelsEqual": false
+        },
+        {
+          "page": 18,
+          "editedSha256": "5b21f4232dd9bfdf6012e70e7cfacd7686806de808c6cf64578ab839bb5ba766",
+          "baselineSha256": "e483ec521079fc0e48b083fc0b2948945c854a8ffe1a02a1df1f2a0d60def550",
+          "pixelsEqual": false
+        },
+        {
+          "page": 19,
+          "editedSha256": "1897d5c0875fda96c5ff71b6772fe16e94f0119329c8448bf551c94459d5d86d",
+          "baselineSha256": "3fcff85aa046347bbb9a9ee97b50bda9f85c9cf02a3173ff8d37ead0ce45d984",
+          "pixelsEqual": false
+        },
+        {
+          "page": 20,
+          "editedSha256": "7162aa3b23f08789d7791dd03f43b0804f52d1680460e71b479cb51dec6d0fb1",
+          "baselineSha256": "a94a5e662da3b27b099d5bc913e6bb8873441193ace4c215bdc1f239e0b8bece",
+          "pixelsEqual": false
+        },
+        {
+          "page": 21,
+          "editedSha256": "954ea4f09c77442831210d0efc136e058dc6289b0d2fdbf311d5674c823a9fe6",
+          "baselineSha256": "2f8144f458082e385152a4a0a2808131f7f349584d4168e503c825af2ec8534f",
+          "pixelsEqual": false
+        },
+        {
+          "page": 22,
+          "editedSha256": "d44bead81b1dff8e108b1ce6ce4b07491cf46058a2fb284aba2a4565450f9ec4",
+          "baselineSha256": "05a7ea94163ead51074f63c20f978bf77758e17b97d72ddf31484cddd930a8d7",
+          "pixelsEqual": false
+        },
+        {
+          "page": 23,
+          "editedSha256": "8a65e5f3999b0aa24b8acc2ceedf121372f1b56dfcf14b0d0b6c5dbf32a8bb3f",
+          "baselineSha256": "0a0f8ac3428076f764d3dbffd9848a8d275aec8de7a2dade79d0b0b731d62bdb",
+          "pixelsEqual": false
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "id": "help",
+      "path": "/tmp/docx-visual-20260915/help.png",
+      "sha256": "57b6c07fe5e52748bc0ed4bb68c4c9f48f4a56b5f3456a79d4514fd60e073ce5",
+      "inspected": true
+    },
+    {
+      "id": "help-start",
+      "path": "/tmp/docx-visual-20260915/help-start.png",
+      "sha256": "6eb271d95940774159bbdf7724b4e1ad4fea5852d50d2e0e081263fc71939280",
+      "inspected": true
+    },
+    {
+      "id": "text",
+      "path": "/tmp/docx-visual-20260915/text.png",
+      "sha256": "4ae1029aef320d02ac7626b565852a28242c586b87e895622eb359c39124a91b",
+      "inspected": true
+    },
+    {
+      "id": "json",
+      "path": "/tmp/docx-visual-20260915/json.png",
+      "sha256": "66174bedc93bcd77241a9e23d917364e09bfb56ce52186df64d635fb54c8d38b",
+      "inspected": true
+    },
+    {
+      "id": "errors",
+      "path": "/tmp/docx-visual-20260915/errors.png",
+      "sha256": "c09c5e2f6b56ef223b9bd086a9b3a8d48b907b86e3a8925251b2bba0a5bf622e",
+      "inspected": true
+    },
+    {
+      "id": "root-help",
+      "path": "/tmp/docx-visual-20260915/root-help.png",
+      "sha256": "872c436ed5623eedcc249073b3d326c885a606bf44e7d9452a166d16913ffe08",
+      "inspected": true
+    },
+    {
+      "id": "root-docx-error",
+      "path": "/tmp/docx-visual-20260915/root-docx-error.png",
+      "sha256": "3adea9e75204cca082663d4c7c6f58421f31b866a553b2a4a6dd3a45d7f7553f",
+      "inspected": true
+    }
+  ],
+  "inspection": {
+    "original": {
+      "baseline": [1, 2, 3],
+      "edited": [1, 2, 3]
+    },
+    "appendix": {
+      "baseline": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+      "edited": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    },
+    "cjk": {
+      "baseline": [1, 2, 3],
+      "edited": [1, 2, 3]
+    },
+    "tracked": {
+      "baseline": [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
+      ],
+      "edited": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+    }
+  },
+  "limitations": [
+    "CJK document glyphs missing in baseline and edited renderer output; no CJK visual pass.",
+    "Terminal Arabic/CJK boxed; logical Unicode preserved.",
+    "Headless export does not qualify comment balloons or Word repair behavior.",
+    "Appendix cached reference errors and equations clipped on pages 10/12 exist in baseline.",
+    "Original QA authoring omitted boundary xml:space on some runs; baseline adjacent words lose spaces.",
+    "Root docx registration absent; adapter transcript display is not direct root dispatch.",
+    "RealFileSystem transaction publication unavailable; binary stdout used.",
+    "tables.list declared unsupported in this engine.",
+    "CLI capture drops beginning of long help and wraps midword; additional start capture inspected.",
+    "Full API coverage is not established."
+  ],
+  "newValidatedProductDefects": [],
+  "regressionDisposition": "No meaningful new product structural defect validated; no code edits or new unit tests. Existing original Unicode/revision guards remain passing.",
+  "fixtureDisposition": "Invocation artifacts retained in disposable /tmp for font/renderer follow-up; no shipped binary fixtures, no global retirement.",
+  "checks": {
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=docx",
+      "exitCode": 0
+    },
+    "unit": {
+      "command": "npm test --workspace=docx",
+      "exitCode": 0,
+      "files": 178,
+      "passed": 3438,
+      "skipped": 4
+    },
+    "lint": {
+      "command": "npm run lint --workspace=docx",
+      "exitCode": 0,
+      "warnings": 1,
+      "detail": "Unused type-only operation variable in operation-types.test.ts:20."
+    },
+    "receipt": {
+      "status": "passed",
+      "detail": "Inventory accounting, ownership branch, seven screenshots, four structural receipts and page counts, binary edit and final validation checked."
+    },
+    "format": {
+      "command": "npx prettier --check docs/plans/docx-visual-qa.md docs/docx/visual-qa.md docs/docx/visual-qa.json",
+      "status": "passed"
+    },
+    "whitespace": {
+      "command": "git diff --check",
+      "status": "passed"
+    }
+  },
+  "delivery": {
+    "push": false,
+    "release": false,
+    "laterTasks": "pending"
+  }
+}

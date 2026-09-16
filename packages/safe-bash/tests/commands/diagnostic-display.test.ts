@@ -48,8 +48,13 @@ for (const command of ["sed", "awk", "rg", "sleep", "patch", "jq"] as const) {
   });
 }
 
+test("shell command lookup preserves native escaped command-name rendering", async () => {
+  const actual = await run(quote(marker));
+  assert.equal(actual.exitCode, 127);
+  assert.equal(actual.stderr, "shell: line 1: $'bad\\E[31m': command not found\n");
+});
+
 for (const [name, source] of [
-  ["command lookup", quote(marker)],
   ["source-bearing syntax", `echo ${quote(marker)}; echo "$(;)"`],
   ["redirection", `cat < ${quote(`/missing-${marker}`)}`],
   ["builtin operand", `export ${quote(`invalid-${marker}`)}`],

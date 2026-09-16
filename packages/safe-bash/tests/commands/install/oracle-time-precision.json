@@ -1,0 +1,43 @@
+{
+  "kind": "Manual metadata-only setter precision diagnostic, separate from asynchronous atime changes. No content reads after reset and no product/SafeFS changes. Root source utimes converts numeric milliseconds through Date.",
+  "rows": [
+    {
+      "name": "fractional",
+      "request": {
+        "atimeMs": 1000.75,
+        "mtimeMs": 2000.5
+      },
+      "nativeNumericSeconds": {
+        "atimeMs": 1000.75,
+        "mtimeMs": 2000.5
+      },
+      "canonicalRealSetter": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "dateConversion": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      }
+    },
+    {
+      "name": "integral",
+      "request": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "nativeNumericSeconds": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "canonicalRealSetter": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "dateConversion": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      }
+    }
+  ]
+}

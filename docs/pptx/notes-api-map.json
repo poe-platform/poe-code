@@ -1,0 +1,3831 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "All 70 notes-named type/member/protocol entries, including inherited and untested members. Shared shape/text interfaces and enums remain obligations in public-api-map.json.",
+  "status": "Bounded notes operations implemented; all70 live-model records explicitly remain incomplete.",
+  "rows": [
+    {
+      "inventoryPointer": "objects/1550",
+      "sourceId": "pptx.presentation.Presentation.notes_master",
+      "declaration": {
+        "declaration": "(self) -> NotesMaster",
+        "getter": "(self) -> NotesMaster",
+        "setter": null,
+        "declared_on": "pptx.presentation.Presentation",
+        "evidence": "src/pptx/presentation.py:37-43",
+        "setter_evidence": null,
+        "documentation_file": "docs/api/presentation.rst",
+        "documentation_line": 44
+      },
+      "target": {
+        "owner": "Presentation",
+        "member": "notes_master",
+        "form": "property",
+        "ts_signature": "get notes_master(): NotesMaster",
+        "arguments": [],
+        "getter": "get notes_master(): NotesMaster",
+        "setter": null,
+        "return_type": "NotesMaster",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J07",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Creating getter: may add or change owner XML; CLI noncreating inspection must not invoke it."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1873",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder",
+      "declaration": {
+        "declaration": "(self, sp: CT_Shape, parent: ProvidesPart)",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shapes.autoshape.Shape",
+        "evidence": "src/pptx/shapes/placeholder.py:255-270",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "NotesSlidePlaceholder",
+        "form": "returned-interface",
+        "ts_signature": "interface NotesSlidePlaceholder",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "NotesSlidePlaceholder",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1874",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.__eq__",
+      "declaration": {
+        "declaration": "(self, other: object) -> bool",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:32-40",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "equals",
+        "form": "language-protocol",
+        "ts_signature": "equals(other: ModelComparable): boolean",
+        "arguments": [
+          {
+            "name": "other",
+            "ts_type": "ModelComparable",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1875",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.__init__",
+      "declaration": {
+        "declaration": "(self, sp: CT_Shape, parent: ProvidesPart)",
+        "getter": null,
+        "setter": null,
+        "declared_on": null,
+        "evidence": "src/pptx/shapes/placeholder.py:255-270",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "constructor",
+        "form": "owner-acquisition",
+        "ts_signature": "type Acquired = NotesSlidePlaceholder",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "NotesSlidePlaceholder",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1876",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.adjustments",
+      "declaration": {
+        "declaration": "(self) -> AdjustmentCollection",
+        "getter": "(self) -> AdjustmentCollection",
+        "setter": null,
+        "declared_on": "pptx.shapes.autoshape.Shape",
+        "evidence": "src/pptx/shapes/autoshape.py:267-269",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "adjustments",
+        "form": "lazyproperty",
+        "ts_signature": "get adjustments(): AdjustmentCollection",
+        "arguments": [],
+        "getter": "get adjustments(): AdjustmentCollection",
+        "setter": null,
+        "return_type": "AdjustmentCollection",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1877",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.auto_shape_type",
+      "declaration": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": null,
+        "declared_on": "pptx.shapes.autoshape.Shape",
+        "evidence": "src/pptx/shapes/autoshape.py:272-279",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "auto_shape_type",
+        "form": "property",
+        "ts_signature": "get auto_shape_type(): MSO_AUTO_SHAPE_TYPE",
+        "arguments": [],
+        "getter": "get auto_shape_type(): MSO_AUTO_SHAPE_TYPE",
+        "setter": null,
+        "return_type": "MSO_AUTO_SHAPE_TYPE",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1878",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.click_action",
+      "declaration": {
+        "declaration": "(self) -> ActionSetting",
+        "getter": "(self) -> ActionSetting",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:48-57",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "click_action",
+        "form": "lazyproperty",
+        "ts_signature": "get click_action(): ActionSetting",
+        "arguments": [],
+        "getter": "get click_action(): ActionSetting",
+        "setter": null,
+        "return_type": "ActionSetting",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1879",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.element",
+      "declaration": {
+        "declaration": "(self) -> ShapeElement",
+        "getter": "(self) -> ShapeElement",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:60-66",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "element",
+        "form": "property",
+        "ts_signature": "get element(): XmlElementView",
+        "arguments": [],
+        "getter": "get element(): XmlElementView",
+        "setter": null,
+        "return_type": "XmlElementView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1880",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.fill",
+      "declaration": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": null,
+        "declared_on": "pptx.shapes.autoshape.Shape",
+        "evidence": "src/pptx/shapes/autoshape.py:282-287",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "fill",
+        "form": "lazyproperty",
+        "ts_signature": "get fill(): FillFormat",
+        "arguments": [],
+        "getter": "get fill(): FillFormat",
+        "setter": null,
+        "return_type": "FillFormat",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1881",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.has_chart",
+      "declaration": {
+        "declaration": "(self) -> bool",
+        "getter": "(self) -> bool",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:69-77",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "has_chart",
+        "form": "property",
+        "ts_signature": "get has_chart(): boolean",
+        "arguments": [],
+        "getter": "get has_chart(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1882",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.has_table",
+      "declaration": {
+        "declaration": "(self) -> bool",
+        "getter": "(self) -> bool",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:80-88",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "has_table",
+        "form": "property",
+        "ts_signature": "get has_table(): boolean",
+        "arguments": [],
+        "getter": "get has_table(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1883",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.has_text_frame",
+      "declaration": {
+        "declaration": "(self) -> bool",
+        "getter": "(self) -> bool",
+        "setter": null,
+        "declared_on": "pptx.shapes.autoshape.Shape",
+        "evidence": "src/pptx/shapes/autoshape.py:294-296",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "has_text_frame",
+        "form": "property",
+        "ts_signature": "get has_text_frame(): boolean",
+        "arguments": [],
+        "getter": "get has_text_frame(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1884",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.height",
+      "declaration": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": "(self, value)",
+        "declared_on": "pptx.shapes.placeholder._InheritsDimensions",
+        "evidence": "src/pptx/shapes/placeholder.py:35-45",
+        "setter_evidence": "src/pptx/shapes/placeholder.py:44-46",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "height",
+        "form": "property",
+        "ts_signature": "get height(): Length | null; set height(value: Length | null)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length | null",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get height(): Length | null",
+        "setter": "set height(value: Length | null)",
+        "return_type": "Length | null",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1885",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.is_placeholder",
+      "declaration": {
+        "declaration": "(self) -> bool",
+        "getter": "(self) -> bool",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:106-111",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "is_placeholder",
+        "form": "property",
+        "ts_signature": "get is_placeholder(): boolean",
+        "arguments": [],
+        "getter": "get is_placeholder(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1886",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.left",
+      "declaration": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": "(self, value)",
+        "declared_on": "pptx.shapes.placeholder._InheritsDimensions",
+        "evidence": "src/pptx/shapes/placeholder.py:48-58",
+        "setter_evidence": "src/pptx/shapes/placeholder.py:57-59",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "left",
+        "form": "property",
+        "ts_signature": "get left(): Length | null; set left(value: Length | null)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length | null",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get left(): Length | null",
+        "setter": "set left(value: Length | null)",
+        "return_type": "Length | null",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1887",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.line",
+      "declaration": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": null,
+        "declared_on": "pptx.shapes.autoshape.Shape",
+        "evidence": "src/pptx/shapes/autoshape.py:299-304",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "line",
+        "form": "lazyproperty",
+        "ts_signature": "get line(): LineFormat",
+        "arguments": [],
+        "getter": "get line(): LineFormat",
+        "setter": null,
+        "return_type": "LineFormat",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1888",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.name",
+      "declaration": {
+        "declaration": "(self) -> str",
+        "getter": "(self) -> str",
+        "setter": "(self, value: str)",
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:126-132",
+        "setter_evidence": "src/pptx/shapes/base.py:131-133",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "name",
+        "form": "property",
+        "ts_signature": "get name(): string; set name(value: string)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "string",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get name(): string",
+        "setter": "set name(value: string)",
+        "return_type": "string",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1889",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.part",
+      "declaration": {
+        "declaration": "(self) -> BaseSlidePart",
+        "getter": "(self) -> BaseSlidePart",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:135-141",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "part",
+        "form": "property",
+        "ts_signature": "get part(): PartView",
+        "arguments": [],
+        "getter": "get part(): PartView",
+        "setter": null,
+        "return_type": "PartView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1890",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.placeholder_format",
+      "declaration": {
+        "declaration": "(self) -> _PlaceholderFormat",
+        "getter": "(self) -> _PlaceholderFormat",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:144-152",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "placeholder_format",
+        "form": "property",
+        "ts_signature": "get placeholder_format(): _PlaceholderFormat",
+        "arguments": [],
+        "getter": "get placeholder_format(): _PlaceholderFormat",
+        "setter": null,
+        "return_type": "_PlaceholderFormat",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1891",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.rotation",
+      "declaration": {
+        "declaration": "(self) -> float",
+        "getter": "(self) -> float",
+        "setter": "(self, value: float)",
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:155-165",
+        "setter_evidence": "src/pptx/shapes/base.py:164-166",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "rotation",
+        "form": "property",
+        "ts_signature": "get rotation(): number; set rotation(value: number)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "number",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get rotation(): number",
+        "setter": "set rotation(value: number)",
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1892",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.shadow",
+      "declaration": {
+        "declaration": "(self) -> ShadowFormat",
+        "getter": "(self) -> ShadowFormat",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:168-175",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "shadow",
+        "form": "lazyproperty",
+        "ts_signature": "get shadow(): ShadowFormat",
+        "arguments": [],
+        "getter": "get shadow(): ShadowFormat",
+        "setter": null,
+        "return_type": "ShadowFormat",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1893",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.shape_id",
+      "declaration": {
+        "declaration": "(self) -> int",
+        "getter": "(self) -> int",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:178-183",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "shape_id",
+        "form": "property",
+        "ts_signature": "get shape_id(): number",
+        "arguments": [],
+        "getter": "get shape_id(): number",
+        "setter": null,
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1894",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.shape_type",
+      "declaration": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": null,
+        "declared_on": "pptx.shapes.placeholder._InheritsDimensions",
+        "evidence": "src/pptx/shapes/placeholder.py:61-67",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "shape_type",
+        "form": "property",
+        "ts_signature": "get shape_type(): MSO_SHAPE_TYPE",
+        "arguments": [],
+        "getter": "get shape_type(): MSO_SHAPE_TYPE",
+        "setter": null,
+        "return_type": "MSO_SHAPE_TYPE",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1895",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.text",
+      "declaration": {
+        "declaration": "(self) -> str",
+        "getter": "(self) -> str",
+        "setter": "(self, text: str)",
+        "declared_on": "pptx.shapes.autoshape.Shape",
+        "evidence": "src/pptx/shapes/autoshape.py:328-346",
+        "setter_evidence": "src/pptx/shapes/autoshape.py:345-347",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "text",
+        "form": "property",
+        "ts_signature": "get text(): string; set text(value: string)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "string",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get text(): string",
+        "setter": "set text(value: string)",
+        "return_type": "string",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J10",
+        "J08"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine.",
+        "Replace text-frame paragraphs/runs; retain required empty paragraph and documented frame/cell properties. LF separates paragraphs; VT is a soft break."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1896",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.text_frame",
+      "declaration": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": null,
+        "declared_on": "pptx.shapes.autoshape.Shape",
+        "evidence": "src/pptx/shapes/autoshape.py:349-355",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "text_frame",
+        "form": "property",
+        "ts_signature": "get text_frame(): TextFrame",
+        "arguments": [],
+        "getter": "get text_frame(): TextFrame",
+        "setter": null,
+        "return_type": "TextFrame",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Creating getter: may add or change owner XML; CLI noncreating inspection must not invoke it."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1897",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.top",
+      "declaration": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": "(self, value)",
+        "declared_on": "pptx.shapes.placeholder._InheritsDimensions",
+        "evidence": "src/pptx/shapes/placeholder.py:70-80",
+        "setter_evidence": "src/pptx/shapes/placeholder.py:79-81",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "top",
+        "form": "property",
+        "ts_signature": "get top(): Length | null; set top(value: Length | null)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length | null",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get top(): Length | null",
+        "setter": "set top(value: Length | null)",
+        "return_type": "Length | null",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/1898",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.width",
+      "declaration": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": "(self, value)",
+        "declared_on": "pptx.shapes.placeholder._InheritsDimensions",
+        "evidence": "src/pptx/shapes/placeholder.py:83-93",
+        "setter_evidence": "src/pptx/shapes/placeholder.py:92-94",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholder",
+        "member": "width",
+        "form": "property",
+        "ts_signature": "get width(): Length | null; set width(value: Length | null)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length | null",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get width(): Length | null",
+        "setter": "set width(value: Length | null)",
+        "return_type": "Length | null",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2095",
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders",
+      "declaration": {
+        "declaration": "(self, spTree: CT_GroupShape, parent: ProvidesPart)",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shapes.shapetree._BaseShapes",
+        "evidence": "src/pptx/shapes/shapetree.py:759-770",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholders",
+        "member": "NotesSlidePlaceholders",
+        "form": "returned-interface",
+        "ts_signature": "interface NotesSlidePlaceholders",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "NotesSlidePlaceholders",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlidePlaceholders",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2096",
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.__eq__",
+      "declaration": {
+        "declaration": "(self, other: object) -> bool",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shared.ElementProxy",
+        "evidence": "src/pptx/shared.py:24-33",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholders",
+        "member": "equals",
+        "form": "language-protocol",
+        "ts_signature": "equals(other: ModelComparable): boolean",
+        "arguments": [
+          {
+            "name": "other",
+            "ts_type": "ModelComparable",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlidePlaceholders",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2097",
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.__getitem__",
+      "declaration": {
+        "declaration": "(self, idx: int) -> BaseShape",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shapes.shapetree._BaseShapes",
+        "evidence": "src/pptx/shapes/shapetree.py:88-95",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholders",
+        "member": "numeric lookup / at",
+        "form": "language-protocol",
+        "ts_signature": "readonly [index: number]: BaseShape; at(index: number): BaseShape",
+        "arguments": [
+          {
+            "name": "index",
+            "ts_type": "number",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "BaseShape",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlidePlaceholders",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "source": "IndexError",
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2098",
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.__init__",
+      "declaration": {
+        "declaration": "(self, spTree: CT_GroupShape, parent: ProvidesPart)",
+        "getter": null,
+        "setter": null,
+        "declared_on": null,
+        "evidence": "src/pptx/shapes/shapetree.py:759-770",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholders",
+        "member": "constructor",
+        "form": "owner-acquisition",
+        "ts_signature": "type Acquired = NotesSlidePlaceholders",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "NotesSlidePlaceholders",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlidePlaceholders",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2099",
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.__iter__",
+      "declaration": {
+        "declaration": "(self) -> Iterator[BaseShape]",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shapes.shapetree._BaseShapes",
+        "evidence": "src/pptx/shapes/shapetree.py:97-100",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholders",
+        "member": "Symbol.iterator",
+        "form": "language-protocol",
+        "ts_signature": "[Symbol.iterator](): IterableIterator<BaseShape>",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "IterableIterator<BaseShape>",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlidePlaceholders",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2100",
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.__len__",
+      "declaration": {
+        "declaration": "(self) -> int",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shapes.shapetree._BaseShapes",
+        "evidence": "src/pptx/shapes/shapetree.py:102-109",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholders",
+        "member": "length",
+        "form": "language-protocol",
+        "ts_signature": "readonly length: number",
+        "arguments": [],
+        "getter": "get length(): number",
+        "setter": null,
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlidePlaceholders",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2101",
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.element",
+      "declaration": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": null,
+        "declared_on": "pptx.shared.ElementProxy",
+        "evidence": "src/pptx/shared.py:41-43",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholders",
+        "member": "element",
+        "form": "property",
+        "ts_signature": "get element(): XmlElementView",
+        "arguments": [],
+        "getter": "get element(): XmlElementView",
+        "setter": null,
+        "return_type": "XmlElementView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlidePlaceholders",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2102",
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.get",
+      "declaration": {
+        "declaration": "(self, ph_type: PP_PLACEHOLDER, default: MasterPlaceholder | None=None)",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shapes.shapetree.MasterPlaceholders",
+        "evidence": "src/pptx/shapes/shapetree.py:742-750",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholders",
+        "member": "get",
+        "form": "function",
+        "ts_signature": "get(ph_type: PP_PLACEHOLDER_TYPE, default_value?: MasterPlaceholder | null): NotesSlidePlaceholder | MasterPlaceholder | null",
+        "arguments": [
+          {
+            "name": "ph_type",
+            "target_binding": "ph_type",
+            "ts_type": "PP_PLACEHOLDER_TYPE",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "default",
+            "target_binding": "default_value",
+            "ts_type": "MasterPlaceholder | null",
+            "position": "positional",
+            "optional": true,
+            "source_default": "None",
+            "target_default": "null",
+            "undefined_behavior": "use target_default",
+            "null_behavior": "explicit absence/inheritance, never default coercion"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "NotesSlidePlaceholder | MasterPlaceholder | null",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlidePlaceholders",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2103",
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.parent",
+      "declaration": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": null,
+        "declared_on": "pptx.shared.ParentedElementProxy",
+        "evidence": "src/pptx/shared.py:59-64",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholders",
+        "member": "parent",
+        "form": "property",
+        "ts_signature": "get parent(): OwnedModel",
+        "arguments": [],
+        "getter": "get parent(): OwnedModel",
+        "setter": null,
+        "return_type": "OwnedModel",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlidePlaceholders",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2104",
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.part",
+      "declaration": {
+        "declaration": "(self) -> XmlPart",
+        "getter": "(self) -> XmlPart",
+        "setter": null,
+        "declared_on": "pptx.shared.ParentedElementProxy",
+        "evidence": "src/pptx/shared.py:67-69",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholders",
+        "member": "part",
+        "form": "property",
+        "ts_signature": "get part(): PartView",
+        "arguments": [],
+        "getter": "get part(): PartView",
+        "setter": null,
+        "return_type": "PartView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlidePlaceholders",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2105",
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.turbo_add_enabled",
+      "declaration": {
+        "declaration": "(self) -> bool",
+        "getter": "(self) -> bool",
+        "setter": "(self, value: bool)",
+        "declared_on": "pptx.shapes.shapetree._BaseShapes",
+        "evidence": "src/pptx/shapes/shapetree.py:144-166",
+        "setter_evidence": "src/pptx/shapes/shapetree.py:164-167",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlidePlaceholders",
+        "member": "turbo_add_enabled",
+        "form": "property",
+        "ts_signature": "get turbo_add_enabled(): boolean; set turbo_add_enabled(value: boolean)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "boolean",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get turbo_add_enabled(): boolean",
+        "setter": "set turbo_add_enabled(value: boolean)",
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlidePlaceholders",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2106",
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes",
+      "declaration": {
+        "declaration": "(self, spTree: CT_GroupShape, parent: ProvidesPart)",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shapes.shapetree._BaseShapes",
+        "evidence": "src/pptx/shapes/shapetree.py:675-699",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlideShapes",
+        "member": "NotesSlideShapes",
+        "form": "returned-interface",
+        "ts_signature": "interface NotesSlideShapes",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "NotesSlideShapes",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlideShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2107",
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.__eq__",
+      "declaration": {
+        "declaration": "(self, other: object) -> bool",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shared.ElementProxy",
+        "evidence": "src/pptx/shared.py:24-33",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlideShapes",
+        "member": "equals",
+        "form": "language-protocol",
+        "ts_signature": "equals(other: ModelComparable): boolean",
+        "arguments": [
+          {
+            "name": "other",
+            "ts_type": "ModelComparable",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlideShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2108",
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.__getitem__",
+      "declaration": {
+        "declaration": "(self, idx: int) -> BaseShape",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shapes.shapetree._BaseShapes",
+        "evidence": "src/pptx/shapes/shapetree.py:88-95",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlideShapes",
+        "member": "numeric lookup / at",
+        "form": "language-protocol",
+        "ts_signature": "readonly [index: number]: BaseShape; at(index: number): BaseShape",
+        "arguments": [
+          {
+            "name": "index",
+            "ts_type": "number",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "BaseShape",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlideShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "source": "IndexError",
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2109",
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.__init__",
+      "declaration": {
+        "declaration": "(self, spTree: CT_GroupShape, parent: ProvidesPart)",
+        "getter": null,
+        "setter": null,
+        "declared_on": null,
+        "evidence": "src/pptx/shapes/shapetree.py:675-699",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlideShapes",
+        "member": "constructor",
+        "form": "owner-acquisition",
+        "ts_signature": "type Acquired = NotesSlideShapes",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "NotesSlideShapes",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlideShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2110",
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.__iter__",
+      "declaration": {
+        "declaration": "(self) -> Iterator[BaseShape]",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shapes.shapetree._BaseShapes",
+        "evidence": "src/pptx/shapes/shapetree.py:97-100",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlideShapes",
+        "member": "Symbol.iterator",
+        "form": "language-protocol",
+        "ts_signature": "[Symbol.iterator](): IterableIterator<BaseShape>",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "IterableIterator<BaseShape>",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlideShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2111",
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.__len__",
+      "declaration": {
+        "declaration": "(self) -> int",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shapes.shapetree._BaseShapes",
+        "evidence": "src/pptx/shapes/shapetree.py:102-109",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlideShapes",
+        "member": "length",
+        "form": "language-protocol",
+        "ts_signature": "readonly length: number",
+        "arguments": [],
+        "getter": "get length(): number",
+        "setter": null,
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlideShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2112",
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.element",
+      "declaration": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": null,
+        "declared_on": "pptx.shared.ElementProxy",
+        "evidence": "src/pptx/shared.py:41-43",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlideShapes",
+        "member": "element",
+        "form": "property",
+        "ts_signature": "get element(): XmlElementView",
+        "arguments": [],
+        "getter": "get element(): XmlElementView",
+        "setter": null,
+        "return_type": "XmlElementView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlideShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2113",
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.parent",
+      "declaration": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": null,
+        "declared_on": "pptx.shared.ParentedElementProxy",
+        "evidence": "src/pptx/shared.py:59-64",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlideShapes",
+        "member": "parent",
+        "form": "property",
+        "ts_signature": "get parent(): OwnedModel",
+        "arguments": [],
+        "getter": "get parent(): OwnedModel",
+        "setter": null,
+        "return_type": "OwnedModel",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlideShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2114",
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.part",
+      "declaration": {
+        "declaration": "(self) -> XmlPart",
+        "getter": "(self) -> XmlPart",
+        "setter": null,
+        "declared_on": "pptx.shared.ParentedElementProxy",
+        "evidence": "src/pptx/shared.py:67-69",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlideShapes",
+        "member": "part",
+        "form": "property",
+        "ts_signature": "get part(): PartView",
+        "arguments": [],
+        "getter": "get part(): PartView",
+        "setter": null,
+        "return_type": "PartView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlideShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2115",
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.turbo_add_enabled",
+      "declaration": {
+        "declaration": "(self) -> bool",
+        "getter": "(self) -> bool",
+        "setter": "(self, value: bool)",
+        "declared_on": "pptx.shapes.shapetree._BaseShapes",
+        "evidence": "src/pptx/shapes/shapetree.py:144-166",
+        "setter_evidence": "src/pptx/shapes/shapetree.py:164-167",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlideShapes",
+        "member": "turbo_add_enabled",
+        "form": "property",
+        "ts_signature": "get turbo_add_enabled(): boolean; set turbo_add_enabled(value: boolean)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "boolean",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get turbo_add_enabled(): boolean",
+        "setter": "set turbo_add_enabled(value: boolean)",
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.NotesSlideShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2148",
+      "sourceId": "pptx.slide.NotesMaster",
+      "declaration": {
+        "declaration": "(self, element: BaseOxmlElement, part: XmlPart)",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shared.PartElementProxy",
+        "evidence": "src/pptx/slide.py:94-98",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesMaster",
+        "member": "NotesMaster",
+        "form": "returned-interface",
+        "ts_signature": "interface NotesMaster",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "NotesMaster",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2149",
+      "sourceId": "pptx.slide.NotesMaster.__eq__",
+      "declaration": {
+        "declaration": "(self, other: object) -> bool",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shared.ElementProxy",
+        "evidence": "src/pptx/shared.py:24-33",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesMaster",
+        "member": "equals",
+        "form": "language-protocol",
+        "ts_signature": "equals(other: ModelComparable): boolean",
+        "arguments": [
+          {
+            "name": "other",
+            "ts_type": "ModelComparable",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2150",
+      "sourceId": "pptx.slide.NotesMaster.__init__",
+      "declaration": {
+        "declaration": "(self, element: BaseOxmlElement, part: XmlPart)",
+        "getter": null,
+        "setter": null,
+        "declared_on": null,
+        "evidence": "src/pptx/slide.py:94-98",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesMaster",
+        "member": "constructor",
+        "form": "owner-acquisition",
+        "ts_signature": "type Acquired = NotesMaster",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "NotesMaster",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2151",
+      "sourceId": "pptx.slide.NotesMaster.background",
+      "declaration": {
+        "declaration": "(self) -> _Background",
+        "getter": "(self) -> _Background",
+        "setter": null,
+        "declared_on": "pptx.slide._BaseSlide",
+        "evidence": "src/pptx/slide.py:45-54",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesMaster",
+        "member": "background",
+        "form": "lazyproperty",
+        "ts_signature": "get background(): _Background",
+        "arguments": [],
+        "getter": "get background(): _Background",
+        "setter": null,
+        "return_type": "_Background",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Change the fill kind on the owned XML. Retain the documented default color/stop behavior; see the exact pinned member evidence. No publication until save/batch completes."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2152",
+      "sourceId": "pptx.slide.NotesMaster.element",
+      "declaration": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": null,
+        "declared_on": "pptx.shared.ElementProxy",
+        "evidence": "src/pptx/shared.py:41-43",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesMaster",
+        "member": "element",
+        "form": "property",
+        "ts_signature": "get element(): XmlElementView",
+        "arguments": [],
+        "getter": "get element(): XmlElementView",
+        "setter": null,
+        "return_type": "XmlElementView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2153",
+      "sourceId": "pptx.slide.NotesMaster.name",
+      "declaration": {
+        "declaration": "(self) -> str",
+        "getter": "(self) -> str",
+        "setter": "(self, value: str | None)",
+        "declared_on": "pptx.slide._BaseSlide",
+        "evidence": "src/pptx/slide.py:57-68",
+        "setter_evidence": "src/pptx/slide.py:66-70",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesMaster",
+        "member": "name",
+        "form": "property",
+        "ts_signature": "get name(): string; set name(value: string | null)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "string | null",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get name(): string",
+        "setter": "set name(value: string | null)",
+        "return_type": "string",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2154",
+      "sourceId": "pptx.slide.NotesMaster.part",
+      "declaration": {
+        "declaration": "(self) -> XmlPart",
+        "getter": "(self) -> XmlPart",
+        "setter": null,
+        "declared_on": "pptx.shared.PartElementProxy",
+        "evidence": "src/pptx/shared.py:80-82",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesMaster",
+        "member": "part",
+        "form": "property",
+        "ts_signature": "get part(): PartView",
+        "arguments": [],
+        "getter": "get part(): PartView",
+        "setter": null,
+        "return_type": "PartView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2155",
+      "sourceId": "pptx.slide.NotesMaster.placeholders",
+      "declaration": {
+        "declaration": "(self) -> MasterPlaceholders",
+        "getter": "(self) -> MasterPlaceholders",
+        "setter": null,
+        "declared_on": "pptx.slide._BaseMaster",
+        "evidence": "src/pptx/slide.py:78-83",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesMaster",
+        "member": "placeholders",
+        "form": "lazyproperty",
+        "ts_signature": "get placeholders(): MasterPlaceholders",
+        "arguments": [],
+        "getter": "get placeholders(): MasterPlaceholders",
+        "setter": null,
+        "return_type": "MasterPlaceholders",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2156",
+      "sourceId": "pptx.slide.NotesMaster.shapes",
+      "declaration": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": null,
+        "declared_on": "pptx.slide._BaseMaster",
+        "evidence": "src/pptx/slide.py:86-91",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesMaster",
+        "member": "shapes",
+        "form": "lazyproperty",
+        "ts_signature": "get shapes(): MasterShapes",
+        "arguments": [],
+        "getter": "get shapes(): MasterShapes",
+        "setter": null,
+        "return_type": "MasterShapes",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2157",
+      "sourceId": "pptx.slide.NotesSlide",
+      "declaration": {
+        "declaration": "(self, element: BaseOxmlElement, part: XmlPart)",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shared.PartElementProxy",
+        "evidence": "src/pptx/slide.py:101-173",
+        "setter_evidence": null,
+        "documentation_file": "docs/api/slides.rst",
+        "documentation_line": 107
+      },
+      "target": {
+        "owner": "NotesSlide",
+        "member": "NotesSlide",
+        "form": "returned-interface",
+        "ts_signature": "interface NotesSlide",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "NotesSlide",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2158",
+      "sourceId": "pptx.slide.NotesSlide.__eq__",
+      "declaration": {
+        "declaration": "(self, other: object) -> bool",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shared.ElementProxy",
+        "evidence": "src/pptx/shared.py:24-33",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlide",
+        "member": "equals",
+        "form": "language-protocol",
+        "ts_signature": "equals(other: ModelComparable): boolean",
+        "arguments": [
+          {
+            "name": "other",
+            "ts_type": "ModelComparable",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2159",
+      "sourceId": "pptx.slide.NotesSlide.__init__",
+      "declaration": {
+        "declaration": "(self, element: BaseOxmlElement, part: XmlPart)",
+        "getter": null,
+        "setter": null,
+        "declared_on": null,
+        "evidence": "src/pptx/slide.py:101-173",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "target": {
+        "owner": "NotesSlide",
+        "member": "constructor",
+        "form": "owner-acquisition",
+        "ts_signature": "type Acquired = NotesSlide",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "NotesSlide",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2160",
+      "sourceId": "pptx.slide.NotesSlide.background",
+      "declaration": {
+        "declaration": "(self) -> _Background",
+        "getter": "(self) -> _Background",
+        "setter": null,
+        "declared_on": "pptx.slide._BaseSlide",
+        "evidence": "src/pptx/slide.py:45-54",
+        "setter_evidence": null,
+        "documentation_file": "docs/api/slides.rst",
+        "documentation_line": 107
+      },
+      "target": {
+        "owner": "NotesSlide",
+        "member": "background",
+        "form": "lazyproperty",
+        "ts_signature": "get background(): _Background",
+        "arguments": [],
+        "getter": "get background(): _Background",
+        "setter": null,
+        "return_type": "_Background",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Change the fill kind on the owned XML. Retain the documented default color/stop behavior; see the exact pinned member evidence. No publication until save/batch completes."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2161",
+      "sourceId": "pptx.slide.NotesSlide.element",
+      "declaration": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": null,
+        "declared_on": "pptx.shared.ElementProxy",
+        "evidence": "src/pptx/shared.py:41-43",
+        "setter_evidence": null,
+        "documentation_file": "docs/api/slides.rst",
+        "documentation_line": 107
+      },
+      "target": {
+        "owner": "NotesSlide",
+        "member": "element",
+        "form": "property",
+        "ts_signature": "get element(): XmlElementView",
+        "arguments": [],
+        "getter": "get element(): XmlElementView",
+        "setter": null,
+        "return_type": "XmlElementView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2162",
+      "sourceId": "pptx.slide.NotesSlide.name",
+      "declaration": {
+        "declaration": "(self) -> str",
+        "getter": "(self) -> str",
+        "setter": "(self, value: str | None)",
+        "declared_on": "pptx.slide._BaseSlide",
+        "evidence": "src/pptx/slide.py:57-68",
+        "setter_evidence": "src/pptx/slide.py:66-70",
+        "documentation_file": "docs/api/slides.rst",
+        "documentation_line": 107
+      },
+      "target": {
+        "owner": "NotesSlide",
+        "member": "name",
+        "form": "property",
+        "ts_signature": "get name(): string; set name(value: string | null)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "string | null",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get name(): string",
+        "setter": "set name(value: string | null)",
+        "return_type": "string",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2163",
+      "sourceId": "pptx.slide.NotesSlide.notes_placeholder",
+      "declaration": {
+        "declaration": "(self) -> NotesSlidePlaceholder | None",
+        "getter": "(self) -> NotesSlidePlaceholder | None",
+        "setter": null,
+        "declared_on": "pptx.slide.NotesSlide",
+        "evidence": "src/pptx/slide.py:138-148",
+        "setter_evidence": null,
+        "documentation_file": "docs/api/slides.rst",
+        "documentation_line": 107
+      },
+      "target": {
+        "owner": "NotesSlide",
+        "member": "notes_placeholder",
+        "form": "property",
+        "ts_signature": "get notes_placeholder(): NotesSlidePlaceholder | null",
+        "arguments": [],
+        "getter": "get notes_placeholder(): NotesSlidePlaceholder | null",
+        "setter": null,
+        "return_type": "NotesSlidePlaceholder | null",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2164",
+      "sourceId": "pptx.slide.NotesSlide.notes_text_frame",
+      "declaration": {
+        "declaration": "(self) -> TextFrame | None",
+        "getter": "(self) -> TextFrame | None",
+        "setter": null,
+        "declared_on": "pptx.slide.NotesSlide",
+        "evidence": "src/pptx/slide.py:151-160",
+        "setter_evidence": null,
+        "documentation_file": "docs/api/slides.rst",
+        "documentation_line": 107
+      },
+      "target": {
+        "owner": "NotesSlide",
+        "member": "notes_text_frame",
+        "form": "property",
+        "ts_signature": "get notes_text_frame(): TextFrame | null",
+        "arguments": [],
+        "getter": "get notes_text_frame(): TextFrame | null",
+        "setter": null,
+        "return_type": "TextFrame | null",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2165",
+      "sourceId": "pptx.slide.NotesSlide.part",
+      "declaration": {
+        "declaration": "(self) -> XmlPart",
+        "getter": "(self) -> XmlPart",
+        "setter": null,
+        "declared_on": "pptx.shared.PartElementProxy",
+        "evidence": "src/pptx/shared.py:80-82",
+        "setter_evidence": null,
+        "documentation_file": "docs/api/slides.rst",
+        "documentation_line": 107
+      },
+      "target": {
+        "owner": "NotesSlide",
+        "member": "part",
+        "form": "property",
+        "ts_signature": "get part(): PartView",
+        "arguments": [],
+        "getter": "get part(): PartView",
+        "setter": null,
+        "return_type": "PartView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2166",
+      "sourceId": "pptx.slide.NotesSlide.placeholders",
+      "declaration": {
+        "declaration": "(self) -> NotesSlidePlaceholders",
+        "getter": "(self) -> NotesSlidePlaceholders",
+        "setter": null,
+        "declared_on": "pptx.slide.NotesSlide",
+        "evidence": "src/pptx/slide.py:163-168",
+        "setter_evidence": null,
+        "documentation_file": "docs/api/slides.rst",
+        "documentation_line": 107
+      },
+      "target": {
+        "owner": "NotesSlide",
+        "member": "placeholders",
+        "form": "lazyproperty",
+        "ts_signature": "get placeholders(): NotesSlidePlaceholders",
+        "arguments": [],
+        "getter": "get placeholders(): NotesSlidePlaceholders",
+        "setter": null,
+        "return_type": "NotesSlidePlaceholders",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2167",
+      "sourceId": "pptx.slide.NotesSlide.shapes",
+      "declaration": {
+        "declaration": "(self) -> NotesSlideShapes",
+        "getter": "(self) -> NotesSlideShapes",
+        "setter": null,
+        "declared_on": "pptx.slide.NotesSlide",
+        "evidence": "src/pptx/slide.py:171-173",
+        "setter_evidence": null,
+        "documentation_file": "docs/api/slides.rst",
+        "documentation_line": 107
+      },
+      "target": {
+        "owner": "NotesSlide",
+        "member": "shapes",
+        "form": "lazyproperty",
+        "ts_signature": "get shapes(): NotesSlideShapes",
+        "arguments": [],
+        "getter": "get shapes(): NotesSlideShapes",
+        "setter": null,
+        "return_type": "NotesSlideShapes",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2174",
+      "sourceId": "pptx.slide.Slide.has_notes_slide",
+      "declaration": {
+        "declaration": "(self) -> bool",
+        "getter": "(self) -> bool",
+        "setter": null,
+        "declared_on": "pptx.slide.Slide",
+        "evidence": "src/pptx/slide.py:196-202",
+        "setter_evidence": null,
+        "documentation_file": "docs/api/slides.rst",
+        "documentation_line": 25
+      },
+      "target": {
+        "owner": "Slide",
+        "member": "has_notes_slide",
+        "form": "property",
+        "ts_signature": "get has_notes_slide(): boolean",
+        "arguments": [],
+        "getter": "get has_notes_slide(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    },
+    {
+      "inventoryPointer": "objects/2176",
+      "sourceId": "pptx.slide.Slide.notes_slide",
+      "declaration": {
+        "declaration": "(self) -> NotesSlide",
+        "getter": "(self) -> NotesSlide",
+        "setter": null,
+        "declared_on": "pptx.slide.Slide",
+        "evidence": "src/pptx/slide.py:205-211",
+        "setter_evidence": null,
+        "documentation_file": "docs/api/slides.rst",
+        "documentation_line": 25
+      },
+      "target": {
+        "owner": "Slide",
+        "member": "notes_slide",
+        "form": "property",
+        "ts_signature": "get notes_slide(): NotesSlide",
+        "arguments": [],
+        "getter": "get notes_slide(): NotesSlide",
+        "setter": null,
+        "return_type": "NotesSlide",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "languageMappings": [
+        "J01",
+        "J02",
+        "J07",
+        "J08",
+        "J10"
+      ],
+      "collection": null,
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Creating getter: may add or change owner XML; CLI noncreating inspection must not invoke it."
+      ],
+      "status": "planned-live-model",
+      "boundedOperationEvidence": [
+        "packages/pptx/src/notes.test.ts",
+        "packages/pptx/src/notes-review.test.ts",
+        "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+      ],
+      "gap": "Live presentation-owned notes model member is not implemented by detached notes operation records. All documented inherited/public members remain obligations."
+    }
+  ]
+}

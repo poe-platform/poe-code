@@ -1,4 +1,5 @@
 import type { ByteSink, ByteSource, CommandContext, CommandRegistry, CommandResult, FileSystem } from "../contracts/index.js";
+import type { ShellExtension } from "./extensions.js";
 import type { InternalErrorHandler, CommandArguments } from "../contracts/command.js";
 
 export interface ShellInvokeOptions {
@@ -45,10 +46,13 @@ export interface ShellParseOptions {
 export interface ShellOptions {
   readonly onInternalError?: InternalErrorHandler;
   readonly fs: FileSystem;
+  /** Default adds a synthetic null device; provided uses the supplied filesystem's device paths. */
+  readonly deviceView?: "default" | "provided";
   readonly commands?: CommandRegistry;
   readonly cwd?: string;
   readonly env?: Readonly<Record<string, string>>;
   readonly limits?: ShellLimits;
+  readonly extensions?: readonly ShellExtension[];
 }
 
 export interface ShellExecOptions {

@@ -1,0 +1,21 @@
+
+> docx@0.0.1 lint
+> eslint src tests && tsc --noEmit && tsc -p tsconfig.test.json
+
+
+/Users/kjopek/Workspace/poe-setup-scripts/packages/docx/src/operation-types.test.ts
+  20:14  warning  'operation' is assigned a value but only used as a type. Allowed unused vars must match /^ignored/u  @typescript-eslint/no-unused-vars
+
+✖ 1 problem (0 errors, 1 warning)
+
+src/image-insertion.ts(174,52): error TS2345: Argument of type 'Readonly<{ w: "http://purl.oclc.org/ooxml/wordprocessingml/main"; r: "http://purl.oclc.org/ooxml/officeDocument/relationships"; a: "http://purl.oclc.org/ooxml/drawingml/main"; wp: "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing"; ... 6 more ...; vt: "http://purl.oclc.org/ooxml/officeDocument/docPropsVTyp...' is not assignable to parameter of type 'Readonly<{ w: "http://schemas.openxmlformats.org/wordprocessingml/2006/main"; r: "http://schemas.openxmlformats.org/officeDocument/2006/relationships"; a: "http://schemas.openxmlformats.org/drawingml/2006/main"; ... 7 more ...; vt: "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"; }>'.
+  Type 'Readonly<{ w: "http://purl.oclc.org/ooxml/wordprocessingml/main"; r: "http://purl.oclc.org/ooxml/officeDocument/relationships"; a: "http://purl.oclc.org/ooxml/drawingml/main"; wp: "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing"; ... 6 more ...; vt: "http://purl.oclc.org/ooxml/officeDocument/docPropsVTyp...' is not assignable to type 'Readonly<{ w: "http://schemas.openxmlformats.org/wordprocessingml/2006/main"; r: "http://schemas.openxmlformats.org/officeDocument/2006/relationships"; a: "http://schemas.openxmlformats.org/drawingml/2006/main"; ... 7 more ...; vt: "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"; }>'.
+    Types of property 'w' are incompatible.
+      Type '"http://purl.oclc.org/ooxml/wordprocessingml/main"' is not assignable to type '"http://schemas.openxmlformats.org/wordprocessingml/2006/main"'.
+npm error Lifecycle script `lint` failed with error:
+npm error code 2
+npm error path /Users/kjopek/Workspace/poe-setup-scripts/packages/docx
+npm error workspace docx@0.0.1
+npm error location /Users/kjopek/Workspace/poe-setup-scripts/packages/docx
+npm error command failed
+npm error command sh -c eslint src tests && tsc --noEmit && tsc -p tsconfig.test.json

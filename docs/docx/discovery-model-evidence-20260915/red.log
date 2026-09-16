@@ -1,0 +1,192 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/discovery.test.ts (22 tests | 1 failed) 227ms
+   ✓ advertises bounded equation fragments independently of full math models 7ms
+   ✓ publishes factory wire fields that admit only byte blobs and finite image contexts 2ms
+   ✓ enforces canonical base64 pad bits in published image blob schemas 0ms
+   ✓ advertises standalone immutable Image routes independently of document style handles 4ms
+   ✓ includes native repeat inventories in the sole controls list feature profile 0ms
+   ✓ advertises only bounded native control repetition and complete binding synchronization 1ms
+     ✓ applies output ceilings to SDK discovery before returning data 57ms
+     ✓ retains cancellation when parsed help is passed to SDK discovery 1ms
+     ✓ gets the utility version from its actual package metadata 0ms
+     ✓ lists all declared discovery paths and generates options from declarations 49ms
+     ✓ uses the same declared input schema and explicitly rejects planned result claims 49ms
+     × includes private-looking public model declarations without claiming implementation 49ms
+     ✓ reports declared format features for implemented live model operations 1ms
+     ✓ keeps utility help consistent with implemented table and hyperlink models 1ms
+     ✓ reports conservative host support and effective limits without document claims 2ms
+   ✓ advertises inspection and validation as read-only implemented operations 1ms
+   ✓ declares bounded diagram and separately qualified opaque graphics capability subsets 0ms
+   ✓ equation add help advertises only its declared token selection 0ms
+   ✓ equation replace help advertises only its declared token selection 0ms
+   ✓ preserves the selector choice guide for declared simple selectors in text replace 0ms
+   ✓ preserves the selector choice guide for declared simple selectors in paragraphs set 1ms
+   ✓ preserves the selector choice guide for declared simple selectors in shapes set 0ms
+FAIL packages/docx/src/discovery.test.ts > document discovery > includes private-looking public model declarations without claiming implementation
+TypeError: Cannot read properties of undefined (reading 'id')
+ ❯ packages/docx/src/discovery.test.ts:118:98
+    116|   it("includes private-looking public model declarations without claim…
+    117|     const schema = discover("schema")!.data as DocxSchemaData;
+    118|     const id = schema.operations.find(item => item.id.includes("._") &…
+       |                                                                                                  ^
+    119|     expect(id).toBeTruthy();
+    120|     const result = discover("help", "batch", "--operation", id)!;
+
+ ❯ packages/docx/src/style-formatting-schema.test.ts (24 tests | 1 failed) 85ms
+   ✓ admits all three values of allCaps in runs and inherited styles 3ms
+   ✓ admits all three values of complexScriptEnabled in runs and inherited styles 1ms
+   ✓ admits all three values of csBold in runs and inherited styles 1ms
+   ✓ admits all three values of csItalic in runs and inherited styles 2ms
+   ✓ admits all three values of doubleStrike in runs and inherited styles 1ms
+   ✓ admits all three values of emboss in runs and inherited styles 1ms
+   ✓ admits all three values of imprint in runs and inherited styles 1ms
+   ✓ admits all three values of math in runs and inherited styles 1ms
+   ✓ admits all three values of noProof in runs and inherited styles 1ms
+   ✓ admits all three values of outline in runs and inherited styles 1ms
+   ✓ admits all three values of shadow in runs and inherited styles 1ms
+   ✓ admits all three values of smallCaps in runs and inherited styles 1ms
+   ✓ admits all three values of snapToGrid in runs and inherited styles 1ms
+   ✓ admits all three values of specVanish in runs and inherited styles 1ms
+   ✓ admits all three values of webHidden in runs and inherited styles 1ms
+   ✓ distinguishes style visibility from inherited font visibility and exposes paragraph fields 0ms
+   ✓ declares named latent reads and bounded nullable entries 1ms
+   ✓ admits tab insertion and negative indexed deletion but rejects competing edits 0ms
+   ✓ advertises closed latent results and implemented editing routes 64ms
+   ✓ admits inherited resets of style presentation metadata and latent numeric defaults 0ms
+   × advertises supported style model batches without claiming unrelated model operations 4ms
+   ✓ retains nullable style names and IDs in inherited model declarations 0ms
+   ✓ lists only declared supported model batch operation IDs 0ms
+   ✓ admits canonical symbols for documented formatting enum aliases 0ms
+FAIL packages/docx/src/style-formatting-schema.test.ts > advertises supported style model batches without claiming unrelated model operations
+AssertionError: expected { schemaVersion: 1, …(2) } to match object { Object (operations) }
+(16 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "operations": [
+      {
+-       "support": "reject",
++       "support": "edit",
+      },
+    ],
+  }
+
+ ❯ packages/docx/src/style-formatting-schema.test.ts:49:23
+     47|   expect(supported).toMatchObject({ operations: [{ id: "model.text.run…
+     48|   const unsupported = getDocxDiscovery({ operation: "schema", inputs: …
+     49|   expect(unsupported).toMatchObject({ operations: [{ support: "reject"…
+       |                       ^
+     50| });
+     51| it("retains nullable style names and IDs in inherited model declaratio…
+
+ ❯ packages/docx/src/discovery-completeness.test.ts (11 tests | 1 failed) 744ms
+   ✓ keeps human capability descriptions readable at ordinary terminal widths 3ms
+   ✓ escapes directional controls in human namespace reports while retaining JSON values 142ms
+   × accounts for every declaration in root schemas, including unsupported public receivers 58ms
+   ✓ classifies every format requirement without promoting preservation to editing 2ms
+   ✓ checks input capabilities through explicit memfs without writes or implicit stdin 67ms
+   ✓ declares the actual capabilities result and inspection namespace fields 0ms
+   ✓ links every declaration to format requirements and usable detailed help 228ms
+   ✓ shares admitted-byte capability behavior with the public SDK and rejects unsupported selectors before I/O 70ms
+   ✓ preserves capability failure categories and publishes no successful partial data 2ms
+   ✓ does not claim advertised host guarantees from method recognition alone 69ms
+   ✓ bounds the selected capabilities serialization independently of the alternate human output 102ms
+FAIL packages/docx/src/discovery-completeness.test.ts > accounts for every declaration in root schemas, including unsupported public receivers
+AssertionError: expected { …(6) } to match object { Object (path, support) }
+(13 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "path": [
+      "batch",
+    ],
+-   "support": "reject",
++   "support": "edit",
+  }
+
+ ❯ packages/docx/src/discovery-completeness.test.ts:37:96
+     35|   expect(data.operations.map(item => item.id)).toEqual(Object.keys(doc…
+     36|   expect(data.operations.find(item => item.id === "model.table._Cell.m…
+     37|   expect(data.operations.find(item => item.id === "model.document.Docu…
+       |                                                                                                ^
+     38|   expect(data.operations.find(item => item.id === "model.image.image.I…
+     39| });
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/discovery-completeness.test.ts > accounts for every declaration in root schemas, including unsupported public receivers
+AssertionError: expected { …(6) } to match object { Object (path, support) }
+(13 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "path": [
+      "batch",
+    ],
+-   "support": "reject",
++   "support": "edit",
+  }
+
+ ❯ packages/docx/src/discovery-completeness.test.ts:37:96
+     35|   expect(data.operations.map(item => item.id)).toEqual(Object.keys(doc…
+     36|   expect(data.operations.find(item => item.id === "model.table._Cell.m…
+     37|   expect(data.operations.find(item => item.id === "model.document.Docu…
+       |                                                                                                ^
+     38|   expect(data.operations.find(item => item.id === "model.image.image.I…
+     39| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  packages/docx/src/discovery.test.ts > document discovery > includes private-looking public model declarations without claiming implementation
+TypeError: Cannot read properties of undefined (reading 'id')
+ ❯ packages/docx/src/discovery.test.ts:118:98
+    116|   it("includes private-looking public model declarations without claim…
+    117|     const schema = discover("schema")!.data as DocxSchemaData;
+    118|     const id = schema.operations.find(item => item.id.includes("._") &…
+       |                                                                                                  ^
+    119|     expect(id).toBeTruthy();
+    120|     const result = discover("help", "batch", "--operation", id)!;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  packages/docx/src/style-formatting-schema.test.ts > advertises supported style model batches without claiming unrelated model operations
+AssertionError: expected { schemaVersion: 1, …(2) } to match object { Object (operations) }
+(16 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "operations": [
+      {
+-       "support": "reject",
++       "support": "edit",
+      },
+    ],
+  }
+
+ ❯ packages/docx/src/style-formatting-schema.test.ts:49:23
+     47|   expect(supported).toMatchObject({ operations: [{ id: "model.text.run…
+     48|   const unsupported = getDocxDiscovery({ operation: "schema", inputs: …
+     49|   expect(unsupported).toMatchObject({ operations: [{ support: "reject"…
+       |                       ^
+     50| });
+     51| it("retains nullable style names and IDs in inherited model declaratio…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  3 failed (3)
+      Tests  3 failed | 54 passed (57)
+   Start at  23:04:00
+   Duration  1.81s (transform 1.47s, setup 64ms, import 1.76s, tests 1.06s, environment 0ms)
+

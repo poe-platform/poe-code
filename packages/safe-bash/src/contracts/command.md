@@ -1,3 +1,39 @@
+# Runtime-bound command definitions
+
+`CommandDefinition.runtimeIdentity?: object` is an optional, reference-identity
+binding to the runtime that owns a command's internal argument and output-budget
+helpers. Factories that depend on those helpers supply `commandRuntimeIdentity`
+from their own command-contract module. `CommandRegistry.register` rejects a
+different identity before installation or replacement; matching definitions and
+runtime-independent custom definitions remain supported. Registration reads the
+binding once and stores that exact value in its immutable snapshot, so an accessor
+cannot change the checked identity during publication. A Shell also requires a
+registry from its own runtime instance, including when the supplied registry is
+initially empty.
+
+Source modules and separately compiled runtime copies have different private
+argument ownership and file-output budget bindings. They must not be mixed:
+otherwise binary arguments can be rejected and named output can evade the other
+copy's accounting. Opt-in commands require a coherent build with their host's
+contracts. This check does not weaken argument ownership, use a global brand, or
+make arbitrary host JavaScript safe. Manually executed custom command contexts
+still require their host to supply truthful capabilities and resource limits.
+
+## Explicit local optional build
+
+From the repository root, first run the maintained `npm run build`, then
+`npm run build:optional --workspace=virtual-bash`. The explicit entry is
+`packages/safe-bash/dist/optional.js`; import its factories alongside the published
+`poe-code/safe-bash` Shell, or import both from the optional entry. The build emits
+into the same dist tree as the public host, not a second copy of the runtime.
+Do not mix source-loaded factories with a compiled host. Source-only consumers
+must likewise load the host and factories from the same source module tree.
+
+This is an explicit repository-local build, not a published npm subpath. Both
+the workspace and root package file lists exclude optional artifacts even after
+this build. Default registries, package exports, and normal build membership do
+not gain the optional commands. A subsequent normal clean build can remove the
+optional artifacts; rerun the explicit build when needed.
 # Execution identity
 
 `CommandContext.executionScope?: object` is an optional, opaque borrowed identity
@@ -70,6 +106,12 @@ retained-handle seek are charged, including rereads. Iterator-only commands that
 never use this bounded API retain their existing command-owned input-limit
 policy; merely inspecting `stdinInput` does not activate the shell limit. Existing
 file-input guards remain independent and continue to constrain redirections.
+
+Inline `Shell.exec` strings and byte arrays follow this iterator-only policy;
+their owned snapshot also exposes readiness to optional shell reads. The internal
+`prepareBytesInput` helper is a separate finite-input contract: it admits its
+whole snapshot against `maxInputBytes` before copying and can reject it with
+`EFBIG`. It is not the admission route for public inline Shell input.
 
 `position` counts only bytes delivered or consumed by the shared cursor,
 including raw delimiters and escapes consumed by shell `read` and script-source

@@ -1,0 +1,597 @@
+{
+  "schema_version": 1,
+  "task": "adapt-upstream-opc-xml-images",
+  "family": "image",
+  "source_catalogs": [
+    {
+      "path": "test-case-map.json",
+      "sha256": "777a9ad8baffbaeb83db45dda6af7e16a0924585620e9a424a019c0c31e18e4f"
+    },
+    {
+      "path": "test-case-source-evidence.json",
+      "sha256": "ca5a8e0028fc76b9c0437a26da58dfd7e1399ec2ac5571e655e634721a52b9a7"
+    }
+  ],
+  "test_file": "packages/docx/src/image-characterization-variants.test.ts",
+  "test_file_sha256": "12ef0e38ab1aa2788533fac079981463ce33b6997a697fe701d90a1d6ef4c08f",
+  "count": 138,
+  "assertions": [
+    {
+      "title": "BMP admission extracts dimensions and density",
+      "status": "passed"
+    },
+    {
+      "title": "BMP MIME follows the signature",
+      "status": "passed"
+    },
+    {
+      "title": "BMP anonymous suffix follows the signature",
+      "status": "passed"
+    },
+    {
+      "title": "GIF admission extracts dimensions and density",
+      "status": "passed"
+    },
+    {
+      "title": "GIF MIME follows the signature",
+      "status": "passed"
+    },
+    {
+      "title": "GIF anonymous suffix follows the signature",
+      "status": "passed"
+    },
+    {
+      "title": "Offset signature reads ignore unrelated backing bytes",
+      "status": "passed"
+    },
+    {
+      "title": "Truncated integer intervals reject through header admission",
+      "status": "passed"
+    },
+    {
+      "title": "big endian unsigned values survive bounded header reads",
+      "status": "passed"
+    },
+    {
+      "title": "little endian unsigned values survive bounded header reads",
+      "status": "passed"
+    },
+    {
+      "title": "Blob admission snapshots caller bytes before awaiting",
+      "status": "passed"
+    },
+    {
+      "title": "Capability input retains the basename",
+      "status": "passed"
+    },
+    {
+      "title": "Explicit byte source closes after complete admission",
+      "status": "passed"
+    },
+    {
+      "title": "Named stream equivalent uses an explicit VFS basename",
+      "status": "passed"
+    },
+    {
+      "title": "Anonymous source receives a canonical basename",
+      "status": "passed"
+    },
+    {
+      "title": "Blob getters return independent owned bytes",
+      "status": "passed"
+    },
+    {
+      "title": "Admitted MIME is derived from bytes",
+      "status": "passed"
+    },
+    {
+      "title": "Pixel dimensions remain independent axes",
+      "status": "passed"
+    },
+    {
+      "title": "DPI metadata remains independent axes",
+      "status": "passed"
+    },
+    {
+      "title": "Unequal axis density controls native physical size",
+      "status": "passed"
+    },
+    {
+      "title": "Physical scaling with width null and height null",
+      "status": "passed"
+    },
+    {
+      "title": "Physical scaling with width 100 and height null",
+      "status": "passed"
+    },
+    {
+      "title": "Physical scaling with width null and height 500",
+      "status": "passed"
+    },
+    {
+      "title": "Physical scaling with width 1500 and height 1500",
+      "status": "passed"
+    },
+    {
+      "title": "Explicit filename survives admission",
+      "status": "passed"
+    },
+    {
+      "title": "Named input retains its final filename suffix",
+      "status": "passed"
+    },
+    {
+      "title": "Compatibility digest follows exact original admitted bytes",
+      "status": "passed"
+    },
+    {
+      "title": "BMP 211 by 71 metadata from original header bytes",
+      "status": "passed"
+    },
+    {
+      "title": "GIF 290 by 360 metadata from original header bytes",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG 204 by 204 metadata from original header bytes",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG 1504 by 1936 metadata from original header bytes",
+      "status": "passed"
+    },
+    {
+      "title": "PNG 150 by 214 metadata from original header bytes",
+      "status": "passed"
+    },
+    {
+      "title": "PNG 901 by 1350 metadata from original header bytes",
+      "status": "passed"
+    },
+    {
+      "title": "PNG 860 by 579 metadata from original header bytes",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF 48 by 48 metadata from original header bytes",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF 2464 by 3248 metadata from original header bytes",
+      "status": "passed"
+    },
+    {
+      "title": "Fragmented png source consumes owned bytes from its explicit origin",
+      "status": "passed"
+    },
+    {
+      "title": "Fragmented jpeg-jfif source consumes owned bytes from its explicit origin",
+      "status": "passed"
+    },
+    {
+      "title": "Fragmented jpeg-exif source consumes owned bytes from its explicit origin",
+      "status": "passed"
+    },
+    {
+      "title": "Fragmented gif source consumes owned bytes from its explicit origin",
+      "status": "passed"
+    },
+    {
+      "title": "Fragmented tiff source consumes owned bytes from its explicit origin",
+      "status": "passed"
+    },
+    {
+      "title": "Fragmented tiff-little-endian source consumes owned bytes from its explicit origin",
+      "status": "passed"
+    },
+    {
+      "title": "Fragmented bmp source consumes owned bytes from its explicit origin",
+      "status": "passed"
+    },
+    {
+      "title": "Unknown image signatures fail asynchronous admission",
+      "status": "passed"
+    },
+    {
+      "title": "Unadmitted MIME cannot be manufactured by construction",
+      "status": "passed"
+    },
+    {
+      "title": "Unadmitted extension cannot be manufactured by construction",
+      "status": "passed"
+    },
+    {
+      "title": "Base dimension observations use admitted values",
+      "status": "passed"
+    },
+    {
+      "title": "Base axis observations use admitted values",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG signature MIME",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG canonical suffix",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG embedded-directory owned metadata extraction",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG application-header owned metadata extraction",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG segment collection owned metadata extraction",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG segment collection APP0 density location",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG segment collection APP1 density location",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG missing optional APP0 retains dimensions",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG missing optional APP1 retains dimensions",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG segment collection frame location",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG missing frame rejects before a scan",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG segment role segment setting 0",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG segment role segment setting 1",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG density segment owned metadata extraction",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG density variant setting 0",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG density variant setting 1",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG density variant setting 2",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG directory segment owned metadata extraction",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG non-Exif APP1 metadata remains inert",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG directory segment embedded directory density extraction",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG embedded resolution retains unequal axes",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG frame segment owned metadata extraction",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG frame segment frame dimension extraction",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG signature dispatch marker role \\xe0",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG signature dispatch marker role \\xe1",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG signature dispatch marker role \\xc0",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG signature dispatch marker role \\xc7",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG signature dispatch marker role \\xda",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG segment scan owned metadata extraction",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG scanner boundary 0 preserves fill and segment traversal",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG scanner boundary 1 preserves fill and segment traversal",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG scanner boundary 2 preserves fill and segment traversal",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG scanner boundary 3 preserves fill and segment traversal",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG scanner boundary 4 preserves fill and segment traversal",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG scanner boundary 6 preserves fill and segment traversal",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG scanner boundary 8 preserves fill and segment traversal",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG segment reader owned metadata extraction",
+      "status": "passed"
+    },
+    {
+      "title": "JPEG segment reader marker traversal",
+      "status": "passed"
+    },
+    {
+      "title": "PNG owned metadata admission",
+      "status": "passed"
+    },
+    {
+      "title": "PNG signature MIME",
+      "status": "passed"
+    },
+    {
+      "title": "PNG canonical suffix",
+      "status": "passed"
+    },
+    {
+      "title": "PNG header reader owned metadata admission",
+      "status": "passed"
+    },
+    {
+      "title": "PNG header reader dimension extraction",
+      "status": "passed"
+    },
+    {
+      "title": "PNG header reader physical density extraction",
+      "status": "passed"
+    },
+    {
+      "title": "PNG density fallback no_setting 0",
+      "status": "passed"
+    },
+    {
+      "title": "PNG density fallback no_setting 1",
+      "status": "passed"
+    },
+    {
+      "title": "PNG density fallback no_setting 2",
+      "status": "passed"
+    },
+    {
+      "title": "PNG density fallback no_setting 3",
+      "status": "passed"
+    },
+    {
+      "title": "PNG density fallback no_setting 4",
+      "status": "passed"
+    },
+    {
+      "title": "PNG chunk sequence owned metadata admission",
+      "status": "passed"
+    },
+    {
+      "title": "PNG chunk sequence dimension chunk selection",
+      "status": "passed"
+    },
+    {
+      "title": "PNG optional density present is observable",
+      "status": "passed"
+    },
+    {
+      "title": "PNG optional density absent is observable",
+      "status": "passed"
+    },
+    {
+      "title": "PNG without a dimension header rejects",
+      "status": "passed"
+    },
+    {
+      "title": "PNG chunk reader owned metadata admission",
+      "status": "passed"
+    },
+    {
+      "title": "PNG chunk reader ordered chunk traversal",
+      "status": "passed"
+    },
+    {
+      "title": "PNG chunk reader bounded ancillary intervals",
+      "status": "passed"
+    },
+    {
+      "title": "PNG chunk dispatch dimension chunk selection",
+      "status": "passed"
+    },
+    {
+      "title": "PNG chunk dispatch chunk role pHYs",
+      "status": "passed"
+    },
+    {
+      "title": "PNG chunk dispatch chunk role IEND",
+      "status": "passed"
+    },
+    {
+      "title": "PNG record bounded ancillary intervals",
+      "status": "passed"
+    },
+    {
+      "title": "PNG dimension record bounded ancillary intervals",
+      "status": "passed"
+    },
+    {
+      "title": "PNG density record bounded ancillary intervals",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF admission extracts independent dimensions and densities",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF signature MIME",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF canonical suffix",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF directory reader owned header extraction",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF big endian directory admission",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF little endian directory admission",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF directory reader dimension extraction",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF resolution variant setting 0",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF resolution variant setting 1",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF resolution variant setting 2",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF resolution variant setting 3",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF resolution variant setting 4",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF directory fields owned header extraction",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF directory fields tag selection independent of ordering",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF directory traversal directory traversal",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF inert directory type 1 remains bounded",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF inert directory type 2 remains bounded",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF inert directory type 3 remains bounded",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF inert directory type 4 remains bounded",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF inert directory type 5 remains bounded",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF inert directory type 6 remains bounded",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF directory field owned header extraction",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF directory field metadata ownership",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF text field bounded original ASCII field",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF short field SHORT dimension field",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF long field LONG dimension field",
+      "status": "passed"
+    },
+    {
+      "title": "TIFF rational field fractional rational fields",
+      "status": "passed"
+    }
+  ],
+  "checks": {
+    "unit": {
+      "command": "npm test --workspace=docx",
+      "passed": 3987,
+      "skipped": 4,
+      "files": 201,
+      "duration_seconds": 167.66,
+      "log_sha256": "b3df74f83100a581cb88bc27d501415898821b23594b7de969026427188334d4",
+      "skips": "Existing cross-format PPTX pending paths; not counted as passes."
+    },
+    "lint": {
+      "command": "npm run lint --workspace=docx",
+      "exit_code": 0,
+      "errors": 0,
+      "warnings": 1,
+      "warning": "Existing operation-types.test.ts unused type-only variable.",
+      "log_sha256": "84c1834281fa8da3f8c09b0303161b9df2250ed57bcf81ada9496816a62a8619"
+    },
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=docx",
+      "exit_code": 0,
+      "log_sha256": "fc1bf5d0a2e72b95835347ff2f0dcb493f71933967ee91eb771cb9ce9450fbb4"
+    }
+  },
+  "mapping": "Independent original memfs observations; source identifiers exist only in the research ledger. No native mock call-order, private descriptor implementation, arbitrary seek API or pixel decoding parity is claimed."
+}

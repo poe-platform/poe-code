@@ -1,0 +1,311 @@
+{
+  "root": "/work",
+  "workflows": {
+    "filesystem": {
+      "status": "passed",
+      "assertions": [
+        "Unicode/space paths",
+        "seek/tell/end-relative seek",
+        "truncate",
+        "BytesIO",
+        "98560-byte read/write and 64KiB boundary seek",
+        "named temp reopen/unlink",
+        "temporary directory cleanup"
+      ]
+    },
+    "pillow_image": {
+      "status": "passed",
+      "size": [
+        24,
+        16
+      ],
+      "native_features": {
+        "pil": "12.2.0",
+        "freetype2": "2.13.3",
+        "webp": "1.2.2",
+        "jpg": "9.0",
+        "zlib": "1.3.1",
+        "libtiff": "4.4.0"
+      }
+    },
+    "nofollow_exclusive": {
+      "status": "passed",
+      "assertions": [
+        "exclusive nofollow fresh create",
+        "existing regular/directory and dangling/regular/directory/self-loop symlinks EEXIST",
+        "targets and symlinks preserved",
+        "nonexclusive nofollow capability unchanged"
+      ],
+      "outcomes": {
+        "fresh file": "created",
+        "existing regular": 20,
+        "target directory": 20,
+        "dangling link": 20,
+        "regular link": 20,
+        "directory link": 20,
+        "self loop": 20,
+        "nonexclusive_regular": 138
+      }
+    },
+    "python_docx": {
+      "status": "passed",
+      "assertions": [
+        "heading/paragraph/table/image create reopen edit",
+        "BytesIO reopen",
+        "ZIP CRC and image/relationship parts"
+      ],
+      "parts": 18,
+      "libxml_version": [
+        2,
+        9,
+        10
+      ],
+      "libxslt_version": [
+        1,
+        1,
+        33
+      ]
+    },
+    "openpyxl": {
+      "status": "passed",
+      "assertions": [
+        "values/dates/formulas/styles create reopen edit",
+        "BytesIO read",
+        "image/chart survive edit",
+        "formula stored; no recalculation/cached result"
+      ],
+      "parts": 14
+    },
+    "xlsxwriter": {
+      "status": "passed",
+      "assertions": [
+        "formatted multiple sheets",
+        "dates/formulas/image/chart parts",
+        "openpyxl interoperability",
+        "explicit cached formula 22; no recalculation",
+        "BytesIO write/read",
+        "disk-backed temporary packaging"
+      ],
+      "parts": 19
+    },
+    "fpdf2_pypdf": {
+      "status": "passed",
+      "assertions": [
+        "fpdf2 distribution identity; legacy fpdf absent",
+        "3 pages; embedded TTF/image resources",
+        "Unicode text/metadata extraction",
+        "split/merge/roundtrip",
+        "BytesIO seek write/read"
+      ]
+    },
+    "stream_modes": {
+      "status": "passed",
+      "assertions": [
+        "DOCX retained w+b handle",
+        "DOCX spooled temporary rollover",
+        "openpyxl write-only and read-only 150 rows",
+        "XlsxWriter constant-memory 150 rows",
+        "pypdf retained input/output handles"
+      ]
+    },
+    "invalid_inputs": {
+      "status": "passed",
+      "assertions": [
+        "empty/corrupt DOCX XLSX PDF PNG rejected with library errors",
+        "input bytes preserved",
+        "valid reopen after failure"
+      ],
+      "outcomes": {
+        "docx_empty": "BadZipFile",
+        "docx_garbage": "BadZipFile",
+        "xlsx_empty": "BadZipFile",
+        "xlsx_garbage": "BadZipFile",
+        "pdf_empty": "EmptyFileError",
+        "pdf_garbage": "PdfStreamError",
+        "image_empty": "UnidentifiedImageError",
+        "image_garbage": "UnidentifiedImageError"
+      }
+    },
+    "timestamps": {
+      "status": "passed",
+      "assertions": [
+        "distinct atime/mtime set and read back",
+        "shutil.copy2 content and mtime preservation"
+      ]
+    },
+    "runtime_resources": {
+      "status": "passed",
+      "assertions": [
+        "resources from already-loaded standard-library ZIP packages",
+        "python-docx package resources"
+      ]
+    },
+    "root_namespace": {
+      "status": "passed",
+      "assertions": [
+        "default temporary files use canonical /tmp",
+        "absolute symlink outside /work",
+        "canonical user /lib stays visible"
+      ],
+      "artifacts": [
+        {
+          "path": "/tmp/default ü 9cpbfxn1",
+          "bytes": [
+            99,
+            97,
+            110,
+            111,
+            110,
+            105,
+            99,
+            97,
+            108,
+            32,
+            100,
+            101,
+            102,
+            97,
+            117,
+            108,
+            116,
+            32,
+            116,
+            101,
+            109,
+            112,
+            111,
+            114,
+            97,
+            114,
+            121,
+            32,
+            98,
+            121,
+            116,
+            101,
+            115
+          ]
+        },
+        {
+          "path": "/lib/user owned ü.txt",
+          "bytes": [
+            99,
+            97,
+            110,
+            111,
+            110,
+            105,
+            99,
+            97,
+            108,
+            32,
+            117,
+            115,
+            101,
+            114,
+            32,
+            108,
+            105,
+            98,
+            32,
+            98,
+            121,
+            116,
+            101,
+            115
+          ]
+        }
+      ]
+    }
+  },
+  "artifacts": {
+    "documents with spaces ünicode 日本語/large boundary ü.bin": {
+      "bytes": 98560,
+      "sha256": "bbcc27e35e90b925b1dbdf9d44a62d1a44ec079b4b28f7a91955ef0a1a5c5c49"
+    },
+    "documents with spaces ünicode 日本語/seek file café.bin": {
+      "bytes": 4,
+      "sha256": "ae14731889490f864f605f01b0875189a4c24af7a73a85ba2df60e9ca551cedd"
+    },
+    "documents with spaces ünicode 日本語/image fixture ü.png": {
+      "bytes": 85,
+      "sha256": "e47a155ee6efc7b6fe048ef539fece1167330e675eb3aa67482d4c79289ca136"
+    },
+    "documents with spaces ünicode 日本語/heading table café.docx": {
+      "bytes": 37308,
+      "sha256": "c441db4a800712631e19c40cce7b3c194bbeae742ee2b6a199ee650e5c90f9e7"
+    },
+    "documents with spaces ünicode 日本語/edited dates ü.xlsx": {
+      "bytes": 6945,
+      "sha256": "ea0ed840fc0565d4a3c427b5b51a63903cb2e69a55386f3103c71be92439b66d"
+    },
+    "documents with spaces ünicode 日本語/formatted multiple sheets 日本語.xlsx": {
+      "bytes": 9426,
+      "sha256": "73ab221b4714f663b0742d3e7a759337b177fd713634f84a6f1c63357d8b6e29"
+    },
+    "documents with spaces ünicode 日本語/multi page café.pdf": {
+      "bytes": 8719,
+      "sha256": "75a28d8cd0d7567b4ccdfbcc0bfddd9a5a6ec4c0219fc52b61d4484c90be23bc"
+    },
+    "documents with spaces ünicode 日本語/split page ü.pdf": {
+      "bytes": 7693,
+      "sha256": "3d0dee4b1aec7f01b02f9d40e0f8ccf78d5579f80e84c4cce813876f2f3f7bb7"
+    },
+    "documents with spaces ünicode 日本語/merged round trip ü.pdf": {
+      "bytes": 15796,
+      "sha256": "d3aa91dab39e4ee0bfb0c3efe946cb816adfb91c4f7e201c5328132762760245"
+    },
+    "documents with spaces ünicode 日本語/stream edit café.docx": {
+      "bytes": 36611,
+      "sha256": "59ca97bc6bae300669fde8469c8494afc165406f6b3994c5e4219044791ecadb"
+    },
+    "documents with spaces ünicode 日本語/write only ü.xlsx": {
+      "bytes": 7796,
+      "sha256": "2ba7a3d13fbe3f9b14cea9ea2500acb49812255e2bc64f27a52f95f71edaad46"
+    },
+    "documents with spaces ünicode 日本語/constant memory ü.xlsx": {
+      "bytes": 7090,
+      "sha256": "33b0ab57791cf41316b715dfc195cc0fc56f113edacc1931bceb7a51259e56b8"
+    },
+    "documents with spaces ünicode 日本語/stream roundtrip ü.pdf": {
+      "bytes": 7522,
+      "sha256": "a14c9a0dd9d8c27a87dcb8c090e892450552c22c4e5ac830831de84b6db35ffa"
+    },
+    "documents with spaces ünicode 日本語/rendered page ü.png": {
+      "bytes": 2381,
+      "sha256": "3ac2bc1f4e3218492cf7a0926cd4499ece3fab7808ab393ed4ea46291fd96bee"
+    }
+  },
+  "versions": {
+    "python-docx": "1.2.0",
+    "openpyxl": "3.1.5",
+    "XlsxWriter": "3.2.9",
+    "pypdf": "6.18.1",
+    "fpdf2": "2.8.8",
+    "lxml": "6.0.2",
+    "Pillow": "12.2.0",
+    "fonttools": "4.65.0",
+    "defusedxml": "0.7.1",
+    "et-xmlfile": "2.0.0",
+    "typing-extensions": "4.16.0",
+    "PyMuPDF": "1.27.2.2"
+  },
+  "default_temp_directory": "/tmp",
+  "qualified_temp_directory": "/work/documents with spaces ünicode 日本語",
+  "priority_passed": true,
+  "pymupdf": {
+    "status": "passed",
+    "assertions": [
+      "page rendering PNG",
+      "structured text and image blocks"
+    ],
+    "pixels": [
+      298,
+      421
+    ]
+  },
+  "reportlab": {
+    "status": "not_needed",
+    "reason": "Only evaluate ReportLab when a required PDF generation feature is missing; extraction/rendering are separate concerns"
+  }
+}

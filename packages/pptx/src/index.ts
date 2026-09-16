@@ -1,0 +1,572 @@
+export { SlideLayout, SlideLayouts } from "./slide-layout-model.js";
+export { addOleObject, type AddOleObjectOptions } from "./ole-insertion.js";
+export { Image, detectImageContentType } from "./image-value.js";
+export { Chart } from "./chart-model.js";
+export { SlidePlaceholder, SlidePlaceholders, SlideShapes, Slide, Slides, Picture, Movie, MediaFormat, OleFormat, GraphicFrame } from "./slide-model.js";
+export { GroupShape } from "./group-model.js";
+export { Adjustment, AdjustmentCollection } from "./shape-adjustments.js";
+export { FreeformBuilder, FreeformPath, DrawingOperation, type FreeformGeometry, type FreeformCommand } from "./freeform-builder.js";
+export { insertPlaceholder, type PlaceholderContent } from "./command-placeholder.js";
+export type {
+  BinaryInput,
+  BinaryOutput,
+  ByteContext,
+  ByteLimits,
+  ByteSink,
+  ByteSource,
+  Diagnostic,
+  Location,
+  OfficeResult,
+  OperationRequest,
+  Phase,
+  ReadOptions,
+  Scope,
+  VfsCapability,
+  VfsPath,
+  WriteOptions
+} from "./contracts.js";
+export {
+  OfficeError,
+  InvalidXmlError,
+  PackageNotFoundError,
+  InvalidHandleError,
+  IndexError,
+  KeyError,
+  ValueError,
+  TypeError,
+  PropertyAccessError,
+  type ByteErrorCode,
+  type OfficeErrorCode
+} from "./errors.js";
+export { parseXmlPart, type XmlPart, type XmlElement, type XmlLimits } from "./xml.js";
+export { applyTemplateRepeat, validateTemplateRepeat, type TemplateRepeat } from "./template-repeat.js";
+export {
+  applyTemplateBindings,
+  validateTemplateBindings,
+  type TemplateBinding
+} from "./template-bindings.js";
+export {
+  readAccessibility,
+  mutateAccessibility,
+  type AccessibilityUpdate,
+  type AccessibilityProvenance,
+  type AccessibilityObject,
+  type AccessibilitySlideCheck
+} from "./accessibility.js";
+export {
+  readAnimations,
+  type AnimationRecord,
+  type AnimationNode,
+  type AnimationDiagnostic,
+  type AnimationTimingReference
+} from "./animations.js";
+export { readTransitions, mutateTransitions, validateTransitionOptions, type TransitionKind, type TransitionDirection, type TransitionRecord, type MutateTransitionsOptions } from "./transitions.js";
+export { mutateAnimations, mutateAnimationsBatch, validateAnimationOptions, type AnimationKind, type AnimationTrigger, type AnimationTarget, type MutateAnimationsOptions, type AnimationEditResult, type AnimationBatchOperation, type AnimationBatchResult } from "./animation-editing.js";
+export {
+  readCharts,
+  inspectChart,
+  type ChartSelection,
+  type ChartXmlNode,
+  type ChartPoint,
+  type ChartDataSource,
+  type ChartSeries,
+  type ChartPlot,
+  type ChartAxis,
+  type ChartInspection,
+  type ChartLink,
+  type ChartRecord
+} from "./charts.js";
+export {
+  addChart,
+  setCharts,
+  chartTypes,
+  type CreatableChartType,
+  type ChartInputSeries,
+  type ChartData as ChartDataInput,
+  type ChartUpdate,
+  type AddChartOptions
+} from "./chart-editing.js";
+export { selectionQuerySchema } from "./selector-schema.js";
+export type { PresentationInventory, SlideInventory, PartInventory } from "./inventory.js";
+
+export {
+  readSelectionIndex,
+  decodeSelectionToken,
+  createBatchHandles,
+  SelectionError,
+  type SelectionContext,
+  type SelectionQuery,
+  type SelectionRecord,
+  type SelectionIndex
+} from "./selectors.js";
+
+export {
+  createPptxCommandEngine,
+  type PptxCommandEngine,
+  type PptxCommandEngineOptions,
+  type PptxCommandRequest,
+  type PptxCommandOutput,
+  type PptxPublicationRequest
+} from "./command-engine.js";
+
+export { getXmlPart, replaceXmlPart, type XmlPartContext, type XmlPartData } from "./xml-parts.js";
+
+export type { PartView, PackageView, PartRelationship } from "./package-view.js";
+export type { XmlElementView } from "./xml-view.js";
+
+export {
+  Presentation,
+  type PresentationModel,
+  type PresentationContext,
+  type PresentationPublication
+} from "./presentation-model.js";
+
+export {
+  createPresentation,
+  type CreatePresentationOptions,
+  type PresentationProperties,
+  type PresentationSlideInput,
+  type PresentationTextShape
+} from "./creation.js";
+
+export {
+  addSlide,
+  mutateSlides,
+  type MutateSlidesOptions,
+  type AddSlideOptions,
+  type PlaceholderText
+} from "./slides.js";
+
+export { removeSlides, type RemoveSlidesOptions } from "./slide-removal.js";
+
+export {
+  listLinks,
+  setLink,
+  removeLink,
+  openLinkSession,
+  type LinkAction,
+  type LinkOptions,
+  type SetLinkOptions,
+  type LinkSession,
+  type LinkData
+} from "./links.js";
+
+export {
+  ActionSetting,
+  Hyperlink,
+  _Hyperlink,
+  PP_ACTION,
+  PP_ACTION_TYPE,
+  LinkShape,
+  LinkRun,
+  type ActionValue,
+  type LinkModelOwner,
+  type LinkShapeIdentity
+} from "./links-model.js";
+
+export { duplicateSlides, type DuplicateSlidesOptions } from "./slide-copy.js";
+
+export { importSlides, type ImportSlidesOptions } from "./slide-import.js";
+
+export {
+  mergeSlides,
+  splitSlides,
+  type MergeSlidesOptions,
+  type SplitSlidesOptions,
+  type SplitSlideOutput
+} from "./slide-merge-split.js";
+
+export {
+  readMemberships,
+  mutateMemberships,
+  type MembershipKind,
+  type MembershipRecord,
+  type MembershipSelection,
+  type MutateMembershipsOptions
+} from "./memberships.js";
+
+export {
+  readPresentationSettings,
+  mutatePresentationSettings,
+  type PresentationSettings,
+  type MutatePresentationSettingsOptions
+} from "./presentation-settings.js";
+
+export {
+  readMasters,
+  addMaster,
+  mutateMaster,
+  associateLayout,
+  mutateMasterShape,
+  type MasterRecord,
+  type SharedEditResult,
+  type MasterBackground,
+  type AddMasterOptions,
+  type MutateMasterOptions,
+  type AssociateLayoutOptions,
+  type MutateMasterShapeOptions
+} from "./masters.js";
+
+export {
+  readLayouts,
+  addLayout,
+  mutateLayout,
+  removeLayout,
+  applyLayout,
+  type LayoutRecord,
+  type LayoutPlaceholder,
+  type LayoutPlaceholderRecord,
+  type AddLayoutOptions,
+  type MutateLayoutOptions,
+  type RemoveLayoutOptions,
+  type ApplyLayoutOptions
+} from "./layouts.js";
+
+export type { EffectiveStyleValue, StyleSource, TextStyleRecord } from "./text-style-resolution.js";
+
+export { readThemes, mutateTheme, type ThemeRecord, type MutateThemeOptions } from "./themes.js";
+export {
+  readBackgrounds,
+  mutateBackground,
+  type BackgroundRecord,
+  type BackgroundScope,
+  type GradientStop,
+  type MutateBackgroundOptions
+} from "./backgrounds.js";
+
+export {
+  readPresentationText,
+  type ReadPresentationTextOptions,
+  type TextScope,
+  type TextInline,
+  type TextParagraph,
+  type TextSegment,
+  type PresentationText
+} from "./text-reading.js";
+
+export {
+  replacePresentationText,
+  type ReplacePresentationTextOptions,
+  type TextReplacementResult
+} from "./text-replacement.js";
+
+export {
+  MSO_TEXT_UNDERLINE_TYPE,
+  MSO_UNDERLINE,
+  readTextRuns,
+  mutateTextRuns,
+  validateTextRunOptions,
+  textUnderlineStyles,
+  textStrikeStyles,
+  textCapitalizationStyles,
+  type MutateTextRunsOptions,
+  type TextRunFormatting
+} from "./text-runs.js";
+
+export {
+  ColorFormat,
+  RGBColor,
+  ColorPropertyAccessError,
+  type RunColor,
+  type RunColorRecord
+} from "./text-run-color.js";
+
+export {
+  Paragraph,
+  Run,
+  Font,
+  PP_PARAGRAPH_ALIGNMENT,
+  PP_ALIGN,
+  paragraphAlignments,
+  paragraphNumberingSchemes,
+  readTextParagraphs,
+  mutateTextParagraphs,
+  validateTextParagraphOptions,
+  type TextParagraphFormatting,
+  type MutateTextParagraphsOptions,
+  type ParagraphSpacing,
+  type ParagraphBullet,
+  type ParagraphTab
+} from "./text-paragraphs.js";
+
+export { Length, Emu, Inches, Cm, Mm, Pt, Centipoints } from "./length.js";
+
+export {
+  TextFrame,
+  MSO_AUTO_SIZE,
+  MSO_VERTICAL_ANCHOR,
+  MSO_ANCHOR,
+  textVerticalModes,
+  readTextFrames,
+  mutateTextFrames,
+  validateTextFrameOptions,
+  type TextFrameFormatting,
+  type MutateTextFramesOptions
+} from "./text-frames.js";
+
+export { admitFontMetrics, type FontMetrics, type FontMetricsHandle } from "./font-metrics.js";
+export {
+  fitTextFrames,
+  type TextFitOptions,
+  type ModelTextFitOptions,
+  type FitTextFramesOptions
+} from "./text-fitting.js";
+
+export {
+  readFields,
+  mutateFields,
+  type FieldKind,
+  type FieldUpdate,
+  type MutateFieldsOptions
+} from "./fields.js";
+
+export {
+  FillFormat,
+  LineFormat,
+  ShapeColorFormat,
+  Shape,
+  readShape,
+  createShapeXml,
+  applyShapeUpdate,
+  validateShapeOptions,
+  MSO_AUTO_SHAPE_TYPE,
+  MSO_SHAPE,
+  shapePresets,
+  type ShapeKind,
+  type ShapeLength,
+  type ShapeUpdate,
+  type ShapeRecord
+} from "./shapes.js";
+export { readShapes, addShape, mutateShapes, type ShapeSelection } from "./shape-operations.js";
+export { readShapeGeometry, type ShapeGeometry } from "./shape-transforms.js";
+export { PP_PLACEHOLDER_TYPE, PP_PLACEHOLDER } from "./shape-placeholder-types.js";
+
+export { MSO_SHAPE_TYPE, MSO } from "./shape-types.js";
+export { MSO_LANGUAGE_ID } from "./language-enum.js";
+export { MSO_COLOR_TYPE, MSO_THEME_COLOR_INDEX, MSO_THEME_COLOR } from "./color-enums.js";
+export { PP_MEDIA_TYPE } from "./media-enum.js";
+export { PROG_ID, type OleApplication } from "./ole-enum.js";
+export {
+  XL_AXIS_CROSSES,
+  XL_CATEGORY_TYPE,
+  XL_CHART_TYPE,
+  XL_DATA_LABEL_POSITION,
+  XL_LABEL_POSITION,
+  XL_LEGEND_POSITION,
+  XL_MARKER_STYLE,
+  XL_TICK_LABEL_POSITION,
+  XL_TICK_MARK
+} from "./chart-enums.js";
+
+export {
+  validateShapePath,
+  pathFromVertices,
+  readShapePath,
+  applyShapePath,
+  shapePathXml,
+  type ShapePath,
+  type ShapePathCommand
+} from "./shape-paths.js";
+export {
+  addShapePath,
+  setShapePath,
+  readShapePaths,
+  type AddShapePathOptions,
+  type SetShapePathOptions
+} from "./shape-path-operations.js";
+
+export {
+  groupShapes,
+  ungroupShape,
+  type GroupShapesOptions,
+  type UngroupShapeOptions
+} from "./shape-groups.js";
+
+export {
+  mutateShapeSelection,
+  applyShapeSelection,
+  validateShapeSelectionOptions,
+  type ShapeSelectionOptions,
+  type ShapeSelectionAction,
+  type ShapeOrder,
+  type ShapeAlignment,
+  type ShapeAxis
+} from "./shape-selection.js";
+export {
+  MSO_CONNECTOR_TYPE,
+  MSO_CONNECTOR,
+  createConnectorXml,
+  applyConnectorUpdate,
+  readConnector,
+  validateConnectorUpdate,
+  removeDrawingObjects,
+  type ConnectorKind,
+  type ConnectorUpdate
+} from "./connectors.js";
+export {
+  readConnectors,
+  addConnector,
+  mutateConnectors,
+  removeConnectors,
+  removeShapes,
+  validateConnectorOptions
+} from "./connector-operations.js";
+export { Connector } from "./connectors-model.js";
+
+export { readDrawing, mutateDrawing } from "./drawing-operations.js";
+export {
+  applyDrawingUpdate,
+  readDrawingFormat,
+  validateDrawingUpdate,
+  patternPresets,
+  dashPresets,
+  type DrawingUpdate,
+  type DrawingFill,
+  type DrawingColor
+} from "./drawing-format.js";
+
+export {
+  MSO_FILL,
+  MSO_FILL_TYPE,
+  MSO_LINE,
+  MSO_LINE_DASH_STYLE,
+  MSO_PATTERN,
+  MSO_PATTERN_TYPE
+} from "./drawing-enums.js";
+export {
+  GradientStop as DrawingGradientStop,
+  GradientStop as _GradientStop,
+  GradientStops,
+  GradientStops as _GradientStops,
+  ShadowFormat
+} from "./shapes.js";
+
+export {
+  readTables,
+  addTable,
+  mutateTables,
+  restructureTables,
+  type TableSelection
+} from "./table-operations.js";
+export {
+  readTable,
+  createTableXml,
+  applyTableUpdate,
+  validateTableUpdate,
+  type TableUpdate,
+  type TableRecord
+} from "./tables.js";
+export {
+  Table,
+  TableCell,
+  TableRow,
+  TableColumn,
+  TableRows,
+  TableColumns,
+  TableCells
+} from "./tables-model.js";
+
+export {
+  applyTableStructure,
+  type TableCoordinate,
+  type TableStructureOperation
+} from "./table-spans.js";
+
+export {
+  readImages,
+  type ReadImagesOptions,
+  type ImageOccurrence,
+  type ImageMedia,
+  type ImageInventory
+} from "./images.js";
+
+export { addImage, type AddImageOptions } from "./image-insertion.js";
+export {
+  replaceImage,
+  type ReplaceImageOptions,
+  type ReplaceImageResult
+} from "./image-replacement.js";
+
+export {
+  setImage,
+  applyPictureUpdate,
+  type SetImageOptions,
+  type SetImageResult
+} from "./image-formatting.js";
+export { extractImages } from "./image-extraction.js";
+export type { ExtractImagesOptions, ExtractedImage } from "./image-extraction.js";
+
+export {
+  readEquations,
+  mutateEquations,
+  inventoryEquations,
+  validateAuthoredEquation,
+  type EquationContent,
+  type EquationRecord,
+  type AddEquationOptions
+} from "./equations.js";
+
+export {
+  readMedia,
+  type ReadMediaOptions,
+  type MediaRelationship,
+  type MediaMetadata,
+  type MediaOccurrence,
+  type MediaPart,
+  type MediaInventory
+} from "./media.js";
+
+export { extractMedia, type ExtractMediaOptions, type ExtractedMedia } from "./media-extraction.js";
+export {
+  addMedia,
+  replaceMedia,
+  type AddMediaOptions,
+  type ReplaceMediaOptions,
+  type ReplaceMediaResult,
+  type MediaPoster
+} from "./media-editing.js";
+
+export { readNotes, mutateNotes, validateNotesOptions, type NotesRecord, type MutateNotesOptions } from "./notes.js";
+
+export { readComments, readCommentAuthors, mutateComments, type CommentRecord, type LegacyAuthorIdentity, type MutateCommentsOptions } from "./comments.js";
+export { type ModernCommentRecord, type ModernAuthorIdentity } from "./modern-comments.js";
+
+export {
+  CoreProperties,
+  openPropertySession,
+  readProperties,
+  mutateProperty,
+  sanitizeProperties,
+  type PropertyType,
+  type PropertyRecord,
+  type MutatePropertyOptions
+} from "./properties.js";
+export {
+  sanitize,
+  type SanitizeCategory,
+  type SanitizeOptions,
+  type SanitizeEntry,
+  type SanitizeResult
+} from "./sanitize.js";
+export { readTags, mutateTags, type TagRecord, type TagOptions } from "./tags.js";
+export {
+  readObjects,
+  extractObject,
+  readFonts,
+  type OpaqueObjectKind,
+  type OpaqueObjectPart,
+  type OpaqueObjectInventory,
+  type ExtractedObjectPart,
+  type ExtractedObject,
+  type EmbeddedFontDeclaration,
+  type FontInventory
+} from "./opaque-objects.js";
+
+export { comparePresentations, type DiffOptions, type DiffMode, type DiffCategory, type DiffChange, type PresentationDiff } from "./diff.js";
+
+export { extractPackage, packPackage, type ExtractedPackageMember, type PackPackageMember } from "./package-tools.js";
+
+export { CategoryChartData, ChartData, XyChartData, BubbleChartData } from "./chart-data-model.js";
+export * as chartData from "./chart-data-model.js";
+export * as chart from "./chart-objects.js";
+export type { ChartObjectUpdate } from "./chart-object-operations.js";

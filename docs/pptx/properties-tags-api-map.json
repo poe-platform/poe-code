@@ -1,0 +1,1131 @@
+{
+  "schema_version": 1,
+  "source_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "status": "bounded_metadata_interface_worker_verified_whole_api_incomplete",
+  "record_count": 32,
+  "documentation_drift": "D01: published pptx.opc.coreprops.CoreProperties resolves to pinned pptx.parts.coreprops.CorePropertiesPart. Preserve both source identities; target CoreProperties and neutral member spellings. No source module path is a product namespace.",
+  "records": [
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 17,
+        "end_line": 167
+      },
+      "target_member": "CoreProperties",
+      "target_signature": "owned returned CoreProperties interface",
+      "readable": true,
+      "writable": false,
+      "default": "creating getter; original neutral defaults; no ambient time/author",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties list (noncreating query)",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.author",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.author",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 40,
+        "end_line": 45
+      },
+      "target_member": "CoreProperties.author",
+      "target_signature": "author: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name author",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.category",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.category",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 48,
+        "end_line": 53
+      },
+      "target_member": "CoreProperties.category",
+      "target_signature": "category: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name category",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.comments",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.comments",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 56,
+        "end_line": 61
+      },
+      "target_member": "CoreProperties.comments",
+      "target_signature": "comments: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name comments",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.content_status",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.content_status",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 64,
+        "end_line": 69
+      },
+      "target_member": "CoreProperties.content_status",
+      "target_signature": "content_status: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name content_status",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.created",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.created",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 72,
+        "end_line": 77
+      },
+      "target_member": "CoreProperties.created",
+      "target_signature": "created: Date | null (read); Date (write)",
+      "readable": true,
+      "writable": true,
+      "default": "null on absent/empty/invalid read",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J07",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name created",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.identifier",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.identifier",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 80,
+        "end_line": 85
+      },
+      "target_member": "CoreProperties.identifier",
+      "target_signature": "identifier: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name identifier",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.keywords",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.keywords",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 88,
+        "end_line": 93
+      },
+      "target_member": "CoreProperties.keywords",
+      "target_signature": "keywords: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name keywords",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.language",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.language",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 96,
+        "end_line": 101
+      },
+      "target_member": "CoreProperties.language",
+      "target_signature": "language: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name language",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.last_modified_by",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.last_modified_by",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 104,
+        "end_line": 109
+      },
+      "target_member": "CoreProperties.last_modified_by",
+      "target_signature": "last_modified_by: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name last_modified_by",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.last_printed",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.last_printed",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 112,
+        "end_line": 117
+      },
+      "target_member": "CoreProperties.last_printed",
+      "target_signature": "last_printed: Date | null (read); Date (write)",
+      "readable": true,
+      "writable": true,
+      "default": "null on absent/empty/invalid read",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J07",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name last_printed",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.modified",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.modified",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 120,
+        "end_line": 125
+      },
+      "target_member": "CoreProperties.modified",
+      "target_signature": "modified: Date | null (read); Date (write)",
+      "readable": true,
+      "writable": true,
+      "default": "null on absent/empty/invalid read",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J07",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name modified",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.revision",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.revision",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 128,
+        "end_line": 133
+      },
+      "target_member": "CoreProperties.revision",
+      "target_signature": "revision: number",
+      "readable": true,
+      "writable": true,
+      "default": "0 on missing/invalid read",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name revision",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.subject",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.subject",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 136,
+        "end_line": 141
+      },
+      "target_member": "CoreProperties.subject",
+      "target_signature": "subject: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name subject",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.title",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.title",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 144,
+        "end_line": 149
+      },
+      "target_member": "CoreProperties.title",
+      "target_signature": "title: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name title",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.version",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.version",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 152,
+        "end_line": 157
+      },
+      "target_member": "CoreProperties.version",
+      "target_signature": "version: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name version",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.author",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.author",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 40,
+        "end_line": 45
+      },
+      "target_member": "CoreProperties.author",
+      "target_signature": "author: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name author",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.category",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.category",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 48,
+        "end_line": 53
+      },
+      "target_member": "CoreProperties.category",
+      "target_signature": "category: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name category",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.comments",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.comments",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 56,
+        "end_line": 61
+      },
+      "target_member": "CoreProperties.comments",
+      "target_signature": "comments: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name comments",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.content_status",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.content_status",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 64,
+        "end_line": 69
+      },
+      "target_member": "CoreProperties.content_status",
+      "target_signature": "content_status: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name content_status",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.created",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.created",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 72,
+        "end_line": 77
+      },
+      "target_member": "CoreProperties.created",
+      "target_signature": "created: Date | null (read); Date (write)",
+      "readable": true,
+      "writable": true,
+      "default": "null on absent/empty/invalid read",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J07",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name created",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.identifier",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.identifier",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 80,
+        "end_line": 85
+      },
+      "target_member": "CoreProperties.identifier",
+      "target_signature": "identifier: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name identifier",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.keywords",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.keywords",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 88,
+        "end_line": 93
+      },
+      "target_member": "CoreProperties.keywords",
+      "target_signature": "keywords: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name keywords",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.language",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.language",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 96,
+        "end_line": 101
+      },
+      "target_member": "CoreProperties.language",
+      "target_signature": "language: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name language",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.last_modified_by",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.last_modified_by",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 104,
+        "end_line": 109
+      },
+      "target_member": "CoreProperties.last_modified_by",
+      "target_signature": "last_modified_by: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name last_modified_by",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.last_printed",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.last_printed",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 112,
+        "end_line": 117
+      },
+      "target_member": "CoreProperties.last_printed",
+      "target_signature": "last_printed: Date | null (read); Date (write)",
+      "readable": true,
+      "writable": true,
+      "default": "null on absent/empty/invalid read",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J07",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name last_printed",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.modified",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.modified",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 120,
+        "end_line": 125
+      },
+      "target_member": "CoreProperties.modified",
+      "target_signature": "modified: Date | null (read); Date (write)",
+      "readable": true,
+      "writable": true,
+      "default": "null on absent/empty/invalid read",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J07",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name modified",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.revision",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.revision",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 128,
+        "end_line": 133
+      },
+      "target_member": "CoreProperties.revision",
+      "target_signature": "revision: number",
+      "readable": true,
+      "writable": true,
+      "default": "0 on missing/invalid read",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name revision",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.subject",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.subject",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 136,
+        "end_line": 141
+      },
+      "target_member": "CoreProperties.subject",
+      "target_signature": "subject: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name subject",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.title",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.title",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 144,
+        "end_line": 149
+      },
+      "target_member": "CoreProperties.title",
+      "target_signature": "title: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name title",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.version",
+      "resolved_source_id": "pptx.parts.coreprops.CorePropertiesPart.version",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 152,
+        "end_line": 157
+      },
+      "target_member": "CoreProperties.version",
+      "target_signature": "version: string",
+      "readable": true,
+      "writable": true,
+      "default": "empty string on absent or empty element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties get/set/remove --name version",
+      "status": "bounded_interface_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    },
+    {
+      "source_id": "pptx.presentation.Presentation.core_properties",
+      "resolved_source_id": "pptx.presentation.Presentation.core_properties",
+      "source_evidence": {
+        "file": "src/pptx/presentation.py",
+        "line": 29,
+        "end_line": 34
+      },
+      "target_member": "PropertySession.core_properties",
+      "target_signature": "readonly core_properties: CoreProperties",
+      "readable": true,
+      "writable": false,
+      "default": "creating getter; original neutral defaults; no ambient time/author",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J05",
+        "J08",
+        "J10"
+      ],
+      "cli_route": "properties list (noncreating query)",
+      "status": "bounded_equivalent_whole_factory_unsupported",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "whole_model_status": "Presentation.core_properties factory integration remains unsupported; bounded owned session equivalent does not claim complete Presentation parity",
+      "errors": [
+        "OfficeError invalid-value / usage for invalid setter values or types",
+        "OfficeError ambiguous-selection / select for duplicate qualified core fields",
+        "OfficeError unsupported-edit / validate-intent for edits to opaque declared XML types"
+      ]
+    }
+  ],
+  "public_surface_boundary": "The metadata object has 15 documented scalar properties. The 32 existing records retain the stale type, both sets of member identities and Presentation.core_properties. Whole inventory records, including inherited/underscore-named members without tests, are not removed or reclassified. Package/XML APIs are separate security-mapped obligations, not implied by this receipt.",
+  "surface_mapping": "openPropertySession(input, context) asynchronously returns an owned bounded session with core_properties: CoreProperties and save(): Promise<Uint8Array>. This implements the metadata interface; the whole Presentation factory integration remains a visible unsupported obligation.",
+  "additional_public_exports": [
+    {
+      "member": "openPropertySession(input: BinaryInput, context: SelectionContext)",
+      "returns": "Promise<{ readonly core_properties: CoreProperties; save(): Promise<Uint8Array> }>",
+      "behavior": "Always-async capability-bounded admission, lazy owned core view, async serialization.",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ]
+    },
+    {
+      "member": "CoreProperties.part",
+      "returns": "XmlPart",
+      "behavior": "Readonly parsed XML view returned by getter; this does not implement full documented package-part content type, relationship or mutation graph APIs.",
+      "status": "bounded_view_not_whole_inherited_api_parity"
+    }
+  ],
+  "operation_errors": {
+    "unknown_custom_value_edit": "unsupported-edit / validate-intent",
+    "unknown_declared_xml_type_edit": "unsupported-edit / validate-intent",
+    "new_custom_without_explicit_type": "invalid-value / usage",
+    "cli_mapping": "unsupported edit exits 1; invalid argument typing/usage exits 2"
+  }
+}

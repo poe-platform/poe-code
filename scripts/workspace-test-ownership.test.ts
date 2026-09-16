@@ -1,6 +1,8 @@
 import { fileURLToPath } from "node:url";
 import { createFsFromVolume, Volume } from "memfs";
+import fs from "node:fs";
 import { describe, expect, it } from "vitest";
+import { createWorkspaceBuildPlan } from "./build-workspaces.mjs";
 import { workspaceTestExclusions, workspaceUnitSelections } from "./workspace-test-ownership.mjs";
 
 function fixture(script?: string, files: Record<string, string> = {}) {
@@ -14,6 +16,43 @@ function fixture(script?: string, files: Record<string, string> = {}) {
 }
 
 describe("workspace test ownership", () => {
+  it("discovers the private optional distribution after canonical build dependencies", () => {
+    const manifest = JSON.parse(fs.readFileSync(new URL("../packages/safe-bash-optional/package.json", import.meta.url), "utf8"));
+    expect(manifest).toMatchObject({
+      name: "@poe-code/safe-bash-optional",
+      private: true,
+      type: "module",
+      scripts: {
+        build: "node lifecycle.mjs",
+        test: "cd ../.. && vitest run packages/safe-bash-optional/",
+        "test:unit": "cd ../.. && vitest run packages/safe-bash-optional/"
+      },
+      devDependencies: { "virtual-bash": "*", "@poe-code/safe-fs": "*" }
+    });
+    expect(manifest.dependencies).toBeUndefined();
+    expect(manifest.peerDependencies).toBeUndefined();
+    expect(manifest.optionalDependencies).toBeUndefined();
+    const fileSystem = createFsFromVolume(Volume.fromJSON({
+      "/repo/package.json": JSON.stringify({ workspaces: ["packages/*"] }),
+      "/repo/turbo.json": JSON.stringify({ tasks: { build: { dependsOn: ["^build"] } } }),
+      "/repo/packages/safe-fs/package.json": JSON.stringify({ name: "@poe-code/safe-fs", version: "0.0.0", scripts: { build: "node build.mjs" } }),
+      "/repo/packages/safe-bash/package.json": JSON.stringify({ name: "virtual-bash", version: "0.0.0", scripts: { build: "node build.mjs" }, devDependencies: { "@poe-code/safe-fs": "*" } }),
+      "/repo/packages/safe-bash-optional/package.json": JSON.stringify(manifest),
+      "/repo/packages/safe-bash-optional/build.test.ts": "",
+      "/repo/packages/safe-bash-optional/lifecycle.test.ts": ""
+    })) as unknown as typeof import("node:fs");
+    expect(createWorkspaceBuildPlan("/repo", fileSystem).stages.map((stage: { name: string }) => stage.name))
+      .toEqual(["@poe-code/safe-fs", "virtual-bash", "@poe-code/safe-bash-optional"]);
+    expect(workspaceUnitSelections("/repo", fileSystem)).toEqual([{
+      path: "packages/safe-bash-optional",
+      selectors: ["packages/safe-bash-optional/"],
+      exclusions: ["packages/safe-bash-optional/**"],
+      passWithNoTests: false,
+      hasHooks: false,
+      requiresNativePool: false
+    }]);
+  });
+
   it("exposes literal selections without changing their exclusion boundaries", () => {
     const fileSystem = fixture("cd ../.. && vitest run --config vitest.config.ts packages/example/src packages/example/scripts/build.test.ts");
     expect(workspaceUnitSelections("/repo", fileSystem)).toEqual([{

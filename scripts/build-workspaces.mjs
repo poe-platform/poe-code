@@ -156,6 +156,29 @@ export function createWorkspaceBuildPlan(rootDirectory, fileSystem = fs) {
     for (const name of Object.keys(peers)) assert.ok(!byName.has(name), `Unsupported internal peer dependency: ${name}`);
     for (const name of dependencies.get(workspace.name)) edges.push({ from: workspace.name, to: name });
   }
+  const dependencyBuildEvents = new Map();
+  for (const workspace of workspaces) {
+    const declaration = workspace.manifest.poeCode?.build;
+    if (declaration === undefined) continue;
+    assert.ok(declaration && typeof declaration === "object" && !Array.isArray(declaration), `Invalid build declaration: ${workspace.name}`);
+    assert.ok(Object.keys(declaration).every(key => key === "dependencies"), `Unsupported build declaration: ${workspace.name}`);
+    const events = declaration.dependencies;
+    assert.ok(events && typeof events === "object" && !Array.isArray(events), `Invalid dependency build events: ${workspace.name}`);
+    const selected = new Map();
+    for (const [name, event] of Object.entries(events)) {
+      assert.ok(dependencies.get(workspace.name).has(name), `Dependency build event needs an admitted local edge: ${workspace.name} -> ${name}`);
+      assert.ok(typeof event === "string" && (event === "build" || event.startsWith("build:") && event.length > 6
+        && [...event.slice(6)].every(character => "abcdefghijklmnopqrstuvwxyz0123456789:-".includes(character))), `Invalid dependency build event: ${workspace.name} -> ${name}`);
+      const target = byName.get(name);
+      assert.ok(target.build !== null, `Dependency build event needs a normal build: ${name}`);
+      for (const lifecycle of ["pre" + event, event, "post" + event]) {
+        const script = target.manifest.scripts[lifecycle];
+        assert.ok(lifecycle !== event && script === undefined || typeof script === "string" && script.trim().length > 0, `Invalid or missing ${lifecycle}: ${name}`);
+      }
+      selected.set(name, event);
+    }
+    dependencyBuildEvents.set(workspace.name, selected);
+  }
   const pending = new Map(dependencies), completed = new Set(), layers = [];
   while (pending.size) {
     const layer = [...pending.keys()].filter(name => [...pending.get(name)].every(dependency => completed.has(dependency))).sort(compareNames);
@@ -168,7 +191,7 @@ export function createWorkspaceBuildPlan(rootDirectory, fileSystem = fs) {
     assert.ok(workspace);
     return workspace;
   }).filter(workspace => workspace.build !== null);
-  return { root, rootManifest, configuration, workspaces, edges, layers, stages, manifestless, noBuild: workspaces.filter(workspace => workspace.build === null).map(workspace => ({ name: workspace.name, path: workspace.path, status: "NO_DECLARED_BUILD_NOT_A_PASS" })) };
+  return { root, rootManifest, configuration, workspaces, edges, dependencyBuildEvents, layers, stages, manifestless, noBuild: workspaces.filter(workspace => workspace.build === null).map(workspace => ({ name: workspace.name, path: workspace.path, status: "NO_DECLARED_BUILD_NOT_A_PASS" })) };
 }
 
 function taskError(message, exitCode = 1) {
@@ -188,15 +211,28 @@ function validateEnvironment(environment) {
 
 function selectBuildStages(plan, roots) {
   const names = new Set(plan.workspaces.map(workspace => workspace.name));
-  const selected = new Set();
-  const visit = name => {
+  const selected = new Set(), requests = new Map();
+  const visit = (name, event) => {
     assert.ok(names.has(name), 'Unknown literal workspace: ' + name);
+    if (!requests.has(name)) requests.set(name, new Set());
+    requests.get(name).add(event);
     if (selected.has(name)) return;
     selected.add(name);
-    for (const edge of plan.edges) if (edge.from === name) visit(edge.to);
+    for (const edge of plan.edges) if (edge.from === name) visit(edge.to, plan.dependencyBuildEvents.get(name)?.get(edge.to) ?? "build");
   };
-  for (const name of roots) visit(name);
-  return { stages: plan.stages.filter(stage => selected.has(stage.name)), noBuild: plan.noBuild.filter(stage => selected.has(stage.name)) };
+  for (const name of roots) visit(name, "build");
+  const events = new Map();
+  for (const name of [...selected].sort(compareNames)) {
+    const requested = requests.get(name);
+    // A declared normal build is the package owner's trusted full-build authority.
+    if (requested.has("build")) events.set(name, "build");
+    else {
+      const custom = [...requested].sort(compareNames);
+      assert.equal(custom.length, 1, `Conflicting dependency build events: ${name}: ${custom.join(", ")}`);
+      events.set(name, custom[0]);
+    }
+  }
+  return { stages: plan.stages.filter(stage => selected.has(stage.name)).map(stage => events.get(stage.name) === "build" ? stage : { ...stage, event: events.get(stage.name) }), noBuild: plan.noBuild.filter(stage => selected.has(stage.name)) };
 }
 
 export function createWorkspaceTestPlan(rootDirectory, options = {}) {
@@ -269,7 +305,7 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
 function taskEnvironment(environment, stage, unitMode) {
   const selected = { ...environment };
   if (unitMode && !(stage.path !== null && stage.name === "virtual-bash" && stage.event === "test:unit")) {
-    for (const name of ["SAFEJS_LOCAL_ROOT", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT", "SAFE_BASH_TEST_SHARD", "SAFE_BASH_TEST_CONCURRENCY"]) delete selected[name];
+    for (const name of ["SAFE_BASH_TEST_RG", "SAFEJS_LOCAL_ROOT", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT", "SAFE_BASH_TEST_SHARD", "SAFE_BASH_TEST_CONCURRENCY"]) delete selected[name];
   }
   return selected;
 }
@@ -394,7 +430,7 @@ export async function buildWorkspaces(rootDirectory, options = {}) {
   assert.ok(concurrency === 1 || concurrency === 2, "Build concurrency must be 1 or 2");
   validateEnvironment(environment);
   const plan = createWorkspaceBuildPlan(rootDirectory, fileSystem);
-  const selected = workspace === undefined ? plan : { ...plan, ...selectBuildStages(plan, [workspace]) };
+  const selected = { ...plan, ...selectBuildStages(plan, workspace === undefined ? plan.workspaces.map(stage => stage.name) : [workspace]) };
   let completed = 0;
   for (const layer of plan.layers) {
     const names = new Set(layer);

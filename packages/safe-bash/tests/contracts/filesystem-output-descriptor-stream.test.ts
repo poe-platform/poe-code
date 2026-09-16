@@ -219,9 +219,9 @@ test("descriptor stream chunk acknowledgement preserves backpressure and produce
 async function memoryTraffic(chunkSize: number, admitted: boolean) {
   const memory = new MemoryFileSystem();
   await memory.writeFile("/out", new Uint8Array());
-  const calls = { stat: 0, appendFile: 0, writeFile: 0, writeStream: 0 };
+  const calls = { stat: 0, appendFile: 0, writeFile: 0, writeStream: 0, open: 0 };
   const fs = new Proxy(memory, { get(target, key) {
-    if (key === "capabilities" && !admitted) return { ...target.capabilities, descriptorWriteStream: false };
+    if (key === "capabilities") return { ...target.capabilities, open: false, ...(!admitted ? { descriptorWriteStream: false } : {}) };
     const member: unknown = Reflect.get(target, key, target);
     if (typeof member !== "function") return member;
     return (...args: unknown[]) => {
@@ -261,6 +261,8 @@ async function memoryTraffic(chunkSize: number, admitted: boolean) {
 for (const chunkSize of [1, 8]) test(`genuine Memory Shell descriptor avoids per-chunk EOF probes and mirror copies: 32/${chunkSize}`, async context => {
   const legacy = await memoryTraffic(chunkSize, false);
   const descriptor = await memoryTraffic(chunkSize, true);
+  assert.equal(legacy.calls.open, 0, "legacy stream control must not select canonical open");
+  assert.equal(descriptor.calls.open, 0, "retained stream control must not select canonical open");
   assert.equal(legacy.calls.stat - descriptor.calls.stat, 32 / chunkSize);
   assert.equal(legacy.calls.appendFile, 32 / chunkSize);
   assert.equal(legacy.calls.writeFile, 1);

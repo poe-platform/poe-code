@@ -1,0 +1,12 @@
+{
+  "name": "safe-bash-pyodide-runtime-verification",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "pyodide": "314.0.6"
+  },
+  "scripts": {
+    "provision:public": "node provision-public-runtime.mjs",
+    "test:public": "node --test --test-concurrency=1 public-command-parity.test.mjs public-documents.test.mjs public-lifecycle.test.mjs"
+  }
+}

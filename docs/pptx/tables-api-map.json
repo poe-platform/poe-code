@@ -1,0 +1,4064 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "Public table types, inherited part members, constructors, cell/row/column collection protocols and adjacent table accessors remain explicit obligations, including underscore-prefixed types.",
+  "notice": "Research/provenance; required standalone notices remain upstream-license-notice.txt and public-api-map-notice.txt.",
+  "counts": {
+    "inventoryRecords": 80,
+    "byStatus": {
+      "planned": 43,
+      "implemented": 35,
+      "documentation-error": 2
+    }
+  },
+  "languageSecurityMappings": {
+    "names": "Neutral Table, cell, iter_cells, first_row, margin_left, text_frame names remain primary model spellings. CLI/operation JSON uses camelCase only. Underscore-prefixed documented types are public obligations.",
+    "collections": "Zero-based numeric collection[index] and get(index), length and Symbol.iterator; reject negative, fractional and out-of-range indexes. CLI locations are one-based. No negative at or slice is invented.",
+    "identity": "Live views retain owned physical a:tc identity; logical covered positions must not be conflated with physically serialized cells. Source equality maps to documented owner/node equality rather than Python wrapper identity.",
+    "null": "undefined leaves operation fields unchanged. null margins/anchor remove direct overrides; fill:null and borderColor:null explicitly write noFill. Null is field-specific, not universally inheritance. Empty text is a value.",
+    "units": "Finite safe numeric EMU model lengths and explicit unit-tagged operation lengths. No boolean-to-number coercion; integer validation before mutation.",
+    "errors": "Neutral OfficeError with invalid-value in usage phase (CLI exit 2), invalid-selection in select phase (exit 1), and unsupported-edit in validate-intent phase (exit 1); whole API limitations stay visible.",
+    "io": "Async input/save through explicit VFS or supplied bytes; synchronous in-memory table properties. No ambient host files, native runtime, network, fonts, clock or executable input.",
+    "constructors": "Returned owned table interfaces do not promise unchecked raw XML construction. Inherited part is an owned package view, not an unrestricted ZIP or host handle.",
+    "drift": "Published version 1.0.0 versus pinned source 1.0.2 is historical drift. Prose cell row_idx/col_idx are documentation errors, not hidden missing APIs. Public enums and returned fill/text-frame graphs remain separate full API obligations.",
+    "coordinates": "Package readTables/addTable/mutateTables options.cell is a one-based string such as 1,2, matching CLI --cell. Package updates reject update.cell. Internal TableUpdate.cell uses zero-based {row,column}; live Table.cell and collection indexing are also zero-based.",
+    "spans": "Model merge(other_cell) normalizes opposite corners; direct ordered from/to rejects reversed coordinates. Complete prior merges may be absorbed, unlike the pinned reject-any-merge baseline; partial intersections reject. Split only accepts an origin and never redistributes prior cell text.",
+    "structuralHandles": "Successful row/column insertion/deletion invalidates existing cell, row, column, row-cell collection and bound text-frame handles with invalid-selection. Table.rows and Table.columns remain live positional collections. Merge/split preserves coordinate handles.",
+    "conflictPolicy": "CLI position is one-based; restructureTables.operation.position is zero-based. Both insert before the specified row/column, with CLI length+1 or typed operation length appending. Addition requires expand or reject; removal requires shrink or reject. Inserted size copies the following row/column, or preceding one on append. Removal may not leave zero rows/columns."
+  },
+  "rows": [
+    {
+      "sourceId": "pptx.shapes.autoshape.Shape.has_table",
+      "inventory": "upstream-api-inventory.json#/objects/1578",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 80,
+        "end_line": 88
+      },
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "readSignature": "(self) -> bool",
+      "writeSignature": null,
+      "targetMember": "has_table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get has_table(): boolean",
+      "arguments": [],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.base.BaseShape.has_table",
+      "inventory": "upstream-api-inventory.json#/objects/1601",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 80,
+        "end_line": 88
+      },
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "readSignature": "(self) -> bool",
+      "writeSignature": null,
+      "targetMember": "has_table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get has_table(): boolean",
+      "arguments": [],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.has_table",
+      "inventory": "upstream-api-inventory.json#/objects/1633",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 80,
+        "end_line": 88
+      },
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "readSignature": "(self) -> bool",
+      "writeSignature": null,
+      "targetMember": "has_table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get has_table(): boolean",
+      "arguments": [],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.has_table",
+      "inventory": "upstream-api-inventory.json#/objects/1679",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/graphfrm.py",
+        "line": 68,
+        "end_line": 73
+      },
+      "declaredOn": "pptx.shapes.graphfrm.GraphicFrame",
+      "readSignature": "(self) -> bool",
+      "writeSignature": null,
+      "targetMember": "has_table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get has_table(): boolean",
+      "arguments": [],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.table",
+      "inventory": "upstream-api-inventory.json#/objects/1692",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/graphfrm.py",
+        "line": 122,
+        "end_line": 130
+      },
+      "declaredOn": "pptx.shapes.graphfrm.GraphicFrame",
+      "readSignature": "(self) -> Table",
+      "writeSignature": null,
+      "targetMember": "table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get table(): Table",
+      "arguments": [],
+      "returnType": "Table",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.has_table",
+      "inventory": "upstream-api-inventory.json#/objects/1710",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 80,
+        "end_line": 88
+      },
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "readSignature": "(self) -> bool",
+      "writeSignature": null,
+      "targetMember": "has_table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get has_table(): boolean",
+      "arguments": [],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.has_table",
+      "inventory": "upstream-api-inventory.json#/objects/1736",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 80,
+        "end_line": 88
+      },
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "readSignature": "(self) -> bool",
+      "writeSignature": null,
+      "targetMember": "has_table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get has_table(): boolean",
+      "arguments": [],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Picture.has_table",
+      "inventory": "upstream-api-inventory.json#/objects/1766",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 80,
+        "end_line": 88
+      },
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "readSignature": "(self) -> bool",
+      "writeSignature": null,
+      "targetMember": "has_table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get has_table(): boolean",
+      "arguments": [],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.has_table",
+      "inventory": "upstream-api-inventory.json#/objects/1798",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 80,
+        "end_line": 88
+      },
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "readSignature": "(self) -> bool",
+      "writeSignature": null,
+      "targetMember": "has_table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get has_table(): boolean",
+      "arguments": [],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.has_table",
+      "inventory": "upstream-api-inventory.json#/objects/1826",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 80,
+        "end_line": 88
+      },
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "readSignature": "(self) -> bool",
+      "writeSignature": null,
+      "targetMember": "has_table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get has_table(): boolean",
+      "arguments": [],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.has_table",
+      "inventory": "upstream-api-inventory.json#/objects/1852",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 80,
+        "end_line": 88
+      },
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "readSignature": "(self) -> bool",
+      "writeSignature": null,
+      "targetMember": "has_table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get has_table(): boolean",
+      "arguments": [],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.has_table",
+      "inventory": "upstream-api-inventory.json#/objects/1882",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 80,
+        "end_line": 88
+      },
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "readSignature": "(self) -> bool",
+      "writeSignature": null,
+      "targetMember": "has_table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get has_table(): boolean",
+      "arguments": [],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.has_table",
+      "inventory": "upstream-api-inventory.json#/objects/1909",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 80,
+        "end_line": 88
+      },
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "readSignature": "(self) -> bool",
+      "writeSignature": null,
+      "targetMember": "has_table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get has_table(): boolean",
+      "arguments": [],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.has_table",
+      "inventory": "upstream-api-inventory.json#/objects/1936",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/graphfrm.py",
+        "line": 68,
+        "end_line": 73
+      },
+      "declaredOn": "pptx.shapes.graphfrm.GraphicFrame",
+      "readSignature": "(self) -> bool",
+      "writeSignature": null,
+      "targetMember": "has_table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get has_table(): boolean",
+      "arguments": [],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.table",
+      "inventory": "upstream-api-inventory.json#/objects/1949",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/graphfrm.py",
+        "line": 122,
+        "end_line": 130
+      },
+      "declaredOn": "pptx.shapes.graphfrm.GraphicFrame",
+      "readSignature": "(self) -> Table",
+      "writeSignature": null,
+      "targetMember": "table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get table(): Table",
+      "arguments": [],
+      "returnType": "Table",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.has_table",
+      "inventory": "upstream-api-inventory.json#/objects/1963",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 80,
+        "end_line": 88
+      },
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "readSignature": "(self) -> bool",
+      "writeSignature": null,
+      "targetMember": "has_table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get has_table(): boolean",
+      "arguments": [],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.has_table",
+      "inventory": "upstream-api-inventory.json#/objects/1988",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 80,
+        "end_line": 88
+      },
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "readSignature": "(self) -> bool",
+      "writeSignature": null,
+      "targetMember": "has_table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get has_table(): boolean",
+      "arguments": [],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.has_table",
+      "inventory": "upstream-api-inventory.json#/objects/2015",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 80,
+        "end_line": 88
+      },
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "readSignature": "(self) -> bool",
+      "writeSignature": null,
+      "targetMember": "has_table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get has_table(): boolean",
+      "arguments": [],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.insert_table",
+      "inventory": "upstream-api-inventory.json#/objects/2018",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/placeholder.py",
+        "line": 381,
+        "end_line": 395
+      },
+      "declaredOn": "pptx.shapes.placeholder.TablePlaceholder",
+      "readSignature": "(self, rows, cols)",
+      "writeSignature": null,
+      "targetMember": "insert_table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "insert_table(rows: number, cols: number): PlaceholderGraphicFrame",
+      "arguments": [
+        {
+          "name": "rows",
+          "target_binding": "rows",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "cols",
+          "target_binding": "cols",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "returnType": "PlaceholderGraphicFrame",
+      "sideEffects": [
+        "Replace placeholder XML, preserve its idx key, invalidate old handle, return replacement handle; picture insertion uses cover crop."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.add_table",
+      "inventory": "upstream-api-inventory.json#/objects/2138",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/shapetree.py",
+        "line": 589,
+        "end_line": 600
+      },
+      "declaredOn": "pptx.shapes.shapetree.SlideShapes",
+      "readSignature": "(self, rows: int, cols: int, left: Length, top: Length, width: Length, height: Length) -> GraphicFrame",
+      "writeSignature": null,
+      "targetMember": "add_table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "add_table(rows: number, cols: number, left: Length, top: Length, width: Length, height: Length): GraphicFrame",
+      "arguments": [
+        {
+          "name": "rows",
+          "target_binding": "rows",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "cols",
+          "target_binding": "cols",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "left",
+          "target_binding": "left",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "top",
+          "target_binding": "top",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "width",
+          "target_binding": "width",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "height",
+          "target_binding": "height",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "returnType": "GraphicFrame",
+      "sideEffects": [
+        "Append the documented child/content to its owner in source order."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.SlideShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table.Table",
+      "inventory": "upstream-api-inventory.json#/objects/2241",
+      "sourceKind": "type",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 22,
+        "end_line": 165
+      },
+      "declaredOn": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "targetMember": "Table",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "interface Table",
+      "arguments": [],
+      "returnType": "Table",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table.Table.__init__",
+      "inventory": "upstream-api-inventory.json#/objects/2242",
+      "sourceKind": "constructor",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 22,
+        "end_line": 165
+      },
+      "declaredOn": null,
+      "readSignature": "(self, tbl: CT_Table, graphic_frame: GraphicFrame)",
+      "writeSignature": null,
+      "targetMember": "constructor",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "type Acquired = Table",
+      "arguments": [],
+      "returnType": "Table",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table.Table.cell",
+      "inventory": "upstream-api-inventory.json#/objects/2243",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 34,
+        "end_line": 40
+      },
+      "declaredOn": "pptx.table.Table",
+      "readSignature": "(self, row_idx: int, col_idx: int) -> _Cell",
+      "writeSignature": null,
+      "targetMember": "cell",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "cell(row_idx: number, col_idx: number): _Cell",
+      "arguments": [
+        {
+          "name": "row_idx",
+          "target_binding": "row_idx",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "col_idx",
+          "target_binding": "col_idx",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "returnType": "_Cell",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table.Table.columns",
+      "inventory": "upstream-api-inventory.json#/objects/2244",
+      "sourceKind": "lazyproperty",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 43,
+        "end_line": 49
+      },
+      "declaredOn": "pptx.table.Table",
+      "readSignature": "(self) -> _ColumnCollection",
+      "writeSignature": null,
+      "targetMember": "columns",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "get columns(): _ColumnCollection",
+      "arguments": [],
+      "returnType": "_ColumnCollection",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table.Table.first_col",
+      "inventory": "upstream-api-inventory.json#/objects/2245",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 52,
+        "end_line": 62
+      },
+      "declaredOn": "pptx.table.Table",
+      "readSignature": "(self) -> bool",
+      "writeSignature": "(self, value: bool)",
+      "targetMember": "first_col",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "get first_col(): boolean; set first_col(value: boolean)",
+      "arguments": [
+        {
+          "name": "value",
+          "ts_type": "boolean",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table.Table.first_row",
+      "inventory": "upstream-api-inventory.json#/objects/2246",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 65,
+        "end_line": 75
+      },
+      "declaredOn": "pptx.table.Table",
+      "readSignature": "(self) -> bool",
+      "writeSignature": "(self, value: bool)",
+      "targetMember": "first_row",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "get first_row(): boolean; set first_row(value: boolean)",
+      "arguments": [
+        {
+          "name": "value",
+          "ts_type": "boolean",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table.Table.horz_banding",
+      "inventory": "upstream-api-inventory.json#/objects/2247",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 78,
+        "end_line": 88
+      },
+      "declaredOn": "pptx.table.Table",
+      "readSignature": "(self) -> bool",
+      "writeSignature": "(self, value: bool)",
+      "targetMember": "horz_banding",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "get horz_banding(): boolean; set horz_banding(value: boolean)",
+      "arguments": [
+        {
+          "name": "value",
+          "ts_type": "boolean",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table.Table.iter_cells",
+      "inventory": "upstream-api-inventory.json#/objects/2248",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 90,
+        "end_line": 95
+      },
+      "declaredOn": "pptx.table.Table",
+      "readSignature": "(self) -> Iterator[_Cell]",
+      "writeSignature": null,
+      "targetMember": "iter_cells",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "targetSignature": "iter_cells(): IterableIterator<TableCell>",
+      "arguments": [],
+      "returnType": "Iterator<_Cell>",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table.Table.last_col",
+      "inventory": "upstream-api-inventory.json#/objects/2249",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 98,
+        "end_line": 108
+      },
+      "declaredOn": "pptx.table.Table",
+      "readSignature": "(self) -> bool",
+      "writeSignature": "(self, value: bool)",
+      "targetMember": "last_col",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "get last_col(): boolean; set last_col(value: boolean)",
+      "arguments": [
+        {
+          "name": "value",
+          "ts_type": "boolean",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table.Table.last_row",
+      "inventory": "upstream-api-inventory.json#/objects/2250",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 111,
+        "end_line": 120
+      },
+      "declaredOn": "pptx.table.Table",
+      "readSignature": "(self) -> bool",
+      "writeSignature": "(self, value: bool)",
+      "targetMember": "last_row",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "get last_row(): boolean; set last_row(value: boolean)",
+      "arguments": [
+        {
+          "name": "value",
+          "ts_type": "boolean",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table.Table.part",
+      "inventory": "upstream-api-inventory.json#/objects/2251",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 141,
+        "end_line": 143
+      },
+      "declaredOn": "pptx.table.Table",
+      "readSignature": "(self) -> BaseSlidePart",
+      "writeSignature": null,
+      "targetMember": "part",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get part(): PartView",
+      "arguments": [],
+      "returnType": "PartView",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table.Table.rows",
+      "inventory": "upstream-api-inventory.json#/objects/2252",
+      "sourceKind": "lazyproperty",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 146,
+        "end_line": 152
+      },
+      "declaredOn": "pptx.table.Table",
+      "readSignature": "(self)",
+      "writeSignature": null,
+      "targetMember": "rows",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "get rows(): _RowCollection",
+      "arguments": [],
+      "returnType": "_RowCollection",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table.Table.vert_banding",
+      "inventory": "upstream-api-inventory.json#/objects/2253",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 155,
+        "end_line": 165
+      },
+      "declaredOn": "pptx.table.Table",
+      "readSignature": "(self) -> bool",
+      "writeSignature": "(self, value: bool)",
+      "targetMember": "vert_banding",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "get vert_banding(): boolean; set vert_banding(value: boolean)",
+      "arguments": [
+        {
+          "name": "value",
+          "ts_type": "boolean",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._Cell",
+      "inventory": "upstream-api-inventory.json#/objects/2254",
+      "sourceKind": "type",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 168,
+        "end_line": 378
+      },
+      "declaredOn": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "targetMember": "_Cell",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "interface _Cell",
+      "arguments": [],
+      "returnType": "_Cell",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._Cell.__eq__",
+      "inventory": "upstream-api-inventory.json#/objects/2255",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 175,
+        "end_line": 183
+      },
+      "declaredOn": "pptx.table._Cell",
+      "readSignature": "(self, other: object) -> bool",
+      "writeSignature": null,
+      "targetMember": "equals",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "equals(other: ModelComparable): boolean",
+      "arguments": [
+        {
+          "name": "other",
+          "ts_type": "ModelComparable",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._Cell.__init__",
+      "inventory": "upstream-api-inventory.json#/objects/2256",
+      "sourceKind": "constructor",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 168,
+        "end_line": 378
+      },
+      "declaredOn": null,
+      "readSignature": "(self, tc: CT_TableCell, parent: ProvidesPart)",
+      "writeSignature": null,
+      "targetMember": "constructor",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "type Acquired = _Cell",
+      "arguments": [],
+      "returnType": "_Cell",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._Cell.col_idx",
+      "inventory": "upstream-api-inventory.json#/objects/2257",
+      "sourceKind": "documentation-error",
+      "sourceEvidence": null,
+      "declaredOn": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "targetMember": "col_idx",
+      "status": "documentation-error",
+      "reason": "Coordinates are obtained by traversal or reporting; no source row_idx/col_idx property exists.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "type Coordinate = number",
+      "arguments": [],
+      "returnType": "number",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "documentation-error"
+    },
+    {
+      "sourceId": "pptx.table._Cell.fill",
+      "inventory": "upstream-api-inventory.json#/objects/2258",
+      "sourceKind": "lazyproperty",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 191,
+        "end_line": 197
+      },
+      "declaredOn": "pptx.table._Cell",
+      "readSignature": "(self) -> FillFormat",
+      "writeSignature": null,
+      "targetMember": "fill",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get fill(): FillFormat",
+      "arguments": [],
+      "returnType": "FillFormat",
+      "sideEffects": [
+        "Creating getter: may add or change owner XML; CLI noncreating inspection must not invoke it."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._Cell.is_merge_origin",
+      "inventory": "upstream-api-inventory.json#/objects/2259",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 200,
+        "end_line": 202
+      },
+      "declaredOn": "pptx.table._Cell",
+      "readSignature": "(self) -> bool",
+      "writeSignature": null,
+      "targetMember": "is_merge_origin",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "targetSignature": "get is_merge_origin(): boolean",
+      "arguments": [],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._Cell.is_spanned",
+      "inventory": "upstream-api-inventory.json#/objects/2260",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 205,
+        "end_line": 214
+      },
+      "declaredOn": "pptx.table._Cell",
+      "readSignature": "(self) -> bool",
+      "writeSignature": null,
+      "targetMember": "is_spanned",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "targetSignature": "get is_spanned(): boolean",
+      "arguments": [],
+      "returnType": "boolean",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._Cell.margin_bottom",
+      "inventory": "upstream-api-inventory.json#/objects/2261",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 251,
+        "end_line": 258
+      },
+      "declaredOn": "pptx.table._Cell",
+      "readSignature": "(self) -> Length",
+      "writeSignature": "(self, margin_bottom: Length | None)",
+      "targetMember": "margin_bottom",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "get margin_bottom(): Length; set margin_bottom(value: Length | null)",
+      "arguments": [
+        {
+          "name": "value",
+          "ts_type": "Length | null",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "returnType": "Length",
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._Cell.margin_left",
+      "inventory": "upstream-api-inventory.json#/objects/2262",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 217,
+        "end_line": 228
+      },
+      "declaredOn": "pptx.table._Cell",
+      "readSignature": "(self) -> Length",
+      "writeSignature": "(self, margin_left: Length | None)",
+      "targetMember": "margin_left",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "get margin_left(): Length; set margin_left(value: Length | null)",
+      "arguments": [
+        {
+          "name": "value",
+          "ts_type": "Length | null",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "returnType": "Length",
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._Cell.margin_right",
+      "inventory": "upstream-api-inventory.json#/objects/2263",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 231,
+        "end_line": 238
+      },
+      "declaredOn": "pptx.table._Cell",
+      "readSignature": "(self) -> Length",
+      "writeSignature": "(self, margin_right: Length | None)",
+      "targetMember": "margin_right",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "get margin_right(): Length; set margin_right(value: Length | null)",
+      "arguments": [
+        {
+          "name": "value",
+          "ts_type": "Length | null",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "returnType": "Length",
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._Cell.margin_top",
+      "inventory": "upstream-api-inventory.json#/objects/2264",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 241,
+        "end_line": 248
+      },
+      "declaredOn": "pptx.table._Cell",
+      "readSignature": "(self) -> Length",
+      "writeSignature": "(self, margin_top: Length | None)",
+      "targetMember": "margin_top",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "get margin_top(): Length; set margin_top(value: Length | null)",
+      "arguments": [
+        {
+          "name": "value",
+          "ts_type": "Length | null",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "returnType": "Length",
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._Cell.merge",
+      "inventory": "upstream-api-inventory.json#/objects/2265",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 260,
+        "end_line": 288
+      },
+      "declaredOn": "pptx.table._Cell",
+      "readSignature": "(self, other_cell: _Cell) -> None",
+      "writeSignature": null,
+      "targetMember": "merge",
+      "status": "implemented",
+      "reason": "Retained neutral model method is implemented with validated rectangular spans and owned paragraph migration. Whole API remains partial.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables merge --from ROW,COLUMN --to ROW,COLUMN; ordered one-based operation corners",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "rejects foreign endpoints and non-origin splits without mutation"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "collects only the rectangular paragraph owners in physical row order"
+        }
+      ],
+      "targetSignature": "merge(other_cell: TableCell): void",
+      "arguments": [
+        {
+          "name": "other_cell",
+          "target_binding": "other_cell",
+          "ts_type": "TableCell",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "returnType": "void",
+      "sideEffects": [
+        "Normalize opposite owned cell corners; validate the complete rectangular grid before mutation; combine complete contained merges; reject partial intersections and different-table endpoints. Move meaningful paragraphs once to the top-left origin in row-major order; clear continuation text. Preserve widths/heights and live coordinate handles."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "OfficeError",
+            "code": "invalid-selection",
+            "exit": 1,
+            "when": "Stale structural coordinate handles.",
+            "phase": "select"
+          },
+          {
+            "class": "OfficeError",
+            "code": "invalid-value",
+            "exit": 2,
+            "when": "Foreign-table merge endpoints or invalid operation data/coordinates.",
+            "phase": "usage"
+          },
+          {
+            "class": "OfficeError",
+            "code": "unsupported-edit",
+            "exit": 1,
+            "when": "Split selected cell is not a merge origin; malformed/nonrectangular spans, partial intersections, or locked structural content.",
+            "phase": "validate-intent"
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Admission and package/XML security failures remain possible."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._Cell.part",
+      "inventory": "upstream-api-inventory.json#/objects/2266",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/__init__.py",
+        "line": 24,
+        "end_line": 26
+      },
+      "declaredOn": "pptx.shapes.Subshape",
+      "readSignature": "(self) -> XmlPart",
+      "writeSignature": null,
+      "targetMember": "part",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get part(): PartView",
+      "arguments": [],
+      "returnType": "PartView",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._Cell.row_idx",
+      "inventory": "upstream-api-inventory.json#/objects/2267",
+      "sourceKind": "documentation-error",
+      "sourceEvidence": null,
+      "declaredOn": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "targetMember": "row_idx",
+      "status": "documentation-error",
+      "reason": "Coordinates are obtained by traversal or reporting; no source row_idx/col_idx property exists.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "type Coordinate = number",
+      "arguments": [],
+      "returnType": "number",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "documentation-error"
+    },
+    {
+      "sourceId": "pptx.table._Cell.span_height",
+      "inventory": "upstream-api-inventory.json#/objects/2268",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 291,
+        "end_line": 299
+      },
+      "declaredOn": "pptx.table._Cell",
+      "readSignature": "(self) -> int",
+      "writeSignature": null,
+      "targetMember": "span_height",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "targetSignature": "get span_height(): number",
+      "arguments": [],
+      "returnType": "number",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._Cell.span_width",
+      "inventory": "upstream-api-inventory.json#/objects/2269",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 302,
+        "end_line": 310
+      },
+      "declaredOn": "pptx.table._Cell",
+      "readSignature": "(self) -> int",
+      "writeSignature": null,
+      "targetMember": "span_width",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "targetSignature": "get span_width(): number",
+      "arguments": [],
+      "returnType": "number",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._Cell.split",
+      "inventory": "upstream-api-inventory.json#/objects/2270",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 312,
+        "end_line": 328
+      },
+      "declaredOn": "pptx.table._Cell",
+      "readSignature": "(self) -> None",
+      "writeSignature": null,
+      "targetMember": "split",
+      "status": "implemented",
+      "reason": "Retained neutral model method is implemented with validated rectangular spans and owned paragraph migration. Whole API remains partial.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables split --cell ROW,COLUMN with slide/table selection; cell tokens are not exposed",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "rejects foreign endpoints and non-origin splits without mutation"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "collects only the rectangular paragraph owners in physical row order"
+        }
+      ],
+      "targetSignature": "split(): void",
+      "arguments": [],
+      "returnType": "void",
+      "sideEffects": [
+        "Require a merge origin; clear gridSpan/rowSpan/hMerge/vMerge across the complete rectangle; retain all text at origin and clear released cells. Preserve widths/heights and live coordinate handles."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "OfficeError",
+            "code": "invalid-selection",
+            "exit": 1,
+            "when": "Stale structural coordinate handles.",
+            "phase": "select"
+          },
+          {
+            "class": "OfficeError",
+            "code": "invalid-value",
+            "exit": 2,
+            "when": "Foreign-table merge endpoints or invalid operation data/coordinates.",
+            "phase": "usage"
+          },
+          {
+            "class": "OfficeError",
+            "code": "unsupported-edit",
+            "exit": 1,
+            "when": "Split selected cell is not a merge origin; malformed/nonrectangular spans, partial intersections, or locked structural content.",
+            "phase": "validate-intent"
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Admission and package/XML security failures remain possible."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._Cell.text",
+      "inventory": "upstream-api-inventory.json#/objects/2271",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 331,
+        "end_line": 348
+      },
+      "declaredOn": "pptx.table._Cell",
+      "readSignature": "(self) -> str",
+      "writeSignature": "(self, text: str)",
+      "targetMember": "text",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J10"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "get text(): string; set text(value: string)",
+      "arguments": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "returnType": "string",
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine.",
+        "Replace text-frame paragraphs/runs; retain required empty paragraph and documented frame/cell properties. LF separates paragraphs; VT is a soft break."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._Cell.text_frame",
+      "inventory": "upstream-api-inventory.json#/objects/2272",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 351,
+        "end_line": 354
+      },
+      "declaredOn": "pptx.table._Cell",
+      "readSignature": "(self) -> TextFrame",
+      "writeSignature": null,
+      "targetMember": "text_frame",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "get text_frame(): TextFrame",
+      "arguments": [],
+      "returnType": "TextFrame",
+      "sideEffects": [
+        "Creating getter: may add or change owner XML; CLI noncreating inspection must not invoke it."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._Cell.vertical_anchor",
+      "inventory": "upstream-api-inventory.json#/objects/2273",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 357,
+        "end_line": 371
+      },
+      "declaredOn": "pptx.table._Cell",
+      "readSignature": "(self) -> MSO_VERTICAL_ANCHOR | None",
+      "writeSignature": "(self, mso_anchor_idx: MSO_VERTICAL_ANCHOR | None)",
+      "targetMember": "vertical_anchor",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "get vertical_anchor(): MSO_VERTICAL_ANCHOR | null; set vertical_anchor(value: MSO_VERTICAL_ANCHOR | null)",
+      "arguments": [
+        {
+          "name": "value",
+          "ts_type": "MSO_VERTICAL_ANCHOR | null",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "returnType": "MSO_VERTICAL_ANCHOR | null",
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._CellCollection",
+      "inventory": "upstream-api-inventory.json#/objects/2274",
+      "sourceKind": "type",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 427,
+        "end_line": 448
+      },
+      "declaredOn": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "targetMember": "_CellCollection",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "interface _CellCollection",
+      "arguments": [],
+      "returnType": "_CellCollection",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.table._CellCollection",
+        "element_type": "_Cell",
+        "indexing": "zero-based-position",
+        "negative_index": "reject",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._CellCollection.__getitem__",
+      "inventory": "upstream-api-inventory.json#/objects/2275",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 435,
+        "end_line": 440
+      },
+      "declaredOn": "pptx.table._CellCollection",
+      "readSignature": "(self, idx: int) -> _Cell",
+      "writeSignature": null,
+      "targetMember": "numeric lookup / at",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "collection[index] and collection.get(index): owned member; both reject negative/fractional/out-of-range positions",
+      "arguments": [
+        {
+          "name": "index",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "returnType": "_Cell",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "source": "IndexError",
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.table._CellCollection",
+        "element_type": "_Cell",
+        "indexing": "zero-based-position",
+        "negative_index": "reject",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._CellCollection.__init__",
+      "inventory": "upstream-api-inventory.json#/objects/2276",
+      "sourceKind": "constructor",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 427,
+        "end_line": 448
+      },
+      "declaredOn": null,
+      "readSignature": "(self, tr: CT_TableRow, parent: _Row)",
+      "writeSignature": null,
+      "targetMember": "constructor",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "type Acquired = _CellCollection",
+      "arguments": [],
+      "returnType": "_CellCollection",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.table._CellCollection",
+        "element_type": "_Cell",
+        "indexing": "zero-based-position",
+        "negative_index": "reject",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._CellCollection.__iter__",
+      "inventory": "upstream-api-inventory.json#/objects/2277",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 442,
+        "end_line": 444
+      },
+      "declaredOn": "pptx.table._CellCollection",
+      "readSignature": "(self) -> Iterator[_Cell]",
+      "writeSignature": null,
+      "targetMember": "Symbol.iterator",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "[Symbol.iterator](): IterableIterator<_Cell>",
+      "arguments": [],
+      "returnType": "IterableIterator<_Cell>",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.table._CellCollection",
+        "element_type": "_Cell",
+        "indexing": "zero-based-position",
+        "negative_index": "reject",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._CellCollection.__len__",
+      "inventory": "upstream-api-inventory.json#/objects/2278",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 446,
+        "end_line": 448
+      },
+      "declaredOn": "pptx.table._CellCollection",
+      "readSignature": "(self) -> int",
+      "writeSignature": null,
+      "targetMember": "length",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "readonly length: number",
+      "arguments": [],
+      "returnType": "number",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.table._CellCollection",
+        "element_type": "_Cell",
+        "indexing": "zero-based-position",
+        "negative_index": "reject",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._CellCollection.part",
+      "inventory": "upstream-api-inventory.json#/objects/2279",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/__init__.py",
+        "line": 24,
+        "end_line": 26
+      },
+      "declaredOn": "pptx.shapes.Subshape",
+      "readSignature": "(self) -> XmlPart",
+      "writeSignature": null,
+      "targetMember": "part",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get part(): PartView",
+      "arguments": [],
+      "returnType": "PartView",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.table._CellCollection",
+        "element_type": "_Cell",
+        "indexing": "zero-based-position",
+        "negative_index": "reject",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._Column",
+      "inventory": "upstream-api-inventory.json#/objects/2280",
+      "sourceKind": "type",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 381,
+        "end_line": 397
+      },
+      "declaredOn": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "targetMember": "_Column",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "interface _Column",
+      "arguments": [],
+      "returnType": "_Column",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._Column.__init__",
+      "inventory": "upstream-api-inventory.json#/objects/2281",
+      "sourceKind": "constructor",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 381,
+        "end_line": 397
+      },
+      "declaredOn": null,
+      "readSignature": "(self, gridCol: CT_TableCol, parent: _ColumnCollection)",
+      "writeSignature": null,
+      "targetMember": "constructor",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "type Acquired = _Column",
+      "arguments": [],
+      "returnType": "_Column",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._Column.part",
+      "inventory": "upstream-api-inventory.json#/objects/2282",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/__init__.py",
+        "line": 24,
+        "end_line": 26
+      },
+      "declaredOn": "pptx.shapes.Subshape",
+      "readSignature": "(self) -> XmlPart",
+      "writeSignature": null,
+      "targetMember": "part",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get part(): PartView",
+      "arguments": [],
+      "returnType": "PartView",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._Column.width",
+      "inventory": "upstream-api-inventory.json#/objects/2283",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 390,
+        "end_line": 397
+      },
+      "declaredOn": "pptx.table._Column",
+      "readSignature": "(self) -> Length",
+      "writeSignature": "(self, width: Length)",
+      "targetMember": "width",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "get width(): Length; set width(value: Length)",
+      "arguments": [
+        {
+          "name": "value",
+          "ts_type": "Length",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "returnType": "Length",
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._ColumnCollection",
+      "inventory": "upstream-api-inventory.json#/objects/2284",
+      "sourceKind": "type",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 451,
+        "end_line": 472
+      },
+      "declaredOn": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "targetMember": "_ColumnCollection",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "interface _ColumnCollection",
+      "arguments": [],
+      "returnType": "_ColumnCollection",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.table._ColumnCollection",
+        "element_type": "_Column",
+        "indexing": "zero-based-position",
+        "negative_index": "reject",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._ColumnCollection.__getitem__",
+      "inventory": "upstream-api-inventory.json#/objects/2285",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 459,
+        "end_line": 464
+      },
+      "declaredOn": "pptx.table._ColumnCollection",
+      "readSignature": "(self, idx: int)",
+      "writeSignature": null,
+      "targetMember": "numeric lookup / at",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "collection[index] and collection.get(index): owned member; both reject negative/fractional/out-of-range positions",
+      "arguments": [
+        {
+          "name": "index",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "returnType": "_Column",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "source": "IndexError",
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.table._ColumnCollection",
+        "element_type": "_Column",
+        "indexing": "zero-based-position",
+        "negative_index": "reject",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._ColumnCollection.__init__",
+      "inventory": "upstream-api-inventory.json#/objects/2286",
+      "sourceKind": "constructor",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 451,
+        "end_line": 472
+      },
+      "declaredOn": null,
+      "readSignature": "(self, tbl: CT_Table, parent: Table)",
+      "writeSignature": null,
+      "targetMember": "constructor",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "type Acquired = _ColumnCollection",
+      "arguments": [],
+      "returnType": "_ColumnCollection",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.table._ColumnCollection",
+        "element_type": "_Column",
+        "indexing": "zero-based-position",
+        "negative_index": "reject",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._ColumnCollection.__iter__",
+      "inventory": "upstream-api-inventory.json#/objects/2287",
+      "sourceKind": "protocol",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 451,
+        "end_line": 472
+      },
+      "declaredOn": "pptx.table._ColumnCollection",
+      "readSignature": null,
+      "writeSignature": null,
+      "targetMember": "Symbol.iterator",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "[Symbol.iterator](): IterableIterator<_Column>",
+      "arguments": [],
+      "returnType": "IterableIterator<_Column>",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.table._ColumnCollection",
+        "element_type": "_Column",
+        "indexing": "zero-based-position",
+        "negative_index": "reject",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._ColumnCollection.__len__",
+      "inventory": "upstream-api-inventory.json#/objects/2288",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 466,
+        "end_line": 468
+      },
+      "declaredOn": "pptx.table._ColumnCollection",
+      "readSignature": "(self)",
+      "writeSignature": null,
+      "targetMember": "length",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "readonly length: number",
+      "arguments": [],
+      "returnType": "number",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.table._ColumnCollection",
+        "element_type": "_Column",
+        "indexing": "zero-based-position",
+        "negative_index": "reject",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._ColumnCollection.part",
+      "inventory": "upstream-api-inventory.json#/objects/2289",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/__init__.py",
+        "line": 24,
+        "end_line": 26
+      },
+      "declaredOn": "pptx.shapes.Subshape",
+      "readSignature": "(self) -> XmlPart",
+      "writeSignature": null,
+      "targetMember": "part",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get part(): PartView",
+      "arguments": [],
+      "returnType": "PartView",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.table._ColumnCollection",
+        "element_type": "_Column",
+        "indexing": "zero-based-position",
+        "negative_index": "reject",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._Row",
+      "inventory": "upstream-api-inventory.json#/objects/2290",
+      "sourceKind": "type",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 400,
+        "end_line": 424
+      },
+      "declaredOn": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "targetMember": "_Row",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "interface _Row",
+      "arguments": [],
+      "returnType": "_Row",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._Row.__init__",
+      "inventory": "upstream-api-inventory.json#/objects/2291",
+      "sourceKind": "constructor",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 400,
+        "end_line": 424
+      },
+      "declaredOn": null,
+      "readSignature": "(self, tr: CT_TableRow, parent: _RowCollection)",
+      "writeSignature": null,
+      "targetMember": "constructor",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "type Acquired = _Row",
+      "arguments": [],
+      "returnType": "_Row",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._Row.cells",
+      "inventory": "upstream-api-inventory.json#/objects/2292",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 409,
+        "end_line": 414
+      },
+      "declaredOn": "pptx.table._Row",
+      "readSignature": "(self)",
+      "writeSignature": null,
+      "targetMember": "cells",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "get cells(): _CellCollection",
+      "arguments": [],
+      "returnType": "_CellCollection",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._Row.height",
+      "inventory": "upstream-api-inventory.json#/objects/2293",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 417,
+        "end_line": 424
+      },
+      "declaredOn": "pptx.table._Row",
+      "readSignature": "(self) -> Length",
+      "writeSignature": "(self, height: Length)",
+      "targetMember": "height",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "get height(): Length; set height(value: Length)",
+      "arguments": [
+        {
+          "name": "value",
+          "ts_type": "Length",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "returnType": "Length",
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._Row.part",
+      "inventory": "upstream-api-inventory.json#/objects/2294",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/__init__.py",
+        "line": 24,
+        "end_line": 26
+      },
+      "declaredOn": "pptx.shapes.Subshape",
+      "readSignature": "(self) -> XmlPart",
+      "writeSignature": null,
+      "targetMember": "part",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get part(): PartView",
+      "arguments": [],
+      "returnType": "PartView",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": null,
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._RowCollection",
+      "inventory": "upstream-api-inventory.json#/objects/2295",
+      "sourceKind": "type",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 475,
+        "end_line": 496
+      },
+      "declaredOn": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "targetMember": "_RowCollection",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "interface _RowCollection",
+      "arguments": [],
+      "returnType": "_RowCollection",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.table._RowCollection",
+        "element_type": "_Row",
+        "indexing": "zero-based-position",
+        "negative_index": "reject",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._RowCollection.__getitem__",
+      "inventory": "upstream-api-inventory.json#/objects/2296",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 483,
+        "end_line": 488
+      },
+      "declaredOn": "pptx.table._RowCollection",
+      "readSignature": "(self, idx: int) -> _Row",
+      "writeSignature": null,
+      "targetMember": "numeric lookup / at",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "collection[index] and collection.get(index): owned member; both reject negative/fractional/out-of-range positions",
+      "arguments": [
+        {
+          "name": "index",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "returnType": "_Row",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "source": "IndexError",
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.table._RowCollection",
+        "element_type": "_Row",
+        "indexing": "zero-based-position",
+        "negative_index": "reject",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._RowCollection.__init__",
+      "inventory": "upstream-api-inventory.json#/objects/2297",
+      "sourceKind": "constructor",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 475,
+        "end_line": 496
+      },
+      "declaredOn": null,
+      "readSignature": "(self, tbl: CT_Table, parent: Table)",
+      "writeSignature": null,
+      "targetMember": "constructor",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "type Acquired = _RowCollection",
+      "arguments": [],
+      "returnType": "_RowCollection",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.table._RowCollection",
+        "element_type": "_Row",
+        "indexing": "zero-based-position",
+        "negative_index": "reject",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "planned-model-api"
+    },
+    {
+      "sourceId": "pptx.table._RowCollection.__iter__",
+      "inventory": "upstream-api-inventory.json#/objects/2298",
+      "sourceKind": "protocol",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 475,
+        "end_line": 496
+      },
+      "declaredOn": "pptx.table._RowCollection",
+      "readSignature": null,
+      "writeSignature": null,
+      "targetMember": "Symbol.iterator",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "[Symbol.iterator](): IterableIterator<_Row>",
+      "arguments": [],
+      "returnType": "IterableIterator<_Row>",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.table._RowCollection",
+        "element_type": "_Row",
+        "indexing": "zero-based-position",
+        "negative_index": "reject",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._RowCollection.__len__",
+      "inventory": "upstream-api-inventory.json#/objects/2299",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/table.py",
+        "line": 490,
+        "end_line": 492
+      },
+      "declaredOn": "pptx.table._RowCollection",
+      "readSignature": "(self)",
+      "writeSignature": null,
+      "targetMember": "length",
+      "status": "implemented",
+      "reason": "Live owned Table/TableCell/TableRow/TableColumn and collections expose this retained member or explicit JS collection mapping. Whole API remains partial.",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-behavior-cases.test.ts",
+          "title": "Relevant model parameter families in the 94-case original table behavior suite"
+        },
+        {
+          "file": "packages/pptx/src/tables-model.test.ts",
+          "title": "keeps retained cell and collection handles live through edits"
+        }
+      ],
+      "targetSignature": "readonly length: number",
+      "arguments": [],
+      "returnType": "number",
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.table._RowCollection",
+        "element_type": "_Row",
+        "indexing": "zero-based-position",
+        "negative_index": "reject",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "implemented-bounded-model"
+    },
+    {
+      "sourceId": "pptx.table._RowCollection.part",
+      "inventory": "upstream-api-inventory.json#/objects/2300",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/__init__.py",
+        "line": 24,
+        "end_line": 26
+      },
+      "declaredOn": "pptx.shapes.Subshape",
+      "readSignature": "(self) -> XmlPart",
+      "writeSignature": null,
+      "targetMember": "part",
+      "status": "planned",
+      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
+      "tests": [],
+      "targetSignature": "get part(): PartView",
+      "arguments": [],
+      "returnType": "PartView",
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "collection": {
+        "source_id": "pptx.table._RowCollection",
+        "element_type": "_Row",
+        "indexing": "zero-based-position",
+        "negative_index": "reject",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "coverageDetail": "planned-model-api"
+    }
+  ],
+  "documentationDrift": [
+    "Historical public-api-map.json batch entries such as tables.table.cell.marginLeft.set are proposed design records, not executable routes. Current direct operations use tables list/get/add/set; do not advertise a generic member evaluator.",
+    "Operation inspection reports direct margins as nullable EMU values; live model margin_left etc must return defaults 91440 horizontal and 45720 vertical when absent. These are distinct surfaces.",
+    "F29 direct routes and retained merge/split model methods are implemented by this bounded change. Historical generic tables.table.* evaluator paths remain proposed and are not executable aliases. Split requires an explicit coordinate cell selector; cell token selection is not exposed."
+  ]
+}

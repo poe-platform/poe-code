@@ -1,0 +1,79 @@
+TAP version 13
+# Subtest: built public Python canonical immediate/delayed composed authority and bidirectional effects
+    # Subtest: memory backend
+    ok 1 - memory backend
+      ---
+      duration_ms: 2419.807792
+      type: 'test'
+      ...
+    # Subtest: delayed backend
+    ok 2 - delayed backend
+      ---
+      duration_ms: 2577.109875
+      type: 'test'
+      ...
+    1..2
+ok 1 - built public Python canonical immediate/delayed composed authority and bidirectional effects
+  ---
+  duration_ms: 4997.6155
+  type: 'test'
+  ...
+# Subtest: required Python quota mount supports reads, bounded writes and recovery
+not ok 2 - required Python quota mount supports reads, bounded writes and recovery # TODO Canonical quota wrapper refuses descriptor open with ENOTSUP; required workflow incomplete
+  ---
+  duration_ms: 1092.374542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/tests/integration/pyodide-runtime/public-lifecycle.test.mjs:59:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Required quota workflow remains incomplete:
+    Traceback (most recent call last):
+      File "<string>", line 3, in <module>
+      File "/lib/python314.zip/pathlib/__init__.py", line 787, in read_text
+        with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+             ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "/lib/python314.zip/pathlib/__init__.py", line 771, in open
+        return io.open(self, mode, buffering, encoding, errors, newline)
+               ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    OSError: [Errno 138] Not supported: '/quota/input'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/tests/integration/pyodide-runtime/public-lifecycle.test.mjs:76:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: built public Python setup failure releases capacity for a successful subsequent interpreter
+ok 3 - built public Python setup failure releases capacity for a successful subsequent interpreter
+  ---
+  duration_ms: 1109.243917
+  type: 'test'
+  ...
+# Subtest: built public Python cancellation and output exhaustion retire descriptors and permit reuse
+ok 4 - built public Python cancellation and output exhaustion retire descriptors and permit reuse
+  ---
+  duration_ms: 3835.992791
+  type: 'test'
+  ...
+# Subtest: built public package offline miss, corrupt local install, integrity failure and subsequent reuse
+ok 5 - built public package offline miss, corrupt local install, integrity failure and subsequent reuse
+  ---
+  duration_ms: 20798.829584
+  type: 'test'
+  ...
+1..5
+# tests 7
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 1
+# duration_ms 32158.877416

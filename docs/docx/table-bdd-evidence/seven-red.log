@@ -1,0 +1,198 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/table-active-grid.test.ts (7 tests | 7 failed) 324ms
+   × inspects the active table grid without fabricating fallback columns 67ms
+   × inspects active omitted slots wrapped at properties 49ms
+   × inspects active omitted slots wrapped at before 42ms
+   × inspects active omitted slots wrapped at after 44ms
+   × uses the selected fallback grid when a choice namespace is unsupported 42ms
+   × counts selected column declarations inside an otherwise direct grid 39ms
+   × resolves an active grid under a renamed word namespace 39ms
+FAIL packages/docx/src/table-active-grid.test.ts > inspects the active table grid without fabricating fallback columns
+RangeError: Table dimensions must be positive.
+ ❯ DocumentBudget.table packages/docx/src/budget.ts:116:40
+    114|     this.check("tableRows", rows);
+    115|     this.check("tableColumns", columns);
+    116|     if (rows < 1 || columns < 1) throw new InvalidValueError("Table di…
+       |                                        ^
+    117|     if (rows > Math.floor(this.limits.tableCells / columns))
+    118|       throw new ResourceLimitError("Document tableCells limit exceeded…
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:44:10
+ ❯ packages/docx/src/table-active-grid.test.ts:12:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'usage' }
+FAIL packages/docx/src/table-active-grid.test.ts > inspects active omitted slots wrapped at properties
+Error: The selection has no valid target.
+ ❯ LocationIndex.cell packages/docx/src/location-index.ts:407:24
+    405|     }
+    406|     const target = grid.get(cellLabel(row, column));
+    407|     if (!target) throw new SelectionError("missing-selection");
+       |                        ^
+    408|     const key = addressKey({ ...table, path: this.#paths.get(target)! …
+    409|     const entry = this.byAddress.get(key)?.find(e => e.kind === "cell"…
+ ❯ DocumentLocations.cell packages/docx/src/locations.ts:211:39
+ ❯ packages/docx/src/table-read.ts:56:33
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:46:24
+ ❯ packages/docx/src/table-active-grid.test.ts:24:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'missing-selection', candidates: [] }
+FAIL packages/docx/src/table-active-grid.test.ts > inspects active omitted slots wrapped at before
+Error: The selection has no valid target.
+ ❯ LocationIndex.cell packages/docx/src/location-index.ts:407:24
+    405|     }
+    406|     const target = grid.get(cellLabel(row, column));
+    407|     if (!target) throw new SelectionError("missing-selection");
+       |                        ^
+    408|     const key = addressKey({ ...table, path: this.#paths.get(target)! …
+    409|     const entry = this.byAddress.get(key)?.find(e => e.kind === "cell"…
+ ❯ DocumentLocations.cell packages/docx/src/locations.ts:211:39
+ ❯ packages/docx/src/table-read.ts:56:33
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:46:24
+ ❯ packages/docx/src/table-active-grid.test.ts:24:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'missing-selection', candidates: [] }
+FAIL packages/docx/src/table-active-grid.test.ts > inspects active omitted slots wrapped at after
+Error: The selection has no valid target.
+ ❯ LocationIndex.cell packages/docx/src/location-index.ts:407:24
+    405|     }
+    406|     const target = grid.get(cellLabel(row, column));
+    407|     if (!target) throw new SelectionError("missing-selection");
+       |                        ^
+    408|     const key = addressKey({ ...table, path: this.#paths.get(target)! …
+    409|     const entry = this.byAddress.get(key)?.find(e => e.kind === "cell"…
+ ❯ DocumentLocations.cell packages/docx/src/locations.ts:211:39
+ ❯ packages/docx/src/table-read.ts:56:33
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:46:24
+ ❯ packages/docx/src/table-active-grid.test.ts:24:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'missing-selection', candidates: [] }
+FAIL packages/docx/src/table-active-grid.test.ts > uses the selected fallback grid when a choice namespace is unsupported
+RangeError: Table dimensions must be positive.
+ ❯ DocumentBudget.table packages/docx/src/budget.ts:116:40
+    114|     this.check("tableRows", rows);
+    115|     this.check("tableColumns", columns);
+    116|     if (rows < 1 || columns < 1) throw new InvalidValueError("Table di…
+       |                                        ^
+    117|     if (rows > Math.floor(this.limits.tableCells / columns))
+    118|       throw new ResourceLimitError("Document tableCells limit exceeded…
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:44:10
+ ❯ packages/docx/src/table-active-grid.test.ts:32:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'usage' }
+FAIL packages/docx/src/table-active-grid.test.ts > counts selected column declarations inside an otherwise direct grid
+RangeError: Table dimensions must be positive.
+ ❯ DocumentBudget.table packages/docx/src/budget.ts:116:40
+    114|     this.check("tableRows", rows);
+    115|     this.check("tableColumns", columns);
+    116|     if (rows < 1 || columns < 1) throw new InvalidValueError("Table di…
+       |                                        ^
+    117|     if (rows > Math.floor(this.limits.tableCells / columns))
+    118|       throw new ResourceLimitError("Document tableCells limit exceeded…
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:44:10
+ ❯ packages/docx/src/table-active-grid.test.ts:39:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'usage' }
+FAIL packages/docx/src/table-active-grid.test.ts > resolves an active grid under a renamed word namespace
+RangeError: Table dimensions must be positive.
+ ❯ DocumentBudget.table packages/docx/src/budget.ts:116:40
+    114|     this.check("tableRows", rows);
+    115|     this.check("tableColumns", columns);
+    116|     if (rows < 1 || columns < 1) throw new InvalidValueError("Table di…
+       |                                        ^
+    117|     if (rows > Math.floor(this.limits.tableCells / columns))
+    118|       throw new ResourceLimitError("Document tableCells limit exceeded…
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:44:10
+ ❯ packages/docx/src/table-active-grid.test.ts:45:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'usage' }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/table-active-grid.test.ts > inspects the active table grid without fabricating fallback columns
+RangeError: Table dimensions must be positive.
+ ❯ DocumentBudget.table packages/docx/src/budget.ts:116:40
+    114|     this.check("tableRows", rows);
+    115|     this.check("tableColumns", columns);
+    116|     if (rows < 1 || columns < 1) throw new InvalidValueError("Table di…
+       |                                        ^
+    117|     if (rows > Math.floor(this.limits.tableCells / columns))
+    118|       throw new ResourceLimitError("Document tableCells limit exceeded…
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:44:10
+ ❯ packages/docx/src/table-active-grid.test.ts:12:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  packages/docx/src/table-active-grid.test.ts > inspects active omitted slots wrapped at properties
+ FAIL  packages/docx/src/table-active-grid.test.ts > inspects active omitted slots wrapped at before
+ FAIL  packages/docx/src/table-active-grid.test.ts > inspects active omitted slots wrapped at after
+Error: The selection has no valid target.
+ ❯ LocationIndex.cell packages/docx/src/location-index.ts:407:24
+    405|     }
+    406|     const target = grid.get(cellLabel(row, column));
+    407|     if (!target) throw new SelectionError("missing-selection");
+       |                        ^
+    408|     const key = addressKey({ ...table, path: this.#paths.get(target)! …
+    409|     const entry = this.byAddress.get(key)?.find(e => e.kind === "cell"…
+ ❯ DocumentLocations.cell packages/docx/src/locations.ts:211:39
+ ❯ packages/docx/src/table-read.ts:56:33
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:46:24
+ ❯ packages/docx/src/table-active-grid.test.ts:24:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  packages/docx/src/table-active-grid.test.ts > uses the selected fallback grid when a choice namespace is unsupported
+RangeError: Table dimensions must be positive.
+ ❯ DocumentBudget.table packages/docx/src/budget.ts:116:40
+    114|     this.check("tableRows", rows);
+    115|     this.check("tableColumns", columns);
+    116|     if (rows < 1 || columns < 1) throw new InvalidValueError("Table di…
+       |                                        ^
+    117|     if (rows > Math.floor(this.limits.tableCells / columns))
+    118|       throw new ResourceLimitError("Document tableCells limit exceeded…
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:44:10
+ ❯ packages/docx/src/table-active-grid.test.ts:32:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  packages/docx/src/table-active-grid.test.ts > counts selected column declarations inside an otherwise direct grid
+RangeError: Table dimensions must be positive.
+ ❯ DocumentBudget.table packages/docx/src/budget.ts:116:40
+    114|     this.check("tableRows", rows);
+    115|     this.check("tableColumns", columns);
+    116|     if (rows < 1 || columns < 1) throw new InvalidValueError("Table di…
+       |                                        ^
+    117|     if (rows > Math.floor(this.limits.tableCells / columns))
+    118|       throw new ResourceLimitError("Document tableCells limit exceeded…
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:44:10
+ ❯ packages/docx/src/table-active-grid.test.ts:39:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  packages/docx/src/table-active-grid.test.ts > resolves an active grid under a renamed word namespace
+RangeError: Table dimensions must be positive.
+ ❯ DocumentBudget.table packages/docx/src/budget.ts:116:40
+    114|     this.check("tableRows", rows);
+    115|     this.check("tableColumns", columns);
+    116|     if (rows < 1 || columns < 1) throw new InvalidValueError("Table di…
+       |                                        ^
+    117|     if (rows > Math.floor(this.limits.tableCells / columns))
+    118|       throw new ResourceLimitError("Document tableCells limit exceeded…
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:44:10
+ ❯ packages/docx/src/table-active-grid.test.ts:45:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed (7)
+   Start at  14:35:01
+   Duration  2.08s (transform 1.35s, setup 46ms, import 1.61s, tests 324ms, environment 0ms)
+

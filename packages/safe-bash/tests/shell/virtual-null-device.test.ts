@@ -15,6 +15,61 @@ import { safeJsCommands } from "../../src/commands/safejs/index.js";
 import { contractRuntime } from "../commands/safejs/helpers.js";
 import { networkCommands } from "../../src/commands/network/index.js";
 
+for (const deviceView of ["invalid", null, false, 0]) test(`invalid device view rejects before filesystem access: ${String(deviceView)}`, () => {
+  const fs = new Proxy({} as FileSystem, { get() { assert.fail("filesystem accessed before option validation"); } });
+  assert.throws(() => new Shell({ fs, deviceView } as never), { message: "deviceView must be default or provided" });
+});
+
+for (const override of [false, true]) test(`provided device view preserves supplied ordinary null through nested execution: override=${override}`, async context => {
+  const initial = new MemoryFileSystem();
+  const fs = override ? new MemoryFileSystem() : initial;
+  await fs.mkdir("/dev");
+  await fs.writeFile("/dev/null", new TextEncoder().encode("provided"));
+  await fs.writeFile("/job", new TextEncoder().encode("cat /dev/null; printf changed >/dev/null"));
+  const shell = new Shell({ fs: initial, deviceView: "provided" }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("(sh /job); cat /dev/null", override ? { fs } : {});
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "providedchanged");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/dev/null")), "changed");
+  if (override) await assert.rejects(initial.stat("/dev"), { code: "ENOENT" });
+});
+
+test("provided device view does not manufacture a missing null entry", async context => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs, deviceView: "provided" }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("test -e /dev/null");
+  assert.equal(result.exitCode, 1);
+  await assert.rejects(fs.stat("/dev/null"), { code: "ENOENT" });
+});
+
+test("provided device view retains canonical output accounting", async context => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs, deviceView: "provided", limits: { maxOutputBytes: 4 } }).use(standardCommands());
+  context.after(() => shell.dispose());
+  await assert.rejects(shell.exec("printf overflow >/out"), { limit: "maxOutputBytes" });
+  assert.deepEqual(await fs.readFile("/out"), new Uint8Array());
+});
+
+test("provided device view retains filesystem cancellation admission", async context => {
+  const fs = new MemoryFileSystem();
+  const caller = new AbortController();
+  let refused = false;
+  const shell = new Shell({ fs, deviceView: "provided" });
+  context.after(() => shell.dispose());
+  shell.register({ name: "cancel", async execute(command) {
+    caller.abort(false);
+    await assert.rejects(command.fs.writeFile("/forbidden", Uint8Array.of(1)), reason => reason === false);
+    refused = true;
+    return { exitCode: 0 };
+  } });
+  await assert.rejects(shell.exec("cancel", { signal: caller.signal }), reason => reason === false);
+  assert.equal(refused, true);
+  await assert.rejects(fs.stat("/forbidden"), { code: "ENOENT" });
+});
+
 function fixture(context: TestContext, fs = new MemoryFileSystem()) {
   const shell = new Shell({ fs }).use(standardCommands()).use(metadataCommands()).use(fileCommands());
   shell.register(createDuCommand());

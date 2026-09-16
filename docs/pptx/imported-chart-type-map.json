@@ -1,0 +1,677 @@
+{
+  "schema_version": 1,
+  "source": "upstream-api-inventory.json",
+  "status": "Imported model classification; creation and reconstruction are separately bounded.",
+  "count": 73,
+  "variants": [
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.AREA",
+      "target": "XL_CHART_TYPE.AREA",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported AREA in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.AREA_STACKED",
+      "target": "XL_CHART_TYPE.AREA_STACKED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported AREA_STACKED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.AREA_STACKED_100",
+      "target": "XL_CHART_TYPE.AREA_STACKED_100",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported AREA_STACKED_100 in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.BAR_CLUSTERED",
+      "target": "XL_CHART_TYPE.BAR_CLUSTERED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported BAR_CLUSTERED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.BAR_OF_PIE",
+      "target": "XL_CHART_TYPE.BAR_OF_PIE",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported BAR_OF_PIE in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.BAR_STACKED",
+      "target": "XL_CHART_TYPE.BAR_STACKED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported BAR_STACKED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.BAR_STACKED_100",
+      "target": "XL_CHART_TYPE.BAR_STACKED_100",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported BAR_STACKED_100 in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.BUBBLE",
+      "target": "XL_CHART_TYPE.BUBBLE",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported BUBBLE in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.BUBBLE_THREE_D_EFFECT",
+      "target": "XL_CHART_TYPE.BUBBLE_THREE_D_EFFECT",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported BUBBLE_THREE_D_EFFECT in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.COLUMN_CLUSTERED",
+      "target": "XL_CHART_TYPE.COLUMN_CLUSTERED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported COLUMN_CLUSTERED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.COLUMN_STACKED",
+      "target": "XL_CHART_TYPE.COLUMN_STACKED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported COLUMN_STACKED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.COLUMN_STACKED_100",
+      "target": "XL_CHART_TYPE.COLUMN_STACKED_100",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported COLUMN_STACKED_100 in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CONE_BAR_CLUSTERED",
+      "target": "XL_CHART_TYPE.CONE_BAR_CLUSTERED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported CONE_BAR_CLUSTERED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CONE_BAR_STACKED",
+      "target": "XL_CHART_TYPE.CONE_BAR_STACKED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported CONE_BAR_STACKED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CONE_BAR_STACKED_100",
+      "target": "XL_CHART_TYPE.CONE_BAR_STACKED_100",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported CONE_BAR_STACKED_100 in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CONE_COL",
+      "target": "XL_CHART_TYPE.CONE_COL",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported CONE_COL in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CONE_COL_CLUSTERED",
+      "target": "XL_CHART_TYPE.CONE_COL_CLUSTERED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported CONE_COL_CLUSTERED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CONE_COL_STACKED",
+      "target": "XL_CHART_TYPE.CONE_COL_STACKED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported CONE_COL_STACKED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CONE_COL_STACKED_100",
+      "target": "XL_CHART_TYPE.CONE_COL_STACKED_100",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported CONE_COL_STACKED_100 in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CYLINDER_BAR_CLUSTERED",
+      "target": "XL_CHART_TYPE.CYLINDER_BAR_CLUSTERED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported CYLINDER_BAR_CLUSTERED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CYLINDER_BAR_STACKED",
+      "target": "XL_CHART_TYPE.CYLINDER_BAR_STACKED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported CYLINDER_BAR_STACKED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CYLINDER_BAR_STACKED_100",
+      "target": "XL_CHART_TYPE.CYLINDER_BAR_STACKED_100",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported CYLINDER_BAR_STACKED_100 in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CYLINDER_COL",
+      "target": "XL_CHART_TYPE.CYLINDER_COL",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported CYLINDER_COL in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CYLINDER_COL_CLUSTERED",
+      "target": "XL_CHART_TYPE.CYLINDER_COL_CLUSTERED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported CYLINDER_COL_CLUSTERED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CYLINDER_COL_STACKED",
+      "target": "XL_CHART_TYPE.CYLINDER_COL_STACKED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported CYLINDER_COL_STACKED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CYLINDER_COL_STACKED_100",
+      "target": "XL_CHART_TYPE.CYLINDER_COL_STACKED_100",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported CYLINDER_COL_STACKED_100 in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.DOUGHNUT",
+      "target": "XL_CHART_TYPE.DOUGHNUT",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported DOUGHNUT in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.DOUGHNUT_EXPLODED",
+      "target": "XL_CHART_TYPE.DOUGHNUT_EXPLODED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported DOUGHNUT_EXPLODED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.LINE",
+      "target": "XL_CHART_TYPE.LINE",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported LINE in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.LINE_MARKERS",
+      "target": "XL_CHART_TYPE.LINE_MARKERS",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported LINE_MARKERS in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.LINE_MARKERS_STACKED",
+      "target": "XL_CHART_TYPE.LINE_MARKERS_STACKED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported LINE_MARKERS_STACKED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.LINE_MARKERS_STACKED_100",
+      "target": "XL_CHART_TYPE.LINE_MARKERS_STACKED_100",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported LINE_MARKERS_STACKED_100 in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.LINE_STACKED",
+      "target": "XL_CHART_TYPE.LINE_STACKED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported LINE_STACKED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.LINE_STACKED_100",
+      "target": "XL_CHART_TYPE.LINE_STACKED_100",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported LINE_STACKED_100 in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PIE",
+      "target": "XL_CHART_TYPE.PIE",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported PIE in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PIE_EXPLODED",
+      "target": "XL_CHART_TYPE.PIE_EXPLODED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported PIE_EXPLODED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PIE_OF_PIE",
+      "target": "XL_CHART_TYPE.PIE_OF_PIE",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported PIE_OF_PIE in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PYRAMID_BAR_CLUSTERED",
+      "target": "XL_CHART_TYPE.PYRAMID_BAR_CLUSTERED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported PYRAMID_BAR_CLUSTERED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PYRAMID_BAR_STACKED",
+      "target": "XL_CHART_TYPE.PYRAMID_BAR_STACKED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported PYRAMID_BAR_STACKED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PYRAMID_BAR_STACKED_100",
+      "target": "XL_CHART_TYPE.PYRAMID_BAR_STACKED_100",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported PYRAMID_BAR_STACKED_100 in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PYRAMID_COL",
+      "target": "XL_CHART_TYPE.PYRAMID_COL",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported PYRAMID_COL in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PYRAMID_COL_CLUSTERED",
+      "target": "XL_CHART_TYPE.PYRAMID_COL_CLUSTERED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported PYRAMID_COL_CLUSTERED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PYRAMID_COL_STACKED",
+      "target": "XL_CHART_TYPE.PYRAMID_COL_STACKED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported PYRAMID_COL_STACKED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PYRAMID_COL_STACKED_100",
+      "target": "XL_CHART_TYPE.PYRAMID_COL_STACKED_100",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported PYRAMID_COL_STACKED_100 in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.RADAR",
+      "target": "XL_CHART_TYPE.RADAR",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported RADAR in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.RADAR_FILLED",
+      "target": "XL_CHART_TYPE.RADAR_FILLED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported RADAR_FILLED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.RADAR_MARKERS",
+      "target": "XL_CHART_TYPE.RADAR_MARKERS",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported RADAR_MARKERS in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.STOCK_HLC",
+      "target": "XL_CHART_TYPE.STOCK_HLC",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported STOCK_HLC in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.STOCK_OHLC",
+      "target": "XL_CHART_TYPE.STOCK_OHLC",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported STOCK_OHLC in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.STOCK_VHLC",
+      "target": "XL_CHART_TYPE.STOCK_VHLC",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported STOCK_VHLC in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.STOCK_VOHLC",
+      "target": "XL_CHART_TYPE.STOCK_VOHLC",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported STOCK_VOHLC in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.SURFACE",
+      "target": "XL_CHART_TYPE.SURFACE",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported SURFACE in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.SURFACE_TOP_VIEW",
+      "target": "XL_CHART_TYPE.SURFACE_TOP_VIEW",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported SURFACE_TOP_VIEW in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.SURFACE_TOP_VIEW_WIREFRAME",
+      "target": "XL_CHART_TYPE.SURFACE_TOP_VIEW_WIREFRAME",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported SURFACE_TOP_VIEW_WIREFRAME in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.SURFACE_WIREFRAME",
+      "target": "XL_CHART_TYPE.SURFACE_WIREFRAME",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported SURFACE_WIREFRAME in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_AREA",
+      "target": "XL_CHART_TYPE.THREE_D_AREA",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported THREE_D_AREA in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_AREA_STACKED",
+      "target": "XL_CHART_TYPE.THREE_D_AREA_STACKED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported THREE_D_AREA_STACKED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_AREA_STACKED_100",
+      "target": "XL_CHART_TYPE.THREE_D_AREA_STACKED_100",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported THREE_D_AREA_STACKED_100 in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_BAR_CLUSTERED",
+      "target": "XL_CHART_TYPE.THREE_D_BAR_CLUSTERED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported THREE_D_BAR_CLUSTERED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_BAR_STACKED",
+      "target": "XL_CHART_TYPE.THREE_D_BAR_STACKED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported THREE_D_BAR_STACKED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_BAR_STACKED_100",
+      "target": "XL_CHART_TYPE.THREE_D_BAR_STACKED_100",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported THREE_D_BAR_STACKED_100 in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_COLUMN",
+      "target": "XL_CHART_TYPE.THREE_D_COLUMN",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported THREE_D_COLUMN in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_COLUMN_CLUSTERED",
+      "target": "XL_CHART_TYPE.THREE_D_COLUMN_CLUSTERED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported THREE_D_COLUMN_CLUSTERED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_COLUMN_STACKED",
+      "target": "XL_CHART_TYPE.THREE_D_COLUMN_STACKED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported THREE_D_COLUMN_STACKED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_COLUMN_STACKED_100",
+      "target": "XL_CHART_TYPE.THREE_D_COLUMN_STACKED_100",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported THREE_D_COLUMN_STACKED_100 in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_LINE",
+      "target": "XL_CHART_TYPE.THREE_D_LINE",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported THREE_D_LINE in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_PIE",
+      "target": "XL_CHART_TYPE.THREE_D_PIE",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported THREE_D_PIE in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_PIE_EXPLODED",
+      "target": "XL_CHART_TYPE.THREE_D_PIE_EXPLODED",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported THREE_D_PIE_EXPLODED in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.XY_SCATTER",
+      "target": "XL_CHART_TYPE.XY_SCATTER",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported XY_SCATTER in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.XY_SCATTER_LINES",
+      "target": "XL_CHART_TYPE.XY_SCATTER_LINES",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported XY_SCATTER_LINES in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.XY_SCATTER_LINES_NO_MARKERS",
+      "target": "XL_CHART_TYPE.XY_SCATTER_LINES_NO_MARKERS",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported XY_SCATTER_LINES_NO_MARKERS in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.XY_SCATTER_SMOOTH",
+      "target": "XL_CHART_TYPE.XY_SCATTER_SMOOTH",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported XY_SCATTER_SMOOTH in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.XY_SCATTER_SMOOTH_NO_MARKERS",
+      "target": "XL_CHART_TYPE.XY_SCATTER_SMOOTH_NO_MARKERS",
+      "getter": "readModelChartType(XmlPart): XL_CHART_TYPE",
+      "default": "Inherited OOXML discriminator defaults; see classifier tests for explicit fixture.",
+      "disposition": "implemented-original-xml-tests",
+      "original_test": "chart-type-model.test.ts: classifies imported XY_SCATTER_SMOOTH_NO_MARKERS in both XML dialects without mutations",
+      "side_effects": "None; no host I/O or mutation."
+    }
+  ],
+  "inherited_enum_metadata": [
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.name",
+      "target": "XL_CHART_TYPE.metadata(value).name",
+      "disposition": "existing shared enum behavior; not a chart variant"
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.value",
+      "target": "XL_CHART_TYPE.metadata(value).value",
+      "disposition": "existing shared enum behavior; not a chart variant"
+    }
+  ]
+}

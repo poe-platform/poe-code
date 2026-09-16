@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "purpose": "Small original structural QA examples for remaining census gaps; not product tests or downloaded evidence. Text and diagnostic pixel authored independently; no copied publisher content.",
+  "examples": [
+    {
+      "id": "authored-strict-language-note",
+      "origin": "original-authored-qa-example",
+      "downloaded_real_world": false,
+      "canonical_unit_fixture": false,
+      "cache_path": ".cache/docx-corpus/gap-20260914/authored-strict-language-note.docx",
+      "sha256": "31ba577f0af5b5a75ce35c6d95a5992f2e1248679684725b69be62551d9866ba",
+      "parts_utf8": {
+        "[Content_Types].xml": "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Default Extension=\"png\" ContentType=\"image/png\"/><Override PartName=\"/word/document.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml\"/><Override PartName=\"/word/endnotes.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml\"/></Types>",
+        "_rels/.rels": "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://purl.oclc.org/ooxml/relationships/officeDocument\" Target=\"word/document.xml\"/></Relationships>",
+        "word/document.xml": "<w:document xmlns:w=\"http://purl.oclc.org/ooxml/wordprocessingml/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><w:body><w:p><w:r><w:t>Harbor survey — 水辺の観察 — 물가 관찰</w:t></w:r></w:p><w:p><w:pPr><w:bidi/></w:pPr><w:r><w:rPr><w:rtl/><w:lang w:bidi=\"ar-SA\"/></w:rPr><w:t>ملاحظات الميناء 12</w:t></w:r><w:r><w:endnoteReference w:id=\"1\"/></w:r></w:p><w:sectPr/></w:body></w:document>",
+        "word/_rels/document.xml.rels": "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId2\" Type=\"http://purl.oclc.org/ooxml/relationships/endnotes\" Target=\"endnotes.xml\"/></Relationships>",
+        "word/endnotes.xml": "<w:endnotes xmlns:w=\"http://purl.oclc.org/ooxml/wordprocessingml/main\"><w:endnote w:id=\"1\"><w:p><w:r><w:endnoteRef/></w:r><w:r><w:t>Measurements recorded at dawn.</w:t></w:r></w:p></w:endnote></w:endnotes>"
+      },
+      "parts_base64": {}
+    },
+    {
+      "id": "authored-review-links-controls",
+      "origin": "original-authored-qa-example",
+      "downloaded_real_world": false,
+      "canonical_unit_fixture": false,
+      "cache_path": ".cache/docx-corpus/gap-20260914/authored-review-links-controls.docx",
+      "sha256": "1c8acc99390eb300bc47b5d5f7e0a00bb51ef30201f3d6e6f0be47f551abcaa3",
+      "parts_utf8": {
+        "[Content_Types].xml": "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Default Extension=\"png\" ContentType=\"image/png\"/><Override PartName=\"/word/document.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml\"/><Override PartName=\"/word/comments.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml\"/></Types>",
+        "_rels/.rels": "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"word/document.xml\"/></Relationships>",
+        "word/document.xml": "<w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><w:body><w:p><w:commentRangeStart w:id=\"0\"/><w:r><w:t>Harbor level</w:t></w:r><w:commentRangeEnd w:id=\"0\"/><w:r><w:commentReference w:id=\"0\"/></w:r></w:p><w:p><w:del w:id=\"1\" w:author=\"Reviewer\" w:date=\"2026-01-02T03:04:05Z\"><w:r><w:delText>Low</w:delText></w:r></w:del><w:ins w:id=\"2\" w:author=\"Reviewer\" w:date=\"2026-01-02T03:04:05Z\"><w:r><w:t>High</w:t></w:r></w:ins></w:p><w:sdt><w:sdtPr><w:id w:val=\"10\"/><w:dropDownList><w:listItem w:displayText=\"North\" w:value=\"N\"/><w:listItem w:displayText=\"South\" w:value=\"S\"/></w:dropDownList></w:sdtPr><w:sdtContent><w:p><w:r><w:t>North</w:t></w:r></w:p></w:sdtContent></w:sdt><w:sdt><w:sdtPr><w:id w:val=\"11\"/><w:comboBox><w:listItem w:displayText=\"North\" w:value=\"N\"/><w:listItem w:displayText=\"South\" w:value=\"S\"/></w:comboBox></w:sdtPr><w:sdtContent><w:p><w:r><w:t>North</w:t></w:r></w:p></w:sdtContent></w:sdt><w:p><w:r><w:fldChar w:fldCharType=\"begin\"><w:ffData><w:name w:val=\"SurveySite\"/><w:enabled/><w:calcOnExit w:val=\"0\"/><w:textInput><w:default w:val=\"Dock\"/></w:textInput></w:ffData></w:fldChar></w:r><w:r><w:instrText xml:space=\"preserve\"> FORMTEXT </w:instrText></w:r><w:r><w:fldChar w:fldCharType=\"separate\"/></w:r><w:r><w:t>Dock</w:t></w:r><w:r><w:fldChar w:fldCharType=\"end\"/></w:r></w:p><w:p><w:r><w:pict><v:shape xmlns:v=\"urn:schemas-microsoft-com:vml\" id=\"pixel0\" style=\"width:1pt;height:1pt\" coordsize=\"1,1\" path=\"m0,0l1,0,1,1,0,1xe\"><v:imagedata r:id=\"rId3\"/></v:shape></w:pict></w:r></w:p><w:p><w:r><w:pict><v:shape xmlns:v=\"urn:schemas-microsoft-com:vml\" id=\"pixel1\" style=\"width:1pt;height:1pt\" coordsize=\"1,1\" path=\"m0,0l1,0,1,1,0,1xe\"><v:imagedata r:id=\"rId4\"/></v:shape></w:pict></w:r></w:p><w:p><w:r><w:pict><v:shape xmlns:v=\"urn:schemas-microsoft-com:vml\" id=\"pixel2\" style=\"width:1pt;height:1pt\" coordsize=\"1,1\" path=\"m0,0l1,0,1,1,0,1xe\"><v:imagedata r:id=\"rId4\"/></v:shape></w:pict></w:r></w:p><w:sectPr/></w:body></w:document>",
+        "word/_rels/document.xml.rels": "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments\" Target=\"comments.xml\"/><Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/image\" Target=\"https://example.invalid/unfetched-pixel.png\" TargetMode=\"External\"/><Relationship Id=\"rId4\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/image\" Target=\"media/pixel.png\"/></Relationships>",
+        "word/comments.xml": "<w:comments xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:comment w:id=\"0\" w:author=\"Reviewer\" w:initials=\"R\" w:date=\"2026-01-02T03:04:05Z\"><w:p><w:r><w:t>Confirm the unit before publication.</w:t></w:r></w:p></w:comment></w:comments>"
+      },
+      "parts_base64": {
+        "word/media/pixel.png": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNQSFgAAAHEASFiX4r9AAAAAElFTkSuQmCC"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1490 @@
+{
+  "schema_version": 1,
+  "scope": "xml-preservation internal bounded XML admission and singleton sequence merge; no full model/CLI conformance claim",
+  "authorities": [
+    "../specs/pptx.md",
+    "../specs/office-cli.md",
+    "../specs/office-sdk.md",
+    "upstream-test-audit.md",
+    "upstream-api-audit.md",
+    "test-case-map.json"
+  ],
+  "source_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "inventory_sha256": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+  "api_inventory_sha256": "cd6467079c8f93d5be57758646f3fcd3667a6a13a1782fb371320c378803b934",
+  "selection": "All expanded unit identities from parser, namespace, XML descriptor and OPC XML tests. No BDD scenario directly exercises the low-level XML codec; all 973 presentation/model BDD scenarios retain their exact rows and deferred feature obligations in test-case-map.json. Passing this dependency promotes none of them.",
+  "accounting": {
+    "source_unit_total": 2700,
+    "source_bdd_total": 973,
+    "selected_unit_rows": 72,
+    "unit_status_counts": {
+      "deferred_opc_writer_with_foundation": 15,
+      "language_mapped_internal_behavior": 17,
+      "adapted_internal_behavior": 14,
+      "partial_internal_behavior": 22,
+      "deferred_typed_schema_validation": 4
+    },
+    "other_unit_rows": 2628,
+    "bdd_rows_promoted": 0
+  },
+  "language_security": {
+    "J09": "Internal QName records and immutable element arrays, scoped to one admitted XML part; foreign/stale snapshot handles are rejected. Not the public owned model XmlNode/part API. No XPath/evaluation, runtime parser callbacks, ambient host I/O or network.",
+    "whitespace": "Deliberate F04 difference: retain all original whitespace instead of the source parser stripping inter-element text.",
+    "bytes": "Explicit Uint8Array input only; UTF-8/UTF-16 XML 1.0, same byte order/BOM after edits. Source Unicode/string overload is explicitly mapped to caller encoding, not implicit paths.",
+    "entities": "DTD declarations and custom entities prohibited. XML predefined escapes and numeric character references are parsed normally; no entity fetch/expansion capability.",
+    "merge": "QName-based attribute string/null merge and declared ordered singleton-child upsert/remove. Repeated/ambiguous declared slots fail. Unknown siblings, attributes, comments, PIs, CDATA and whitespace retain their exact source spans.",
+    "limits": "Explicit part bytes, element/text/CDATA/comment/PI nodes, depth and one edit-work budget. Iterative edit traversal rejects cycles; output re-admitted before return. Whole-deck asynchronous scheduling/aggregate resource charging remains the operation layer responsibility."
+  },
+  "public_api_obligations": [
+    {
+      "source_id": "pptx.chart.axis.AxisTitle.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.chart.axis.MajorGridlines.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.chart.chart.Chart.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.chart.chart.ChartTitle.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.chart.marker.Marker.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.dml.chtfmt.ChartFormat.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.dml.fill._GradientStop.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.presentation.Presentation.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.autoshape.Shape.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.base.BaseShape.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.base._PlaceholderFormat.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.connector.Connector.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.group.GroupShape.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.picture.Picture.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.picture._MediaFormat.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.ChartPlaceholder.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.LayoutPlaceholder.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.MasterPlaceholder.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.NotesSlidePlaceholder.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PicturePlaceholder.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderPicture.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.SlidePlaceholder.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.TablePlaceholder.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.GroupShapes.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.LayoutPlaceholders.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.LayoutShapes.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.MasterPlaceholders.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.MasterShapes.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.NotesSlidePlaceholders.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.NotesSlideShapes.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.SlidePlaceholders.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.SlideShapes.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.slide.NotesMaster.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.slide.NotesSlide.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.slide.Slide.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayout.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayouts.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.slide.SlideMaster.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.slide.SlideMasters.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.slide.Slides.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    },
+    {
+      "source_id": "pptx.slide._Background.element",
+      "status": "deferred_public_owned_view",
+      "reason": "J09 remains an explicit public API obligation, including inherited and underscore-prefixed owners. This internal codec does not count as a live owner-validated model view."
+    }
+  ],
+  "documentation_drift": "Earlier audit statements describe the pinned research baseline; this receipt records the subsequent codec only. No claim of full original API/test/BDD adaptation. Required integer schema validation, MCE semantics, typed repeated-child operations, public node views and CLI schema/acceptance remain pending.",
+  "legal": "Original TypeScript implementation, assets, assertions and wording; no copied source or reference fixtures. Existing standalone notices retained. Source identities occur only in research/provenance.",
+  "unit_cases": [
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Default::it_provides_read_access_to_xml_values",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 30,
+      "case_ledger_id": "presentation-unit-94678300c43b",
+      "status": "deferred_opc_writer_with_foundation",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains exact original bytes and exposes resolved names without mutable aliases"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        }
+      ],
+      "reason": "Generic lexical retention/child merge only. OPC binding validation and relationship graph evidence stay in their existing supplements; content-type/relationship XML writers and full original collection/build/serialization workflows remain deferred."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Override::it_provides_read_access_to_xml_values",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 39,
+      "case_ledger_id": "presentation-unit-58d7225bc9e2",
+      "status": "deferred_opc_writer_with_foundation",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains exact original bytes and exposes resolved names without mutable aliases"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        }
+      ],
+      "reason": "Generic lexical retention/child merge only. OPC binding validation and relationship graph evidence stay in their existing supplements; content-type/relationship XML writers and full original collection/build/serialization workflows remain deferred."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Relationship::it_provides_read_access_to_xml_values",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 50,
+      "case_ledger_id": "presentation-unit-8324e6e465be",
+      "status": "deferred_opc_writer_with_foundation",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains exact original bytes and exposes resolved names without mutable aliases"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        }
+      ],
+      "reason": "Generic lexical retention/child merge only. OPC binding validation and relationship graph evidence stay in their existing supplements; content-type/relationship XML writers and full original collection/build/serialization workflows remain deferred."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Relationship::it_constructs_an_internal_relationship_when_no_target_mode_is_provided",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 60,
+      "case_ledger_id": "presentation-unit-ce50bb7403bf",
+      "status": "deferred_opc_writer_with_foundation",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains exact original bytes and exposes resolved names without mutable aliases"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        }
+      ],
+      "reason": "Generic lexical retention/child merge only. OPC binding validation and relationship graph evidence stay in their existing supplements; content-type/relationship XML writers and full original collection/build/serialization workflows remain deferred."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Relationship::and_it_constructs_an_internal_relationship_when_target_mode_INTERNAL_is_specified",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 71,
+      "case_ledger_id": "presentation-unit-070c7e7c2652",
+      "status": "deferred_opc_writer_with_foundation",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains exact original bytes and exposes resolved names without mutable aliases"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        }
+      ],
+      "reason": "Generic lexical retention/child merge only. OPC binding validation and relationship graph evidence stay in their existing supplements; content-type/relationship XML writers and full original collection/build/serialization workflows remain deferred."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Relationship::and_it_constructs_an_external_relationship_when_target_mode_EXTERNAL_is_specified",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 82,
+      "case_ledger_id": "presentation-unit-14ca9bc52a35",
+      "status": "deferred_opc_writer_with_foundation",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains exact original bytes and exposes resolved names without mutable aliases"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        }
+      ],
+      "reason": "Generic lexical retention/child merge only. OPC binding validation and relationship graph evidence stay in their existing supplements; content-type/relationship XML writers and full original collection/build/serialization workflows remain deferred."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Relationships::it_can_construct_a_new_relationships_element",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 98,
+      "case_ledger_id": "presentation-unit-2cb201b9157a",
+      "status": "deferred_opc_writer_with_foundation",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains exact original bytes and exposes resolved names without mutable aliases"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        }
+      ],
+      "reason": "Generic lexical retention/child merge only. OPC binding validation and relationship graph evidence stay in their existing supplements; content-type/relationship XML writers and full original collection/build/serialization workflows remain deferred."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Relationships::it_can_build_rels_element_incrementally",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 104,
+      "case_ledger_id": "presentation-unit-d36ea6e2a939",
+      "status": "deferred_opc_writer_with_foundation",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains exact original bytes and exposes resolved names without mutable aliases"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        }
+      ],
+      "reason": "Generic lexical retention/child merge only. OPC binding validation and relationship graph evidence stay in their existing supplements; content-type/relationship XML writers and full original collection/build/serialization workflows remain deferred."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Relationships::it_can_generate_rels_file_xml",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 120,
+      "case_ledger_id": "presentation-unit-c6324083ceca",
+      "status": "deferred_opc_writer_with_foundation",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains exact original bytes and exposes resolved names without mutable aliases"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        }
+      ],
+      "reason": "Generic lexical retention/child merge only. OPC binding validation and relationship graph evidence stay in their existing supplements; content-type/relationship XML writers and full original collection/build/serialization workflows remain deferred."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Types::it_provides_access_to_default_child_elements",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 131,
+      "case_ledger_id": "presentation-unit-dd8070fc6993",
+      "status": "deferred_opc_writer_with_foundation",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains exact original bytes and exposes resolved names without mutable aliases"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        }
+      ],
+      "reason": "Generic lexical retention/child merge only. OPC binding validation and relationship graph evidence stay in their existing supplements; content-type/relationship XML writers and full original collection/build/serialization workflows remain deferred."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Types::it_provides_access_to_override_child_elements",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 136,
+      "case_ledger_id": "presentation-unit-1a573938b61a",
+      "status": "deferred_opc_writer_with_foundation",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains exact original bytes and exposes resolved names without mutable aliases"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        }
+      ],
+      "reason": "Generic lexical retention/child merge only. OPC binding validation and relationship graph evidence stay in their existing supplements; content-type/relationship XML writers and full original collection/build/serialization workflows remain deferred."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Types::it_should_have_empty_list_on_no_matching_elements",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 141,
+      "case_ledger_id": "presentation-unit-02295f25feac",
+      "status": "deferred_opc_writer_with_foundation",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains exact original bytes and exposes resolved names without mutable aliases"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        }
+      ],
+      "reason": "Generic lexical retention/child merge only. OPC binding validation and relationship graph evidence stay in their existing supplements; content-type/relationship XML writers and full original collection/build/serialization workflows remain deferred."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Types::it_can_construct_a_new_types_element",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 146,
+      "case_ledger_id": "presentation-unit-09aee7248427",
+      "status": "deferred_opc_writer_with_foundation",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains exact original bytes and exposes resolved names without mutable aliases"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        }
+      ],
+      "reason": "Generic lexical retention/child merge only. OPC binding validation and relationship graph evidence stay in their existing supplements; content-type/relationship XML writers and full original collection/build/serialization workflows remain deferred."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Types::it_can_build_types_element_incrementally",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 152,
+      "case_ledger_id": "presentation-unit-5fe5593c7371",
+      "status": "deferred_opc_writer_with_foundation",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains exact original bytes and exposes resolved names without mutable aliases"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        }
+      ],
+      "reason": "Generic lexical retention/child merge only. OPC binding validation and relationship graph evidence stay in their existing supplements; content-type/relationship XML writers and full original collection/build/serialization workflows remain deferred."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::Describe_serialize_part_xml::it_produces_properly_formatted_xml_for_an_opc_part",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 188,
+      "case_ledger_id": "presentation-unit-d423e5ce96bc",
+      "status": "deferred_opc_writer_with_foundation",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains exact original bytes and exposes resolved names without mutable aliases"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        }
+      ],
+      "reason": "Generic lexical retention/child merge only. OPC binding validation and relationship graph evidence stay in their existing supplements; content-type/relationship XML writers and full original collection/build/serialization workflows remain deferred."
+    },
+    {
+      "source_node_id": "tests/oxml/test___init__.py::DescribeOxmlParser::it_strips_whitespace_between_elements",
+      "source_file": "tests/oxml/test___init__.py",
+      "line": 16,
+      "case_ledger_id": "presentation-unit-2df82487203a",
+      "status": "language_mapped_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "requires explicit byte admission and preserves declared Unicode text"
+        }
+      ],
+      "reason": "Bytes-only admission replaces source string/byte overloads. Whitespace is retained deliberately under F04, never stripped. No custom-class registry or parser callback is exposed; qualified immutable nodes replace parser/proxy mechanics. Model owner/view APIs remain pending."
+    },
+    {
+      "source_node_id": "tests/oxml/test___init__.py::DescribeParseXml::it_uses_oxml_configured_parser_to_parse_xml",
+      "source_file": "tests/oxml/test___init__.py",
+      "line": 22,
+      "case_ledger_id": "presentation-unit-5c70bb8ade4f",
+      "status": "language_mapped_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "requires explicit byte admission and preserves declared Unicode text"
+        }
+      ],
+      "reason": "Bytes-only admission replaces source string/byte overloads. Whitespace is retained deliberately under F04, never stripped. No custom-class registry or parser callback is exposed; qualified immutable nodes replace parser/proxy mechanics. Model owner/view APIs remain pending."
+    },
+    {
+      "source_node_id": "tests/oxml/test___init__.py::DescribeParseXml::it_prefers_to_parse_bytes",
+      "source_file": "tests/oxml/test___init__.py",
+      "line": 29,
+      "case_ledger_id": "presentation-unit-d8f394fed32c",
+      "status": "language_mapped_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "requires explicit byte admission and preserves declared Unicode text"
+        }
+      ],
+      "reason": "Bytes-only admission replaces source string/byte overloads. Whitespace is retained deliberately under F04, never stripped. No custom-class registry or parser callback is exposed; qualified immutable nodes replace parser/proxy mechanics. Model owner/view APIs remain pending."
+    },
+    {
+      "source_node_id": "tests/oxml/test___init__.py::DescribeParseXml::but_accepts_unicode_providing_there_is_no_encoding_declaration",
+      "source_file": "tests/oxml/test___init__.py",
+      "line": 32,
+      "case_ledger_id": "presentation-unit-30979f47a70d",
+      "status": "language_mapped_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "requires explicit byte admission and preserves declared Unicode text"
+        }
+      ],
+      "reason": "Bytes-only admission replaces source string/byte overloads. Whitespace is retained deliberately under F04, never stripped. No custom-class registry or parser callback is exposed; qualified immutable nodes replace parser/proxy mechanics. Model owner/view APIs remain pending."
+    },
+    {
+      "source_node_id": "tests/oxml/test___init__.py::DescribeRegisterCustomElementClass::it_determines_cust_elm_class_constructed_for_specified_tag",
+      "source_file": "tests/oxml/test___init__.py",
+      "line": 48,
+      "case_ledger_id": "presentation-unit-ce687e52f822",
+      "status": "language_mapped_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "requires explicit byte admission and preserves declared Unicode text"
+        }
+      ],
+      "reason": "Bytes-only admission replaces source string/byte overloads. Whitespace is retained deliberately under F04, never stripped. No custom-class registry or parser callback is exposed; qualified immutable nodes replace parser/proxy mechanics. Model owner/view APIs remain pending."
+    },
+    {
+      "source_node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_behaves_like_a_string_when_you_want_it_to",
+      "source_file": "tests/oxml/test_ns.py",
+      "line": 11,
+      "case_ledger_id": "presentation-unit-8d5829037ee1",
+      "status": "language_mapped_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "merges a qualified attribute under namespace shadowing without touching other markup"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "preserves a default namespace while adding unqualified children and qualified attributes"
+        }
+      ],
+      "reason": "QName objects carry namespace URI and local name; prefixes are retained lexically and resolved in scope, with explicit declarations for authored names. No Python str subclass, global namespace registry, Clark-string helper API or public view availability is inferred. These shared assertions establish namespace meaning rather than source string formatting."
+    },
+    {
+      "source_node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_knows_its_clark_name",
+      "source_file": "tests/oxml/test_ns.py",
+      "line": 15,
+      "case_ledger_id": "presentation-unit-ff8331d04eeb",
+      "status": "language_mapped_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "merges a qualified attribute under namespace shadowing without touching other markup"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "preserves a default namespace while adding unqualified children and qualified attributes"
+        }
+      ],
+      "reason": "QName objects carry namespace URI and local name; prefixes are retained lexically and resolved in scope, with explicit declarations for authored names. No Python str subclass, global namespace registry, Clark-string helper API or public view availability is inferred. These shared assertions establish namespace meaning rather than source string formatting."
+    },
+    {
+      "source_node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_knows_its_local_part",
+      "source_file": "tests/oxml/test_ns.py",
+      "line": 18,
+      "case_ledger_id": "presentation-unit-ed8a4961567a",
+      "status": "language_mapped_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "merges a qualified attribute under namespace shadowing without touching other markup"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "preserves a default namespace while adding unqualified children and qualified attributes"
+        }
+      ],
+      "reason": "QName objects carry namespace URI and local name; prefixes are retained lexically and resolved in scope, with explicit declarations for authored names. No Python str subclass, global namespace registry, Clark-string helper API or public view availability is inferred. These shared assertions establish namespace meaning rather than source string formatting."
+    },
+    {
+      "source_node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_can_compose_a_single_entry_nsmap_for_itself",
+      "source_file": "tests/oxml/test_ns.py",
+      "line": 21,
+      "case_ledger_id": "presentation-unit-bd4448af328c",
+      "status": "language_mapped_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "merges a qualified attribute under namespace shadowing without touching other markup"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "preserves a default namespace while adding unqualified children and qualified attributes"
+        }
+      ],
+      "reason": "QName objects carry namespace URI and local name; prefixes are retained lexically and resolved in scope, with explicit declarations for authored names. No Python str subclass, global namespace registry, Clark-string helper API or public view availability is inferred. These shared assertions establish namespace meaning rather than source string formatting."
+    },
+    {
+      "source_node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_knows_its_namespace_prefix",
+      "source_file": "tests/oxml/test_ns.py",
+      "line": 25,
+      "case_ledger_id": "presentation-unit-b74f5e7c512c",
+      "status": "language_mapped_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "merges a qualified attribute under namespace shadowing without touching other markup"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "preserves a default namespace while adding unqualified children and qualified attributes"
+        }
+      ],
+      "reason": "QName objects carry namespace URI and local name; prefixes are retained lexically and resolved in scope, with explicit declarations for authored names. No Python str subclass, global namespace registry, Clark-string helper API or public view availability is inferred. These shared assertions establish namespace meaning rather than source string formatting."
+    },
+    {
+      "source_node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_knows_its_namespace_uri",
+      "source_file": "tests/oxml/test_ns.py",
+      "line": 28,
+      "case_ledger_id": "presentation-unit-18486a438433",
+      "status": "language_mapped_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "merges a qualified attribute under namespace shadowing without touching other markup"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "preserves a default namespace while adding unqualified children and qualified attributes"
+        }
+      ],
+      "reason": "QName objects carry namespace URI and local name; prefixes are retained lexically and resolved in scope, with explicit declarations for authored names. No Python str subclass, global namespace registry, Clark-string helper API or public view availability is inferred. These shared assertions establish namespace meaning rather than source string formatting."
+    },
+    {
+      "source_node_id": "tests/oxml/test_ns.py::DescribeNamespaces::it_composes_a_dict_of_ns_uris_keyed_by_ns_pfx",
+      "source_file": "tests/oxml/test_ns.py",
+      "line": 33,
+      "case_ledger_id": "presentation-unit-4ceb825b6e6c",
+      "status": "language_mapped_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "merges a qualified attribute under namespace shadowing without touching other markup"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "preserves a default namespace while adding unqualified children and qualified attributes"
+        }
+      ],
+      "reason": "QName objects carry namespace URI and local name; prefixes are retained lexically and resolved in scope, with explicit declarations for authored names. No Python str subclass, global namespace registry, Clark-string helper API or public view availability is inferred. These shared assertions establish namespace meaning rather than source string formatting."
+    },
+    {
+      "source_node_id": "tests/oxml/test_ns.py::DescribeNsdecls::it_formats_namespace_declarations_from_a_list_of_prefixes",
+      "source_file": "tests/oxml/test_ns.py",
+      "line": 38,
+      "case_ledger_id": "presentation-unit-d679d81b423a",
+      "status": "language_mapped_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "merges a qualified attribute under namespace shadowing without touching other markup"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "preserves a default namespace while adding unqualified children and qualified attributes"
+        }
+      ],
+      "reason": "QName objects carry namespace URI and local name; prefixes are retained lexically and resolved in scope, with explicit declarations for authored names. No Python str subclass, global namespace registry, Clark-string helper API or public view availability is inferred. These shared assertions establish namespace meaning rather than source string formatting."
+    },
+    {
+      "source_node_id": "tests/oxml/test_ns.py::DescribeNsuri::it_finds_the_namespace_uri_corresponding_to_a_namespace_prefix",
+      "source_file": "tests/oxml/test_ns.py",
+      "line": 43,
+      "case_ledger_id": "presentation-unit-38fff501e360",
+      "status": "language_mapped_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "merges a qualified attribute under namespace shadowing without touching other markup"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "preserves a default namespace while adding unqualified children and qualified attributes"
+        }
+      ],
+      "reason": "QName objects carry namespace URI and local name; prefixes are retained lexically and resolved in scope, with explicit declarations for authored names. No Python str subclass, global namespace registry, Clark-string helper API or public view availability is inferred. These shared assertions establish namespace meaning rather than source string formatting."
+    },
+    {
+      "source_node_id": "tests/oxml/test_ns.py::DescribeQn::it_calculates_the_clark_name_for_an_ns_prefixed_tag_string",
+      "source_file": "tests/oxml/test_ns.py",
+      "line": 48,
+      "case_ledger_id": "presentation-unit-f92e6f729b11",
+      "status": "language_mapped_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "merges a qualified attribute under namespace shadowing without touching other markup"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "preserves a default namespace while adding unqualified children and qualified attributes"
+        }
+      ],
+      "reason": "QName objects carry namespace URI and local name; prefixes are retained lexically and resolved in scope, with explicit declarations for authored names. No Python str subclass, global namespace registry, Clark-string helper API or public view availability is inferred. These shared assertions establish namespace meaning rather than source string formatting."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeCustomElementClass::it_has_the_MetaOxmlElement_metaclass",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 31,
+      "case_ledger_id": "presentation-unit-504052ec9a96",
+      "status": "language_mapped_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains exact original bytes and exposes resolved names without mutable aliases"
+        }
+      ],
+      "reason": "Source metaclass/descriptor exposure is replaced with frozen original TypeScript records and explicit merges; no generated Python attributes or copied docstrings. This is internal architecture evidence, not public model coverage."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_a_getter_property_for_the_choice_element[choice]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 36,
+      "case_ledger_id": "presentation-unit-c509ff491f07",
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inspects and changes an explicit selection slot: %s"
+        }
+      ],
+      "reason": "Explicit remove-plus-upsert and qualified child inspection replace descriptor-generated choice helpers. Empty, chosen and alternate states remain distinct test parameters; raw proxy-class identity is replaced with independently expected qualified names and complete output XML."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_a_getter_property_for_the_choice_element[None]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 36,
+      "case_ledger_id": "presentation-unit-252676a5e412",
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inspects and changes an explicit selection slot: %s"
+        }
+      ],
+      "reason": "Explicit remove-plus-upsert and qualified child inspection replace descriptor-generated choice helpers. Empty, chosen and alternate states remain distinct test parameters; raw proxy-class identity is replaced with independently expected qualified names and complete output XML."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_a_creator_method_for_the_child_element",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 40,
+      "case_ledger_id": "presentation-unit-f03b506f2243",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "orders multiple new children by schema rank rather than request order"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "expands an empty element precisely: %s"
+        }
+      ],
+      "reason": "Shared original assertions establish authored qualified children, precise predecessor/successor slots and insertion into empty parents. This is explicit many-to-one foundational equivalence, not an assertion that metaclass methods, repeated-child append semantics, detached public objects or return-wrapper identities are implemented. Those remain with typed model owners."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_an_insert_method_for_the_child_element",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 45,
+      "case_ledger_id": "presentation-unit-09a3fd0829df",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "orders multiple new children by schema rank rather than request order"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "expands an empty element precisely: %s"
+        }
+      ],
+      "reason": "Shared original assertions establish authored qualified children, precise predecessor/successor slots and insertion into empty parents. This is explicit many-to-one foundational equivalence, not an assertion that metaclass methods, repeated-child append semantics, detached public objects or return-wrapper identities are implemented. Those remain with typed model owners."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_an_add_method_for_the_child_element",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 51,
+      "case_ledger_id": "presentation-unit-e322208364f8",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "orders multiple new children by schema rank rather than request order"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "expands an empty element precisely: %s"
+        }
+      ],
+      "reason": "Shared original assertions establish authored qualified children, precise predecessor/successor slots and insertion into empty parents. This is explicit many-to-one foundational equivalence, not an assertion that metaclass methods, repeated-child append semantics, detached public objects or return-wrapper identities are implemented. Those remain with typed model owners."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_a_get_or_change_to_method_for_the_child_element[get_or_change_to_fixture0]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 58,
+      "case_ledger_id": "presentation-unit-758025bb3f22",
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inspects and changes an explicit selection slot: %s"
+        }
+      ],
+      "reason": "Explicit remove-plus-upsert and qualified child inspection replace descriptor-generated choice helpers. Empty, chosen and alternate states remain distinct test parameters; raw proxy-class identity is replaced with independently expected qualified names and complete output XML."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_a_get_or_change_to_method_for_the_child_element[get_or_change_to_fixture1]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 58,
+      "case_ledger_id": "presentation-unit-908826045adb",
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inspects and changes an explicit selection slot: %s"
+        }
+      ],
+      "reason": "Explicit remove-plus-upsert and qualified child inspection replace descriptor-generated choice helpers. Empty, chosen and alternate states remain distinct test parameters; raw proxy-class identity is replaced with independently expected qualified names and complete output XML."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_a_get_or_change_to_method_for_the_child_element[get_or_change_to_fixture2]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 58,
+      "case_ledger_id": "presentation-unit-c0882b5a83ab",
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inspects and changes an explicit selection slot: %s"
+        }
+      ],
+      "reason": "Explicit remove-plus-upsert and qualified child inspection replace descriptor-generated choice helpers. Empty, chosen and alternate states remain distinct test parameters; raw proxy-class identity is replaced with independently expected qualified names and complete output XML."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeOneAndOnlyOne::it_adds_a_getter_property_for_the_child_element",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 119,
+      "case_ledger_id": "presentation-unit-943c0f55486b",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains repeated unknown children while editing a later declared singleton"
+        }
+      ],
+      "reason": "Ordered original child inspection is checked; repeated collection getters retain membership. Generated cardinality-specific properties and live public collections are still pending."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeOneOrMore::it_adds_a_getter_property_for_the_child_element_list",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 133,
+      "case_ledger_id": "presentation-unit-58c41fa3b665",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains repeated unknown children while editing a later declared singleton"
+        }
+      ],
+      "reason": "Ordered original child inspection is checked; repeated collection getters retain membership. Generated cardinality-specific properties and live public collections are still pending."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeOneOrMore::it_adds_a_creator_method_for_the_child_element",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 137,
+      "case_ledger_id": "presentation-unit-c2c5c881cbeb",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "orders multiple new children by schema rank rather than request order"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "expands an empty element precisely: %s"
+        }
+      ],
+      "reason": "Shared original assertions establish authored qualified children, precise predecessor/successor slots and insertion into empty parents. This is explicit many-to-one foundational equivalence, not an assertion that metaclass methods, repeated-child append semantics, detached public objects or return-wrapper identities are implemented. Those remain with typed model owners."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeOneOrMore::it_adds_an_insert_method_for_the_child_element",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 142,
+      "case_ledger_id": "presentation-unit-f7dabc80bf31",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "orders multiple new children by schema rank rather than request order"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "expands an empty element precisely: %s"
+        }
+      ],
+      "reason": "Shared original assertions establish authored qualified children, precise predecessor/successor slots and insertion into empty parents. This is explicit many-to-one foundational equivalence, not an assertion that metaclass methods, repeated-child append semantics, detached public objects or return-wrapper identities are implemented. Those remain with typed model owners."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeOneOrMore::it_adds_a_private_add_method_for_the_child_element",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 148,
+      "case_ledger_id": "presentation-unit-6f8de25057a0",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "orders multiple new children by schema rank rather than request order"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "expands an empty element precisely: %s"
+        }
+      ],
+      "reason": "Shared original assertions establish authored qualified children, precise predecessor/successor slots and insertion into empty parents. This is explicit many-to-one foundational equivalence, not an assertion that metaclass methods, repeated-child append semantics, detached public objects or return-wrapper identities are implemented. Those remain with typed model owners."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeOneOrMore::it_adds_a_public_add_method_for_the_child_element",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 155,
+      "case_ledger_id": "presentation-unit-21a6a8ef4b94",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "orders multiple new children by schema rank rather than request order"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "expands an empty element precisely: %s"
+        }
+      ],
+      "reason": "Shared original assertions establish authored qualified children, precise predecessor/successor slots and insertion into empty parents. This is explicit many-to-one foundational equivalence, not an assertion that metaclass methods, repeated-child append semantics, detached public objects or return-wrapper identities are implemented. Those remain with typed model owners."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeOptionalAttribute::it_adds_a_getter_property_for_the_attr_value",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 212,
+      "case_ledger_id": "presentation-unit-11ce6d075f2d",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "reads literal attributes without schema coercion or implicit defaults"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "preserves literal integer attribute values for explicit set and removal"
+        }
+      ],
+      "reason": "Literal values 24, 36 and 42 plus null-removal are retained in original cases. Generic XML exposes strings and absence; required/default/schema integer validation belongs to the typed owner and is not implemented here. Source docstring/descriptor mechanics are not copied."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeOptionalAttribute::it_adds_a_setter_property_for_the_attr[36]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 216,
+      "case_ledger_id": "presentation-unit-82fb7a70087f",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "reads literal attributes without schema coercion or implicit defaults"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "preserves literal integer attribute values for explicit set and removal"
+        }
+      ],
+      "reason": "Literal values 24, 36 and 42 plus null-removal are retained in original cases. Generic XML exposes strings and absence; required/default/schema integer validation belongs to the typed owner and is not implemented here. Source docstring/descriptor mechanics are not copied."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeOptionalAttribute::it_adds_a_setter_property_for_the_attr[None]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 216,
+      "case_ledger_id": "presentation-unit-2e0f76971c7e",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "reads literal attributes without schema coercion or implicit defaults"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "preserves literal integer attribute values for explicit set and removal"
+        }
+      ],
+      "reason": "Literal values 24, 36 and 42 plus null-removal are retained in original cases. Generic XML exposes strings and absence; required/default/schema integer validation belongs to the typed owner and is not implemented here. Source docstring/descriptor mechanics are not copied."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeOptionalAttribute::it_adds_a_docstring_for_the_property",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 221,
+      "case_ledger_id": "presentation-unit-04460e1a7c28",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "reads literal attributes without schema coercion or implicit defaults"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "preserves literal integer attribute values for explicit set and removal"
+        }
+      ],
+      "reason": "Literal values 24, 36 and 42 plus null-removal are retained in original cases. Generic XML exposes strings and absence; required/default/schema integer validation belongs to the typed owner and is not implemented here. Source docstring/descriptor mechanics are not copied."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_adds_a_getter_property_for_the_attr_value",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 243,
+      "case_ledger_id": "presentation-unit-f07e92b4eb57",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "reads literal attributes without schema coercion or implicit defaults"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "preserves literal integer attribute values for explicit set and removal"
+        }
+      ],
+      "reason": "Literal values 24, 36 and 42 plus null-removal are retained in original cases. Generic XML exposes strings and absence; required/default/schema integer validation belongs to the typed owner and is not implemented here. Source docstring/descriptor mechanics are not copied."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_adds_a_setter_property_for_the_attr",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 247,
+      "case_ledger_id": "presentation-unit-eb711713f7f5",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "reads literal attributes without schema coercion or implicit defaults"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "preserves literal integer attribute values for explicit set and removal"
+        }
+      ],
+      "reason": "Literal values 24, 36 and 42 plus null-removal are retained in original cases. Generic XML exposes strings and absence; required/default/schema integer validation belongs to the typed owner and is not implemented here. Source docstring/descriptor mechanics are not copied."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_adds_a_docstring_for_the_property",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 252,
+      "case_ledger_id": "presentation-unit-513b8d50c943",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "reads literal attributes without schema coercion or implicit defaults"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "preserves literal integer attribute values for explicit set and removal"
+        }
+      ],
+      "reason": "Literal values 24, 36 and 42 plus null-removal are retained in original cases. Generic XML exposes strings and absence; required/default/schema integer validation belongs to the typed owner and is not implemented here. Source docstring/descriptor mechanics are not copied."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_raises_on_get_when_attribute_not_present",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 255,
+      "case_ledger_id": "presentation-unit-3ce2da938a0b",
+      "status": "deferred_typed_schema_validation",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "reads literal attributes without schema coercion or implicit defaults"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "preserves literal integer attribute values for explicit set and removal"
+        }
+      ],
+      "reason": "Literal values 24, 36 and 42 plus null-removal are retained in original cases. Generic XML exposes strings and absence; required/default/schema integer validation belongs to the typed owner and is not implemented here. Source docstring/descriptor mechanics are not copied. Required-attribute access must eventually raise InvalidXmlError; generic attribute inspection currently returns absence and does not establish this contract."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_raises_on_assign_invalid_value[invalid_assign_fixture0]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 260,
+      "case_ledger_id": "presentation-unit-560441ce2d69",
+      "status": "deferred_typed_schema_validation",
+      "original_cases": [],
+      "reason": "Exact selected invalid input: None. Source expects TypeError for a required integer constrained to 1..42. XML strings/null removal have different intentional semantics; typed schema validation remains an explicit unimplemented obligation, not a passing generic-XML case."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_raises_on_assign_invalid_value[invalid_assign_fixture1]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 260,
+      "case_ledger_id": "presentation-unit-7cf0f5c0af10",
+      "status": "deferred_typed_schema_validation",
+      "original_cases": [],
+      "reason": "Exact selected invalid input: -4. Source expects ValueError for a required integer constrained to 1..42. XML strings/null removal have different intentional semantics; typed schema validation remains an explicit unimplemented obligation, not a passing generic-XML case."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_raises_on_assign_invalid_value[invalid_assign_fixture2]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 260,
+      "case_ledger_id": "presentation-unit-b2fa678fce45",
+      "status": "deferred_typed_schema_validation",
+      "original_cases": [],
+      "reason": "Exact selected invalid input: '2'. Source expects TypeError for a required integer constrained to 1..42. XML strings/null removal have different intentional semantics; typed schema validation remains an explicit unimplemented obligation, not a passing generic-XML case."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrMore::it_adds_a_getter_property_for_the_child_element_list",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 287,
+      "case_ledger_id": "presentation-unit-f5dde47a37fe",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains repeated unknown children while editing a later declared singleton"
+        }
+      ],
+      "reason": "Ordered original child inspection is checked; repeated collection getters retain membership. Generated cardinality-specific properties and live public collections are still pending."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrMore::it_adds_a_creator_method_for_the_child_element",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 291,
+      "case_ledger_id": "presentation-unit-bef4c724edc4",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "orders multiple new children by schema rank rather than request order"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "expands an empty element precisely: %s"
+        }
+      ],
+      "reason": "Shared original assertions establish authored qualified children, precise predecessor/successor slots and insertion into empty parents. This is explicit many-to-one foundational equivalence, not an assertion that metaclass methods, repeated-child append semantics, detached public objects or return-wrapper identities are implemented. Those remain with typed model owners."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrMore::it_adds_an_insert_method_for_the_child_element",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 296,
+      "case_ledger_id": "presentation-unit-ff054b82379c",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "orders multiple new children by schema rank rather than request order"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "expands an empty element precisely: %s"
+        }
+      ],
+      "reason": "Shared original assertions establish authored qualified children, precise predecessor/successor slots and insertion into empty parents. This is explicit many-to-one foundational equivalence, not an assertion that metaclass methods, repeated-child append semantics, detached public objects or return-wrapper identities are implemented. Those remain with typed model owners."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrMore::it_adds_an_add_method_for_the_child_element",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 302,
+      "case_ledger_id": "presentation-unit-de66b7dd6b10",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "orders multiple new children by schema rank rather than request order"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "expands an empty element precisely: %s"
+        }
+      ],
+      "reason": "Shared original assertions establish authored qualified children, precise predecessor/successor slots and insertion into empty parents. This is explicit many-to-one foundational equivalence, not an assertion that metaclass methods, repeated-child append semantics, detached public objects or return-wrapper identities are implemented. Those remain with typed model owners."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrMore::it_removes_the_property_root_name_used_for_declaration",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 309,
+      "case_ledger_id": "presentation-unit-e2aa2e6c928e",
+      "status": "language_mapped_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "retains exact original bytes and exposes resolved names without mutable aliases"
+        }
+      ],
+      "reason": "Source metaclass/descriptor exposure is replaced with frozen original TypeScript records and explicit merges; no generated Python attributes or copied docstrings. This is internal architecture evidence, not public model coverage."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_a_getter_property_for_the_child_element[True]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 360,
+      "case_ledger_id": "presentation-unit-03767015bc45",
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "reads and ensures an optional singleton, present=%s"
+        }
+      ],
+      "reason": "Each source boolean variant maps to the same boolean TS parameter. Existing singleton is retained exactly; absence inserts one child. No automatic model getter side effects are claimed."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_a_getter_property_for_the_child_element[False]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 360,
+      "case_ledger_id": "presentation-unit-724e99234ca3",
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "reads and ensures an optional singleton, present=%s"
+        }
+      ],
+      "reason": "Each source boolean variant maps to the same boolean TS parameter. Existing singleton is retained exactly; absence inserts one child. No automatic model getter side effects are claimed."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_an_add_method_for_the_child_element",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 364,
+      "case_ledger_id": "presentation-unit-bb2e153e8cef",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "orders multiple new children by schema rank rather than request order"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "expands an empty element precisely: %s"
+        }
+      ],
+      "reason": "Shared original assertions establish authored qualified children, precise predecessor/successor slots and insertion into empty parents. This is explicit many-to-one foundational equivalence, not an assertion that metaclass methods, repeated-child append semantics, detached public objects or return-wrapper identities are implemented. Those remain with typed model owners."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_an_insert_method_for_the_child_element",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 371,
+      "case_ledger_id": "presentation-unit-597892bfeba0",
+      "status": "partial_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "orders multiple new children by schema rank rather than request order"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inserts schema children in declared order and deeply merges an existing singleton"
+        },
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "expands an empty element precisely: %s"
+        }
+      ],
+      "reason": "Shared original assertions establish authored qualified children, precise predecessor/successor slots and insertion into empty parents. This is explicit many-to-one foundational equivalence, not an assertion that metaclass methods, repeated-child append semantics, detached public objects or return-wrapper identities are implemented. Those remain with typed model owners."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_a_get_or_add_method_for_the_child_element[True]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 377,
+      "case_ledger_id": "presentation-unit-7d037a92f233",
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "reads and ensures an optional singleton, present=%s"
+        }
+      ],
+      "reason": "Each source boolean variant maps to the same boolean TS parameter. Existing singleton is retained exactly; absence inserts one child. No automatic model getter side effects are claimed."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_a_get_or_add_method_for_the_child_element[False]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 377,
+      "case_ledger_id": "presentation-unit-ce260f990df3",
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "reads and ensures an optional singleton, present=%s"
+        }
+      ],
+      "reason": "Each source boolean variant maps to the same boolean TS parameter. Existing singleton is retained exactly; absence inserts one child. No automatic model getter side effects are claimed."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_a_remover_method_for_the_child_element[True]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 383,
+      "case_ledger_id": "presentation-unit-3953b88bfcde",
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "removes a schema singleton without touching its tail, present=%s"
+        }
+      ],
+      "reason": "Both source present/absent parameters remain separate rows. true removes only the selected element; false is a byte-exact no-op. The one parameterized TS test supplies the matching individual branch."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_a_remover_method_for_the_child_element[False]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 383,
+      "case_ledger_id": "presentation-unit-eca6f34bcc28",
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "removes a schema singleton without touching its tail, present=%s"
+        }
+      ],
+      "reason": "Both source present/absent parameters remain separate rows. true removes only the selected element; false is a byte-exact no-op. The one parameterized TS test supplies the matching individual branch."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOneChoice::it_adds_a_getter_for_the_current_choice[None]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 447,
+      "case_ledger_id": "presentation-unit-5e150983111c",
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inspects and changes an explicit selection slot: %s"
+        }
+      ],
+      "reason": "Explicit remove-plus-upsert and qualified child inspection replace descriptor-generated choice helpers. Empty, chosen and alternate states remain distinct test parameters; raw proxy-class identity is replaced with independently expected qualified names and complete output XML."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOneChoice::it_adds_a_getter_for_the_current_choice[choice]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 447,
+      "case_ledger_id": "presentation-unit-f3b1666e26ba",
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inspects and changes an explicit selection slot: %s"
+        }
+      ],
+      "reason": "Explicit remove-plus-upsert and qualified child inspection replace descriptor-generated choice helpers. Empty, chosen and alternate states remain distinct test parameters; raw proxy-class identity is replaced with independently expected qualified names and complete output XML."
+    },
+    {
+      "source_node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOneChoice::it_adds_a_getter_for_the_current_choice[choice2]",
+      "source_file": "tests/oxml/test_xmlchemy.py",
+      "line": 447,
+      "case_ledger_id": "presentation-unit-8fbba092682c",
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/xml.test.ts",
+          "name": "inspects and changes an explicit selection slot: %s"
+        }
+      ],
+      "reason": "Explicit remove-plus-upsert and qualified child inspection replace descriptor-generated choice helpers. Empty, chosen and alternate states remain distinct test parameters; raw proxy-class identity is replaced with independently expected qualified names and complete output XML."
+    }
+  ]
+}

@@ -1,0 +1,323 @@
+
+> pptx@0.0.1 test
+> cd ../.. && vitest run packages/pptx
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/pptx/src/xml-parts.test.ts (28 tests) 3998ms
+     ✓ accepts text replacement while preserving the strict dialect  339ms
+ ✓ packages/pptx/src/command-slides.test.ts (36 tests) 2783ms
+     ✓ populates custom placeholder types and sparse indices through direct flags  309ms
+     ✓ keeps stdout binary and supports destination-free dry runs  341ms
+     ✓ moves by list position and sets duplicate labels without changing IDs  763ms
+   ✓ moves reversed nonconsecutive structured selections in their requested order  469ms
+ ✓ packages/pptx/src/chart-workbook-ranges.test.ts (33 tests) 1556ms
+ ✓ packages/pptx/src/opaque-import.test.ts (8 tests) 1456ms
+ ✓ packages/pptx/src/slides.test.ts (40 tests) 10780ms
+     ✓ inserts at boundary 1 without changing existing slide IDs or drawings  336ms
+     ✓ inserts at boundary 2 without changing existing slide IDs or drawings  318ms
+     ✓ inserts at boundary 3 without changing existing slide IDs or drawings  335ms
+     ✓ inserts into an empty deck and appends when position is absent  560ms
+     ✓ populates sparse typed placeholders while retaining inherited layout geometry and text defaults  328ms
+     ✓ selects repeated placeholder types using explicit sparse indices  388ms
+     ✓ rejects duplicated placeholder keys and duplicate assignments  397ms
+     ✓ allocates the next available slide ID from [256,712]  316ms
+     ✓ allocates the next available slide ID from [280,257]  317ms
+     ✓ allocates the next available slide ID from [256,2147483647]  342ms
+     ✓ allocates the next available slide ID from [256,2147483647,257]  362ms
+     ✓ omits latent placeholders and retains custom type orientation and size  321ms
+     ✓ preserves text capability for custom ctrTitle placeholders  318ms
+     ✓ preserves text capability for custom subTitle placeholders  316ms
+     ✓ preserves text capability for custom tbl placeholders  370ms
+     ✓ preserves text capability for custom obj placeholders  318ms
+     ✓ preserves text capability for custom chart placeholders  370ms
+     ✓ preserves text capability for custom pic placeholders  377ms
+     ✓ writes explicit hidden and master-background flags  315ms
+ ✓ packages/pptx/src/command-xml.test.ts (18 tests) 1368ms
+     ✓ maps closed publication error codes without exposing capability messages  303ms
+ ✓ packages/pptx/src/command-package-tools.test.ts (8 tests) 1247ms
+   ✓ extracts explicit parts and repacks an explicit hashed manifest through the command engine  425ms
+ ✓ packages/pptx/src/chart-editing-preservation.test.ts (21 tests) 916ms
+ ✓ packages/pptx/src/properties.test.ts (51 tests) 785ms
+ ✓ packages/pptx/src/inventory.test.ts (11 tests) 1086ms
+ ✓ packages/pptx/src/image-formatting.test.ts (29 tests) 699ms
+ ✓ packages/pptx/src/image-replacement.test.ts (28 tests) 663ms
+ ✓ packages/pptx/src/slide-removal.test.ts (37 tests) 713ms
+ ✓ packages/pptx/src/text-replacement.test.ts (35 tests) 627ms
+ ✓ packages/pptx/src/command-template.test.ts (13 tests) 942ms
+ ✓ packages/pptx/src/media-editing.test.ts (29 tests) 670ms
+ ✓ packages/pptx/src/transitions.test.ts (46 tests) 560ms
+ ✓ packages/pptx/src/slide-import.test.ts (30 tests) 626ms
+ ✓ packages/pptx/src/links.test.ts (39 tests) 596ms
+ ✓ packages/pptx/src/command-create.test.ts (24 tests) 784ms
+ ✓ packages/pptx/src/command-charts-editing.test.ts (16 tests) 609ms
+ ✓ packages/pptx/src/template-repeat.test.ts (20 tests) 603ms
+ ✓ packages/pptx/src/creation.test.ts (32 tests) 786ms
+ ✓ packages/pptx/src/guide-workflows-original.test.ts (11 tests) 608ms
+ ✓ packages/pptx/src/memberships.test.ts (26 tests) 631ms
+ ✓ packages/pptx/src/command-xml-views.test.ts (10 tests) 615ms
+ ✓ packages/pptx/src/notes.test.ts (21 tests) 518ms
+ ✓ packages/pptx/src/image-insertion.test.ts (43 tests) 453ms
+ ✓ packages/pptx/src/backgrounds.test.ts (38 tests) 430ms
+ ✓ packages/pptx/src/slide-mutation.test.ts (27 tests) 533ms
+ ✓ packages/pptx/src/masters.test.ts (24 tests) 423ms
+ ✓ packages/pptx/src/command-fields.test.ts (19 tests) 498ms
+ ✓ packages/pptx/src/layout-regressions.test.ts (39 tests) 470ms
+ ✓ packages/pptx/src/xml-view-validation.test.ts (7 tests) 564ms
+ ✓ packages/pptx/src/slide-part-contract.test.ts (2 tests) 557ms
+   ✓ exposes the owning slide part as a synchronous live package view  416ms
+ ✓ packages/pptx/src/chart-data-expansion.test.ts (10 tests) 606ms
+ ✓ packages/pptx/src/opaque-objects.test.ts (29 tests) 587ms
+ ✓ packages/pptx/src/slide-merge-split.test.ts (21 tests) 607ms
+ ✓ packages/pptx/src/links-actions.test.ts (24 tests) 658ms
+ ✓ packages/pptx/src/media-behavior-cases.test.ts (10 tests) 617ms
+ ✓ packages/pptx/src/equations-preservation.test.ts (21 tests) 648ms
+ ✓ packages/pptx/src/comments.test.ts (10 tests) 628ms
+ ✓ packages/pptx/src/command-membership.test.ts (16 tests) 580ms
+ ✓ packages/pptx/src/command-transitions.test.ts (20 tests) 651ms
+ ✓ packages/pptx/src/slide-copy.test.ts (14 tests) 558ms
+ ✓ packages/pptx/src/package-allocation-variants.test.ts (17 tests) 505ms
+ ✓ packages/pptx/src/comments-lifecycle.test.ts (12 tests) 717ms
+ ✓ packages/pptx/src/selectors.test.ts (28 tests) 536ms
+ ✓ packages/pptx/src/command-masters.test.ts (14 tests) 565ms
+ ✓ packages/pptx/src/command-slide-assembly.test.ts (20 tests) 607ms
+ ✓ packages/pptx/src/command-tables.test.ts (11 tests) 512ms
+ ✓ packages/pptx/src/slide-layout-model.test.ts (7 tests) 491ms
+ ✓ packages/pptx/src/command-links.test.ts (11 tests) 616ms
+ ✓ packages/pptx/src/comments-safety.test.ts (9 tests) 550ms
+ ✓ packages/pptx/src/notes-review.test.ts (23 tests) 565ms
+ ✓ packages/pptx/src/command-animation-editing.test.ts (10 tests) 510ms
+ ✓ packages/pptx/src/accessibility.test.ts (29 tests) 500ms
+ ✓ packages/pptx/src/image-codec-reconciliation.test.ts (75 tests) 494ms
+ ✓ packages/pptx/src/chart-family-expansion.test.ts (92 tests) 486ms
+ ✓ packages/pptx/src/command-text-replace.test.ts (29 tests) 553ms
+ ✓ packages/pptx/src/chart-workbook.test.ts (10 tests) 475ms
+ ✓ packages/pptx/src/text-run-assignment.test.ts (14 tests) 523ms
+ ✓ packages/pptx/src/command-shapes.test.ts (15 tests) 524ms
+ ✓ packages/pptx/src/slide-copy-media-policy.test.ts (5 tests) 410ms
+ ✓ packages/pptx/src/slide-rich-model.test.ts (9 tests) 470ms
+ ✓ packages/pptx/src/command-images-replace.test.ts (10 tests) 459ms
+ ✓ packages/pptx/src/media-track-preservation.test.ts (5 tests) 432ms
+ ✓ packages/pptx/src/command-text.test.ts (15 tests) 386ms
+ ✓ packages/pptx/src/template-bindings.test.ts (19 tests) 453ms
+ ✓ packages/pptx/src/security-admission.test.ts (18 tests) 443ms
+ ✓ packages/pptx/src/chart-replacement-model.test.ts (6 tests) 382ms
+ ✓ packages/pptx/src/command-comments.test.ts (13 tests) 440ms
+ ✓ packages/pptx/src/table-spans.test.ts (26 tests) 362ms
+ ✓ packages/pptx/src/images.test.ts (46 tests) 404ms
+ ✓ packages/pptx/src/presentation-settings.test.ts (32 tests) 353ms
+ ✓ packages/pptx/src/command-drawing.test.ts (13 tests) 312ms
+ ✓ packages/pptx/src/command-xml-scalars.test.ts (1 test) 347ms
+   ✓ reads measured coordinates consistently through SDK and shape commands  346ms
+ ✓ packages/pptx/src/diff.test.ts (8 tests) 345ms
+ ✓ packages/pptx/src/notes-graph.test.ts (8 tests) 327ms
+ ✓ packages/pptx/src/command-opaque.test.ts (7 tests) 323ms
+ ✓ packages/pptx/src/command-diff.test.ts (18 tests) 296ms
+ ✓ packages/pptx/src/diagram-import.test.ts (13 tests) 379ms
+ ✓ packages/pptx/src/animations.test.ts (14 tests) 306ms
+ ✓ packages/pptx/src/command-shape-selection.test.ts (6 tests) 382ms
+ ✓ packages/pptx/src/handouts.test.ts (9 tests) 324ms
+ ✓ packages/pptx/src/presentation-public-exports.test.ts (1 test) 292ms
+ ✓ packages/pptx/src/animation-object-lifecycle.test.ts (3 tests) 289ms
+ ✓ packages/pptx/src/media-public-insertion.test.ts (5 tests) 299ms
+ ✓ packages/pptx/src/presentation-model.test.ts (13 tests) 252ms
+ ✓ packages/pptx/src/command-text-runs.test.ts (18 tests) 267ms
+ ✓ packages/pptx/src/tags.test.ts (3 tests) 280ms
+ ✓ packages/pptx/src/command-media.test.ts (2 tests) 294ms
+ ✓ packages/pptx/src/command-metadata.test.ts (3 tests) 286ms
+ ✓ packages/pptx/src/command-text-paragraphs.test.ts (17 tests) 317ms
+ ✓ packages/pptx/src/command-equations.test.ts (10 tests) 233ms
+ ✓ packages/pptx/src/command-settings.test.ts (29 tests) 316ms
+ ✓ packages/pptx/src/command-slide-import.test.ts (16 tests) 322ms
+ ✓ packages/pptx/src/slide-copy-svg-media.test.ts (5 tests) 258ms
+ ✓ packages/pptx/src/sanitize.test.ts (10 tests) 485ms
+ ✓ packages/pptx/src/advanced-chart-import.test.ts (9 tests) 323ms
+ ✓ packages/pptx/src/command-paths.test.ts (17 tests) 502ms
+ ✓ packages/pptx/src/package-view.test.ts (17 tests) 799ms
+ ✓ packages/pptx/src/chart-workbook-strings.test.ts (6 tests) 357ms
+ ✓ packages/pptx/src/command-placeholder.test.ts (17 tests) 833ms
+   ✓ inserts sparse tables placeholders through the SDK and preserves IDs  359ms
+ ✓ packages/pptx/src/command-media-editing.test.ts (5 tests) 726ms
+ ✓ packages/pptx/src/command-slide-removal.test.ts (14 tests) 624ms
+ ✓ packages/pptx/src/shape-id-insertion.test.ts (5 tests) 703ms
+ ✓ packages/pptx/src/command-images-formatting.test.ts (8 tests) 779ms
+   ✓ formats one picture with signed crop, transforms, alpha and explicit border units  304ms
+(node:5235) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/pptx/src/package-writer.test.ts (36 tests) 342ms
+ ✓ packages/pptx/src/command-text-frames.test.ts (18 tests) 731ms
+ ✓ packages/pptx/src/animation-editing.test.ts (19 tests) 724ms
+   ✓ atomically rebinds dependent triggers before deleting an effect using original selectors  438ms
+ ✓ packages/pptx/src/run-hyperlink-owner.test.ts (5 tests) 738ms
+   ✓ edits live run hyperlinks with relationship reuse and save/reopen  364ms
+ ✓ packages/pptx/src/command-slide-copy.test.ts (12 tests) 508ms
+ ✓ packages/pptx/src/command-layouts.test.ts (10 tests) 658ms
+     ✓ creates, renames, applies and removes layouts without changing local slide bytes  372ms
+ ✓ packages/pptx/src/ole-insertion.test.ts (19 tests) 516ms
+ ✓ packages/pptx/src/animation-media-creation.test.ts (3 tests) 602ms
+ ✓ packages/pptx/src/package-tools.test.ts (13 tests) 617ms
+ ✓ packages/pptx/src/slide-chart-insertion-contract.test.ts (4 tests) 781ms
+   ✓ inserts a synchronous live chart frame and saves its generated workbook  508ms
+ ✓ packages/pptx/src/themes.test.ts (15 tests) 903ms
+ ✓ packages/pptx/src/shape-groups.test.ts (27 tests) 421ms
+   ✓ roundtrips public SDK locations and exposes lifted child records  374ms
+ ✓ packages/pptx/src/text-reading.test.ts (32 tests) 540ms
+ ✓ packages/pptx/src/command-theme-background.test.ts (13 tests) 426ms
+ ✓ packages/pptx/src/layouts.test.ts (4 tests) 330ms
+ ✓ packages/pptx/src/command-text-fit.test.ts (6 tests) 270ms
+ ✓ packages/pptx/src/equations.test.ts (26 tests) 313ms
+ ✓ packages/pptx/src/command-accessibility.test.ts (6 tests) 350ms
+ ✓ packages/pptx/src/command-connectors.test.ts (3 tests) 420ms
+ ✓ packages/pptx/src/chart-model-objects.test.ts (32 tests) 235ms
+ ✓ packages/pptx/src/shapes-regressions.test.ts (273 tests) 302ms
+ ✓ packages/pptx/src/shape-selection-sdk.test.ts (1 test) 530ms
+   ✓ uses only supplied file authority and returns reusable fresh duplicate locations  528ms
+ ✓ packages/pptx/src/package-reader.test.ts (36 tests) 244ms
+ ✓ packages/pptx/src/table-span-behavior-cases.test.ts (21 tests) 256ms
+ ✓ packages/pptx/src/diagram-inventory.test.ts (3 tests) 321ms
+ ✓ packages/pptx/src/command-objects-add.test.ts (10 tests) 467ms
+ ✓ packages/pptx/src/table-dimension-boundaries.test.ts (13 tests) 362ms
+ ✓ packages/pptx/src/text-frames-sdk.test.ts (2 tests) 376ms
+ ✓ packages/pptx/src/image-extraction.test.ts (36 tests) 416ms
+ ✓ packages/pptx/src/shape-part-contract.test.ts (1 test) 258ms
+ ✓ packages/pptx/src/table-workflows.test.ts (23 tests) 505ms
+ ✓ packages/pptx/src/command-images-add.test.ts (11 tests) 556ms
+ ✓ packages/pptx/src/image-mime-alias.test.ts (4 tests) 525ms
+ ✓ packages/pptx/src/validation.test.ts (45 tests) 189ms
+ ✓ packages/pptx/src/command-shape-groups.test.ts (5 tests) 364ms
+ ✓ packages/pptx/src/tables.test.ts (27 tests) 196ms
+ ✓ packages/pptx/src/connector-operations.test.ts (3 tests) 408ms
+   ✓ round trips SDK attachment, rebind, free endpoint and target deletion policy  351ms
+ ✓ packages/pptx/src/command-image-extraction.test.ts (8 tests) 303ms
+ ✓ packages/pptx/src/font-fill-namespace.test.ts (4 tests) 267ms
+ ✓ packages/pptx/src/command-animations.test.ts (4 tests) 220ms
+ ✓ packages/pptx/src/media.test.ts (24 tests) 179ms
+ ✓ packages/pptx/src/chart-preservation.test.ts (1 test) 150ms
+ ✓ packages/pptx/src/command-sanitization.test.ts (3 tests) 208ms
+ ✓ packages/pptx/src/capabilities-discovery.test.ts (12 tests) 135ms
+ ✓ packages/pptx/src/command-engine.test.ts (27 tests) 137ms
+ ✓ packages/pptx/src/opc-utility-variants.test.ts (25 tests) 152ms
+ ✓ packages/pptx/src/text-paragraphs-sdk.test.ts (2 tests) 153ms
+ ✓ packages/pptx/src/shape-group-degenerate-lines.test.ts (10 tests) 180ms
+ ✓ packages/pptx/src/modern-comments.test.ts (4 tests) 187ms
+ ✓ packages/pptx/src/text-runs-sdk.test.ts (2 tests) 196ms
+ ✓ packages/pptx/src/command-adjustments.test.ts (1 test) 157ms
+ ✓ packages/pptx/tests/fixtures/decks.test.ts (33 tests) 153ms
+ ✓ packages/pptx/src/chart-font-operations.test.ts (22 tests) 112ms
+ ✓ packages/pptx/src/command-image-formats.test.ts (1 test) 144ms
+ ✓ packages/pptx/src/slide-creation-workflows.test.ts (13 tests) 168ms
+ ✓ packages/pptx/src/table-behavior-cases.test.ts (94 tests) 134ms
+ ✓ packages/pptx/src/public-enum-values.test.ts (1288 tests) 107ms
+ ✓ packages/pptx/src/charts.test.ts (32 tests) 83ms
+ ✓ packages/pptx/src/creation-properties.test.ts (1 test) 80ms
+ ✓ packages/pptx/src/media-extraction.test.ts (16 tests) 76ms
+ ✓ packages/pptx/src/text-style-inventory.test.ts (1 test) 71ms
+ ✓ packages/pptx/src/slide-model.test.ts (8 tests) 61ms
+ ✓ packages/pptx/src/chart-editing.test.ts (43 tests) 64ms
+ ✓ packages/pptx/src/chart-data-model.test.ts (11 tests) 69ms
+ ✓ packages/pptx/src/relationships.test.ts (23 tests) 58ms
+ ✓ packages/pptx/src/table-public-surface.test.ts (7 tests) 61ms
+ ✓ packages/pptx/src/shapes.test.ts (42 tests) 40ms
+ ✓ packages/pptx/src/chart-workbook-preparation.test.ts (6 tests) 50ms
+ ✓ packages/pptx/src/chart-type-model.test.ts (81 tests) 64ms
+ ✓ packages/pptx/src/drawing-accounting.test.ts (95 tests) 50ms
+ ✓ packages/pptx/src/connectors.test.ts (26 tests) 54ms
+ ✓ packages/pptx/src/shape-selection.test.ts (39 tests) 56ms
+ ✓ packages/pptx/src/tables-model.test.ts (6 tests) 35ms
+ ✓ packages/pptx/tests/assertions.test.ts (25 tests) 40ms
+ ✓ packages/pptx/src/chart-object-operations.test.ts (3 tests) 35ms
+ ✓ packages/pptx/src/text-fitting.test.ts (11 tests) 39ms
+ ✓ packages/pptx/src/connector-behavior-cases.test.ts (59 tests) 48ms
+ ✓ packages/pptx/src/shape-paths.test.ts (29 tests) 39ms
+ ✓ packages/pptx/src/slide-owner-regressions.test.ts (5 tests) 49ms
+ ✓ packages/pptx/src/package-directory-collisions.test.ts (5 tests) 36ms
+ ✓ packages/pptx/src/chart-axis-crossing.test.ts (58 tests) 39ms
+ ✓ packages/pptx/src/chart-object-schema-boundary.test.ts (19 tests) 35ms
+ ✓ packages/pptx/src/shape-adjustments.test.ts (9 tests) 31ms
+ ✓ packages/pptx/src/text-frame-cases.test.ts (70 tests) 35ms
+ ✓ packages/pptx/src/content-types.test.ts (74 tests) 33ms
+ ✓ packages/pptx/src/paragraph-formatting-cases.test.ts (69 tests) 31ms
+ ✓ packages/pptx/src/text-runs.test.ts (81 tests) 32ms
+ ✓ packages/pptx/src/transform-behavior-cases.test.ts (69 tests) 28ms
+ ✓ packages/pptx/src/command-charts.test.ts (13 tests) 27ms
+ ✓ packages/pptx/src/paragraph-public-surface.test.ts (10 tests) 31ms
+ ✓ packages/pptx/src/text-fit-option-boundaries.test.ts (14 tests) 30ms
+ ✓ packages/pptx/src/connectors-model.test.ts (9 tests) 29ms
+ ✓ packages/pptx/src/public-collections.test.ts (2 tests) 28ms
+ ✓ packages/pptx/src/font-color-cases.test.ts (77 tests) 26ms
+ ✓ packages/pptx/src/compatibility.test.ts (43 tests) 24ms
+ ✓ packages/pptx/src/chart-inventory-values.test.ts (49 tests) 22ms
+ ✓ packages/pptx/src/text-style-resolution.test.ts (31 tests) 28ms
+ ✓ packages/pptx/src/drawing-format.test.ts (19 tests) 27ms
+ ✓ packages/pptx/src/chart-model-review.test.ts (10 tests) 24ms
+ ✓ packages/pptx/src/xml.test.ts (66 tests) 24ms
+ ✓ packages/pptx/src/collection-index-boundary.test.ts (8 tests) 25ms
+ ✓ packages/pptx/src/text-frame-public-surface.test.ts (5 tests) 21ms
+ ✓ packages/pptx/src/media-public-model.test.ts (6 tests) 22ms
+ ✓ packages/pptx/src/shape-transforms.test.ts (32 tests) 22ms
+ ✓ packages/pptx/src/text-paragraphs.test.ts (30 tests) 18ms
+ ✓ packages/pptx/src/xml-utility-reconciliation.test.ts (87 tests) 19ms
+ ✓ packages/pptx/src/text-frames.test.ts (17 tests) 19ms
+ ✓ packages/pptx/src/drawing-chart-reuse.test.ts (5 tests) 18ms
+ ✓ packages/pptx/src/diagram-api-contract.test.ts (9 tests) 15ms
+ ✓ packages/pptx/src/shape-public-surface.test.ts (4 tests) 16ms
+ ✓ packages/pptx/src/font-language-model.test.ts (15 tests) 19ms
+ ✓ packages/pptx/src/xml-scalars.test.ts (64 tests) 16ms
+ ✓ packages/pptx/src/package-properties-variants.test.ts (34 tests) 17ms
+ ✓ packages/pptx/src/international-text.test.ts (28 tests) 15ms
+ ✓ packages/pptx/src/bytes.test.ts (26 tests) 13ms
+ ✓ packages/pptx/src/group-model.test.ts (3 tests) 16ms
+ ✓ packages/pptx/src/connector-public-surface.test.ts (6 tests) 14ms
+ ✓ packages/pptx/src/public-value-helpers.test.ts (60 tests) 16ms
+ ✓ packages/pptx/src/image-value.test.ts (14 tests) 12ms
+ ✓ packages/pptx/src/xml-view.test.ts (8 tests) 13ms
+ ✓ packages/pptx/src/text-fit-public-arguments.test.ts (10 tests) 15ms
+ ✓ packages/pptx/src/shape-id.test.ts (23 tests) 13ms
+ ✓ packages/pptx/src/fields.test.ts (16 tests) 13ms
+ ✓ packages/pptx/src/settings-scaling.test.ts (13 tests) 11ms
+ ✓ packages/pptx/src/links-model.test.ts (44 tests) 11ms
+ ✓ packages/pptx/src/freeform-builder.test.ts (7 tests) 8ms
+ ✓ packages/pptx/src/live-collection-indexing.test.ts (2 tests) 8ms
+ ✓ packages/pptx/src/shadow-attribute-preservation.test.ts (4 tests) 10ms
+ ✓ packages/pptx/src/drawing-model-preservation.test.ts (3 tests) 10ms
+ ✓ packages/pptx/src/font-metrics.test.ts (30 tests) 9ms
+ ✓ packages/pptx/src/chart-model.test.ts (4 tests) 10ms
+ ✓ packages/pptx/src/chart-workbook-values.test.ts (44 tests) 8ms
+ ✓ packages/pptx/src/selector-schema.test.ts (25 tests) 8ms
+ ✓ packages/pptx/src/image-metadata.test.ts (37 tests) 9ms
+ ✓ packages/pptx/src/image-admission.test.ts (38 tests) 10ms
+ ✓ packages/pptx/src/metadata-result-schema.test.ts (6 tests) 8ms
+ ✓ packages/pptx/src/shape-path-security.test.ts (5 tests) 7ms
+ ✓ packages/pptx/src/public-enums.test.ts (31 tests) 8ms
+ ✓ packages/pptx/src/chart-variant-values.test.ts (25 tests) 8ms
+(node:5235) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/pptx/src/zip-reader.test.ts (3 tests) 6ms
+ ✓ packages/pptx/src/public-text-exports.test.ts (3 tests) 6ms
+ ✓ packages/pptx/src/animation-preflight.test.ts (14 tests) 7ms
+ ✓ packages/pptx/src/paragraph-alignment.test.ts (26 tests) 7ms
+ ✓ packages/pptx/src/chart-builder-insertion.test.ts (1 test) 6ms
+ ✓ packages/pptx/src/path-behavior-cases.test.ts (6 tests) 6ms
+ ✓ packages/pptx/src/drawing-enums.test.ts (73 tests) 7ms
+ ✓ packages/pptx/src/chart-point-number-format.test.ts (1 test) 5ms
+ ✓ packages/pptx/src/public-input-errors.test.ts (3 tests) 7ms
+ ✓ packages/pptx/src/package-uri.test.ts (41 tests) 7ms
+ ✓ packages/pptx/src/chart-data-indexing.test.ts (2 tests) 6ms
+ ✓ packages/pptx/src/length.test.ts (27 tests) 5ms
+ ✓ packages/pptx/src/text-frame-enums.test.ts (9 tests) 5ms
+ ✓ packages/pptx/src/xml-subtree.test.ts (1 test) 4ms
+ ✓ packages/pptx/src/chart-public-exports.test.ts (1 test) 3ms
+ ✓ packages/pptx/src/template-stored-data.test.ts (7 tests) 3ms
+ ✓ packages/pptx/src/chart-object-input-boundary.test.ts (3 tests) 2ms
+ ✓ packages/pptx/src/public-drawing-exports.test.ts (15 tests) 3ms
+ ✓ packages/pptx/src/picture-input.test.ts (8 tests) 4ms
+ ✓ packages/pptx/src/model-errors.test.ts (5 tests) 3ms
+ ✓ packages/pptx/src/contracts.test.ts (1 test) 2ms
+ ✓ packages/pptx/src/public-value-exports.test.ts (1 test) 2ms
+
+ Test Files  269 passed (269)
+      Tests  6874 passed (6874)
+   Start at  18:47:31
+   Duration  77.01s (transform 2.60s, setup 2.64s, import 33.52s, tests 97.82s, environment 14ms)
+

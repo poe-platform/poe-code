@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
 
 test("read count uses Unicode characters across input chunks", async () => {
@@ -58,10 +59,21 @@ test("explicit C locale counts bytes while UTF-8 counts characters", async () =>
   }
 });
 
-test("C byte counts explicitly reject an incomplete UTF-8 text value", async () => {
+test("C byte counts preserve an incomplete UTF-8 byte with a lossy args display", async () => {
   const result = await setup().shell.exec('IFS= read -rn1 value; args "$value" "$?"; pass', { env: { LC_ALL: "C" }, stdin: "éZ" });
-  assert.match(result.stderr, /unsupported non-UTF-8 text boundary/u);
-  assert.deepEqual(result.stdoutBytes, new Uint8Array([...new TextEncoder().encode('["","1"]'), 0xa9, 90]));
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+  assert.deepEqual(result.stdoutBytes, new Uint8Array([...new TextEncoder().encode('["�","0"]'), 0xa9, 90]));
+});
+
+test("GNU Bash 5.2.37 C read retains raw c3 independently of its display and unread a95a", async context => {
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  for (const command of basicCommands()) shell.register(command);
+  const result = await shell.exec('IFS= read -rn1 value; printf "%s\\0%s\\0" "$value" "$?"; pass', { env: { LC_ALL: "C" }, stdin: "éZ" });
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(0xc3, 0, 0x30, 0, 0xa9, 0x5a));
 });
 
 for (const [options, input, values, tail] of [

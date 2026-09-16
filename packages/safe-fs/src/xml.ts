@@ -14,6 +14,8 @@ export interface XmlElement extends XmlName {
   readonly namespaces: ReadonlyMap<string, string>;
   text: string;
   readonly declaration?: string;
+  readonly prolog?: readonly XmlContent[];
+  readonly epilog?: readonly XmlContent[];
 }
 export interface XmlLimits {
   readonly expectedEncoding?: "UTF-8" | "UTF-16" | "UTF-16LE" | "UTF-16BE";
@@ -24,6 +26,7 @@ export interface XmlLimits {
   readonly maxAttributesPerElement?: number;
   readonly maxNamespaces?: number;
   readonly maxContentNodes?: number;
+  readonly maxTextLength?: number;
   readonly onElement?: (element: XmlName, parent: XmlName | undefined, depth: number) => void;
 }
 export class XmlLimitError extends SyntaxError {
@@ -143,7 +146,7 @@ function* validDeclaration(content: string, expectedEncoding: XmlLimits["expecte
     return offset - start;
   };
   const field = function* (name: string): Generator<number, string | undefined, void> {
-    if (content.slice(offset, offset + name.length).toLowerCase() !== name) return undefined;
+    if (content.slice(offset, offset + name.length) !== name) return undefined;
     offset += name.length;
     yield name.length;
     yield* whitespace();
@@ -162,17 +165,18 @@ function* validDeclaration(content: string, expectedEncoding: XmlLimits["expecte
   };
   if (!(yield* whitespace()) || (yield* field("version")) !== "1.0") return false;
   let spacing = yield* whitespace();
-  if (content.slice(offset, offset + 8).toLowerCase() === "encoding") {
+  if (content.slice(offset, offset + 8) === "encoding") {
     if (!spacing) return false;
     const encoding = yield* field("encoding");
     if (encoding === undefined || encoding.length > 8 || !["utf-8", "utf-16", "utf-16le", "utf-16be"].includes(encoding.toLowerCase())) return false;
-    if (expectedEncoding !== undefined && encoding.toLowerCase() !== expectedEncoding.toLowerCase()) return false;
+    if (expectedEncoding !== undefined && encoding.toLowerCase() !== expectedEncoding.toLowerCase()
+      && !(encoding.toLowerCase() === "utf-16" && (expectedEncoding === "UTF-16LE" || expectedEncoding === "UTF-16BE"))) return false;
     spacing = yield* whitespace();
   }
-  if (content.slice(offset, offset + 10).toLowerCase() === "standalone") {
+  if (content.slice(offset, offset + 10) === "standalone") {
     if (!spacing) return false;
     const standalone = yield* field("standalone");
-    if (standalone === undefined || standalone.length > 3 || !["yes", "no"].includes(standalone.toLowerCase())) return false;
+    if (standalone === undefined || standalone.length > 3 || !["yes", "no"].includes(standalone)) return false;
     yield* whitespace();
   }
   return offset === content.length;
@@ -192,6 +196,13 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
   for (const limit of [maxDepth, maxNodes, maxAttributes, maxContentNodes, maxAttributesPerElement, maxNamespaces]) {
     if (!Number.isSafeInteger(limit) || limit < 1) throw new RangeError("XML limits must be positive integers");
   }
+  const maxTextLength = limits.maxTextLength ?? Number.MAX_SAFE_INTEGER;
+  if (!Number.isSafeInteger(maxTextLength) || maxTextLength < 1) throw new RangeError("XML limits must be positive integers");
+  let textLength = 0;
+  const admitText = (text: string): void => {
+    if (text.length > maxTextLength - textLength) throw new XmlLimitError("maxTextLength", "XML text limit exceeded");
+    textLength += text.length;
+  };
   const chunks: string[] = [];
   let chunk = "";
   for (let index = input.charCodeAt(0) === 0xfeff ? 1 : 0; index < input.length; index++) {
@@ -211,6 +222,8 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
   const source = chunks.join("");
   const stack: { element: XmlElement; content: XmlContent[] | undefined; name: string; namespaces: Map<string, string> }[] = [];
   let root: XmlElement | undefined;
+  const prolog: XmlContent[] = [];
+  const epilog: XmlContent[] = [];
   let declaration: string | undefined;
   let offset = 0;
   let nodes = 0;
@@ -239,6 +252,7 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
     return name;
   };
   const appendText = function* (text: string, kind: "text" | "cdata" = "text"): Generator<number, void, void> {
+    admitText(text);
     const parent = stack.at(-1);
     if (parent) {
       parent.element.text += text;
@@ -253,6 +267,7 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
         if ((index + 1) % 512 === 0) yield 512;
       }
       if (text.length % 512) yield text.length % 512;
+      if (retainContent && text.length) { admitContent(); (root ? epilog : prolog).push({ kind, text }); }
     }
   };
   while (offset < source.length) {
@@ -261,7 +276,7 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
       const next = yield* find(source, "<", offset);
       const text = source.slice(offset, next < 0 ? source.length : next);
       if ((yield* find(text, "]]>", 0)) >= 0) invalid("CDATA terminator in text");
-      yield* appendText(yield* entities(text));
+      yield* appendText(stack.length ? yield* entities(text) : text);
       offset += text.length;
     } else if (source.startsWith("<!--", offset)) {
       const end = yield* find(source, "-->", offset + 4);
@@ -269,7 +284,9 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
         invalid("malformed comment");
       }
       const parent = stack.at(-1);
-      if (retainContent && parent) { admitContent(); parent.content!.push({ kind: "comment", text: source.slice(offset + 4, end) }); }
+      const text = source.slice(offset + 4, end);
+      admitText(text);
+      if (retainContent) { admitContent(); (parent?.content ?? (root ? epilog : prolog)).push({ kind: "comment", text }); }
       offset = end + 3;
     } else if (source.startsWith("<![CDATA[", offset)) {
       if (!stack.length) invalid("CDATA outside root");
@@ -293,15 +310,17 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
       } else if (content && !" \t\n\r".includes(content[0]!)) invalid("invalid processing instruction");
       if (!(target.length === 3 && target.toLowerCase() === "xml")) {
         const parent = stack.at(-1);
-        if (retainContent && parent) {
-          let start = 0;
-          while (start < content.length && " \t\n\r".includes(content[start]!)) {
-            start++;
-            if (start % 512 === 0) yield 512;
-          }
-          if (start % 512) yield start % 512;
+        let start = 0;
+        while (start < content.length && " \t\n\r".includes(content[start]!)) {
+          start++;
+          if (start % 512 === 0) yield 512;
+        }
+        if (start % 512) yield start % 512;
+        const text = content.slice(start);
+        admitText(text);
+        if (retainContent) {
           admitContent();
-          parent.content!.push({ kind: "processing-instruction", target, text: content.slice(start) });
+          (parent?.content ?? (root ? epilog : prolog)).push({ kind: "processing-instruction", target, text });
         }
       }
       offset = end + 2;
@@ -344,6 +363,7 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
         }
         if (raw.length % 512) yield raw.length % 512;
         const value = yield* entities(normalized);
+        admitText(value);
         attributes.set(attribute, value);
         offset = end + 1;
         if (attribute === "xmlns" || attribute.startsWith("xmlns:")) {
@@ -386,7 +406,7 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
         yield 1;
       }
       const content: XmlContent[] | undefined = retainContent ? [] : undefined;
-      const element: XmlElement = { kind: "element", name, namespace, localName, children: [], text: "", content: content ?? emptyContent, attributes: retainContent ? retainedAttributes : emptyAttributes, namespaces: retainContent ? namespaces : emptyNamespaces, ...(root === undefined && declaration !== undefined ? { declaration } : {}) };
+      const element: XmlElement = { kind: "element", name, namespace, localName, children: [], text: "", content: content ?? emptyContent, attributes: retainContent ? retainedAttributes : emptyAttributes, namespaces: retainContent ? namespaces : emptyNamespaces, ...(root === undefined && retainContent ? { prolog, epilog, ...(declaration === undefined ? {} : { declaration }) } : {}) };
       const parent = stack.at(-1);
       if (parent) { parent.element.children.push(element); parent.content?.push(element); }
       else if (root) invalid("multiple root elements");

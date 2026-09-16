@@ -1,0 +1,58 @@
+{
+  "date": "2026-09-04",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "node": "v22.23.2",
+  "profile": "Ad-hoc explicit source consumer; no block-size callback, package build, default tool registration, or full truncate parity claim. Temporary native fixtures removed after each attempt.",
+  "oracle": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/truncate",
+  "oracleSha256": "e72b70379db18bf088208ebf5db983b6c555684218a0ed4d6e5a26c42fb058f7",
+  "version": "truncate (GNU coreutils) 9.7",
+  "locale": "C",
+  "priorAttempt": "The first attempt stopped after the absolute case because deepStrictEqual compared Uint8Array against Buffer. The corrected byte comparison normalizes both to Buffer; no product change was needed.",
+  "sources": {
+    "packages/safe-fs/src/contracts/filesystem.ts": "83dbeee40da2208d1ff3817f78e227903cc201886d1e7baa77424f42f11ccaf8",
+    "packages/safe-fs/src/fs/memory/index.ts": "1892fda913fd8d6755a0274042ff46ac4558241e60628b13181ca26af0759e8d",
+    "packages/safe-fs/src/fs/real/index.ts": "d8f96cbf2ad1d0526d87cec473a8df0032c149c3378b1c30e2a683da92e2b95b",
+    "packages/safe-fs/src/fs/mount/index.ts": "e21d18626e63be0269fa246084f5c295e4a41c3bbb13801c87d0de98ca9daed7",
+    "packages/safe-fs/src/fs/readonly/index.ts": "863dc9aa664d7cebb35d64cd194a72a0e5be1280d36594d1c7b27e61608d8514",
+    "packages/safe-fs/src/fs/overlay/index.ts": "c5e4aaba391fef95caf7e7c812b8f206ca09bb79bd536c083950da0418c0aa15",
+    "packages/safe-fs/src/bridge/stats.ts": "9c0c3c749e257ac6bf0d91cb89cb540a4b1b3d9a67193ae9bb9a82a276de7ca7",
+    "packages/safe-bash/src/commands/truncate/index.ts": "de84ba14932efda6154d710076c643fc2236081be2e7b4f4f538de6256e042ab",
+    "packages/safe-bash/src/commands/truncate/arguments.ts": "eb1ad00da4c92dba0da616b42d1a9d66031bad2008a10ffee7c1fa601f955e79"
+  },
+  "fixture": {
+    "targetInitialBytes": [1, 2, 3],
+    "referenceSizeBytes": 7,
+    "memoryIoBlockSize": 65536,
+    "realAndNativeIoBlockSize": 4096
+  },
+  "results": [
+    {
+      "case": "absolute",
+      "arguments": ["-o", "-s", "2", "/file"],
+      "memorySize": 131072,
+      "realSize": 8192,
+      "nativeSize": 8192,
+      "allExitCodes": 0,
+      "realBytesMatchOracle": true
+    },
+    {
+      "case": "relative",
+      "arguments": ["-o", "-s", "+2", "/file"],
+      "memorySize": 131075,
+      "realSize": 8195,
+      "nativeSize": 8195,
+      "allExitCodes": 0,
+      "realBytesMatchOracle": true
+    },
+    {
+      "case": "reference",
+      "arguments": ["-o", "-r", "/reference", "-s", "+2", "/file"],
+      "memorySize": 131079,
+      "realSize": 8199,
+      "nativeSize": 8199,
+      "allExitCodes": 0,
+      "realBytesMatchOracle": true
+    }
+  ]
+}

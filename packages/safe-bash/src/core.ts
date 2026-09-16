@@ -17,6 +17,7 @@ export { portableSearchCommands, type PortableSearchOptions } from "./commands/s
 export * from "./commands/bytes/index.js";
 export * from "./commands/diff-patch/index.js";
 export * from "./commands/safejs/index.js";
+export * from "./commands/python/index.js";
 export * from "./commands/node/browser.js";
 export * from "./commands/network/public.js";
 export * from "./commands/llm/index.js";

@@ -9,6 +9,7 @@ import { dirname, isPathWithin, normalizePath, validatePath } from "../../contra
 import { compareIdentity } from "../mount/identity.js";
 import { compareEntries, registerEntryView } from "../mount/comparison.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
+import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import type {
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, OpenReadFileOptions,
   FileStat, FileSystem, FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions,
@@ -54,16 +55,19 @@ interface LinkOrigin {
 type LinkMetadata = Pick<FileStat, "mode" | "atimeMs" | "mtimeMs">;
 
 function snapshotStat(stat: FileStat): FileStat {
-  const { type, size, allocatedBytes, preferredIoBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, revision, identityScope, ino, dev, nlink, uid, gid } = stat;
+  const { type, size, allocatedBytes, ioBlockSize, preferredIoBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, revision, identityScope, ino, dev, rdevMajor, rdevMinor, nlink, uid, gid } = stat;
   return {
     type, size, mode, mtimeMs, atimeMs, ctimeMs,
     ...(allocatedBytes === undefined ? {} : { allocatedBytes }),
+    ...(ioBlockSize === undefined ? {} : { ioBlockSize }),
     ...(preferredIoBlockSize === undefined ? {} : { preferredIoBlockSize }),
     ...(birthtimeMs === undefined ? {} : { birthtimeMs }),
     ...(revision === undefined ? {} : { revision }),
     ...(identityScope === undefined ? {} : { identityScope }),
     ...(ino === undefined ? {} : { ino }),
     ...(dev === undefined ? {} : { dev }),
+    ...(rdevMajor === undefined ? {} : { rdevMajor }),
+    ...(rdevMinor === undefined ? {} : { rdevMinor }),
     ...(nlink === undefined ? {} : { nlink }),
     ...(uid === undefined ? {} : { uid }),
     ...(gid === undefined ? {} : { gid }),
@@ -165,6 +169,7 @@ export class OverlayFileSystem implements FileSystem {
     ].filter(([, value]) => value !== undefined));
     this.capabilities = Object.freeze({
       ...semantics,
+      open: false,
       atomicFileMutation: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
       implicitDirectories: false,
       readlink: upper.readlink === true && this.#lower.capabilities.readlink === true ? true
@@ -185,6 +190,11 @@ export class OverlayFileSystem implements FileSystem {
       ...(effectiveStreamingWrite === undefined ? {} : { streamingWrite: effectiveStreamingWrite }),
     });
     Object.defineProperty(this, "capabilities", { writable: false, configurable: false });
+  }
+
+  async open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
+    options.signal?.throwIfAborted();
+    throw new FsError("ENOTSUP", { syscall: "open", path });
   }
 
   private async run<Result>(options: FsOptions, operation: () => Promise<Result>, cleanup = true): Promise<Result> {

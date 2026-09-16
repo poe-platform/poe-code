@@ -10,6 +10,7 @@ export interface LiteralIndex {
 
 export type ArraySelector =
   | { readonly kind: "element"; readonly index: LiteralIndex }
+  | { readonly kind: "keys"; readonly separator: "@" | "*" }
   | { readonly kind: "members"; readonly separator: "@" | "*" };
 
 export interface ArrayEntry {
@@ -46,11 +47,11 @@ export function literalIndex(source: string, offset: number, budget = new ParseB
   return { decimal };
 }
 
-export function numericIndex(index: LiteralIndex): number | undefined {
+export function numericIndex(index: LiteralIndex, maximum: 2147483647 | 4294967295 = 2147483647): number | undefined {
   if (index.source !== undefined) {
-    try { return numericIndex(literalIndex(index.source, 0)); } catch { return undefined; }
+    try { return numericIndex(literalIndex(index.source, 0), maximum); } catch { return undefined; }
   }
-  if (index.decimal.length > 10 || index.decimal.length === 10 && index.decimal > "2147483647") return undefined;
+  if (index.decimal.length > 10 || index.decimal.length === 10 && index.decimal > String(maximum)) return undefined;
   return Number(index.decimal);
 }
 

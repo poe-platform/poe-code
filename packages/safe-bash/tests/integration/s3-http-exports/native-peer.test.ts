@@ -47,7 +47,7 @@ function fixture(native = true, empty = false) {
       poeCode: { integration: { peerProfile: "checkout-root" } },
     }),
     "/checkout/package-lock.json": JSON.stringify({ packages: {
-      "packages/safe-bash": { devDependencies: { "poe-code": "file:../.." } },
+      "packages/safe-bash": { peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." } },
       "node_modules/poe-code": { resolved: "", link: true },
     } }),
     "/consumer/node_modules/virtual-bash/package.json": '{"type":"module"}',

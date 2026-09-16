@@ -1,0 +1,943 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "50 relevant public records retained; implemented action/hyperlink owner views and enum exports, with existing full-shape-graph wiring gaps explicit.",
+  "objects": [
+    {
+      "sourceId": "pptx.action.ActionSetting",
+      "sourceKind": "type",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "implemented-owner-model",
+      "targetMember": "ActionSetting",
+      "mappingRules": ["J01"],
+      "mapping": "Retain neutral member spelling and direct property/live owner semantics in the model. Detached link operations do not implement this member.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.action.ActionSetting.__init__",
+      "sourceKind": "constructor",
+      "declaredOn": null,
+      "sourceSignature": "(self, xPr: CT_NonVisualDrawingProps | CT_TextCharacterProperties, parent: BaseShape, hover: bool=False)",
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "security-mapped-owner-construction",
+      "targetMember": "constructor",
+      "mappingRules": ["J01"],
+      "mapping": "Returned owner-checked model view; no raw XML constructor or unrestricted package handle. This is security-mapped construction, not exclusion of the public returned type.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "constructor(owner: LinkModelOwner<Slide>); package-bound acquisition through LinkShape/LinkRun",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.action.ActionSetting.action",
+      "sourceKind": "property",
+      "declaredOn": "pptx.action.ActionSetting",
+      "sourceSignature": "(self)",
+      "readSignature": "(self)",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "implemented-owner-model",
+      "targetMember": "action",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "Retain neutral member spelling and direct property/live owner semantics in the model. Detached link operations do not implement this member.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "get action(): ActionValue",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.action.ActionSetting.hyperlink",
+      "sourceKind": "lazyproperty",
+      "declaredOn": "pptx.action.ActionSetting",
+      "sourceSignature": "(self) -> Hyperlink",
+      "readSignature": "(self) -> Hyperlink",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "implemented-owner-model",
+      "targetMember": "hyperlink",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "Retain neutral member spelling and direct property/live owner semantics in the model. Detached link operations do not implement this member.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "get hyperlink(): Hyperlink<Slide>",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.action.ActionSetting.part",
+      "sourceKind": "property",
+      "declaredOn": "pptx.shapes.Subshape",
+      "sourceSignature": "(self) -> XmlPart",
+      "readSignature": "(self) -> XmlPart",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "implemented-owner-model",
+      "targetMember": "part",
+      "mappingRules": ["J01", "J02", "J09"],
+      "mapping": "Direct getter returns current bounded validated XmlPart from the owner session. No ambient I/O or raw host path.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "get part(): XmlPart",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.action.ActionSetting.target_slide",
+      "sourceKind": "property",
+      "declaredOn": "pptx.action.ActionSetting",
+      "sourceSignature": "(self) -> Slide | None",
+      "readSignature": "(self) -> Slide | None",
+      "writeSignature": "(self, slide: Slide | None)",
+      "enumValue": null,
+      "status": "implemented-owner-model",
+      "targetMember": "target_slide",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "Direct Slide | null property backed by same-session identity membership; async admission/save, synchronous mutation. First/last/next/previous resolve live slide membership, missing bounds raise invalid-value, foreign identities reject.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "get target_slide(): Slide | null; set target_slide(value: Slide | null)",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.action.Hyperlink",
+      "sourceKind": "type",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "implemented-owner-model",
+      "targetMember": "Hyperlink",
+      "mappingRules": ["J01"],
+      "mapping": "Retain neutral member spelling and direct property/live owner semantics in the model. Detached link operations do not implement this member.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.action.Hyperlink.__init__",
+      "sourceKind": "constructor",
+      "declaredOn": null,
+      "sourceSignature": "(self, xPr: CT_NonVisualDrawingProps | CT_TextCharacterProperties, parent: BaseShape, hover: bool=False)",
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "security-mapped-owner-construction",
+      "targetMember": "constructor",
+      "mappingRules": ["J01"],
+      "mapping": "Returned owner-checked model view; no raw XML constructor or unrestricted package handle. This is security-mapped construction, not exclusion of the public returned type.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "constructor(owner: LinkModelOwner<Slide>); package-bound acquisition through LinkShape/LinkRun",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.action.Hyperlink.address",
+      "sourceKind": "property",
+      "declaredOn": "pptx.action.Hyperlink",
+      "sourceSignature": "(self) -> str | None",
+      "readSignature": "(self) -> str | None",
+      "writeSignature": "(self, url: str | None)",
+      "enumValue": null,
+      "status": "implemented-owner-model",
+      "targetMember": "address",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "Direct string | null property; empty/null clears ordinary links synchronously. Relative URLs stay literal, unsupported actions reject implicit replacement/removal, unsafe URLs reject invalid-value. _Hyperlink remains supported alias. Named-slide links expose literal targetReference through address; operation url remains null for internal navigation.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "get address(): string | null; set address(value: string | null)",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.action.Hyperlink.part",
+      "sourceKind": "property",
+      "declaredOn": "pptx.shapes.Subshape",
+      "sourceSignature": "(self) -> XmlPart",
+      "readSignature": "(self) -> XmlPart",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "implemented-owner-model",
+      "targetMember": "part",
+      "mappingRules": ["J01", "J02", "J09"],
+      "mapping": "Direct getter returns current bounded validated XmlPart from the owner session. No ambient I/O or raw host path.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "get part(): XmlPart",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION",
+      "sourceKind": "enum-alias",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "implemented-owner-model",
+      "targetMember": "PP_ACTION",
+      "mappingRules": ["J01", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION_TYPE",
+      "sourceKind": "EnumType",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "implemented-owner-model",
+      "targetMember": "PP_ACTION_TYPE",
+      "mappingRules": ["J01", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION_TYPE.END_SHOW",
+      "sourceKind": "enum-member",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": 6,
+      "status": "implemented-owner-model",
+      "targetMember": "END_SHOW",
+      "mappingRules": ["J01", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION_TYPE.FIRST_SLIDE",
+      "sourceKind": "enum-member",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": 3,
+      "status": "implemented-owner-model",
+      "targetMember": "FIRST_SLIDE",
+      "mappingRules": ["J01", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION_TYPE.HYPERLINK",
+      "sourceKind": "enum-member",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": 7,
+      "status": "implemented-owner-model",
+      "targetMember": "HYPERLINK",
+      "mappingRules": ["J01", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION_TYPE.LAST_SLIDE",
+      "sourceKind": "enum-member",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": 4,
+      "status": "implemented-owner-model",
+      "targetMember": "LAST_SLIDE",
+      "mappingRules": ["J01", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION_TYPE.LAST_SLIDE_VIEWED",
+      "sourceKind": "enum-member",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": 5,
+      "status": "implemented-owner-model",
+      "targetMember": "LAST_SLIDE_VIEWED",
+      "mappingRules": ["J01", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION_TYPE.NAMED_SLIDE",
+      "sourceKind": "enum-member",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": 101,
+      "status": "implemented-owner-model",
+      "targetMember": "NAMED_SLIDE",
+      "mappingRules": ["J01", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION_TYPE.NAMED_SLIDE_SHOW",
+      "sourceKind": "enum-member",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": 10,
+      "status": "implemented-owner-model",
+      "targetMember": "NAMED_SLIDE_SHOW",
+      "mappingRules": ["J01", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION_TYPE.NEXT_SLIDE",
+      "sourceKind": "enum-member",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": 1,
+      "status": "implemented-owner-model",
+      "targetMember": "NEXT_SLIDE",
+      "mappingRules": ["J01", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION_TYPE.NONE",
+      "sourceKind": "enum-member",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": 0,
+      "status": "implemented-owner-model",
+      "targetMember": "NONE",
+      "mappingRules": ["J01", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION_TYPE.OLE_VERB",
+      "sourceKind": "enum-member",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": 11,
+      "status": "implemented-owner-model",
+      "targetMember": "OLE_VERB",
+      "mappingRules": ["J01", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION_TYPE.OPEN_FILE",
+      "sourceKind": "enum-member",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": 102,
+      "status": "implemented-owner-model",
+      "targetMember": "OPEN_FILE",
+      "mappingRules": ["J01", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION_TYPE.PLAY",
+      "sourceKind": "enum-member",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": 12,
+      "status": "implemented-owner-model",
+      "targetMember": "PLAY",
+      "mappingRules": ["J01", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION_TYPE.PREVIOUS_SLIDE",
+      "sourceKind": "enum-member",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": 2,
+      "status": "implemented-owner-model",
+      "targetMember": "PREVIOUS_SLIDE",
+      "mappingRules": ["J01", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION_TYPE.RUN_MACRO",
+      "sourceKind": "enum-member",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": 8,
+      "status": "implemented-owner-model",
+      "targetMember": "RUN_MACRO",
+      "mappingRules": ["J01", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION_TYPE.RUN_PROGRAM",
+      "sourceKind": "enum-member",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": 9,
+      "status": "implemented-owner-model",
+      "targetMember": "RUN_PROGRAM",
+      "mappingRules": ["J01", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION_TYPE.name",
+      "sourceKind": "property",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": "() -> str",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "implemented-owner-model",
+      "targetMember": "name",
+      "mappingRules": ["J01", "J02", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.enum.action.PP_ACTION_TYPE.value",
+      "sourceKind": "property",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": "() -> int | str",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "implemented-owner-model",
+      "targetMember": "value",
+      "mappingRules": ["J01", "J02", "J04"],
+      "mapping": "PP_ACTION_TYPE and PP_ACTION alias same frozen symbol map; all 15 names retain numeric values with immutable name/value metadata. Original complete action matrix asserts identity.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.shapes.autoshape.Shape.click_action",
+      "sourceKind": "lazyproperty",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> ActionSetting",
+      "readSignature": "(self) -> ActionSetting",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "bounded-owner-view-existing-class-integration-gap",
+      "targetMember": "click_action",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "LinkShape.click_action and LinkRun.hyperlink provide real session-backed behavior with retained member spellings. Shape/picture/connector/graphic-frame and table-run cases pass; group access raises. Existing isolated model classes are not all wired to this session yet.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "LinkShape.click_action: ActionSetting<{ readonly part: string }>",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.shapes.base.BaseShape.click_action",
+      "sourceKind": "lazyproperty",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> ActionSetting",
+      "readSignature": "(self) -> ActionSetting",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "bounded-owner-view-existing-class-integration-gap",
+      "targetMember": "click_action",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "LinkShape.click_action and LinkRun.hyperlink provide real session-backed behavior with retained member spellings. Shape/picture/connector/graphic-frame and table-run cases pass; group access raises. Existing isolated model classes are not all wired to this session yet.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "LinkShape.click_action: ActionSetting<{ readonly part: string }>",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.click_action",
+      "sourceKind": "lazyproperty",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> ActionSetting",
+      "readSignature": "(self) -> ActionSetting",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "bounded-owner-view-existing-class-integration-gap",
+      "targetMember": "click_action",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "LinkShape.click_action and LinkRun.hyperlink provide real session-backed behavior with retained member spellings. Shape/picture/connector/graphic-frame and table-run cases pass; group access raises. Existing isolated model classes are not all wired to this session yet.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "LinkShape.click_action: ActionSetting<{ readonly part: string }>",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.click_action",
+      "sourceKind": "lazyproperty",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> ActionSetting",
+      "readSignature": "(self) -> ActionSetting",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "bounded-owner-view-existing-class-integration-gap",
+      "targetMember": "click_action",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "LinkShape.click_action and LinkRun.hyperlink provide real session-backed behavior with retained member spellings. Shape/picture/connector/graphic-frame and table-run cases pass; group access raises. Existing isolated model classes are not all wired to this session yet.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "LinkShape.click_action: ActionSetting<{ readonly part: string }>",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.click_action",
+      "sourceKind": "lazyproperty",
+      "declaredOn": "pptx.shapes.group.GroupShape",
+      "sourceSignature": "(self) -> ActionSetting",
+      "readSignature": "(self) -> ActionSetting",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "bounded-owner-view-existing-class-integration-gap",
+      "targetMember": "click_action",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "LinkShape.click_action and LinkRun.hyperlink provide real session-backed behavior with retained member spellings. Shape/picture/connector/graphic-frame and table-run cases pass; group access raises. Existing isolated model classes are not all wired to this session yet.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "LinkShape.click_action: ActionSetting<{ readonly part: string }>",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.click_action",
+      "sourceKind": "lazyproperty",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> ActionSetting",
+      "readSignature": "(self) -> ActionSetting",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "bounded-owner-view-existing-class-integration-gap",
+      "targetMember": "click_action",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "LinkShape.click_action and LinkRun.hyperlink provide real session-backed behavior with retained member spellings. Shape/picture/connector/graphic-frame and table-run cases pass; group access raises. Existing isolated model classes are not all wired to this session yet.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "LinkShape.click_action: ActionSetting<{ readonly part: string }>",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Picture.click_action",
+      "sourceKind": "lazyproperty",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> ActionSetting",
+      "readSignature": "(self) -> ActionSetting",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "bounded-owner-view-existing-class-integration-gap",
+      "targetMember": "click_action",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "LinkShape.click_action and LinkRun.hyperlink provide real session-backed behavior with retained member spellings. Shape/picture/connector/graphic-frame and table-run cases pass; group access raises. Existing isolated model classes are not all wired to this session yet.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "LinkShape.click_action: ActionSetting<{ readonly part: string }>",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.click_action",
+      "sourceKind": "lazyproperty",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> ActionSetting",
+      "readSignature": "(self) -> ActionSetting",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "bounded-owner-view-existing-class-integration-gap",
+      "targetMember": "click_action",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "LinkShape.click_action and LinkRun.hyperlink provide real session-backed behavior with retained member spellings. Shape/picture/connector/graphic-frame and table-run cases pass; group access raises. Existing isolated model classes are not all wired to this session yet.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "LinkShape.click_action: ActionSetting<{ readonly part: string }>",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.click_action",
+      "sourceKind": "lazyproperty",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> ActionSetting",
+      "readSignature": "(self) -> ActionSetting",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "bounded-owner-view-existing-class-integration-gap",
+      "targetMember": "click_action",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "LinkShape.click_action and LinkRun.hyperlink provide real session-backed behavior with retained member spellings. Shape/picture/connector/graphic-frame and table-run cases pass; group access raises. Existing isolated model classes are not all wired to this session yet.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "LinkShape.click_action: ActionSetting<{ readonly part: string }>",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.click_action",
+      "sourceKind": "lazyproperty",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> ActionSetting",
+      "readSignature": "(self) -> ActionSetting",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "bounded-owner-view-existing-class-integration-gap",
+      "targetMember": "click_action",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "LinkShape.click_action and LinkRun.hyperlink provide real session-backed behavior with retained member spellings. Shape/picture/connector/graphic-frame and table-run cases pass; group access raises. Existing isolated model classes are not all wired to this session yet.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "LinkShape.click_action: ActionSetting<{ readonly part: string }>",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.click_action",
+      "sourceKind": "lazyproperty",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> ActionSetting",
+      "readSignature": "(self) -> ActionSetting",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "bounded-owner-view-existing-class-integration-gap",
+      "targetMember": "click_action",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "LinkShape.click_action and LinkRun.hyperlink provide real session-backed behavior with retained member spellings. Shape/picture/connector/graphic-frame and table-run cases pass; group access raises. Existing isolated model classes are not all wired to this session yet.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "LinkShape.click_action: ActionSetting<{ readonly part: string }>",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.click_action",
+      "sourceKind": "lazyproperty",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> ActionSetting",
+      "readSignature": "(self) -> ActionSetting",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "bounded-owner-view-existing-class-integration-gap",
+      "targetMember": "click_action",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "LinkShape.click_action and LinkRun.hyperlink provide real session-backed behavior with retained member spellings. Shape/picture/connector/graphic-frame and table-run cases pass; group access raises. Existing isolated model classes are not all wired to this session yet.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "LinkShape.click_action: ActionSetting<{ readonly part: string }>",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.click_action",
+      "sourceKind": "lazyproperty",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> ActionSetting",
+      "readSignature": "(self) -> ActionSetting",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "bounded-owner-view-existing-class-integration-gap",
+      "targetMember": "click_action",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "LinkShape.click_action and LinkRun.hyperlink provide real session-backed behavior with retained member spellings. Shape/picture/connector/graphic-frame and table-run cases pass; group access raises. Existing isolated model classes are not all wired to this session yet.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "LinkShape.click_action: ActionSetting<{ readonly part: string }>",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.click_action",
+      "sourceKind": "lazyproperty",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> ActionSetting",
+      "readSignature": "(self) -> ActionSetting",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "bounded-owner-view-existing-class-integration-gap",
+      "targetMember": "click_action",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "LinkShape.click_action and LinkRun.hyperlink provide real session-backed behavior with retained member spellings. Shape/picture/connector/graphic-frame and table-run cases pass; group access raises. Existing isolated model classes are not all wired to this session yet.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "LinkShape.click_action: ActionSetting<{ readonly part: string }>",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.click_action",
+      "sourceKind": "lazyproperty",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> ActionSetting",
+      "readSignature": "(self) -> ActionSetting",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "bounded-owner-view-existing-class-integration-gap",
+      "targetMember": "click_action",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "LinkShape.click_action and LinkRun.hyperlink provide real session-backed behavior with retained member spellings. Shape/picture/connector/graphic-frame and table-run cases pass; group access raises. Existing isolated model classes are not all wired to this session yet.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "LinkShape.click_action: ActionSetting<{ readonly part: string }>",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.click_action",
+      "sourceKind": "lazyproperty",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> ActionSetting",
+      "readSignature": "(self) -> ActionSetting",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "bounded-owner-view-existing-class-integration-gap",
+      "targetMember": "click_action",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "LinkShape.click_action and LinkRun.hyperlink provide real session-backed behavior with retained member spellings. Shape/picture/connector/graphic-frame and table-run cases pass; group access raises. Existing isolated model classes are not all wired to this session yet.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "LinkShape.click_action: ActionSetting<{ readonly part: string }>",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.text.text._Hyperlink",
+      "sourceKind": "type",
+      "declaredOn": null,
+      "sourceSignature": null,
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "implemented-owner-model",
+      "targetMember": "_Hyperlink",
+      "mappingRules": ["J01"],
+      "mapping": "Retain neutral member spelling and direct property/live owner semantics in the model. Detached link operations do not implement this member.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.text.text._Hyperlink.__init__",
+      "sourceKind": "constructor",
+      "declaredOn": null,
+      "sourceSignature": "(self, rPr: CT_TextCharacterProperties, parent: ProvidesPart)",
+      "readSignature": null,
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "security-mapped-owner-construction",
+      "targetMember": "constructor",
+      "mappingRules": ["J01"],
+      "mapping": "Returned owner-checked model view; no raw XML constructor or unrestricted package handle. This is security-mapped construction, not exclusion of the public returned type.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "constructor(owner: LinkModelOwner<Slide>); package-bound acquisition through LinkShape/LinkRun",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.text.text._Hyperlink.address",
+      "sourceKind": "property",
+      "declaredOn": "pptx.text.text._Hyperlink",
+      "sourceSignature": "(self) -> str | None",
+      "readSignature": "(self) -> str | None",
+      "writeSignature": "(self, url: str | None)",
+      "enumValue": null,
+      "status": "implemented-owner-model",
+      "targetMember": "address",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "Direct string | null property; empty/null clears ordinary links synchronously. Relative URLs stay literal, unsupported actions reject implicit replacement/removal, unsafe URLs reject invalid-value. _Hyperlink remains supported alias. Named-slide links expose literal targetReference through address; operation url remains null for internal navigation.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "get address(): string | null; set address(value: string | null)",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.text.text._Hyperlink.part",
+      "sourceKind": "property",
+      "declaredOn": "pptx.shapes.Subshape",
+      "sourceSignature": "(self) -> XmlPart",
+      "readSignature": "(self) -> XmlPart",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "implemented-owner-model",
+      "targetMember": "part",
+      "mappingRules": ["J01", "J02", "J09"],
+      "mapping": "Direct getter returns current bounded validated XmlPart from the owner session. No ambient I/O or raw host path.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "get part(): XmlPart",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    },
+    {
+      "sourceId": "pptx.text.text._Run.hyperlink",
+      "sourceKind": "lazyproperty",
+      "declaredOn": "pptx.text.text._Run",
+      "sourceSignature": "(self) -> _Hyperlink",
+      "readSignature": "(self) -> _Hyperlink",
+      "writeSignature": null,
+      "enumValue": null,
+      "status": "bounded-owner-view-existing-class-integration-gap",
+      "targetMember": "hyperlink",
+      "mappingRules": ["J01", "J02"],
+      "mapping": "LinkShape.click_action and LinkRun.hyperlink provide real session-backed behavior with retained member spellings. Shape/picture/connector/graphic-frame and table-run cases pass; group access raises. Existing isolated model classes are not all wired to this session yet.",
+      "originalEvidence": [
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links-actions.test.ts"
+      ],
+      "targetSignature": "get hyperlink(): Hyperlink<Slide>",
+      "cliRoute": "links list/add/set/remove (operation equivalence, no raw model constructor route)"
+    }
+  ],
+  "languageSecurityMappings": {
+    "admission": "Async bytes/stream or explicit VFS capability; no implicit host I/O, network, launch, native runtime or clock.",
+    "ownership": "LinkData part and path identify the owning XML part/property; relationship IDs resolve only inside that owning part. Selection tokens retain fingerprint checks.",
+    "absence": "Null is explicit absence in read records; undefined only omits options. Read enumeration does not create XML or live proxy getters.",
+    "actions": "Navigation supports first/last/next/previous and explicit slide targets. Unsupported actions remain XML data requiring explicit sanitization; no action is ever executed.",
+    "urls": "External TargetMode distinguishes URL references, including relative URLs, from package-relative slide relationships. Do not normalize away fragments/query/percent encoding.",
+    "model": "Neutral direct model property spellings implemented by ActionSetting/Hyperlink and session-bound LinkShape/LinkRun; existing comprehensive shape/text graph integration remains separate."
+  }
+}

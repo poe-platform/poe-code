@@ -1,0 +1,11 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "../../../src/fs/devices/**/*.ts",
+    "./*.ts"
+  ],
+  "exclude": []
+}

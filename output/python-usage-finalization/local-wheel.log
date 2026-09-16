@@ -1,0 +1,5 @@
+{"command":"python make-wheel.py","exitCode":0,"stdout":"wheel prepared\n","stderr":""}
+{"command":"python -m pip install ./wheels/demo-1.0-py3-none-any.whl","exitCode":0,"stdout":"Successfully installed requested Python packages\n","stderr":""}
+{"command":"python -c 'import demo; print(demo.answer)'","exitCode":0,"stdout":"73\n","stderr":""}
+{"command":"python -c 'import demo; print(demo.answer)'","exitCode":0,"stdout":"73\n","stderr":""}
+{"networkRequests":0,"source":"from zipfile import ZipFile\nfrom pathlib import Path\nPath('wheels').mkdir()\nfiles = {\n 'demo/__init__.py': 'answer = 73\\n',\n 'demo-1.0.dist-info/METADATA': 'Metadata-Version: 2.1\\nName: demo\\nVersion: 1.0\\n',\n 'demo-1.0.dist-info/WHEEL': 'Wheel-Version: 1.0\\nGenerator: manual-qualification\\nRoot-Is-Purelib: true\\nTag: py3-none-any\\n',\n 'demo-1.0.dist-info/RECORD': '',\n}\nwith ZipFile('wheels/demo-1.0-py3-none-any.whl', 'w') as wheel:\n for name, contents in files.items(): wheel.writestr(name, contents)\nprint('wheel prepared')\n"}

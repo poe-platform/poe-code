@@ -75,6 +75,10 @@
       "browser": "./packages/safe-bash/dist/core.browser.js",
       "import": "./packages/safe-bash/dist/index.js"
     },
+    "./safe-bash/optional-host": {
+      "types": "./packages/safe-bash/dist/optional-host.d.ts",
+      "import": "./packages/safe-bash/dist/optional-host.js"
+    },
     "./safe-bash/contracts": {
       "types": {
         "browser": "./packages/safe-bash/dist/contracts/index.d.ts",
@@ -372,6 +376,38 @@
       "browser": "./packages/safe-bash/dist/commands/line-endings/index.browser.js",
       "import": "./packages/safe-bash/dist/commands/line-endings/index.js"
     },
+    "./pptx": {
+      "types": "./packages/pptx/dist/index.d.ts",
+      "import": "./packages/pptx/dist/index.js"
+    },
+    "./safe-bash/commands/pptx": {
+      "types": "./packages/safe-bash/dist/commands/pptx/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/pptx/index.js"
+    },
+    "./safe-bash/commands/python": {
+      "types": "./packages/safe-bash/dist/commands/python/index.d.ts",
+      "browser": "./packages/safe-bash/dist/commands/python/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/python/index.js"
+    },
+    "./safe-bash/commands/python/worker": {
+      "types": "./packages/safe-bash/dist/commands/python/worker.d.ts",
+      "browser": "./packages/safe-bash/dist/commands/python/worker.browser.js",
+      "import": "./packages/safe-bash/dist/commands/python/worker.js"
+    },
+    "./safe-bash/commands/python/node": {
+      "types": "./packages/safe-bash/dist/commands/python/node.d.ts",
+      "browser": null,
+      "import": "./packages/safe-bash/dist/commands/python/node.js"
+    },
+    "./docx": {
+      "types": "./packages/docx/dist/index.d.ts",
+      "import": "./packages/docx/dist/index.js"
+    },
+    "./safe-bash/commands/docx": {
+      "types": "./packages/safe-bash/dist/commands/docx/index.d.ts",
+      "browser": "./packages/safe-bash/dist/commands/docx/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/docx/index.js"
+    },
     "./safe-fs/node/filesystem": {
       "types": {
         "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
@@ -493,6 +529,54 @@
     "packages/agent-human-in-loop/dist",
     "packages/maestro/dist",
     "packages/safe-bash/dist",
+    "!packages/safe-bash/dist/optional.js",
+    "!packages/safe-bash/dist/optional.js.map",
+    "!packages/safe-bash/dist/optional.d.ts",
+    "!packages/safe-bash/dist/optional.d.ts.map",
+    "!packages/safe-bash/dist/commands/cmp",
+    "!packages/safe-bash/dist/commands/dd",
+    "!packages/safe-bash/dist/commands/install",
+    "!packages/safe-bash/dist/commands/shuf",
+    "!packages/safe-bash/dist/commands/truncate",
+    "!packages/safe-bash/dist/commands/yes",
+    "!packages/safe-bash/dist/commands/yq/expression.js",
+    "!packages/safe-bash/dist/commands/yq/expression.js.map",
+    "!packages/safe-bash/dist/commands/yq/expression.d.ts",
+    "!packages/safe-bash/dist/commands/yq/expression.d.ts.map",
+    "!packages/safe-bash/dist/commands/yq/nodes.js",
+    "!packages/safe-bash/dist/commands/yq/nodes.js.map",
+    "!packages/safe-bash/dist/commands/yq/nodes.d.ts",
+    "!packages/safe-bash/dist/commands/yq/nodes.d.ts.map",
+    "!packages/safe-bash/dist/commands/yq/evaluate.js",
+    "!packages/safe-bash/dist/commands/yq/evaluate.js.map",
+    "!packages/safe-bash/dist/commands/yq/evaluate.d.ts",
+    "!packages/safe-bash/dist/commands/yq/evaluate.d.ts.map",
+    "!packages/safe-bash/dist/commands/yq/native-work.js",
+    "!packages/safe-bash/dist/commands/yq/native-work.js.map",
+    "!packages/safe-bash/dist/commands/yq/native-work.d.ts",
+    "!packages/safe-bash/dist/commands/yq/native-work.d.ts.map",
+    "!packages/safe-bash/dist/commands/yq/inplace.js",
+    "!packages/safe-bash/dist/commands/yq/inplace.js.map",
+    "!packages/safe-bash/dist/commands/yq/inplace.d.ts",
+    "!packages/safe-bash/dist/commands/yq/inplace.d.ts.map",
+    "!packages/safe-bash/dist/commands/yq/arguments.js",
+    "!packages/safe-bash/dist/commands/yq/arguments.js.map",
+    "!packages/safe-bash/dist/commands/yq/arguments.d.ts",
+    "!packages/safe-bash/dist/commands/yq/arguments.d.ts.map",
+    "!packages/safe-bash/dist/commands/yq/mike.js",
+    "!packages/safe-bash/dist/commands/yq/mike.js.map",
+    "!packages/safe-bash/dist/commands/yq/mike.d.ts",
+    "!packages/safe-bash/dist/commands/yq/mike.d.ts.map",
+    "!packages/safe-bash/dist/commands/yq/native-encoder.js",
+    "!packages/safe-bash/dist/commands/yq/native-encoder.js.map",
+    "!packages/safe-bash/dist/commands/yq/native-encoder.d.ts",
+    "!packages/safe-bash/dist/commands/yq/native-encoder.d.ts.map",
+    "!packages/safe-bash/dist/fs/devices",
+    "!packages/safe-bash/dist/shell/extensions/arrays",
+    "!packages/safe-bash/dist/shell/extensions/trap",
+    "!packages/safe-bash/dist/shell/extensions/jobs",
+    "!packages/safe-bash/dist/shell/extensions/mapfile",
+    "!packages/safe-bash/dist/shell/extensions/read",
     "packages/safe-js/dist",
     "packages/agent-spawn/dist",
     "packages/auth-store/dist",
@@ -508,6 +592,11 @@
     "packages/maestro-tui/dist",
     "packages/markdown-reader/dist",
     "packages/mcp-oauth/dist",
+    "packages/office-package/dist",
+    "packages/office-package/LICENSE",
+    "packages/pptx/dist",
+    "packages/pptx/LICENSE",
+    "packages/pptx/THIRD_PARTY_NOTICES.txt",
     "packages/opencode-poe-auth/dist",
     "packages/package-lint/dist",
     "packages/pipeline/dist",
@@ -542,7 +631,10 @@
     "packages/safe-fs/native/assets.json",
     "packages/safe-fs/native/seek.c",
     "packages/safe-fs/native/loader.mjs",
-    "packages/safe-fs/src/native/loader.d.ts"
+    "packages/safe-fs/src/native/loader.d.ts",
+    "packages/docx/dist",
+    "packages/docx/LICENSE",
+    "packages/docx/THIRD_PARTY_NOTICES.txt"
   ],
   "engines": {
     "node": ">=18.18"
@@ -583,7 +675,8 @@
     "ts-morph": "^27.0.2",
     "turndown": "^7.2.4",
     "yaml": "^2.8.2",
-    "temporal-polyfill": "1.0.4"
+    "temporal-polyfill": "1.0.4",
+    "saxes": "6.0.0"
   },
   "optionalDependencies": {
     "braintrust": "^3.17.0"
@@ -617,6 +710,7 @@
     "@poe-code/maestro-tui": "*",
     "@poe-code/markdown-reader": "*",
     "@poe-code/memory": "*",
+    "@poe-code/office-package": "*",
     "@poe-code/package-lint": "*",
     "@poe-code/pipeline": "*",
     "@poe-code/plan-browser": "*",
@@ -645,6 +739,7 @@
     "auth-store": "*",
     "bats": "^1.13.0",
     "buffer": "6.0.3",
+    "docx": "*",
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^10.1.8",
     "github-review": "*",
@@ -656,6 +751,7 @@
     "opencode-poe-auth": "*",
     "poe-code": "file:.",
     "poe-oauth": "*",
+    "pptx": "*",
     "prettier": "^3.8.1",
     "rollup": "4.62.0",
     "rollup-plugin-dts": "6.4.1",

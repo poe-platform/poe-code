@@ -1,0 +1,5 @@
+Fontconfig warning: no <cachedir> elements found. Check configuration.
+Fontconfig warning: adding <cachedir>/@.__________________________________________________OOO/var/cache/fontconfig</cachedir>
+Fontconfig warning: adding <cachedir prefix="xdg">fontconfig</cachedir>
+convert /Users/kjopek/Workspace/poe-setup-scripts/output/python-public-integration-20260913/documents-v2/memory/openpyxl.xlsx as a Calc document -> /Users/kjopek/Workspace/poe-setup-scripts/output/python-public-integration-20260913/render-xlsx-v2/openpyxl.pdf using filter : calc_pdf_Export
+convert /Users/kjopek/Workspace/poe-setup-scripts/output/python-public-integration-20260913/documents-v2/memory/writer.xlsx as a Calc document -> /Users/kjopek/Workspace/poe-setup-scripts/output/python-public-integration-20260913/render-xlsx-v2/writer.pdf using filter : calc_pdf_Export

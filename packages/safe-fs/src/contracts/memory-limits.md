@@ -16,6 +16,7 @@ validation rather than maintaining separate numeric policies.
 | `maxFileBytes` | 16,777,216 | Maximum logical size of a file. |
 | `maxRetainedBytes` | 67,108,864 | Accounted owned buffer capacity and retained strings. |
 | `maxMetadataUnits` | 10,000 | Accounted inodes, names and active handle/stream reservations. |
+| `maxBytes` | No additional ceiling | Legacy cumulative logical file-byte ceiling, including unlinked retained inodes. |
 
 `defaultMemoryFileSystemLimits` is immutable. Missing options use those defaults;
 supplied options are copied and frozen. Values must be finite safe integers.
@@ -23,6 +24,10 @@ Byte limits may be zero; metadata must be at least one to admit the root inode.
 Unknown fields, accessors, explicit undefined/null field values and invalid numbers are
 rejected before store construction. Explicit finite overrides support larger
 trusted workloads; default construction is no longer unbounded.
+The legacy `maxBytes` option also accepts explicit `undefined` as omission.
+Its logical-byte accounting is separate from retained capacity and string charges;
+when supplied, both ceilings apply. Both canonical descriptors and retained
+read/resize handles keep unlinked file bytes charged until their final close.
 
 ## Ownership and accounting
 

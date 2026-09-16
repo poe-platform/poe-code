@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "scope": "Research/provenance join receipt; no source cases executed or coverage statuses promoted by this task",
+  "inspected_head": "b5dfced1605940c74c6567e1ac42514d3f62f492",
+  "inputs": {
+    "docs/specs/pptx.md": "b36dde97de4d949b3b1272f93a39a93bdb82fd7073403f42e5da63e576dfe6fd",
+    "docs/specs/office-cli.md": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce",
+    "docs/specs/office-sdk.md": "a73354b0e643eef159f9bda0cb9b096234fb34f0d224c3fbead5a92f38e673b9",
+    "docs/pptx/upstream-test-audit.md": "63a4ba0c9845b2d4e833288d5e7fd459684be1c25cea1712727c1e9afe32528b",
+    "docs/pptx/upstream-test-inventory.json": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+    "docs/pptx/upstream-api-audit.md": "e098c90fdfc0da031527fb4bbb24ab93d88f0985044bbdb206c12aaf20ef0400",
+    "docs/pptx/upstream-api-inventory.json": "119a4ba61a96c88f487fb769fa268bc3a5d520b58315b8aa08606540fc92b421",
+    "docs/pptx/test-case-map.json": "61aac7a864fafdc0d9cdf953c2aae06e5cf0844d9ccc6ead8c08fed2c6a7c586",
+    "docs/pptx/public-api-map.json": "6ba1596cf4782670c71336057115245e63fefbc3f97cfa1d841c6e017cbe99f6",
+    "docs/pptx/api-language-mappings.md": "ab20d566f5a1ff2e4ec4726017cd4cd206f0cca621e5cdfb6db18e75bfdd1541",
+    "docs/pptx/corpus-manifest.json": "f4c740aa929eb714b4b83ec63cb7d3641f278d5dffbc4c81303e02aee237169f"
+  },
+  "cases": {
+    "unit_variants": 2700,
+    "bdd_examples": 973,
+    "rows": 3673,
+    "missing": [],
+    "duplicate": [],
+    "wrong_identity": [],
+    "neutral_ids_unique": true,
+    "all_targets_typescript": true,
+    "status_counts": {
+      "semantic_review_required": 2585,
+      "original_ts_passed": 43,
+      "specified_not_implemented": 167,
+      "proposed_design_not_implemented": 877,
+      "deferred_public_behavior": 1
+    },
+    "non_null_original_designs": 1088,
+    "ordered_identity_join_sha256": "3c13ad8e324b8d24e6246a1a85b7c50e31b59a52b6a2577e4cc4868f9623498e",
+    "bdd_name_file_line_verified": true
+  },
+  "api": {
+    "inventory_records": 2409,
+    "target_rows": 2426,
+    "missing": [],
+    "duplicate": [],
+    "additional_rows": 17,
+    "status_counts": {
+      "not_implemented": 2424,
+      "implemented": 2
+    },
+    "underscore_records": 425,
+    "ordered_identity_join_sha256": "94b7f03196f59888dd8fb69f8f53adeb21f8b230aacd94369e50865d3cdfee9d"
+  },
+  "notices": [
+    "test-case-map-notice.txt",
+    "public-api-map-notice.txt",
+    "upstream-license-notice.txt"
+  ],
+  "limitations": [
+    "Ledger assignment is not original TypeScript equivalence or execution.",
+    "Historical statuses are retained; later family receipts require per-assertion reconciliation.",
+    "Untracked preexisting research inputs were read and hashed, not staged.",
+    "Inherited, underscore-prefixed, enum, helper, collection and untested API obligations remain visible."
+  ]
+}

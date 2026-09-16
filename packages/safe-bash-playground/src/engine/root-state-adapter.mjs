@@ -68,23 +68,21 @@ export function instrumentRootState(source) {
           ])]
         ))
       ];
+      let assignedRootBinding = false;
+      const hasCwd = (initializer) => initializer && ts.isObjectLiteralExpression(initializer)
+        && initializer.properties.some(property => ts.isShorthandPropertyAssignment(property) && property.name.text === "cwd");
+      const isRootState = (statement) => {
+        if (ts.isVariableStatement(statement)) return statement.declarationList.declarations.some(declaration =>
+          ts.isIdentifier(declaration.name) && declaration.name.text === "state" && hasCwd(declaration.initializer));
+        if (!assignedRootBinding || !ts.isExpressionStatement(statement)) return false;
+        const expression = statement.expression;
+        return ts.isBinaryExpression(expression) && expression.operatorToken.kind === ts.SyntaxKind.EqualsToken
+          && ts.isIdentifier(expression.left) && expression.left.text === "state" && hasCwd(expression.right);
+      };
       const visitBody = (node) => {
+        if (ts.isFunctionLike(node) || ts.isClassLike(node)) return node;
         if (ts.isBlock(node)) {
-          const index = node.statements.findIndex(
-            (statement) =>
-              ts.isVariableStatement(statement) &&
-              statement.declarationList.declarations.some(
-                (declaration) =>
-                  ts.isIdentifier(declaration.name) &&
-                  declaration.name.text === "state" &&
-                  declaration.initializer &&
-                  ts.isObjectLiteralExpression(declaration.initializer) &&
-                  declaration.initializer.properties.some(
-                    (property) =>
-                      ts.isShorthandPropertyAssignment(property) && property.name.text === "cwd"
-                  )
-              )
-          );
+          const index = node.statements.findIndex(isRootState);
           if (index >= 0) {
             adapted++;
             return factory.updateBlock(node, [
@@ -107,6 +105,21 @@ export function instrumentRootState(source) {
           node.name.text === "#execute" &&
           node.body
         ) {
+          const bindings = node.body.statements.filter(statement => ts.isVariableStatement(statement)
+            && (statement.declarationList.flags & ts.NodeFlags.BlockScoped) === ts.NodeFlags.Let
+            && statement.declarationList.declarations.length === 1
+            && ts.isIdentifier(statement.declarationList.declarations[0].name)
+            && statement.declarationList.declarations[0].name.text === "state"
+            && !statement.declarationList.declarations[0].initializer);
+          assignedRootBinding = bindings.length === 1;
+          let candidates = 0;
+          const countCandidates = (child) => {
+            if (ts.isFunctionLike(child) || ts.isClassLike(child)) return;
+            if (isRootState(child)) candidates++;
+            ts.forEachChild(child, countCandidates);
+          };
+          countCandidates(node.body);
+          if (candidates !== 1) throw new Error("Pinned shell root-state structure changed; refusing browser adaptation");
           return factory.updateMethodDeclaration(
             node,
             node.modifiers,

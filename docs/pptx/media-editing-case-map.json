@@ -1,0 +1,1181 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "Media editing follow-up: all 48 media-related unit variants and six expanded BDD scenarios retained individually; observable operation coverage does not satisfy live-model gaps.",
+  "counts": {
+    "unit": 48,
+    "coreMediaUnit": 45,
+    "relatedPathUnit": 3,
+    "bdd": 6,
+    "statuses": {
+      "pending_behavior": 41,
+      "inventory_observation_covered_model_pending": 10,
+      "inventory_observation_covered_creation_pending": 3
+    },
+    "editingMappedRows": 26,
+    "editingGapRows": 28
+  },
+  "selection": "All unit and BDD records containing movie, media, video, audio or poster, including generic path cases. Each expanded variant retains its own row.",
+  "rows": [
+    {
+      "sourceCase": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_extension[/ppt/media/image.PnG-PnG]",
+      "sourceFile": "tests/opc/test_packuri.py",
+      "sourceLine": 32,
+      "kind": "unit",
+      "scope": "related-package-path-infrastructure",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Generic package URI filename/extension/index semantics are related infrastructure, not media inventory behavior; retained as a separate obligation.",
+      "originalAcceptanceObligation": "Preserve case-sensitive extension, basename and trailing numeric filename index from canonical package URI.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [],
+      "remainingObligation": "Preserve case-sensitive extension, basename and trailing numeric filename index from canonical package URI.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_filename[/ppt/media/image.png-image.png]",
+      "sourceFile": "tests/opc/test_packuri.py",
+      "sourceLine": 43,
+      "kind": "unit",
+      "scope": "related-package-path-infrastructure",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Generic package URI filename/extension/index semantics are related infrastructure, not media inventory behavior; retained as a separate obligation.",
+      "originalAcceptanceObligation": "Preserve case-sensitive extension, basename and trailing numeric filename index from canonical package URI.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [],
+      "remainingObligation": "Preserve case-sensitive extension, basename and trailing numeric filename index from canonical package URI.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_filename_index[/ppt/media/image42.png-42]",
+      "sourceFile": "tests/opc/test_packuri.py",
+      "sourceLine": 54,
+      "kind": "unit",
+      "scope": "related-package-path-infrastructure",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Generic package URI filename/extension/index semantics are related infrastructure, not media inventory behavior; retained as a separate obligation.",
+      "originalAcceptanceObligation": "Preserve case-sensitive extension, basename and trailing numeric filename index from canonical package URI.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [],
+      "remainingObligation": "Preserve case-sensitive extension, basename and trailing numeric filename index from canonical package URI.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/oxml/shapes/test_picture.py::DescribeCT_Picture::it_can_create_a_new_video_pic_element",
+      "sourceFile": "tests/oxml/shapes/test_picture.py",
+      "sourceLine": 59,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Insert owned movie, geometry, poster and both media/video relationships atomically; save and re-read for empty/nonempty collections.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-editing.test.ts",
+          "name": "inserts explicit movie bytes with distinct complete clip and poster relationships and inert timing"
+        }
+      ],
+      "remainingObligation": "Insert owned movie, geometry, poster and both media/video relationships atomically; save and re-read for empty/nonempty collections.",
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Original graph/bytes/poster operation behavior verified; live constructors/returned interfaces remain separately pending."
+    },
+    {
+      "sourceCase": "tests/parts/test_media.py::DescribeMediaPart::it_can_construct_from_a_media_object",
+      "sourceFile": "tests/parts/test_media.py",
+      "sourceLine": 15,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Create an owned media value/part from supplied bytes and declared type; no host access.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-editing.test.ts",
+          "name": "inserts explicit movie bytes with distinct complete clip and poster relationships and inert timing"
+        }
+      ],
+      "remainingObligation": "Create an owned media value/part from supplied bytes and declared type; no host access.",
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Original graph/bytes/poster operation behavior verified; live constructors/returned interfaces remain separately pending."
+    },
+    {
+      "sourceCase": "tests/parts/test_media.py::DescribeMediaPart::it_knows_the_sha1_hash_of_the_media",
+      "sourceFile": "tests/parts/test_media.py",
+      "sourceLine": 30,
+      "kind": "unit",
+      "scope": "media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "retains distinct bindings and occurrences when a clip part is shared"
+        }
+      ],
+      "reason": "Inventory independently asserts SHA-1 metadata as well as SHA-256; live Video/MediaPart SHA-1 properties remain unimplemented.",
+      "originalAcceptanceObligation": "Expose SHA-1 compatibility metadata independently from SHA-256 integrity identity; dedup hit/miss keeps distinct outcomes.",
+      "priorStatus": "inventory_observation_covered_model_pending",
+      "editingTests": [],
+      "remainingObligation": "Expose SHA-1 compatibility metadata independently from SHA-256 integrity identity; dedup hit/miss keeps distinct outcomes.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/parts/test_slide.py::DescribeSlidePart::it_can_get_or_add_a_video_part",
+      "sourceFile": "tests/parts/test_slide.py",
+      "sourceLine": 348,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Distinguish existing byte-identical media reuse from adding new media; retain duplicate relationships and deterministic allocation.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-behavior-cases.test.ts",
+          "name": "reuses equal media bytes only on identity hit %s"
+        }
+      ],
+      "remainingObligation": "Distinguish existing byte-identical media reuse from adding new media; retain duplicate relationships and deterministic allocation.",
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Independent equal/unequal byte outcomes cover operation reuse. Reuse requires same declared type and bytes; SHA-1 is not used as integrity authority. Live package helpers remain pending."
+    },
+    {
+      "sourceCase": "tests/shapes/test_picture.py::DescribeMovie::it_knows_its_shape_type",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 146,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Returned Movie shape reports symbolic MEDIA value 16 through the live API.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [],
+      "remainingObligation": "Returned Movie shape reports symbolic MEDIA value 16 through the live API.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/shapes/test_picture.py::DescribeMovie::it_knows_its_media_type",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 150,
+      "kind": "unit",
+      "scope": "media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "uses declared content type for an extension-only media reference"
+        }
+      ],
+      "reason": "Detached inventory observes type/resource membership; original model object and property semantics remain pending.",
+      "originalAcceptanceObligation": "Movie type reports the documented PP_MEDIA_TYPE.MOVIE value through live API; inventory uses video classification.",
+      "priorStatus": "inventory_observation_covered_model_pending",
+      "editingTests": [],
+      "remainingObligation": "Movie type reports the documented PP_MEDIA_TYPE.MOVIE value through live API; inventory uses video classification.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/shapes/test_picture.py::DescribeMovie::it_provides_access_to_its_media_format",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 154,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Return owned live _MediaFormat public interface; no exclusion due to leading underscore.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [],
+      "remainingObligation": "Return owned live _MediaFormat public interface; no exclusion due to leading underscore.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/shapes/test_picture.py::DescribeMovie::it_provides_access_to_its_poster_frame_image[pfrm_fixture0]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 160,
+      "kind": "unit",
+      "scope": "media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "reports present and absent poster references (%s)"
+        }
+      ],
+      "reason": "Poster relationship/hash/type and absent poster are observed; live Image-returning poster_frame getter remains pending.",
+      "originalAcceptanceObligation": "Resolve supplied/absent poster through explicit admitted bytes and image relationship; preserve absence on reads.",
+      "priorStatus": "inventory_observation_covered_model_pending",
+      "editingTests": [],
+      "remainingObligation": "Resolve supplied/absent poster through explicit admitted bytes and image relationship; preserve absence on reads.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/shapes/test_picture.py::DescribeMovie::it_provides_access_to_its_poster_frame_image[pfrm_fixture1]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 160,
+      "kind": "unit",
+      "scope": "media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "reports present and absent poster references (%s)"
+        }
+      ],
+      "reason": "Poster relationship/hash/type and absent poster are observed; live Image-returning poster_frame getter remains pending.",
+      "originalAcceptanceObligation": "Resolve supplied/absent poster through explicit admitted bytes and image relationship; preserve absence on reads.",
+      "priorStatus": "inventory_observation_covered_model_pending",
+      "editingTests": [],
+      "remainingObligation": "Resolve supplied/absent poster through explicit admitted bytes and image relationship; preserve absence on reads.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_can_add_a_movie",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1242,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Insert owned movie, geometry, poster and both media/video relationships atomically; save and re-read for empty/nonempty collections.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-editing.test.ts",
+          "name": "inserts explicit movie bytes with distinct complete clip and poster relationships and inert timing"
+        }
+      ],
+      "remainingObligation": "Insert owned movie, geometry, poster and both media/video relationships atomically; save and re-read for empty/nonempty collections.",
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Original graph/bytes/poster operation behavior verified; live constructors/returned interfaces remain separately pending."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_adds_a_video_timing_to_help[add_timing_fixture0]",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1273,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Insert a media timing target for absent/existing timing structures; retain all three distinct structural variants.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-behavior-cases.test.ts",
+          "name": "adds inert timing without deleting existing timing variant %s"
+        }
+      ],
+      "remainingObligation": "Insert a media timing target for absent/existing timing structures; retain all three distinct structural variants.",
+      "variant": {
+        "before": "no timing",
+        "after": "one video timing target"
+      },
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Each timing variant tested separately; missing child list is preserved and extended instead of destructive source replacement."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_adds_a_video_timing_to_help[add_timing_fixture1]",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1273,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Insert a media timing target for absent/existing timing structures; retain all three distinct structural variants.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-behavior-cases.test.ts",
+          "name": "adds inert timing without deleting existing timing variant %s"
+        }
+      ],
+      "remainingObligation": "Insert a media timing target for absent/existing timing structures; retain all three distinct structural variants.",
+      "variant": {
+        "before": "one existing video timing target",
+        "after": "second video timing target; first unchanged"
+      },
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Each timing variant tested separately; missing child list is preserved and extended instead of destructive source replacement."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_adds_a_video_timing_to_help[add_timing_fixture2]",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1273,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Insert a media timing target for absent/existing timing structures; retain all three distinct structural variants.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-behavior-cases.test.ts",
+          "name": "adds inert timing without deleting existing timing variant %s"
+        }
+      ],
+      "remainingObligation": "Insert a media timing target for absent/existing timing structures; retain all three distinct structural variants.",
+      "variant": {
+        "before": "timing missing childTnLst parent",
+        "sourceAfter": "timing replaced",
+        "mappedRequirement": "Preserve unrelated timing XML, append compatible structure or reject unsupported graph explicitly; never silently discard imported metadata."
+      },
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Each timing variant tested separately; missing child list is preserved and extended instead of destructive source replacement."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_creates_a_new_movie_pic_element",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1763,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Insert owned movie, geometry, poster and both media/video relationships atomically; save and re-read for empty/nonempty collections.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-editing.test.ts",
+          "name": "inserts explicit movie bytes with distinct complete clip and poster relationships and inert timing"
+        }
+      ],
+      "remainingObligation": "Insert owned movie, geometry, poster and both media/video relationships atomically; save and re-read for empty/nonempty collections.",
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Original graph/bytes/poster operation behavior verified; live constructors/returned interfaces remain separately pending."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_creates_a_pic_element",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1788,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Insert owned movie, geometry, poster and both media/video relationships atomically; save and re-read for empty/nonempty collections.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-editing.test.ts",
+          "name": "inserts explicit movie bytes with distinct complete clip and poster relationships and inert timing"
+        }
+      ],
+      "remainingObligation": "Insert owned movie, geometry, poster and both media/video relationships atomically; save and re-read for empty/nonempty collections.",
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Original graph/bytes/poster operation behavior verified; live constructors/returned interfaces remain separately pending."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_knows_the_shape_name_to_help",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1800,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Derive a neutral shape label from admitted explicit media metadata.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [],
+      "remainingObligation": "Derive a neutral shape label from admitted explicit media metadata.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_constructs_the_video_to_help",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1805,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Build a media value from explicit input/type, retaining admitted bytes and metadata.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-editing.test.ts",
+          "name": "inserts explicit movie bytes with distinct complete clip and poster relationships and inert timing"
+        }
+      ],
+      "remainingObligation": "Build a media value from explicit input/type, retaining admitted bytes and metadata.",
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Original graph/bytes/poster operation behavior verified; live constructors/returned interfaces remain separately pending."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_knows_the_media_rId_to_help",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1812,
+      "kind": "unit",
+      "scope": "media",
+      "status": "inventory_observation_covered_creation_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "retains distinct bindings and occurrences when a clip part is shared"
+        }
+      ],
+      "reason": "Readback retains separate video/media relationship IDs sharing one part. Creating/deduplicating/rebinding these relationships remains pending.",
+      "originalAcceptanceObligation": "Keep separate video/media relationship IDs that address the same part; creation is a separate operation.",
+      "priorStatus": "inventory_observation_covered_creation_pending",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-editing.test.ts",
+          "name": "inserts explicit movie bytes with distinct complete clip and poster relationships and inert timing"
+        }
+      ],
+      "remainingObligation": "Keep separate video/media relationship IDs that address the same part; creation is a separate operation.",
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Original graph/bytes/poster operation behavior verified; live constructors/returned interfaces remain separately pending."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_knows_the_video_rId_to_help",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1816,
+      "kind": "unit",
+      "scope": "media",
+      "status": "inventory_observation_covered_creation_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "retains distinct bindings and occurrences when a clip part is shared"
+        }
+      ],
+      "reason": "Readback retains separate video/media relationship IDs sharing one part. Creating/deduplicating/rebinding these relationships remains pending.",
+      "originalAcceptanceObligation": "Keep separate video/media relationship IDs that address the same part; creation is a separate operation.",
+      "priorStatus": "inventory_observation_covered_creation_pending",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-editing.test.ts",
+          "name": "inserts explicit movie bytes with distinct complete clip and poster relationships and inert timing"
+        }
+      ],
+      "remainingObligation": "Keep separate video/media relationship IDs that address the same part; creation is a separate operation.",
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Original graph/bytes/poster operation behavior verified; live constructors/returned interfaces remain separately pending."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_adds_the_poster_frame_image_to_help",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1820,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Resolve supplied/absent poster through explicit admitted bytes and image relationship; preserve absence on reads.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-editing.test.ts",
+          "name": "inserts explicit movie bytes with distinct complete clip and poster relationships and inert timing"
+        }
+      ],
+      "remainingObligation": "Resolve supplied/absent poster through explicit admitted bytes and image relationship; preserve absence on reads.",
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Original graph/bytes/poster operation behavior verified; live constructors/returned interfaces remain separately pending."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_gets_the_poster_frame_image_from_the_specified_path_to_help",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1829,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Resolve supplied/absent poster through explicit admitted bytes and image relationship; preserve absence on reads.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [],
+      "remainingObligation": "Resolve supplied/absent poster through explicit admitted bytes and image relationship; preserve absence on reads.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::but_it_gets_the_poster_frame_image_from_the_default_bytes_when_None_specified",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1842,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Use an original inert poster only where the model mapping permits a default; never copy source asset or extract frames.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [],
+      "remainingObligation": "Use an original inert poster only where the model mapping permits a default; never copy source asset or extract frames.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_gets_the_video_part_rIds_to_help",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1856,
+      "kind": "unit",
+      "scope": "media",
+      "status": "inventory_observation_covered_creation_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "retains distinct bindings and occurrences when a clip part is shared"
+        }
+      ],
+      "reason": "Readback retains separate video/media relationship IDs sharing one part. Creating/deduplicating/rebinding these relationships remains pending.",
+      "originalAcceptanceObligation": "Keep separate video/media relationship IDs that address the same part; creation is a separate operation.",
+      "priorStatus": "inventory_observation_covered_creation_pending",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-editing.test.ts",
+          "name": "inserts explicit movie bytes with distinct complete clip and poster relationships and inert timing"
+        }
+      ],
+      "remainingObligation": "Keep separate video/media relationship IDs that address the same part; creation is a separate operation.",
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Original graph/bytes/poster operation behavior verified; live constructors/returned interfaces remain separately pending."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_gets_the_slide_part_to_help",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1865,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Return an owner-bound bounded slide part view, not unrestricted host/XML access.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [],
+      "remainingObligation": "Return an owner-bound bounded slide part view, not unrestricted host/XML access.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_can_construct_from_a_path",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 20,
+      "kind": "unit",
+      "scope": "media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "admits bounded streams and explicit in-memory paths without modifying source bytes"
+        }
+      ],
+      "reason": "Inventory exercises explicit memfs path and bounded stream admission with no host I/O; Video constructor/filename semantics remain pending.",
+      "originalAcceptanceObligation": "Admit explicit VFS path asynchronously; preserve admitted basename; reject missing capability without host lookup.",
+      "priorStatus": "inventory_observation_covered_model_pending",
+      "editingTests": [],
+      "remainingObligation": "Admit explicit VFS path asynchronously; preserve admitted basename; reject missing capability without host lookup.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_can_construct_from_a_stream",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 30,
+      "kind": "unit",
+      "scope": "media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "admits bounded streams and explicit in-memory paths without modifying source bytes"
+        }
+      ],
+      "reason": "Inventory exercises explicit memfs path and bounded stream admission with no host I/O; Video constructor/filename semantics remain pending.",
+      "originalAcceptanceObligation": "Admit explicit bounded byte source asynchronously; no fabricated source filename.",
+      "priorStatus": "inventory_observation_covered_model_pending",
+      "editingTests": [],
+      "remainingObligation": "Admit explicit bounded byte source asynchronously; no fabricated source filename.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_can_construct_from_a_blob",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 36,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Create an owned media value/part from supplied bytes and declared type; no host access.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-editing.test.ts",
+          "name": "inserts explicit movie bytes with distinct complete clip and poster relationships and inert timing"
+        }
+      ],
+      "remainingObligation": "Create an owned media value/part from supplied bytes and declared type; no host access.",
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Original graph/bytes/poster operation behavior verified; live constructors/returned interfaces remain separately pending."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_provides_access_to_the_video_bytestream",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 42,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Return owned original bytes without decoder/native runtime or hidden mutation.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-extraction.test.ts",
+          "name": "extracts one original resource per occurrence, collapsing dual bindings only"
+        }
+      ],
+      "remainingObligation": "Return owned original bytes without decoder/native runtime or hidden mutation.",
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Caller-owned original bytes and independent SHA-256/output provenance assertions cover detached extraction, not live Video.blob."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_knows_its_content_type",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 46,
+      "kind": "unit",
+      "scope": "media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "retains distinct bindings and occurrences when a clip part is shared"
+        }
+      ],
+      "reason": "Detached inventory observes type/resource membership; original model object and property semantics remain pending.",
+      "originalAcceptanceObligation": "Retain declared MIME type without treating it as codec validation.",
+      "priorStatus": "inventory_observation_covered_model_pending",
+      "editingTests": [],
+      "remainingObligation": "Retain declared MIME type without treating it as codec validation.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_knows_a_filename_for_the_video[filename_fixture0]",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 50,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Retain an explicitly supplied filename.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [],
+      "remainingObligation": "Retain an explicitly supplied filename.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_knows_a_filename_for_the_video[filename_fixture1]",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 50,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Use original neutral default movie.vid when filename absent and fallback extension vid.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [],
+      "remainingObligation": "Use original neutral default movie.vid when filename absent and fallback extension vid.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_knows_an_extension_for_the_video[ext_fixture0]",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 54,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Explicit filename extension takes precedence over MIME inference.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [],
+      "remainingObligation": "Explicit filename extension takes precedence over MIME inference.",
+      "variant": {
+        "filename": "sample.custom",
+        "contentType": null,
+        "expectedExtension": "custom"
+      },
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_knows_an_extension_for_the_video[ext_fixture1]",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 54,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Infer mp4 for declared video/mp4 when filename absent.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [],
+      "remainingObligation": "Infer mp4 for declared video/mp4 when filename absent.",
+      "variant": {
+        "filename": null,
+        "contentType": "video/mp4",
+        "expectedExtension": "mp4"
+      },
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_knows_an_extension_for_the_video[ext_fixture2]",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 54,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Unknown video MIME uses vid fallback extension when filename absent.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [],
+      "remainingObligation": "Unknown video MIME uses vid fallback extension when filename absent.",
+      "variant": {
+        "filename": null,
+        "contentType": "video/xyz",
+        "expectedExtension": "vid"
+      },
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_knows_its_sha1_hash",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 58,
+      "kind": "unit",
+      "scope": "media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "retains distinct bindings and occurrences when a clip part is shared"
+        }
+      ],
+      "reason": "Inventory independently asserts SHA-1 metadata as well as SHA-256; live Video/MediaPart SHA-1 properties remain unimplemented.",
+      "originalAcceptanceObligation": "Expose SHA-1 compatibility metadata independently from SHA-256 integrity identity; dedup hit/miss keeps distinct outcomes.",
+      "priorStatus": "inventory_observation_covered_model_pending",
+      "editingTests": [],
+      "remainingObligation": "Expose SHA-1 compatibility metadata independently from SHA-256 integrity identity; dedup hit/miss keeps distinct outcomes.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/test_package.py::DescribePackage::it_can_get_or_add_a_media_part",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 40,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Distinguish existing byte-identical media reuse from adding new media; retain duplicate relationships and deterministic allocation.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-behavior-cases.test.ts",
+          "name": "reuses equal media bytes only on identity hit %s"
+        }
+      ],
+      "remainingObligation": "Distinguish existing byte-identical media reuse from adding new media; retain duplicate relationships and deterministic allocation.",
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Independent equal/unequal byte outcomes cover operation reuse. Reuse requires same declared type and bytes; SHA-1 is not used as integrity authority. Live package helpers remain pending."
+    },
+    {
+      "sourceCase": "tests/test_package.py::DescribePackage::it_knows_the_next_available_media_partname[nmp_fixture0]",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 51,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Choose the first free media part index without collision; retain each occupied/gapped variant.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-behavior-cases.test.ts",
+          "name": "allocates first unoccupied clip index for $occupied"
+        }
+      ],
+      "remainingObligation": "Choose the first free media part index without collision; retain each occupied/gapped variant.",
+      "variant": {
+        "occupied": [
+          3,
+          4,
+          2
+        ],
+        "expectedNext": 1
+      },
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Each occupied/gapped index input has explicit expected first-free integer; neutral clip stem replaces internal filename choice."
+    },
+    {
+      "sourceCase": "tests/test_package.py::DescribePackage::it_knows_the_next_available_media_partname[nmp_fixture1]",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 51,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Choose the first free media part index without collision; retain each occupied/gapped variant.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-behavior-cases.test.ts",
+          "name": "allocates first unoccupied clip index for $occupied"
+        }
+      ],
+      "remainingObligation": "Choose the first free media part index without collision; retain each occupied/gapped variant.",
+      "variant": {
+        "occupied": [
+          4,
+          2,
+          1
+        ],
+        "expectedNext": 3
+      },
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Each occupied/gapped index input has explicit expected first-free integer; neutral clip stem replaces internal filename choice."
+    },
+    {
+      "sourceCase": "tests/test_package.py::DescribePackage::it_knows_the_next_available_media_partname[nmp_fixture2]",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 51,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Choose the first free media part index without collision; retain each occupied/gapped variant.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-behavior-cases.test.ts",
+          "name": "allocates first unoccupied clip index for $occupied"
+        }
+      ],
+      "remainingObligation": "Choose the first free media part index without collision; retain each occupied/gapped variant.",
+      "variant": {
+        "occupied": [
+          2,
+          3,
+          1
+        ],
+        "expectedNext": 4
+      },
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Each occupied/gapped index input has explicit expected first-free integer; neutral clip stem replaces internal filename choice."
+    },
+    {
+      "sourceCase": "tests/test_package.py::DescribePackage::it_provides_access_to_its_MediaParts_object",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 56,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Provide package-owned collection with deterministic iteration and byte identity; detached inventory arrays are only an observational equivalent.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [],
+      "remainingObligation": "Provide package-owned collection with deterministic iteration and byte identity; detached inventory arrays are only an observational equivalent.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/test_package.py::Describe_MediaParts::it_can_iterate_the_media_parts_in_the_package",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 275,
+      "kind": "unit",
+      "scope": "media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "retains distinct bindings and occurrences when a clip part is shared"
+        }
+      ],
+      "reason": "Detached inventory observes type/resource membership; original model object and property semantics remain pending.",
+      "originalAcceptanceObligation": "Provide package-owned collection with deterministic iteration and byte identity; detached inventory arrays are only an observational equivalent.",
+      "priorStatus": "inventory_observation_covered_model_pending",
+      "editingTests": [],
+      "remainingObligation": "Provide package-owned collection with deterministic iteration and byte identity; detached inventory arrays are only an observational equivalent.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "tests/test_package.py::Describe_MediaParts::it_can_get_or_add_a_media_part[True]",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 279,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Distinguish existing byte-identical media reuse from adding new media; retain duplicate relationships and deterministic allocation.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-behavior-cases.test.ts",
+          "name": "reuses equal media bytes only on identity hit %s"
+        }
+      ],
+      "remainingObligation": "Distinguish existing byte-identical media reuse from adding new media; retain duplicate relationships and deterministic allocation.",
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Independent equal/unequal byte outcomes cover operation reuse. Reuse requires same declared type and bytes; SHA-1 is not used as integrity authority. Live package helpers remain pending."
+    },
+    {
+      "sourceCase": "tests/test_package.py::Describe_MediaParts::it_can_get_or_add_a_media_part[False]",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 279,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Distinguish existing byte-identical media reuse from adding new media; retain duplicate relationships and deterministic allocation.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-behavior-cases.test.ts",
+          "name": "reuses equal media bytes only on identity hit %s"
+        }
+      ],
+      "remainingObligation": "Distinguish existing byte-identical media reuse from adding new media; retain duplicate relationships and deterministic allocation.",
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Independent equal/unequal byte outcomes cover operation reuse. Reuse requires same declared type and bytes; SHA-1 is not used as integrity authority. Live package helpers remain pending."
+    },
+    {
+      "sourceCase": "tests/test_package.py::Describe_MediaParts::it_can_find_a_media_part_by_sha1[True]",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 289,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Expose SHA-1 compatibility metadata independently from SHA-256 integrity identity; dedup hit/miss keeps distinct outcomes.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-behavior-cases.test.ts",
+          "name": "reuses equal media bytes only on identity hit %s"
+        }
+      ],
+      "remainingObligation": "Expose SHA-1 compatibility metadata independently from SHA-256 integrity identity; dedup hit/miss keeps distinct outcomes.",
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Independent equal/unequal byte outcomes cover operation reuse. Reuse requires same declared type and bytes; SHA-1 is not used as integrity authority. Live package helpers remain pending."
+    },
+    {
+      "sourceCase": "tests/test_package.py::Describe_MediaParts::it_can_find_a_media_part_by_sha1[False]",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 289,
+      "kind": "unit",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Expose SHA-1 compatibility metadata independently from SHA-256 integrity identity; dedup hit/miss keeps distinct outcomes.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-behavior-cases.test.ts",
+          "name": "reuses equal media bytes only on identity hit %s"
+        }
+      ],
+      "remainingObligation": "Expose SHA-1 compatibility metadata independently from SHA-256 integrity identity; dedup hit/miss keeps distinct outcomes.",
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Independent equal/unequal byte outcomes cover operation reuse. Reuse requires same declared type and bytes; SHA-1 is not used as integrity authority. Live package helpers remain pending."
+    },
+    {
+      "sourceCase": "features/shp-movie-props.feature:7:Movie shape",
+      "sourceFile": "features/shp-movie-props.feature",
+      "sourceLine": 7,
+      "kind": "bdd",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Obtain the live Movie interface from its owning shape collection without reproducing wrapper-class mock identity.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [],
+      "remainingObligation": "Obtain the live Movie interface from its owning shape collection without reproducing wrapper-class mock identity.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "features/shp-movie-props.feature:12:Movie.shape_type",
+      "sourceFile": "features/shp-movie-props.feature",
+      "sourceLine": 12,
+      "kind": "bdd",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Returned Movie shape reports symbolic MEDIA value 16 through the live API.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [],
+      "remainingObligation": "Returned Movie shape reports symbolic MEDIA value 16 through the live API.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "features/shp-movie-props.feature:17:Movie.media_type",
+      "sourceFile": "features/shp-movie-props.feature",
+      "sourceLine": 17,
+      "kind": "bdd",
+      "scope": "media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "uses declared content type for an extension-only media reference"
+        }
+      ],
+      "reason": "Detached inventory observes type/resource membership; original model object and property semantics remain pending.",
+      "originalAcceptanceObligation": "Movie type reports the documented PP_MEDIA_TYPE.MOVIE value through live API; inventory uses video classification.",
+      "priorStatus": "inventory_observation_covered_model_pending",
+      "editingTests": [],
+      "remainingObligation": "Movie type reports the documented PP_MEDIA_TYPE.MOVIE value through live API; inventory uses video classification.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "features/shp-movie-props.feature:22:Movie.media_format",
+      "sourceFile": "features/shp-movie-props.feature",
+      "sourceLine": 22,
+      "kind": "bdd",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Return owned live _MediaFormat public interface; no exclusion due to leading underscore.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [],
+      "remainingObligation": "Return owned live _MediaFormat public interface; no exclusion due to leading underscore.",
+      "editingDisposition": "retained_gap_or_prior_observation",
+      "editingReason": "No new original editing test is claimed for this live member, filename/extension default, URI helper or source-model default-poster behavior; prior observations and exact remaining obligation retained."
+    },
+    {
+      "sourceCase": "features/shp-shapes.feature:229:SlideShapes.add_movie() -- @1.1 add_movie() preconditions",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 229,
+      "kind": "bdd",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Insert owned movie, geometry, poster and both media/video relationships atomically; save and re-read for empty/nonempty collections.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-behavior-cases.test.ts",
+          "name": "retains supplied geometry and poster after insertion with existing clip %s"
+        }
+      ],
+      "remainingObligation": "Insert owned movie, geometry, poster and both media/video relationships atomically; save and re-read for empty/nonempty collections.",
+      "variant": {
+        "existingMovie": true,
+        "expectations": [
+          "owned Movie model return remains pending",
+          "geometry equals supplied coordinates/dimensions",
+          "poster bytes equal supplied image after save"
+        ]
+      },
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Both expanded preconditions covered by original zero/existing-clip variants with geometry and poster assertions; returned live Movie handle remains pending."
+    },
+    {
+      "sourceCase": "features/shp-shapes.feature:230:SlideShapes.add_movie() -- @1.2 add_movie() preconditions",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 230,
+      "kind": "bdd",
+      "scope": "media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Insert owned movie, geometry, poster and both media/video relationships atomically; save and re-read for empty/nonempty collections.",
+      "priorStatus": "pending_behavior",
+      "editingTests": [
+        {
+          "file": "packages/pptx/src/media-behavior-cases.test.ts",
+          "name": "retains supplied geometry and poster after insertion with existing clip %s"
+        }
+      ],
+      "remainingObligation": "Insert owned movie, geometry, poster and both media/video relationships atomically; save and re-read for empty/nonempty collections.",
+      "variant": {
+        "existingMovie": false,
+        "expectations": [
+          "owned Movie model return remains pending",
+          "geometry equals supplied coordinates/dimensions",
+          "poster bytes equal supplied image after save"
+        ]
+      },
+      "editingDisposition": "original_operation_equivalent_model_obligation_retained",
+      "editingReason": "Both expanded preconditions covered by original zero/existing-clip variants with geometry and poster assertions; returned live Movie handle remains pending."
+    }
+  ],
+  "validation": {
+    "status": "focused_tests_executed",
+    "behaviorSuite": {
+      "file": "packages/pptx/src/media-behavior-cases.test.ts",
+      "cases": 10,
+      "tdd": "identity-hit failed before domain dedup fix",
+      "status": "passed",
+      "testsMs": 394
+    },
+    "extractionSuite": {
+      "file": "packages/pptx/src/media-extraction.test.ts",
+      "cases": 16,
+      "testsMs": 68,
+      "reportedBy": "coordinating owner"
+    },
+    "scope": "Mapping is operation-level observation, never whole live-model parity; final maintained checks reported at delivery.",
+    "maintainedPackage": {
+      "files": 141,
+      "tests": 3819,
+      "status": "passed",
+      "reportedBy": "coordinating owner"
+    }
+  },
+  "priorInventoryEvidence": "media-case-map.json",
+  "languageSecurityMappings": {
+    "bytes": "Uint8Array or explicit scoped byte source; admission always async; paths require supplied VFS authority.",
+    "mediaType": "Explicit validated MIME and kind; no native codec runtime, transcoding, network, or playback.",
+    "poster": "Both audio and video require explicitly supplied poster in this task under user instruction; original icon model/default remains unimplemented.",
+    "identity": "SHA-256 integrity; SHA-1 only compatibility metadata; shared occurrence and resource identity are distinct.",
+    "timing": "trimStart and trimEnd are milliseconds removed from beginning/end, not endpoints. Preserve unrelated qualified XML; absence/false/zero remain distinct; no duration lookup or playback.",
+    "model": "Neutral snake_case live model names remain registered; detached editing operations do not implement Movie, Video, MediaPart or _MediaFormat interfaces."
+  },
+  "variantReview": "Pinned source fixture definitions inspected for all three timing, allocation and extension variants, both filename variants and both creation BDD preconditions; original wording/assets required."
+}

@@ -1,0 +1,87 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/core-defaults-workflow.test.ts (2 tests | 2 failed) 94ms
+   × initializes missing core properties with admitted metadata and one retained owner 52ms
+   × uses the documented deterministic admission timestamp when no clock is supplied 41ms
+FAIL packages/docx/src/core-defaults-workflow.test.ts > initializes missing core properties with admitted metadata and one retained owner
+AssertionError: expected +0 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ packages/docx/src/core-defaults-workflow.test.ts:8:31
+      6|   const document=await Document(await textFixture("<w:p/>"),{...textCo…
+      7|   const properties=document.core_properties;
+      8|   expect(properties.revision).toBe(1);
+       |                               ^
+      9|   expect(properties.modified?.toISOString()).toBe("2026-09-15T12:34:56…
+     10|   expect(properties.title).toBe("Document");expect(properties.last_mod…
+
+FAIL packages/docx/src/core-defaults-workflow.test.ts > uses the documented deterministic admission timestamp when no clock is supplied
+AssertionError: expected undefined to be '1980-01-01T00:00:00.000Z' // Object.is equality
+
+- Expected:
+"1980-01-01T00:00:00.000Z"
+
++ Received:
+undefined
+
+ ❯ packages/docx/src/core-defaults-workflow.test.ts:16:60
+     14| it("uses the documented deterministic admission timestamp when no cloc…
+     15|   const document=await Document(await textFixture("<w:p/>"),textContex…
+     16|   expect(document.core_properties.modified?.toISOString()).toBe("1980-…
+       |                                                            ^
+     17| });
+     18|
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/core-defaults-workflow.test.ts > initializes missing core properties with admitted metadata and one retained owner
+AssertionError: expected +0 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ packages/docx/src/core-defaults-workflow.test.ts:8:31
+      6|   const document=await Document(await textFixture("<w:p/>"),{...textCo…
+      7|   const properties=document.core_properties;
+      8|   expect(properties.revision).toBe(1);
+       |                               ^
+      9|   expect(properties.modified?.toISOString()).toBe("2026-09-15T12:34:56…
+     10|   expect(properties.title).toBe("Document");expect(properties.last_mod…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/docx/src/core-defaults-workflow.test.ts > uses the documented deterministic admission timestamp when no clock is supplied
+AssertionError: expected undefined to be '1980-01-01T00:00:00.000Z' // Object.is equality
+
+- Expected:
+"1980-01-01T00:00:00.000Z"
+
++ Received:
+undefined
+
+ ❯ packages/docx/src/core-defaults-workflow.test.ts:16:60
+     14| it("uses the documented deterministic admission timestamp when no cloc…
+     15|   const document=await Document(await textFixture("<w:p/>"),textContex…
+     16|   expect(document.core_properties.modified?.toISOString()).toBe("1980-…
+       |                                                            ^
+     17| });
+     18|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  22:58:32
+   Duration  1.11s (transform 799ms, setup 28ms, import 938ms, tests 94ms, environment 0ms)
+

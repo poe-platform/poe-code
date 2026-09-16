@@ -183,12 +183,15 @@ describe("standalone package publish metadata", () => {
       "./config",
       "./config/testing",
       "./credentials",
+      "./docx",
       "./memory",
+      "./pptx",
       "./safe-bash",
       "./safe-bash/commands/apply-patch",
       "./safe-bash/commands/archive",
       "./safe-bash/commands/column",
       "./safe-bash/commands/csplit",
+      "./safe-bash/commands/docx",
       "./safe-bash/commands/du",
       "./safe-bash/commands/expr",
       "./safe-bash/commands/factor",
@@ -206,7 +209,11 @@ describe("standalone package publish metadata", () => {
       "./safe-bash/commands/node",
       "./safe-bash/commands/node/host",
       "./safe-bash/commands/op",
+      "./safe-bash/commands/pptx",
       "./safe-bash/commands/pr",
+      "./safe-bash/commands/python",
+      "./safe-bash/commands/python/node",
+      "./safe-bash/commands/python/worker",
       "./safe-bash/commands/split",
       "./safe-bash/commands/stream-format",
       "./safe-bash/commands/stream-inspection",
@@ -229,6 +236,7 @@ describe("standalone package publish metadata", () => {
       "./safe-bash/fs/s3/http",
       "./safe-bash/fs/webdav",
       "./safe-bash/node",
+      "./safe-bash/optional-host",
       "./safe-fs",
       "./safe-fs/core",
       "./safe-fs/node",
@@ -272,10 +280,29 @@ describe("standalone package publish metadata", () => {
   it("declares portable byte dependencies for the root safe-bash entry", () => {
     const rootPackage = readPackageJson("package.json");
     const shellPackage = readPackageJson("packages/safe-bash/package.json");
-    for (const [name, version] of Object.entries(shellPackage.dependencies ?? {})) {
+    for (const [name, version] of Object.entries({ "@noble/hashes": "2.4.0", pako: "3.0.1" })) {
       expect(rootPackage.dependencies?.[name]).toBe(version);
     }
-    expect(shellPackage.dependencies).toEqual({ "@noble/hashes": "2.4.0", pako: "3.0.1" });
+    expect(shellPackage.dependencies).toEqual({});
+    expect(shellPackage.private).toBe(true);
+    for (const [name, version] of Object.entries({ "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*" })) {
+      expect(shellPackage.devDependencies?.[name]).toBe(version);
+    }
+    expect(readPackageJson("packages/office-package/package.json").dependencies).toEqual({ pako: "3.0.1" });
+    expect(rootPackage.dependencies?.["@poe-code/office-package"]).toBeUndefined();
+    expect(rootPackage.files).toContain("packages/office-package/dist");
+    expect(rootPackage.files).toContain("packages/office-package/LICENSE");
+    expect(rootPackage.dependencies?.saxes).toBe("6.0.0");
+    expect(rootPackage.dependencies?.pptx).toBeUndefined();
+    expect(rootPackage.files).toContain("packages/pptx/dist");
+    expect(rootPackage.files).toContain("packages/pptx/LICENSE");
+    expect(rootPackage.exports?.["./pptx"]).toEqual({
+      types: "./packages/pptx/dist/index.d.ts", import: "./packages/pptx/dist/index.js"
+    });
+    expect(rootPackage.exports?.["./safe-bash/commands/pptx"]).toEqual({
+      types: "./packages/safe-bash/dist/commands/pptx/index.d.ts",
+      import: "./packages/safe-bash/dist/commands/pptx/index.js"
+    });
   });
 
   it("publishes the superintendent MCP server bin with the root package", () => {

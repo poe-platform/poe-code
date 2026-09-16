@@ -1,0 +1,968 @@
+{
+  "schema_version": 1,
+  "scope": "F51 core/custom properties and presentation/slide tags",
+  "source_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "source_inventory": "upstream-test-inventory.json",
+  "status": "bounded_metadata_cases_mapped_worker_verified_integration_checks_pending",
+  "policy": "One record per collected parameter variant and expanded BDD scenario. Reference identities appear only in this research file. Original test assets and wording replace source strings without weakening behavior.",
+  "counts": {
+    "unit": 39,
+    "bdd": 3
+  },
+  "unit_cases": [
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[/docProps/core.xml-application/vnd.openxmlformats-package.core-properties+xml]",
+      "source_file": "tests/opc/test_package.py",
+      "source_line": 571,
+      "status": "mapped_existing_original_tests_root_workspace_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/content-types.test.ts",
+          "title": "selects an override before a default for /props/core.xml"
+        },
+        {
+          "file": "packages/pptx/src/content-types.test.ts",
+          "title": "selects an override before a default for /DECK/Main.XML"
+        }
+      ],
+      "equivalence": "The shared content-type index independently verifies core-properties MIME override and mixed-case override lookup. Together these exercise the same content-type-independent case-folding branch and core MIME binding; neither requires reference fixture bytes."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[author-python-pptx]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 19,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string author and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[category-]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 19,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string category and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent.",
+      "source_behavior": {
+        "xml": "absent",
+        "value": ""
+      }
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[comments-]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 19,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string comments and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent.",
+      "source_behavior": {
+        "xml": "empty element",
+        "value": ""
+      }
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[content_status-DRAFT]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 19,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string content_status and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[identifier-GXS 10.2.1ab]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 19,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string identifier and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[keywords-foo bar baz]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 19,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string keywords and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[language-US-EN]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 19,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string language and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[last_modified_by-Steve Canny]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 19,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string last_modified_by and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[subject-Spam]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 19,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string subject and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[title-Presentation]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 19,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string title and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[version-1.2.88]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 19,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string version and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[author-dc:creator-scanny]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 40,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string author and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[category-cp:category-silly stories]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 40,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string category and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[comments-dc:description-Bar foo to you]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 40,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string comments and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[content_status-cp:contentStatus-FINAL]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 40,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string content_status and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[identifier-dc:identifier-GT 5.2.xab]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 40,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string identifier and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[keywords-cp:keywords-dog cat moo]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 40,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string keywords and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[language-dc:language-GB-EN]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 40,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string language and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[last_modified_by-cp:lastModifiedBy-Billy Bob]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 40,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string last_modified_by and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[subject-dc:subject-Eggs]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 40,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string subject and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[title-dc:title-Dissertation]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 40,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string title and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[version-cp:version-81.2.8]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 40,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "round trips core string version and distinguishes absence"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original strings replace source attribution/content; same named field reads/writes, empty and physical absence are observed. Shared model access and independent saved XML establish the bounded session equivalent."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_date_property_values[created-expected_value0]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 64,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps imported date lexical value 2020-05-06T07:08:09-02:30"
+        }
+      ],
+      "equivalence": "Original nonzero negative-hour-and-minute offset normalizes to UTC; independent literal expected instant replaces original fixture date.",
+      "source_behavior": {
+        "xml": "2012-11-17T11:07:40-05:30",
+        "utc": "2012-11-17T16:37:40Z"
+      }
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_date_property_values[last_printed-expected_value1]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 64,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "equivalence": "All three model UTC dates are assigned and independently reloaded; created/modified type annotation is checked in qualified XML, lastPrinted has none. Original timestamps replace fixture values while retaining precision and UTC semantics.",
+      "source_behavior": {
+        "xml": "2014-06-04T04:28:00Z",
+        "utc": "2014-06-04T04:28:00Z"
+      }
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_date_property_values[modified-None]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 64,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "equivalence": "All three model UTC dates are assigned and independently reloaded; created/modified type annotation is checked in qualified XML, lastPrinted has none. Original timestamps replace fixture values while retaining precision and UTC semantics.",
+      "source_behavior": {
+        "xml": "absent",
+        "value": null
+      }
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_date_property_values[created-dcterms:created-value0-2001-02-03T04:05:00Z- xsi:type=\"dcterms:W3CDTF\"]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 81,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "writes caller UTC seconds for created"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "equivalence": "All three model UTC dates are assigned and independently reloaded; created/modified type annotation is checked in qualified XML, lastPrinted has none. Original timestamps replace fixture values while retaining precision and UTC semantics."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_date_property_values[last_printed-cp:lastPrinted-value1-2014-06-04T04:00:00Z-]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 81,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "writes caller UTC seconds for last_printed"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "equivalence": "All three model UTC dates are assigned and independently reloaded; created/modified type annotation is checked in qualified XML, lastPrinted has none. Original timestamps replace fixture values while retaining precision and UTC semantics."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_date_property_values[modified-dcterms:modified-value2-2005-04-03T02:01:00Z- xsi:type=\"dcterms:W3CDTF\"]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 81,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "writes caller UTC seconds for modified"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "equivalence": "All three model UTC dates are assigned and independently reloaded; created/modified type annotation is checked in qualified XML, lastPrinted has none. Original timestamps replace fixture values while retaining precision and UTC semantics."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_revision_number[42-42]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 117,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps revision lexical value 42"
+        }
+      ],
+      "equivalence": "Preserve field identity, input category, exact numeric/date edge and resulting value or XML qualification; replace attribution-bearing strings with original content."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_revision_number[None-0]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 117,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Preserve field identity, input category, exact numeric/date edge and resulting value or XML qualification; replace attribution-bearing strings with original content."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_revision_number[foobar-0]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 117,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps revision lexical value not numeric"
+        }
+      ],
+      "equivalence": "Preserve field identity, input category, exact numeric/date edge and resulting value or XML qualification; replace attribution-bearing strings with original content."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_revision_number[-17-0]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 117,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps revision lexical value -17"
+        }
+      ],
+      "equivalence": "Preserve field identity, input category, exact numeric/date edge and resulting value or XML qualification; replace attribution-bearing strings with original content."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_revision_number[32.7-0]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 117,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps revision lexical value 32.7"
+        }
+      ],
+      "equivalence": "Preserve field identity, input category, exact numeric/date edge and resulting value or XML qualification; replace attribution-bearing strings with original content."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_revision_number",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 128,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Explicit positive integer assignment and independently checked saved XML; supplemental zero/invalid bounds follow target specification."
+    },
+    {
+      "source_node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_construct_a_default_core_props",
+      "source_file": "tests/parts/test_coreprops.py",
+      "source_line": 136,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "equivalence": "Original empty core part created lazily by bounded session getter; default strings empty, dates absent, revision zero. This deliberately replaces branded title/editor, wall-clock modified time and revision one with deterministic neutral defaults under format §6.3. All fields can then be set, saved and independently reloaded."
+    },
+    {
+      "source_node_id": "tests/parts/test_presentation.py::DescribePresentationPart::it_provides_access_to_its_core_properties",
+      "source_file": "tests/parts/test_presentation.py",
+      "source_line": 36,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Source proxy/mock wiring is replaced by an owned bounded session with synchronous live core_properties and independently checked saved output. Full Presentation/package factory wiring remains explicitly unsupported in API receipt."
+    },
+    {
+      "source_node_id": "tests/test_package.py::DescribePackage::it_provides_access_to_its_core_properties_part",
+      "source_file": "tests/test_package.py",
+      "source_line": 27,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Source proxy/mock wiring is replaced by an owned bounded session with synchronous live core_properties and independently checked saved output. Full Presentation/package factory wiring remains explicitly unsupported in API receipt."
+    },
+    {
+      "source_node_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_core_properties",
+      "source_file": "tests/test_presentation.py",
+      "source_line": 40,
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Source proxy/mock wiring is replaced by an owned bounded session with synchronous live core_properties and independently checked saved output. Full Presentation/package factory wiring remains explicitly unsupported in API receipt."
+    }
+  ],
+  "bdd_cases": [
+    {
+      "source_file": "features/prs-coreprops.feature",
+      "source_line": 6,
+      "source_name": "round-trip Dublin Core metadata describing a presentation",
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "All 15 neutral scalar properties are assigned through bounded live metadata object, including Unicode strings and all three dates, then saved and independently reloaded. Test starts without core part and therefore also exercises missing-part creation."
+    },
+    {
+      "source_file": "features/prs-coreprops.feature",
+      "source_line": 12,
+      "source_name": "default core props part added if deck doesn't have one",
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "Original authored missing-part input; noncreating query/save first proves absence, bounded live getter then creates part. Default model values are neutral empty/null/zero under target spec, not branded source defaults or implicit clock."
+    },
+    {
+      "source_file": "features/prs-coreprops.feature",
+      "source_line": 16,
+      "source_name": "added core props part is saved",
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "provides all neutral accessors with absent defaults and Date copies"
+        }
+      ],
+      "equivalence": "All 15 neutral scalar properties are assigned through bounded live metadata object, including Unicode strings and all three dates, then saved and independently reloaded. Test starts without core part and therefore also exercises missing-part creation."
+    }
+  ],
+  "supplemental_obligations": [
+    {
+      "id": "string-boundary",
+      "behavior": "Every known string is bounded at 255 Unicode code points; 255 astral characters pass and 256 fail. Absent and empty have identical model read but distinct property listing/removal behavior.",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "bounds strings by Unicode points and revisions without coercion"
+        }
+      ],
+      "status": "mapped_original_cases_worker_verified"
+    },
+    {
+      "id": "coercion-boundary",
+      "behavior": "Reject object/boolean/number inputs to string setters without invoking user coercion hooks; preserve explicit empty string.",
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/command-metadata.test.ts",
+          "title": "exposes plural properties with declared conversion, empty values and absent errors"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "bounds strings by Unicode points and revisions without coercion"
+        }
+      ]
+    },
+    {
+      "id": "date-conversion",
+      "behavior": "Read year, year-month, full date, UTC date-time and positive/negative offsets as UTC; empty/absent/malformed map to null model reads. Caller Date mutation cannot mutate metadata. Write whole UTC seconds; reject invalid dates and timezone guessing.",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps imported date lexical value 2020"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps imported date lexical value 2020-05"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps imported date lexical value 2020-05-06"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps imported date lexical value 2020-05-06T07:08:09+02:00"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps imported date lexical value 2020-05-06T07:08:09-02:30"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps imported date lexical value "
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps imported date lexical value bad date"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps imported date lexical value 2023-02-29T00:00:00Z"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "creates missing core metadata through the live getter and reloads all dates"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "repairs required date type annotation on an edited imported value"
+        }
+      ],
+      "status": "mapped_original_cases_worker_verified"
+    },
+    {
+      "id": "revision-boundary",
+      "behavior": "Read malformed, fractional, negative or missing revisions as zero. Write finite safe nonnegative integer including zero; reject bool/string/fraction/negative/unsafe. No automatic increment.",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "bounds strings by Unicode points and revisions without coercion"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps revision lexical value 42"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps revision lexical value "
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps revision lexical value not numeric"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps revision lexical value -17"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps revision lexical value 32.7"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps revision lexical value 7.0"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "maps revision lexical value 0x10"
+        }
+      ],
+      "status": "mapped_original_cases_worker_verified"
+    },
+    {
+      "id": "custom-types",
+      "behavior": "Explicit string/number/boolean/date types; preserve unknown value-type elements and namespace bindings. Conflicting explicit type, duplicate names, core-name collisions and ambiguous records fail atomically.",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "retains explicit custom string values"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "retains explicit custom number values"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "retains explicit custom boolean values"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "retains explicit custom date values"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "retains imported i4 integer bounds"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "retains imported int integer bounds"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "rejects duplicate custom names and collisions with known core names"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "uses strict custom namespaces in an imported strict presentation"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "classifies edits to opaque custom values as unsupported and preserves input"
+        }
+      ],
+      "status": "mapped_original_cases_worker_verified"
+    },
+    {
+      "id": "tags",
+      "behavior": "Presentation and selected slide tag lists use owned OPC tag relationships; preserve other scopes, foreign namespaces and custom XML association parts. Empty value differs from missing name; duplicate names fail.",
+      "status": "mapped_original_cases_worker_verified",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/tags.test.ts",
+          "title": "creates empty and Unicode tags with deterministic packages and isolated owners"
+        },
+        {
+          "file": "packages/pptx/src/tags.test.ts",
+          "title": "rejects duplicate names, ambiguous edits and invalid XML input"
+        },
+        {
+          "file": "packages/pptx/src/tags.test.ts",
+          "title": "preserves foreign tag content and custom XML associations in both dialects"
+        }
+      ]
+    },
+    {
+      "id": "sanitization-boundary",
+      "behavior": "Policy removal targets supported core/custom properties only. Unknown metadata/types, foreign namespaces, custom XML relationships, presentation/slide tags and extended application metadata remain. This bounded operation is not a complete privacy scrub.",
+      "target_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "keeps unknown types and namespaced associations while sanitizing supported scalars"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "rejects duplicate names and retains foreign metadata during sanitization"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "preserves extensions nested under recognized metadata"
+        },
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "title": "preserves unknown declared XML types at metadata sanitization boundaries"
+        }
+      ],
+      "status": "mapped_original_cases_worker_verified"
+    }
+  ],
+  "limits": "This receipt is bounded to metadata. Unrelated inherited members, collections, enums, helpers and public APIs remain visible in the full API inventory; no whole-public-API conformance claim.",
+  "source_conversion_observation": {
+    "file": "src/pptx/oxml/coreprops.py",
+    "native_runtime_executed": false,
+    "partial_dates": [
+      "2003",
+      "2003-12",
+      "2003-12-31"
+    ],
+    "offsets": [
+      "+05:30",
+      "-05:30"
+    ],
+    "bounds": {
+      "unicode_codepoints": 255,
+      "revision_source_setter_minimum": 1,
+      "revision_target_setter_minimum": 0
+    },
+    "source_parser_quirk": "Pinned parser slices the first 19 characters and applies an offset only when the suffix length is six; other suffixes can be ignored. The target rejects malformed timezone syntax rather than importing this permissiveness.",
+    "mapping": "Supplemental original cases prove strict target syntax, invalid-date rejection and UTC values; source-specific parser mechanics are not a public format compatibility promise."
+  },
+  "format_schema_evidence": {
+    "source_file": "/tmp/pptx-upstream-review/spec/ISO-IEC-29500-1/schemas/xsd/pml.xsd",
+    "sha256": "2ed654a4dd7263a41f8bd12c6af034db208aadc11ea6d0e0824b0801e0335ef1",
+    "source_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+    "read_only": true,
+    "observations": [
+      {
+        "type": "CT_CustomerDataList",
+        "line": 753,
+        "behavior": "Zero or more custData children precede optional tags child; preserve existing custom XML references."
+      },
+      {
+        "type": "CT_CommonSlideData",
+        "line": 1334,
+        "behavior": "custDataLst follows bg/spTree and precedes controls/extLst."
+      },
+      {
+        "type": "CT_StringTag",
+        "line": 1489,
+        "behavior": "Required name and val are xsd:string; product preserves case and explicit empty values, while lookup names obey nonempty command contract."
+      },
+      {
+        "type": "CT_TagList",
+        "line": 1493,
+        "behavior": "Zero or more tag elements; duplicate-name ambiguity is explicit product validation, not inferred uniqueness in this schema."
+      }
+    ]
+  },
+  "verification": {
+    "properties_worker_report": "51 properties.test.ts cases passed, plus 1 creation-properties.test.ts and 32 creation.test.ts cases (84 combined). Final property regressions classify opaque edits as unsupported and reject permissive revision conversions.",
+    "whole_pipeline_executed": false,
+    "command_worker_report": "npx vitest run packages/pptx/src/tags.test.ts packages/pptx/src/command-metadata.test.ts passed 6/6: 3 tags and 3 commands. Safe-bash built-export integration maintained verification belongs to root.",
+    "root_maintained_workspace_checkpoint": {
+      "status": "passed_before_final_three_property_regression_variants",
+      "files": 167,
+      "cases": 4228,
+      "note": "Do not infer a newer whole-suite total. Final scoped property rerun passed 51 cases."
+    },
+    "root_selected_workspace_build": "passed",
+    "root_discovery_type_accounting": "3 cases passed",
+    "screenshot": {
+      "path": ".cache/pptx-properties-tags-help.png",
+      "status": "root inspected",
+      "behavior": "Actual Shell help and missing-destination exit 2; full visible output without clipping."
+    }
+  }
+}

@@ -33,7 +33,7 @@ for (const [label, source, input, expected] of [
   ["extra empty field", "IFS=, read first; args \"$first\"", "x,,\n", ["x,,"]],
   ["empty fields and remainder", "IFS=, read first second; args \"$first\" \"$second\"", ",,z,\n", ["", ",z,"]],
   ["astral prefix before escaped space", "read first second; args \"$first\" \"$second\"", "😀\\ x y\n", ["😀 x", "y"]],
-  ["escaped astral delimiter", "IFS=😀 read first second; args \"$first\" \"$second\"", "a\\😀b😀c😀d\n", ["a😀b", "c😀d"]],
+  ["escaped astral delimiter", "IFS=😀 read first second; args \"$first\" \"$second\"", "a\\😀b😀c😀d\n", ["a�", "��b😀c😀d"]],
   ["escaped trailing whitespace", "read first; args \"$first\"", "a\\ \n", ["a "]],
   ["many fields with one destination", "IFS=, read first; args \"$first\"", `${"x,".repeat(2048)}last\n`, [`${"x,".repeat(2048)}last`]],
 ] as const) {

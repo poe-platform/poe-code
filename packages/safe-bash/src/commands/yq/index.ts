@@ -1,6 +1,7 @@
 import { escapeText } from "../../escaping.js";
 import { pathOf } from "../internal.js";
 import {
+  commandRuntimeIdentity,
   createOutputOperation,
   FsError,
   getCommandArguments,
@@ -337,6 +338,16 @@ async function collectSource(
   vfs: boolean,
   inputFormat: "yaml" | "toml",
 ): Promise<InputFrame[]> {
+  let producer: AsyncIterator<Uint8Array> | undefined;
+  let finished = false;
+  let producerReturn: Promise<IteratorResult<Uint8Array>> | undefined;
+  const closeProducer = (): Promise<IteratorResult<Uint8Array>> => {
+    if (producerReturn) return producerReturn;
+    if (!producer || finished || !producer.return) return Promise.resolve({ done: true, value: undefined });
+    producerReturn = Promise.resolve().then(() => producer!.return!());
+    return producerReturn;
+  };
+  owner.register(async () => { await closeProducer(); });
   let iterator: AsyncIterator<Uint8Array> | undefined;
   let returned: Promise<unknown> | undefined;
   owner.register(async () => {
@@ -345,7 +356,19 @@ async function collectSource(
       await returned;
     }
   });
-  iterator = readBytes(source, context.signal)[Symbol.asyncIterator]();
+  iterator = readBytes({ [Symbol.asyncIterator]() {
+    owner.assertOpen(context.signal);
+    producer = source[Symbol.asyncIterator]();
+    return {
+      async next() {
+        owner.assertOpen(context.signal);
+        const next = await producer!.next();
+        if (next.done) finished = true;
+        return next;
+      },
+      return: closeProducer,
+    };
+  } }, context.signal)[Symbol.asyncIterator]();
   const chunks: Uint8Array[] = [];
   const framer = inputFormat === "yaml" ? new RawDocumentFramer() : undefined;
   let size = 0;
@@ -361,7 +384,9 @@ async function collectSource(
     owner.assertOpen(context.signal);
     if (next.done) break;
     const chunk = next.value;
-    if (inputFormat === "toml") await session.ownedWork.charge();
+    await session.ownedWork.charge(1);
+    owner.assertOpen(context.signal);
+    if (chunk.byteLength === 0) continue;
     session.ownedWork.admitInputBytes(chunk.byteLength);
     if (chunk.byteLength > yqCaps.maxInputBytes - size) throw fromJqLimit(new JqLimitError("maxInputBytes"));
     if (inputFormat === "toml" && chunk.byteLength > yqCaps.maxDocumentBytes - size) throw new YqError("limit", "LIMIT_MAX_DOCUMENT_BYTES", 5);
@@ -643,6 +668,7 @@ export function createYqCommand(options: YqCommandsOptions = {}): CommandDefinit
   const { inputFormat } = admittedOptions(options);
   return Object.freeze({
     name: "yq",
+    runtimeIdentity: commandRuntimeIdentity,
     description: "Bounded restricted YAML/TOML query and formatter",
     execute: (context: CommandContext) => execute(context, inputFormat),
   });

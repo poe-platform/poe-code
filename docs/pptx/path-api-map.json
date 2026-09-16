@@ -1,0 +1,627 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "Bounded custom path implementation versus complete freeform public API obligations. Research-only provenance; no whole-public-API claim.",
+  "notice": "See upstream-license-notice.txt for source research and public-api-map-notice.txt for the prior mapping material.",
+  "counts": {
+    "inventoryRecords": 26,
+    "supplementalSourceMembers": 6
+  },
+  "languageSecurityMappings": {
+    "names": "Neutral snake_case retained for model methods/properties. Typed operation options remain camelCase.",
+    "coordinates": "Current ShapePath uses explicit emu integer coordinates and viewport width/height, bounded to 2147483647 magnitude and 4096 commands; no implicit scaling, origin normalization, coordinate rounding, formula evaluation or native geometry engine. Builder construction J05 mapping remains deferred.",
+    "rounding": "Eventual float-to-Length builder operations use J05 halfway-away-from-zero with finite/safe checks; reference constructor rounding ties-to-even is a deliberate mapped difference. Current path coordinates reject all fractions.",
+    "collections": "Future negative at/index lookup and slicing follow source sequence semantics. Slice step is explicitly supported by J03 despite older inventory signature omitting it; zero/noninteger step fails. Includes/count/index compare owned operation identity; missing index raises typed ValueError.",
+    "ownership": "apply_operation_to remains a public obligation on returned operation types, security-mapped to owned validated path/node views; no arbitrary XPath/XML/host objects.",
+    "errors": "Malformed path is invalid-value; unknown commands/formula-bearing existing geometry cannot be edited; unsupported-edit is explicit. Model IndexError/ValueError/PropertyAccessError remain future obligations where model API absent.",
+    "closure": "Explicit close command closes one active nonempty subpath; moving restarts after closure. Existing command order is retained for nonzero winding. No boolean contour subtraction or render/geometry-engine equivalence claimed."
+  },
+  "rows": [
+    {
+      "sourceId": "pptx.enum.shapes.MSO_SHAPE_TYPE.FREEFORM",
+      "inventory": "upstream-api-inventory.json#/objects/1374",
+      "sourceKind": "enum-member",
+      "sourceEvidence": {
+        "file": "src/pptx/enum/shapes.py",
+        "line": 798,
+        "end_line": 798
+      },
+      "declaredOn": null,
+      "targetSignature": "MSO_SHAPE_TYPE.FREEFORM = 5",
+      "defaults": {},
+      "status": "implemented-existing",
+      "reason": "Existing enum value and shape classification covered by independent original assertions.",
+      "mappingRules": ["J01", "J04"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "read-only unless specified by mapped constructor",
+      "tests": [
+        {
+          "file": "packages/pptx/src/shapes.test.ts",
+          "title": "classifies supported shape categories %s"
+        },
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "classifies primitive shapes independently %s %s"
+        }
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder",
+      "inventory": "upstream-api-inventory.json#/objects/1648",
+      "sourceKind": "type",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 26,
+        "end_line": 247
+      },
+      "declaredOn": null,
+      "targetSignature": "returned live FreeformBuilder interface",
+      "defaults": {},
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "read-only unless specified by mapped constructor",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.__contains__",
+      "inventory": "upstream-api-inventory.json#/objects/1649",
+      "sourceKind": "protocol",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 26,
+        "end_line": 247
+      },
+      "declaredOn": "collections.abc.Sequence",
+      "targetSignature": "includes(value: DrawingOperation): boolean",
+      "defaults": {},
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01", "J03"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "read-only unless specified by mapped constructor",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.__getitem__",
+      "inventory": "upstream-api-inventory.json#/objects/1650",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 54,
+        "end_line": 57
+      },
+      "declaredOn": "pptx.shapes.freeform.FreeformBuilder",
+      "targetSignature": "[index: number]: DrawingOperation; at(index: number): DrawingOperation; slice(start?: number, end?: number, step?: number): readonly DrawingOperation[]",
+      "defaults": {
+        "sliceStep": 1
+      },
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01", "J03"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "read-only unless specified by mapped constructor",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.__init__",
+      "inventory": "upstream-api-inventory.json#/objects/1651",
+      "sourceKind": "constructor",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 26,
+        "end_line": 247
+      },
+      "declaredOn": null,
+      "targetSignature": "construction through owning GroupShapes/SlideShapes; no arbitrary XML allocation",
+      "defaults": {},
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "read-only unless specified by mapped constructor",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.__iter__",
+      "inventory": "upstream-api-inventory.json#/objects/1652",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 59,
+        "end_line": 60
+      },
+      "declaredOn": "pptx.shapes.freeform.FreeformBuilder",
+      "targetSignature": "[Symbol.iterator](): Iterator<DrawingOperation>",
+      "defaults": {},
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01", "J03"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "read-only unless specified by mapped constructor",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.__len__",
+      "inventory": "upstream-api-inventory.json#/objects/1653",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 62,
+        "end_line": 63
+      },
+      "declaredOn": "pptx.shapes.freeform.FreeformBuilder",
+      "targetSignature": "readonly length: number",
+      "defaults": {},
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01", "J03"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "read-only unless specified by mapped constructor",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.__reversed__",
+      "inventory": "upstream-api-inventory.json#/objects/1654",
+      "sourceKind": "protocol",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 26,
+        "end_line": 247
+      },
+      "declaredOn": "collections.abc.Sequence",
+      "targetSignature": "reversed(): Iterable<DrawingOperation>",
+      "defaults": {},
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01", "J03"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "read-only unless specified by mapped constructor",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.add_line_segments",
+      "inventory": "upstream-api-inventory.json#/objects/1655",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 81,
+        "end_line": 94
+      },
+      "declaredOn": "pptx.shapes.freeform.FreeformBuilder",
+      "targetSignature": "add_line_segments(vertices: Iterable<readonly [number, number]>, close?: boolean): this",
+      "defaults": {
+        "close": true
+      },
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "appends ordered builder operations; optional close; returns same builder",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.close",
+      "inventory": "upstream-api-inventory.json#/objects/1656",
+      "sourceKind": "documentation-error",
+      "sourceEvidence": null,
+      "declaredOn": null,
+      "targetSignature": "No close member. Correct recipe: add_line_segments(vertices, true).",
+      "defaults": {},
+      "status": "documentation-error",
+      "reason": "Pinned source has no close method; do not invent an alias for erroneous prose. Corrected builder recipe remains deferred.",
+      "mappingRules": ["J01"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "read-only unless specified by mapped constructor",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.convert_to_shape",
+      "inventory": "upstream-api-inventory.json#/objects/1657",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 96,
+        "end_line": 109
+      },
+      "declaredOn": "pptx.shapes.freeform.FreeformBuilder",
+      "targetSignature": "convert_to_shape(origin_x?: Length, origin_y?: Length): Shape",
+      "defaults": {
+        "origin_x": "Emu(0)",
+        "origin_y": "Emu(0)"
+      },
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "creates a new shape on each call; retains reusable builder",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.count",
+      "inventory": "upstream-api-inventory.json#/objects/1658",
+      "sourceKind": "protocol",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 26,
+        "end_line": 247
+      },
+      "declaredOn": "collections.abc.Sequence",
+      "targetSignature": "count(value: DrawingOperation): number",
+      "defaults": {},
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01", "J03"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "read-only unless specified by mapped constructor",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.index",
+      "inventory": "upstream-api-inventory.json#/objects/1659",
+      "sourceKind": "protocol",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 26,
+        "end_line": 247
+      },
+      "declaredOn": "collections.abc.Sequence",
+      "targetSignature": "index(value: DrawingOperation, start?: number, stop?: number): number",
+      "defaults": {
+        "start": 0,
+        "stop": "length"
+      },
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01", "J03"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "read-only unless specified by mapped constructor",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.move_to",
+      "inventory": "upstream-api-inventory.json#/objects/1660",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 111,
+        "end_line": 117
+      },
+      "declaredOn": "pptx.shapes.freeform.FreeformBuilder",
+      "targetSignature": "move_to(x: number, y: number): this",
+      "defaults": {},
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "appends move operation; returns same builder",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform._Close",
+      "inventory": "upstream-api-inventory.json#/objects/1661",
+      "sourceKind": "type",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 286,
+        "end_line": 296
+      },
+      "declaredOn": null,
+      "targetSignature": "returned DrawingOperation view; leading underscore does not remove public obligation",
+      "defaults": {},
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "read-only unless specified by mapped constructor",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform._Close.apply_operation_to",
+      "inventory": "upstream-api-inventory.json#/objects/1662",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 294,
+        "end_line": 296
+      },
+      "declaredOn": "pptx.shapes.freeform._Close",
+      "targetSignature": "apply_operation_to(path: OwnedValidatedPathView): OwnedValidatedXmlElementView",
+      "defaults": {},
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01", "J09"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "mutates only same-owner validated path and returns owned inserted node; arbitrary XML/host access rejected",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform._LineSegment",
+      "inventory": "upstream-api-inventory.json#/objects/1663",
+      "sourceKind": "type",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 299,
+        "end_line": 318
+      },
+      "declaredOn": null,
+      "targetSignature": "returned DrawingOperation view; leading underscore does not remove public obligation",
+      "defaults": {},
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "read-only unless specified by mapped constructor",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform._LineSegment.apply_operation_to",
+      "inventory": "upstream-api-inventory.json#/objects/1664",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 310,
+        "end_line": 318
+      },
+      "declaredOn": "pptx.shapes.freeform._LineSegment",
+      "targetSignature": "apply_operation_to(path: OwnedValidatedPathView): OwnedValidatedXmlElementView",
+      "defaults": {},
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01", "J09"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "mutates only same-owner validated path and returns owned inserted node; arbitrary XML/host access rejected",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform._LineSegment.x",
+      "inventory": "upstream-api-inventory.json#/objects/1665",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 270,
+        "end_line": 275
+      },
+      "declaredOn": "pptx.shapes.freeform._BaseDrawingOperation",
+      "targetSignature": "readonly x: Length",
+      "defaults": {},
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01", "J02"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "read-only unless specified by mapped constructor",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform._LineSegment.y",
+      "inventory": "upstream-api-inventory.json#/objects/1666",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 278,
+        "end_line": 283
+      },
+      "declaredOn": "pptx.shapes.freeform._BaseDrawingOperation",
+      "targetSignature": "readonly y: Length",
+      "defaults": {},
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01", "J02"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "read-only unless specified by mapped constructor",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform._MoveTo",
+      "inventory": "upstream-api-inventory.json#/objects/1667",
+      "sourceKind": "type",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 321,
+        "end_line": 337
+      },
+      "declaredOn": null,
+      "targetSignature": "returned DrawingOperation view; leading underscore does not remove public obligation",
+      "defaults": {},
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "read-only unless specified by mapped constructor",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform._MoveTo.apply_operation_to",
+      "inventory": "upstream-api-inventory.json#/objects/1668",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 332,
+        "end_line": 337
+      },
+      "declaredOn": "pptx.shapes.freeform._MoveTo",
+      "targetSignature": "apply_operation_to(path: OwnedValidatedPathView): OwnedValidatedXmlElementView",
+      "defaults": {},
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01", "J09"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "mutates only same-owner validated path and returns owned inserted node; arbitrary XML/host access rejected",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform._MoveTo.x",
+      "inventory": "upstream-api-inventory.json#/objects/1669",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 270,
+        "end_line": 275
+      },
+      "declaredOn": "pptx.shapes.freeform._BaseDrawingOperation",
+      "targetSignature": "readonly x: Length",
+      "defaults": {},
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01", "J02"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "read-only unless specified by mapped constructor",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform._MoveTo.y",
+      "inventory": "upstream-api-inventory.json#/objects/1670",
+      "sourceKind": "property",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 278,
+        "end_line": 283
+      },
+      "declaredOn": "pptx.shapes.freeform._BaseDrawingOperation",
+      "targetSignature": "readonly y: Length",
+      "defaults": {},
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01", "J02"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "read-only unless specified by mapped constructor",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.build_freeform",
+      "inventory": "upstream-api-inventory.json#/objects/2047",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/shapetree.py",
+        "line": 398,
+        "end_line": 419
+      },
+      "declaredOn": "pptx.shapes.shapetree._BaseGroupShapes",
+      "targetSignature": "build_freeform(start_x?: number, start_y?: number, scale?: number | readonly [number, number]): FreeformBuilder",
+      "defaults": {
+        "start_x": 0,
+        "start_y": 0,
+        "scale": 1
+      },
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "returns owned builder; no shape until conversion",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.build_freeform",
+      "inventory": "upstream-api-inventory.json#/objects/2140",
+      "sourceKind": "function",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/shapetree.py",
+        "line": 398,
+        "end_line": 419
+      },
+      "declaredOn": "pptx.shapes.shapetree._BaseGroupShapes",
+      "targetSignature": "build_freeform(start_x?: number, start_y?: number, scale?: number | readonly [number, number]): FreeformBuilder",
+      "defaults": {
+        "start_x": 0,
+        "start_y": 0,
+        "scale": 1
+      },
+      "status": "deferred-public-api",
+      "reason": "No live model builder or operation-view API is implemented. Typed bounded path operation JSON is an additional interface, not a replacement parity claim.",
+      "mappingRules": ["J01"],
+      "cli": "shapes paths add/get/set is bounded operation counterpart only; no generic public method evaluator",
+      "sideEffects": "returns owned builder; no shape until conversion",
+      "tests": []
+    }
+  ],
+  "supplementalSourceMembers": [
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.new",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 66
+      },
+      "status": "deferred-public-api",
+      "drift": "Public source member absent from reconciled inventory; retained here rather than silently excluded.",
+      "targetSignature": "static new(shapes: OwnedShapes, start_x: number, start_y: number, x_scale: number, y_scale: number): FreeformBuilder",
+      "security": "Owned shapes only; no raw XML/host I/O. Numbers follow J05 conversion; path JSON is integer-only and does not silently round.",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.shape_offset_x",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 120
+      },
+      "status": "deferred-public-api",
+      "drift": "Public source member absent from reconciled inventory; retained here rather than silently excluded.",
+      "targetSignature": "readonly shape_offset_x: Length",
+      "security": "Owned shapes only; no raw XML/host I/O. Numbers follow J05 conversion; path JSON is integer-only and does not silently round.",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.shape_offset_y",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 133
+      },
+      "status": "deferred-public-api",
+      "drift": "Public source member absent from reconciled inventory; retained here rather than silently excluded.",
+      "targetSignature": "readonly shape_offset_y: Length",
+      "security": "Owned shapes only; no raw XML/host I/O. Numbers follow J05 conversion; path JSON is integer-only and does not silently round.",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform._Close.new",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 290
+      },
+      "status": "deferred-construction-review",
+      "drift": "Source classmethod on returned public operation type is not inventoried. No raw allocation is promised, but leading underscore is not a privacy exemption.",
+      "targetSignature": "static new(): CloseOperation",
+      "security": "Any eventual operation factory must retain same-owner builder/path authority. Existing path records do not expose operation methods.",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform._LineSegment.new",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 303
+      },
+      "status": "deferred-construction-review",
+      "drift": "Source classmethod on returned public operation type is not inventoried. No raw allocation is promised, but leading underscore is not a privacy exemption.",
+      "targetSignature": "static new(builder: FreeformBuilder, x: number, y: number): LineOperation",
+      "security": "Any eventual operation factory must retain same-owner builder/path authority. Existing path records do not expose operation methods.",
+      "tests": []
+    },
+    {
+      "sourceId": "pptx.shapes.freeform._MoveTo.new",
+      "sourceEvidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 325
+      },
+      "status": "deferred-construction-review",
+      "drift": "Source classmethod on returned public operation type is not inventoried. No raw allocation is promised, but leading underscore is not a privacy exemption.",
+      "targetSignature": "static new(builder: FreeformBuilder, x: number, y: number): MoveOperation",
+      "security": "Any eventual operation factory must retain same-owner builder/path authority. Existing path records do not expose operation methods.",
+      "tests": []
+    }
+  ],
+  "boundedOperationSurface": {
+    "types": ["ShapePath", "ShapePathCommand", "AddShapePathOptions", "SetShapePathOptions"],
+    "functions": [
+      "validateShapePath",
+      "readShapePath",
+      "applyShapePath",
+      "shapePathXml",
+      "pathFromVertices",
+      "readShapePaths",
+      "addShapePath",
+      "setShapePath"
+    ],
+    "routes": ["shapes paths add", "shapes paths get", "shapes paths set"],
+    "status": "Implemented bounded operation API; tests and maintained-check receipt recorded in parent task plan. It does not instantiate FreeformBuilder."
+  }
+}

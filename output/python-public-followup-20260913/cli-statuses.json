@@ -1,0 +1,23 @@
+[
+  {
+    "source": "python -c \"print(42)\" | cat",
+    "status": 0,
+    "signal": null,
+    "stdout": "42\n",
+    "stderr": "Initializing Python...\n"
+  },
+  {
+    "source": "python3 -c \"raise ValueError(42)\"",
+    "status": 1,
+    "signal": null,
+    "stdout": "",
+    "stderr": "Initializing Python...\nTraceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n    raise ValueError(42)\nValueError: 42\n"
+  },
+  {
+    "source": "python -i",
+    "status": 2,
+    "signal": null,
+    "stdout": "",
+    "stderr": "python: unsupported option -i\n"
+  }
+]

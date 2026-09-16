@@ -1,0 +1,177 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/table-active-grid.test.ts (6 tests | 6 failed) 261ms
+   × inspects the active table grid without fabricating fallback columns 53ms
+   × inspects active omitted slots wrapped at properties 43ms
+   × inspects active omitted slots wrapped at before 41ms
+   × inspects active omitted slots wrapped at after 38ms
+   × uses the selected fallback grid when a choice namespace is unsupported 46ms
+   × resolves an active grid under a renamed word namespace 40ms
+FAIL packages/docx/src/table-active-grid.test.ts > inspects the active table grid without fabricating fallback columns
+Error: Staged document validation failed.
+ ❯ DocumentArchiveEditor.snapshot packages/docx/src/package-write.ts:78:32
+     76|         maxParts: this.#budget.limits.zipEntries
+     77|       }, this.#budget);
+     78|       if (!report.valid) throw new SemanticValidationError(report.diag…
+       |                                ^
+     79|     }
+     80|     return staged;
+ ❯ new DocumentLocations packages/docx/src/locations.ts:78:132
+ ❯ openDocumentLocations packages/docx/src/locations.ts:55:10
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:32:20
+ ❯ packages/docx/src/table-active-grid.test.ts:12:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { part: undefined, location: '/', diagnosticCode: 'package-structure', code: 'invalid-package', diagnostics: [ { code: 'table-grid', part: '/word/document.xml', location: '/document[1]/body[1]/tbl[1]/tr[2]', message: 'Row cells and omitted slots disagree with the table grid.' } ] }
+FAIL packages/docx/src/table-active-grid.test.ts > inspects active omitted slots wrapped at properties
+Error: Staged document validation failed.
+ ❯ DocumentArchiveEditor.snapshot packages/docx/src/package-write.ts:78:32
+     76|         maxParts: this.#budget.limits.zipEntries
+     77|       }, this.#budget);
+     78|       if (!report.valid) throw new SemanticValidationError(report.diag…
+       |                                ^
+     79|     }
+     80|     return staged;
+ ❯ new DocumentLocations packages/docx/src/locations.ts:78:132
+ ❯ openDocumentLocations packages/docx/src/locations.ts:55:10
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:32:20
+ ❯ packages/docx/src/table-active-grid.test.ts:24:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { part: undefined, location: '/', diagnosticCode: 'package-structure', code: 'invalid-package', diagnostics: [ { code: 'table-grid', part: '/word/document.xml', location: '/document[1]/body[1]/tbl[1]/tr[2]', message: 'Row cells and omitted slots disagree with the table grid.' } ] }
+FAIL packages/docx/src/table-active-grid.test.ts > inspects active omitted slots wrapped at before
+Error: Staged document validation failed.
+ ❯ DocumentArchiveEditor.snapshot packages/docx/src/package-write.ts:78:32
+     76|         maxParts: this.#budget.limits.zipEntries
+     77|       }, this.#budget);
+     78|       if (!report.valid) throw new SemanticValidationError(report.diag…
+       |                                ^
+     79|     }
+     80|     return staged;
+ ❯ new DocumentLocations packages/docx/src/locations.ts:78:132
+ ❯ openDocumentLocations packages/docx/src/locations.ts:55:10
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:32:20
+ ❯ packages/docx/src/table-active-grid.test.ts:24:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { part: undefined, location: '/', diagnosticCode: 'package-structure', code: 'invalid-package', diagnostics: [ { code: 'table-grid', part: '/word/document.xml', location: '/document[1]/body[1]/tbl[1]/tr[2]', message: 'Row cells and omitted slots disagree with the table grid.' } ] }
+FAIL packages/docx/src/table-active-grid.test.ts > inspects active omitted slots wrapped at after
+Error: Staged document validation failed.
+ ❯ DocumentArchiveEditor.snapshot packages/docx/src/package-write.ts:78:32
+     76|         maxParts: this.#budget.limits.zipEntries
+     77|       }, this.#budget);
+     78|       if (!report.valid) throw new SemanticValidationError(report.diag…
+       |                                ^
+     79|     }
+     80|     return staged;
+ ❯ new DocumentLocations packages/docx/src/locations.ts:78:132
+ ❯ openDocumentLocations packages/docx/src/locations.ts:55:10
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:32:20
+ ❯ packages/docx/src/table-active-grid.test.ts:24:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { part: undefined, location: '/', diagnosticCode: 'package-structure', code: 'invalid-package', diagnostics: [ { code: 'table-grid', part: '/word/document.xml', location: '/document[1]/body[1]/tbl[1]/tr[2]', message: 'Row cells and omitted slots disagree with the table grid.' } ] }
+FAIL packages/docx/src/table-active-grid.test.ts > uses the selected fallback grid when a choice namespace is unsupported
+RangeError: Table dimensions must be positive.
+ ❯ DocumentBudget.table packages/docx/src/budget.ts:116:40
+    114|     this.check("tableRows", rows);
+    115|     this.check("tableColumns", columns);
+    116|     if (rows < 1 || columns < 1) throw new InvalidValueError("Table di…
+       |                                        ^
+    117|     if (rows > Math.floor(this.limits.tableCells / columns))
+    118|       throw new ResourceLimitError("Document tableCells limit exceeded…
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:44:10
+ ❯ packages/docx/src/table-active-grid.test.ts:32:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'usage' }
+FAIL packages/docx/src/table-active-grid.test.ts > resolves an active grid under a renamed word namespace
+Error: Staged document validation failed.
+ ❯ DocumentArchiveEditor.snapshot packages/docx/src/package-write.ts:78:32
+     76|         maxParts: this.#budget.limits.zipEntries
+     77|       }, this.#budget);
+     78|       if (!report.valid) throw new SemanticValidationError(report.diag…
+       |                                ^
+     79|     }
+     80|     return staged;
+ ❯ new DocumentLocations packages/docx/src/locations.ts:78:132
+ ❯ openDocumentLocations packages/docx/src/locations.ts:55:10
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:32:20
+ ❯ packages/docx/src/table-active-grid.test.ts:39:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { part: undefined, location: '/', diagnosticCode: 'package-structure', code: 'invalid-package', diagnostics: [ { code: 'table-grid', part: '/word/document.xml', location: '/document[1]/body[1]/tbl[1]', message: 'A table needs one nonempty grid.' }, { code: 'table-grid', part: '/word/document.xml', location: '/document[1]/body[1]/tbl[1]/tr[2]', message: 'Row cells and omitted slots disagree with the table grid.' } ] }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/table-active-grid.test.ts > inspects the active table grid without fabricating fallback columns
+Error: Staged document validation failed.
+ ❯ DocumentArchiveEditor.snapshot packages/docx/src/package-write.ts:78:32
+     76|         maxParts: this.#budget.limits.zipEntries
+     77|       }, this.#budget);
+     78|       if (!report.valid) throw new SemanticValidationError(report.diag…
+       |                                ^
+     79|     }
+     80|     return staged;
+ ❯ new DocumentLocations packages/docx/src/locations.ts:78:132
+ ❯ openDocumentLocations packages/docx/src/locations.ts:55:10
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:32:20
+ ❯ packages/docx/src/table-active-grid.test.ts:12:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  packages/docx/src/table-active-grid.test.ts > inspects active omitted slots wrapped at properties
+ FAIL  packages/docx/src/table-active-grid.test.ts > inspects active omitted slots wrapped at before
+ FAIL  packages/docx/src/table-active-grid.test.ts > inspects active omitted slots wrapped at after
+Error: Staged document validation failed.
+ ❯ DocumentArchiveEditor.snapshot packages/docx/src/package-write.ts:78:32
+     76|         maxParts: this.#budget.limits.zipEntries
+     77|       }, this.#budget);
+     78|       if (!report.valid) throw new SemanticValidationError(report.diag…
+       |                                ^
+     79|     }
+     80|     return staged;
+ ❯ new DocumentLocations packages/docx/src/locations.ts:78:132
+ ❯ openDocumentLocations packages/docx/src/locations.ts:55:10
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:32:20
+ ❯ packages/docx/src/table-active-grid.test.ts:24:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  packages/docx/src/table-active-grid.test.ts > uses the selected fallback grid when a choice namespace is unsupported
+RangeError: Table dimensions must be positive.
+ ❯ DocumentBudget.table packages/docx/src/budget.ts:116:40
+    114|     this.check("tableRows", rows);
+    115|     this.check("tableColumns", columns);
+    116|     if (rows < 1 || columns < 1) throw new InvalidValueError("Table di…
+       |                                        ^
+    117|     if (rows > Math.floor(this.limits.tableCells / columns))
+    118|       throw new ResourceLimitError("Document tableCells limit exceeded…
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:44:10
+ ❯ packages/docx/src/table-active-grid.test.ts:32:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  packages/docx/src/table-active-grid.test.ts > resolves an active grid under a renamed word namespace
+Error: Staged document validation failed.
+ ❯ DocumentArchiveEditor.snapshot packages/docx/src/package-write.ts:78:32
+     76|         maxParts: this.#budget.limits.zipEntries
+     77|       }, this.#budget);
+     78|       if (!report.valid) throw new SemanticValidationError(report.diag…
+       |                                ^
+     79|     }
+     80|     return staged;
+ ❯ new DocumentLocations packages/docx/src/locations.ts:78:132
+ ❯ openDocumentLocations packages/docx/src/locations.ts:55:10
+ ❯ inspectDocumentTable packages/docx/src/table-read.ts:32:20
+ ❯ packages/docx/src/table-active-grid.test.ts:39:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed (6)
+   Start at  14:34:09
+   Duration  1.96s (transform 1.32s, setup 47ms, import 1.55s, tests 261ms, environment 0ms)
+

@@ -1,0 +1,2127 @@
+{
+  "version": 1,
+  "campaign": "downloaded structure qualification",
+  "executedAt": "2026-09-15T20:50:52.257554+00:00",
+  "scope": "structural QA only; no product changes, README changes, push or release",
+  "baselineCommit": "4a508988e1e9b336460cf1133e250cb8537a42d2",
+  "sourceTreeSha256": "b868398e65f98591db45ec30d35099aaa54606083515a4291c6519a9cc16627b",
+  "sourceTreeState": "includes existing unrelated local implementation changes; no clean-release qualification claimed",
+  "manifestSha256": "e77009a4942a6841184076ad7eb401725476ef5d8bc18ea74b1a5444acfb4b1f",
+  "apiInventorySha256": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac",
+  "environment": {
+    "node": "v22.23.2",
+    "python": "3.14.7",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "profiles": {
+    "default": {
+      "documentDefaults": "packages/docx/src/budget.ts:documentLimitDefaults",
+      "archive": {
+        "maxArchiveBytes": 67108864,
+        "maxEntryBytes": 67108864,
+        "maxTotalBytes": 268435456,
+        "maxMembers": 10000,
+        "maxPathBytes": 4096,
+        "maxDepth": 256,
+        "maxExtraBytes": 65536,
+        "maxCommentBytes": 65536,
+        "maxRetainedBytes": 536870912,
+        "chunkSize": 65536
+      }
+    },
+    "large": {
+      "inherits": "default",
+      "archiveOverrides": {
+        "maxTotalBytes": 536870912,
+        "maxRetainedBytes": 2147483648
+      },
+      "documentOverrides": {
+        "expandedPackage": 536870912,
+        "xmlNodes": 5000000,
+        "retainedBytes": 2147483648,
+        "work": 2147483648
+      }
+    },
+    "large-work-8GiB": {
+      "inherits": "large",
+      "documentOverrides": {
+        "work": 8589934592
+      },
+      "reason": "explicit rerun after measured 2 GiB work rejection; not a default change"
+    }
+  },
+  "statuses": {
+    "pass": "executed with applicable assertions; final outputs independently validated",
+    "reject": "explicit invalid-package or resource limit refusal; not editing success",
+    "fail": "unexpected behavior or violated invariant",
+    "unrun": "not executed because package admission rejected"
+  },
+  "sourcePins": [
+    {
+      "id": "circular-economy",
+      "sha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+      "bytes": 8320866,
+      "manifestEntry": "corpus-manifest.json#documents/circular-economy",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "housing-supply-interim",
+      "sha256": "16b538367d8640c6b20eb4552aecaba036277e1ab77648eeb4c59b875d824bd1",
+      "bytes": 6360759,
+      "manifestEntry": "corpus-manifest.json#documents/housing-supply-interim",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim",
+      "sha256": "e76568ef85be23ddd62c6edabc392ff86d111f45cbac38b564423cbf17e84d82",
+      "bytes": 6009233,
+      "manifestEntry": "corpus-manifest.json#documents/gst-reforms-interim",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim-appendixb",
+      "sha256": "a31019aed3f706fdbfa8a51469456f3e26e2b5e98a6a9d0623e0e2cc268912cb",
+      "bytes": 101772,
+      "manifestEntry": "corpus-manifest.json#documents/gst-reforms-interim-appendixb",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim-appendixc",
+      "sha256": "98ebf83292e34dfe2b83fd540bb89d6743da0dc93fc97d70e19d37f488dba50b",
+      "bytes": 187689,
+      "manifestEntry": "corpus-manifest.json#documents/gst-reforms-interim-appendixc",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim-appendixd",
+      "sha256": "5bb1385579a0fd2c38aaa4cd9f364cf121b94060c5a9092cf29e78e53b1ee95f",
+      "bytes": 273146,
+      "manifestEntry": "corpus-manifest.json#documents/gst-reforms-interim-appendixd",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim-appendixe",
+      "sha256": "2efba437fd7d7d82ce4f170efb5260fa53274b9c45c81dc094e051a1e67fefca",
+      "bytes": 157148,
+      "manifestEntry": "corpus-manifest.json#documents/gst-reforms-interim-appendixe",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim-sp1",
+      "sha256": "b892b2cdc0d5085c1d515d7231415585b0689eefdbfe5ac83d5e98610632e964",
+      "bytes": 264839,
+      "manifestEntry": "corpus-manifest.json#documents/gst-reforms-interim-sp1",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "ministry-for-the-environment-annual-report-2024-2025",
+      "sha256": "38ada5fb0c2292569f77b33147934075e6e63e3c0a09d537597dc18d921331ec",
+      "bytes": 10219701,
+      "manifestEntry": "corpus-manifest.json#documents/ministry-for-the-environment-annual-report-2024-2025",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "our-atmosphere-and-climate-2023",
+      "sha256": "82cdd2b8c196156e93d28695baac8c588ab5eddc9d045c12703594e642046764",
+      "bytes": 5425219,
+      "manifestEntry": "corpus-manifest.json#documents/our-atmosphere-and-climate-2023",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "scotland-annual-progress-report-2026-template-v1",
+      "sha256": "9820a6945569043bf7c6cd51855e88cf68e5af1a29019677051fec09a9eb07ad",
+      "bytes": 157858,
+      "manifestEntry": "corpus-manifest.json#documents/scotland-annual-progress-report-2026-template-v1",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "our-future-rm-system-developing-the-npf",
+      "sha256": "7e4029e0b9ffc027c2773fa4e98fab489fc8d2ad1e8e89d6e8a21e6fbdb42646",
+      "bytes": 21125727,
+      "manifestEntry": "corpus-manifest.json#documents/our-future-rm-system-developing-the-npf",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "new-zealands-second-emissions-reduction-plan-discussion-document",
+      "sha256": "95463f5bb15f790ab3279cc89ab34fa36026041e2c4984d70d3e87ede5d32ba8",
+      "bytes": 13582467,
+      "manifestEntry": "corpus-manifest.json#documents/new-zealands-second-emissions-reduction-plan-discussion-document",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "national-climate-change-risk-assessment-main-report",
+      "sha256": "3192775a32f659061d48dda1c81005ffbbe526ca1b6b3a026c5a5dacccfbd417",
+      "bytes": 7275939,
+      "manifestEntry": "corpus-manifest.json#documents/national-climate-change-risk-assessment-main-report",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "mental-health-review",
+      "sha256": "746e8e9ed023341d41c8d8ad1506f4320e519729063b0dbb43eb9d8c604cb961",
+      "bytes": 9290427,
+      "manifestEntry": "corpus-manifest.json#documents/mental-health-review",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "nz-ghg-inventory-2025-vol-1",
+      "sha256": "b2470c666193fe39e2f308ed7cd63a9be15da5fd2e7cceb0d8451baf6106148e",
+      "bytes": 20543015,
+      "manifestEntry": "corpus-manifest.json#documents/nz-ghg-inventory-2025-vol-1",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "nz-ghg-inventory-2025-vol-2",
+      "sha256": "21b3adeb1df3b3c03e722c7c5efd01aab5a26aafe4659305ca8ed146515d3c8e",
+      "bytes": 7944279,
+      "manifestEntry": "corpus-manifest.json#documents/nz-ghg-inventory-2025-vol-2",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "wales-race-equality-response-images",
+      "sha256": "bee94bc194b894f38c03cdf84ca4cfe5a65df580048ee2d33887171fc135b410",
+      "bytes": 20568111,
+      "manifestEntry": "corpus-manifest.json#documents/wales-race-equality-response-images",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "wales-citizen-voice-easy-read",
+      "sha256": "6742f9af325c2ead61f49d0152a2f7ab21f78c69fbafb01f85fcea24c7e396d5",
+      "bytes": 4409375,
+      "manifestEntry": "corpus-manifest.json#documents/wales-citizen-voice-easy-read",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "wa-outcome-standards-tracked",
+      "sha256": "870e805a921cd4f09c6ea5c29da969dd44569e81f7c30c3a8c943630287c20a6",
+      "bytes": 338641,
+      "manifestEntry": "corpus-manifest.json#documents/wa-outcome-standards-tracked",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "hk-values-story-teacher",
+      "sha256": "a96c37ee8b824ae0f2bc8cab0ffddfd40c37f1b3a642d18a24a827db1e0121b3",
+      "bytes": 31195,
+      "manifestEntry": "corpus-manifest.json#documents/hk-values-story-teacher",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "un-mauritius-core-ar",
+      "sha256": "299029d8c5bd354f1693b96f099e92d81a97b90ce50e939a8c38e1ffff8ba476",
+      "bytes": 123678,
+      "manifestEntry": "corpus-manifest.json#documents/un-mauritius-core-ar",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "accessibility-review-prose",
+      "sha256": "6357e7f4eb7fb369207d5df87765f3bcd266ecbb8a1ed23c006207df50b4c83d",
+      "bytes": 388962,
+      "manifestEntry": "corpus-manifest.json#documents/accessibility-review-prose",
+      "sourceUnchanged": true
+    }
+  ],
+  "runs": [
+    {
+      "id": "circular-economy",
+      "profile": "default",
+      "sourceSha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+      "sourceBytes": 8320866,
+      "actions": {
+        "inspect": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "text": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "admission": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "circular-economy",
+      "profile": "large",
+      "sourceSha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+      "sourceBytes": 8320866,
+      "actions": {
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 2655,
+            "runs": 11888,
+            "tables": 56,
+            "rows": 585,
+            "cells": 920,
+            "images": 99,
+            "sections": 30,
+            "comments": 0,
+            "footnotes": 121,
+            "endnotes": 2,
+            "fields": 108,
+            "controls": 41,
+            "equations": 0,
+            "cachedPages": 166
+          },
+          "parts": 193,
+          "elapsedMs": 10607
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "0671f8d13f5ec8b4903a6e0d3be2515e6b54421c2570b4ad973069f4289c5e50",
+          "codePoints": 443941,
+          "segments": 12739,
+          "elapsedMs": 10938
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "18ffe6cceee902de8adefe55e8bde6951486e0508897c8648c969d04058d868a",
+          "outputBytes": 8156866,
+          "elapsedMs": 12972,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "all member bytes"
+            ],
+            "changedParts": [],
+            "untouchedParts": 193,
+            "untouchedManifestSha256": "c4b0494cf1ab7626d7030b6b0c189bcac5793ae49db31f670aa48d1b15834348"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/circular-economy-large-round.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "edit": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "admission": {
+          "status": "pass",
+          "basis": "successful inspect"
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "housing-supply-interim",
+      "profile": "default",
+      "sourceSha256": "16b538367d8640c6b20eb4552aecaba036277e1ab77648eeb4c59b875d824bd1",
+      "sourceBytes": 6360759,
+      "actions": {
+        "inspect": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "text": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "admission": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "housing-supply-interim",
+      "profile": "large",
+      "sourceSha256": "16b538367d8640c6b20eb4552aecaba036277e1ab77648eeb4c59b875d824bd1",
+      "sourceBytes": 6360759,
+      "actions": {
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 2213,
+            "runs": 7625,
+            "tables": 96,
+            "rows": 472,
+            "cells": 726,
+            "images": 107,
+            "sections": 24,
+            "comments": 0,
+            "footnotes": 18,
+            "endnotes": 2,
+            "fields": 79,
+            "controls": 32,
+            "equations": 0,
+            "cachedPages": 136
+          },
+          "parts": 141,
+          "elapsedMs": 9432
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "16b2149ba00152e8aa5f8c5272a8951b1bed10ac1d9dbd6a544eb1ff74c8657b",
+          "codePoints": 345473,
+          "segments": 9553,
+          "elapsedMs": 7749
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "9733641a40a95b24047ec837ec1d4c54f70b089f7455e202104f1d0eb12d06a3",
+          "outputBytes": 6300171,
+          "elapsedMs": 9184,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "all member bytes"
+            ],
+            "changedParts": [],
+            "untouchedParts": 141,
+            "untouchedManifestSha256": "33fe7331509aa950433da119a1d33116156964caeeb0e29940581a8da591f36c"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/housing-supply-interim-large-round.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Structure qualification",
+          "outputSha256": "bdf090414a130c0d303be32029b6000e7eab44b7df708fd9d5b10f53bd70cde2",
+          "outputBytes": 6300166,
+          "elapsedMs": 12213,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "core subtree except title"
+            ],
+            "changedParts": [
+              "docProps/core.xml"
+            ],
+            "untouchedParts": 140,
+            "untouchedManifestSha256": "2c79ff4c4ceb18ea73172678a1ce35377918b7ccd21cc794f3b837d8b78e19c0"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/housing-supply-interim-large-edit.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "admission": {
+          "status": "pass",
+          "basis": "successful inspect"
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim",
+      "profile": "default",
+      "sourceSha256": "e76568ef85be23ddd62c6edabc392ff86d111f45cbac38b564423cbf17e84d82",
+      "sourceBytes": 6009233,
+      "actions": {
+        "inspect": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "text": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "admission": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim-appendixb",
+      "profile": "default",
+      "sourceSha256": "a31019aed3f706fdbfa8a51469456f3e26e2b5e98a6a9d0623e0e2cc268912cb",
+      "sourceBytes": 101772,
+      "actions": {
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 228,
+            "runs": 1618,
+            "tables": 6,
+            "rows": 23,
+            "cells": 53,
+            "images": 0,
+            "sections": 2,
+            "comments": 0,
+            "footnotes": 12,
+            "endnotes": 2,
+            "fields": 27,
+            "controls": 2,
+            "equations": 59,
+            "cachedPages": 15
+          },
+          "parts": 41,
+          "elapsedMs": 3918
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "a0b83471ff3dd1942c48d99ce3a88ce589933888dbd04d81be3c91f88864b5a4",
+          "codePoints": 41085,
+          "segments": 1645,
+          "elapsedMs": 2232
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "e0e50f8d014697dbd8029a6b5183d720ccf665d18f0b54c620bf4b99d598589a",
+          "outputBytes": 93392,
+          "elapsedMs": 1933,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "all member bytes"
+            ],
+            "changedParts": [],
+            "untouchedParts": 41,
+            "untouchedManifestSha256": "6d26ac5e6e9a2a286b959c087828c13cbdac732906fa707d443fb4eb7937bb1c"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-appendixb-default-round.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Structure qualification",
+          "outputSha256": "ea23863cde72503c9d56df8640e99ca2d27a38d1dfab74801ce6f44c72cd27a5",
+          "outputBytes": 93338,
+          "elapsedMs": 2301,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "core subtree except title"
+            ],
+            "changedParts": [
+              "docProps/core.xml"
+            ],
+            "untouchedParts": 40,
+            "untouchedManifestSha256": "723cc1217d4d1116990114ab3c8b27d7e4c12c91d3f2b14b9aca285e07672aa8"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-appendixb-default-edit.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "admission": {
+          "status": "pass",
+          "basis": "successful inspect"
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim-appendixc",
+      "profile": "default",
+      "sourceSha256": "98ebf83292e34dfe2b83fd540bb89d6743da0dc93fc97d70e19d37f488dba50b",
+      "sourceBytes": 187689,
+      "actions": {
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 1061,
+            "runs": 3001,
+            "tables": 41,
+            "rows": 298,
+            "cells": 864,
+            "images": 0,
+            "sections": 5,
+            "comments": 0,
+            "footnotes": 4,
+            "endnotes": 2,
+            "fields": 56,
+            "controls": 2,
+            "equations": 0,
+            "cachedPages": 29
+          },
+          "parts": 41,
+          "elapsedMs": 4725
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "81daac6fea1aed9c9935f23a6af9cdea26b582c28b43abaf35eaab3b304fe407",
+          "codePoints": 64917,
+          "segments": 3924,
+          "elapsedMs": 4893
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "53eb9f7acc4064f3211bf24c37b6f74c652f561e834720124ad1b51b5354942d",
+          "outputBytes": 175213,
+          "elapsedMs": 5853,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "all member bytes"
+            ],
+            "changedParts": [],
+            "untouchedParts": 41,
+            "untouchedManifestSha256": "b73c71f74f067d46e1a53883078ec295fc3b29ce32e5b6eee1217d297d61d81a"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-appendixc-default-round.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Structure qualification",
+          "outputSha256": "49c1b987a14e716c70b9f015a9a7733fda3207f860898374840192bde0026c8a",
+          "outputBytes": 175200,
+          "elapsedMs": 6423,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "core subtree except title"
+            ],
+            "changedParts": [
+              "docProps/core.xml"
+            ],
+            "untouchedParts": 40,
+            "untouchedManifestSha256": "7308a5f3cad150b0e617644772fda03d1ff47cf37e0b9bd20ebeebc784c27541"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-appendixc-default-edit.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "admission": {
+          "status": "pass",
+          "basis": "successful inspect"
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim-appendixd",
+      "profile": "default",
+      "sourceSha256": "5bb1385579a0fd2c38aaa4cd9f364cf121b94060c5a9092cf29e78e53b1ee95f",
+      "sourceBytes": 273146,
+      "actions": {
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 312,
+            "runs": 2655,
+            "tables": 4,
+            "rows": 17,
+            "cells": 95,
+            "images": 9,
+            "sections": 2,
+            "comments": 0,
+            "footnotes": 18,
+            "endnotes": 2,
+            "fields": 3,
+            "controls": 3,
+            "equations": 0,
+            "cachedPages": 19
+          },
+          "parts": 50,
+          "elapsedMs": 2687
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "71a4f800c080f288195ae28365459e9723379d1274db9b68b35d085aff8f9d87",
+          "codePoints": 51296,
+          "segments": 2803,
+          "elapsedMs": 2602
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "f42258ba1d8f617b4ca53a094d59e0360139b2992af4186b71ae1247b5377a53",
+          "outputBytes": 260032,
+          "elapsedMs": 2600,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "all member bytes"
+            ],
+            "changedParts": [],
+            "untouchedParts": 50,
+            "untouchedManifestSha256": "456770e6e1fb92634be349996053125d048cca5ffb08fd71e86b12952b8b9c90"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-appendixd-default-round.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Structure qualification",
+          "outputSha256": "3434a7759df468d6bad20b83a54b3b3126ec0bb4e5a9fd1490aee15bd8085a18",
+          "outputBytes": 260009,
+          "elapsedMs": 3665,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "core subtree except title"
+            ],
+            "changedParts": [
+              "docProps/core.xml"
+            ],
+            "untouchedParts": 49,
+            "untouchedManifestSha256": "6344bd2046ed1f0ea9db2fe0b234fb8f9f82e578d5d8dcc3b43099bbe931f2a2"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-appendixd-default-edit.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "admission": {
+          "status": "pass",
+          "basis": "successful inspect"
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim-appendixe",
+      "profile": "default",
+      "sourceSha256": "2efba437fd7d7d82ce4f170efb5260fa53274b9c45c81dc094e051a1e67fefca",
+      "sourceBytes": 157148,
+      "actions": {
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 206,
+            "runs": 725,
+            "tables": 4,
+            "rows": 20,
+            "cells": 63,
+            "images": 6,
+            "sections": 2,
+            "comments": 0,
+            "footnotes": 8,
+            "endnotes": 2,
+            "fields": 6,
+            "controls": 5,
+            "equations": 0,
+            "cachedPages": 13
+          },
+          "parts": 52,
+          "elapsedMs": 1412
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "ebb13dacf1f00eff37ffbef38597f08c88b4b8c05cec8daf8278ae1442397e07",
+          "codePoints": 33633,
+          "segments": 845,
+          "elapsedMs": 1580
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "9ba51dc92a49a3badd508e5c044502e820ce8022a4e9347ae376b7ca3466cbc1",
+          "outputBytes": 149276,
+          "elapsedMs": 1616,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "all member bytes"
+            ],
+            "changedParts": [],
+            "untouchedParts": 52,
+            "untouchedManifestSha256": "46f49f661d210bd3e921972eb3ee715b239d44de44c4a9866cf5900f9efcff3d"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-appendixe-default-round.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Structure qualification",
+          "outputSha256": "83e6f63b872f10170e71e93e41e438e91c987023779b36b6ec7e6f1ceceb4301",
+          "outputBytes": 149258,
+          "elapsedMs": 2883,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "core subtree except title"
+            ],
+            "changedParts": [
+              "docProps/core.xml"
+            ],
+            "untouchedParts": 51,
+            "untouchedManifestSha256": "13d4d41e4b20b0288d31450794f0386d85a61fe88b5ddf67b1985fa7bc01777a"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-appendixe-default-edit.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "admission": {
+          "status": "pass",
+          "basis": "successful inspect"
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim-sp1",
+      "profile": "default",
+      "sourceSha256": "b892b2cdc0d5085c1d515d7231415585b0689eefdbfe5ac83d5e98610632e964",
+      "sourceBytes": 264839,
+      "actions": {
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 231,
+            "runs": 2816,
+            "tables": 3,
+            "rows": 8,
+            "cells": 8,
+            "images": 10,
+            "sections": 3,
+            "comments": 0,
+            "footnotes": 11,
+            "endnotes": 2,
+            "fields": 14,
+            "controls": 2,
+            "equations": 0,
+            "cachedPages": 20
+          },
+          "parts": 51,
+          "elapsedMs": 3722
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "3043c65c8e9de6da3a08ee325dd55240cfd300aaa7fd2d23459d25e90df357c8",
+          "codePoints": 47985,
+          "segments": 2884,
+          "elapsedMs": 3946
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "ef2b18c2bd025da8b6ec260a480d9b9b786ffe0020700cef7af773a8f89fc933",
+          "outputBytes": 253087,
+          "elapsedMs": 4213,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "all member bytes"
+            ],
+            "changedParts": [],
+            "untouchedParts": 51,
+            "untouchedManifestSha256": "ccf77adfe017bc5bffa554712ff44659c9a494df016c0230645e9343d77ee5e8"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-sp1-default-round.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Structure qualification",
+          "outputSha256": "e2882f8ad2517d4e4f3abd2ebb5a706deca0f99f7fded52bd80a065a43e59b65",
+          "outputBytes": 253026,
+          "elapsedMs": 5158,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "core subtree except title"
+            ],
+            "changedParts": [
+              "docProps/core.xml"
+            ],
+            "untouchedParts": 50,
+            "untouchedManifestSha256": "0ca7eeefd6d27060d4644f9d9f06ded420dd88bb5663d954d253a79a38df31d9"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-sp1-default-edit.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "admission": {
+          "status": "pass",
+          "basis": "successful inspect"
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "ministry-for-the-environment-annual-report-2024-2025",
+      "profile": "default",
+      "sourceSha256": "38ada5fb0c2292569f77b33147934075e6e63e3c0a09d537597dc18d921331ec",
+      "sourceBytes": 10219701,
+      "actions": {
+        "inspect": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "text": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "admission": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "our-atmosphere-and-climate-2023",
+      "profile": "default",
+      "sourceSha256": "82cdd2b8c196156e93d28695baac8c588ab5eddc9d045c12703594e642046764",
+      "sourceBytes": 5425219,
+      "actions": {
+        "inspect": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "text": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "admission": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "scotland-annual-progress-report-2026-template-v1",
+      "profile": "default",
+      "sourceSha256": "9820a6945569043bf7c6cd51855e88cf68e5af1a29019677051fec09a9eb07ad",
+      "sourceBytes": 157858,
+      "actions": {
+        "inspect": {
+          "status": "reject",
+          "code": "invalid-package",
+          "message": "Invalid document OPC container."
+        },
+        "text": {
+          "status": "reject",
+          "code": "invalid-package",
+          "message": "Invalid document OPC container."
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "admission": {
+          "status": "reject",
+          "code": "invalid-package",
+          "message": "Invalid document OPC container."
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "our-future-rm-system-developing-the-npf",
+      "profile": "default",
+      "sourceSha256": "7e4029e0b9ffc027c2773fa4e98fab489fc8d2ad1e8e89d6e8a21e6fbdb42646",
+      "sourceBytes": 21125727,
+      "actions": {
+        "inspect": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "text": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "admission": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "new-zealands-second-emissions-reduction-plan-discussion-document",
+      "profile": "default",
+      "sourceSha256": "95463f5bb15f790ab3279cc89ab34fa36026041e2c4984d70d3e87ede5d32ba8",
+      "sourceBytes": 13582467,
+      "actions": {
+        "inspect": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "text": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "admission": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "national-climate-change-risk-assessment-main-report",
+      "profile": "default",
+      "sourceSha256": "3192775a32f659061d48dda1c81005ffbbe526ca1b6b3a026c5a5dacccfbd417",
+      "sourceBytes": 7275939,
+      "actions": {
+        "inspect": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "text": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "admission": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "mental-health-review",
+      "profile": "default",
+      "sourceSha256": "746e8e9ed023341d41c8d8ad1506f4320e519729063b0dbb43eb9d8c604cb961",
+      "sourceBytes": 9290427,
+      "actions": {
+        "inspect": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "text": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "admission": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "nz-ghg-inventory-2025-vol-1",
+      "profile": "default",
+      "sourceSha256": "b2470c666193fe39e2f308ed7cd63a9be15da5fd2e7cceb0d8451baf6106148e",
+      "sourceBytes": 20543015,
+      "actions": {
+        "inspect": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "text": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "admission": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "nz-ghg-inventory-2025-vol-2",
+      "profile": "default",
+      "sourceSha256": "21b3adeb1df3b3c03e722c7c5efd01aab5a26aafe4659305ca8ed146515d3c8e",
+      "sourceBytes": 7944279,
+      "actions": {
+        "inspect": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "text": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "admission": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "wales-race-equality-response-images",
+      "profile": "default",
+      "sourceSha256": "bee94bc194b894f38c03cdf84ca4cfe5a65df580048ee2d33887171fc135b410",
+      "sourceBytes": 20568111,
+      "actions": {
+        "inspect": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "text": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "package admission rejected"
+        },
+        "admission": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "wales-citizen-voice-easy-read",
+      "profile": "default",
+      "sourceSha256": "6742f9af325c2ead61f49d0152a2f7ab21f78c69fbafb01f85fcea24c7e396d5",
+      "sourceBytes": 4409375,
+      "actions": {
+        "inspect": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "text": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "bb28bffc0568044d3ce9b7aa405a40aef5664e54356e22f8d52559cc1dc5a803",
+          "outputBytes": 4389477,
+          "elapsedMs": 7949,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "all member bytes"
+            ],
+            "changedParts": [],
+            "untouchedParts": 155,
+            "untouchedManifestSha256": "03d9d73faf164311677431f15e06dab56a2a6fe2a26570e610ee7978cf80cb06"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/wales-citizen-voice-easy-read-default-round.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "edit": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded."
+        },
+        "admission": {
+          "status": "pass",
+          "parts": 155,
+          "elapsedMs": 6044
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "wa-outcome-standards-tracked",
+      "profile": "default",
+      "sourceSha256": "870e805a921cd4f09c6ea5c29da969dd44569e81f7c30c3a8c943630287c20a6",
+      "sourceBytes": 338641,
+      "actions": {
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 496,
+            "runs": 2281,
+            "tables": 8,
+            "rows": 17,
+            "cells": 37,
+            "images": 1,
+            "sections": 3,
+            "comments": 0,
+            "footnotes": 3,
+            "endnotes": 3,
+            "fields": 12,
+            "controls": 0,
+            "equations": 0,
+            "cachedPages": 25
+          },
+          "parts": 50,
+          "elapsedMs": 2666
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "0bbc9cad0102781b8540b395724a2fb8d5ccdd68971f99f7e62a275b2df410a4",
+          "codePoints": 30319,
+          "segments": 2080,
+          "elapsedMs": 2718
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "b383e0ea8666a6e3c6e1a7ac2f07a8032fe062ab2458e438a13e5ae2193f8c07",
+          "outputBytes": 329749,
+          "elapsedMs": 2547,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "all member bytes"
+            ],
+            "changedParts": [],
+            "untouchedParts": 50,
+            "untouchedManifestSha256": "5c1d227921439f4498215db06fff98b5318bba8e5c414d4fad8b994a9a9edd42"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/wa-outcome-standards-tracked-default-round.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Structure qualification",
+          "outputSha256": "c5086b5fc869d42e7b9dd7a64484fd8712553477aaa4682a4cb0e58db869bf63",
+          "outputBytes": 329770,
+          "elapsedMs": 3542,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "core subtree except title"
+            ],
+            "changedParts": [
+              "docProps/core.xml"
+            ],
+            "untouchedParts": 49,
+            "untouchedManifestSha256": "8218f798b4f8cc6c54f4cee58d60c048e5bdf82e305f4778d5a72d2ec9bbd464"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/wa-outcome-standards-tracked-default-edit.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "admission": {
+          "status": "pass",
+          "basis": "successful inspect"
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "hk-values-story-teacher",
+      "profile": "default",
+      "sourceSha256": "a96c37ee8b824ae0f2bc8cab0ffddfd40c37f1b3a642d18a24a827db1e0121b3",
+      "sourceBytes": 31195,
+      "actions": {
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 113,
+            "runs": 391,
+            "tables": 1,
+            "rows": 1,
+            "cells": 1,
+            "images": 0,
+            "sections": 1,
+            "comments": 0,
+            "footnotes": 2,
+            "endnotes": 2,
+            "fields": 1,
+            "controls": 1,
+            "equations": 0,
+            "cachedPages": 5
+          },
+          "parts": 17,
+          "elapsedMs": 706
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "13d00fc1d81c374922b9d68d4d10734d89b630c718cb3d562c27b1959901a5d6",
+          "codePoints": 4553,
+          "segments": 483,
+          "elapsedMs": 626
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "8992bfa49246ed203f9495f80de59642b300c1ac17bce20c9f830dc4e20d7c40",
+          "outputBytes": 28079,
+          "elapsedMs": 621,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "all member bytes"
+            ],
+            "changedParts": [],
+            "untouchedParts": 17,
+            "untouchedManifestSha256": "95beeb248436c74f6d395e6e76a61e23f584599eaee450cd575ef6d1f0b1bca1"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/hk-values-story-teacher-default-round.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Structure qualification",
+          "outputSha256": "0cf9cb9a32d7dc4147ed5eadac3fe1f183e10eea6c30fbe2c84f1f76582402ce",
+          "outputBytes": 28095,
+          "elapsedMs": 727,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "core subtree except title"
+            ],
+            "changedParts": [
+              "docProps/core.xml"
+            ],
+            "untouchedParts": 16,
+            "untouchedManifestSha256": "f72c677c7857d31917a4e292d9f944b78bd0e923c73b222f71f760f7f5c3bfe1"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/hk-values-story-teacher-default-edit.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "admission": {
+          "status": "pass",
+          "basis": "successful inspect"
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "un-mauritius-core-ar",
+      "profile": "default",
+      "sourceSha256": "299029d8c5bd354f1693b96f099e92d81a97b90ce50e939a8c38e1ffff8ba476",
+      "sourceBytes": 123678,
+      "actions": {
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 675,
+            "runs": 1816,
+            "tables": 18,
+            "rows": 137,
+            "cells": 330,
+            "images": 3,
+            "sections": 1,
+            "comments": 0,
+            "footnotes": 3,
+            "endnotes": 2,
+            "fields": 4,
+            "controls": 0,
+            "equations": 0,
+            "cachedPages": 32
+          },
+          "parts": 27,
+          "elapsedMs": 1840
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "477c18e5603f3efdd423f9874d73b6126388fda31997a12d376d73906c6fd679",
+          "codePoints": 72750,
+          "segments": 2783,
+          "elapsedMs": 1854
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "30d9e7671cbbf9f707d6726900c8a241753a192dd1f9ae4ceabecfcde0463cac",
+          "outputBytes": 116003,
+          "elapsedMs": 1935,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "all member bytes"
+            ],
+            "changedParts": [],
+            "untouchedParts": 27,
+            "untouchedManifestSha256": "e6e6b36759f2834b8557370dad2a4a2e5752928a30a6edecb58e0f6389c7d5bb"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/un-mauritius-core-ar-default-round.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Structure qualification",
+          "outputSha256": "55f54ada065a9d4b015ca24ae1a538b9d5d024ad79250fdb3340d08991f356a6",
+          "outputBytes": 116005,
+          "elapsedMs": 2409,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "core subtree except title"
+            ],
+            "changedParts": [
+              "docProps/core.xml"
+            ],
+            "untouchedParts": 26,
+            "untouchedManifestSha256": "036e244b9d99b1d9a76866b3ca21f6d583fa4bb7a94b409b7c31af28fce38f2d"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/un-mauritius-core-ar-default-edit.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "admission": {
+          "status": "pass",
+          "basis": "successful inspect"
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "accessibility-review-prose",
+      "profile": "default",
+      "sourceSha256": "6357e7f4eb7fb369207d5df87765f3bcd266ecbb8a1ed23c006207df50b4c83d",
+      "sourceBytes": 388962,
+      "actions": {
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 144,
+            "runs": 661,
+            "tables": 0,
+            "rows": 0,
+            "cells": 0,
+            "images": 1,
+            "sections": 1,
+            "comments": 0,
+            "footnotes": 0,
+            "endnotes": 0,
+            "fields": 1,
+            "controls": 0,
+            "equations": 0,
+            "cachedPages": 12
+          },
+          "parts": 17,
+          "elapsedMs": 514
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "c1aaea25d81d6465b5566af23ce72efaf2cb3be9645f473a7be1e024d5435387",
+          "codePoints": 21092,
+          "segments": 798,
+          "elapsedMs": 538
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "4645a10bcee3aa838efca7f93ceb36ee86530b5029d0f0c83c1cb5741f38dc8a",
+          "outputBytes": 371186,
+          "elapsedMs": 628,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "all member bytes"
+            ],
+            "changedParts": [],
+            "untouchedParts": 17,
+            "untouchedManifestSha256": "96a23c4c4bd8282029a3f116f9443e8d28045ded93702baae2379aa6258aca7f"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/accessibility-review-prose-default-round.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Structure qualification",
+          "outputSha256": "59f1612a366b0af1e62077273bf2820374932666ecf5a31afa17e32adc654097",
+          "outputBytes": 371204,
+          "elapsedMs": 905,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "core subtree except title"
+            ],
+            "changedParts": [
+              "docProps/core.xml"
+            ],
+            "untouchedParts": 16,
+            "untouchedManifestSha256": "82f1e9ed05f5918986e0efe8503f2aaed30eabd5fd7f9b415f88a8dfa7751501"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/accessibility-review-prose-default-edit.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "admission": {
+          "status": "pass",
+          "basis": "successful inspect"
+        }
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "id": "circular-economy",
+      "profile": "large-work-8GiB",
+      "sourceSha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+      "sourceBytes": 8320866,
+      "actions": {
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 2655,
+            "runs": 11888,
+            "tables": 56,
+            "rows": 585,
+            "cells": 920,
+            "images": 99,
+            "sections": 30,
+            "comments": 0,
+            "footnotes": 121,
+            "endnotes": 2,
+            "fields": 108,
+            "controls": 41,
+            "equations": 0,
+            "cachedPages": 166
+          },
+          "parts": 193,
+          "elapsedMs": 12290
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "0671f8d13f5ec8b4903a6e0d3be2515e6b54421c2570b4ad973069f4289c5e50",
+          "codePoints": 443941,
+          "segments": 12739,
+          "elapsedMs": 15044
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "18ffe6cceee902de8adefe55e8bde6951486e0508897c8648c969d04058d868a",
+          "outputBytes": 8156866,
+          "elapsedMs": 14454,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "all member bytes"
+            ],
+            "changedParts": [],
+            "untouchedParts": 193,
+            "untouchedManifestSha256": "c4b0494cf1ab7626d7030b6b0c189bcac5793ae49db31f670aa48d1b15834348"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/work-8g/circular-economy-large-round.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Structure qualification",
+          "outputSha256": "9e429203a398424bdb87c8dc6a95ea084bb541b04e1eb84f0f6cf1b1bb13e834",
+          "outputBytes": 8156836,
+          "elapsedMs": 19765,
+          "independent": {
+            "status": "pass",
+            "checks": [
+              "ZIP CRC",
+              "all XML well formed; no DTD/entities",
+              "content types",
+              "internal relationship targets",
+              "same member set",
+              "untouched member SHA-256",
+              "core subtree except title"
+            ],
+            "changedParts": [
+              "docProps/core.xml"
+            ],
+            "untouchedParts": 192,
+            "untouchedManifestSha256": "9b514d34af9bfad2c5caceaf09f3299335db06abb650528c2e4f27206fcfcca4"
+          },
+          "disposableOutput": ".cache/docx-corpus/structure-qa-20260915/work-8g/circular-economy-large-edit.docx",
+          "retention": "removed after independent final validation; output hashes retained"
+        },
+        "admission": {
+          "status": "pass",
+          "basis": "successful inspect; not an additional invocation"
+        }
+      },
+      "sourceUnchanged": true
+    }
+  ],
+  "successfulLargeCases": [
+    "circular-economy",
+    "housing-supply-interim"
+  ],
+  "discovery": [
+    {
+      "args": [
+        "schema",
+        "properties",
+        "set",
+        "--json"
+      ],
+      "exitCode": 0,
+      "operation": "schema",
+      "ok": true,
+      "version": 1
+    },
+    {
+      "args": [
+        "schema",
+        "text",
+        "replace",
+        "--json"
+      ],
+      "exitCode": 0,
+      "operation": "schema",
+      "ok": true,
+      "version": 1
+    },
+    {
+      "args": [
+        "capabilities",
+        "--json"
+      ],
+      "exitCode": 0,
+      "operation": "capabilities",
+      "ok": true,
+      "version": 1
+    }
+  ],
+  "independentValidation": {
+    "tool": "Python standard-library zipfile and ElementTree, no product parser or ZIP reader",
+    "checks": [
+      "all ZIP entries CRC-checked",
+      "all XML parsed; DTD/entities refused",
+      "same member set",
+      "content-type declaration for each part",
+      "internal relationship target existence and duplicate IDs",
+      "all untouched member bytes and SHA-256",
+      "core title value and every other metadata subtree including whitespace",
+      "all source SHA-256/size pins after rejection/mutation"
+    ],
+    "notProven": [
+      "complete OOXML schema validity",
+      "layout or page counts",
+      "cryptographic signature verification",
+      "external targets",
+      "full model API parity"
+    ]
+  },
+  "originalRegressions": {
+    "file": "../../packages/docx/src/corpus-structure-regression.test.ts",
+    "cases": [
+      "work refusal preserves source and prevents publication",
+      "mixed structures round trip and title-only edit",
+      "bracketed auxiliary path refusal",
+      "admission does not imply inspection within same work capacity"
+    ],
+    "fixtures": "original authored text/XML, memfs only; no network/downloaded assets",
+    "baseline": "4 assertions pass before any product implementation; no product implementation authorized or written; no artificial red run"
+  },
+  "checks": {
+    "workspaceTest": {
+      "command": "npm test --workspace=docx",
+      "status": "pass",
+      "files": 168,
+      "tests": 3357
+    },
+    "finalRegression": {
+      "command": "npx vitest run packages/docx/src/corpus-structure-regression.test.ts",
+      "status": "pass",
+      "tests": 4
+    },
+    "workspaceLint": {
+      "command": "npm run lint --workspace=docx",
+      "status": "pass",
+      "warning": "one existing unused-variable warning in operation-types.test.ts; zero errors; owned test has no warning"
+    },
+    "finalMaintainedTest": {
+      "command": "npm test --workspace=docx -- --run packages/docx/src/corpus-structure-regression.test.ts",
+      "status": "pass",
+      "note": "maintained script retains workspace path; therefore repeats whole docx suite",
+      "files": 168,
+      "tests": 3358
+    },
+    "receiptInvariants": {
+      "status": "pass",
+      "checks": [
+        "23 source size/hash pins",
+        "successful final outputs independently validated",
+        "unrun mutations only on rejected admissions",
+        "unchanged product source-tree hash",
+        "at least two distinct downloaded dense round-trip/edit successes"
+      ]
+    }
+  },
+  "retention": {
+    "sourceFiles": "shared existing disposable cache retained for other campaigns; none committed",
+    "outputs": "removed using enumerated invocation-owned paths; shared original source downloads untouched",
+    "permanent": "this compact receipt, source/license/census manifest, plan and small original regressions; no full reports become tests",
+    "cleanupManifest": [
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/accessibility-review-prose-default-edit.docx",
+        "bytes": 371204,
+        "sha256": "59f1612a366b0af1e62077273bf2820374932666ecf5a31afa17e32adc654097"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/accessibility-review-prose-default-round.docx",
+        "bytes": 371186,
+        "sha256": "4645a10bcee3aa838efca7f93ceb36ee86530b5029d0f0c83c1cb5741f38dc8a"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/admitted-execution.json",
+        "bytes": 31606,
+        "sha256": "10823feea04607e7f12f011c8d05a6d96a4f570f909ca682293922f78bc6e6ad"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/admitted.log",
+        "bytes": 1948,
+        "sha256": "1785f6035fa03c4c09bad01fa10a74ce26402de54455047fe8ce3017b09cc3e3"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/admitted.ts",
+        "bytes": 3233,
+        "sha256": "47da93554e034a02ff38b38058277297f11d557263fd661b336594321da7096b"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/circular-economy-large-round.docx",
+        "bytes": 8156866,
+        "sha256": "18ffe6cceee902de8adefe55e8bde6951486e0508897c8648c969d04058d868a"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/defaults.json",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/discovery.json",
+        "bytes": 498,
+        "sha256": "527a65c6a6112f197576013179169281ef2efd3340b01ee47222bb68e9d34680"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/discovery.ts",
+        "bytes": 1233,
+        "sha256": "9015f207bfee8d24c7e3c0b0579b6003c2054db993b81e8d25c3cca43e39921c"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/execution.json",
+        "bytes": 28076,
+        "sha256": "5188fafc54bd1789a1817958c3970db0bd20a62155d86920f0b3fe9ef1422bd1"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-appendixb-default-edit.docx",
+        "bytes": 93338,
+        "sha256": "ea23863cde72503c9d56df8640e99ca2d27a38d1dfab74801ce6f44c72cd27a5"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-appendixb-default-round.docx",
+        "bytes": 93392,
+        "sha256": "e0e50f8d014697dbd8029a6b5183d720ccf665d18f0b54c620bf4b99d598589a"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-appendixc-default-edit.docx",
+        "bytes": 175200,
+        "sha256": "49c1b987a14e716c70b9f015a9a7733fda3207f860898374840192bde0026c8a"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-appendixc-default-round.docx",
+        "bytes": 175213,
+        "sha256": "53eb9f7acc4064f3211bf24c37b6f74c652f561e834720124ad1b51b5354942d"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-appendixd-default-edit.docx",
+        "bytes": 260009,
+        "sha256": "3434a7759df468d6bad20b83a54b3b3126ec0bb4e5a9fd1490aee15bd8085a18"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-appendixd-default-round.docx",
+        "bytes": 260032,
+        "sha256": "f42258ba1d8f617b4ca53a094d59e0360139b2992af4186b71ae1247b5377a53"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-appendixe-default-edit.docx",
+        "bytes": 149258,
+        "sha256": "83e6f63b872f10170e71e93e41e438e91c987023779b36b6ec7e6f1ceceb4301"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-appendixe-default-round.docx",
+        "bytes": 149276,
+        "sha256": "9ba51dc92a49a3badd508e5c044502e820ce8022a4e9347ae376b7ca3466cbc1"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-sp1-default-edit.docx",
+        "bytes": 253026,
+        "sha256": "e2882f8ad2517d4e4f3abd2ebb5a706deca0f99f7fded52bd80a065a43e59b65"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/gst-reforms-interim-sp1-default-round.docx",
+        "bytes": 253087,
+        "sha256": "ef2b18c2bd025da8b6ec260a480d9b9b786ffe0020700cef7af773a8f89fc933"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/hk-values-story-teacher-default-edit.docx",
+        "bytes": 28095,
+        "sha256": "0cf9cb9a32d7dc4147ed5eadac3fe1f183e10eea6c30fbe2c84f1f76582402ce"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/hk-values-story-teacher-default-round.docx",
+        "bytes": 28079,
+        "sha256": "8992bfa49246ed203f9495f80de59642b300c1ac17bce20c9f830dc4e20d7c40"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/housing-supply-interim-large-edit.docx",
+        "bytes": 6300166,
+        "sha256": "bdf090414a130c0d303be32029b6000e7eab44b7df708fd9d5b10f53bd70cde2"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/housing-supply-interim-large-round.docx",
+        "bytes": 6300171,
+        "sha256": "9733641a40a95b24047ec837ec1d4c54f70b089f7455e202104f1d0eb12d06a3"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/lint-final.log",
+        "bytes": 360,
+        "sha256": "84c1834281fa8da3f8c09b0303161b9df2250ed57bcf81ada9496816a62a8619"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/lint.log",
+        "bytes": 360,
+        "sha256": "84c1834281fa8da3f8c09b0303161b9df2250ed57bcf81ada9496816a62a8619"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/owned-lint.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/regression-final.log",
+        "bytes": 302,
+        "sha256": "e713adeaca2c0dbcb81e5ab5fc295567ec25bd1178223c819d289e796b789f8d"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/regression-maintained.log",
+        "bytes": 28946,
+        "sha256": "04a634aa993597516482503409b459a48f807e90281ffdb4d009af4b7ed9c643"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/regression-owned-final.log",
+        "bytes": 389,
+        "sha256": "e1bc663d7ba8ff6c2654acfce3ccf4aba6761dd831369d7880aa9025b692e12b"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/regression.log",
+        "bytes": 389,
+        "sha256": "27b5ee0279e99a1decbd3c212f399649fc7d4872c79cb590e07932b60b6f9f1e"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/rejection.log",
+        "bytes": 933,
+        "sha256": "462685066336cf890b6e0faf527fc61a478c26e1df0e7960fe22b087720aff41"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/rejection.ts",
+        "bytes": 539,
+        "sha256": "46cd70b8a1079eebcf8a33f369574173b664c39eb4ff7fc885d477d1d53274cc"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/retry.ts",
+        "bytes": 3915,
+        "sha256": "c7cceda4a4bb372db4efd44633fa8317456ac3312bef5d742fb74567d6eb0f89"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/run.log",
+        "bytes": 2848,
+        "sha256": "dbecb26f722de0a991cbcf8848fb298fecd0783c19af9f8e3d71e1a0b653cc74"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/run.ts",
+        "bytes": 3888,
+        "sha256": "f4e0061591e5055d11fc13b2a1cb2a9f9219ceaad2388dc77aaeae7feb0665b0"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/test.log",
+        "bytes": 27717,
+        "sha256": "1f9c29722f80d74a3f4388bf3c37cfe84ff19dc7b93465c2eba521ce7652e072"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/un-mauritius-core-ar-default-edit.docx",
+        "bytes": 116005,
+        "sha256": "55f54ada065a9d4b015ca24ae1a538b9d5d024ad79250fdb3340d08991f356a6"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/un-mauritius-core-ar-default-round.docx",
+        "bytes": 116003,
+        "sha256": "30d9e7671cbbf9f707d6726900c8a241753a192dd1f9ae4ceabecfcde0463cac"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/verified.json",
+        "bytes": 46252,
+        "sha256": "46d15891fcda8cb1b2bd59eb596e4927e610d18719de551e2138f1eda04354c3"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/verify.py",
+        "bytes": 3452,
+        "sha256": "6690a4628d84493a509e74571e89df7965d36c2421a9871970495896a71eb8a9"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/wa-outcome-standards-tracked-default-edit.docx",
+        "bytes": 329770,
+        "sha256": "c5086b5fc869d42e7b9dd7a64484fd8712553477aaa4682a4cb0e58db869bf63"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/wa-outcome-standards-tracked-default-round.docx",
+        "bytes": 329749,
+        "sha256": "b383e0ea8666a6e3c6e1a7ac2f07a8032fe062ab2458e438a13e5ae2193f8c07"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/wales-citizen-voice-easy-read-default-round.docx",
+        "bytes": 4389477,
+        "sha256": "bb28bffc0568044d3ce9b7aa405a40aef5664e54356e22f8d52559cc1dc5a803"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/work-8g/circular-economy-large-edit.docx",
+        "bytes": 8156836,
+        "sha256": "9e429203a398424bdb87c8dc6a95ea084bb541b04e1eb84f0f6cf1b1bb13e834"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/work-8g/circular-economy-large-round.docx",
+        "bytes": 8156866,
+        "sha256": "18ffe6cceee902de8adefe55e8bde6951486e0508897c8648c969d04058d868a"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/work-8g/execution.json",
+        "bytes": 1686,
+        "sha256": "4cec544a5a879720a2990094e805dde03f2838f36773fd1c84c252fd2ef2fe0a"
+      },
+      {
+        "path": ".cache/docx-corpus/structure-qa-20260915/work-8g/run.log",
+        "bytes": 90,
+        "sha256": "0d0a9454087e598f40dd4b401b6996a1a011c5ab358ada1346aa3d8801d4067e"
+      }
+    ]
+  },
+  "laterTasks": "pending; model/API adaptation, unrepresented corpus structures and renderer QA are not completed by this campaign"
+}

@@ -207,7 +207,7 @@ for (const cancel of [false, true]) test(`parallel inline input joins delayed fi
   let finishing = false;
   let settled = false;
   let signal: AbortSignal | undefined;
-  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, randomAccessWrite: false } });
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, randomAccessWrite: false, open: false } });
   const writeStream = fs.writeStream.bind(fs);
   context.mock.method(fs, "writeStream", async (...args: Parameters<typeof writeStream>) => {
     signal = args[2]?.signal;

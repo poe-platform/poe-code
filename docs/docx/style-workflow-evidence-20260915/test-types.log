@@ -1,0 +1,39 @@
+packages/docx/src/image-insertion.ts(174,52): error TS2345: Argument of type 'Readonly<{ w: "http://purl.oclc.org/ooxml/wordprocessingml/main"; r: "http://purl.oclc.org/ooxml/officeDocument/relationships"; a: "http://purl.oclc.org/ooxml/drawingml/main"; wp: "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing"; ... 6 more ...; vt: "http://purl.oclc.org/ooxml/officeDocument/docPropsVTyp...' is not assignable to parameter of type 'Readonly<{ w: "http://schemas.openxmlformats.org/wordprocessingml/2006/main"; r: "http://schemas.openxmlformats.org/officeDocument/2006/relationships"; a: "http://schemas.openxmlformats.org/drawingml/2006/main"; ... 7 more ...; vt: "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"; }>'.
+  Type 'Readonly<{ w: "http://purl.oclc.org/ooxml/wordprocessingml/main"; r: "http://purl.oclc.org/ooxml/officeDocument/relationships"; a: "http://purl.oclc.org/ooxml/drawingml/main"; wp: "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing"; ... 6 more ...; vt: "http://purl.oclc.org/ooxml/officeDocument/docPropsVTyp...' is not assignable to type 'Readonly<{ w: "http://schemas.openxmlformats.org/wordprocessingml/2006/main"; r: "http://schemas.openxmlformats.org/officeDocument/2006/relationships"; a: "http://schemas.openxmlformats.org/drawingml/2006/main"; ... 7 more ...; vt: "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"; }>'.
+    Types of property 'w' are incompatible.
+      Type '"http://purl.oclc.org/ooxml/wordprocessingml/main"' is not assignable to type '"http://schemas.openxmlformats.org/wordprocessingml/2006/main"'.
+packages/docx/src/inline-shape-model.ts(120,36): error TS2345: Argument of type 'Readonly<{ w: "http://purl.oclc.org/ooxml/wordprocessingml/main"; r: "http://purl.oclc.org/ooxml/officeDocument/relationships"; a: "http://purl.oclc.org/ooxml/drawingml/main"; wp: "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing"; ... 6 more ...; vt: "http://purl.oclc.org/ooxml/officeDocument/docPropsVTyp...' is not assignable to parameter of type 'Readonly<{ w: "http://schemas.openxmlformats.org/wordprocessingml/2006/main"; r: "http://schemas.openxmlformats.org/officeDocument/2006/relationships"; a: "http://schemas.openxmlformats.org/drawingml/2006/main"; ... 7 more ...; vt: "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"; }>'.
+  Type 'Readonly<{ w: "http://purl.oclc.org/ooxml/wordprocessingml/main"; r: "http://purl.oclc.org/ooxml/officeDocument/relationships"; a: "http://purl.oclc.org/ooxml/drawingml/main"; wp: "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing"; ... 6 more ...; vt: "http://purl.oclc.org/ooxml/officeDocument/docPropsVTyp...' is not assignable to type 'Readonly<{ w: "http://schemas.openxmlformats.org/wordprocessingml/2006/main"; r: "http://schemas.openxmlformats.org/officeDocument/2006/relationships"; a: "http://schemas.openxmlformats.org/drawingml/2006/main"; ... 7 more ...; vt: "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"; }>'.
+    Types of property 'w' are incompatible.
+      Type '"http://purl.oclc.org/ooxml/wordprocessingml/main"' is not assignable to type '"http://schemas.openxmlformats.org/wordprocessingml/2006/main"'.
+packages/docx/src/workflow-behavior-variants.test.ts(130,22): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(146,22): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(476,23): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(484,23): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(682,21): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1423,29): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1444,28): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1507,34): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1528,28): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1549,29): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1961,20): error TS2339: Property 'toString' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1969,20): error TS2339: Property 'toString' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(2761,25): error TS2339: Property 'add_picture' does not exist on type 'Run'.
+packages/docx/src/workflow-behavior-variants.test.ts(2768,31): error TS2339: Property 'add_picture' does not exist on type 'DocumentView'.
+packages/docx/src/workflow-behavior-variants.test.ts(2770,17): error TS2339: Property 'inline_shapes' does not exist on type 'DocumentView'.
+packages/docx/src/workflow-behavior-variants.test.ts(2776,31): error TS2339: Property 'add_picture' does not exist on type 'DocumentView'.
+packages/docx/src/workflow-behavior-variants.test.ts(2778,17): error TS2339: Property 'inline_shapes' does not exist on type 'DocumentView'.
+packages/docx/src/workflow-behavior-variants.test.ts(2784,31): error TS2339: Property 'add_picture' does not exist on type 'DocumentView'.
+packages/docx/src/workflow-behavior-variants.test.ts(2786,17): error TS2339: Property 'inline_shapes' does not exist on type 'DocumentView'.
+packages/docx/src/workflow-behavior-variants.test.ts(2792,31): error TS2339: Property 'add_picture' does not exist on type 'DocumentView'.
+packages/docx/src/workflow-behavior-variants.test.ts(2794,17): error TS2339: Property 'inline_shapes' does not exist on type 'DocumentView'.
+packages/docx/src/workflow-behavior-variants.test.ts(2801,25): error TS2339: Property 'add_picture' does not exist on type 'Run'.
+packages/docx/src/workflow-behavior-variants.test.ts(2809,25): error TS2339: Property 'add_picture' does not exist on type 'Run'.
+packages/docx/src/workflow-behavior-variants.test.ts(2817,25): error TS2339: Property 'add_picture' does not exist on type 'Run'.
+packages/docx/src/workflow-behavior-variants.test.ts(2818,131): error TS2339: Property 'inline_shapes' does not exist on type 'DocumentView'.
+packages/docx/src/workflow-behavior-variants.test.ts(2827,25): error TS2339: Property 'add_picture' does not exist on type 'Run'.
+packages/docx/src/workflow-behavior-variants.test.ts(2828,131): error TS2339: Property 'inline_shapes' does not exist on type 'DocumentView'.
+packages/docx/src/workflow-behavior-variants.test.ts(2837,25): error TS2339: Property 'add_picture' does not exist on type 'Run'.
+packages/docx/src/workflow-behavior-variants.test.ts(2838,131): error TS2339: Property 'inline_shapes' does not exist on type 'DocumentView'.
+packages/docx/src/workflow-behavior-variants.test.ts(2847,25): error TS2339: Property 'add_picture' does not exist on type 'Run'.
+packages/docx/src/workflow-behavior-variants.test.ts(2848,131): error TS2339: Property 'inline_shapes' does not exist on type 'DocumentView'.

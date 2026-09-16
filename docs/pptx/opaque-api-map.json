@@ -1,0 +1,3796 @@
+{
+  "schemaVersion": 1,
+  "scope": "Direct OLE interfaces, all _OleFormat inherited members, program metadata enum and object-type enum values; shared collection/graphic-frame closure remains in public-api-map.json.",
+  "sourceRevision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "counts": {
+    "members": 25,
+    "wholeMemberParity": 0
+  },
+  "rows": [
+    {
+      "sourceId": "pptx.enum.shapes.MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT",
+      "inventory": "upstream-api-inventory.json#/objects/1372",
+      "source": {
+        "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT",
+        "adaptation_status": "unmapped_not_implemented",
+        "python_kind": "enum-member",
+        "discovery": "enum-source-and-docs",
+        "value": 7,
+        "source_evidence": {
+          "file": "src/pptx/enum/shapes.py",
+          "line": 792,
+          "end_line": 792
+        },
+        "mapping_rules": [
+          "J01",
+          "J04"
+        ],
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target_member": "EMBEDDED_OLE_OBJECT",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "enum-member",
+        "source": {
+          "declaration": null,
+          "getter": null,
+          "setter": null,
+          "declared_on": null,
+          "evidence": "src/pptx/enum/shapes.py:792-792",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "MSO_SHAPE_TYPE",
+          "member": "EMBEDDED_OLE_OBJECT",
+          "form": "enum-member",
+          "ts_signature": "readonly EMBEDDED_OLE_OBJECT: MSO_SHAPE_TYPE",
+          "arguments": [],
+          "getter": null,
+          "setter": null,
+          "return_type": "MSO_SHAPE_TYPE",
+          "ownership": "immutable value/type metadata"
+        },
+        "value": 7,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J04",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ],
+        "cli": [
+          {
+            "path": "schema",
+            "operation": "schema",
+            "arguments": {
+              "commandPath": {
+                "const": "values"
+              },
+              "type": {
+                "const": "MSO_SHAPE_TYPE"
+              }
+            },
+            "role": "Type/value discovery; symbols are accepted by their typed consumer operations."
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "enum.shapes.MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT.symbol",
+              "given": "Use the declared symbol through its public enum.",
+              "expect": {
+                "value": 7,
+                "xml": null
+              },
+              "assert": "Exact immutable value/XML metadata; equal-valued aliases remain addressable."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "values"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.enum.shapes.MSO_SHAPE_TYPE"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/enum/shapes.py:792-792",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [],
+          "write": [],
+          "call": [
+            "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+          ]
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.enum.shapes.MSO_SHAPE_TYPE.LINKED_OLE_OBJECT",
+      "inventory": "upstream-api-inventory.json#/objects/1380",
+      "source": {
+        "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.LINKED_OLE_OBJECT",
+        "adaptation_status": "unmapped_not_implemented",
+        "python_kind": "enum-member",
+        "discovery": "enum-source-and-docs",
+        "value": 10,
+        "source_evidence": {
+          "file": "src/pptx/enum/shapes.py",
+          "line": 816,
+          "end_line": 816
+        },
+        "mapping_rules": [
+          "J01",
+          "J04"
+        ],
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target_member": "LINKED_OLE_OBJECT",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.LINKED_OLE_OBJECT",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "enum-member",
+        "source": {
+          "declaration": null,
+          "getter": null,
+          "setter": null,
+          "declared_on": null,
+          "evidence": "src/pptx/enum/shapes.py:816-816",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "MSO_SHAPE_TYPE",
+          "member": "LINKED_OLE_OBJECT",
+          "form": "enum-member",
+          "ts_signature": "readonly LINKED_OLE_OBJECT: MSO_SHAPE_TYPE",
+          "arguments": [],
+          "getter": null,
+          "setter": null,
+          "return_type": "MSO_SHAPE_TYPE",
+          "ownership": "immutable value/type metadata"
+        },
+        "value": 10,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J04",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ],
+        "cli": [
+          {
+            "path": "schema",
+            "operation": "schema",
+            "arguments": {
+              "commandPath": {
+                "const": "values"
+              },
+              "type": {
+                "const": "MSO_SHAPE_TYPE"
+              }
+            },
+            "role": "Type/value discovery; symbols are accepted by their typed consumer operations."
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "enum.shapes.MSO_SHAPE_TYPE.LINKED_OLE_OBJECT.symbol",
+              "given": "Use the declared symbol through its public enum.",
+              "expect": {
+                "value": 10,
+                "xml": null
+              },
+              "assert": "Exact immutable value/XML metadata; equal-valued aliases remain addressable."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "values"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.enum.shapes.MSO_SHAPE_TYPE"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/enum/shapes.py:816-816",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [],
+          "write": [],
+          "call": [
+            "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+          ]
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PROG_ID",
+      "inventory": "upstream-api-inventory.json#/objects/1429",
+      "source": {
+        "source_id": "pptx.enum.shapes.PROG_ID",
+        "adaptation_status": "unmapped_not_implemented",
+        "python_kind": "EnumType",
+        "discovery": "returned-interface",
+        "returned_by": "pptx.shapes.shapetree.SlideShapes.add_ole_object",
+        "enum_values": [
+          {
+            "name": "DOCX",
+            "value": "DOCX"
+          },
+          {
+            "name": "PPTX",
+            "value": "PPTX"
+          },
+          {
+            "name": "XLSX",
+            "value": "XLSX"
+          }
+        ],
+        "source_evidence": {
+          "file": "src/pptx/enum/shapes.py",
+          "line": 972,
+          "end_line": 1029
+        },
+        "construction": "value-constructor",
+        "mapping_rules": [
+          "J01",
+          "J04"
+        ],
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target_member": "PROG_ID",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.enum.shapes.PROG_ID",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "EnumType",
+        "source": {
+          "declaration": null,
+          "getter": null,
+          "setter": null,
+          "declared_on": null,
+          "evidence": "src/pptx/enum/shapes.py:972-1029",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "PROG_ID",
+          "member": "PROG_ID",
+          "form": "EnumType",
+          "ts_signature": "interface PROG_ID extends EnumValue",
+          "arguments": [],
+          "getter": null,
+          "setter": null,
+          "return_type": "PROG_ID",
+          "ownership": "immutable value/type metadata"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J04",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ],
+        "cli": [
+          {
+            "path": "schema",
+            "operation": "schema",
+            "arguments": {
+              "commandPath": {
+                "const": "values"
+              },
+              "type": {
+                "const": "PROG_ID"
+              }
+            },
+            "role": "Type/value discovery; symbols are accepted by their typed consumer operations."
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "enum.shapes.PROG_ID.surface",
+              "assert": "Obtain PROG_ID through its documented owner/value constructor and exercise PROG_ID. Assert PROG_ID and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "values"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.enum.shapes"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/enum/shapes.py:972-1029",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [],
+          "write": [],
+          "call": [
+            "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+          ]
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PROG_ID.DOCX",
+      "inventory": "upstream-api-inventory.json#/objects/1430",
+      "source": {
+        "source_id": "pptx.enum.shapes.PROG_ID.DOCX",
+        "adaptation_status": "unmapped_not_implemented",
+        "python_kind": "enum-member",
+        "discovery": "enum-source-and-docs",
+        "value": "DOCX",
+        "source_evidence": {
+          "file": "src/pptx/enum/shapes.py",
+          "line": 1022,
+          "end_line": 1022
+        },
+        "mapping_rules": [
+          "J01",
+          "J04"
+        ],
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target_member": "DOCX",
+        "acceptance_status": "original-tests-required; not run",
+        "metadata": {
+          "progId": "Word.Document.12",
+          "source_icon_filename": "docx-icon.emf",
+          "width": 965200,
+          "height": 609600
+        }
+      },
+      "targetContract": {
+        "source_id": "pptx.enum.shapes.PROG_ID.DOCX",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "enum-member",
+        "source": {
+          "declaration": null,
+          "getter": null,
+          "setter": null,
+          "declared_on": null,
+          "evidence": "src/pptx/enum/shapes.py:1022-1022",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "PROG_ID",
+          "member": "DOCX",
+          "form": "enum-member",
+          "ts_signature": "readonly DOCX: PROG_ID",
+          "arguments": [],
+          "getter": null,
+          "setter": null,
+          "return_type": "PROG_ID",
+          "ownership": "immutable value/type metadata"
+        },
+        "value": "DOCX",
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": {
+          "progId": "Word.Document.12",
+          "width": 965200,
+          "height": 609600,
+          "icon_filename": "original-docx-icon.emf",
+          "icon_policy": "Original authored asset, never copied from the reference checkout."
+        },
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J04",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ],
+        "cli": [
+          {
+            "path": "schema",
+            "operation": "schema",
+            "arguments": {
+              "commandPath": {
+                "const": "values"
+              },
+              "type": {
+                "const": "PROG_ID"
+              }
+            },
+            "role": "Type/value discovery; symbols are accepted by their typed consumer operations."
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "enum.shapes.PROG_ID.DOCX.symbol",
+              "given": "Use the declared symbol through its public enum.",
+              "expect": {
+                "value": "DOCX",
+                "xml": null
+              },
+              "assert": "Exact immutable value/XML metadata; equal-valued aliases remain addressable."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "values"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.enum.shapes.PROG_ID"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/enum/shapes.py:1022-1022",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [],
+          "write": [],
+          "call": [
+            "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+          ]
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PROG_ID.PPTX",
+      "inventory": "upstream-api-inventory.json#/objects/1431",
+      "source": {
+        "source_id": "pptx.enum.shapes.PROG_ID.PPTX",
+        "adaptation_status": "unmapped_not_implemented",
+        "python_kind": "enum-member",
+        "discovery": "enum-source-and-docs",
+        "value": "PPTX",
+        "source_evidence": {
+          "file": "src/pptx/enum/shapes.py",
+          "line": 1025,
+          "end_line": 1025
+        },
+        "mapping_rules": [
+          "J01",
+          "J04"
+        ],
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target_member": "PPTX",
+        "acceptance_status": "original-tests-required; not run",
+        "metadata": {
+          "progId": "PowerPoint.Show.12",
+          "source_icon_filename": "pptx-icon.emf",
+          "width": 965200,
+          "height": 609600
+        }
+      },
+      "targetContract": {
+        "source_id": "pptx.enum.shapes.PROG_ID.PPTX",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "enum-member",
+        "source": {
+          "declaration": null,
+          "getter": null,
+          "setter": null,
+          "declared_on": null,
+          "evidence": "src/pptx/enum/shapes.py:1025-1025",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "PROG_ID",
+          "member": "PPTX",
+          "form": "enum-member",
+          "ts_signature": "readonly PPTX: PROG_ID",
+          "arguments": [],
+          "getter": null,
+          "setter": null,
+          "return_type": "PROG_ID",
+          "ownership": "immutable value/type metadata"
+        },
+        "value": "PPTX",
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": {
+          "progId": "PowerPoint.Show.12",
+          "width": 965200,
+          "height": 609600,
+          "icon_filename": "original-pptx-icon.emf",
+          "icon_policy": "Original authored asset, never copied from the reference checkout."
+        },
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J04",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ],
+        "cli": [
+          {
+            "path": "schema",
+            "operation": "schema",
+            "arguments": {
+              "commandPath": {
+                "const": "values"
+              },
+              "type": {
+                "const": "PROG_ID"
+              }
+            },
+            "role": "Type/value discovery; symbols are accepted by their typed consumer operations."
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "enum.shapes.PROG_ID.PPTX.symbol",
+              "given": "Use the declared symbol through its public enum.",
+              "expect": {
+                "value": "PPTX",
+                "xml": null
+              },
+              "assert": "Exact immutable value/XML metadata; equal-valued aliases remain addressable."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "values"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.enum.shapes.PROG_ID"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/enum/shapes.py:1025-1025",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [],
+          "write": [],
+          "call": [
+            "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+          ]
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PROG_ID.XLSX",
+      "inventory": "upstream-api-inventory.json#/objects/1432",
+      "source": {
+        "source_id": "pptx.enum.shapes.PROG_ID.XLSX",
+        "adaptation_status": "unmapped_not_implemented",
+        "python_kind": "enum-member",
+        "discovery": "enum-source-and-docs",
+        "value": "XLSX",
+        "source_evidence": {
+          "file": "src/pptx/enum/shapes.py",
+          "line": 1028,
+          "end_line": 1028
+        },
+        "mapping_rules": [
+          "J01",
+          "J04"
+        ],
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target_member": "XLSX",
+        "acceptance_status": "original-tests-required; not run",
+        "metadata": {
+          "progId": "Excel.Sheet.12",
+          "source_icon_filename": "xlsx-icon.emf",
+          "width": 965200,
+          "height": 609600
+        }
+      },
+      "targetContract": {
+        "source_id": "pptx.enum.shapes.PROG_ID.XLSX",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "enum-member",
+        "source": {
+          "declaration": null,
+          "getter": null,
+          "setter": null,
+          "declared_on": null,
+          "evidence": "src/pptx/enum/shapes.py:1028-1028",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "PROG_ID",
+          "member": "XLSX",
+          "form": "enum-member",
+          "ts_signature": "readonly XLSX: PROG_ID",
+          "arguments": [],
+          "getter": null,
+          "setter": null,
+          "return_type": "PROG_ID",
+          "ownership": "immutable value/type metadata"
+        },
+        "value": "XLSX",
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": {
+          "progId": "Excel.Sheet.12",
+          "width": 965200,
+          "height": 609600,
+          "icon_filename": "original-xlsx-icon.emf",
+          "icon_policy": "Original authored asset, never copied from the reference checkout."
+        },
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J04",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ],
+        "cli": [
+          {
+            "path": "schema",
+            "operation": "schema",
+            "arguments": {
+              "commandPath": {
+                "const": "values"
+              },
+              "type": {
+                "const": "PROG_ID"
+              }
+            },
+            "role": "Type/value discovery; symbols are accepted by their typed consumer operations."
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "enum.shapes.PROG_ID.XLSX.symbol",
+              "given": "Use the declared symbol through its public enum.",
+              "expect": {
+                "value": "XLSX",
+                "xml": null
+              },
+              "assert": "Exact immutable value/XML metadata; equal-valued aliases remain addressable."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "values"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.enum.shapes.PROG_ID"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/enum/shapes.py:1028-1028",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [],
+          "write": [],
+          "call": [
+            "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+          ]
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PROG_ID.height",
+      "inventory": "upstream-api-inventory.json#/objects/1433",
+      "source": {
+        "source_id": "pptx.enum.shapes.PROG_ID.height",
+        "adaptation_status": "unmapped_not_implemented",
+        "python_kind": "property",
+        "discovery": "returned-enum-member",
+        "declared_on": "pptx.enum.shapes.PROG_ID",
+        "source_signature": "(self)",
+        "source_evidence": {
+          "file": "src/pptx/enum/shapes.py",
+          "line": 1007,
+          "end_line": 1008
+        },
+        "readable": true,
+        "writable": false,
+        "read_signature": "(self)",
+        "write_signature": null,
+        "mapping_rules": [
+          "J01",
+          "J02",
+          "J04"
+        ],
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target_member": "height",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.enum.shapes.PROG_ID.height",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "property",
+        "source": {
+          "declaration": "(self)",
+          "getter": "(self)",
+          "setter": null,
+          "declared_on": "pptx.enum.shapes.PROG_ID",
+          "evidence": "src/pptx/enum/shapes.py:1007-1008",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "PROG_ID",
+          "member": "height",
+          "form": "property",
+          "ts_signature": "get height(): Length",
+          "arguments": [],
+          "getter": "get height(): Length",
+          "setter": null,
+          "return_type": "Length",
+          "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J02",
+          "J04",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [
+            {
+              "class": "PropertyAccessError",
+              "code": "read-only-property",
+              "exit": 1,
+              "when": "Assignment to a read-only public property."
+            }
+          ],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "cli": [
+          {
+            "path": "batch",
+            "operation": "values.enum.shapes.pROGID.height.get",
+            "version": 1,
+            "receiver": "PROG_ID",
+            "arguments": [],
+            "result": "Length",
+            "read_policy": "Apply documented effect profile.",
+            "unknown_fields": "reject"
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "enum.shapes.PROG_ID.height.surface",
+              "assert": "Obtain PROG_ID through its documented owner/value constructor and exercise height. Assert Length and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "values"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.enum.shapes.PROG_ID"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/enum/shapes.py:1007-1008",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [
+            "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+          ],
+          "write": [],
+          "call": []
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PROG_ID.icon_filename",
+      "inventory": "upstream-api-inventory.json#/objects/1434",
+      "source": {
+        "source_id": "pptx.enum.shapes.PROG_ID.icon_filename",
+        "adaptation_status": "unmapped_not_implemented",
+        "python_kind": "property",
+        "discovery": "returned-enum-member",
+        "declared_on": "pptx.enum.shapes.PROG_ID",
+        "source_signature": "(self)",
+        "source_evidence": {
+          "file": "src/pptx/enum/shapes.py",
+          "line": 1011,
+          "end_line": 1012
+        },
+        "readable": true,
+        "writable": false,
+        "read_signature": "(self)",
+        "write_signature": null,
+        "mapping_rules": [
+          "J01",
+          "J02",
+          "J04"
+        ],
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target_member": "icon_filename",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.enum.shapes.PROG_ID.icon_filename",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "property",
+        "source": {
+          "declaration": "(self)",
+          "getter": "(self)",
+          "setter": null,
+          "declared_on": "pptx.enum.shapes.PROG_ID",
+          "evidence": "src/pptx/enum/shapes.py:1011-1012",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "PROG_ID",
+          "member": "icon_filename",
+          "form": "property",
+          "ts_signature": "get icon_filename(): string",
+          "arguments": [],
+          "getter": "get icon_filename(): string",
+          "setter": null,
+          "return_type": "string",
+          "ownership": "immutable value/type metadata"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J02",
+          "J04",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [
+            {
+              "class": "PropertyAccessError",
+              "code": "read-only-property",
+              "exit": 1,
+              "when": "Assignment to a read-only public property."
+            }
+          ],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "cli": [
+          {
+            "path": "batch",
+            "operation": "values.enum.shapes.pROGID.iconFilename.get",
+            "version": 1,
+            "receiver": "PROG_ID",
+            "arguments": [],
+            "result": "string",
+            "read_policy": "Apply documented effect profile.",
+            "unknown_fields": "reject"
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "enum.shapes.PROG_ID.icon_filename.surface",
+              "assert": "Obtain PROG_ID through its documented owner/value constructor and exercise icon_filename. Assert string and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "values"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.enum.shapes.PROG_ID"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/enum/shapes.py:1011-1012",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [
+            "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+          ],
+          "write": [],
+          "call": []
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PROG_ID.name",
+      "inventory": "upstream-api-inventory.json#/objects/1435",
+      "source": {
+        "source_id": "pptx.enum.shapes.PROG_ID.name",
+        "adaptation_status": "unmapped_not_implemented",
+        "python_kind": "property",
+        "discovery": "enum-value-protocol",
+        "readable": true,
+        "writable": false,
+        "read_signature": "() -> str",
+        "write_signature": null,
+        "source_evidence": {
+          "file": "src/pptx/enum/shapes.py",
+          "line": 972,
+          "end_line": 1029
+        },
+        "mapping_rules": [
+          "J01",
+          "J02",
+          "J04"
+        ],
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target_member": "name",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.enum.shapes.PROG_ID.name",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "property",
+        "source": {
+          "declaration": null,
+          "getter": "() -> str",
+          "setter": null,
+          "declared_on": null,
+          "evidence": "src/pptx/enum/shapes.py:972-1029",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "PROG_ID",
+          "member": "name",
+          "form": "property",
+          "ts_signature": "get name(): string",
+          "arguments": [],
+          "getter": "get name(): string",
+          "setter": null,
+          "return_type": "string",
+          "ownership": "immutable value/type metadata"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J02",
+          "J04",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [
+            {
+              "class": "PropertyAccessError",
+              "code": "read-only-property",
+              "exit": 1,
+              "when": "Assignment to a read-only public property."
+            }
+          ],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "cli": [
+          {
+            "path": "batch",
+            "operation": "values.enum.shapes.pROGID.name.get",
+            "version": 1,
+            "receiver": "PROG_ID",
+            "arguments": [],
+            "result": "string",
+            "read_policy": "Apply documented effect profile.",
+            "unknown_fields": "reject"
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "enum.shapes.PROG_ID.name.surface",
+              "assert": "Obtain PROG_ID through its documented owner/value constructor and exercise name. Assert string and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "values"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.enum.shapes.PROG_ID"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/enum/shapes.py:972-1029",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [
+            "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+          ],
+          "write": [],
+          "call": []
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PROG_ID.progId",
+      "inventory": "upstream-api-inventory.json#/objects/1436",
+      "source": {
+        "source_id": "pptx.enum.shapes.PROG_ID.progId",
+        "adaptation_status": "unmapped_not_implemented",
+        "python_kind": "property",
+        "discovery": "returned-enum-member",
+        "declared_on": "pptx.enum.shapes.PROG_ID",
+        "source_signature": "(self)",
+        "source_evidence": {
+          "file": "src/pptx/enum/shapes.py",
+          "line": 1015,
+          "end_line": 1016
+        },
+        "readable": true,
+        "writable": false,
+        "read_signature": "(self)",
+        "write_signature": null,
+        "mapping_rules": [
+          "J01",
+          "J02",
+          "J04"
+        ],
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target_member": "progId",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.enum.shapes.PROG_ID.progId",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "property",
+        "source": {
+          "declaration": "(self)",
+          "getter": "(self)",
+          "setter": null,
+          "declared_on": "pptx.enum.shapes.PROG_ID",
+          "evidence": "src/pptx/enum/shapes.py:1015-1016",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "PROG_ID",
+          "member": "progId",
+          "form": "property",
+          "ts_signature": "get progId(): string",
+          "arguments": [],
+          "getter": "get progId(): string",
+          "setter": null,
+          "return_type": "string",
+          "ownership": "immutable value/type metadata"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J02",
+          "J04",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [
+            {
+              "class": "PropertyAccessError",
+              "code": "read-only-property",
+              "exit": 1,
+              "when": "Assignment to a read-only public property."
+            }
+          ],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "cli": [
+          {
+            "path": "batch",
+            "operation": "values.enum.shapes.pROGID.progId.get",
+            "version": 1,
+            "receiver": "PROG_ID",
+            "arguments": [],
+            "result": "string",
+            "read_policy": "Apply documented effect profile.",
+            "unknown_fields": "reject"
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "enum.shapes.PROG_ID.progId.surface",
+              "assert": "Obtain PROG_ID through its documented owner/value constructor and exercise progId. Assert string and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "values"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.enum.shapes.PROG_ID"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/enum/shapes.py:1015-1016",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [
+            "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+          ],
+          "write": [],
+          "call": []
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PROG_ID.value",
+      "inventory": "upstream-api-inventory.json#/objects/1437",
+      "source": {
+        "source_id": "pptx.enum.shapes.PROG_ID.value",
+        "adaptation_status": "unmapped_not_implemented",
+        "python_kind": "property",
+        "discovery": "enum-value-protocol",
+        "readable": true,
+        "writable": false,
+        "read_signature": "() -> int | str",
+        "write_signature": null,
+        "source_evidence": {
+          "file": "src/pptx/enum/shapes.py",
+          "line": 972,
+          "end_line": 1029
+        },
+        "mapping_rules": [
+          "J01",
+          "J02",
+          "J04"
+        ],
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target_member": "value",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.enum.shapes.PROG_ID.value",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "property",
+        "source": {
+          "declaration": null,
+          "getter": "() -> int | str",
+          "setter": null,
+          "declared_on": null,
+          "evidence": "src/pptx/enum/shapes.py:972-1029",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "PROG_ID",
+          "member": "value",
+          "form": "property",
+          "ts_signature": "get value(): string",
+          "arguments": [],
+          "getter": "get value(): string",
+          "setter": null,
+          "return_type": "string",
+          "ownership": "immutable value/type metadata"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J02",
+          "J04",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [
+            {
+              "class": "PropertyAccessError",
+              "code": "read-only-property",
+              "exit": 1,
+              "when": "Assignment to a read-only public property."
+            }
+          ],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "cli": [
+          {
+            "path": "batch",
+            "operation": "values.enum.shapes.pROGID.value.get",
+            "version": 1,
+            "receiver": "PROG_ID",
+            "arguments": [],
+            "result": "string",
+            "read_policy": "Apply documented effect profile.",
+            "unknown_fields": "reject"
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "enum.shapes.PROG_ID.value.surface",
+              "assert": "Obtain PROG_ID through its documented owner/value constructor and exercise value. Assert string and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "values"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.enum.shapes.PROG_ID"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/enum/shapes.py:972-1029",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [
+            "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+          ],
+          "write": [],
+          "call": []
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PROG_ID.width",
+      "inventory": "upstream-api-inventory.json#/objects/1438",
+      "source": {
+        "source_id": "pptx.enum.shapes.PROG_ID.width",
+        "adaptation_status": "unmapped_not_implemented",
+        "python_kind": "property",
+        "discovery": "returned-enum-member",
+        "declared_on": "pptx.enum.shapes.PROG_ID",
+        "source_signature": "(self)",
+        "source_evidence": {
+          "file": "src/pptx/enum/shapes.py",
+          "line": 1019,
+          "end_line": 1020
+        },
+        "readable": true,
+        "writable": false,
+        "read_signature": "(self)",
+        "write_signature": null,
+        "mapping_rules": [
+          "J01",
+          "J02",
+          "J04"
+        ],
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target_member": "width",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.enum.shapes.PROG_ID.width",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "property",
+        "source": {
+          "declaration": "(self)",
+          "getter": "(self)",
+          "setter": null,
+          "declared_on": "pptx.enum.shapes.PROG_ID",
+          "evidence": "src/pptx/enum/shapes.py:1019-1020",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "PROG_ID",
+          "member": "width",
+          "form": "property",
+          "ts_signature": "get width(): Length",
+          "arguments": [],
+          "getter": "get width(): Length",
+          "setter": null,
+          "return_type": "Length",
+          "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J02",
+          "J04",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [
+            {
+              "class": "PropertyAccessError",
+              "code": "read-only-property",
+              "exit": 1,
+              "when": "Assignment to a read-only public property."
+            }
+          ],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "cli": [
+          {
+            "path": "batch",
+            "operation": "values.enum.shapes.pROGID.width.get",
+            "version": 1,
+            "receiver": "PROG_ID",
+            "arguments": [],
+            "result": "Length",
+            "read_policy": "Apply documented effect profile.",
+            "unknown_fields": "reject"
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "enum.shapes.PROG_ID.width.surface",
+              "assert": "Obtain PROG_ID through its documented owner/value constructor and exercise width. Assert Length and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "values"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.enum.shapes.PROG_ID"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/enum/shapes.py:1019-1020",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [
+            "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+          ],
+          "write": [],
+          "call": []
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.ole_format",
+      "inventory": "upstream-api-inventory.json#/objects/1685",
+      "source": {
+        "source_id": "pptx.shapes.graphfrm.GraphicFrame.ole_format",
+        "documentation_file": "docs/api/shapes.rst",
+        "line": 129,
+        "discovery": "autodoc-expanded",
+        "adaptation_status": "unmapped_not_implemented",
+        "python_kind": "property",
+        "readable": true,
+        "writable": false,
+        "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+        "source_evidence": {
+          "file": "src/pptx/shapes/graphfrm.py",
+          "line": 76,
+          "end_line": 86
+        },
+        "source_signature": "(self) -> _OleFormat",
+        "read_signature": "(self) -> _OleFormat",
+        "write_signature": null,
+        "source_returns": "_OleFormat",
+        "direct_raises": [
+          "ValueError"
+        ],
+        "implementation_status": "not_implemented",
+        "mapping_rules": [
+          "J01",
+          "J02"
+        ],
+        "disposition": "language-mapped",
+        "target_member": "ole_format",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.shapes.graphfrm.GraphicFrame.ole_format",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "property",
+        "source": {
+          "declaration": "(self) -> _OleFormat",
+          "getter": "(self) -> _OleFormat",
+          "setter": null,
+          "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+          "evidence": "src/pptx/shapes/graphfrm.py:76-86",
+          "setter_evidence": null,
+          "documentation_file": "docs/api/shapes.rst",
+          "documentation_line": 129
+        },
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "GraphicFrame",
+          "member": "ole_format",
+          "form": "property",
+          "ts_signature": "get ole_format(): _OleFormat",
+          "arguments": [],
+          "getter": "get ole_format(): _OleFormat",
+          "setter": null,
+          "return_type": "_OleFormat",
+          "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J02",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [
+            {
+              "source": "ValueError",
+              "class": "ValueError",
+              "code": "invalid-value",
+              "exit": 1,
+              "when": "Declared source failure; see pinned evidence span."
+            },
+            {
+              "class": "PropertyAccessError",
+              "code": "read-only-property",
+              "exit": 1,
+              "when": "Assignment to a read-only public property."
+            }
+          ],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "cli": [
+          {
+            "path": "batch",
+            "operation": "shapes.shapes.graphfrm.graphicFrame.oleFormat.get",
+            "version": 1,
+            "receiver": "GraphicFrame",
+            "arguments": [],
+            "result": "_OleFormat",
+            "read_policy": "Apply documented effect profile.",
+            "unknown_fields": "reject"
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "shapes.graphfrm.GraphicFrame.ole_format.surface",
+              "assert": "Obtain GraphicFrame through its documented owner/value constructor and exercise ole_format. Assert _OleFormat and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "images-media"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.shapes.graphfrm.GraphicFrame"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/shapes/graphfrm.py:76-86",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [
+            "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+          ],
+          "write": [],
+          "call": []
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm._OleFormat",
+      "inventory": "upstream-api-inventory.json#/objects/1695",
+      "source": {
+        "source_id": "pptx.shapes.graphfrm._OleFormat",
+        "adaptation_status": "unmapped_not_implemented",
+        "python_kind": "type",
+        "discovery": "returned-interface",
+        "returned_by": "pptx.shapes.graphfrm.GraphicFrame.ole_format",
+        "source_evidence": {
+          "file": "src/pptx/shapes/graphfrm.py",
+          "line": 133,
+          "end_line": 166
+        },
+        "constructor_signature": "(self, graphicData: CT_GraphicalObjectData, parent: ProvidesPart)",
+        "constructor_declared_on": "pptx.shapes.graphfrm._OleFormat",
+        "construction": "returned-live-interface; constructor shown as source evidence, not a public raw-XML allocation promise",
+        "mapping_rules": [
+          "J01"
+        ],
+        "disposition": "planned",
+        "implementation_status": "not_implemented",
+        "target_member": "_OleFormat",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.shapes.graphfrm._OleFormat",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "type",
+        "source": {
+          "declaration": "(self, graphicData: CT_GraphicalObjectData, parent: ProvidesPart)",
+          "getter": null,
+          "setter": null,
+          "declared_on": "pptx.shapes.graphfrm._OleFormat",
+          "evidence": "src/pptx/shapes/graphfrm.py:133-166",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "planned",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "_OleFormat",
+          "member": "_OleFormat",
+          "form": "returned-interface",
+          "ts_signature": "interface _OleFormat",
+          "arguments": [],
+          "getter": null,
+          "setter": null,
+          "return_type": "_OleFormat",
+          "ownership": "immutable value/type metadata"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ],
+        "cli": [
+          {
+            "path": "schema",
+            "operation": "schema",
+            "arguments": {
+              "commandPath": {
+                "const": "shapes"
+              },
+              "type": {
+                "const": "_OleFormat"
+              }
+            },
+            "role": "Type/value discovery; symbols are accepted by their typed consumer operations."
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "shapes.graphfrm._OleFormat.surface",
+              "assert": "Obtain _OleFormat through its documented owner/value constructor and exercise _OleFormat. Assert _OleFormat and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "images-media"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.shapes.graphfrm"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/shapes/graphfrm.py:133-166",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [],
+          "write": [],
+          "call": [
+            "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+          ]
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm._OleFormat.__eq__",
+      "inventory": "upstream-api-inventory.json#/objects/1696",
+      "source": {
+        "source_id": "pptx.shapes.graphfrm._OleFormat.__eq__",
+        "adaptation_status": "unmapped_not_implemented",
+        "discovery": "protocol",
+        "declared_on": "pptx.shared.ElementProxy",
+        "python_kind": "function",
+        "source_evidence": {
+          "file": "src/pptx/shared.py",
+          "line": 24,
+          "end_line": 33
+        },
+        "source_signature": "(self, other: object) -> bool",
+        "source_returns": "bool",
+        "direct_raises": [],
+        "implementation_status": "not_implemented",
+        "mapping_rules": [
+          "J01",
+          "J03"
+        ],
+        "disposition": "language-mapped",
+        "target_member": "equals",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.shapes.graphfrm._OleFormat.__eq__",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "function",
+        "source": {
+          "declaration": "(self, other: object) -> bool",
+          "getter": null,
+          "setter": null,
+          "declared_on": "pptx.shared.ElementProxy",
+          "evidence": "src/pptx/shared.py:24-33",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "_OleFormat",
+          "member": "equals",
+          "form": "language-protocol",
+          "ts_signature": "equals(other: ModelComparable): boolean",
+          "arguments": [
+            {
+              "name": "other",
+              "ts_type": "ModelComparable",
+              "position": "positional",
+              "optional": false,
+              "source_default": null,
+              "target_default": null
+            }
+          ],
+          "getter": null,
+          "setter": null,
+          "return_type": "boolean",
+          "ownership": "immutable value/type metadata"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J03",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ],
+        "cli": [
+          {
+            "path": "batch",
+            "operation": "shapes.shapes.graphfrm.oleFormat.equals",
+            "version": 1,
+            "receiver": "_OleFormat",
+            "arguments": [
+              {
+                "name": "other",
+                "ts_type": "ModelComparable",
+                "required": true,
+                "default": null
+              }
+            ],
+            "result": "boolean",
+            "read_policy": "Apply documented effect profile.",
+            "unknown_fields": "reject"
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "shapes.graphfrm._OleFormat.__eq__.surface",
+              "assert": "Obtain _OleFormat through its documented owner/value constructor and exercise __eq__. Assert boolean and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            },
+            {
+              "id": "shapes.graphfrm._OleFormat.__eq__.arguments",
+              "assert": "Exercise each required parameter in declared order; omitted/undefined optional parameters equal their listed defaults. Reject invalid types without mutation.",
+              "defaults": []
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "images-media"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.shared.ElementProxy"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/shared.py:24-33",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [],
+          "write": [],
+          "call": [
+            "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+          ]
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm._OleFormat.__init__",
+      "inventory": "upstream-api-inventory.json#/objects/1697",
+      "source": {
+        "source_id": "pptx.shapes.graphfrm._OleFormat.__init__",
+        "adaptation_status": "unmapped_not_implemented",
+        "python_kind": "constructor",
+        "discovery": "constructor-signature-review",
+        "source_signature": "(self, graphicData: CT_GraphicalObjectData, parent: ProvidesPart)",
+        "source_evidence": {
+          "file": "src/pptx/shapes/graphfrm.py",
+          "line": 133,
+          "end_line": 166
+        },
+        "construction": "returned-live-interface; constructor shown as source evidence, not a public raw-XML allocation promise",
+        "mapping_rules": [
+          "J01"
+        ],
+        "disposition": "planned",
+        "implementation_status": "not_implemented",
+        "target_member": "constructor",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.shapes.graphfrm._OleFormat.__init__",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "constructor",
+        "source": {
+          "declaration": "(self, graphicData: CT_GraphicalObjectData, parent: ProvidesPart)",
+          "getter": null,
+          "setter": null,
+          "declared_on": null,
+          "evidence": "src/pptx/shapes/graphfrm.py:133-166",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "planned",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "_OleFormat",
+          "member": "constructor",
+          "form": "owner-acquisition",
+          "ts_signature": "type Acquired = _OleFormat",
+          "arguments": [],
+          "getter": null,
+          "setter": null,
+          "return_type": "_OleFormat",
+          "ownership": "immutable value/type metadata"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ],
+        "cli": [
+          {
+            "path": "schema",
+            "operation": "schema",
+            "arguments": {
+              "commandPath": {
+                "const": "shapes"
+              },
+              "type": {
+                "const": "_OleFormat"
+              }
+            },
+            "role": "Owner acquisition is required; no raw-XML allocation endpoint."
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "shapes.graphfrm._OleFormat.__init__.surface",
+              "assert": "Obtain _OleFormat through its documented owner/value constructor and exercise __init__. Assert _OleFormat and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "images-media"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.shapes.graphfrm._OleFormat"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/shapes/graphfrm.py:133-166",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [],
+          "write": [],
+          "call": [
+            "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+          ]
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm._OleFormat.blob",
+      "inventory": "upstream-api-inventory.json#/objects/1698",
+      "source": {
+        "source_id": "pptx.shapes.graphfrm._OleFormat.blob",
+        "discovery": "returned-interface/protocol-review",
+        "adaptation_status": "unmapped_not_implemented",
+        "readable": true,
+        "writable": false,
+        "python_kind": "property",
+        "declared_on": "pptx.shapes.graphfrm._OleFormat",
+        "source_evidence": {
+          "file": "src/pptx/shapes/graphfrm.py",
+          "line": 143,
+          "end_line": 151
+        },
+        "source_signature": "(self) -> bytes | None",
+        "read_signature": "(self) -> bytes | None",
+        "write_signature": null,
+        "source_returns": "bytes | None",
+        "direct_raises": [],
+        "implementation_status": "not_implemented",
+        "mapping_rules": [
+          "J01",
+          "J02"
+        ],
+        "disposition": "language-mapped",
+        "target_member": "blob",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.shapes.graphfrm._OleFormat.blob",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "property",
+        "source": {
+          "declaration": "(self) -> bytes | None",
+          "getter": "(self) -> bytes | None",
+          "setter": null,
+          "declared_on": "pptx.shapes.graphfrm._OleFormat",
+          "evidence": "src/pptx/shapes/graphfrm.py:143-151",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "_OleFormat",
+          "member": "blob",
+          "form": "property",
+          "ts_signature": "get blob(): Uint8Array | null",
+          "arguments": [],
+          "getter": "get blob(): Uint8Array | null",
+          "setter": null,
+          "return_type": "Uint8Array | null",
+          "ownership": "owned byte copy"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J02",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [
+            {
+              "class": "PropertyAccessError",
+              "code": "read-only-property",
+              "exit": 1,
+              "when": "Assignment to a read-only public property."
+            }
+          ],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "cli": [
+          {
+            "path": "batch",
+            "operation": "shapes.shapes.graphfrm.oleFormat.blob.get",
+            "version": 1,
+            "receiver": "_OleFormat",
+            "arguments": [],
+            "result": "Uint8Array | null",
+            "read_policy": "Apply documented effect profile.",
+            "unknown_fields": "reject"
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "shapes.graphfrm._OleFormat.blob.surface",
+              "assert": "Obtain _OleFormat through its documented owner/value constructor and exercise blob. Assert Uint8Array | null and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "images-media"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.shapes.graphfrm._OleFormat"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/shapes/graphfrm.py:143-151",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [
+            "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+          ],
+          "write": [],
+          "call": []
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": {
+        "operation": "extractObject(input, { part }, context): Promise<ExtractedObject>",
+        "equivalence": "Exact original package-member bytes and detached owned Uint8Array only.",
+        "remaining": "Live parent/part lookup, linked-object null semantics, property access and the exact 8287-byte BDD variant remain unimplemented.",
+        "testFile": "packages/pptx/src/opaque-objects.test.ts",
+        "wholeMemberParity": false
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm._OleFormat.element",
+      "inventory": "upstream-api-inventory.json#/objects/1699",
+      "source": {
+        "source_id": "pptx.shapes.graphfrm._OleFormat.element",
+        "discovery": "returned-interface/protocol-review",
+        "adaptation_status": "unmapped_not_implemented",
+        "readable": true,
+        "writable": false,
+        "python_kind": "property",
+        "declared_on": "pptx.shared.ElementProxy",
+        "source_evidence": {
+          "file": "src/pptx/shared.py",
+          "line": 41,
+          "end_line": 43
+        },
+        "source_signature": "(self)",
+        "read_signature": "(self)",
+        "write_signature": null,
+        "source_returns": null,
+        "direct_raises": [],
+        "implementation_status": "not_implemented",
+        "mapping_rules": [
+          "J01",
+          "J02",
+          "J09"
+        ],
+        "disposition": "security-mapped",
+        "target_member": "element",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.shapes.graphfrm._OleFormat.element",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "property",
+        "source": {
+          "declaration": "(self)",
+          "getter": "(self)",
+          "setter": null,
+          "declared_on": "pptx.shared.ElementProxy",
+          "evidence": "src/pptx/shared.py:41-43",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "security-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "_OleFormat",
+          "member": "element",
+          "form": "property",
+          "ts_signature": "get element(): XmlElementView",
+          "arguments": [],
+          "getter": "get element(): XmlElementView",
+          "setter": null,
+          "return_type": "XmlElementView",
+          "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J02",
+          "J09",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [
+            {
+              "class": "PropertyAccessError",
+              "code": "read-only-property",
+              "exit": 1,
+              "when": "Assignment to a read-only public property."
+            }
+          ],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "cli": [
+          {
+            "path": "batch",
+            "operation": "shapes.shapes.graphfrm.oleFormat.element.get",
+            "version": 1,
+            "receiver": "_OleFormat",
+            "arguments": [],
+            "result": "XmlElementView",
+            "read_policy": "Apply documented effect profile.",
+            "unknown_fields": "reject"
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "shapes.graphfrm._OleFormat.element.surface",
+              "assert": "Obtain _OleFormat through its documented owner/value constructor and exercise element. Assert XmlElementView and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "images-media"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.shared.ElementProxy"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/shared.py:41-43",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [
+            "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+          ],
+          "write": [],
+          "call": []
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm._OleFormat.parent",
+      "inventory": "upstream-api-inventory.json#/objects/1700",
+      "source": {
+        "source_id": "pptx.shapes.graphfrm._OleFormat.parent",
+        "discovery": "returned-interface/protocol-review",
+        "adaptation_status": "unmapped_not_implemented",
+        "readable": true,
+        "writable": false,
+        "python_kind": "property",
+        "declared_on": "pptx.shared.ParentedElementProxy",
+        "source_evidence": {
+          "file": "src/pptx/shared.py",
+          "line": 59,
+          "end_line": 64
+        },
+        "source_signature": "(self)",
+        "read_signature": "(self)",
+        "write_signature": null,
+        "source_returns": null,
+        "direct_raises": [],
+        "implementation_status": "not_implemented",
+        "mapping_rules": [
+          "J01",
+          "J02",
+          "J09"
+        ],
+        "disposition": "security-mapped",
+        "target_member": "parent",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.shapes.graphfrm._OleFormat.parent",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "property",
+        "source": {
+          "declaration": "(self)",
+          "getter": "(self)",
+          "setter": null,
+          "declared_on": "pptx.shared.ParentedElementProxy",
+          "evidence": "src/pptx/shared.py:59-64",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "security-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "_OleFormat",
+          "member": "parent",
+          "form": "property",
+          "ts_signature": "get parent(): OwnedModel",
+          "arguments": [],
+          "getter": "get parent(): OwnedModel",
+          "setter": null,
+          "return_type": "OwnedModel",
+          "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J02",
+          "J09",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [
+            {
+              "class": "PropertyAccessError",
+              "code": "read-only-property",
+              "exit": 1,
+              "when": "Assignment to a read-only public property."
+            }
+          ],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "cli": [
+          {
+            "path": "batch",
+            "operation": "shapes.shapes.graphfrm.oleFormat.parent.get",
+            "version": 1,
+            "receiver": "_OleFormat",
+            "arguments": [],
+            "result": "OwnedModel",
+            "read_policy": "Apply documented effect profile.",
+            "unknown_fields": "reject"
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "shapes.graphfrm._OleFormat.parent.surface",
+              "assert": "Obtain _OleFormat through its documented owner/value constructor and exercise parent. Assert OwnedModel and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "images-media"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.shared.ParentedElementProxy"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/shared.py:59-64",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [
+            "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+          ],
+          "write": [],
+          "call": []
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm._OleFormat.part",
+      "inventory": "upstream-api-inventory.json#/objects/1701",
+      "source": {
+        "source_id": "pptx.shapes.graphfrm._OleFormat.part",
+        "discovery": "returned-interface/protocol-review",
+        "adaptation_status": "unmapped_not_implemented",
+        "readable": true,
+        "writable": false,
+        "python_kind": "property",
+        "declared_on": "pptx.shared.ParentedElementProxy",
+        "source_evidence": {
+          "file": "src/pptx/shared.py",
+          "line": 67,
+          "end_line": 69
+        },
+        "source_signature": "(self) -> XmlPart",
+        "read_signature": "(self) -> XmlPart",
+        "write_signature": null,
+        "source_returns": "XmlPart",
+        "direct_raises": [],
+        "implementation_status": "not_implemented",
+        "mapping_rules": [
+          "J01",
+          "J02",
+          "J09"
+        ],
+        "disposition": "security-mapped",
+        "target_member": "part",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.shapes.graphfrm._OleFormat.part",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "property",
+        "source": {
+          "declaration": "(self) -> XmlPart",
+          "getter": "(self) -> XmlPart",
+          "setter": null,
+          "declared_on": "pptx.shared.ParentedElementProxy",
+          "evidence": "src/pptx/shared.py:67-69",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "security-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "_OleFormat",
+          "member": "part",
+          "form": "property",
+          "ts_signature": "get part(): PartView",
+          "arguments": [],
+          "getter": "get part(): PartView",
+          "setter": null,
+          "return_type": "PartView",
+          "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J02",
+          "J09",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [
+            {
+              "class": "PropertyAccessError",
+              "code": "read-only-property",
+              "exit": 1,
+              "when": "Assignment to a read-only public property."
+            }
+          ],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "cli": [
+          {
+            "path": "batch",
+            "operation": "shapes.shapes.graphfrm.oleFormat.part.get",
+            "version": 1,
+            "receiver": "_OleFormat",
+            "arguments": [],
+            "result": "PartView",
+            "read_policy": "Apply documented effect profile.",
+            "unknown_fields": "reject"
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "shapes.graphfrm._OleFormat.part.surface",
+              "assert": "Obtain _OleFormat through its documented owner/value constructor and exercise part. Assert PartView and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "images-media"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.shared.ParentedElementProxy"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/shared.py:67-69",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [
+            "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+          ],
+          "write": [],
+          "call": []
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm._OleFormat.prog_id",
+      "inventory": "upstream-api-inventory.json#/objects/1702",
+      "source": {
+        "source_id": "pptx.shapes.graphfrm._OleFormat.prog_id",
+        "discovery": "returned-interface/protocol-review",
+        "adaptation_status": "unmapped_not_implemented",
+        "readable": true,
+        "writable": false,
+        "python_kind": "property",
+        "declared_on": "pptx.shapes.graphfrm._OleFormat",
+        "source_evidence": {
+          "file": "src/pptx/shapes/graphfrm.py",
+          "line": 154,
+          "end_line": 161
+        },
+        "source_signature": "(self) -> str | None",
+        "read_signature": "(self) -> str | None",
+        "write_signature": null,
+        "source_returns": "str | None",
+        "direct_raises": [],
+        "implementation_status": "not_implemented",
+        "mapping_rules": [
+          "J01",
+          "J02"
+        ],
+        "disposition": "language-mapped",
+        "target_member": "prog_id",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.shapes.graphfrm._OleFormat.prog_id",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "property",
+        "source": {
+          "declaration": "(self) -> str | None",
+          "getter": "(self) -> str | None",
+          "setter": null,
+          "declared_on": "pptx.shapes.graphfrm._OleFormat",
+          "evidence": "src/pptx/shapes/graphfrm.py:154-161",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "_OleFormat",
+          "member": "prog_id",
+          "form": "property",
+          "ts_signature": "get prog_id(): string | null",
+          "arguments": [],
+          "getter": "get prog_id(): string | null",
+          "setter": null,
+          "return_type": "string | null",
+          "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J02",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [
+            {
+              "class": "PropertyAccessError",
+              "code": "read-only-property",
+              "exit": 1,
+              "when": "Assignment to a read-only public property."
+            }
+          ],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "cli": [
+          {
+            "path": "batch",
+            "operation": "shapes.shapes.graphfrm.oleFormat.progId.get",
+            "version": 1,
+            "receiver": "_OleFormat",
+            "arguments": [],
+            "result": "string | null",
+            "read_policy": "Apply documented effect profile.",
+            "unknown_fields": "reject"
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "shapes.graphfrm._OleFormat.prog_id.surface",
+              "assert": "Obtain _OleFormat through its documented owner/value constructor and exercise prog_id. Assert string | null and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "images-media"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.shapes.graphfrm._OleFormat"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/shapes/graphfrm.py:154-161",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [
+            "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+          ],
+          "write": [],
+          "call": []
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm._OleFormat.show_as_icon",
+      "inventory": "upstream-api-inventory.json#/objects/1703",
+      "source": {
+        "source_id": "pptx.shapes.graphfrm._OleFormat.show_as_icon",
+        "discovery": "returned-interface/protocol-review",
+        "adaptation_status": "unmapped_not_implemented",
+        "readable": true,
+        "writable": false,
+        "python_kind": "property",
+        "declared_on": "pptx.shapes.graphfrm._OleFormat",
+        "source_evidence": {
+          "file": "src/pptx/shapes/graphfrm.py",
+          "line": 164,
+          "end_line": 166
+        },
+        "source_signature": "(self) -> bool | None",
+        "read_signature": "(self) -> bool | None",
+        "write_signature": null,
+        "source_returns": "bool | None",
+        "direct_raises": [],
+        "implementation_status": "not_implemented",
+        "mapping_rules": [
+          "J01",
+          "J02"
+        ],
+        "disposition": "language-mapped",
+        "target_member": "show_as_icon",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.shapes.graphfrm._OleFormat.show_as_icon",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "property",
+        "source": {
+          "declaration": "(self) -> bool | None",
+          "getter": "(self) -> bool | None",
+          "setter": null,
+          "declared_on": "pptx.shapes.graphfrm._OleFormat",
+          "evidence": "src/pptx/shapes/graphfrm.py:164-166",
+          "setter_evidence": null,
+          "documentation_file": null,
+          "documentation_line": null
+        },
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "_OleFormat",
+          "member": "show_as_icon",
+          "form": "property",
+          "ts_signature": "get show_as_icon(): boolean | null",
+          "arguments": [],
+          "getter": "get show_as_icon(): boolean | null",
+          "setter": null,
+          "return_type": "boolean | null",
+          "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J02",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [
+            {
+              "class": "PropertyAccessError",
+              "code": "read-only-property",
+              "exit": 1,
+              "when": "Assignment to a read-only public property."
+            }
+          ],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "cli": [
+          {
+            "path": "batch",
+            "operation": "shapes.shapes.graphfrm.oleFormat.showAsIcon.get",
+            "version": 1,
+            "receiver": "_OleFormat",
+            "arguments": [],
+            "result": "boolean | null",
+            "read_policy": "Apply documented effect profile.",
+            "unknown_fields": "reject"
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "shapes.graphfrm._OleFormat.show_as_icon.surface",
+              "assert": "Obtain _OleFormat through its documented owner/value constructor and exercise show_as_icon. Assert boolean | null and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "images-media"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.shapes.graphfrm._OleFormat"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/shapes/graphfrm.py:164-166",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [
+            "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+          ],
+          "write": [],
+          "call": []
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.ole_format",
+      "inventory": "upstream-api-inventory.json#/objects/1942",
+      "source": {
+        "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.ole_format",
+        "documentation_file": "docs/api/placeholders.rst",
+        "line": 73,
+        "discovery": "autodoc-expanded",
+        "adaptation_status": "unmapped_not_implemented",
+        "python_kind": "property",
+        "readable": true,
+        "writable": false,
+        "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+        "source_evidence": {
+          "file": "src/pptx/shapes/graphfrm.py",
+          "line": 76,
+          "end_line": 86
+        },
+        "source_signature": "(self) -> _OleFormat",
+        "read_signature": "(self) -> _OleFormat",
+        "write_signature": null,
+        "source_returns": "_OleFormat",
+        "direct_raises": [
+          "ValueError"
+        ],
+        "implementation_status": "not_implemented",
+        "mapping_rules": [
+          "J01",
+          "J02"
+        ],
+        "disposition": "language-mapped",
+        "target_member": "ole_format",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.ole_format",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "property",
+        "source": {
+          "declaration": "(self) -> _OleFormat",
+          "getter": "(self) -> _OleFormat",
+          "setter": null,
+          "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+          "evidence": "src/pptx/shapes/graphfrm.py:76-86",
+          "setter_evidence": null,
+          "documentation_file": "docs/api/placeholders.rst",
+          "documentation_line": 73
+        },
+        "disposition": "language-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "PlaceholderGraphicFrame",
+          "member": "ole_format",
+          "form": "property",
+          "ts_signature": "get ole_format(): _OleFormat",
+          "arguments": [],
+          "getter": "get ole_format(): _OleFormat",
+          "setter": null,
+          "return_type": "_OleFormat",
+          "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J02",
+          "J08",
+          "J10"
+        ],
+        "collection": null,
+        "errors": {
+          "declared": [
+            {
+              "source": "ValueError",
+              "class": "ValueError",
+              "code": "invalid-value",
+              "exit": 1,
+              "when": "Declared source failure; see pinned evidence span."
+            },
+            {
+              "class": "PropertyAccessError",
+              "code": "read-only-property",
+              "exit": 1,
+              "when": "Assignment to a read-only public property."
+            }
+          ],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "cli": [
+          {
+            "path": "batch",
+            "operation": "shapes.shapes.placeholder.placeholderGraphicFrame.oleFormat.get",
+            "version": 1,
+            "receiver": "PlaceholderGraphicFrame",
+            "arguments": [],
+            "result": "_OleFormat",
+            "read_policy": "Apply documented effect profile.",
+            "unknown_fields": "reject"
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "shapes.placeholder.PlaceholderGraphicFrame.ole_format.surface",
+              "assert": "Obtain PlaceholderGraphicFrame through its documented owner/value constructor and exercise ole_format. Assert _OleFormat and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "placeholders"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.shapes.graphfrm.GraphicFrame"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/shapes/graphfrm.py:76-86",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [
+            "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+          ],
+          "write": [],
+          "call": []
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.add_ole_object",
+      "inventory": "upstream-api-inventory.json#/objects/2043",
+      "source": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes.add_ole_object",
+        "documentation_file": "docs/api/shapes.rst",
+        "line": 29,
+        "discovery": "autodoc-expanded",
+        "adaptation_status": "unmapped_not_implemented",
+        "python_kind": "function",
+        "signature": "(self, object_file: 'str | IO[bytes]', prog_id: 'str', left: 'Length', top: 'Length', width: 'Length | None' = None, height: 'Length | None' = None, icon_file: 'str | IO[bytes] | None' = None, icon_width: 'Length | None' = None, icon_height: 'Length | None' = None) -> 'GraphicFrame'",
+        "declared_on": "pptx.shapes.shapetree._BaseGroupShapes",
+        "source_evidence": {
+          "file": "src/pptx/shapes/shapetree.py",
+          "line": 296,
+          "end_line": 351
+        },
+        "source_signature": "(self, object_file: str | IO[bytes], prog_id: str, left: Length, top: Length, width: Length | None=None, height: Length | None=None, icon_file: str | IO[bytes] | None=None, icon_width: Length | None=None, icon_height: Length | None=None) -> GraphicFrame",
+        "source_returns": "GraphicFrame",
+        "direct_raises": [],
+        "implementation_status": "not_implemented",
+        "mapping_rules": [
+          "J01",
+          "J06"
+        ],
+        "disposition": "security-mapped",
+        "target_member": "add_ole_object",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes.add_ole_object",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "function",
+        "source": {
+          "declaration": "(self, object_file: str | IO[bytes], prog_id: str, left: Length, top: Length, width: Length | None=None, height: Length | None=None, icon_file: str | IO[bytes] | None=None, icon_width: Length | None=None, icon_height: Length | None=None) -> GraphicFrame",
+          "getter": null,
+          "setter": null,
+          "declared_on": "pptx.shapes.shapetree._BaseGroupShapes",
+          "evidence": "src/pptx/shapes/shapetree.py:296-351",
+          "setter_evidence": null,
+          "documentation_file": "docs/api/shapes.rst",
+          "documentation_line": 29
+        },
+        "disposition": "security-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "GroupShapes",
+          "member": "add_ole_object",
+          "form": "function",
+          "ts_signature": "add_ole_object(object_file: BinaryInput, prog_id: string | PROG_ID, left: Length, top: Length, width?: Length | null, height?: Length | null, icon_file?: BinaryInput | null, icon_width?: Length | null, icon_height?: Length | null): Promise<GraphicFrame>",
+          "arguments": [
+            {
+              "name": "object_file",
+              "target_binding": "object_file",
+              "ts_type": "BinaryInput",
+              "position": "positional",
+              "optional": false,
+              "source_default": null,
+              "target_default": null,
+              "undefined_behavior": "required",
+              "null_behavior": "TypeError"
+            },
+            {
+              "name": "prog_id",
+              "target_binding": "prog_id",
+              "ts_type": "string | PROG_ID",
+              "position": "positional",
+              "optional": false,
+              "source_default": null,
+              "target_default": null,
+              "undefined_behavior": "required",
+              "null_behavior": "TypeError"
+            },
+            {
+              "name": "left",
+              "target_binding": "left",
+              "ts_type": "Length",
+              "position": "positional",
+              "optional": false,
+              "source_default": null,
+              "target_default": null,
+              "undefined_behavior": "required",
+              "null_behavior": "TypeError"
+            },
+            {
+              "name": "top",
+              "target_binding": "top",
+              "ts_type": "Length",
+              "position": "positional",
+              "optional": false,
+              "source_default": null,
+              "target_default": null,
+              "undefined_behavior": "required",
+              "null_behavior": "TypeError"
+            },
+            {
+              "name": "width",
+              "target_binding": "width",
+              "ts_type": "Length | null",
+              "position": "positional",
+              "optional": true,
+              "source_default": "None",
+              "target_default": "null",
+              "undefined_behavior": "use target_default",
+              "null_behavior": "explicit absence/inheritance, never default coercion"
+            },
+            {
+              "name": "height",
+              "target_binding": "height",
+              "ts_type": "Length | null",
+              "position": "positional",
+              "optional": true,
+              "source_default": "None",
+              "target_default": "null",
+              "undefined_behavior": "use target_default",
+              "null_behavior": "explicit absence/inheritance, never default coercion"
+            },
+            {
+              "name": "icon_file",
+              "target_binding": "icon_file",
+              "ts_type": "BinaryInput | null",
+              "position": "positional",
+              "optional": true,
+              "source_default": "None",
+              "target_default": "null",
+              "undefined_behavior": "use target_default",
+              "null_behavior": "explicit absence/inheritance, never default coercion"
+            },
+            {
+              "name": "icon_width",
+              "target_binding": "icon_width",
+              "ts_type": "Length | null",
+              "position": "positional",
+              "optional": true,
+              "source_default": "None",
+              "target_default": "null",
+              "undefined_behavior": "use target_default",
+              "null_behavior": "explicit absence/inheritance, never default coercion"
+            },
+            {
+              "name": "icon_height",
+              "target_binding": "icon_height",
+              "ts_type": "Length | null",
+              "position": "positional",
+              "optional": true,
+              "source_default": "None",
+              "target_default": "null",
+              "undefined_behavior": "use target_default",
+              "null_behavior": "explicit absence/inheritance, never default coercion"
+            }
+          ],
+          "getter": null,
+          "setter": null,
+          "return_type": "Promise<GraphicFrame>",
+          "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J06",
+          "J08",
+          "J10"
+        ],
+        "collection": {
+          "source_id": "pptx.shapes.shapetree.GroupShapes",
+          "element_type": "BaseShape",
+          "indexing": "zero-based-position",
+          "negative_index": "from-end",
+          "slice_supported": false,
+          "iteration": "source sequence order",
+          "mutable_items": false
+        },
+        "errors": {
+          "declared": [
+            {
+              "class": "IndexError",
+              "code": "index-out-of-range",
+              "exit": 1,
+              "when": "Invalid key/index according to collection contract."
+            }
+          ],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Always async explicit byte/capability admission or publication; admit every supplied input before exposing mutation. No native runtime, ambient host I/O or network.",
+          "Append the documented child/content to its owner in source order."
+        ],
+        "cli": [
+          {
+            "path": "batch",
+            "operation": "shapes.shapes.shapetree.groupShapes.addOleObject",
+            "version": 1,
+            "receiver": "GroupShapes",
+            "arguments": [
+              {
+                "name": "objectFile",
+                "ts_type": "BinaryInput",
+                "required": true,
+                "default": null
+              },
+              {
+                "name": "progId",
+                "ts_type": "string | PROG_ID",
+                "required": true,
+                "default": null
+              },
+              {
+                "name": "left",
+                "ts_type": "Length",
+                "required": true,
+                "default": null
+              },
+              {
+                "name": "top",
+                "ts_type": "Length",
+                "required": true,
+                "default": null
+              },
+              {
+                "name": "width",
+                "ts_type": "Length | null",
+                "required": false,
+                "default": "null"
+              },
+              {
+                "name": "height",
+                "ts_type": "Length | null",
+                "required": false,
+                "default": "null"
+              },
+              {
+                "name": "iconFile",
+                "ts_type": "BinaryInput | null",
+                "required": false,
+                "default": "null"
+              },
+              {
+                "name": "iconWidth",
+                "ts_type": "Length | null",
+                "required": false,
+                "default": "null"
+              },
+              {
+                "name": "iconHeight",
+                "ts_type": "Length | null",
+                "required": false,
+                "default": "null"
+              }
+            ],
+            "result": "Promise<GraphicFrame>",
+            "read_policy": "Apply documented effect profile.",
+            "unknown_fields": "reject"
+          },
+          {
+            "path": "objects add",
+            "operation": "objects.add",
+            "role": "Direct common workflow; use shared flags and scoped selectors.",
+            "argument_binding": "Direct flags bind the same domain values as the typed batch route; shared operation options are camelCase."
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "shapes.shapetree.GroupShapes.add_ole_object.surface",
+              "assert": "Obtain GroupShapes through its documented owner/value constructor and exercise add_ole_object. Assert Promise<GraphicFrame> and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            },
+            {
+              "id": "shapes.shapetree.GroupShapes.add_ole_object.arguments",
+              "assert": "Exercise each required parameter in declared order; omitted/undefined optional parameters equal their listed defaults. Reject invalid types without mutation.",
+              "defaults": [
+                {
+                  "argument": "width",
+                  "expected": "null"
+                },
+                {
+                  "argument": "height",
+                  "expected": "null"
+                },
+                {
+                  "argument": "icon_file",
+                  "expected": "null"
+                },
+                {
+                  "argument": "icon_width",
+                  "expected": "null"
+                },
+                {
+                  "argument": "icon_height",
+                  "expected": "null"
+                }
+              ]
+            },
+            {
+              "id": "shapes.shapetree.GroupShapes.add_ole_object.collection",
+              "given": "Original three-item owner (placeholder keys 2, 7, 11 for keyed collections).",
+              "assert": "Index 0 returns the first item; length 3; iteration preserves owner order; index 3 fails. Negative indexes: from-end. Slicing: false."
+            },
+            {
+              "id": "shapes.shapetree.GroupShapes.add_ole_object.effect-1",
+              "assert": "Always async explicit byte/capability admission or publication; admit every supplied input before exposing mutation. No native runtime, ambient host I/O or network."
+            },
+            {
+              "id": "shapes.shapetree.GroupShapes.add_ole_object.effect-2",
+              "assert": "Append the documented child/content to its owner in source order."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "images-media",
+            "collections"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.shapes.shapetree._BaseGroupShapes"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/shapes/shapetree.py:296-351",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [],
+          "write": [],
+          "call": [
+            "Always async explicit byte/capability admission or publication; admit every supplied input before exposing mutation. No native runtime, ambient host I/O or network.",
+            "Append the documented child/content to its owner in source order."
+          ]
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.add_ole_object",
+      "inventory": "upstream-api-inventory.json#/objects/2135",
+      "source": {
+        "source_id": "pptx.shapes.shapetree.SlideShapes.add_ole_object",
+        "documentation_file": "docs/api/shapes.rst",
+        "line": 16,
+        "discovery": "autodoc-expanded",
+        "adaptation_status": "unmapped_not_implemented",
+        "python_kind": "function",
+        "signature": "(self, object_file: 'str | IO[bytes]', prog_id: 'str', left: 'Length', top: 'Length', width: 'Length | None' = None, height: 'Length | None' = None, icon_file: 'str | IO[bytes] | None' = None, icon_width: 'Length | None' = None, icon_height: 'Length | None' = None) -> 'GraphicFrame'",
+        "declared_on": "pptx.shapes.shapetree._BaseGroupShapes",
+        "source_evidence": {
+          "file": "src/pptx/shapes/shapetree.py",
+          "line": 296,
+          "end_line": 351
+        },
+        "source_signature": "(self, object_file: str | IO[bytes], prog_id: str, left: Length, top: Length, width: Length | None=None, height: Length | None=None, icon_file: str | IO[bytes] | None=None, icon_width: Length | None=None, icon_height: Length | None=None) -> GraphicFrame",
+        "source_returns": "GraphicFrame",
+        "direct_raises": [],
+        "implementation_status": "not_implemented",
+        "mapping_rules": [
+          "J01",
+          "J06"
+        ],
+        "disposition": "security-mapped",
+        "target_member": "add_ole_object",
+        "acceptance_status": "original-tests-required; not run"
+      },
+      "targetContract": {
+        "source_id": "pptx.shapes.shapetree.SlideShapes.add_ole_object",
+        "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "kind": "function",
+        "source": {
+          "declaration": "(self, object_file: str | IO[bytes], prog_id: str, left: Length, top: Length, width: Length | None=None, height: Length | None=None, icon_file: str | IO[bytes] | None=None, icon_width: Length | None=None, icon_height: Length | None=None) -> GraphicFrame",
+          "getter": null,
+          "setter": null,
+          "declared_on": "pptx.shapes.shapetree._BaseGroupShapes",
+          "evidence": "src/pptx/shapes/shapetree.py:296-351",
+          "setter_evidence": null,
+          "documentation_file": "docs/api/shapes.rst",
+          "documentation_line": 16
+        },
+        "disposition": "security-mapped",
+        "implementation_status": "not_implemented",
+        "target": {
+          "owner": "SlideShapes",
+          "member": "add_ole_object",
+          "form": "function",
+          "ts_signature": "add_ole_object(object_file: BinaryInput, prog_id: string | PROG_ID, left: Length, top: Length, width?: Length | null, height?: Length | null, icon_file?: BinaryInput | null, icon_width?: Length | null, icon_height?: Length | null): Promise<GraphicFrame>",
+          "arguments": [
+            {
+              "name": "object_file",
+              "target_binding": "object_file",
+              "ts_type": "BinaryInput",
+              "position": "positional",
+              "optional": false,
+              "source_default": null,
+              "target_default": null,
+              "undefined_behavior": "required",
+              "null_behavior": "TypeError"
+            },
+            {
+              "name": "prog_id",
+              "target_binding": "prog_id",
+              "ts_type": "string | PROG_ID",
+              "position": "positional",
+              "optional": false,
+              "source_default": null,
+              "target_default": null,
+              "undefined_behavior": "required",
+              "null_behavior": "TypeError"
+            },
+            {
+              "name": "left",
+              "target_binding": "left",
+              "ts_type": "Length",
+              "position": "positional",
+              "optional": false,
+              "source_default": null,
+              "target_default": null,
+              "undefined_behavior": "required",
+              "null_behavior": "TypeError"
+            },
+            {
+              "name": "top",
+              "target_binding": "top",
+              "ts_type": "Length",
+              "position": "positional",
+              "optional": false,
+              "source_default": null,
+              "target_default": null,
+              "undefined_behavior": "required",
+              "null_behavior": "TypeError"
+            },
+            {
+              "name": "width",
+              "target_binding": "width",
+              "ts_type": "Length | null",
+              "position": "positional",
+              "optional": true,
+              "source_default": "None",
+              "target_default": "null",
+              "undefined_behavior": "use target_default",
+              "null_behavior": "explicit absence/inheritance, never default coercion"
+            },
+            {
+              "name": "height",
+              "target_binding": "height",
+              "ts_type": "Length | null",
+              "position": "positional",
+              "optional": true,
+              "source_default": "None",
+              "target_default": "null",
+              "undefined_behavior": "use target_default",
+              "null_behavior": "explicit absence/inheritance, never default coercion"
+            },
+            {
+              "name": "icon_file",
+              "target_binding": "icon_file",
+              "ts_type": "BinaryInput | null",
+              "position": "positional",
+              "optional": true,
+              "source_default": "None",
+              "target_default": "null",
+              "undefined_behavior": "use target_default",
+              "null_behavior": "explicit absence/inheritance, never default coercion"
+            },
+            {
+              "name": "icon_width",
+              "target_binding": "icon_width",
+              "ts_type": "Length | null",
+              "position": "positional",
+              "optional": true,
+              "source_default": "None",
+              "target_default": "null",
+              "undefined_behavior": "use target_default",
+              "null_behavior": "explicit absence/inheritance, never default coercion"
+            },
+            {
+              "name": "icon_height",
+              "target_binding": "icon_height",
+              "ts_type": "Length | null",
+              "position": "positional",
+              "optional": true,
+              "source_default": "None",
+              "target_default": "null",
+              "undefined_behavior": "use target_default",
+              "null_behavior": "explicit absence/inheritance, never default coercion"
+            }
+          ],
+          "getter": null,
+          "setter": null,
+          "return_type": "Promise<GraphicFrame>",
+          "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+        },
+        "value": null,
+        "xml_value": null,
+        "alias_of": null,
+        "metadata": null,
+        "documentation_drift": null,
+        "mappings": [
+          "J01",
+          "J06",
+          "J08",
+          "J10"
+        ],
+        "collection": {
+          "source_id": "pptx.shapes.shapetree.SlideShapes",
+          "element_type": "BaseShape",
+          "indexing": "zero-based-position",
+          "negative_index": "from-end",
+          "slice_supported": false,
+          "iteration": "source sequence order",
+          "mutable_items": false
+        },
+        "errors": {
+          "declared": [
+            {
+              "class": "IndexError",
+              "code": "index-out-of-range",
+              "exit": 1,
+              "when": "Invalid key/index according to collection contract."
+            }
+          ],
+          "shared_profile": "owner-validation",
+          "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        },
+        "side_effects": [
+          "Always async explicit byte/capability admission or publication; admit every supplied input before exposing mutation. No native runtime, ambient host I/O or network.",
+          "Append the documented child/content to its owner in source order."
+        ],
+        "cli": [
+          {
+            "path": "batch",
+            "operation": "shapes.shapes.shapetree.slideShapes.addOleObject",
+            "version": 1,
+            "receiver": "SlideShapes",
+            "arguments": [
+              {
+                "name": "objectFile",
+                "ts_type": "BinaryInput",
+                "required": true,
+                "default": null
+              },
+              {
+                "name": "progId",
+                "ts_type": "string | PROG_ID",
+                "required": true,
+                "default": null
+              },
+              {
+                "name": "left",
+                "ts_type": "Length",
+                "required": true,
+                "default": null
+              },
+              {
+                "name": "top",
+                "ts_type": "Length",
+                "required": true,
+                "default": null
+              },
+              {
+                "name": "width",
+                "ts_type": "Length | null",
+                "required": false,
+                "default": "null"
+              },
+              {
+                "name": "height",
+                "ts_type": "Length | null",
+                "required": false,
+                "default": "null"
+              },
+              {
+                "name": "iconFile",
+                "ts_type": "BinaryInput | null",
+                "required": false,
+                "default": "null"
+              },
+              {
+                "name": "iconWidth",
+                "ts_type": "Length | null",
+                "required": false,
+                "default": "null"
+              },
+              {
+                "name": "iconHeight",
+                "ts_type": "Length | null",
+                "required": false,
+                "default": "null"
+              }
+            ],
+            "result": "Promise<GraphicFrame>",
+            "read_policy": "Apply documented effect profile.",
+            "unknown_fields": "reject"
+          },
+          {
+            "path": "objects add",
+            "operation": "objects.add",
+            "role": "Direct common workflow; use shared flags and scoped selectors.",
+            "argument_binding": "Direct flags bind the same domain values as the typed batch route; shared operation options are camelCase."
+          }
+        ],
+        "original_tests": {
+          "status": "planned",
+          "implemented_test_files": [],
+          "executed": false,
+          "cases": [
+            {
+              "id": "shapes.shapetree.SlideShapes.add_ole_object.surface",
+              "assert": "Obtain SlideShapes through its documented owner/value constructor and exercise add_ole_object. Assert Promise<GraphicFrame> and the pinned observable contract; no raw-XML constructor or wrapper-identity assumption."
+            },
+            {
+              "id": "shapes.shapetree.SlideShapes.add_ole_object.arguments",
+              "assert": "Exercise each required parameter in declared order; omitted/undefined optional parameters equal their listed defaults. Reject invalid types without mutation.",
+              "defaults": [
+                {
+                  "argument": "width",
+                  "expected": "null"
+                },
+                {
+                  "argument": "height",
+                  "expected": "null"
+                },
+                {
+                  "argument": "icon_file",
+                  "expected": "null"
+                },
+                {
+                  "argument": "icon_width",
+                  "expected": "null"
+                },
+                {
+                  "argument": "icon_height",
+                  "expected": "null"
+                }
+              ]
+            },
+            {
+              "id": "shapes.shapetree.SlideShapes.add_ole_object.collection",
+              "given": "Original three-item owner (placeholder keys 2, 7, 11 for keyed collections).",
+              "assert": "Index 0 returns the first item; length 3; iteration preserves owner order; index 3 fails. Negative indexes: from-end. Slicing: false."
+            },
+            {
+              "id": "shapes.shapetree.SlideShapes.add_ole_object.effect-1",
+              "assert": "Always async explicit byte/capability admission or publication; admit every supplied input before exposing mutation. No native runtime, ambient host I/O or network."
+            },
+            {
+              "id": "shapes.shapetree.SlideShapes.add_ole_object.effect-2",
+              "assert": "Append the documented child/content to its owner in source order."
+            }
+          ],
+          "profile_refs": [
+            "security",
+            "images-media",
+            "collections"
+          ]
+        },
+        "upstream_tests": {
+          "status": "baseline-only; not original acceptance",
+          "candidate_group": "pptx.shapes.shapetree._BaseGroupShapes"
+        },
+        "validation": {
+          "types": "Reject coercion, nonfinite numbers, unsafe integers and invalid enum symbols; defaults/null follow target.arguments and setter type.",
+          "source_contract": "src/pptx/shapes/shapetree.py:296-351",
+          "limits": "Host-supplied cumulative limits; see shared profile."
+        },
+        "effects_by_access": {
+          "read": [],
+          "write": [],
+          "call": [
+            "Always async explicit byte/capability admission or publication; admit every supplied input before exposing mutation. No native runtime, ambient host I/O or network.",
+            "Append the documented child/content to its owner in source order."
+          ]
+        }
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeMemberParity": false,
+      "originalTests": [],
+      "boundedMapping": null
+    }
+  ],
+  "documentationDrift": [
+    "The underscore-prefixed _OleFormat is a returned public interface; element, parent, part, constructor and equality remain obligations.",
+    "Detached inventory records and asynchronous extraction are operation APIs, not implementations of live model blob/prog_id/show_as_icon properties.",
+    "PROG_ID icon_filename will denote original packaged inert artwork metadata, never an ambient host path; no copied icon assets are authorized.",
+    "Baseline audit headers describe historical collection; this focused receipt does not modify their unowned source files or claim current whole-API coverage."
+  ],
+  "securityMappings": {
+    "bytes": "Explicit BinaryInput admission; extraction yields an owned Uint8Array copy. No implicit host reads or recursive parsing.",
+    "external": "External targets remain strings. No download, activation or fallback to host resolution.",
+    "model": "Neutral snake_case model spellings remain reserved by the shared SDK contract. Operation camelCase records do not replace those obligations.",
+    "controls": "Controls, web extensions, fonts and 3D are opaque preservation/extraction only; no interpreter, font installer, decoder or renderer."
+  }
+}

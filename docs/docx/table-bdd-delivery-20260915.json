@@ -1,0 +1,151 @@
+{
+  "task": "adapt-upstream-tables-bdd",
+  "status": "selected-task-complete-with-explicit-renderer-not-run",
+  "branch": "main",
+  "selected_rows": 870,
+  "counts": {
+    "original-passing-adaptation": 214,
+    "original-passing-explicit-language-mapping": 5,
+    "original-passing-semantic-security-mapping": 1,
+    "passing-original-sdk-workflow": 650
+  },
+  "independent_review": {
+    "bdd": "650 exact expanded rows reconciled; final 534 own original workflows accepted by independent reviewer after exact-trigger corrections, plus separately reviewed 116 style/tab rows. Latest strengthened report final-qualified-results.json adds full mixed text/control observations and passes; maintained focused model suite165 also passes.",
+    "tables": "220 exact unit rows accepted: 214 original adaptations, five directional-helper language mappings, one original tested nested-text security rejection.",
+    "styles": "116 exact style/tab rows independently reconciled and executed by separate reviewer."
+  },
+  "maintained_checks": {
+    "unit": {
+      "path": "workflow-behavior-evidence-20260915/stable-workspace-unit.log",
+      "sha256": "d85a9ec46f42c09632cafedc62525956d38eafb35c86e98752b689484e2a93c6"
+    },
+    "lint": {
+      "path": "inline-shape-evidence-20260915/stable-workspace-lint.log",
+      "sha256": "84c1834281fa8da3f8c09b0303161b9df2250ed57bcf81ada9496816a62a8619"
+    },
+    "build": {
+      "path": "inline-shape-evidence-20260915/stable-workspace-build.log",
+      "sha256": "fc1bf5d0a2e72b95835347ff2f0dcb493f71933967ee91eb771cb9ce9450fbb4"
+    },
+    "root_eslint": {
+      "path": "workflow-behavior-evidence-20260915/root-eslint.log",
+      "sha256": "de4892edc602e24450e1dc855572472fac16f81a8c07a4a1545b882fc56cb17d"
+    },
+    "shell": {
+      "path": "table-model-shell-evidence-20260915/final-public-shell.log",
+      "sha256": "666a8ad07fa95f7a20d8b5ee7740e31d52a00d58cc98d91d1ed46511e6181144"
+    },
+    "runner": {
+      "path": "table-model-shell-evidence-20260915/maintained-runner.log",
+      "sha256": "3dbef1fa8b83a82ea907231b82d4edabf10d5e013efb8f61042b34584f67fc05"
+    },
+    "typecheck": {
+      "path": "inline-picture-shell-evidence-20260915/maintained-typecheck.log",
+      "sha256": "6815a77dafab2502fed29aedfd1b8ad948e801165cff06e3b619abb0ebf0c233"
+    },
+    "extra_original_namespace_regression": {
+      "path": "workflow-behavior-evidence-20260915/paragraph-namespace-green.log",
+      "sha256": "5785324ffe91bc0e804c91281ed36029a3c08506d22bd0a1a1274529b43f7b39"
+    },
+    "post_commit_lint": {
+      "path": "workflow-behavior-evidence-20260915/post-commit-workspace-lint.log",
+      "sha256": "84c1834281fa8da3f8c09b0303161b9df2250ed57bcf81ada9496816a62a8619"
+    }
+  },
+  "maintained_unit": {
+    "files_passed": 215,
+    "tests_passed": 4904,
+    "skipped": 4,
+    "failed": 0,
+    "scope": "Maintained workspace snapshot; additional paragraph namespace regression separately passes1 and is covered by final package lint."
+  },
+  "focused_shell": {
+    "passed": 9,
+    "failed": 0
+  },
+  "maintained_runner": {
+    "passed": 522,
+    "failed": 0
+  },
+  "registration": {
+    "passed": 109,
+    "failed": 0
+  },
+  "renderer_qa": {
+    "status": "not-run",
+    "reason": "No supported CLI renderer installed; Pages computer-use approval denied. Explicit Markdown procedures retained; no pagination/fidelity claim."
+  },
+  "terminal_qa": {
+    "status": "visually-inspected",
+    "screenshot": "inline-picture-shell-evidence-20260915/terminal-inspected.png"
+  },
+  "local_implementation_commits": [
+    {
+      "hash": "9c7e392991041d6947290274cc511a19e0552728",
+      "subject": "fix(docx): qualify table grid and merge variants"
+    },
+    {
+      "hash": "b8d1c6d55c62c25e639544f002d244a589ab81b9",
+      "subject": "fix(docx): validate table batch owner boundaries"
+    },
+    {
+      "hash": "05435fb879df6e7d6f32d94173cb0c3a65c8a6a3",
+      "subject": "fix(docx): supply original default style families"
+    },
+    {
+      "hash": "9b8b6fc241868f42ea06bd53d1589f338812d0d5",
+      "subject": "fix(docx): retain unchanged live package owners"
+    },
+    {
+      "hash": "26d4f58fa187a6c4d5d18e37d37e13d6639a986b",
+      "subject": "feat(docx): add document creation workflows"
+    },
+    {
+      "hash": "90f4dc33be1f015084ca22f6bff918be225e89d7",
+      "subject": "feat(docx): expose live document settings"
+    },
+    {
+      "hash": "00cd56cf0b5e84c8a9d2669637cac6afc1e413bc",
+      "subject": "feat(docx): expose existing numbering owners"
+    },
+    {
+      "hash": "adfcd36acb1ed3901d4466b829448e77cf35c917",
+      "subject": "fix(docx): initialize admitted core metadata"
+    },
+    {
+      "hash": "587231c35daef9fc59b185e66c16f41f0f303752",
+      "subject": "fix(docx): preserve paragraph namespace ownership"
+    },
+    {
+      "hash": "985d29ad38216a91055873a22601531cf80db41f",
+      "subject": "feat(docx): add live inline picture workflows"
+    },
+    {
+      "hash": "3e41f102d5e12634e904591a9c82df98e298f6c6",
+      "subject": "test(docx): qualify expanded SDK workflows"
+    },
+    {
+      "hash": "4f0c953183cd6307f07b8559769d7ef4e63ee77c",
+      "subject": "test(docx): qualify style and tab workflows"
+    },
+    {
+      "hash": "9f8de30c05677108a3ea9ac0dc6aa897864e54bd",
+      "subject": "test(docx): reconcile live model discovery checks"
+    },
+    {
+      "hash": "f28ef87a0c3c384ddb1fe21422512a537de56272",
+      "subject": "test(safe-bash): verify DOCX table model scripts"
+    },
+    {
+      "hash": "9524eaee4b021fb224425832bf8ffeceff11ff32",
+      "subject": "test(safe-bash): verify DOCX picture workflows"
+    }
+  ],
+  "documentation_commit": "This receipt and aggregate mapping are delivered in the following atomic documentation commit; its hash is reported in final chat.",
+  "remote_main_delivery": "not-attempted-no-push",
+  "release": "not-attempted",
+  "later_tasks": "pending",
+  "canonical_downloaded_fixtures": 0,
+  "disposable_cleanup": "workflow-behavior-evidence-20260915/disposable-input-cleanup.json",
+  "unrelated_work": "Preserved preexisting equation, pipeline/discovery plan, OPC evidence and output directories."
+}

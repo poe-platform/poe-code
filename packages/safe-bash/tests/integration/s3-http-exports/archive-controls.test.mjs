@@ -164,9 +164,9 @@ test("committed batches validate bootstrap authority before requesting source bo
 
 test("archive peer contract admits the exact current required peer and approved pinned runtime dependencies", () => {
   const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
-  assert.deepEqual(manifest.peerDependencies, { "poe-code": ">=13.0.0" });
+  assert.deepEqual(manifest.peerDependencies, { "poe-code": ">=13.0.0", yaml: "2.9.0" });
   distChecks.assertArchiveDependencyContract(manifest);
-  distChecks.assertArchiveDependencyContract({ ...manifest, peerDependenciesMeta: { "poe-code": { optional: false } } });
+  distChecks.assertArchiveDependencyContract({ ...manifest, peerDependenciesMeta: { ...manifest.peerDependenciesMeta, "poe-code": { optional: false } } });
 });
 
 function dependencyFixture() {
@@ -182,8 +182,90 @@ function dependencyFixture() {
   }
   const fileSystem = createFsFromVolume(Volume.fromJSON(files));
   fileSystem.mkdirSync("/owned");
-  return { manifest, lock, tools, artifacts, fileSystem };
+  const sources = distChecks.captureSharedArchiveSources(resolve(authority, "../.."));
+  return { manifest, lock, tools, artifacts, fileSystem, files: sources };
 }
+
+test("development codec pins stage authenticated build inputs without runtime dependencies", async () => {
+  const fixture = dependencyFixture();
+  fixture.manifest.devDependencies = { ...fixture.manifest.devDependencies, ...fixture.manifest.dependencies };
+  fixture.manifest.dependencies = {};
+  fixture.lock.packages[packagePrefix].dependencies = {};
+  fixture.lock.packages[packagePrefix].devDependencies = structuredClone(fixture.manifest.devDependencies);
+  const bindings = await distChecks.prepareArchiveDependencies(fixture, fixture.tools, "/owned", fixture);
+  assert.deepEqual(bindings.map(binding => binding.name), ["@noble/hashes", "pako", "@poe-code/office-package"]);
+  fixture.fileSystem.mkdirSync("/snapshot");
+  distChecks.stageArchiveDependencies(bindings, "/snapshot", fixture.fileSystem);
+  distChecks.assertArchiveDependencies(bindings, "/snapshot", fixture.fileSystem);
+  assert.equal(fixture.fileSystem.existsSync("/snapshot/node_modules/pako/dist/pako.d.ts"), true);
+  assert.deepEqual(fixture.manifest.dependencies, {});
+});
+
+for (const defect of ["pin", "lock-pin", "lock-integrity"]) test(`development codec admission rejects ${defect}`, () => {
+  const fixture = dependencyFixture();
+  fixture.manifest.devDependencies = { ...fixture.manifest.devDependencies, ...fixture.manifest.dependencies };
+  fixture.manifest.dependencies = {};
+  fixture.lock.packages[packagePrefix].dependencies = {};
+  fixture.lock.packages[packagePrefix].devDependencies = structuredClone(fixture.manifest.devDependencies);
+  if (defect === "pin") fixture.manifest.devDependencies.pako = "^3.0.1";
+  if (defect === "lock-pin") fixture.lock.packages[packagePrefix].devDependencies.pako = "3.0.0";
+  if (defect === "lock-integrity") fixture.lock.packages["node_modules/pako"].integrity = "unapproved";
+  assert.throws(() => distChecks.assertArchiveDependencyLock(fixture.manifest, fixture.lock), /dependency/);
+  assert.deepEqual(fixture.fileSystem.readdirSync("/owned"), []);
+});
+
+test("shared archive dependencies require exact captured sources and never substitute host dist", async () => {
+  const fixture = dependencyFixture();
+  const omitted = { ...fixture, files: new Map(fixture.files) };
+  omitted.files.delete("packages/office-package/src/zip.ts");
+  await assert.rejects(distChecks.prepareArchiveDependencies(omitted, fixture.tools, "/owned", fixture), /shared archive.*source/);
+  assert.equal(fixture.fileSystem.existsSync("/owned/dependency-artifacts/office-package.tgz"), false);
+});
+
+test("shared archive source capture retains owned bytes and refuses source links", () => {
+  const source = "/repo";
+  const files = Object.fromEntries([...distChecks.captureSharedArchiveSources(resolve(authority, "../.."))].map(([path, bytes]) => [source + "/" + path, bytes]));
+  const memory = createFsFromVolume(Volume.fromJSON(files));
+  const captured = distChecks.captureSharedArchiveSources(source, memory);
+  memory.writeFileSync(source + "/packages/office-package/src/zip.ts", "changed");
+  assert.notEqual(captured.get("packages/office-package/src/zip.ts").toString(), "changed");
+  memory.unlinkSync(source + "/packages/office-package/src/zip.ts");
+  memory.symlinkSync(source + "/packages/office-package/src/runtime.ts", source + "/packages/office-package/src/zip.ts");
+  assert.throws(() => distChecks.captureSharedArchiveSources(source, memory), /unadmitted type-input/);
+});
+
+test("shared archive compilation uses supplied source bytes and binds only exact emitted declarations", async () => {
+  const fixture = dependencyFixture();
+  for (const name of ["index", "runtime", "compression", "zip"]) fixture.files.set("packages/office-package/src/" + name + ".ts", Buffer.from("export const capturedValue: number = 73;\n"));
+  const bindings = await distChecks.prepareArchiveDependencies(fixture, fixture.tools, "/owned", fixture);
+  const shared = bindings.find(binding => binding.name === "@poe-code/office-package");
+  assert.match(shared.files.find(file => file.path === "dist/zip.js").bytes.toString(), /capturedValue = 73/);
+  const committed = new Map([["package.json", Buffer.from("{}")]]);
+  const memory = fixture.fileSystem;
+  memory.mkdirSync("/snapshot"); memory.writeFileSync("/snapshot/package.json", "{}");
+  for (const file of shared.files.filter(file => file.path.endsWith(".d.ts"))) {
+    const destination = "/snapshot/packages/office-package/" + file.path;
+    memory.mkdirSync(dirname(destination), { recursive: true }); memory.writeFileSync(destination, file.bytes);
+  }
+  const check = () => assertSnapshotInputs("/snapshot", committed, { dependencies: bindings, fileSystem: memory });
+  check();
+  memory.writeFileSync("/snapshot/packages/office-package/dist/zip.d.ts", "changed");
+  assert.throws(check, /snapshot input changed/);
+});
+
+for (const defect of ["dependency", "lifecycle", "version", "missing-configuration", "unavailable-import"]) test(`shared archive source admission rejects ${defect}`, async () => {
+  const fixture = dependencyFixture();
+  const path = "packages/office-package/package.json";
+  const metadata = JSON.parse(fixture.files.get(path));
+  if (defect === "dependency") metadata.dependencies.unapproved = "1.0.0";
+  if (defect === "lifecycle") metadata.scripts.prepare = "unapproved";
+  if (defect === "version") metadata.version = "0.0.2";
+  fixture.files.set(path, Buffer.from(JSON.stringify(metadata)));
+  if (defect === "missing-configuration") fixture.files.delete("tsconfig.json");
+  if (defect === "unavailable-import") fixture.files.set("packages/office-package/src/zip.ts", Buffer.from('export { secret } from "/outside/secret.js";\n'));
+  await assert.rejects(distChecks.prepareArchiveDependencies(fixture, fixture.tools, "/owned", fixture), /shared archive/);
+  assert.equal(fixture.fileSystem.existsSync("/owned/dependency-artifacts/office-package.tgz"), false);
+});
 
 test("private archive dependency contract binds only the approved exact versions and committed registry integrity", () => {
   const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
@@ -215,6 +297,13 @@ test("private archive dependency contract binds only the approved exact versions
   assert.throws(() => distChecks.assertArchiveDependencyLock(manifest, shadowed), /dependency/);
 });
 
+for (const path of ["packages/office-package/node_modules/pako", "packages/office-package/node_modules/@noble/hashes", "packages/node_modules/@poe-code/office-package"]) test(`shared archive rejects shadowed dependency lock entry ${path}`, () => {
+  const fixture = dependencyFixture();
+  const lock = structuredClone(fixture.lock);
+  lock.packages[path] = { version: "9.0.0", resolved: "file:unapproved" };
+  assert.throws(() => distChecks.assertArchiveDependencyLock(fixture.manifest, lock), /shadowed dependency|shadowed workspace/);
+});
+
 test("committed export mirroring preserves nested type/browser condition keys and rejects invalid targets", () => {
   const source = { types: { browser: "./dist/core.d.ts", default: "./dist/index.d.ts" }, browser: "./dist/core.browser.js", import: "./dist/index.js", custom: null };
   assert.deepEqual(distChecks.mirrorArchiveExportTargets(source), {
@@ -238,13 +327,16 @@ test("committed export mirroring preserves single filename patterns without admi
 test("private archive dependency artifacts stage exact authenticated bytes and reject installed drift", async () => {
   const fixture = dependencyFixture();
   const bindings = await distChecks.prepareArchiveDependencies(fixture, fixture.tools, "/owned", fixture);
-  assert.deepEqual(bindings.map(binding => binding.name), ["@noble/hashes", "pako"]);
+  assert.deepEqual(bindings.map(binding => binding.name), ["@noble/hashes", "pako", "@poe-code/office-package"]);
   fixture.fileSystem.mkdirSync("/snapshot");
   distChecks.stageArchiveDependencies(bindings, "/snapshot", fixture.fileSystem);
   distChecks.assertArchiveDependencies(bindings, "/snapshot", fixture.fileSystem);
+  const shared = bindings.find(binding => binding.name === "@poe-code/office-package");
+  assert.deepEqual(shared.sources.map(source => source.path), [...fixture.files.keys()]);
+  assert.throws(() => distChecks.assertArchiveDependencyArtifacts([...bindings.slice(0, 2), { ...shared }], fixture.fileSystem), /captured compilation/);
   const files = {
     "node_modules/virtual-bash/package.json": '{"type":"module"}',
-    "node_modules/virtual-bash/dist/index.js": 'export { sha256 } from "@noble/hashes/sha2.js"; export { gzip } from "pako";',
+    "node_modules/virtual-bash/dist/index.js": 'export { sha256 } from "@noble/hashes/sha2.js"; export { gzip } from "pako"; export { createZipCodec } from "@poe-code/office-package/zip";',
     "node_modules/virtual-bash/dist/fs/s3/http/index.js": "export {};",
     "node_modules/poe-code/package.json": '{"type":"module"}',
     "node_modules/poe-code/index.js": "export {};",
@@ -259,6 +351,8 @@ test("private archive dependency artifacts stage exact authenticated bytes and r
   const closure = bind();
   assert.equal(closure.entries["@noble/hashes/sha2.js"], "node_modules/@noble/hashes/sha2.js");
   assert.equal(closure.entries.pako, "node_modules/pako/dist/pako.mjs");
+  assert.equal(closure.entries["@poe-code/office-package/zip"], "node_modules/@poe-code/office-package/dist/zip.js");
+  assert.equal(closure.edges["node_modules/@poe-code/office-package/dist/compression.js"].pako, "node_modules/pako/dist/pako.mjs");
   assert.equal(closure.entries["@noble/hashes/argon2.js"], undefined);
   fixture.fileSystem.writeFileSync("/snapshot/node_modules/virtual-bash/dist/index.js", 'import "pako/dist/pako.mjs";');
   assert.throws(bind, /Unbound runtime dependency/);
@@ -268,6 +362,9 @@ test("private archive dependency artifacts stage exact authenticated bytes and r
   assert.throws(() => distChecks.assertArchiveDependencies(bindings, "/snapshot", fixture.fileSystem), /dependency.*drift/);
   fixture.fileSystem.writeFileSync(changed, original);
   fixture.fileSystem.writeFileSync("/snapshot/node_modules/pako/unbound.js", "export {};");
+  assert.throws(() => distChecks.assertArchiveDependencies(bindings, "/snapshot", fixture.fileSystem), /dependency.*inventory/);
+  fixture.fileSystem.unlinkSync("/snapshot/node_modules/pako/unbound.js");
+  fixture.fileSystem.unlinkSync("/snapshot/node_modules/@poe-code/office-package/package.json");
   assert.throws(() => distChecks.assertArchiveDependencies(bindings, "/snapshot", fixture.fileSystem), /dependency.*inventory/);
 });
 
@@ -316,6 +413,8 @@ test("private archive dependency artifacts reject corrupt bytes and unapproved p
 test("archive peer contract retains the explicit historical zero-peer profile", () => {
   distChecks.assertArchiveDependencyContract({ dependencies: {}, devDependencies: { typescript: "5.9.2" } });
   distChecks.assertArchiveDependencyContract({ peerDependencies: {}, peerDependenciesMeta: {} });
+  distChecks.assertArchiveDependencyContract({ peerDependencies: { "poe-code": ">=13.0.0" } });
+  distChecks.assertArchiveDependencyContract({ peerDependencies: { "poe-code": ">=13.0.0" }, peerDependenciesMeta: { "poe-code": { optional: false } } });
 });
 
 for (const [name, change] of [
@@ -323,6 +422,9 @@ for (const [name, change] of [
   ["different range", manifest => { manifest.peerDependencies["poe-code"] = "^13.0.0"; }],
   ["development range", manifest => { manifest.peerDependencies["poe-code"] = "*"; }],
   ["optional canonical peer", manifest => { manifest.peerDependenciesMeta = { "poe-code": { optional: true } }; }],
+  ["different optional YAML version", manifest => { manifest.peerDependencies.yaml = "*"; }],
+  ["required YAML peer", manifest => { manifest.peerDependenciesMeta.yaml.optional = false; }],
+  ["missing YAML optional metadata", manifest => { delete manifest.peerDependenciesMeta.yaml; }],
   ["unbound peer metadata", manifest => { manifest.peerDependenciesMeta = { other: { optional: false } }; }],
   ["missing current peer", manifest => { delete manifest.peerDependencies; }],
   ["empty current peer", manifest => { manifest.peerDependencies = {}; }],
@@ -1141,6 +1243,7 @@ async function withRepository(change, run, { localTypes = false } = {}) {
   };
   try {
     const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
+    manifest.dependencies = { "@noble/hashes": "2.4.0", pako: "3.0.1" };
     manifest.exports = Object.fromEntries(Object.entries(manifest.exports).filter(([path]) => [".", "./fs/s3", "./fs/s3/http"].includes(path)));
     const root = { name: "poe-code", version: "0.0.0-synthetic", type: "module", private: true, workspaces: ["packages/*"], devDependencies: { "virtual-bash": "*", "poe-code": "file:." }, exports: Object.fromEntries(Object.entries(manifest.exports).map(([path, conditions]) => [path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`, distChecks.mirrorArchiveExportTargets(conditions)])) };
     root.exports["./safe-fs"] = { types: "./packages/safe-fs/dist/index.d.ts", import: "./packages/safe-js/dist/safe-fs.js" };
@@ -1148,7 +1251,7 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     root.scripts = Object.fromEntries(["prepare", "prepack", "postpack", "preinstall", "postinstall"].map(name => [name, `node -e ${JSON.stringify(`require("node:fs").writeFileSync(${JSON.stringify(marker)}, ${JSON.stringify(name)})`)}`]));
     const lock = { name: root.name, version: root.version, lockfileVersion: 3, packages: {
       "": { name: root.name, version: root.version, workspaces: root.workspaces, devDependencies: root.devDependencies },
-      [packagePrefix]: { name: manifest.name, version: manifest.version, dependencies: structuredClone(manifest.dependencies), devDependencies: manifest.devDependencies, peerDependencies: structuredClone(manifest.peerDependencies), engines: manifest.engines },
+      [packagePrefix]: { name: manifest.name, version: manifest.version, dependencies: structuredClone(manifest.dependencies), devDependencies: manifest.devDependencies, peerDependencies: structuredClone(manifest.peerDependencies), peerDependenciesMeta: structuredClone(manifest.peerDependenciesMeta), engines: manifest.engines },
       "node_modules/virtual-bash": { resolved: packagePrefix, link: true },
       "node_modules/poe-code": { resolved: "", link: true },
     } };
@@ -1242,12 +1345,14 @@ function requestedBodies(args, options) {
 }
 
 for (const defect of ["guard", "manifest"]) test(`committed bootstrap rejects bad ${defect} before requesting product source bodies`, async () => {
-  for (const mutation of defect === "guard" ? ["same-length", "short"] : ["short"]) await withRepository(fixture => {
+  for (const mutation of defect === "guard" ? ["same-length", "short"] : ["short", "missing-exclusion", "widened-exclusion", "traversal-exclusion"]) await withRepository(fixture => {
     if (defect === "guard") {
       const bytes = mutation === "short" ? Buffer.from("throw new Error('untrusted guard');\n") : readRegularInput(resolve(authority, "../.."), "scripts/guard-package-dist.mjs", 300000);
       if (mutation === "same-length") bytes[Math.floor(bytes.length / 2)] ^= 1;
       fixture.put("scripts/guard-package-dist.mjs", bytes);
-    } else fixture.manifest.files = ["src"];
+    } else if (mutation === "short") fixture.manifest.files = ["src"];
+    else if (mutation === "missing-exclusion") fixture.manifest.files.pop();
+    else fixture.manifest.files.push(mutation === "widened-exclusion" ? "!dist/commands/yq" : "!dist/../src");
   }, fixture => {
     const sourceOids = new Set(fixture.git(["ls-tree", "-r", "--format=%(objectname)", "HEAD", "--", `${packagePrefix}/src`]).split("\n"));
     const reads = [];
@@ -1489,7 +1594,7 @@ for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", f
     const report = JSON.parse(result.stdout);
     assert.equal(report.status, "pass", JSON.stringify(report));
     assert.equal(report.qualification, "synthetic-committed-fixture-not-release-qualification");
-    assert.deepEqual(report.package.peerDependencies, { "poe-code": ">=13.0.0" });
+    assert.deepEqual(report.package.peerDependencies, { "poe-code": ">=13.0.0", yaml: "2.9.0" });
     assert.deepEqual(report.package.runtimeDependencies, { "@noble/hashes": "2.4.0", pako: "3.0.1" });
     assert.deepEqual(report.dependencies.map(binding => binding.name), ["@noble/hashes", "pako"]);
     assert.ok(report.steps.find(step => step.label === "offline tarball install without lifecycles").args.includes(report.dependencies[0].tarball));

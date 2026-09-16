@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: public Python document scripts through canonical memory storage
+ok 1 - public Python document scripts through canonical memory storage
+  ---
+  duration_ms: 20222.248791
+  type: 'test'
+  ...
+# Subtest: public Python document scripts through canonical delayed storage
+ok 2 - public Python document scripts through canonical delayed storage
+  ---
+  duration_ms: 23840.8055
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 44347.209958

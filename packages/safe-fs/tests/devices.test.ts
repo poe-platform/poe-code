@@ -212,7 +212,7 @@ describe("virtual null device", () => {
     expect(lstat.mock.calls).toEqual([
       ["relative", options], ["relative", options], ["relative", options], ["relative", options],
     ]);
-    expect(await view.capabilitiesFor!("relative/ordinary")).toEqual({ ...capabilities,
+    expect(await view.capabilitiesFor!("relative/ordinary")).toEqual({ ...capabilities, open: false,
       streamingRead: false, streamingWrite: false, streamingAppend: false, descriptorWriteStream: false, retainedRead: false });
     await expect(view.copyFile("relative/source", "/dev/null")).rejects.toMatchObject({ code: "ENOTSUP" });
   });
@@ -327,7 +327,7 @@ describe("virtual null device", () => {
     expect(view.capabilities).toMatchObject({ read: true, readOnly: false, permissions: false });
     for (const key of ["write", "append", "copy", "remove", "rename", "streamingRead"]) expect(view.capabilities[key]).toBeUndefined();
     expect(Object.isFrozen(view.capabilities)).toBe(true);
-    expect(await view.capabilitiesFor("ordinary")).toEqual({ ...capabilities,
+    expect(await view.capabilitiesFor("ordinary")).toEqual({ ...capabilities, open: false,
       streamingWrite: false, streamingAppend: false, descriptorWriteStream: false, retainedRead: false });
     expect(await view.capabilitiesFor("/dev/null")).toMatchObject({ write: true, append: true, streamingRead: true, remove: false });
     expect(await view.capabilitiesFor("/dev")).toMatchObject({ write: false, append: false,
@@ -337,6 +337,7 @@ describe("virtual null device", () => {
 
   for (const declared of [undefined, true, false]) it(`normalizes absent ordinary optional methods declared ${String(declared)} without mutating raw capabilities`, async () => {
     const capabilities = Object.freeze({ readOnly: true, permissions: false, customPolicy: true,
+      open: declared,
       streamingRead: declared, streamingWrite: declared, streamingAppend: declared,
       descriptorWriteStream: declared, retainedRead: declared });
     const backing = { capabilities: { readOnly: false }, capabilitiesFor: vi.fn(async function (this: FileSystem) {
@@ -347,13 +348,14 @@ describe("virtual null device", () => {
     const options = { signal: new AbortController().signal };
     const selected = await view.capabilitiesFor("relative/ordinary", options);
     expect(backing.capabilitiesFor).toHaveBeenCalledWith("relative/ordinary", options);
-    expect(selected).toEqual({ ...capabilities, streamingRead: false, streamingWrite: false,
+    expect(selected).toEqual({ ...capabilities, open: false, streamingRead: false, streamingWrite: false,
       streamingAppend: false, descriptorWriteStream: false, retainedRead: false });
     expect(capabilities.streamingRead).toBe(declared);
     expect(capabilities.streamingWrite).toBe(declared);
     expect(capabilities.streamingAppend).toBe(declared);
     expect(capabilities.descriptorWriteStream).toBe(declared);
     expect(capabilities.retainedRead).toBe(declared);
+    expect(capabilities.open).toBe(declared);
     if (declared === false) expect(selected).toBe(capabilities);
     else expect(selected).not.toBe(capabilities);
     expect(await view.capabilitiesFor("/dev/null")).toMatchObject({ streamingRead: true,
@@ -362,25 +364,28 @@ describe("virtual null device", () => {
 
   for (const declared of [undefined, true, false]) it(`preserves raw capability identity with present optional methods declared ${String(declared)}`, async () => {
     const capabilities = Object.freeze({ readOnly: true, permissions: false,
+      open: declared,
       streamingRead: declared, streamingWrite: declared, streamingAppend: declared,
       descriptorWriteStream: declared, retainedRead: declared });
     const readStream = vi.fn();
     const writeStream = vi.fn();
     const openReadFile = vi.fn();
-    const view = createDeviceFileSystem({ capabilities, readStream, writeStream, openReadFile } as unknown as FileSystem);
+    const open = vi.fn();
+    const view = createDeviceFileSystem({ capabilities, open, readStream, writeStream, openReadFile } as unknown as FileSystem);
     expect(await view.capabilitiesFor("ordinary")).toBe(capabilities);
     expect(readStream).not.toHaveBeenCalled();
     expect(writeStream).not.toHaveBeenCalled();
     expect(openReadFile).not.toHaveBeenCalled();
+    expect(open).not.toHaveBeenCalled();
   });
 
-  for (const method of ["readStream", "writeStream", "openReadFile"] as const) it(`normalizes only capabilities affected by absent ${method}`, async () => {
-    const capabilities = Object.freeze({ streamingRead: true, streamingWrite: true,
+  for (const method of ["open", "readStream", "writeStream", "openReadFile"] as const) it(`normalizes only capabilities affected by absent ${method}`, async () => {
+    const capabilities = Object.freeze({ open: true, streamingRead: true, streamingWrite: true,
       streamingAppend: true, descriptorWriteStream: true, retainedRead: true, permissions: false });
-    const backing = { capabilities, readStream: vi.fn(), writeStream: vi.fn(), openReadFile: vi.fn() } as unknown as FileSystem;
+    const backing = { capabilities, open: vi.fn(), readStream: vi.fn(), writeStream: vi.fn(), openReadFile: vi.fn() } as unknown as FileSystem;
     Reflect.deleteProperty(backing, method);
     const selected = await createDeviceFileSystem(backing).capabilitiesFor("ordinary");
-    expect(selected).toEqual({ ...capabilities, streamingRead: method !== "readStream",
+    expect(selected).toEqual({ ...capabilities, open: method !== "open", streamingRead: method !== "readStream",
       streamingWrite: method !== "writeStream", streamingAppend: method !== "writeStream",
       descriptorWriteStream: method !== "writeStream", retainedRead: method !== "openReadFile" });
   });

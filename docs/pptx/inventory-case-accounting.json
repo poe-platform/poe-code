@@ -1,0 +1,1667 @@
+{
+  "schema_version": 1,
+  "status": "supplemental-inspection-only",
+  "scope": "All cases in the seven slide/presentation owner modules/features are retained individually, including parameter variants and mutations. This is a relevance superset, not an equivalence certificate. Other canonical case/API obligations remain unchanged.",
+  "source_files": [
+    "tests/test_slide.py",
+    "tests/test_presentation.py",
+    "tests/parts/test_slide.py",
+    "tests/parts/test_presentation.py",
+    "features/sld-slide.feature",
+    "features/sld-slides.feature",
+    "features/prs-presentation.feature"
+  ],
+  "source_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "input_sha256": {
+    "upstream-test-inventory.json": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+    "upstream-api-inventory.json": "cd6467079c8f93d5be57758646f3fcd3667a6a13a1782fb371320c378803b934",
+    "test-case-map.json": "dd82eee632504ebe965e60a7c4d231cf28e6554d5a3f22515b7d54129e4f487b"
+  },
+  "canonical_counts": {
+    "unit": 2700,
+    "bdd": 973,
+    "api": 2407
+  },
+  "supplemental_counts": {
+    "unit": 141,
+    "bdd": 41,
+    "api": 107
+  },
+  "supplemental_evidence": [
+    "packages/pptx/src/inventory.test.ts",
+    "packages/safe-bash/tests/commands/pptx/inventory.test.ts"
+  ],
+  "equivalence": "Structural inspection evidence only: the current byte index does not supply the documented live object, collection, accessor or mutation contract. Keep exact source parameters and BDD behavior obligations in test-case-map.json; these passes do not complete any row. Original cases in that ledger remain required.",
+  "language_security_mapping": "J01-J10 in api-language-mappings.md remain authoritative. Async admitted bytes, null/false distinction, immutable inspection values, one-based inspection positions separate from model collections, and explicit I/O are tested here. No underscore-prefixed or inherited API is excluded or reclassified.",
+  "case_rows": [
+    {
+      "id": "presentation-unit-cdaa74faa742",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1619",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-203c9c1e0766",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1620",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-81efac6ef0c5",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1621",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-3ce31620a403",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1622",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-1ca4cdf5f8ef",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1623",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-4c5fd72f8d7a",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1624",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-080ac9ae5a18",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1625",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-46f3bd2d3618",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1626",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-a939022147c2",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1627",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-9159beae2e5f",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1628",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-5b3d6d71eee5",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1629",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-5544799c33c8",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1630",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-a4be874e97f7",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1631",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-022605ae3c2d",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1632",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-ad06ce05a6e2",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1633",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-439e4258a2da",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1634",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-01c3b17e2c19",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1635",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-8fdec55a8e41",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1636",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-6e918c53615f",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1637",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-1de1924ca399",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1638",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-f592fdb1523f",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1639",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-5f92812b1429",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1640",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-364f0c238c55",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1641",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-ff289644ab58",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1642",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-bc907e89ae02",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1643",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-dc75e8149532",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1644",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-ef8a11868acd",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1645",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-f9e7dd24e59e",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1646",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-861a91bbfd9a",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1647",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-5dbf4064abe5",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1648",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-0f3b3f22e513",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1649",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-a4367c1ecf4e",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1650",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-ff8ad5372f7d",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1651",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-726f97033666",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1652",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-c3776d05b662",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1653",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-dbe17a7b8199",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1654",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-9a0132bddee0",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1655",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-4b83e8e300ee",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1656",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-bd74ce872a16",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1657",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-90b313000bb0",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1658",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-654444966370",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1659",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-93266ec73e96",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1660",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-51dd79664b35",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1661",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-d6f65cd34313",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1662",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-76fc0d291ab8",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1663",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-4fa242a653fe",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1664",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-ad74ea305cf9",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2214",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-4ed964c110c3",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2215",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-85dfaf911377",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2216",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-585922422e21",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2217",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-8a5c0eac9e9c",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2218",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-093879245b65",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2219",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-6b89554377c2",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2220",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-fb03c291dd38",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2221",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-67ad14d2b4ba",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2222",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-0ec058c51066",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2223",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-d10e82c7d676",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2224",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-da5522549f25",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2225",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-f3bb99807f2a",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2226",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-c6377ed92a16",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2227",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-6305b3d07fe2",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2228",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-46471d31c1d7",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2229",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-37f21846b13a",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2230",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-97ef962b25c4",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2231",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-bdd14d3414cf",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2232",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-a2fef1fb0a28",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2237",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-bd63ce602f37",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2238",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-975431ea6a7b",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2239",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-afc622b3a408",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2240",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-d8600d560214",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2241",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-ebd09b350139",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2242",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-e90e8e26a5b4",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2243",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-ad180eb4cd81",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2244",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-1f4157195534",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2245",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-b55acfc4117b",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2246",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-0e5019a26177",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2247",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-d8b9bfeb1e33",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2248",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-456743700890",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2249",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-ffdb56ac2744",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2250",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-e856e2b2acb5",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2251",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-5ae206a26201",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2252",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-3656e1d51a5a",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2253",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-ede0a4e85c1b",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2254",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-a0e0b98cac70",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2255",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-a7d565e41310",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2256",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-be79c5eb26c5",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2257",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-9b3b6aefa2c3",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2258",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-704d93d7a867",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2259",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-2f60928ce0ad",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2260",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-ef52f4c2359a",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2261",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-ed84c687d69e",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2262",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-63ee93d49bea",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2263",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-cef3128b08f6",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2264",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-a8bc6719fbaf",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2265",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-88112b7505d1",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2266",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-68e054554994",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2267",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-3f647dbcda1a",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2268",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-fa1266d5f7f0",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2269",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-9f594b3b3406",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2270",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-9ae6d90074e7",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2271",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-a23f26d6c18a",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2272",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-2d1201d3723c",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2273",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-81bbd48adf13",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2274",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-1a141207e20e",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2275",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-322bca42ee4d",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2276",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-a97e9f827659",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2277",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-68157b9b5a23",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2278",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-38cf01155f9a",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2279",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-3871fabf3cc8",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2280",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-4387ef74c2ff",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2281",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-ee0815f95f52",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2282",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-39ee060798c3",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2283",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-52759a5f91c4",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2284",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-fe13eb213bd5",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2285",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-25bbe0a69ed7",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2286",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-1120cbf76df8",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2287",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-265307addda5",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2288",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-309dd68cf24a",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2289",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-eea49812c8df",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2290",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-297dfa6a215c",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2291",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-80f9114dc94b",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2292",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-bbece4f1421b",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2293",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-df4f34072089",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2294",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-404cd9077a6e",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2295",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-d138aac0d685",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2296",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-3081ab28ad7f",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2297",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-eb0f96b8ca28",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2298",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-717d60fe3290",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2299",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-0f710d9ec282",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2300",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-a546f1399fee",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2301",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-a37ce4ee8221",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2302",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-e6f189a586e0",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2303",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-aeff6e87bf6c",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2304",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-7229fa7f612b",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2305",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-5746831c988f",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2306",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-ce2d52c4bd56",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2307",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-14794477bca1",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2308",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-f0a527cade1d",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2309",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-1871582cd7e6",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2310",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-12d17d6a34b5",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2311",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-unit-5a0792456963",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2312",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-42c72ca99eca",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/783",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-46e0c03b08f8",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/784",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-4d0e19eeaf36",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/785",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-21ec74b93bd5",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/786",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-09363a59c4fc",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/787",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-86c337e4dc55",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/788",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-8c40d067249d",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/789",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-dccd3af4ac1b",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/790",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-3a5112e2ea0a",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/791",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-d156be184fa5",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/792",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-0e2bdcb207c7",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/793",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-e81247b3c9df",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/794",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-b692b8c728fb",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/795",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-367a65e32f2c",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/796",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-c628acacef89",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/797",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-9ac39c9cf1cb",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/798",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-59c46efe262d",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/799",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-860566cd86dc",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/800",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-8889166d63a8",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/801",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-ae990349791f",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/802",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-6e8a864931e5",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/803",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-f759cb084494",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/804",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-b5c70917c99f",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/805",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-0aa9b92b73d9",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/806",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-6a22ecc0c31b",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/807",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-c1b5f296b6d1",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/808",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-126866fa8244",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/809",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-b2a9e2dc05aa",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/810",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-9b1f1955b89e",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/811",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-0cc91509f55b",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/812",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-92e2785e6afa",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/813",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-2d5106997a07",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/814",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-b012ec1f08e5",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/815",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-75264dd189ae",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/816",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-435997665a08",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/817",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-e0582b38acdf",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/818",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-f2ece1e46fca",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/819",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-50336db32d4a",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/820",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-0b71e7b6922b",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/821",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-0361b661cb7a",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/822",
+      "status": "public-model-still-required"
+    },
+    {
+      "id": "presentation-bdd-be4b1db199c9",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/823",
+      "status": "public-model-still-required"
+    }
+  ],
+  "api_rows": [
+    {
+      "source": "upstream-api-inventory.json#/objects/1545",
+      "source_id": "pptx.presentation.Presentation",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1546",
+      "source_id": "pptx.presentation.Presentation.__eq__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1547",
+      "source_id": "pptx.presentation.Presentation.__init__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1548",
+      "source_id": "pptx.presentation.Presentation.core_properties",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1549",
+      "source_id": "pptx.presentation.Presentation.element",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1550",
+      "source_id": "pptx.presentation.Presentation.notes_master",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1551",
+      "source_id": "pptx.presentation.Presentation.part",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1552",
+      "source_id": "pptx.presentation.Presentation.save",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1553",
+      "source_id": "pptx.presentation.Presentation.slide_height",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1554",
+      "source_id": "pptx.presentation.Presentation.slide_layouts",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1555",
+      "source_id": "pptx.presentation.Presentation.slide_master",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1556",
+      "source_id": "pptx.presentation.Presentation.slide_masters",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1557",
+      "source_id": "pptx.presentation.Presentation.slide_width",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1558",
+      "source_id": "pptx.presentation.Presentation.slides",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2148",
+      "source_id": "pptx.slide.NotesMaster",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2149",
+      "source_id": "pptx.slide.NotesMaster.__eq__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2150",
+      "source_id": "pptx.slide.NotesMaster.__init__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2151",
+      "source_id": "pptx.slide.NotesMaster.background",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2152",
+      "source_id": "pptx.slide.NotesMaster.element",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2153",
+      "source_id": "pptx.slide.NotesMaster.name",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2154",
+      "source_id": "pptx.slide.NotesMaster.part",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2155",
+      "source_id": "pptx.slide.NotesMaster.placeholders",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2156",
+      "source_id": "pptx.slide.NotesMaster.shapes",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2157",
+      "source_id": "pptx.slide.NotesSlide",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2158",
+      "source_id": "pptx.slide.NotesSlide.__eq__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2159",
+      "source_id": "pptx.slide.NotesSlide.__init__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2160",
+      "source_id": "pptx.slide.NotesSlide.background",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2161",
+      "source_id": "pptx.slide.NotesSlide.element",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2162",
+      "source_id": "pptx.slide.NotesSlide.name",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2163",
+      "source_id": "pptx.slide.NotesSlide.notes_placeholder",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2164",
+      "source_id": "pptx.slide.NotesSlide.notes_text_frame",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2165",
+      "source_id": "pptx.slide.NotesSlide.part",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2166",
+      "source_id": "pptx.slide.NotesSlide.placeholders",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2167",
+      "source_id": "pptx.slide.NotesSlide.shapes",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2168",
+      "source_id": "pptx.slide.Slide",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2169",
+      "source_id": "pptx.slide.Slide.__eq__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2170",
+      "source_id": "pptx.slide.Slide.__init__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2171",
+      "source_id": "pptx.slide.Slide.background",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2172",
+      "source_id": "pptx.slide.Slide.element",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2173",
+      "source_id": "pptx.slide.Slide.follow_master_background",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2174",
+      "source_id": "pptx.slide.Slide.has_notes_slide",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2175",
+      "source_id": "pptx.slide.Slide.name",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2176",
+      "source_id": "pptx.slide.Slide.notes_slide",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2177",
+      "source_id": "pptx.slide.Slide.part",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2178",
+      "source_id": "pptx.slide.Slide.placeholders",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2179",
+      "source_id": "pptx.slide.Slide.shapes",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2180",
+      "source_id": "pptx.slide.Slide.slide_id",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2181",
+      "source_id": "pptx.slide.Slide.slide_layout",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2182",
+      "source_id": "pptx.slide.SlideLayout",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2183",
+      "source_id": "pptx.slide.SlideLayout.__eq__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2184",
+      "source_id": "pptx.slide.SlideLayout.__init__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2185",
+      "source_id": "pptx.slide.SlideLayout.background",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2186",
+      "source_id": "pptx.slide.SlideLayout.element",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2187",
+      "source_id": "pptx.slide.SlideLayout.name",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2188",
+      "source_id": "pptx.slide.SlideLayout.part",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2189",
+      "source_id": "pptx.slide.SlideLayout.placeholders",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2190",
+      "source_id": "pptx.slide.SlideLayout.shapes",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2191",
+      "source_id": "pptx.slide.SlideLayout.slide_master",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2192",
+      "source_id": "pptx.slide.SlideLayout.used_by_slides",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2193",
+      "source_id": "pptx.slide.SlideLayouts",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2194",
+      "source_id": "pptx.slide.SlideLayouts.__eq__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2195",
+      "source_id": "pptx.slide.SlideLayouts.__getitem__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2196",
+      "source_id": "pptx.slide.SlideLayouts.__init__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2197",
+      "source_id": "pptx.slide.SlideLayouts.__iter__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2198",
+      "source_id": "pptx.slide.SlideLayouts.__len__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2199",
+      "source_id": "pptx.slide.SlideLayouts.element",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2200",
+      "source_id": "pptx.slide.SlideLayouts.get_by_name",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2201",
+      "source_id": "pptx.slide.SlideLayouts.index",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2202",
+      "source_id": "pptx.slide.SlideLayouts.parent",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2203",
+      "source_id": "pptx.slide.SlideLayouts.part",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2204",
+      "source_id": "pptx.slide.SlideLayouts.remove",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2205",
+      "source_id": "pptx.slide.SlideMaster",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2206",
+      "source_id": "pptx.slide.SlideMaster.__eq__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2207",
+      "source_id": "pptx.slide.SlideMaster.__init__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2208",
+      "source_id": "pptx.slide.SlideMaster.background",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2209",
+      "source_id": "pptx.slide.SlideMaster.element",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2210",
+      "source_id": "pptx.slide.SlideMaster.name",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2211",
+      "source_id": "pptx.slide.SlideMaster.part",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2212",
+      "source_id": "pptx.slide.SlideMaster.placeholders",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2213",
+      "source_id": "pptx.slide.SlideMaster.shapes",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2214",
+      "source_id": "pptx.slide.SlideMaster.slide_layouts",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2215",
+      "source_id": "pptx.slide.SlideMasters",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2216",
+      "source_id": "pptx.slide.SlideMasters.__eq__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2217",
+      "source_id": "pptx.slide.SlideMasters.__getitem__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2218",
+      "source_id": "pptx.slide.SlideMasters.__init__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2219",
+      "source_id": "pptx.slide.SlideMasters.__iter__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2220",
+      "source_id": "pptx.slide.SlideMasters.__len__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2221",
+      "source_id": "pptx.slide.SlideMasters.element",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2222",
+      "source_id": "pptx.slide.SlideMasters.parent",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2223",
+      "source_id": "pptx.slide.SlideMasters.part",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2224",
+      "source_id": "pptx.slide.Slides",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2225",
+      "source_id": "pptx.slide.Slides.__eq__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2226",
+      "source_id": "pptx.slide.Slides.__getitem__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2227",
+      "source_id": "pptx.slide.Slides.__init__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2228",
+      "source_id": "pptx.slide.Slides.__iter__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2229",
+      "source_id": "pptx.slide.Slides.__len__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2230",
+      "source_id": "pptx.slide.Slides.add_slide",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2231",
+      "source_id": "pptx.slide.Slides.element",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2232",
+      "source_id": "pptx.slide.Slides.get",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2233",
+      "source_id": "pptx.slide.Slides.index",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2234",
+      "source_id": "pptx.slide.Slides.parent",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2235",
+      "source_id": "pptx.slide.Slides.part",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2236",
+      "source_id": "pptx.slide._Background",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2237",
+      "source_id": "pptx.slide._Background.__eq__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2238",
+      "source_id": "pptx.slide._Background.__init__",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2239",
+      "source_id": "pptx.slide._Background.element",
+      "status": "public-model-still-required"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2240",
+      "source_id": "pptx.slide._Background.fill",
+      "status": "public-model-still-required"
+    }
+  ]
+}

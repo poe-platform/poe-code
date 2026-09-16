@@ -1,0 +1,266 @@
+{
+  "version": 1,
+  "scope": "Verified PNG/JPEG inline utility insertion; no rendering, full pixel decoder, replacement, floating or live model parity claim",
+  "summary": {
+    "cases": 12,
+    "productPaths": 637,
+    "appendAwareProductDrift": [],
+    "imageInsertionSha256": "f89f96bc13fa84b0bd312d83f3e7d36e68c18745aa22eb1b0b2df0d0d384e712",
+    "placements": [
+      "body",
+      "cell",
+      "header",
+      "note"
+    ],
+    "inputs": [
+      {
+        "name": "alpha.png",
+        "bytes": 74,
+        "sha256": "9c1c76e8e490e3d6db4491aeffc68aa26ea50521357d662b195174d0643305d4"
+      },
+      {
+        "name": "portrait.jpg",
+        "bytes": 776,
+        "sha256": "c6b31ea5d496931e51984cf11c6f95cd40a2e8802575ead8c9e42e707c45bbc6"
+      },
+      {
+        "name": "landscape.jpg",
+        "bytes": 776,
+        "sha256": "fab61f1f973721bc94c0848d367842b4d8f0e15088325a8ac09acc8fee07995b"
+      }
+    ],
+    "originalPixelsRetained": "/tmp/docx68-leaf-pixels-ovtk88vi"
+  },
+  "results": [
+    {
+      "name": "alpha.png",
+      "placement": "body",
+      "imageSha256": "9c1c76e8e490e3d6db4491aeffc68aa26ea50521357d662b195174d0643305d4",
+      "outputSha256": "f0d1258d64acf3531f89bd3500227b141e19c7a376ebc27ea7457151d4680b23",
+      "verified": {
+        "pixelWidth": 2,
+        "pixelHeight": 2,
+        "horizontalDpi": null,
+        "verticalDpi": null,
+        "widthEmu": 25400,
+        "heightEmu": 25400,
+        "mime": "image/png",
+        "part": "word/media/image-1.png",
+        "bytes": 74,
+        "sha256": "9c1c76e8e490e3d6db4491aeffc68aa26ea50521357d662b195174d0643305d4",
+        "exactByteEquality": true
+      }
+    },
+    {
+      "name": "alpha.png",
+      "placement": "cell",
+      "imageSha256": "9c1c76e8e490e3d6db4491aeffc68aa26ea50521357d662b195174d0643305d4",
+      "outputSha256": "f383c5a0271bf5b484c87f5f99dfc72d1e6c61cc0131c63ee21953e1d9a67b4a",
+      "verified": {
+        "pixelWidth": 2,
+        "pixelHeight": 2,
+        "horizontalDpi": null,
+        "verticalDpi": null,
+        "widthEmu": 25400,
+        "heightEmu": 25400,
+        "mime": "image/png",
+        "part": "word/media/image-1.png",
+        "bytes": 74,
+        "sha256": "9c1c76e8e490e3d6db4491aeffc68aa26ea50521357d662b195174d0643305d4",
+        "exactByteEquality": true
+      }
+    },
+    {
+      "name": "alpha.png",
+      "placement": "header",
+      "imageSha256": "9c1c76e8e490e3d6db4491aeffc68aa26ea50521357d662b195174d0643305d4",
+      "outputSha256": "dd0b06adeb10fae81c82e5b720950fe69d0a7511f85457313fb9f2b65dc54d33",
+      "verified": {
+        "pixelWidth": 2,
+        "pixelHeight": 2,
+        "horizontalDpi": null,
+        "verticalDpi": null,
+        "widthEmu": 25400,
+        "heightEmu": 25400,
+        "mime": "image/png",
+        "part": "word/media/image-1.png",
+        "bytes": 74,
+        "sha256": "9c1c76e8e490e3d6db4491aeffc68aa26ea50521357d662b195174d0643305d4",
+        "exactByteEquality": true
+      }
+    },
+    {
+      "name": "alpha.png",
+      "placement": "note",
+      "imageSha256": "9c1c76e8e490e3d6db4491aeffc68aa26ea50521357d662b195174d0643305d4",
+      "outputSha256": "7f2ccb86ffdc87d7b24618c5c44bdec8c0633e3a64382bfd3cdfe93563887a13",
+      "verified": {
+        "pixelWidth": 2,
+        "pixelHeight": 2,
+        "horizontalDpi": null,
+        "verticalDpi": null,
+        "widthEmu": 25400,
+        "heightEmu": 25400,
+        "mime": "image/png",
+        "part": "word/media/image-1.png",
+        "bytes": 74,
+        "sha256": "9c1c76e8e490e3d6db4491aeffc68aa26ea50521357d662b195174d0643305d4",
+        "exactByteEquality": true
+      }
+    },
+    {
+      "name": "portrait.jpg",
+      "placement": "body",
+      "imageSha256": "c6b31ea5d496931e51984cf11c6f95cd40a2e8802575ead8c9e42e707c45bbc6",
+      "outputSha256": "4d6b6bbde4c7f9248fd4ccea316601cc4dcc5f2b16c701930fa12c36fa07e8f6",
+      "verified": {
+        "pixelWidth": 3,
+        "pixelHeight": 5,
+        "horizontalDpi": null,
+        "verticalDpi": null,
+        "widthEmu": 38100,
+        "heightEmu": 63500,
+        "mime": "image/jpeg",
+        "part": "word/media/image-1.jpg",
+        "bytes": 776,
+        "sha256": "c6b31ea5d496931e51984cf11c6f95cd40a2e8802575ead8c9e42e707c45bbc6",
+        "exactByteEquality": true
+      }
+    },
+    {
+      "name": "portrait.jpg",
+      "placement": "cell",
+      "imageSha256": "c6b31ea5d496931e51984cf11c6f95cd40a2e8802575ead8c9e42e707c45bbc6",
+      "outputSha256": "0fbcdad415c71dc41a2efd695b429461d9781a9653148729a82b801bf97bc80f",
+      "verified": {
+        "pixelWidth": 3,
+        "pixelHeight": 5,
+        "horizontalDpi": null,
+        "verticalDpi": null,
+        "widthEmu": 38100,
+        "heightEmu": 63500,
+        "mime": "image/jpeg",
+        "part": "word/media/image-1.jpg",
+        "bytes": 776,
+        "sha256": "c6b31ea5d496931e51984cf11c6f95cd40a2e8802575ead8c9e42e707c45bbc6",
+        "exactByteEquality": true
+      }
+    },
+    {
+      "name": "portrait.jpg",
+      "placement": "header",
+      "imageSha256": "c6b31ea5d496931e51984cf11c6f95cd40a2e8802575ead8c9e42e707c45bbc6",
+      "outputSha256": "ce3e09253e88956da440eeb9f65f62dddae8652c66d8efc39c948a76f98e27be",
+      "verified": {
+        "pixelWidth": 3,
+        "pixelHeight": 5,
+        "horizontalDpi": null,
+        "verticalDpi": null,
+        "widthEmu": 38100,
+        "heightEmu": 63500,
+        "mime": "image/jpeg",
+        "part": "word/media/image-1.jpg",
+        "bytes": 776,
+        "sha256": "c6b31ea5d496931e51984cf11c6f95cd40a2e8802575ead8c9e42e707c45bbc6",
+        "exactByteEquality": true
+      }
+    },
+    {
+      "name": "portrait.jpg",
+      "placement": "note",
+      "imageSha256": "c6b31ea5d496931e51984cf11c6f95cd40a2e8802575ead8c9e42e707c45bbc6",
+      "outputSha256": "2acf3775bb07653860413ce716eb797825b45142501ba06839cf16ca6ee43b55",
+      "verified": {
+        "pixelWidth": 3,
+        "pixelHeight": 5,
+        "horizontalDpi": null,
+        "verticalDpi": null,
+        "widthEmu": 38100,
+        "heightEmu": 63500,
+        "mime": "image/jpeg",
+        "part": "word/media/image-1.jpg",
+        "bytes": 776,
+        "sha256": "c6b31ea5d496931e51984cf11c6f95cd40a2e8802575ead8c9e42e707c45bbc6",
+        "exactByteEquality": true
+      }
+    },
+    {
+      "name": "landscape.jpg",
+      "placement": "body",
+      "imageSha256": "fab61f1f973721bc94c0848d367842b4d8f0e15088325a8ac09acc8fee07995b",
+      "outputSha256": "f3c0d37529d26525204ccc2de9fd1270d696e475d2b42e44cff6c8ae63b73ca7",
+      "verified": {
+        "pixelWidth": 5,
+        "pixelHeight": 3,
+        "horizontalDpi": null,
+        "verticalDpi": null,
+        "widthEmu": 63500,
+        "heightEmu": 38100,
+        "mime": "image/jpeg",
+        "part": "word/media/image-1.jpg",
+        "bytes": 776,
+        "sha256": "fab61f1f973721bc94c0848d367842b4d8f0e15088325a8ac09acc8fee07995b",
+        "exactByteEquality": true
+      }
+    },
+    {
+      "name": "landscape.jpg",
+      "placement": "cell",
+      "imageSha256": "fab61f1f973721bc94c0848d367842b4d8f0e15088325a8ac09acc8fee07995b",
+      "outputSha256": "79dc17c230c20ecce0eadb31d91ce5c9ff4c28ecddbd00e134579a3e35cfa31c",
+      "verified": {
+        "pixelWidth": 5,
+        "pixelHeight": 3,
+        "horizontalDpi": null,
+        "verticalDpi": null,
+        "widthEmu": 63500,
+        "heightEmu": 38100,
+        "mime": "image/jpeg",
+        "part": "word/media/image-1.jpg",
+        "bytes": 776,
+        "sha256": "fab61f1f973721bc94c0848d367842b4d8f0e15088325a8ac09acc8fee07995b",
+        "exactByteEquality": true
+      }
+    },
+    {
+      "name": "landscape.jpg",
+      "placement": "header",
+      "imageSha256": "fab61f1f973721bc94c0848d367842b4d8f0e15088325a8ac09acc8fee07995b",
+      "outputSha256": "514c5dee80083ea336416eafc4a8fbbc517fbdd101f7fe5d2c9c5c4c5e466611",
+      "verified": {
+        "pixelWidth": 5,
+        "pixelHeight": 3,
+        "horizontalDpi": null,
+        "verticalDpi": null,
+        "widthEmu": 63500,
+        "heightEmu": 38100,
+        "mime": "image/jpeg",
+        "part": "word/media/image-1.jpg",
+        "bytes": 776,
+        "sha256": "fab61f1f973721bc94c0848d367842b4d8f0e15088325a8ac09acc8fee07995b",
+        "exactByteEquality": true
+      }
+    },
+    {
+      "name": "landscape.jpg",
+      "placement": "note",
+      "imageSha256": "fab61f1f973721bc94c0848d367842b4d8f0e15088325a8ac09acc8fee07995b",
+      "outputSha256": "4e80dff2e6fc4e4b50459bd521ba4b5e5ce65cb89ae7f238a3f96961998e259d",
+      "verified": {
+        "pixelWidth": 5,
+        "pixelHeight": 3,
+        "horizontalDpi": null,
+        "verticalDpi": null,
+        "widthEmu": 63500,
+        "heightEmu": 38100,
+        "mime": "image/jpeg",
+        "part": "word/media/image-1.jpg",
+        "bytes": 776,
+        "sha256": "fab61f1f973721bc94c0848d367842b4d8f0e15088325a8ac09acc8fee07995b",
+        "exactByteEquality": true
+      }
+    }
+  ],
+  "evidenceRoot": "/tmp/docx68-leaf-final-po0wjzc5/",
+  "retention": "Original technical inputs remain disposable while the active image campaign needs them; no assets or execution scripts are shipped"
+}

@@ -1,0 +1,236 @@
+{
+  "profile": "Mike Farah v4.53.3, darwin arm64, LC_ALL=C, NO_COLOR=1",
+  "sha256": "877de31753a4dd2401aa048937aa9a7fc4d5f6ce858cf31508c5802954297213",
+  "help": {
+    "status": 0,
+    "stdout": "yq is a portable command-line data file processor (https://github.com/mikefarah/yq/) \nSee https://mikefarah.gitbook.io/yq/ for detailed documentation and examples.\n\nUsage:\n  yq [flags]\n  yq [command]\n\nExamples:\n\n# yq tries to auto-detect the file format based off the extension, and defaults to YAML if it's unknown (or piping through STDIN)\n# Use the '-p/--input-format' flag to specify a format type.\ncat file.xml | yq -p xml\n\n# read the \"stuff\" node from \"myfile.yml\"\nyq '.stuff' < myfile.yml\n\n# update myfile.yml in place\nyq -i '.stuff = \"foo\"' myfile.yml\n\n# print contents of sample.json as idiomatic YAML\nyq -P -oy sample.json\n\n\nAvailable Commands:\n  completion  Generate the autocompletion script for the specified shell\n  eval        (default) Apply the expression to each document in each yaml file in sequence\n  eval-all    Loads _all_ yaml documents of _all_ yaml files and runs expression once\n  help        Help about any command\n\nFlags:\n  -C, --colors                            force print with colors\n      --csv-auto-parse                    parse CSV YAML/JSON values (default true)\n      --csv-separator char                CSV Separator character (default ,)\n      --debug-node-info                   debug node info\n  -e, --exit-status                       set exit status if there are no matches or null or false is returned\n      --expression string                 forcibly set the expression argument. Useful when yq argument detection thinks your expression is a file.\n      --from-file string                  Load expression from specified file.\n  -f, --front-matter string               (extract|process) first input as yaml front-matter. Extract will pull out the yaml content, process will run the expression against the yaml content, leaving the remaining data intact\n      --header-preprocess                 Slurp any header comments and separators before processing expression. (default true)\n  -h, --help                              help for yq\n  -I, --indent int                        sets indent level for output (default 2)\n      --ini-preserve-quotes               preserve surrounding quotes on INI values during round-trip\n  -i, --inplace                           update the file in place of first file given.\n  -p, --input-format string               [auto|a|yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|lua|l|ini|i] parse format for input. (default \"auto\")\n      --lua-globals                       output keys as top-level global variables\n      --lua-prefix string                 prefix (default \"return \")\n      --lua-suffix string                 suffix (default \";\\n\")\n      --lua-unquoted                      output unquoted string keys (e.g. {foo=\"bar\"})\n  -M, --no-colors                         force print with no colors\n  -N, --no-doc                            Don't print document separators (---)\n  -0, --nul-output                        Use NUL char to separate values. If unwrap scalar is also set, fail if unwrapped scalar contains NUL char.\n  -n, --null-input                        Don't read input, simply evaluate the expression given. Useful for creating docs from scratch.\n  -o, --output-format string              [auto|a|yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|shell|s|lua|l|ini|i] output format type. (default \"auto\")\n  -P, --prettyPrint                       pretty print, shorthand for '... style = \"\"'\n      --properties-array-brackets         use [x] in array paths (e.g. for SpringBoot)\n      --properties-separator string       separator to use between keys and values (default \" = \")\n      --security-disable-env-ops          Disable env related operations.\n      --security-disable-file-ops         Disable file related operations (e.g. load)\n      --security-enable-system-operator   Enable system operator to allow execution of external commands.\n      --shell-key-separator string        separator for shell variable key paths (default \"_\")\n  -s, --split-exp string                  print each result (or doc) into a file named (exp). [exp] argument must return a string. You can use $index in the expression as the result counter. The necessary directories will be created.\n      --split-exp-file string             Use a file to specify the split-exp expression.\n      --string-interpolation              Toggles strings interpolation of \\(exp) (default true)\n      --tsv-auto-parse                    parse TSV YAML/JSON values (default true)\n  -r, --unwrapScalar                      unwrap scalar, print the value with no quotes, colours or comments. Defaults to true for yaml (default true)\n  -v, --verbose                           verbose mode\n  -V, --version                           Print version information and quit\n      --xml-attribute-prefix string       prefix for xml attributes (default \"+@\")\n      --xml-content-name string           name for xml content (if no attribute name is present). (default \"+content\")\n      --xml-directive-name string         name for xml directives (e.g. <!DOCTYPE thing cat>) (default \"+directive\")\n      --xml-keep-namespace                enables keeping namespace after parsing attributes (default true)\n      --xml-proc-inst-prefix string       prefix for xml processing instructions (e.g. <?xml version=\"1\"?>) (default \"+p_\")\n      --xml-raw-token                     enables using RawToken method instead Token. Commonly disables namespace translations. See https://pkg.go.dev/encoding/xml#Decoder.RawToken for details. (default true)\n      --xml-skip-directives               skip over directives (e.g. <!DOCTYPE thing cat>)\n      --xml-skip-proc-inst                skip over process instructions (e.g. <?xml version=\"1\"?>)\n      --xml-strict-mode                   enables strict parsing of XML. See https://pkg.go.dev/encoding/xml for more details.\n  -c, --yaml-compact-seq-indent           Use compact sequence indentation where '- ' is considered part of the indentation.\n      --yaml-fix-merge-anchor-to-spec     Fix merge anchor to match YAML spec. Will default to true in late 2025\n\nUse \"yq [command] --help\" for more information about a command.\n",
+    "stderr": ""
+  },
+  "results": [
+    {
+      "status": 0,
+      "stdout": "a: 1\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "hello\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "\"hello\"\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "[1,2]\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "{\"a\":1,\"b\":\"yes\"}\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "a:\n  - 1\n  - 2\nb: true\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "hello\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "{\"a\":9007199254740992}\n{\"b\":2}\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "a:\n    b: [1, 2]\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "a:\n    b: [1, 2]\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "false\n---\ntrue\n---\nnull\n",
+      "stderr": ""
+    },
+    {
+      "status": 1,
+      "stdout": "false\n---\nnull\n",
+      "stderr": "Error: no matches found\n"
+    },
+    {
+      "status": 1,
+      "stdout": "",
+      "stderr": "Error: no matches found\n"
+    },
+    {
+      "status": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "[{\"a\":1}]\n[{\"a\":2}]\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "[{\"a\":1},{\"a\":2}]\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "{\"a\":1,\"b\":2}\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "a: 2\nb: 2\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "a: 3\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "a: 2\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "a: 1\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "a: 3\nb: 3\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "items: [{name: x, enabled: true}, {name: y}]\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "# head\na: 'new' # inline\nb: &base {x: 1}\nc: *base\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "a: 9007199254740993\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "a: 9007199254740994\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "!thing\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "!!int\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "a: \"12\"\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "a: !thing 2 # inline\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "a: !!int 2\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "a: 1\na: 2\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "2\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "---\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "{\"a\":1}\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "a: 1\n",
+      "stderr": ""
+    },
+    {
+      "status": 1,
+      "stdout": "",
+      "stderr": "Error: cannot pass files in when using null-input flag\n"
+    },
+    {
+      "status": 1,
+      "stdout": "",
+      "stderr": "Error: write in place flag only applicable when giving an expression and at least one file\n"
+    },
+    {
+      "status": 1,
+      "stdout": "",
+      "stderr": "Error: flag needs an argument: 'o' in -o\nUsage:\n  yq [flags]\n  yq [command]\n\nExamples:\n\n# yq tries to auto-detect the file format based off the extension, and defaults to YAML if it's unknown (or piping through STDIN)\n# Use the '-p/--input-format' flag to specify a format type.\ncat file.xml | yq -p xml\n\n# read the \"stuff\" node from \"myfile.yml\"\nyq '.stuff' < myfile.yml\n\n# update myfile.yml in place\nyq -i '.stuff = \"foo\"' myfile.yml\n\n# print contents of sample.json as idiomatic YAML\nyq -P -oy sample.json\n\n\nAvailable Commands:\n  completion  Generate the autocompletion script for the specified shell\n  eval        (default) Apply the expression to each document in each yaml file in sequence\n  eval-all    Loads _all_ yaml documents of _all_ yaml files and runs expression once\n  help        Help about any command\n\nFlags:\n  -C, --colors                            force print with colors\n      --csv-auto-parse                    parse CSV YAML/JSON values (default true)\n      --csv-separator char                CSV Separator character (default ,)\n      --debug-node-info                   debug node info\n  -e, --exit-status                       set exit status if there are no matches or null or false is returned\n      --expression string                 forcibly set the expression argument. Useful when yq argument detection thinks your expression is a file.\n      --from-file string                  Load expression from specified file.\n  -f, --front-matter string               (extract|process) first input as yaml front-matter. Extract will pull out the yaml content, process will run the expression against the yaml content, leaving the remaining data intact\n      --header-preprocess                 Slurp any header comments and separators before processing expression. (default true)\n  -h, --help                              help for yq\n  -I, --indent int                        sets indent level for output (default 2)\n      --ini-preserve-quotes               preserve surrounding quotes on INI values during round-trip\n  -i, --inplace                           update the file in place of first file given.\n  -p, --input-format string               [auto|a|yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|lua|l|ini|i] parse format for input. (default \"auto\")\n      --lua-globals                       output keys as top-level global variables\n      --lua-prefix string                 prefix (default \"return \")\n      --lua-suffix string                 suffix (default \";\\n\")\n      --lua-unquoted                      output unquoted string keys (e.g. {foo=\"bar\"})\n  -M, --no-colors                         force print with no colors\n  -N, --no-doc                            Don't print document separators (---)\n  -0, --nul-output                        Use NUL char to separate values. If unwrap scalar is also set, fail if unwrapped scalar contains NUL char.\n  -n, --null-input                        Don't read input, simply evaluate the expression given. Useful for creating docs from scratch.\n  -o, --output-format string              [auto|a|yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|shell|s|lua|l|ini|i] output format type. (default \"auto\")\n  -P, --prettyPrint                       pretty print, shorthand for '... style = \"\"'\n      --properties-array-brackets         use [x] in array paths (e.g. for SpringBoot)\n      --properties-separator string       separator to use between keys and values (default \" = \")\n      --security-disable-env-ops          Disable env related operations.\n      --security-disable-file-ops         Disable file related operations (e.g. load)\n      --security-enable-system-operator   Enable system operator to allow execution of external commands.\n      --shell-key-separator string        separator for shell variable key paths (default \"_\")\n  -s, --split-exp string                  print each result (or doc) into a file named (exp). [exp] argument must return a string. You can use $index in the expression as the result counter. The necessary directories will be created.\n      --split-exp-file string             Use a file to specify the split-exp expression.\n      --string-interpolation              Toggles strings interpolation of \\(exp) (default true)\n      --tsv-auto-parse                    parse TSV YAML/JSON values (default true)\n  -r, --unwrapScalar                      unwrap scalar, print the value with no quotes, colours or comments. Defaults to true for yaml (default true)\n  -v, --verbose                           verbose mode\n  -V, --version                           Print version information and quit\n      --xml-attribute-prefix string       prefix for xml attributes (default \"+@\")\n      --xml-content-name string           name for xml content (if no attribute name is present). (default \"+content\")\n      --xml-directive-name string         name for xml directives (e.g. <!DOCTYPE thing cat>) (default \"+directive\")\n      --xml-keep-namespace                enables keeping namespace after parsing attributes (default true)\n      --xml-proc-inst-prefix string       prefix for xml processing instructions (e.g. <?xml version=\"1\"?>) (default \"+p_\")\n      --xml-raw-token                     enables using RawToken method instead Token. Commonly disables namespace translations. See https://pkg.go.dev/encoding/xml#Decoder.RawToken for details. (default true)\n      --xml-skip-directives               skip over directives (e.g. <!DOCTYPE thing cat>)\n      --xml-skip-proc-inst                skip over process instructions (e.g. <?xml version=\"1\"?>)\n      --xml-strict-mode                   enables strict parsing of XML. See https://pkg.go.dev/encoding/xml for more details.\n  -c, --yaml-compact-seq-indent           Use compact sequence indentation where '- ' is considered part of the indentation.\n      --yaml-fix-merge-anchor-to-spec     Fix merge anchor to match YAML spec. Will default to true in late 2025\n\nUse \"yq [command] --help\" for more information about a command.\n\n"
+    },
+    {
+      "status": 1,
+      "stdout": "",
+      "stderr": "Error: unknown format 'bad' please use [yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|shell|s|lua|l|ini|i]\n"
+    },
+    {
+      "status": 1,
+      "stdout": "",
+      "stderr": "Error: unknown flag: --unknown\nUsage:\n  yq [flags]\n  yq [command]\n\nExamples:\n\n# yq tries to auto-detect the file format based off the extension, and defaults to YAML if it's unknown (or piping through STDIN)\n# Use the '-p/--input-format' flag to specify a format type.\ncat file.xml | yq -p xml\n\n# read the \"stuff\" node from \"myfile.yml\"\nyq '.stuff' < myfile.yml\n\n# update myfile.yml in place\nyq -i '.stuff = \"foo\"' myfile.yml\n\n# print contents of sample.json as idiomatic YAML\nyq -P -oy sample.json\n\n\nAvailable Commands:\n  completion  Generate the autocompletion script for the specified shell\n  eval        (default) Apply the expression to each document in each yaml file in sequence\n  eval-all    Loads _all_ yaml documents of _all_ yaml files and runs expression once\n  help        Help about any command\n\nFlags:\n  -C, --colors                            force print with colors\n      --csv-auto-parse                    parse CSV YAML/JSON values (default true)\n      --csv-separator char                CSV Separator character (default ,)\n      --debug-node-info                   debug node info\n  -e, --exit-status                       set exit status if there are no matches or null or false is returned\n      --expression string                 forcibly set the expression argument. Useful when yq argument detection thinks your expression is a file.\n      --from-file string                  Load expression from specified file.\n  -f, --front-matter string               (extract|process) first input as yaml front-matter. Extract will pull out the yaml content, process will run the expression against the yaml content, leaving the remaining data intact\n      --header-preprocess                 Slurp any header comments and separators before processing expression. (default true)\n  -h, --help                              help for yq\n  -I, --indent int                        sets indent level for output (default 2)\n      --ini-preserve-quotes               preserve surrounding quotes on INI values during round-trip\n  -i, --inplace                           update the file in place of first file given.\n  -p, --input-format string               [auto|a|yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|lua|l|ini|i] parse format for input. (default \"auto\")\n      --lua-globals                       output keys as top-level global variables\n      --lua-prefix string                 prefix (default \"return \")\n      --lua-suffix string                 suffix (default \";\\n\")\n      --lua-unquoted                      output unquoted string keys (e.g. {foo=\"bar\"})\n  -M, --no-colors                         force print with no colors\n  -N, --no-doc                            Don't print document separators (---)\n  -0, --nul-output                        Use NUL char to separate values. If unwrap scalar is also set, fail if unwrapped scalar contains NUL char.\n  -n, --null-input                        Don't read input, simply evaluate the expression given. Useful for creating docs from scratch.\n  -o, --output-format string              [auto|a|yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|shell|s|lua|l|ini|i] output format type. (default \"auto\")\n  -P, --prettyPrint                       pretty print, shorthand for '... style = \"\"'\n      --properties-array-brackets         use [x] in array paths (e.g. for SpringBoot)\n      --properties-separator string       separator to use between keys and values (default \" = \")\n      --security-disable-env-ops          Disable env related operations.\n      --security-disable-file-ops         Disable file related operations (e.g. load)\n      --security-enable-system-operator   Enable system operator to allow execution of external commands.\n      --shell-key-separator string        separator for shell variable key paths (default \"_\")\n  -s, --split-exp string                  print each result (or doc) into a file named (exp). [exp] argument must return a string. You can use $index in the expression as the result counter. The necessary directories will be created.\n      --split-exp-file string             Use a file to specify the split-exp expression.\n      --string-interpolation              Toggles strings interpolation of \\(exp) (default true)\n      --tsv-auto-parse                    parse TSV YAML/JSON values (default true)\n  -r, --unwrapScalar                      unwrap scalar, print the value with no quotes, colours or comments. Defaults to true for yaml (default true)\n  -v, --verbose                           verbose mode\n  -V, --version                           Print version information and quit\n      --xml-attribute-prefix string       prefix for xml attributes (default \"+@\")\n      --xml-content-name string           name for xml content (if no attribute name is present). (default \"+content\")\n      --xml-directive-name string         name for xml directives (e.g. <!DOCTYPE thing cat>) (default \"+directive\")\n      --xml-keep-namespace                enables keeping namespace after parsing attributes (default true)\n      --xml-proc-inst-prefix string       prefix for xml processing instructions (e.g. <?xml version=\"1\"?>) (default \"+p_\")\n      --xml-raw-token                     enables using RawToken method instead Token. Commonly disables namespace translations. See https://pkg.go.dev/encoding/xml#Decoder.RawToken for details. (default true)\n      --xml-skip-directives               skip over directives (e.g. <!DOCTYPE thing cat>)\n      --xml-skip-proc-inst                skip over process instructions (e.g. <?xml version=\"1\"?>)\n      --xml-strict-mode                   enables strict parsing of XML. See https://pkg.go.dev/encoding/xml for more details.\n  -c, --yaml-compact-seq-indent           Use compact sequence indentation where '- ' is considered part of the indentation.\n      --yaml-fix-merge-anchor-to-spec     Fix merge anchor to match YAML spec. Will default to true in late 2025\n\nUse \"yq [command] --help\" for more information about a command.\n\n"
+    },
+    {
+      "status": 1,
+      "stdout": "",
+      "stderr": "Error: unknown shorthand flag: 'x' in -x\nUsage:\n  yq [flags]\n  yq [command]\n\nExamples:\n\n# yq tries to auto-detect the file format based off the extension, and defaults to YAML if it's unknown (or piping through STDIN)\n# Use the '-p/--input-format' flag to specify a format type.\ncat file.xml | yq -p xml\n\n# read the \"stuff\" node from \"myfile.yml\"\nyq '.stuff' < myfile.yml\n\n# update myfile.yml in place\nyq -i '.stuff = \"foo\"' myfile.yml\n\n# print contents of sample.json as idiomatic YAML\nyq -P -oy sample.json\n\n\nAvailable Commands:\n  completion  Generate the autocompletion script for the specified shell\n  eval        (default) Apply the expression to each document in each yaml file in sequence\n  eval-all    Loads _all_ yaml documents of _all_ yaml files and runs expression once\n  help        Help about any command\n\nFlags:\n  -C, --colors                            force print with colors\n      --csv-auto-parse                    parse CSV YAML/JSON values (default true)\n      --csv-separator char                CSV Separator character (default ,)\n      --debug-node-info                   debug node info\n  -e, --exit-status                       set exit status if there are no matches or null or false is returned\n      --expression string                 forcibly set the expression argument. Useful when yq argument detection thinks your expression is a file.\n      --from-file string                  Load expression from specified file.\n  -f, --front-matter string               (extract|process) first input as yaml front-matter. Extract will pull out the yaml content, process will run the expression against the yaml content, leaving the remaining data intact\n      --header-preprocess                 Slurp any header comments and separators before processing expression. (default true)\n  -h, --help                              help for yq\n  -I, --indent int                        sets indent level for output (default 2)\n      --ini-preserve-quotes               preserve surrounding quotes on INI values during round-trip\n  -i, --inplace                           update the file in place of first file given.\n  -p, --input-format string               [auto|a|yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|lua|l|ini|i] parse format for input. (default \"auto\")\n      --lua-globals                       output keys as top-level global variables\n      --lua-prefix string                 prefix (default \"return \")\n      --lua-suffix string                 suffix (default \";\\n\")\n      --lua-unquoted                      output unquoted string keys (e.g. {foo=\"bar\"})\n  -M, --no-colors                         force print with no colors\n  -N, --no-doc                            Don't print document separators (---)\n  -0, --nul-output                        Use NUL char to separate values. If unwrap scalar is also set, fail if unwrapped scalar contains NUL char.\n  -n, --null-input                        Don't read input, simply evaluate the expression given. Useful for creating docs from scratch.\n  -o, --output-format string              [auto|a|yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|shell|s|lua|l|ini|i] output format type. (default \"auto\")\n  -P, --prettyPrint                       pretty print, shorthand for '... style = \"\"'\n      --properties-array-brackets         use [x] in array paths (e.g. for SpringBoot)\n      --properties-separator string       separator to use between keys and values (default \" = \")\n      --security-disable-env-ops          Disable env related operations.\n      --security-disable-file-ops         Disable file related operations (e.g. load)\n      --security-enable-system-operator   Enable system operator to allow execution of external commands.\n      --shell-key-separator string        separator for shell variable key paths (default \"_\")\n  -s, --split-exp string                  print each result (or doc) into a file named (exp). [exp] argument must return a string. You can use $index in the expression as the result counter. The necessary directories will be created.\n      --split-exp-file string             Use a file to specify the split-exp expression.\n      --string-interpolation              Toggles strings interpolation of \\(exp) (default true)\n      --tsv-auto-parse                    parse TSV YAML/JSON values (default true)\n  -r, --unwrapScalar                      unwrap scalar, print the value with no quotes, colours or comments. Defaults to true for yaml (default true)\n  -v, --verbose                           verbose mode\n  -V, --version                           Print version information and quit\n      --xml-attribute-prefix string       prefix for xml attributes (default \"+@\")\n      --xml-content-name string           name for xml content (if no attribute name is present). (default \"+content\")\n      --xml-directive-name string         name for xml directives (e.g. <!DOCTYPE thing cat>) (default \"+directive\")\n      --xml-keep-namespace                enables keeping namespace after parsing attributes (default true)\n      --xml-proc-inst-prefix string       prefix for xml processing instructions (e.g. <?xml version=\"1\"?>) (default \"+p_\")\n      --xml-raw-token                     enables using RawToken method instead Token. Commonly disables namespace translations. See https://pkg.go.dev/encoding/xml#Decoder.RawToken for details. (default true)\n      --xml-skip-directives               skip over directives (e.g. <!DOCTYPE thing cat>)\n      --xml-skip-proc-inst                skip over process instructions (e.g. <?xml version=\"1\"?>)\n      --xml-strict-mode                   enables strict parsing of XML. See https://pkg.go.dev/encoding/xml for more details.\n  -c, --yaml-compact-seq-indent           Use compact sequence indentation where '- ' is considered part of the indentation.\n      --yaml-fix-merge-anchor-to-spec     Fix merge anchor to match YAML spec. Will default to true in late 2025\n\nUse \"yq [command] --help\" for more information about a command.\n\n"
+    },
+    {
+      "status": 1,
+      "stdout": "",
+      "stderr": "Error: invalid argument \"bad\" for \"-I, --indent\" flag: strconv.ParseInt: parsing \"bad\": invalid syntax\nUsage:\n  yq [flags]\n  yq [command]\n\nExamples:\n\n# yq tries to auto-detect the file format based off the extension, and defaults to YAML if it's unknown (or piping through STDIN)\n# Use the '-p/--input-format' flag to specify a format type.\ncat file.xml | yq -p xml\n\n# read the \"stuff\" node from \"myfile.yml\"\nyq '.stuff' < myfile.yml\n\n# update myfile.yml in place\nyq -i '.stuff = \"foo\"' myfile.yml\n\n# print contents of sample.json as idiomatic YAML\nyq -P -oy sample.json\n\n\nAvailable Commands:\n  completion  Generate the autocompletion script for the specified shell\n  eval        (default) Apply the expression to each document in each yaml file in sequence\n  eval-all    Loads _all_ yaml documents of _all_ yaml files and runs expression once\n  help        Help about any command\n\nFlags:\n  -C, --colors                            force print with colors\n      --csv-auto-parse                    parse CSV YAML/JSON values (default true)\n      --csv-separator char                CSV Separator character (default ,)\n      --debug-node-info                   debug node info\n  -e, --exit-status                       set exit status if there are no matches or null or false is returned\n      --expression string                 forcibly set the expression argument. Useful when yq argument detection thinks your expression is a file.\n      --from-file string                  Load expression from specified file.\n  -f, --front-matter string               (extract|process) first input as yaml front-matter. Extract will pull out the yaml content, process will run the expression against the yaml content, leaving the remaining data intact\n      --header-preprocess                 Slurp any header comments and separators before processing expression. (default true)\n  -h, --help                              help for yq\n  -I, --indent int                        sets indent level for output (default 2)\n      --ini-preserve-quotes               preserve surrounding quotes on INI values during round-trip\n  -i, --inplace                           update the file in place of first file given.\n  -p, --input-format string               [auto|a|yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|lua|l|ini|i] parse format for input. (default \"auto\")\n      --lua-globals                       output keys as top-level global variables\n      --lua-prefix string                 prefix (default \"return \")\n      --lua-suffix string                 suffix (default \";\\n\")\n      --lua-unquoted                      output unquoted string keys (e.g. {foo=\"bar\"})\n  -M, --no-colors                         force print with no colors\n  -N, --no-doc                            Don't print document separators (---)\n  -0, --nul-output                        Use NUL char to separate values. If unwrap scalar is also set, fail if unwrapped scalar contains NUL char.\n  -n, --null-input                        Don't read input, simply evaluate the expression given. Useful for creating docs from scratch.\n  -o, --output-format string              [auto|a|yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|shell|s|lua|l|ini|i] output format type. (default \"auto\")\n  -P, --prettyPrint                       pretty print, shorthand for '... style = \"\"'\n      --properties-array-brackets         use [x] in array paths (e.g. for SpringBoot)\n      --properties-separator string       separator to use between keys and values (default \" = \")\n      --security-disable-env-ops          Disable env related operations.\n      --security-disable-file-ops         Disable file related operations (e.g. load)\n      --security-enable-system-operator   Enable system operator to allow execution of external commands.\n      --shell-key-separator string        separator for shell variable key paths (default \"_\")\n  -s, --split-exp string                  print each result (or doc) into a file named (exp). [exp] argument must return a string. You can use $index in the expression as the result counter. The necessary directories will be created.\n      --split-exp-file string             Use a file to specify the split-exp expression.\n      --string-interpolation              Toggles strings interpolation of \\(exp) (default true)\n      --tsv-auto-parse                    parse TSV YAML/JSON values (default true)\n  -r, --unwrapScalar                      unwrap scalar, print the value with no quotes, colours or comments. Defaults to true for yaml (default true)\n  -v, --verbose                           verbose mode\n  -V, --version                           Print version information and quit\n      --xml-attribute-prefix string       prefix for xml attributes (default \"+@\")\n      --xml-content-name string           name for xml content (if no attribute name is present). (default \"+content\")\n      --xml-directive-name string         name for xml directives (e.g. <!DOCTYPE thing cat>) (default \"+directive\")\n      --xml-keep-namespace                enables keeping namespace after parsing attributes (default true)\n      --xml-proc-inst-prefix string       prefix for xml processing instructions (e.g. <?xml version=\"1\"?>) (default \"+p_\")\n      --xml-raw-token                     enables using RawToken method instead Token. Commonly disables namespace translations. See https://pkg.go.dev/encoding/xml#Decoder.RawToken for details. (default true)\n      --xml-skip-directives               skip over directives (e.g. <!DOCTYPE thing cat>)\n      --xml-skip-proc-inst                skip over process instructions (e.g. <?xml version=\"1\"?>)\n      --xml-strict-mode                   enables strict parsing of XML. See https://pkg.go.dev/encoding/xml for more details.\n  -c, --yaml-compact-seq-indent           Use compact sequence indentation where '- ' is considered part of the indentation.\n      --yaml-fix-merge-anchor-to-spec     Fix merge anchor to match YAML spec. Will default to true in late 2025\n\nUse \"yq [command] --help\" for more information about a command.\n\n"
+    },
+    {
+      "status": 0,
+      "stdout": "{\"a\":1}\n",
+      "stderr": ""
+    }
+  ]
+}

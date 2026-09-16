@@ -1,0 +1,6 @@
+Initializing Python...
+Python package cached: https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl (115486 bytes)
+Python package cached: https://pypi.org/simple/pypdf/ (119794 bytes)
+Python package cached: https://files.pythonhosted.org/packages/58/13/645df3995075112cb3cce15e8797c205f0f88fb50acc11012b84b071bc22/pypdf-6.18.1-py3-none-any.whl.metadata (7469 bytes)
+Python package cached: https://files.pythonhosted.org/packages/58/13/645df3995075112cb3cce15e8797c205f0f88fb50acc11012b84b071bc22/pypdf-6.18.1-py3-none-any.whl (394327 bytes)
+Python packages installed

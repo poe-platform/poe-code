@@ -54,6 +54,7 @@ import { registerDoctorCommand } from "./commands/doctor.js";
 import { registerCompletionCommand } from "./commands/completion.js";
 import { registerTasksCommand } from "./commands/tasks.js";
 import { registerGaslightCommand } from "./commands/gaslight.js";
+import { registerBashCommand } from "./commands/bash.js";
 import { registerWorktreeCommand } from "./commands/worktree.js";
 import { packageVersion } from "../package-metadata.js";
 import { throwCommandNotFound } from "./command-not-found.js";
@@ -1027,6 +1028,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerRuntimeCommand(program, container);
   registerHarnessCommand(program, container);
   registerWorktreeCommand(program, container);
+  registerBashCommand(program);
   registerBraintrustCommand(program, container);
   registerDoctorCommand(program, container);
   registerTasksCommand(program, container);

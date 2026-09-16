@@ -1,0 +1,101 @@
+{
+  "profile": "Mike Farah v4.53.3 C locale",
+  "sha256": "877de31753a4dd2401aa048937aa9a7fc4d5f6ce858cf31508c5802954297213",
+  "results": [
+    {
+      "status": 1,
+      "stdout": "\n",
+      "stderr": "Error: no matches found\n"
+    },
+    {
+      "status": 0,
+      "stdout": "null\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "status": 1,
+      "stdout": "",
+      "stderr": "Error: 1:2: lexer: invalid input text \"a: 1}\"\n"
+    },
+    {
+      "status": 1,
+      "stdout": "",
+      "stderr": "Error: 'map' expects 1 arg but received none\n"
+    },
+    {
+      "status": 1,
+      "stdout": "",
+      "stderr": "Error: 'select' expects 1 arg but received none\n"
+    },
+    {
+      "status": 1,
+      "stdout": "",
+      "stderr": "Error: bad expression, please check expression syntax\n"
+    },
+    {
+      "status": 1,
+      "stdout": "",
+      "stderr": "Error: bad expression, could not find matching `]`\n"
+    },
+    {
+      "status": 0,
+      "stdout": "a: -9223372036854775808\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "a: -2\n",
+      "stderr": ""
+    },
+    {
+      "status": 1,
+      "stdout": "",
+      "stderr": "Error: json: error calling MarshalJSON for type *yqlib.CandidateNode: json: error calling MarshalJSON for type *yqlib.CandidateNode: strconv.ParseFloat: parsing \".inf\": invalid syntax\n"
+    },
+    {
+      "status": 1,
+      "stdout": "",
+      "stderr": "Error: invalid argument \"bad\" for \"-r, --unwrapScalar\" flag: strconv.ParseBool: parsing \"bad\": invalid syntax\nUsage:\n  yq eval [expression] [yaml_file1]... [flags]\n\nAliases:\n  eval, e\n\nExamples:\n\n# Reads field under the given path for each file\nyq e '.a.b' f1.yml f2.yml \n\n# Prints out the file\nyq e sample.yaml \n\n# Pipe from STDIN\n## use '-' as a filename to pipe from STDIN\ncat file2.yml | yq e '.a.b' file1.yml - file3.yml\n\n# Creates a new yaml document\n## Note that editing an empty file does not work.\nyq e -n '.a.b.c = \"cat\"' \n\n# Update a file in place\nyq e '.a.b = \"cool\"' -i file.yaml \n\n\nFlags:\n  -h, --help   help for eval\n\nGlobal Flags:\n  -C, --colors                            force print with colors\n      --csv-auto-parse                    parse CSV YAML/JSON values (default true)\n      --csv-separator char                CSV Separator character (default ,)\n      --debug-node-info                   debug node info\n  -e, --exit-status                       set exit status if there are no matches or null or false is returned\n      --expression string                 forcibly set the expression argument. Useful when yq argument detection thinks your expression is a file.\n      --from-file string                  Load expression from specified file.\n  -f, --front-matter string               (extract|process) first input as yaml front-matter. Extract will pull out the yaml content, process will run the expression against the yaml content, leaving the remaining data intact\n      --header-preprocess                 Slurp any header comments and separators before processing expression. (default true)\n  -I, --indent int                        sets indent level for output (default 2)\n      --ini-preserve-quotes               preserve surrounding quotes on INI values during round-trip\n  -i, --inplace                           update the file in place of first file given.\n  -p, --input-format string               [auto|a|yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|lua|l|ini|i] parse format for input. (default \"auto\")\n      --lua-globals                       output keys as top-level global variables\n      --lua-prefix string                 prefix (default \"return \")\n      --lua-suffix string                 suffix (default \";\\n\")\n      --lua-unquoted                      output unquoted string keys (e.g. {foo=\"bar\"})\n  -M, --no-colors                         force print with no colors\n  -N, --no-doc                            Don't print document separators (---)\n  -0, --nul-output                        Use NUL char to separate values. If unwrap scalar is also set, fail if unwrapped scalar contains NUL char.\n  -n, --null-input                        Don't read input, simply evaluate the expression given. Useful for creating docs from scratch.\n  -o, --output-format string              [auto|a|yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|shell|s|lua|l|ini|i] output format type. (default \"auto\")\n  -P, --prettyPrint                       pretty print, shorthand for '... style = \"\"'\n      --properties-array-brackets         use [x] in array paths (e.g. for SpringBoot)\n      --properties-separator string       separator to use between keys and values (default \" = \")\n      --security-disable-env-ops          Disable env related operations.\n      --security-disable-file-ops         Disable file related operations (e.g. load)\n      --security-enable-system-operator   Enable system operator to allow execution of external commands.\n      --shell-key-separator string        separator for shell variable key paths (default \"_\")\n  -s, --split-exp string                  print each result (or doc) into a file named (exp). [exp] argument must return a string. You can use $index in the expression as the result counter. The necessary directories will be created.\n      --split-exp-file string             Use a file to specify the split-exp expression.\n      --string-interpolation              Toggles strings interpolation of \\(exp) (default true)\n      --tsv-auto-parse                    parse TSV YAML/JSON values (default true)\n  -r, --unwrapScalar                      unwrap scalar, print the value with no quotes, colours or comments. Defaults to true for yaml (default true)\n  -v, --verbose                           verbose mode\n      --xml-attribute-prefix string       prefix for xml attributes (default \"+@\")\n      --xml-content-name string           name for xml content (if no attribute name is present). (default \"+content\")\n      --xml-directive-name string         name for xml directives (e.g. <!DOCTYPE thing cat>) (default \"+directive\")\n      --xml-keep-namespace                enables keeping namespace after parsing attributes (default true)\n      --xml-proc-inst-prefix string       prefix for xml processing instructions (e.g. <?xml version=\"1\"?>) (default \"+p_\")\n      --xml-raw-token                     enables using RawToken method instead Token. Commonly disables namespace translations. See https://pkg.go.dev/encoding/xml#Decoder.RawToken for details. (default true)\n      --xml-skip-directives               skip over directives (e.g. <!DOCTYPE thing cat>)\n      --xml-skip-proc-inst                skip over process instructions (e.g. <?xml version=\"1\"?>)\n      --xml-strict-mode                   enables strict parsing of XML. See https://pkg.go.dev/encoding/xml for more details.\n  -c, --yaml-compact-seq-indent           Use compact sequence indentation where '- ' is considered part of the indentation.\n      --yaml-fix-merge-anchor-to-spec     Fix merge anchor to match YAML spec. Will default to true in late 2025\n\n"
+    },
+    {
+      "status": 0,
+      "stdout": "a: 1\n",
+      "stderr": ""
+    },
+    {
+      "status": 1,
+      "stdout": "",
+      "stderr": "Error: 1:2: lexer: invalid input text \"n\"\n"
+    },
+    {
+      "status": 0,
+      "stdout": "{\"a\":1}\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "a: null\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "!thing\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "1\n",
+      "stderr": ""
+    },
+    {
+      "status": 0,
+      "stdout": "base: &base {x: 1}\nitem: {!!merge <<: *base, y: 2}\n",
+      "stderr": ""
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/workflow-behavior-variants.test.ts (534 tests) 23779ms
+
+ Test Files  1 passed (1)
+      Tests  534 passed (534)
+   Start at  23:02:34
+   Duration  24.96s (transform 923ms, setup 39ms, import 1.07s, tests 23.78s, environment 0ms)
+
+JSON report written to /Users/kjopek/Workspace/poe-setup-scripts/docs/docx/workflow-behavior-evidence-20260915/verified-results.json

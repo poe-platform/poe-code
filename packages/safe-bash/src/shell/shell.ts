@@ -1,4 +1,3 @@
-import { BackgroundExecution, BackgroundJobs } from "./background-jobs.js";
 import { writeDiagnostic } from "../escaping.js";
 import { createDeviceFileSystem } from "poe-code/safe-fs/core";
 import { CommandRegistry, resolvePath, toByteSource } from "../contracts/index.js";
@@ -8,8 +7,9 @@ import type {
 } from "../contracts/index.js";
 import { warnIfHostProcessEnv } from "./env-warning.js";
 import { parseShellUnit } from "./parser.js";
-import { SourceLineIndex } from "./source-line-index.js";
+import { captureShellExtensions, extensionState } from "./extensions.js";
 import { ShellInput } from "./input.js";
+import { SourceLineIndex } from "./source-line-index.js";
 import { byteLocale } from "./locale.js";
 import { Budget, Capture, interruptible, resolveLimits, Runtime, RuntimeCancellationState } from "./runtime.js";
 import type { State } from "./runtime.js";
@@ -106,11 +106,14 @@ export class Shell implements PluginHost {
 
   constructor(options: ShellOptions) {
     if (!options?.fs) throw new TypeError("Shell requires an explicit filesystem");
+    if (options.deviceView !== undefined && options.deviceView !== "default" && options.deviceView !== "provided") throw new TypeError("deviceView must be default or provided");
+    const commands = options.commands ?? new CommandRegistry();
+    if (!(commands instanceof CommandRegistry)) throw new TypeError("CommandRegistry requires its matching shell runtime; do not mix source and compiled runtime modules");
     if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
     warnIfHostProcessEnv(options.env);
     resolveLimits(options.limits);
-    this.#options = { ...options, cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits } };
-    this.commands = options.commands ?? new CommandRegistry();
+    this.#options = { ...options, extensions: [...options.extensions ?? []], cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits } };
+    this.commands = commands;
   }
 
   use(middleware: Middleware | VirtualShellPlugin): this {
@@ -190,8 +193,15 @@ export class Shell implements PluginHost {
     const active = { scope, budget, owner };
     this.#active.add(active);
     let captured: CapturedCancellationOutcome<ShellResult>;
-    try { captured = await owner.capture(() => this.#execute(source, options, scope, budget, boundary, cancellationState, owner)); }
-    finally { budget.close(); await scope.close(); }
+    try {
+      captured = await owner.capture(() => this.#execute(source, options, scope, budget, boundary, cancellationState, owner));
+      if (captured.kind === "throw") budget.executionCleanup.abort(captured.reason);
+    } finally {
+      await budget.executionCleanup.drain();
+      scope.failures.push(...budget.executionCleanup.failures);
+      budget.close();
+      await scope.close();
+    }
     const selection = owner.finish(captured);
     cancellationState.close();
     this.#active.delete(active);
@@ -229,20 +239,34 @@ export class Shell implements PluginHost {
       },
     });
     let stdin: ShellInput | undefined;
+    scope.register(async () => {
+      try { await stdin?.close(); }
+      catch (error) { if (!budget.signal.aborted || !Object.is(error, budget.signal.reason)) throw error; }
+    });
     const io = {
       [invocationScope]: scope,
       stdin: toByteSource(""),
       stdinIsDefault: options.stdin === undefined,
       stdout: sink(stdout, options.stdout), stderr: sink(stderr, options.stderr),
     };
-    const background = new BackgroundExecution(scope, () => budget.tick());
     let exitCode: number;
+    let runtime: Runtime | undefined;
+    let state: State | undefined;
     let failed = false;
     try {
       try {
+        const extensions = captureShellExtensions(this.#options.extensions ?? []);
         const lineIndex = new SourceLineIndex(source, budget.parsing);
-        let unit = parseShellUnit(source, 0, byteLocale({ ...this.#options.env, ...options.env }), budget.parsing, lineIndex);
-        stdin = new ShellInput(typeof options.stdin === "string" || options.stdin instanceof Uint8Array ? toByteSource(options.stdin) : options.stdin ?? toByteSource(""), budget);
+        let unit = parseShellUnit(source, 0, byteLocale({ ...this.#options.env, ...options.env }), budget.parsing, lineIndex, undefined, false, extensions.syntax);
+        if (options.stdin === undefined || typeof options.stdin === "string" || options.stdin instanceof Uint8Array) {
+          const value = options.stdin ?? "";
+          const source = toByteSource(value);
+          let available = value.length > 0;
+          const inline = { async *[Symbol.asyncIterator]() {
+            for await (const bytes of source) { available = false; yield bytes; }
+          } };
+          stdin = new ShellInput(inline, budget, budget.signal, { provenance: "stream", poll: () => available ? "ready" : "eof" });
+        } else stdin = new ShellInput(options.stdin, budget);
         io.stdin = stdin;
         await interruptible(this.#ready, budget.signal);
         const cwd = resolvePath("/", options.cwd ?? this.#options.cwd ?? "/");
@@ -253,8 +277,8 @@ export class Shell implements PluginHost {
         const exported = new Set(Object.keys(variables));
         variables.OPTIND = "1";
         variables.OPTERR = "1";
-        const state: State = {
-          backgroundJobs: new BackgroundJobs(background),
+        state = {
+          extensions: extensionState(extensions.definitions),
           cwd, variables, exported, functions: new Map(), positional: [], getopts: { cursor: { index: 0 }, integer: true },
           directoryStack: { entries: [], bytes: 0 },
           dotglob: false,
@@ -263,8 +287,8 @@ export class Shell implements PluginHost {
         };
         const admission = Runtime.rootCancellationAdmission(budget);
         const filesystem = options.fs ?? this.#options.fs;
-        const runtime = new Runtime(
-          createDeviceFileSystem(filesystem),
+        runtime = new Runtime(
+          this.#options.deviceView === "provided" ? filesystem : createDeviceFileSystem(filesystem),
           this.commands,
           [...this.#middleware],
           budget,
@@ -290,7 +314,7 @@ export class Shell implements PluginHost {
           }
           if (unit.next >= source.length) break;
           budget.signal.throwIfAborted();
-          unit = parseShellUnit(source, unit.next, byteLocale(state.variables), budget.parsing, lineIndex);
+          unit = parseShellUnit(source, unit.next, byteLocale(state.variables), budget.parsing, lineIndex, undefined, false, extensions.syntax);
         }
       } catch (error) {
         if (!(error instanceof ShellSyntaxError)) throw error;
@@ -306,14 +330,18 @@ export class Shell implements PluginHost {
         } else await writeDiagnostic(io.stderr, `shell: ${error.message}\n`);
         exitCode = error.exitCode;
       }
-    } catch (error) { failed = true; throw error; }
-    finally {
-      if (failed) await stdin?.close().catch(() => {});
-      else {
-        try { await interruptible(background.drain(), budget.signal); }
-        finally { await stdin?.close(); }
-      }
+      if (runtime && state) exitCode = await runtime.finishShell(state, io, exitCode);
+    } catch (error) {
+      failed = true;
+      budget.executionCleanup.abort(error);
+      throw error;
     }
+    finally {
+      await budget.executionCleanup.drain();
+      if (failed) await stdin?.close().catch(() => {});
+      else await stdin?.close();
+    }
+    throwCleanupFailures(budget.executionCleanup.failures);
     const stdoutBytes = stdout.takeBytes();
     const stderrBytes = stderr.takeBytes();
     return {
@@ -330,9 +358,8 @@ export class Shell implements PluginHost {
     const drains: Promise<void>[] = [];
     this.#disposal = Promise.resolve().then(() => this.#dispose(active, drains));
     for (const { scope, budget } of active) {
-      const drain = scope.close();
       budget.controller.abort(new Error("Shell is disposed"));
-      drains.push(drain);
+      drains.push(budget.executionCleanup.drain().then(() => scope.close()));
     }
     return this.#disposal;
   }

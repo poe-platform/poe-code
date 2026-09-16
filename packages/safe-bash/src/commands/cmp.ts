@@ -373,7 +373,7 @@ async function compare(context: CommandContext, parsed: CmpOptions): Promise<num
   const run = async (): Promise<number> => {
     assertCommandRequirements({ ...context, signal }, inputRequirements, [names.some(name => name !== "-") ? "file" : "stdin"]);
     const sharedStdin = names.every(name => name === "-");
-    if (sharedStdin && (skips[0] === skips[1] || !context.stdinInput?.seek)) return 0;
+    if (sharedStdin && (skips[0] === skips[1] || !context.stdinInput?.seek && context.stdinInput?.stat?.type !== "file")) return 0;
     for (const index of [0, 1] as const) {
       const cursor = cursors[index]!;
       try { await cursor.open(limit, skips[index]); }

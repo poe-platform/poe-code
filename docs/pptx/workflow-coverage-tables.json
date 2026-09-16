@@ -1,0 +1,669 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "All 34 table/cell/column expanded BDD scenarios; original TypeScript SDK workflows only. Existing broader test/API ledgers remain authoritative for unrelated cases.",
+  "verification": {
+    "command": "npx vitest run packages/pptx/src/table-workflows.test.ts",
+    "tests": 23,
+    "passed": 23,
+    "durationMs": 197
+  },
+  "languageSecurityMapping": "Synchronous neutral model accessors and explicit equals(); source None maps to null; lengths use Inches with EMU assertions; persistence uses memfs only. No implicit I/O, clocks, fonts, renderers or downloads.",
+  "legal": "Original test wording and synthetic XML authored independently. Source provenance remains in research only; existing standalone notices are unchanged.",
+  "rendererStatus": "not run; semantic table workflows do not prove renderer fidelity",
+  "rows": [
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/824",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 14,
+        "name": "Cell objects proxying same a:tc element compare equal -- @1.1 merged cell roles",
+        "template_name": "Cell objects proxying same a:tc element compare equal -- @1.1 merged cell roles",
+        "template_line": 14,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "preserves cell identity and discovers the role at %i,%i"
+      },
+      "equivalence": "Original 3x3 grid; (0,0) origin, (1,1) covered, (2,2) unmerged. Explicit equals maps value equality; JavaScript identity is not overloaded."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/825",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 15,
+        "name": "Cell objects proxying same a:tc element compare equal -- @1.2 merged cell roles",
+        "template_name": "Cell objects proxying same a:tc element compare equal -- @1.2 merged cell roles",
+        "template_line": 15,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "preserves cell identity and discovers the role at %i,%i"
+      },
+      "equivalence": "Original 3x3 grid; (0,0) origin, (1,1) covered, (2,2) unmerged. Explicit equals maps value equality; JavaScript identity is not overloaded."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/826",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 16,
+        "name": "Cell objects proxying same a:tc element compare equal -- @1.3 merged cell roles",
+        "template_name": "Cell objects proxying same a:tc element compare equal -- @1.3 merged cell roles",
+        "template_line": 16,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "preserves cell identity and discovers the role at %i,%i"
+      },
+      "equivalence": "Original 3x3 grid; (0,0) origin, (1,1) covered, (2,2) unmerged. Explicit equals maps value equality; JavaScript identity is not overloaded."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/827",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 19,
+        "name": "_Cell.fill",
+        "template_name": "_Cell.fill",
+        "template_line": 19,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "reads explicit margins and returns a live fill interface"
+      },
+      "equivalence": "Original explicit margins: left .2, top .3, right .4, bottom .5 inches. Fill interface is concrete."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/828",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 31,
+        "name": "Cell role discovery -- @1.1 merged cell roles",
+        "template_name": "Cell role discovery -- @1.1 merged cell roles",
+        "template_line": 31,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "preserves cell identity and discovers the role at %i,%i"
+      },
+      "equivalence": "Original 3x3 grid; (0,0) origin, (1,1) covered, (2,2) unmerged. Explicit equals maps value equality; JavaScript identity is not overloaded."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/829",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 32,
+        "name": "Cell role discovery -- @1.2 merged cell roles",
+        "template_name": "Cell role discovery -- @1.2 merged cell roles",
+        "template_line": 32,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "preserves cell identity and discovers the role at %i,%i"
+      },
+      "equivalence": "Original 3x3 grid; (0,0) origin, (1,1) covered, (2,2) unmerged. Explicit equals maps value equality; JavaScript identity is not overloaded."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/830",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 33,
+        "name": "Cell role discovery -- @1.3 merged cell roles",
+        "template_name": "Cell role discovery -- @1.3 merged cell roles",
+        "template_line": 33,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "preserves cell identity and discovers the role at %i,%i"
+      },
+      "equivalence": "Original 3x3 grid; (0,0) origin, (1,1) covered, (2,2) unmerged. Explicit equals maps value equality; JavaScript identity is not overloaded."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/831",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 36,
+        "name": "_Cell.margin_{x} getters",
+        "template_name": "_Cell.margin_{x} getters",
+        "template_line": 36,
+        "tags": [],
+        "step_count": 5,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "reads explicit margins and returns a live fill interface"
+      },
+      "equivalence": "Original explicit margins: left .2, top .3, right .4, bottom .5 inches. Fill interface is concrete."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/832",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 51,
+        "name": "_Cell.margin_{x} setters -- @1.1 Cell margin assignment cases",
+        "template_name": "_Cell.margin_{x} setters -- @1.1 Cell margin assignment cases",
+        "template_line": 51,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "persists %s assignment and inheritance"
+      },
+      "equivalence": "left .2 inches; top null restores .05; right null restores .1; bottom .3. Attribute removal independently verified."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/833",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 52,
+        "name": "_Cell.margin_{x} setters -- @1.2 Cell margin assignment cases",
+        "template_name": "_Cell.margin_{x} setters -- @1.2 Cell margin assignment cases",
+        "template_line": 52,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "persists %s assignment and inheritance"
+      },
+      "equivalence": "left .2 inches; top null restores .05; right null restores .1; bottom .3. Attribute removal independently verified."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/834",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 53,
+        "name": "_Cell.margin_{x} setters -- @1.3 Cell margin assignment cases",
+        "template_name": "_Cell.margin_{x} setters -- @1.3 Cell margin assignment cases",
+        "template_line": 53,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "persists %s assignment and inheritance"
+      },
+      "equivalence": "left .2 inches; top null restores .05; right null restores .1; bottom .3. Attribute removal independently verified."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/835",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 54,
+        "name": "_Cell.margin_{x} setters -- @1.4 Cell margin assignment cases",
+        "template_name": "_Cell.margin_{x} setters -- @1.4 Cell margin assignment cases",
+        "template_line": 54,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "persists %s assignment and inheritance"
+      },
+      "equivalence": "left .2 inches; top null restores .05; right null restores .1; bottom .3. Attribute removal independently verified."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/836",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 57,
+        "name": "_Cell.merge()",
+        "template_name": "_Cell.merge()",
+        "template_line": 57,
+        "tags": [],
+        "step_count": 8,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "combines a rectangular region in row order and clears covered cells"
+      },
+      "equivalence": "3x3 grid; merge (0,0):(1,1); four original station labels concatenate row-major; covered text empties."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/837",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 68,
+        "name": "Merged cell size",
+        "template_name": "Merged cell size",
+        "template_line": 68,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "reports a two-by-three merged area then splits it into individual cells"
+      },
+      "equivalence": "Span height 2, width 3; split restores 1x1 and removes gridSpan/rowSpan."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/838",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 74,
+        "name": "_Cell.split()",
+        "template_name": "_Cell.split()",
+        "template_line": 74,
+        "tags": [],
+        "step_count": 5,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "reports a two-by-three merged area then splits it into individual cells"
+      },
+      "equivalence": "Span height 2, width 3; split restores 1x1 and removes gridSpan/rowSpan."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/839",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 82,
+        "name": "_Cell.text getter",
+        "template_name": "_Cell.text getter",
+        "template_line": 82,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "reads and replaces cell text through a retained frame"
+      },
+      "equivalence": "Original station/inlet text replaces source wording; text and unaffected sibling cells independently verified."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/840",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 87,
+        "name": "_Cell.text setter",
+        "template_name": "_Cell.text setter",
+        "template_line": 87,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "reads and replaces cell text through a retained frame"
+      },
+      "equivalence": "Original station/inlet text replaces source wording; text and unaffected sibling cells independently verified."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/841",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 99,
+        "name": "_Cell.vertical_anchor getter -- @1.1 Cell margin assignment cases",
+        "template_name": "_Cell.vertical_anchor getter -- @1.1 Cell margin assignment cases",
+        "template_line": 99,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "reads and changes cell anchoring from %s"
+      },
+      "equivalence": "Inherited null to TOP; MIDDLE to BOTTOM; BOTTOM to null. Raw anchor attributes t/b/absence verified."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/842",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 100,
+        "name": "_Cell.vertical_anchor getter -- @1.2 Cell margin assignment cases",
+        "template_name": "_Cell.vertical_anchor getter -- @1.2 Cell margin assignment cases",
+        "template_line": 100,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "reads and changes cell anchoring from %s"
+      },
+      "equivalence": "Inherited null to TOP; MIDDLE to BOTTOM; BOTTOM to null. Raw anchor attributes t/b/absence verified."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/843",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 101,
+        "name": "_Cell.vertical_anchor getter -- @1.3 Cell margin assignment cases",
+        "template_name": "_Cell.vertical_anchor getter -- @1.3 Cell margin assignment cases",
+        "template_line": 101,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "reads and changes cell anchoring from %s"
+      },
+      "equivalence": "Inherited null to TOP; MIDDLE to BOTTOM; BOTTOM to null. Raw anchor attributes t/b/absence verified."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/844",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 111,
+        "name": "_Cell.vertical_anchor setter -- @1.1 Cell margin assignment cases",
+        "template_name": "_Cell.vertical_anchor setter -- @1.1 Cell margin assignment cases",
+        "template_line": 111,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "reads and changes cell anchoring from %s"
+      },
+      "equivalence": "Inherited null to TOP; MIDDLE to BOTTOM; BOTTOM to null. Raw anchor attributes t/b/absence verified."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/845",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 112,
+        "name": "_Cell.vertical_anchor setter -- @1.2 Cell margin assignment cases",
+        "template_name": "_Cell.vertical_anchor setter -- @1.2 Cell margin assignment cases",
+        "template_line": 112,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "reads and changes cell anchoring from %s"
+      },
+      "equivalence": "Inherited null to TOP; MIDDLE to BOTTOM; BOTTOM to null. Raw anchor attributes t/b/absence verified."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/846",
+      "source": {
+        "source_file": "features/tbl-cell.feature",
+        "line": 113,
+        "name": "_Cell.vertical_anchor setter -- @1.3 Cell margin assignment cases",
+        "template_name": "_Cell.vertical_anchor setter -- @1.3 Cell margin assignment cases",
+        "template_line": 113,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "reads and changes cell anchoring from %s"
+      },
+      "equivalence": "Inherited null to TOP; MIDDLE to BOTTOM; BOTTOM to null. Raw anchor attributes t/b/absence verified."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/847",
+      "source": {
+        "source_file": "features/tbl-column.feature",
+        "line": 7,
+        "name": "_Column.width setter",
+        "template_name": "_Column.width setter",
+        "template_line": 7,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "persists a one-and-a-half inch column width and updates the frame extent"
+      },
+      "equivalence": "Inches(1.5) = 1371600 EMU; original adjacent 1-inch column retained; frame extent becomes 2286000."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/848",
+      "source": {
+        "source_file": "features/tbl-table.feature",
+        "line": 7,
+        "name": "Table.cell()",
+        "template_name": "Table.cell()",
+        "template_line": 7,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "exposes concrete table collections and traverses nine cells in row order"
+      },
+      "equivalence": "2x2 table cell, rows, columns concrete interfaces; 3x3 row-major traversal has exactly nine original cell labels."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/849",
+      "source": {
+        "source_file": "features/tbl-table.feature",
+        "line": 12,
+        "name": "Table.columns",
+        "template_name": "Table.columns",
+        "template_line": 12,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "exposes concrete table collections and traverses nine cells in row order"
+      },
+      "equivalence": "2x2 table cell, rows, columns concrete interfaces; 3x3 row-major traversal has exactly nine original cell labels."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/850",
+      "source": {
+        "source_file": "features/tbl-table.feature",
+        "line": 17,
+        "name": "Table.first_col setter",
+        "template_name": "Table.first_col setter",
+        "template_line": 17,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "persists %s style toggles with independent table attributes"
+      },
+      "equivalence": "All six source true setters retained; false transition adds original coverage. Raw firstCol/firstRow/bandRow/lastCol/lastRow/bandCol independently checked."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/851",
+      "source": {
+        "source_file": "features/tbl-table.feature",
+        "line": 23,
+        "name": "Table.first_row setter",
+        "template_name": "Table.first_row setter",
+        "template_line": 23,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "persists %s style toggles with independent table attributes"
+      },
+      "equivalence": "All six source true setters retained; false transition adds original coverage. Raw firstCol/firstRow/bandRow/lastCol/lastRow/bandCol independently checked."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/852",
+      "source": {
+        "source_file": "features/tbl-table.feature",
+        "line": 29,
+        "name": "Table.horz_banding setter",
+        "template_name": "Table.horz_banding setter",
+        "template_line": 29,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "persists %s style toggles with independent table attributes"
+      },
+      "equivalence": "All six source true setters retained; false transition adds original coverage. Raw firstCol/firstRow/bandRow/lastCol/lastRow/bandCol independently checked."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/853",
+      "source": {
+        "source_file": "features/tbl-table.feature",
+        "line": 35,
+        "name": "Table.iter_cells()",
+        "template_name": "Table.iter_cells()",
+        "template_line": 35,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "exposes concrete table collections and traverses nine cells in row order"
+      },
+      "equivalence": "2x2 table cell, rows, columns concrete interfaces; 3x3 row-major traversal has exactly nine original cell labels."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/854",
+      "source": {
+        "source_file": "features/tbl-table.feature",
+        "line": 40,
+        "name": "Table.last_col setter",
+        "template_name": "Table.last_col setter",
+        "template_line": 40,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "persists %s style toggles with independent table attributes"
+      },
+      "equivalence": "All six source true setters retained; false transition adds original coverage. Raw firstCol/firstRow/bandRow/lastCol/lastRow/bandCol independently checked."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/855",
+      "source": {
+        "source_file": "features/tbl-table.feature",
+        "line": 46,
+        "name": "Table.last_row setter",
+        "template_name": "Table.last_row setter",
+        "template_line": 46,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "persists %s style toggles with independent table attributes"
+      },
+      "equivalence": "All six source true setters retained; false transition adds original coverage. Raw firstCol/firstRow/bandRow/lastCol/lastRow/bandCol independently checked."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/856",
+      "source": {
+        "source_file": "features/tbl-table.feature",
+        "line": 52,
+        "name": "Table.rows",
+        "template_name": "Table.rows",
+        "template_line": 52,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "exposes concrete table collections and traverses nine cells in row order"
+      },
+      "equivalence": "2x2 table cell, rows, columns concrete interfaces; 3x3 row-major traversal has exactly nine original cell labels."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/857",
+      "source": {
+        "source_file": "features/tbl-table.feature",
+        "line": 57,
+        "name": "Table.vert_banding setter",
+        "template_name": "Table.vert_banding setter",
+        "template_line": 57,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "original-sdk-workflow-asserted",
+      "test": {
+        "file": "packages/pptx/src/table-workflows.test.ts",
+        "title": "persists %s style toggles with independent table attributes"
+      },
+      "equivalence": "All six source true setters retained; false transition adds original coverage. Raw firstCol/firstRow/bandRow/lastCol/lastRow/bandCol independently checked."
+    }
+  ],
+  "additionalWorkflow": {
+    "test": "persists live table edits inside a presentation created through byte operations",
+    "file": "packages/pptx/src/table-workflows.test.ts",
+    "behavior": "createPresentation -> addTable -> Presentation live table mutation -> memfs save -> independent package XML -> Presentation reopen; exact cells, flags and 1.5-inch column width persist.",
+    "status": "passed",
+    "notEquivalentTo": "A factory/add_slide/add_table model workflow: Slides.add_slide and SlideShapes.add_table are absent from packages/pptx/src/slide-model.ts. These required public model members remain unsupported, not private or excluded."
+  }
+}

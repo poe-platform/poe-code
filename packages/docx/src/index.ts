@@ -1,0 +1,197 @@
+export { sanitizeDocument, type SanitizationData } from "./sanitize.js";
+export { BoundsError, MissingKeyError, StaleHandleError } from "./model-errors.js";
+export {
+  readArchive,
+  InputTypeError,
+  InvalidValueError,
+  ResourceLimitError,
+  InvalidContainerError,
+  CancellationError,
+  type ArchiveLimits,
+  type ArchiveContext,
+  type ArchiveMember,
+  type DocumentArchive
+} from "./archive.js";
+export { DocumentBudget, documentLimitDefaults, type DocumentLimits, type DocumentLimitName } from "./budget.js";
+export {
+  writeArchive,
+  SinkError,
+  type ArchiveWriteOptions,
+  type ArchiveSink
+} from "./archive-write.js";
+export {
+  readDocumentArchive,
+  UnsupportedProfileError,
+  InvalidPackageError,
+  InvalidXmlError,
+  type AdmittedDocumentArchive
+} from "./admission.js";
+export { normalizePartName, resolvePartTarget, relativePartTarget } from "./part-uri.js";
+export { PackURI } from "./pack-uri.js";
+export type {
+  DocumentPackage,
+  PackagePart,
+  PackageRelationship,
+  ContentTypeDefault,
+  ContentTypeOverride
+} from "./package.js";
+export {
+  parseDocumentXml,
+  parseDocumentXmlAsync,
+  type DocumentXml,
+  type DocumentXmlLimits,
+  type XmlElement,
+  type XmlContent,
+  type XmlAttribute
+} from "./package-xml.js";
+export { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+export { PackageView, PartView, XmlPartView, DocumentPartView, NumberingPart, _NumberingDefinitions, Relationships, RelationshipView, CoreProperties, CorePropertiesPartView, ImageParts, ImagePartView } from "./package-view.js";
+export { XmlElementView, type XmlViewName } from "./xml-element-view.js";
+export { DocumentArchiveEditor } from "./package-write.js";
+export { documentDialects, type DocumentDialect } from "./dialect.js";
+export { createDocumentArchive, createDocument, type DocumentCreateOptions, type CreateMutationData } from "./create.js";
+
+export {
+  MarkupCompatibility, documentCompatibilityProfile,
+  type CompatibilityProfile, type CompatibilityElement, type CompatibilityContent,
+  type CompatibilityBranch, type ExpandedXmlName
+} from "./compatibility.js";
+
+export { validateDocumentArchive, documentValidationProfile, SemanticValidationError, type ValidationOptions, type ValidationData, type ValidationDiagnostic } from "./validation.js";
+
+export { writeDocumentArchive } from "./document-write.js";
+
+export { DocumentIo, type DocumentByteSource, type DocumentIoContext } from "./io.js";
+
+export {
+  publishDocumentArchive, publishDocumentFiles, PublicationError,
+  type PublicationInput, type PublicationOptions, type PublicationContext,
+  type PublicationResult, type PublishedFile, type PublicationFile, type ExtractionPublicationOptions
+} from "./publication.js";
+
+export {
+  encodeLocation, decodeLocation, SelectionError,
+  type LocationPayload, type LocationKind, type LocationPositions, type Location,
+  type PartLocation, type StoryLocation, type ParagraphLocation, type RunLocation,
+  type TableLocation, type CellLocation, type ImageLocation, type ShapeLocation, type AnnotationLocation
+} from "./location-token.js";
+export { documentScopes, type DocumentScope, type StoryReference } from "./location-index.js";
+export {
+  openDocumentLocations, type DocumentLocations,
+  type LocationQuery, type MatchOptions, type LocationMutationOptions, type LocationAddress, type LocationUpdate,
+  type LocationMutationResult, type LocationStage
+} from "./locations.js";
+
+export { DocxUsageError, parseDocxJson } from "./argument-json.js";
+export {
+  docxOperationSchemas, docxCommonOptions, validateDocxValue, assertDocxFields,
+  type DocxOperationSchema, type DocxFieldSchema, type DocxOperationId
+} from "./operation-schema.js";
+export { docxValueSchema, getDocxOperationSchema, type DocxJsonSchema } from "./operation-json-schema.js";
+export type {
+  DocxOperationArguments, DocxOperationArgumentMap, DocxValidatedOperation,
+  DocxFieldKind, DocxFieldLevels, DocxFieldSelection,
+  DocxBatchArgumentMap, DocxBatchItemMap, DocxBatchItem, DocxBatchOperationId,
+  DocxBinaryInput, DocxVfsPath, DocxLength, DocxDirectLength, DocxModelHandle,
+  DocxImageWrapPolygon,
+  DocxBindingRecord, DocxRunInput, DocxBlock, DocxContent, DocxTransportContext,
+  DocxPageSettings, DocxStyleSettings, DocxThemeSettings,
+  DocxXmlNode, DocxEnumValue, DocxEnumNames
+} from "./operation-types.js";
+export {
+  parseDocxArguments, validateDocxInvocation, validateDocxBatch, createDocxCommandEngine, SourceError,
+  type DocxInvocation, type DocxBatch, type DocxBatchOperation, type DocxArgumentSource,
+  type DocxCommandRequest, type DocxCommandEngineResult
+} from "./command.js";
+export { resolveDocxSelection } from "./simple-selection.js";
+export { getDocxDiscovery, inspectDocxCapabilities, type DocxDiscovery, type DocxHelpData, type DocxSchemaData, type DocxCapabilitiesData, type DocxVersionData } from "./discovery.js";
+export { inspectDocument, validateDocument, type InspectionData, type InspectionPart, type InspectionProperty, type InspectionFeature, type InspectionReference, type InspectionAnnotation, type InspectionProtection, type InspectionWarning } from "./inspection.js";
+export { createDocxInspectionCommandEngine, type DocxInspectionCommandRequest, type DocxInspectionCommandResult } from "./inspection-command.js";
+export { extractDocumentText, type TextOptions } from "./text.js";
+export { setDocumentDummyText, type DummyTextOptions, replaceDocumentText, type TextReplaceOptions, type TextMutationData } from "./text-replace.js";
+export { formatDocumentRuns, type RunFormatOptions, type RunFormatData } from "./run-format.js";
+export { editDocumentParagraphs, type ParagraphEditRequest, type ParagraphEditOperation, type ParagraphEditData } from "./paragraph-edit.js";
+export type { DocxTabStop, DocxParagraphBorder, DocxParagraphBorders, DocxParagraphShading } from "./operation-types.js";
+export type { TextData, TextView, TextSegment, TextFormatting } from "./text-traversal.js";
+export { getDocumentXml, replaceDocumentXmlPart, type XmlOptions, type XmlData, type XmlMutationData } from "./xml-parts.js";
+export { inspectDocumentStyles, editDocumentStyles, type StyleEditOptions, type StyleInspectionOptions, type StyleInfo, type StyleInspectionData, type StyleMutationData } from "./styles.js";
+export type { StyleProperties } from "./style-properties.js";
+
+export { openDocumentStyleModel, StylePartView, Styles, BaseStyle, CharacterStyle, ParagraphStyle, TableStyle, _TableStyle, _NumberingStyle, LatentStyles, LatentStyle, _LatentStyle, WD_STYLE_TYPE } from "./styles-model.js";
+export { Font, ParagraphFormat, TabStops, TabStop, ColorFormat, RGBColor, type FormattingXmlOwner } from "./formatting-model.js";
+export { applyStyleModelBatch } from "./style-model-batch.js";
+export { executeDocumentBatch, type DocumentBatchInput, type DocumentBatchData, type DocumentBatchOptions, type DocumentBatchItemResult } from "./batch.js";
+export { WD_CELL_VERTICAL_ALIGNMENT, WD_ALIGN_VERTICAL, WD_ORIENTATION, WD_ORIENT, WD_TABLE_ALIGNMENT, WD_ROW_HEIGHT_RULE, WD_ROW_HEIGHT, WD_SECTION_START, WD_SECTION, WD_TABLE_DIRECTION, WD_BREAK_TYPE, WD_BREAK, WD_INLINE_SHAPE_TYPE, WD_INLINE_SHAPE, WD_HEADER_FOOTER_INDEX, WD_HEADER_FOOTER, Length, Emu, Inches, Cm, Mm, Pt, Twips, WD_UNDERLINE, WD_COLOR_INDEX, WD_COLOR, WD_PARAGRAPH_ALIGNMENT, WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_TAB_ALIGNMENT, WD_TAB_LEADER, WD_BUILTIN_STYLE, WD_STYLE, MSO_THEME_COLOR, MSO_THEME_COLOR_INDEX, MSO_COLOR_TYPE, enumValue, enumFromValue, enumMembers, enumXml, enumFromXml, enumString } from "./formatting-values.js";
+
+export type { FontResourceData, ThemeResource, FontTableResource, ThemeReference } from "./font-resources.js";
+export { inspectDocumentSettings, type SettingEntry, type SettingsDetails, type SettingsRecord, type SettingsListData } from "./settings.js";
+export { UnsupportedEmbeddedFontMutationError } from "./font-resources.js";
+
+export { editDocumentSections, inspectDocumentSections, type SectionInfo, type SectionListData, type SectionEditRequest, type SectionEditData, type SectionBinding } from "./sections.js";
+export { editDocumentStories, inspectDocumentStories, type StoryInfo, type StoryReadRequest, type StoryReadData, type StoryEditRequest, type StoryEditData } from "./stories.js";
+
+export { editDocumentLists, type ListEditRequest, type ListEditOperation, type ListEditData } from "./lists.js";
+export { editDocumentLinks, inspectDocumentLinks, type LinkEditRequest, type LinkEditOperation, type LinkEditData, type LinkListData } from "./links.js";
+
+export { type TableConstructionRequest } from "./paragraph-edit.js";
+export { inspectDocumentTable, inspectDocumentTables, type TableInspectionData, type TableListData, type TableDetails } from "./table-read.js";
+export { editDocumentTables, type TableEditRequest, type TableEditData, type TableEditOperation } from "./table-edit.js";
+export type { DocxTableInput, DocxTableFormat, DocxTableBorders, DocxTableRowOptions, DocxCellInput, DocxCellMargins } from "./operation-types.js";
+export { inspectDocumentBookmarks, editDocumentBookmarks, type BookmarkListData, type BookmarkEditData, type BookmarkEditRequest, type BookmarkEditOperation } from "./bookmarks.js";
+
+export { inspectDocumentFields, editDocumentFields, type FieldListData, type FieldEditRequest, type FieldEditData, type FieldEditOperation } from "./fields.js";
+export { inspectDocumentNotes, editDocumentNotes, type NoteInfo, type NoteReadRequest, type NoteEditRequest, type NoteReadData, type NoteEditData } from "./notes.js";
+export { inspectDocumentComments, editDocumentComments } from "./comments.js";
+export type { CommentReadRequest, CommentEditRequest, CommentInfo, CommentAnchor, CommentReadData, CommentEditData } from "./comments.js";
+
+export type { CommentExtensionInfo } from "./comment-extensions.js";
+
+export { inspectDocumentRevisions, type RevisionListData } from "./revisions.js";
+export { editDocumentRevisions, type RevisionEditOptions, type RevisionEditData } from "./revision-edit.js";
+export { editDocumentRevisionDecisions, type RevisionDecisionRequest, type RevisionDecisionData } from "./revision-decisions.js";
+export { inspectDocumentControls, editDocumentControls, type ControlContext, type ControlSnapshot, type ControlReadData, type ControlEditData } from "./controls.js";
+export type { ControlBinaryResolver, ControlPicture } from "./control-picture.js";
+export type { RevisionInfo } from "./revision-markup.js";
+export { editDocumentControlBindings } from "./control-bindings.js";
+export { editDocumentControlRepeats } from "./control-repeat.js";
+export type { ControlTemplateData } from "./control-template-types.js";
+export { inspectDocumentPackageResources, type PackageResourceListData, type PackageResourceRecord, type CustomXmlResourceDetails, type GlossaryResourceDetails } from "./ancillary-resources.js";
+export { inspectDocumentProperties, editDocumentProperties, type PropertyInspectionOptions, type PropertyEditOptions, type PropertyInspectionData, type PropertyResourceRecord, type PropertyMutationData, type PropertyWarning } from "./document-properties.js";
+export { inspectDocumentImages, extractDocumentImages, ImageExtractionPublicationError, ImageExtractionCancellationError, type ImageDetails, type ImageRecord, type ImageInspectionData, type ImageInspectionOptions, type ImageExtractionManifestV1, type ImageExtractionData, type ImageExtractionContext } from "./images.js";
+export { characterizeRasterHeader, type RasterHeader } from "./raster-header.js";
+export { insertDocumentImage, type ImageInsertionRequest, type ImageInsertionData, type ImageInsertionContext, type ImageBinaryResolver } from "./image-insertion.js";
+export { replaceDocumentImage, type ImageReplacementRequest, type ImageReplacementData, type ImageReplacementContext } from "./image-replacement.js";
+export { setDocumentImageLayout, type ImageLayoutRequest, type ImageLayoutData, type ImageLayoutContext } from "./image-layout.js";
+export { Image, type ImageModelContext, type ImageModelInput } from "./image-model.js";
+
+export { inspectDocumentShapes, editDocumentShapes, type ShapeRecord, type ShapeInspectionData, type ShapeEditRequest, type ShapeEditData, type ShapeEditContext } from "./shape-edit.js";
+export { inspectDocumentCharts, type ChartPart, type ChartBinding, type ChartExternalData, type ChartDetails, type ChartRecord, type ChartInspectionData } from "./charts.js";
+export type { ChartIssue, ChartPoint, ChartCache, ChartSource, ChartSeries } from "./chart-values.js";
+export { inspectDocumentDiagrams, UnsupportedDiagramMutationError, type DiagramRole, type DiagramPart, type DiagramIssue, type DiagramRoleEvidence, type DiagramBinding, type DiagramObservation, type DiagramDetails, type DiagramRecord, type DiagramInspectionData } from "./diagrams.js";
+export { inspectDocumentEquations, addDocumentEquation, replaceDocumentEquation, UnsupportedEquationMutationError, type EquationPropertyScope, type EquationIssue, type EquationAttribute, type EquationProperty, type EquationDetails, type EquationRecord, type EquationInspectionData, type EquationListData, type EquationMutationRequest, type EquationMutationContext, type EquationBinaryResolver, type EquationMutationData } from "./equations.js";
+
+export { inspectDocumentObjects, extractDocumentObjects, ObjectExtractionPublicationError, ObjectExtractionCancellationError, type ObjectResource, type ObjectBindingStatus, type ObjectPreview, type ObjectDetails, type ObjectRecord, type ObjectInspectionData, type ObjectExtractionManifestV1, type ObjectExtractionData, type ObjectExtractionContext } from "./objects.js";
+export { inspectDocumentSignatures, stripDocumentSignatures, type SignatureListData, type SignatureMutationData, type SignatureMutationContext } from "./signatures.js";
+
+export { removeDocumentContent, type ContentRemovalOperation, type ContentRemovalRequest, type ContentRemovalData } from "./removal.js";
+
+export { applyDocumentTemplate } from "./template.js";
+export type { DocxTemplateRecord } from "./operation-types.js";
+
+export { compareDocument, type DocumentDiffData, type DocumentDiffOptions, type DocumentDiffScope } from "./diff.js";
+
+export { extractDocumentArchive, ArchiveExtractionError, type ArchiveExtractionData } from "./extract.js";
+
+export { packDocumentArchive, type ArchivePackingContext } from "./pack.js";
+export { type PackageInventoryV1, type PackageEntry } from "./pack-inventory.js";
+
+export type { DocumentModelContext, DocumentFontMetrics } from "./model-context.js";
+export type { DocumentModelInput } from "./model-input.js";
+
+export { Document, DocumentView } from "./document-model.js";
+export { Settings } from "./settings-model.js";
+export { Drawing, InlineShape, InlineShapes } from "./inline-shape-model.js";
+export { Paragraph, Run } from "./block-model.js";
+export { Table, _Cell, _Row, _Column, _Rows, _Columns } from "./table-model.js";
+export { Section, Sections, _Header, _Footer } from "./section-model.js";
+export { Comment, Comments, Hyperlink, RenderedPageBreak } from "./review-model.js";

@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "oracle": {
+    "name": "GNU Bash",
+    "version": "5.3",
+    "platform": "darwin",
+    "arch": "arm64",
+    "binarySha256": "a0cfc1af0ff50f6b6e67c638979e2604f1c276c90116937fbaafcabb62ee2b40"
+  },
+  "capture": {
+    "started": "2026-09-05T08:24:26.972Z",
+    "recordsSha256": "18668d0dccd781d3f68a9be598630dab1c63c86a525a3208e7b720b1257f9ad7",
+    "policy": {
+      "timeoutMs": 5000,
+      "maxBytes": 65536,
+      "subject": "Bash-created pipeline; separate inherited control channels",
+      "files": "one owned out file per case"
+    }
+  },
+  "records": [
+    {
+      "name": "pipefail-false-later-pipe-write-false",
+      "source": "set +o pipefail\n{ printf pipe; printf 'START\\n' >&8; IFS= read -r permit <&9; ready=1; for ((attempt=0;attempt<100000;attempt++)); do read -t0 -u1 value; ready=$?; ((ready==0)) && break; done; printf 'READY:%s\\n' \"$ready\" >&8; printf a >&3;  } 3>out | { IFS= read -r -N4 payload; printf 'STOP\\n' >&8; }\nprintf 'STATUS:%s VECTOR:%s\\n' \"$?\" \"${PIPESTATUS[*]}\"\n",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "set +o pipefail\n{ printf pipe; printf 'START\\n' >&8; IFS= read -r permit <&9; ready=1; for ((attempt=0;attempt<100000;attempt++)); do read -t0 -u1 value; ready=$?; ((ready==0)) && break; done; printf 'READY:%s\\n' \"$ready\" >&8; printf a >&3;  } 3>out | { IFS= read -r -N4 payload; printf 'STOP\\n' >&8; }\nprintf 'STATUS:%s VECTOR:%s\\n' \"$?\" \"${PIPESTATUS[*]}\"\n",
+        "shell"
+      ],
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "bytes": 39,
+      "released": true,
+      "stdoutHex": "5354415455533a3020564543544f523a3020300a",
+      "stderrHex": "",
+      "eventsHex": "53544152540a53544f500a52454144593a300a",
+      "fileHex": "61"
+    },
+    {
+      "name": "pipefail-false-later-pipe-write-true",
+      "source": "set +o pipefail\n{ printf pipe; printf 'START\\n' >&8; IFS= read -r permit <&9; ready=1; for ((attempt=0;attempt<100000;attempt++)); do read -t0 -u1 value; ready=$?; ((ready==0)) && break; done; printf 'READY:%s\\n' \"$ready\" >&8; printf a >&3; printf again; } 3>out | { IFS= read -r -N4 payload; printf 'STOP\\n' >&8; }\nprintf 'STATUS:%s VECTOR:%s\\n' \"$?\" \"${PIPESTATUS[*]}\"\n",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "set +o pipefail\n{ printf pipe; printf 'START\\n' >&8; IFS= read -r permit <&9; ready=1; for ((attempt=0;attempt<100000;attempt++)); do read -t0 -u1 value; ready=$?; ((ready==0)) && break; done; printf 'READY:%s\\n' \"$ready\" >&8; printf a >&3; printf again; } 3>out | { IFS= read -r -N4 payload; printf 'STOP\\n' >&8; }\nprintf 'STATUS:%s VECTOR:%s\\n' \"$?\" \"${PIPESTATUS[*]}\"\n",
+        "shell"
+      ],
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "bytes": 41,
+      "released": true,
+      "stdoutHex": "5354415455533a3020564543544f523a31343120300a",
+      "stderrHex": "",
+      "eventsHex": "53544152540a53544f500a52454144593a300a",
+      "fileHex": "61"
+    },
+    {
+      "name": "pipefail-true-later-pipe-write-false",
+      "source": "set -o pipefail\n{ printf pipe; printf 'START\\n' >&8; IFS= read -r permit <&9; ready=1; for ((attempt=0;attempt<100000;attempt++)); do read -t0 -u1 value; ready=$?; ((ready==0)) && break; done; printf 'READY:%s\\n' \"$ready\" >&8; printf a >&3;  } 3>out | { IFS= read -r -N4 payload; printf 'STOP\\n' >&8; }\nprintf 'STATUS:%s VECTOR:%s\\n' \"$?\" \"${PIPESTATUS[*]}\"\n",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "set -o pipefail\n{ printf pipe; printf 'START\\n' >&8; IFS= read -r permit <&9; ready=1; for ((attempt=0;attempt<100000;attempt++)); do read -t0 -u1 value; ready=$?; ((ready==0)) && break; done; printf 'READY:%s\\n' \"$ready\" >&8; printf a >&3;  } 3>out | { IFS= read -r -N4 payload; printf 'STOP\\n' >&8; }\nprintf 'STATUS:%s VECTOR:%s\\n' \"$?\" \"${PIPESTATUS[*]}\"\n",
+        "shell"
+      ],
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "bytes": 39,
+      "released": true,
+      "stdoutHex": "5354415455533a3020564543544f523a3020300a",
+      "stderrHex": "",
+      "eventsHex": "53544152540a53544f500a52454144593a300a",
+      "fileHex": "61"
+    },
+    {
+      "name": "pipefail-true-later-pipe-write-true",
+      "source": "set -o pipefail\n{ printf pipe; printf 'START\\n' >&8; IFS= read -r permit <&9; ready=1; for ((attempt=0;attempt<100000;attempt++)); do read -t0 -u1 value; ready=$?; ((ready==0)) && break; done; printf 'READY:%s\\n' \"$ready\" >&8; printf a >&3; printf again; } 3>out | { IFS= read -r -N4 payload; printf 'STOP\\n' >&8; }\nprintf 'STATUS:%s VECTOR:%s\\n' \"$?\" \"${PIPESTATUS[*]}\"\n",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "set -o pipefail\n{ printf pipe; printf 'START\\n' >&8; IFS= read -r permit <&9; ready=1; for ((attempt=0;attempt<100000;attempt++)); do read -t0 -u1 value; ready=$?; ((ready==0)) && break; done; printf 'READY:%s\\n' \"$ready\" >&8; printf a >&3; printf again; } 3>out | { IFS= read -r -N4 payload; printf 'STOP\\n' >&8; }\nprintf 'STATUS:%s VECTOR:%s\\n' \"$?\" \"${PIPESTATUS[*]}\"\n",
+        "shell"
+      ],
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "bytes": 43,
+      "released": true,
+      "stdoutHex": "5354415455533a31343120564543544f523a31343120300a",
+      "stderrHex": "",
+      "eventsHex": "53544152540a53544f500a52454144593a300a",
+      "fileHex": "61"
+    }
+  ]
+}

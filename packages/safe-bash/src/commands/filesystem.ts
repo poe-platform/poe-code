@@ -535,12 +535,20 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         if (parsed.flags.has("F") && stat.type === "symlink") suffix = "@";
         else if (parsed.flags.has("F") && stat.type === "file" && stat.mode & 0o111) suffix = "*";
         if (parsed.flags.has("l")) {
-          const size = parsed.flags.has("h") ? humanSize(stat.size, path) : String(stat.size);
+          let size = parsed.flags.has("h") ? humanSize(stat.size, path) : String(stat.size);
           const date = new Date(stat.mtimeMs).toISOString().slice(0, 16).replace("T", " ");
           let target = "";
           if (stat.type === "symlink") {
             await admitFilesystemModes(context, "ls", ["link"], [path]);
             needCapability(context, "readlink"); target = ` -> ${escapeText(await context.fs.readlink!(path, { signal: context.signal }), "display")}`;
+          }
+          if (stat.type === "character") {
+            for (const number of [stat.rdevMajor, stat.rdevMinor]) {
+              if (number !== undefined && (!Number.isSafeInteger(number) || number < 0)) {
+                throw new FsError("EIO", { path, message: "invalid device number" });
+              }
+            }
+            size = `${stat.rdevMajor ?? "?"}, ${stat.rdevMinor ?? "?"}`;
           }
           await output(context, `${modeText(stat)} ${stat.nlink ?? 1} ${stat.uid ?? 0} ${stat.gid ?? 0} ${size} ${date} ${escapeText(display, "display")}${suffix}${target}\n`);
         } else await output(context, `${escapeText(display, "display")}${suffix}\n`);

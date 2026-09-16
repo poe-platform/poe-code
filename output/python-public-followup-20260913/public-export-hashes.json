@@ -1,0 +1,22 @@
+{
+  "poe-code/safe-bash": {
+    "path": "/Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/dist/index.js",
+    "sha256": "539a80c3468d2042bbc174797f74c1de6da4d0c81f1ded40a9311e7a18d147b6"
+  },
+  "poe-code/safe-fs/core": {
+    "path": "/Users/kjopek/Workspace/poe-setup-scripts/packages/safe-js/dist/safe-fs-core.js",
+    "sha256": "25edf629b670a11c29d31bc8973382ea3754ec8a9560565633c7067c1ce96c41"
+  },
+  "poe-code/safe-bash/commands/python": {
+    "path": "/Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/dist/commands/python/index.js",
+    "sha256": "bfb7f3ade9cad48b348187f1600e227e2decc8aaaf29c54efb6eab2eebcea553"
+  },
+  "poe-code/safe-bash/commands/python/node": {
+    "path": "/Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/dist/commands/python/node.js",
+    "sha256": "12730b92aa8c8c70fce840b1d35413915dbc5ddc4521cde084f0910e5b52b631"
+  },
+  "poe-code/safe-bash/commands/python/worker": {
+    "path": "/Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/dist/commands/python/worker.js",
+    "sha256": "254a271aa2efbbbde3057be1cb627447e0f3783fa89d38b524d4a69d99bebc4b"
+  }
+}

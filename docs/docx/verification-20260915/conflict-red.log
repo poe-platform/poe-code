@@ -1,0 +1,59 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/publication-conflict-guidance.test.ts (2 tests | 2 failed) 186ms
+   × explains publication conflict recovery without changing files (input alias: false) 105ms
+   × explains publication conflict recovery without changing files (input alias: true) 79ms
+FAIL packages/docx/src/publication-conflict-guidance.test.ts > explains publication conflict recovery without changing files (input alias: false)
+AssertionError: expected 'Document operation failed: conflict' to contain 'Choose a new output path'
+
+Expected: "Choose a new output path"
+Received: "Document operation failed: conflict"
+
+ ❯ packages/docx/src/publication-conflict-guidance.test.ts:36:38
+     34|   expect(envelope).toMatchObject({ ok: false, data: null, affected: 0,…
+     35|   expect(volume.toJSON()).toEqual(original);
+     36|   expect(envelope.errors[0].message).toContain("Choose a new output pa…
+       |                                      ^
+     37|   expect(envelope.errors[0].message).toContain("--in-place only for in…
+     38|   expect(stderr).toContain(envelope.errors[0].message);
+
+FAIL packages/docx/src/publication-conflict-guidance.test.ts > explains publication conflict recovery without changing files (input alias: true)
+AssertionError: expected 'Document operation failed: conflict' to contain 'Choose a new output path'
+
+Expected: "Choose a new output path"
+Received: "Document operation failed: conflict"
+
+ ❯ packages/docx/src/publication-conflict-guidance.test.ts:36:38
+     34|   expect(envelope).toMatchObject({ ok: false, data: null, affected: 0,…
+     35|   expect(volume.toJSON()).toEqual(original);
+     36|   expect(envelope.errors[0].message).toContain("Choose a new output pa…
+       |                                      ^
+     37|   expect(envelope.errors[0].message).toContain("--in-place only for in…
+     38|   expect(stderr).toContain(envelope.errors[0].message);
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/publication-conflict-guidance.test.ts > explains publication conflict recovery without changing files (input alias: false)
+ FAIL  packages/docx/src/publication-conflict-guidance.test.ts > explains publication conflict recovery without changing files (input alias: true)
+AssertionError: expected 'Document operation failed: conflict' to contain 'Choose a new output path'
+
+Expected: "Choose a new output path"
+Received: "Document operation failed: conflict"
+
+ ❯ packages/docx/src/publication-conflict-guidance.test.ts:36:38
+     34|   expect(envelope).toMatchObject({ ok: false, data: null, affected: 0,…
+     35|   expect(volume.toJSON()).toEqual(original);
+     36|   expect(envelope.errors[0].message).toContain("Choose a new output pa…
+       |                                      ^
+     37|   expect(envelope.errors[0].message).toContain("--in-place only for in…
+     38|   expect(stderr).toContain(envelope.errors[0].message);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  18:35:07
+   Duration  2.27s (transform 1.64s, setup 57ms, import 1.92s, tests 186ms, environment 0ms)

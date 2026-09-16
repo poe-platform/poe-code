@@ -67,7 +67,7 @@ export function instrument(backing: MemoryFileSystem, hooks: Hooks = {}) {
     return result;
   }
   const fs: FileSystem = {
-    capabilities: { ...backing.capabilities, streamingRead: hooks.streaming ?? false },
+    capabilities: { ...backing.capabilities, open: false, streamingRead: hooks.streaming ?? false },
     readFile: (path, options) => perform("readFile", path, options, () => backing.readFile(path, options)),
     writeFile: (path, data, options) => perform("writeFile", path, options, () => backing.writeFile(path, data, options), undefined, options?.flag),
     appendFile: (path, data, options) => perform("appendFile", path, options, () => backing.appendFile(path, data, options)),

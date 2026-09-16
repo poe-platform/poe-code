@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/table-command-boundaries.test.ts (3 tests) 182ms
+ ✓ packages/docx/src/structure-model-command.test.ts (4 tests) 357ms
+ ✓ packages/docx/src/structure-model-batch-operations.test.ts (7 tests) 355ms
+
+ Test Files  3 passed (3)
+      Tests  14 passed (14)
+   Start at  22:40:44
+   Duration  1.57s (transform 1.18s, setup 62ms, import 1.66s, tests 893ms, environment 0ms)
+

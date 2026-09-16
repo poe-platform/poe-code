@@ -1,0 +1,16 @@
+{
+  "observation": "Direct built CLI execution via exec tool; screenshots separately inspected",
+  "pipeline": {
+    "exitCode": 0,
+    "stdout": "42\n",
+    "initializationMessages": 2
+  },
+  "interactive": {
+    "exitCode": 2,
+    "diagnostic": "python: unsupported option -i\n"
+  },
+  "screenshots": [
+    "cli-built-pipeline.png",
+    "cli-built-interactive-gap.png"
+  ]
+}

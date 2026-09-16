@@ -1,0 +1,5 @@
+
+> poe-code@0.0.0-dev screenshot
+> tsx scripts/screenshot.ts cat docs/docx/inline-picture-shell-evidence-20260915/transcript.txt
+
+screenshots/cat-docs-docx-inline-picture-shell-evidence-20260915-transcript.txt.png

@@ -164,9 +164,10 @@ test("family and aggregate options route independently without limiting compress
     if (route === "plugin") shell.use(byteCommands(options));
     if (route === "aggregate plugin") shell.use(agentCommands({ bytes: options }));
     try {
-      assert.equal((await shell.exec("base64", { stdin: "abc" })).exitCode, 1, route);
-      for (let index = 0; index < 2; index++) assert.equal((await shell.exec("sha256sum", { stdin: "abcd" })).exitCode, 0, route);
-      assert.equal((await shell.exec("gzip -c", { stdin: "abc" })).exitCode, 0, route);
+      // Stream input isolates command-family limits from finite-input ownership admission.
+      assert.equal((await shell.exec("base64", { stdin: toByteSource("abc") })).exitCode, 1, route);
+      for (let index = 0; index < 2; index++) assert.equal((await shell.exec("sha256sum", { stdin: toByteSource("abcd") })).exitCode, 0, route);
+      assert.equal((await shell.exec("gzip -c", { stdin: toByteSource("abc") })).exitCode, 0, route);
       await fs.writeFile("/data", encoder.encode("abcd"));
       const redirected = await shell.exec("sha256sum < /data");
       assert.equal(redirected.exitCode, 1, route);

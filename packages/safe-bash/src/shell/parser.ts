@@ -11,14 +11,84 @@ import type { ConditionalExpression } from "./conditional.js";
 import { concatShellValues, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ByteShellValue, ShellValue } from "../contracts/value.js";
 
+export interface ShellSyntaxDeclarations {
+  readonly arrayKeys?: true;
+  readonly indexedElementOperators?: true;
+  readonly indexedDeclarations?: readonly "readonly"[];
+  readonly listTerminators?: readonly { readonly operator: string }[];
+  readonly specialParameters?: readonly { readonly name: string }[];
+}
+
+export interface CapturedShellSyntax {
+  readonly arrayKeys?: true;
+  readonly indexedElementOperators?: true;
+  readonly indexedDeclarations?: readonly "readonly"[];
+  readonly listTerminators: readonly Readonly<{ operator: "&" }>[];
+  readonly specialParameters: readonly Readonly<{ name: "!" }>[];
+}
+
+const capturedSyntax = new WeakSet<object>();
+
+function indexedDeclarations(input: unknown): readonly "readonly"[] {
+  if (input === undefined) return Object.freeze([]);
+  if (!Array.isArray(input) || input.length > 1 || Reflect.ownKeys(input).some(name => name !== "length" && name !== "0")) {
+    throw new TypeError("Invalid or duplicate indexed declarations");
+  }
+  if (!input.length) return Object.freeze([]);
+  const slot = Object.getOwnPropertyDescriptor(input, "0");
+  if (!slot || !("value" in slot) || slot.value !== "readonly") throw new TypeError("Invalid indexed declaration");
+  return Object.freeze(["readonly"]);
+}
+
+function syntaxEntries<Key extends string, Value extends string>(input: unknown, key: Key, allowed: Value): readonly Readonly<Record<Key, Value>>[] {
+  if (input === undefined) return Object.freeze([]);
+  if (!Array.isArray(input) || input.length > 1 || Reflect.ownKeys(input).some(name => name !== "length" && name !== "0")) {
+    throw new TypeError("Invalid or duplicate shell syntax declarations");
+  }
+  const entries: Readonly<Record<Key, Value>>[] = [];
+  for (let index = 0; index < input.length; index++) {
+    const slot = Object.getOwnPropertyDescriptor(input, String(index));
+    const entry: unknown = slot && "value" in slot ? slot.value : undefined;
+    if (!entry || typeof entry !== "object" || Reflect.ownKeys(entry).length !== 1) throw new TypeError("Invalid shell syntax declaration");
+    const property = Object.getOwnPropertyDescriptor(entry, key);
+    if (!property || !("value" in property) || property.value !== allowed) throw new TypeError("Invalid or reserved shell syntax declaration");
+    entries.push(Object.freeze({ [key]: allowed }) as Readonly<Record<Key, Value>>);
+  }
+  return Object.freeze(entries);
+}
+
+export function captureShellSyntax(declarations: ShellSyntaxDeclarations = defaultSyntax): CapturedShellSyntax {
+  if (!declarations || typeof declarations !== "object" || Array.isArray(declarations)) throw new TypeError("Invalid shell syntax declarations");
+  if (capturedSyntax.has(declarations)) return declarations as CapturedShellSyntax;
+  const prototype: unknown = Object.getPrototypeOf(declarations);
+  if (prototype !== null && prototype !== Object.prototype) throw new TypeError("Invalid shell syntax declarations");
+  const properties = Object.getOwnPropertyDescriptors(declarations);
+  if (Reflect.ownKeys(properties).some(key => key !== "listTerminators" && key !== "specialParameters" && key !== "arrayKeys" && key !== "indexedDeclarations" && key !== "indexedElementOperators")
+    || Object.values(properties).some(property => !("value" in property))) throw new TypeError("Invalid shell syntax declarations");
+  if (properties.arrayKeys && properties.arrayKeys.value !== true) throw new TypeError("Invalid shell syntax capability");
+  if (properties.indexedElementOperators && properties.indexedElementOperators.value !== true) throw new TypeError("Invalid shell syntax capability");
+  const indexed = indexedDeclarations(properties.indexedDeclarations?.value);
+  const syntax: CapturedShellSyntax = Object.freeze({
+    listTerminators: syntaxEntries(properties.listTerminators?.value, "operator", "&"),
+    specialParameters: syntaxEntries(properties.specialParameters?.value, "name", "!"),
+    ...(properties.arrayKeys ? { arrayKeys: true as const } : {}),
+    ...(properties.indexedElementOperators ? { indexedElementOperators: true as const } : {}),
+    ...(indexed.length ? { indexedDeclarations: indexed } : {}),
+  });
+  capturedSyntax.add(syntax);
+  return syntax;
+}
+
+const defaultSyntax = captureShellSyntax({});
+
 export type WordPart =
   | { kind: "text"; value: string; quoted: boolean; byteValue?: ByteShellValue }
   | { kind: "arithmetic"; expression: ArithmeticProgram; source: string; line: number; quoted: boolean }
-  | { kind: "variable"; name: string; quoted: boolean; line?: number; prefixNames?: "*" | "@"; keys?: boolean; transform?: "Q" | "E"; length?: boolean; operator?: string; alternate?: Word; replacement?: Word; substring?: { offset: Word; length?: Word; source: string } }
+  | { kind: "variable"; name: string; quoted: boolean; line?: number; specialParameter?: CapturedShellSyntax["specialParameters"][number]; prefixNames?: "*" | "@"; keys?: boolean; transform?: "Q" | "E"; length?: boolean; operator?: string; alternate?: Word; replacement?: Word; substring?: { offset: Word; length?: Word; source: string } }
   | { kind: "failed-substitution"; diagnostic: string; quoted: boolean }
   | { kind: "failed-parameter"; source: string; line: number; quoted: boolean }
   | { kind: "compound-substitution-eof"; line: number; quoted: boolean }
-  | { kind: "substitution"; script: Script; line: number; sourceLine?: number; quoted: boolean };
+  | { kind: "substitution"; form?: "backtick" | "dollar-parenthesis"; script: Script; line: number; sourceLine?: number; quoted: boolean };
 
 export interface Word {
   readonly parts: WordPart[];
@@ -50,7 +120,10 @@ export interface HereDocument {
   readonly depth: number;
   body: string;
   endLine: number;
+  readonly byteSource?: boolean;
 }
+
+const hereDocumentSyntax = new WeakMap<HereDocument, CapturedShellSyntax>();
 
 export class HereDocumentSyntaxError extends Error {
   constructor(readonly diagnostic: string) { super(diagnostic); }
@@ -94,9 +167,9 @@ export interface Pipeline {
 }
 
 export interface AndOr {
-  readonly background?: boolean;
   readonly pipelines: Pipeline[];
   readonly operators: ("&&" | "||")[];
+  readonly terminator?: Readonly<{ operator: "&"; offset: number; line: number }>;
 }
 
 export interface Script {
@@ -105,6 +178,135 @@ export interface Script {
   readonly line?: number;
   readonly printedLines?: ReadonlyMap<Command, number>;
   readonly printedNewlines?: number;
+}
+
+const scriptSeparators = new WeakMap<readonly AndOr[], readonly boolean[]>();
+const functionLayouts = new WeakMap<Script, ReadonlyMap<Command, number> | undefined>();
+
+export function functionReprintedLines(script: Script): ReadonlyMap<Command, number> | undefined {
+  if (functionLayouts.has(script)) return functionLayouts.get(script);
+  const lines = new Map<Command, number>();
+  let line = 1;
+  let found = false;
+  let endedWithDocument = false;
+  function words(values: readonly Word[]): boolean {
+    for (const word of values) {
+      if (word.printedNewlines === undefined) return false;
+      line += word.printedNewlines;
+    }
+    return true;
+  }
+  function redirects(values: readonly Redirect[]): boolean {
+    if (!values.length) return true;
+    endedWithDocument = false;
+    if (!words(values.map(redirect => redirect.target))) return false;
+    const documents = values.flatMap(redirect => redirect.document ? [redirect.document] : []);
+    if (documents.length) {
+      line++;
+      for (const document of documents) {
+        line += document.body.split("\n").length - 1 + document.delimiter.split("\n").length;
+      }
+      endedWithDocument = true;
+    }
+    return true;
+  }
+  function commands(body: Script, inFunction: boolean): boolean {
+    const separators = scriptSeparators.get(body.lists);
+    if (!separators) return false;
+    for (let index = 0; index < body.lists.length; index++) {
+      for (const pipeline of body.lists[index]!.pipelines) {
+        for (const command of pipeline.commands) if (!visit(command, inFunction)) return false;
+      }
+      if (index < body.lists.length - 1) {
+        line += endedWithDocument ? Number(inFunction || separators[index]) : Number(separators[index]) + Number(inFunction);
+        endedWithDocument = false;
+      }
+    }
+    return true;
+  }
+  function conditional(expression: ConditionalExpression): boolean {
+    switch (expression.kind) {
+      case "nonempty": case "unary": return words([expression.operand]);
+      case "binary": return words([expression.left, expression.right]);
+      case "not": return conditional(expression.operand);
+      case "and": case "or": return conditional(expression.left) && conditional(expression.right);
+    }
+  }
+  function visit(command: Command, inFunction: boolean): boolean {
+    lines.set(command, line);
+    if (command.kind === "simple") {
+      if (command.words.length) {
+        const firstNewlines = command.words[0]!.printedNewlines;
+        if (firstNewlines === undefined) return false;
+        lines.set(command, line + firstNewlines);
+      }
+      if (!words(command.words)) return false;
+    } else if (command.kind === "function") {
+      found = true;
+      line += 2;
+      if (command.body.kind === "group") {
+        lines.set(command.body, line - 1);
+        if (!commands(command.body.body, true)) return false;
+        line++;
+        endedWithDocument = false;
+        if (!redirects(command.body.redirects)) return false;
+      } else {
+        if (!visit(command.body, true)) return false;
+        line++;
+        endedWithDocument = false;
+      }
+    } else if (command.kind === "group" || command.kind === "subshell") {
+      const expanded = inFunction && command.kind === "group";
+      line += Number(expanded);
+      if (!commands(command.body, inFunction)) return false;
+      line += Number(expanded);
+      endedWithDocument = false;
+    } else if (command.kind === "if") {
+      for (let index = 0; index < command.branches.length; index++) {
+        if (index) line += 2;
+        const branch = command.branches[index]!;
+        if (!commands(branch.condition, inFunction)) return false;
+        line++;
+        endedWithDocument = false;
+        if (!commands(branch.body, inFunction)) return false;
+      }
+      if (command.otherwise) {
+        line += 2;
+        if (!commands(command.otherwise, inFunction)) return false;
+      }
+      line += command.branches.length;
+    } else if (command.kind === "for") {
+      if (command.words && !words(command.words)) return false;
+      line += 2;
+      if (!commands(command.body, inFunction)) return false;
+      line++;
+    } else if (command.kind === "while" || command.kind === "until") {
+      if (!commands(command.condition, inFunction)) return false;
+      line++;
+      endedWithDocument = false;
+      if (!commands(command.body, inFunction)) return false;
+      line++;
+    } else if (command.kind === "arithmetic") {
+      line += command.source.split("\n").length - 1;
+    } else if (command.kind === "conditional") {
+      if (!conditional(command.expression)) return false;
+    } else if (command.kind === "case") {
+      if (!words([command.subject])) return false;
+      for (let index = 0; index < command.clauses.length; index++) {
+        if (index) line++;
+        const clause = command.clauses[index]!;
+        if (!words(clause.patterns)) return false;
+        line++;
+        if (!commands(clause.body, inFunction)) return false;
+        line++;
+      }
+      line++;
+    } else return false;
+    return redirects(command.redirects);
+  }
+  const result = commands(script, false) && found ? lines : undefined;
+  functionLayouts.set(script, result);
+  return result;
 }
 
 function printedSimpleLines(lists: readonly AndOr[], separators: readonly boolean[], budget: ParseBudget): Pick<Script, "printedLines" | "printedNewlines"> {
@@ -137,7 +339,7 @@ class Lexer {
   conditionalPattern: "pattern" | "regex" | undefined;
   braceReplay?: ReadonlyMap<number, ShellValue>;
   readonly documents: HereDocument[] = [];
-  constructor(readonly budget: ParseBudget, readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false, readonly lineIndex = new SourceLineIndex(source, budget), readonly sourceOffset = 0, readonly ordinaryBacktick = false, readonly sourceValues?: ReadonlyMap<number, ByteShellValue>) {
+  constructor(readonly budget: ParseBudget, readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false, readonly lineIndex = new SourceLineIndex(source, budget), readonly sourceOffset = 0, readonly ordinaryBacktick = false, readonly sourceValues?: ReadonlyMap<number, ByteShellValue>, readonly byteSource = false, readonly syntax: CapturedShellSyntax = defaultSyntax) {
     if (depth > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
   }
 
@@ -177,7 +379,7 @@ class Lexer {
     }
     const operator = this.conditionalPattern ? undefined : /^(?:;;&|<<<|<<-|&>>|;&|&&|\|\||\|&|>>|>&|<&|>\||<<|;;|&>|[;\n|&()<>])/u.exec(logical)?.[0];
     if (operator) {
-      if (operator === "&>>") this.error(`Unsupported operator ${operator}`);
+      if (operator === "&>>" || operator === "&" && !this.syntax.listTerminators.length) this.error(`Unsupported operator ${operator}`);
       this.position = ends[operator.length - 1]!;
       if (operator === "<<" || operator === "<<-") this.delimiterOperator = operator;
       if (operator === "\n") this.readDocuments();
@@ -193,13 +395,14 @@ class Lexer {
       document = {
         delimiter: word.parts.map((part) => part.kind === "text" ? part.value : "").join(""),
         quoted: word.parts.some((part) => part.quoted), stripTabs: delimiterOperator === "<<-", offset,
-        body: "", endLine: this.lineAt(offset), depth: this.depth,
+        body: "", endLine: this.lineAt(offset), depth: this.depth, ...(this.byteSource ? { byteSource: true } : {}),
       };
       if (this.sourceValues?.size) {
         this.budget.admit(word.parts.length + 1);
         documentDelimiters.set(document, shellValueBytes(concatShellValues(word.parts.map(part => part.kind === "text" ? part.byteValue ?? part.value : ""))));
       }
       this.documents.push(document);
+      hereDocumentSyntax.set(document, this.syntax);
     }
     this.budget.admit();
     return { kind: "word", value: word.plain ?? "", offset, end: this.position, word: { ...word, spelling: this.source.slice(offset, this.position) }, ...(document ? { document } : {}) };
@@ -272,11 +475,11 @@ class Lexer {
       const current = this.source[this.position]!;
       const opaque = this.sourceValues?.get(this.sourceOffset + this.position);
       if (opaque !== undefined) {
-        if (text) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] }; text = ""; }
+        if (text) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true, ...(this.byteSource ? { byteValue: shellValueFromBytes(Buffer.from(text, "latin1")) } : {}) }] }; text = ""; }
         this.budget.admit(2);
         yield { offset: this.position++, parts: [{ kind: "text", value: shellValueText(opaque), byteValue: opaque, quoted: true }] };
       } else if (current === "$" || current === "`") {
-        if (text) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] }; text = ""; }
+        if (text) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true, ...(this.byteSource ? { byteValue: shellValueFromBytes(Buffer.from(text, "latin1")) } : {}) }] }; text = ""; }
         const offset = this.position;
         this.budget.admit();
         const parts: WordPart[] = [];
@@ -296,9 +499,9 @@ class Lexer {
         text += current;
         this.position++;
       }
-      if (text.length >= 1024) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] }; text = ""; }
+      if (text.length >= 1024) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true, ...(this.byteSource ? { byteValue: shellValueFromBytes(Buffer.from(text, "latin1")) } : {}) }] }; text = ""; }
     }
-    if (text) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] }; }
+    if (text) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true, ...(this.byteSource ? { byteValue: shellValueFromBytes(Buffer.from(text, "latin1")) } : {}) }] }; }
   }
 
   documentSubstitutionError(source: string, error: ShellSyntaxError, backtick = false): HereDocumentSyntaxError {
@@ -380,6 +583,7 @@ class Lexer {
     const conditionalPattern = terminator === undefined ? this.conditionalPattern : undefined;
     let plain = true;
     const text = (value: ShellValue, quoted: boolean, synthetic = false, start = this.position, end = start + shellValueText(value).length, ansi = false) => {
+      if (this.byteSource && typeof value === "string" && [...value].some(character => character.charCodeAt(0) > 127)) value = shellValueFromBytes(Buffer.from(value, "latin1"));
       const projection = shellValueText(value);
       if (conditionalPattern === "regex" && regexBracket && quoted && projection.length) { regexBracketFirst = false; regexBracketNegation = false; }
       const previous = parts.at(-1);
@@ -540,6 +744,7 @@ class Lexer {
       if (character === "'") {
         const nul = bytes.indexOf(0);
         const raw = Uint8Array.from(nul < 0 ? bytes : bytes.slice(0, nul));
+        if (this.byteSource) { this.budget.admit(2); return shellValueFromBytes(raw); }
         const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
         try { return decoder.decode(raw); }
         catch (error) {
@@ -549,7 +754,7 @@ class Lexer {
           return shellValueFromBytes(raw);
         }
       }
-      if (character !== "\\") { bytes.push(...encoder.encode(character)); continue; }
+      if (character !== "\\") { bytes.push(...(this.byteSource ? Buffer.from(character, "latin1") : encoder.encode(character))); continue; }
       const escape = this.source[this.position++];
       if (escape === undefined) this.error("Unterminated ANSI-C quote", { quote: "'", line: quoteLine });
       if (escapes[escape] !== undefined) { bytes.push(escapes[escape]!); continue; }
@@ -600,7 +805,7 @@ class Lexer {
       }
       if (this.source[this.position] !== "`") this.error("Unterminated command substitution");
       this.position++;
-      try { parts.push({ kind: "substitution", script: parseSource(source, this.depth + this.operandDepth + 1, this.warnings, line - 1, this.byteLocale, this.budget, this.documentLine === undefined, sourceValues), line, quoted }); }
+      try { parts.push({ kind: "substitution", form: "backtick", script: parseSource(source, this.depth + this.operandDepth + 1, this.warnings, line - 1, this.byteLocale, this.budget, this.documentLine === undefined, sourceValues, this.byteSource, this.syntax), line, quoted }); }
       catch (error) {
         if (this.documentLine === undefined || !(error instanceof ShellSyntaxError) || /nesting|exceeds/u.test(error.reason)) throw error;
         this.budget.admit();
@@ -613,7 +818,8 @@ class Lexer {
       return;
     }
     this.position++;
-    if (this.source[this.position] === "$" || (!quoted && ["'", '"'].includes(this.source[this.position] ?? ""))) this.error("Unsupported shell quoting or special parameter");
+    if (this.source[this.position] === "$" || this.source[this.position] === "!" && !this.syntax.specialParameters.length
+      || (!quoted && ["'", '"'].includes(this.source[this.position] ?? ""))) this.error("Unsupported shell quoting or special parameter");
     if (this.source.startsWith("((", this.position)) {
       const start = this.position + 2;
       const end = arithmeticEnd(this.source, start);
@@ -626,7 +832,7 @@ class Lexer {
       let script: Script;
       try {
         this.budget.admit();
-        nested = new Parser(this.budget, this.source.slice(start), this.depth + this.operandDepth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale, false, this.lineIndex, this.sourceOffset + start, false, this.sourceValues);
+        nested = new Parser(this.budget, this.source.slice(start), this.depth + this.operandDepth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale, false, this.lineIndex, this.sourceOffset + start, false, this.sourceValues, this.byteSource, this.syntax);
         script = nested.script(new Set([")"]));
       }
       catch (error) {
@@ -642,15 +848,17 @@ class Lexer {
       this.position += nested.current.end + 1;
       if (script.printedNewlines === undefined) this.unprintedWords++;
       else this.printedNewlineReduction += this.source.slice(start, this.position - 1).split("\n").length - 1 - script.printedNewlines;
-      parts.push({ kind: "substitution", script, line, sourceLine: script.line ?? line, quoted });
+      parts.push({ kind: "substitution", form: "dollar-parenthesis", script, line, sourceLine: script.line ?? line, quoted });
     } else if (this.source[this.position] === "{") {
       this.position++;
       const parameterStart = this.position - 2;
-      const listing = this.source[this.position] === "!" && /[a-zA-Z_]/u.test(this.source[this.position + 1] ?? "");
+      const listing = this.source[this.position] === "!" && /[a-zA-Z_0-9]/u.test(this.source[this.position + 1] ?? "");
       if (listing) this.position++;
-      const length = !listing && this.source[this.position] === "#" && /[a-zA-Z_!]/u.test(this.source[this.position + 1] ?? "");
+      const length = !listing && this.source[this.position] === "#" && (/[a-zA-Z_0-9]/u.test(this.source[this.position + 1] ?? "")
+        || this.syntax.specialParameters.some(parameter => parameter.name === this.source[this.position + 1]));
       if (length) this.position++;
-      const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#!-])/u.exec(this.source.slice(this.position))?.[0];
+      const specialParameter = this.syntax.specialParameters.find(parameter => parameter.name === this.source[this.position]);
+      const name = specialParameter?.name ?? /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#-])/u.exec(this.source.slice(this.position))?.[0];
       if (!name) this.error("Unsupported parameter expansion");
       this.position += name.length;
       let prefixNames: "*" | "@" | undefined;
@@ -669,9 +877,14 @@ class Lexer {
         if (this.source[end] !== "]") this.error("Unterminated indexed-array subscript");
         selector = arraySelector(this.source.slice(start, end), start, this.budget, keyWord);
         this.position = end + 1;
-        if (this.source[this.position] !== "}" && this.source[this.position] !== "@") this.error("Unsupported indexed-array operator");
+        if (this.source[this.position] !== "}" && this.source[this.position] !== "@" && !(this.syntax.indexedElementOperators && !length && selector.kind === "element"
+          && (this.source[this.position] === "-" || this.source[this.position] === "+"))) this.error("Unsupported indexed-array operator");
       }
       if (listing && selector?.kind === "element") this.error("Unsupported indirect parameter expansion");
+      if (listing && selector?.kind === "members" && this.syntax.arrayKeys) {
+        this.budget.admit();
+        selector = { kind: "keys", separator: selector.separator };
+      }
       let transform: "Q" | "E" | undefined;
       if (this.source[this.position] === "@") {
         const operation = this.source[this.position + 1];
@@ -720,16 +933,17 @@ class Lexer {
         parts.push({ kind: "failed-parameter", source: this.source.slice(parameterStart, this.position), line, quoted });
       } else {
         this.position++;
-        const part: WordPart = { kind: "variable", name, quoted, line, ...(prefixNames ? { prefixNames } : {}), ...(transform ? { transform } : {}), ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}), ...(replacement ? { replacement } : {}), ...(substring ? { substring } : {}) };
+        const part: WordPart = { kind: "variable", name, quoted, line, ...(specialParameter ? { specialParameter } : {}), ...(prefixNames ? { prefixNames } : {}), ...(transform ? { transform } : {}), ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}), ...(replacement ? { replacement } : {}), ...(substring ? { substring } : {}) };
         if (listing && selector) part.keys = true;
         if (selector) setArraySelector(part, selector);
         parts.push(part);
       }
     } else {
-      const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#!0-9-])/u.exec(this.source.slice(this.position))?.[0];
+      const specialParameter = this.syntax.specialParameters.find(parameter => parameter.name === this.source[this.position]);
+      const name = specialParameter?.name ?? /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9-])/u.exec(this.source.slice(this.position))?.[0];
       if (name) {
         this.position += name.length;
-        parts.push({ kind: "variable", name, quoted, line });
+        parts.push({ kind: "variable", name, quoted, line, ...(specialParameter ? { specialParameter } : {}) });
       } else parts.push({ kind: "text", value: "$", quoted });
     }
     if (this.documentLine === undefined) {
@@ -747,10 +961,10 @@ class Parser {
   readonly openCommands: { name: string; line: number }[] = [];
   completedInput?: { lists: AndOr[]; count: number; line: number };
 
-  constructor(readonly budget: ParseBudget, source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number, byteLocale = false, partial = false, lineIndex = new SourceLineIndex(source, budget), sourceOffset = 0, ordinaryBacktick = false, sourceValues?: ReadonlyMap<number, ByteShellValue>) {
+  constructor(readonly budget: ParseBudget, source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number, byteLocale = false, partial = false, lineIndex = new SourceLineIndex(source, budget), sourceOffset = 0, ordinaryBacktick = false, sourceValues?: ReadonlyMap<number, ByteShellValue>, byteSource = false, syntax: CapturedShellSyntax = defaultSyntax) {
     if (position === undefined && depth === 0 && source.includes("\0")) throw new ShellSyntaxError("NUL bytes are not valid shell source", source.indexOf("\0"));
     budget.admit();
-    this.lexer = new Lexer(budget, source, depth, warnings, lineOffset, byteLocale, undefined, partial, lineIndex, sourceOffset, ordinaryBacktick, sourceValues);
+    this.lexer = new Lexer(budget, source, depth, warnings, lineOffset, byteLocale, undefined, partial, lineIndex, sourceOffset, ordinaryBacktick, sourceValues, byteSource, syntax);
     this.lexer.position = position ?? 0;
     this.current = this.lexer.next();
   }
@@ -799,11 +1013,12 @@ class Parser {
         this.newlines();
         pipelines.push(this.pipeline());
       }
-      lists.push({ pipelines, operators, ...(this.is("&") ? { background: true } : {}) });
+      const terminator = this.is("&") ? Object.freeze({ operator: "&" as const, offset: this.current.offset, line: this.lexer.lineAt(this.current.offset) }) : undefined;
+      lists.push({ pipelines, operators, ...(terminator ? { terminator } : {}) });
       separators.push(this.is("\n"));
       if (captureInputUnits && this.is("\n")) this.completedInput!.count = lists.length;
       if (inputUnit && this.is("\n")) break;
-      if (this.is(";") || this.is("&") || this.is("\n")) {
+      if (terminator || this.is(";") || this.is("\n")) {
         this.advance();
         if (captureInputUnits && this.is("\n")) this.completedInput!.count = lists.length;
         if (inputUnit && this.is("\n")) break;
@@ -811,6 +1026,7 @@ class Parser {
       } else if (!this.isEnd() && !this.is(")") && !(stops.has(this.current.value) && [";;", ";&", ";;&"].includes(this.current.value))) this.error("Expected command separator");
     }
     const printed = printedSimpleLines(lists, separators, this.budget);
+    scriptSeparators.set(lists, Object.freeze(separators));
     return { lists, line, ...printed };
   }
 
@@ -1046,6 +1262,11 @@ class Parser {
       if (["!", "then", "else", "elif", "fi", "do", "done", "}", "case", "esac", "select", "function", "[[", "]]"].includes(this.current.value)) this.error(`Unexpected or unsupported keyword ${this.current.value}`);
       const words: Word[] = [];
       const redirects: Redirect[] = [];
+      const indexedDeclaration = (): boolean => {
+        let index = 0;
+        while (words[index] && scalarAssignmentName(words[index]!)) index++;
+        return this.lexer.syntax.indexedDeclarations?.some(name => name === words[index]?.plain) === true;
+      };
       let line: number | undefined;
       while (true) {
         const wordLine = this.lexer.lineAt(Math.max(this.current.offset, this.current.end - 1));
@@ -1072,7 +1293,7 @@ class Parser {
             word = { offset: word.offset, parts: word.parts, spelling: this.lexer.source.slice(word.offset, end) };
             setArrayAssignment(word, { kind: "compound", ...head, entries });
           } else {
-            const assignment = words.every(previous => getArrayAssignment(previous) || scalarAssignmentName(previous)) ? elementAssignment(word, this.budget, source => parseArraySubscript(source, this.budget, this.lexer.byteLocale, this.lexer.depth), (source, start) => { const lexer = new Lexer(this.budget, source, this.lexer.depth, [], 0, this.lexer.byteLocale); lexer.position = start; lexer.word("]"); return lexer.source[lexer.position] === "]" ? lexer.position : -1; }) : undefined;
+            const assignment = words.every(previous => getArrayAssignment(previous) || scalarAssignmentName(previous)) ? elementAssignment(word, this.budget, source => parseArraySubscript(source, this.budget, this.lexer.byteLocale, this.lexer.depth, this.lexer.byteSource, this.lexer.syntax), (source, start) => { const lexer = new Lexer(this.budget, source, this.lexer.depth, [], 0, this.lexer.byteLocale, undefined, false, undefined, 0, false, undefined, this.lexer.byteSource, this.lexer.syntax); lexer.position = start; lexer.word("]"); return lexer.source[lexer.position] === "]" ? lexer.position : -1; }) : undefined;
             if (assignment) setArrayAssignment(word, assignment);
           }
           words.push(word);
@@ -1080,7 +1301,7 @@ class Parser {
         else break;
       }
       if (!words.length && !redirects.length) this.error("Expected command");
-      if (words.some(word => getArrayAssignment(word)) && words.some(word => !getArrayAssignment(word) && !scalarAssignmentName(word))) this.error("Indexed-array command prefixes are unsupported");
+      if (words.some(word => getArrayAssignment(word)) && words.some(word => !getArrayAssignment(word) && !scalarAssignmentName(word)) && !indexedDeclaration()) this.error("Indexed-array command prefixes are unsupported");
       return { kind: "simple", words, redirects, ...(line === undefined ? {} : { line }) };
     }
     let redirect: Redirect | undefined;
@@ -1111,16 +1332,31 @@ class Parser {
   }
 }
 
-export function parseShell(source: string, depth = 0, options: ShellParseOptions = {}): Script {
-  const budget = new ParseBudget(options.maxParseUnits);
+export function parseCompoundArrayValue(source: string, byteLocale: boolean, byteSource: boolean, syntax: CapturedShellSyntax = defaultSyntax, budget = new ParseBudget()): readonly ArrayEntry[] {
+  const lexer = new Lexer(budget, source, 0, [], 0, byteLocale, undefined, false, undefined, 0, false, undefined, byteSource, syntax);
+  if (lexer.next().value !== "(") throw new ShellSyntaxError("Expected indexed-array compound value", 0);
+  const entries: ArrayEntry[] = [];
+  for (let token = lexer.next(); token.kind !== "end" && token.value !== ")"; token = lexer.next()) {
+    if (token.value === "\n") continue;
+    if (token.kind !== "word") throw new ShellSyntaxError("Unsupported indexed-array compound value", token.offset);
+    const entry = compoundEntry(token.word!, budget);
+    if (entry.index) { budget.admit(); compoundEntryWords.set(entry, token.word!); }
+    entries.push(entry);
+  }
+  return entries;
+}
+
+export function parseShell(source: string, depth = 0, options: ShellParseOptions | ShellSyntaxDeclarations = {}, syntax?: ShellSyntaxDeclarations): Script {
+  const budget = new ParseBudget("maxParseUnits" in options ? options.maxParseUnits : undefined);
+  const captured = captureShellSyntax(syntax === undefined ? ("maxParseUnits" in options ? undefined : options as ShellSyntaxDeclarations) : syntax);
   const warnings: string[] = [];
-  const script = parseSource(source, depth, warnings, 0, false, budget);
+  const script = parseSource(source, depth, warnings, 0, false, budget, false, undefined, false, captured);
   budget.admit();
   return { ...script, ...(warnings.length ? { warnings } : {}) };
 }
 
-export function parseArraySubscript(source: string, budget: ParseBudget, byteLocale = false, depth = 0): Word {
-  const lexer = new Lexer(budget, source, depth, [], 0, byteLocale);
+export function parseArraySubscript(source: string, budget: ParseBudget, byteLocale = false, depth = 0, byteSource = false, syntax: CapturedShellSyntax = defaultSyntax): Word {
+  const lexer = new Lexer(budget, source, depth, [], 0, byteLocale, undefined, false, undefined, 0, false, undefined, byteSource, syntax);
   return lexer.word("\0");
 }
 
@@ -1131,26 +1367,34 @@ export function parseBraceWord(source: string, opaque: ReadonlyMap<number, Shell
   return lexer.word();
 }
 
-export function* hereDocumentWords(document: HereDocument, line: number, byteLocale: boolean, warnings: string[], budget = new ParseBudget()): Generator<Word> {
+export function hereDocumentWords(document: HereDocument, line: number, byteLocale: boolean, warnings: string[], budgetOrSyntax: ParseBudget | ShellSyntaxDeclarations = new ParseBudget(), syntax?: ShellSyntaxDeclarations): Generator<Word> {
+  const budget = budgetOrSyntax instanceof ParseBudget ? budgetOrSyntax : new ParseBudget();
+  const captured = captureShellSyntax(syntax === undefined ? (budgetOrSyntax instanceof ParseBudget ? hereDocumentSyntax.get(document) : budgetOrSyntax) : syntax);
   const values = documentValues.get(document);
+  return (function* () {
   if (document.quoted) {
     let start = 0;
     for (const [position, value] of values ?? []) {
       budget.admit(4);
-      if (start < position) yield { offset: document.offset, parts: [{ kind: "text", value: document.body.slice(start, position), quoted: true }] };
+      if (start < position) yield { offset: document.offset, parts: [{ kind: "text", value: document.body.slice(start, position), quoted: true, ...(document.byteSource ? { byteValue: shellValueFromBytes(Buffer.from(document.body.slice(start, position), "latin1")) } : {}) }] };
       yield { offset: document.offset, parts: [{ kind: "text", value: shellValueText(value), byteValue: value, quoted: true }] };
       start = position + 1;
     }
     budget.admit(2);
-    yield { offset: document.offset, parts: [{ kind: "text", value: document.body.slice(start), quoted: true }] };
-  } else { budget.admit(); yield* new Lexer(budget, document.body, document.depth, warnings, line - 1, byteLocale, line, false, undefined, 0, false, values).documentWords(); }
+    yield { offset: document.offset, parts: [{ kind: "text", value: document.body.slice(start), quoted: true, ...(document.byteSource ? { byteValue: shellValueFromBytes(Buffer.from(document.body.slice(start), "latin1")) } : {}) }] };
+  } else { budget.admit(); yield* new Lexer(budget, document.body, document.depth, warnings, line - 1, byteLocale, line, false, undefined, 0, false, values, document.byteSource, captured).documentWords(); }
+  })();
 }
 
-export function parseShellUnit(source: string, position = 0, byteLocale = false, budget = new ParseBudget(), lineIndex = new SourceLineIndex(source, budget), sourceValues?: ReadonlyMap<number, ByteShellValue>): { script: Script; next: number } {
+export function parseShellUnit(source: string, position = 0, byteLocale = false, budgetOrByteSource: ParseBudget | boolean = new ParseBudget(), lineIndexOrSyntax?: SourceLineIndex | ShellSyntaxDeclarations, sourceValues?: ReadonlyMap<number, ByteShellValue>, byteSource = false, syntax?: ShellSyntaxDeclarations): { script: Script; next: number } {
+  const budget = budgetOrByteSource instanceof ParseBudget ? budgetOrByteSource : new ParseBudget();
+  const lineIndex = lineIndexOrSyntax instanceof SourceLineIndex ? lineIndexOrSyntax : new SourceLineIndex(source, budget);
+  const captured = captureShellSyntax(syntax === undefined ? (lineIndexOrSyntax instanceof SourceLineIndex ? undefined : lineIndexOrSyntax) : syntax);
+  const raw = typeof budgetOrByteSource === "boolean" ? budgetOrByteSource : byteSource;
   const warnings: string[] = [];
   budget.admit();
   if (lineIndex.source !== source || lineIndex.budget !== budget) throw new TypeError("Source line index belongs to a different source or parse budget");
-  const parser = new Parser(budget, source, 0, warnings, 0, position, byteLocale, false, lineIndex, 0, false, sourceValues);
+  const parser = new Parser(budget, source, 0, warnings, 0, position, byteLocale, false, lineIndex, 0, false, sourceValues, raw, captured);
   const script = parser.script(new Set(), true);
   const next = parser.current.end;
   const nul = source.indexOf("\0", position);
@@ -1159,12 +1403,15 @@ export function parseShellUnit(source: string, position = 0, byteLocale = false,
   return { script: { ...script, ...(warnings.length ? { warnings } : {}) }, next };
 }
 
-export function parseShellInputUnit(source: string, byteLocale = false, budget = new ParseBudget(), lineIndex = new SourceLineIndex(source, budget)): { script: Script; next: number } | undefined {
+export function parseShellInputUnit(source: string, byteLocale = false, budgetOrSyntax: ParseBudget | ShellSyntaxDeclarations = new ParseBudget(), suppliedLineIndex?: SourceLineIndex, syntax?: ShellSyntaxDeclarations): { script: Script; next: number } | undefined {
+  const budget = budgetOrSyntax instanceof ParseBudget ? budgetOrSyntax : new ParseBudget();
+  const lineIndex = suppliedLineIndex ?? new SourceLineIndex(source, budget);
+  const captured = captureShellSyntax(syntax === undefined ? (budgetOrSyntax instanceof ParseBudget ? undefined : budgetOrSyntax) : syntax);
   const warnings: string[] = [];
   try {
     budget.admit();
     if (lineIndex.source !== source || lineIndex.budget !== budget) throw new TypeError("Source line index belongs to a different source or parse budget");
-    const parser = new Parser(budget, source, 0, warnings, 0, 0, byteLocale, true, lineIndex);
+    const parser = new Parser(budget, source, 0, warnings, 0, 0, byteLocale, true, lineIndex, 0, false, undefined, false, captured);
     const script = parser.script(new Set(), true);
     budget.admit(2);
     return { script: { ...script, ...(warnings.length ? { warnings } : {}) }, next: parser.current.end };
@@ -1175,10 +1422,10 @@ export function parseShellInputUnit(source: string, byteLocale = false, budget =
   }
 }
 
-function parseSource(source: string, depth: number, warnings: string[], lineOffset: number, byteLocale: boolean, budget: ParseBudget, ordinaryBacktick = false, sourceValues?: ReadonlyMap<number, ByteShellValue>): Script {
+function parseSource(source: string, depth: number, warnings: string[], lineOffset: number, byteLocale: boolean, budget: ParseBudget, ordinaryBacktick = false, sourceValues?: ReadonlyMap<number, ByteShellValue>, byteSource = false, syntax: CapturedShellSyntax = defaultSyntax): Script {
   budget.admit();
   const warningCount = warnings.length;
-  const parser = new Parser(budget, source, depth, warnings, lineOffset, undefined, byteLocale, false, undefined, 0, ordinaryBacktick, sourceValues);
+  const parser = new Parser(budget, source, depth, warnings, lineOffset, undefined, byteLocale, false, undefined, 0, ordinaryBacktick, sourceValues, byteSource, syntax);
   try {
     const script = parser.script(new Set(), false, ordinaryBacktick);
     if (parser.current.kind !== "end") parser.error("Unexpected token");

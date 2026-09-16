@@ -33,7 +33,7 @@ function fixture(chunks: readonly Uint8Array[], options: {
   const state = { streams: 0, mutations: 0, active: 0, produced: 0, disposed: 0 };
   const fs = new Proxy(backing, {
     get(target, key) {
-      if (key === "capabilities") return { ...target.capabilities, randomAccessWrite: false, write: options.write, streamingWrite: options.streamingWrite ?? target.capabilities.streamingWrite, streamingAppend: options.streamingAppend, append: options.append, readOnly: options.readOnly };
+      if (key === "capabilities") return { ...target.capabilities, open: false, randomAccessWrite: false, write: options.write, streamingWrite: options.streamingWrite ?? target.capabilities.streamingWrite, streamingAppend: options.streamingAppend, append: options.append, readOnly: options.readOnly };
       if (key === "writeStream") return async (path: string, source: ByteSource, writeOptions: { signal?: AbortSignal; flag?: string } = {}) => {
         state.streams++;
         state.active++;
@@ -352,7 +352,7 @@ for (const route of routes.filter(route => !route.name.startsWith("tee"))) {
     const failing = new Promise<never>((_resolve, reject) => { failWriter = () => reject(failure); });
     let active = 0;
     const fs = new Proxy(backing, { get(target, key) {
-      if (key === "capabilities") return { ...target.capabilities, randomAccessWrite: false };
+      if (key === "capabilities") return { ...target.capabilities, open: false, randomAccessWrite: false };
       if (key === "writeStream") return async (_path: string, source: ByteSource) => {
         active++;
         const consuming = (async () => {
@@ -494,7 +494,7 @@ for (const randomAccessWrite of [false, true]) {
           let forbiddenWrites = 0;
           let appends = 0;
           const fs = new Proxy(backing, { get(target, key) {
-            if (key === "capabilities") return { ...target.capabilities, randomAccessWrite, append: true, write: false, streamingWrite: false, streamingAppend: false };
+            if (key === "capabilities") return { ...target.capabilities, open: false, randomAccessWrite, append: true, write: false, streamingWrite: false, streamingAppend: false };
             if (key === "writeFile") return async () => { forbiddenWrites++; throw new FsError("ENOTSUP"); };
             if (key === "appendFile") return async (...args: Parameters<FileSystem["appendFile"]>) => { appends++; await backing.appendFile(...args); };
             const member: unknown = Reflect.get(target, key);

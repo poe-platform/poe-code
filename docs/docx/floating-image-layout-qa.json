@@ -1,0 +1,4317 @@
+{
+  "schema_version": 1,
+  "task": "task71 floating-image-layout",
+  "procedure": "docs/plans/docx-floating-image-layout.md#renderer-feasibility-procedure",
+  "stage": "genuine_paginated_baseline_renderer_only",
+  "status": "baseline_rendering_executed_and_inspected_product_qa_pending",
+  "product_implementation": "pending_original_ts_tests_and_stable_candidate",
+  "rendered_page_qa": "Baseline original2reports paginated images inspected; edited product output QA still pending",
+  "tools": {
+    "system": "macOS26.4.1 build25E253",
+    "native_viewer": "/usr/bin/qlmanage",
+    "docx_generator": "Office.qlgenerator5.0/build48",
+    "pdf_metadata": "Poppler26.08.0 pdfinfo",
+    "python": "Python3.14.7 stdlib",
+    "scope": "QA-only host tools; no product/runtime/build integration",
+    "paginated_renderer": "LibreOffice26.8.0.3AARCH64 QA-only portable mounted bundle",
+    "network_profile": "Sandbox denies network-outbound/inbound IP, allows local UnixIPC; exclusive UserInstallation/temp. No whole-host write confinement claim."
+  },
+  "inputs": [
+    {
+      "id": "wales-citizen-voice-easy-read",
+      "path": ".cache/docx-corpus/wales-citizen-voice-easy-read.docx",
+      "bytes": 4409375,
+      "sha256": "6742f9af325c2ead61f49d0152a2f7ab21f78c69fbafb01f85fcea24c7e396d5",
+      "unchanged": true,
+      "rights": {
+        "publisher_terms": "Information under OGL; logos require formal permission. Linked OGL text returned HTTP 403; its full terms were not freshly retrieved. No blanket asset clearance inferred.",
+        "evidence_url": "https://www.gov.wales/copyright-statement",
+        "image_and_logo_rights": "Not universally cleared; agency terms exclude logos and/or third-party imagery. Retain original material only in disposable local QA cache.",
+        "redistribution": "not_authorized_by_this_manifest",
+        "use_scope": "disposable local QA fixture; do not ship or commit the binary",
+        "additional_review": "Check document-specific third-party notices before deriving or publishing outputs; unit regressions must use original text and authored media.",
+        "verified_at": "2026-09-14T05:34:02.759753+00:00",
+        "review_evidence": "corpus-audit-20260914.json#publisher_reviews",
+        "reuse_state": "restricted-assets-not-cleared",
+        "asset_clearance": "Not established. Notice indicators reviewed; no document passages or assets adapted/published."
+      },
+      "cached_pages": {
+        "value": 27,
+        "measurement": "cached-metadata-only",
+        "rendered_pages": null
+      }
+    },
+    {
+      "id": "circular-economy",
+      "path": ".cache/docx-corpus/circular-economy.docx",
+      "bytes": 8320866,
+      "sha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+      "unchanged": true,
+      "rights": {
+        "publisher_terms": "CC BY 4.0 for agency-owned material; attribute source and adaptations, no endorsement. Coat of arms, agency logo and third-party content excluded.",
+        "evidence_url": "https://www.pc.gov.au/copyright/",
+        "image_and_logo_rights": "Not universally cleared; agency terms exclude logos and/or third-party imagery. Retain original material only in disposable local QA cache.",
+        "redistribution": "not_authorized_by_this_manifest",
+        "use_scope": "disposable local QA fixture; do not ship or commit the binary",
+        "additional_review": "Check document-specific third-party notices before deriving or publishing outputs; unit regressions must use original text and authored media.",
+        "verified_at": "2026-09-14T05:34:02.759753+00:00",
+        "review_evidence": "corpus-audit-20260914.json#publisher_reviews",
+        "reuse_state": "restricted-assets-not-cleared",
+        "asset_clearance": "Not established. Notice indicators reviewed; no document passages or assets adapted/published."
+      },
+      "cached_pages": {
+        "value": 166,
+        "measurement": "cached-metadata-only",
+        "rendered_pages": null
+      }
+    }
+  ],
+  "commands": [
+    [
+      "/usr/bin/qlmanage",
+      "-t",
+      "-s",
+      "1600",
+      "-o",
+      "tmp/docx71-layout-qa/<exact-id>-thumbnail",
+      ".cache/docx-corpus/<exact-id>.docx"
+    ],
+    [
+      "/usr/bin/qlmanage",
+      "-p",
+      "-o",
+      "tmp/docx71-layout-qa/<exact-id>-preview",
+      ".cache/docx-corpus/<exact-id>.docx"
+    ]
+  ],
+  "supervision": {
+    "timeout_seconds_per_command": 45,
+    "target_thumbnail_long_axis": 1600
+  },
+  "runs": [
+    {
+      "exit": 0,
+      "stdout": "Testing Quick Look thumbnails with files:\n\t.cache/docx-corpus/wales-citizen-voice-easy-read.docx\n* /Users/kjopek/Workspace/poe-setup-scripts/.cache/docx-corpus/wales-citizen-voice-easy-read.docx produced one thumbnail\nDone producing thumbnails\n",
+      "stderr": "namespace warning : xmlns: URI cbc8947f-56f2-4c70-9ccc-d70c6e5dbbd3 is not absolute\nt><lcf76f155ced4ddcb4097134ff3c332f xmlns=\"cbc8947f-56f2-4c70-9ccc-d70c6e5dbbd3\"\n                                                                               ^\nnamespace warning : xmlns: URI f271f741-0d4c-459c-9fff-fd49374dbf54 is not absolute\ned4ddcb4097134ff3c332f><TaxCatchAll xmlns=\"f271f741-0d4c-459c-9fff-fd49374dbf54\"\n                                                                               ^\n",
+      "seconds": 0.4037482920102775,
+      "input": "wales-citizen-voice-easy-read",
+      "mode": "thumbnail"
+    },
+    {
+      "exit": 0,
+      "stdout": "Testing Quick Look preview with files:\n\t.cache/docx-corpus/wales-citizen-voice-easy-read.docx\n* /Users/kjopek/Workspace/poe-setup-scripts/.cache/docx-corpus/wales-citizen-voice-easy-read.docx produced a preview with data of type public.html\n",
+      "stderr": "namespace warning : xmlns: URI cbc8947f-56f2-4c70-9ccc-d70c6e5dbbd3 is not absolute\nt><lcf76f155ced4ddcb4097134ff3c332f xmlns=\"cbc8947f-56f2-4c70-9ccc-d70c6e5dbbd3\"\n                                                                               ^\nnamespace warning : xmlns: URI f271f741-0d4c-459c-9fff-fd49374dbf54 is not absolute\ned4ddcb4097134ff3c332f><TaxCatchAll xmlns=\"f271f741-0d4c-459c-9fff-fd49374dbf54\"\n                                                                               ^\n2026-09-14 22:19:20.245 qlmanage[18147:15607948] Processing Preview.html\n",
+      "seconds": 0.32205458301177714,
+      "input": "wales-citizen-voice-easy-read",
+      "mode": "preview"
+    },
+    {
+      "exit": 0,
+      "stdout": "Testing Quick Look thumbnails with files:\n\t.cache/docx-corpus/circular-economy.docx\n* /Users/kjopek/Workspace/poe-setup-scripts/.cache/docx-corpus/circular-economy.docx produced one thumbnail\nDone producing thumbnails\n",
+      "stderr": "",
+      "seconds": 0.9710657500108937,
+      "input": "circular-economy",
+      "mode": "thumbnail"
+    },
+    {
+      "exit": 0,
+      "stdout": "Testing Quick Look preview with files:\n\t.cache/docx-corpus/circular-economy.docx\n* /Users/kjopek/Workspace/poe-setup-scripts/.cache/docx-corpus/circular-economy.docx produced a preview with data of type public.html\n",
+      "stderr": "2026-09-14 22:19:21.040 qlmanage[18184:15608138] Processing Preview.html\n",
+      "seconds": 1.0616236250061775,
+      "input": "circular-economy",
+      "mode": "preview"
+    }
+  ],
+  "visual_inspection": [
+    {
+      "input": "wales-citizen-voice-easy-read",
+      "thumbnail_dimensions": [
+        1141,
+        1600
+      ],
+      "finding": "Generated cover/continuous-view raster has severe clipping of grouped drawings and title/text; cannot establish coherent actual page or changed-figure wrapping."
+    },
+    {
+      "input": "circular-economy",
+      "thumbnail_dimensions": [
+        1141,
+        1600
+      ],
+      "finding": "Generated continuous-view raster merges cover and transmittal content; actual page boundaries not represented."
+    }
+  ],
+  "format_findings": {
+    "generated_thumbnail_not_original_cached_asset": true,
+    "original_docProps_thumbnail_entries": 0,
+    "preview_type": "public.html",
+    "html_page_break_markers": 0,
+    "preview_media_attachments": {
+      "wales-citizen-voice-easy-read": 71,
+      "circular-economy": 100
+    },
+    "sample_pdf": "Attachment1.pdf: Quartz conversion,1page481.9\u00d7230.3pt media bounds, not paginated document output",
+    "full_document_pdf_export": "not_established"
+  },
+  "required_gap": "Edited SDK/Shell layout output structural+paginated visual QA awaits stable originalTS candidate; baseline establishes renderer availability only.",
+  "polygon_normative_status": "Independently authenticated toolkit schema metadata exact2 /tmp/docx71-schemas_openxmlformats_org_drawingml_2006_{wordprocessingDrawing,main}.json: start+lineToMin2, requiredInt64 x/y range. This is primary toolkit metadata fetched unpinned main; no ISO prose closure rule inferred. Exact provenance root-owned research.",
+  "ownership": {
+    "directory": "tmp/docx71-layout-qa",
+    "device": 16777234,
+    "inode": 365569466,
+    "owned_directories": [
+      "tmp/docx71-layout-qa/circular-economy-preview",
+      "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview",
+      "tmp/docx71-layout-qa/circular-economy-thumbnail",
+      "tmp/docx71-layout-qa/circular-original-pages",
+      "tmp/docx71-layout-qa/libreoffice-original",
+      "tmp/docx71-layout-qa/libreoffice-profile",
+      "tmp/docx71-layout-qa/libreoffice-profile/cache",
+      "tmp/docx71-layout-qa/libreoffice-profile/user",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/autocorr",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/autotext",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/basic",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/basic/Standard",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/config",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/config/soffice.cfg",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/config/soffice.cfg/modules",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/config/soffice.cfg/modules/swriter",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/config/soffice.cfg/modules/swriter/menubar",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/config/soffice.cfg/modules/swriter/popupmenu",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/config/soffice.cfg/modules/swriter/statusbar",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/config/soffice.cfg/modules/swriter/toolbar",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/database",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/database/biblio",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.bundle.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.component.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.configuration.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.configuration.PackageRegistryBackend/lu716461wr768.tmp",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.configuration.PackageRegistryBackend/lu716461wr769.tmp",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.configuration.PackageRegistryBackend/lu716461wr76b.tmp",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.configuration.PackageRegistryBackend/lu716461wr76c.tmp",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.executable.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.help.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.script.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.sfwk.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/shared",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/shared/registry",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/shared/registry/com.sun.star.comp.deployment.bundle.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/shared/registry/com.sun.star.comp.deployment.component.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/shared/registry/com.sun.star.comp.deployment.configuration.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/shared/registry/com.sun.star.comp.deployment.executable.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/shared/registry/com.sun.star.comp.deployment.help.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/shared/registry/com.sun.star.comp.deployment.script.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/shared/registry/com.sun.star.comp.deployment.sfwk.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/tmp",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/tmp/extensions",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/tmp/registry",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/tmp/registry/com.sun.star.comp.deployment.bundle.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/tmp/registry/com.sun.star.comp.deployment.component.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/tmp/registry/com.sun.star.comp.deployment.configuration.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/tmp/registry/com.sun.star.comp.deployment.executable.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/tmp/registry/com.sun.star.comp.deployment.help.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/tmp/registry/com.sun.star.comp.deployment.script.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/tmp/registry/com.sun.star.comp.deployment.sfwk.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/gallery",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/pack",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/pack/autotext",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/pack/basic",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/pack/basic/Standard",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/pack/config",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/pack/database",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/pack/database/biblio",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/psprint",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/temp",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/uno_packages",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/uno_packages/cache",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/uno_packages/cache/registry",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/uno_packages/cache/registry/com.sun.star.comp.deployment.bundle.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/uno_packages/cache/registry/com.sun.star.comp.deployment.component.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/uno_packages/cache/registry/com.sun.star.comp.deployment.configuration.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/uno_packages/cache/registry/com.sun.star.comp.deployment.executable.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/uno_packages/cache/registry/com.sun.star.comp.deployment.help.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/uno_packages/cache/registry/com.sun.star.comp.deployment.script.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/uno_packages/cache/registry/com.sun.star.comp.deployment.sfwk.PackageRegistryBackend",
+      "tmp/docx71-layout-qa/libreoffice-profile/user/uno_packages/cache/uno_packages",
+      "tmp/docx71-layout-qa/libreoffice-temp",
+      "tmp/docx71-layout-qa/reviewer-wales-temp",
+      "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview",
+      "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview",
+      "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-thumbnail",
+      "tmp/docx71-layout-qa/wales-original-pages"
+    ],
+    "owned_files": [
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment1.pdf",
+        "kind": "regular",
+        "bytes": 74329,
+        "sha256": "41d809d0a74b829a2e7d671b7ee0fb583a1e23bbc7900893f1a9bec066e2743a"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment10.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment11.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment12.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment13.png",
+        "kind": "regular",
+        "bytes": 3414,
+        "sha256": "d1ef201c66dd9c2a598fa864a74d3ca6b511724219dcbb110539ec5066e41082",
+        "pixel_dimensions": [
+          69,
+          69
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment14.pdf",
+        "kind": "regular",
+        "bytes": 74793,
+        "sha256": "1a8ffb4d9bfbacc2fa0e8ca089724b2f8ec23859a6d63a4ec0d1b3b103075a47"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment15.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment16.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment17.pdf",
+        "kind": "regular",
+        "bytes": 65761,
+        "sha256": "3021071d5e66bbd3188f4b16b86744e6fa6fded215dad2c6f9a96fc45dc06a7d"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment18.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment19.png",
+        "kind": "regular",
+        "bytes": 3730,
+        "sha256": "b455856e4a0d524e0b089bb7a324e6effbe6ebd8468fa1be9da0a2104e6d9e44",
+        "pixel_dimensions": [
+          260,
+          122
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment2.png",
+        "kind": "regular",
+        "bytes": 20842,
+        "sha256": "bd74eba3b9af64b70150032402742869d7e74a8df45ab2c01329677485ff0c88",
+        "pixel_dimensions": [
+          1004,
+          268
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment20.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment21.png",
+        "kind": "regular",
+        "bytes": 7000,
+        "sha256": "cc1d0bba3e5332826c1303e7267f1b4a64c9760d072cb875afce1763ba2c48cc",
+        "pixel_dimensions": [
+          1240,
+          1752
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment22.png",
+        "kind": "regular",
+        "bytes": 3414,
+        "sha256": "d1ef201c66dd9c2a598fa864a74d3ca6b511724219dcbb110539ec5066e41082",
+        "pixel_dimensions": [
+          69,
+          69
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment23.pdf",
+        "kind": "regular",
+        "bytes": 52933,
+        "sha256": "34167626672406ecd89a8599f16dde1540ac334fd3d0170c401fe5c9ffa820a8"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment24.pdf",
+        "kind": "regular",
+        "bytes": 88215,
+        "sha256": "34c1019cd0fd28494403d81ba46ef8c4a1dfa74f9361b6b1f7c05bf654b6d44b"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment25.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment26.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment27.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment28.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment29.png",
+        "kind": "regular",
+        "bytes": 6738288,
+        "sha256": "d947005e26a17ce95fd8d8a1f7ab1b4f9b9e210aad6798ba0e0e7eaa7442ecf4",
+        "pixel_dimensions": [
+          2480,
+          3508
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment3.pdf",
+        "kind": "regular",
+        "bytes": 47854,
+        "sha256": "c14292e2512999f411d3aead21ce59d21bc313f3bf01350f91a51f8b83c3f355"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment30.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment31.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment32.pdf",
+        "kind": "regular",
+        "bytes": 59325,
+        "sha256": "5fa1a073d37bb854479abc3ad889d31625974d786ed1ad6a422adb027d4168eb"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment33.pdf",
+        "kind": "regular",
+        "bytes": 74998,
+        "sha256": "e57131c545d2b65d7bd732b34720df823f06544399f08201de256446b8c29b92"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment34.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment35.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment36.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment37.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment38.pdf",
+        "kind": "regular",
+        "bytes": 71305,
+        "sha256": "0112054f50aa06e026b8becedb35413c3a3528db0d36f3c246fa6d5c83dfc302"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment39.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment4.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment40.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment41.png",
+        "kind": "regular",
+        "bytes": 2573,
+        "sha256": "e1c443361aeb8116971757bdd245ba7f996c1e48a468b53221775daf62daf3df",
+        "pixel_dimensions": [
+          43,
+          43
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment42.png",
+        "kind": "regular",
+        "bytes": 70254,
+        "sha256": "e4dd167af82350c03ba584de584a6b2ffa4ba56b4e8c687a9dc9611ad57e893a"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment43.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment44.png",
+        "kind": "regular",
+        "bytes": 7000,
+        "sha256": "cc1d0bba3e5332826c1303e7267f1b4a64c9760d072cb875afce1763ba2c48cc",
+        "pixel_dimensions": [
+          1240,
+          1752
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment45.png",
+        "kind": "regular",
+        "bytes": 7000,
+        "sha256": "cc1d0bba3e5332826c1303e7267f1b4a64c9760d072cb875afce1763ba2c48cc",
+        "pixel_dimensions": [
+          1240,
+          1752
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment46.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment47.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment48.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment49.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment5.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment50.pdf",
+        "kind": "regular",
+        "bytes": 60250,
+        "sha256": "f4bf49bbca3104850671a85d49bbb026f2d1fb40867a5dae7a9d1114214ac6a9"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment51.png",
+        "kind": "regular",
+        "bytes": 118922,
+        "sha256": "79f41c80522c466a0501f32885e766e7356a36a92de2e0f1dd7899a4973db207",
+        "pixel_dimensions": [
+          2500,
+          604
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment52.pdf",
+        "kind": "regular",
+        "bytes": 77386,
+        "sha256": "df9b19fa9fe7d7d6afc244b0f5fe0b157536d7d10c2c8a2a6ee9ec8ee53e2c21"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment53.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment54.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment55.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment56.png",
+        "kind": "regular",
+        "bytes": 16803,
+        "sha256": "4bea1b3b24796de7b495dc7713875e426ae28b62de7b06ef23c599ccc9830126",
+        "pixel_dimensions": [
+          957,
+          338
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment57.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment58.pdf",
+        "kind": "regular",
+        "bytes": 72243,
+        "sha256": "fe0631695d9727396863c5e217baaa95b664cf99840c8c23804021d472effe37"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment59.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment6.pdf",
+        "kind": "regular",
+        "bytes": 11021,
+        "sha256": "3ccb4f941406a50ea2776b0295286f713028e124c35e49b9bc7f7fef23762b60"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment60.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment61.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment62.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment63.png",
+        "kind": "regular",
+        "bytes": 6738288,
+        "sha256": "d947005e26a17ce95fd8d8a1f7ab1b4f9b9e210aad6798ba0e0e7eaa7442ecf4",
+        "pixel_dimensions": [
+          2480,
+          3508
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment64.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment65.png",
+        "kind": "regular",
+        "bytes": 15813,
+        "sha256": "8c6612e44af86cc45b6103cd873f2141d9db5b7ae938c3c2297b0c0b01f85fb3",
+        "pixel_dimensions": [
+          1022,
+          278
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment66.png",
+        "kind": "regular",
+        "bytes": 7000,
+        "sha256": "cc1d0bba3e5332826c1303e7267f1b4a64c9760d072cb875afce1763ba2c48cc",
+        "pixel_dimensions": [
+          1240,
+          1752
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment67.png",
+        "kind": "regular",
+        "bytes": 1791,
+        "sha256": "1e78832e15ed1b34922bf1b07e6b0447d34f70394dfefe952ccd5241c5121dd1",
+        "pixel_dimensions": [
+          120,
+          42
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment68.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment69.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment7.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment70.pdf",
+        "kind": "regular",
+        "bytes": 83746,
+        "sha256": "b1198067dab271f9e3943d932aa73594ed5f7c4edf45501939101b6b304b1638"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment71.png",
+        "kind": "regular",
+        "bytes": 2573,
+        "sha256": "e1c443361aeb8116971757bdd245ba7f996c1e48a468b53221775daf62daf3df",
+        "pixel_dimensions": [
+          43,
+          43
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment72.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment73.pdf",
+        "kind": "regular",
+        "bytes": 65124,
+        "sha256": "7e3549edef928d93f898583270a68b91b1485ddf7ca276d6ba8ada9a9c7408d7"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment74.pdf",
+        "kind": "regular",
+        "bytes": 66195,
+        "sha256": "0a96686303ff0af09ece77af8afbd5adffbdea0fd9a01640322cb21e9d77c3a7"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment75.pdf",
+        "kind": "regular",
+        "bytes": 56715,
+        "sha256": "06c9a9d20ebe2cc1f58378f801c67825565f0838278ef1a2e060323a8f6e0b85"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment76.png",
+        "kind": "regular",
+        "bytes": 7154,
+        "sha256": "22c5bad2f124af752a8b175c63e1373ec7819b2955878c3c45ad87dba00444fb",
+        "pixel_dimensions": [
+          347,
+          114
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment77.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment78.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment79.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment8.pdf",
+        "kind": "regular",
+        "bytes": 64181,
+        "sha256": "d1e239bf0e1c988c42a94000317f0d3c75acc379814e48a0bb9358134ca94e1d"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment80.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment81.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment82.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment83.pdf",
+        "kind": "regular",
+        "bytes": 50342,
+        "sha256": "5c3c02410d0cb2f81d0b2644a2d7cb58b766ed26c9b085d99a208171109f4834"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment84.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment85.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment86.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment87.pdf",
+        "kind": "regular",
+        "bytes": 69633,
+        "sha256": "519459e212909bec3e6c37e14693a069af82f8a1af92f25d460d9bc424822112"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment88.png",
+        "kind": "regular",
+        "bytes": 3414,
+        "sha256": "d1ef201c66dd9c2a598fa864a74d3ca6b511724219dcbb110539ec5066e41082",
+        "pixel_dimensions": [
+          69,
+          69
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment89.pdf",
+        "kind": "regular",
+        "bytes": 59653,
+        "sha256": "81bd10339438227b2d5d16756b07e18df313a4db81fc376c625417ba5aae903b"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment9.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment90.pdf",
+        "kind": "regular",
+        "bytes": 78878,
+        "sha256": "505734c8b7f277cdc92ab27b15b8c2a1d01e524d224b07bf383a3539e7c77b28"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment91.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment92.png",
+        "kind": "regular",
+        "bytes": 2573,
+        "sha256": "e1c443361aeb8116971757bdd245ba7f996c1e48a468b53221775daf62daf3df",
+        "pixel_dimensions": [
+          43,
+          43
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment93.png",
+        "kind": "regular",
+        "bytes": 1299,
+        "sha256": "416a1f3fd1b373ffbc8c402f7aee4fd498eeac6b7003b8f2a638e80cff5d3773",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment94.png",
+        "kind": "regular",
+        "bytes": 3414,
+        "sha256": "d1ef201c66dd9c2a598fa864a74d3ca6b511724219dcbb110539ec5066e41082",
+        "pixel_dimensions": [
+          69,
+          69
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment95.png",
+        "kind": "regular",
+        "bytes": 1529,
+        "sha256": "7ab72758c229d72c6b7d1b0631c0789ffa688391ee7505401c031c344de58ba8",
+        "pixel_dimensions": [
+          54,
+          54
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment96.png",
+        "kind": "regular",
+        "bytes": 2573,
+        "sha256": "e1c443361aeb8116971757bdd245ba7f996c1e48a468b53221775daf62daf3df",
+        "pixel_dimensions": [
+          43,
+          43
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment97.png",
+        "kind": "regular",
+        "bytes": 3414,
+        "sha256": "d1ef201c66dd9c2a598fa864a74d3ca6b511724219dcbb110539ec5066e41082",
+        "pixel_dimensions": [
+          69,
+          69
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment98.pdf",
+        "kind": "regular",
+        "bytes": 73881,
+        "sha256": "ab1e8553a70ca33fc19c7be01b551d0c5c271546a43188fd3d911961561ba355"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Attachment99.pdf",
+        "kind": "regular",
+        "bytes": 75852,
+        "sha256": "0a1ea78715550c297d1a0cf9f50cb46dc7edc3ecc63c47b05e6d291383b21374"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/Preview.html",
+        "kind": "regular",
+        "bytes": 870797,
+        "sha256": "c3cf787d52df1bc2af811b82edf23dc65bd67cad73e6298d25dbe075923351e4"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview/circular-economy.docx.qlpreview/PreviewProperties.plist",
+        "kind": "regular",
+        "bytes": 22200254,
+        "sha256": "1cf771bc6cf377ced85349c3908d922efe1fcd717de955d526cc7d1537606dd2"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-preview.log",
+        "kind": "regular",
+        "bytes": 404,
+        "sha256": "94d90c5baeae6a923f9450f50af9bc51cc215f08d3234a7fcbe56e4ff8ea1869"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-thumbnail/circular-economy.docx.png",
+        "kind": "regular",
+        "bytes": 676114,
+        "sha256": "19272abb89b4a5991bdf23fc8bf32f197a21231322eff28d1d371d280343a458",
+        "pixel_dimensions": [
+          1141,
+          1600
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-economy-thumbnail.log",
+        "kind": "regular",
+        "bytes": 334,
+        "sha256": "345d78b7f8a8ec881f891dcab26ed8cf32f65450e6995894e02b1142079ca58b"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-original-pages/page-001.png",
+        "kind": "regular",
+        "bytes": 735968,
+        "sha256": "4147ccbaac1b035dd25edf8fa34b99812e18245bae98a2194cfb934279e8e971",
+        "pixel_dimensions": [
+          1132,
+          1600
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-original-pages/page-002.png",
+        "kind": "regular",
+        "bytes": 37974,
+        "sha256": "65708b8ce3af639071d840958412b493174b6cce05fdbaa8b0c8319748040cd8",
+        "pixel_dimensions": [
+          1132,
+          1600
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-original-pages/page-003.png",
+        "kind": "regular",
+        "bytes": 8201,
+        "sha256": "2bf21706004467a7b98d0009b46373af6d5b8d0cc0d779edd4e280b1f3227a1e",
+        "pixel_dimensions": [
+          1132,
+          1600
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-acquisition.json",
+        "kind": "regular",
+        "bytes": 499,
+        "sha256": "03615789346dad4f5da1780eeae8eb533f300787a32d7e0b87e2239c38091bc2"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-original/circular-economy.pdf",
+        "kind": "regular",
+        "bytes": 4212813,
+        "sha256": "003244dd37a5ce6ca9f7fcbaab485b5627328afd31be8aa767a98142b8ba0d06"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-original/wales-citizen-voice-easy-read.pdf",
+        "kind": "regular",
+        "bytes": 634082,
+        "sha256": "b8ee886002d1ef00b1c0ed549772dc35a4c0fd41a9f3ff63ad1e4040f26e368d"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-original-export-devnull.json",
+        "kind": "regular",
+        "bytes": 850,
+        "sha256": "1850b8e32d1719daa57ec415a0f3f981a3fa0f0c4d36489d9064691638e2a085"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-original-export-ip-denied.json",
+        "kind": "regular",
+        "bytes": 1622,
+        "sha256": "f3e3f549dc907171c093a3b89a364324cdf42039c654adc378ba54ece7edf2e2"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-original-export-network-only.json",
+        "kind": "regular",
+        "bytes": 888,
+        "sha256": "9f20c57f3b7ac935d2fff77efeb9c885cc2299bbc090d7a7343e0fe46abb602c"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-original-export-retry.json",
+        "kind": "regular",
+        "bytes": 778,
+        "sha256": "d6e54bb3dd3be2f4d935c5ef2da96f7760fe94f9ff3c8d9ce14828a3ff233e22"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-original-export-temp.json",
+        "kind": "regular",
+        "bytes": 818,
+        "sha256": "8bc37728a2e93da4db1f80bc77aefd01859bfc59406bb86ca2699f49a99152b2"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-original-export.json",
+        "kind": "regular",
+        "bytes": 778,
+        "sha256": "971e15ed2c8bc10a5ac76aaf2618d18f434d977f42a91e2a3052eae58ac76057"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/.lock",
+        "kind": "regular",
+        "bytes": 132,
+        "sha256": "93cd286a08207444e467c7bbaa0f095057e577b3bf46dcc695fcb4c4129f81e7"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/cache/opencl_devices.log",
+        "kind": "regular",
+        "bytes": 998,
+        "sha256": "a558f73bb51145b0922bfe9ff38da64453ca0f0505e2871a00bb5c845e081ffc"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/cache/opencl_profile.xml",
+        "kind": "regular",
+        "bytes": 328,
+        "sha256": "f0ebd56eb762061d6fa7a298e5ac0f359b6e4588610ec8061b2e0c0144070d8a"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/autotext/mytexts.bau",
+        "kind": "regular",
+        "bytes": 557,
+        "sha256": "37755b033baaedc9c8d1b067aa954fcbd8db3f5daeeb99cb5ea09053d7183e1d"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/basic/Standard/Module1.xba",
+        "kind": "regular",
+        "bytes": 1124,
+        "sha256": "b434faf21386064e2e81af758f307ae8bea72c0cb6c8510d55b1bc1bb38f8612"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/basic/Standard/dialog.xlb",
+        "kind": "regular",
+        "bytes": 288,
+        "sha256": "85c83411f1285a0d0d9b511a7ea7dd06d5ac9b97f90d286adaca084212e3fe80"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/basic/Standard/script.xlb",
+        "kind": "regular",
+        "bytes": 349,
+        "sha256": "80cb10b100053f6e0b26bb009a2b8ccbdedb761901680500a4736f7afbf1f959"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/basic/dialog.xlc",
+        "kind": "regular",
+        "bytes": 339,
+        "sha256": "5b72c4cc5130eccab44cbfb91270befaeaf8ee7ab97cf205ee2abb582fa4a9e5"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/basic/script.xlc",
+        "kind": "regular",
+        "bytes": 339,
+        "sha256": "5b72c4cc5130eccab44cbfb91270befaeaf8ee7ab97cf205ee2abb582fa4a9e5"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/config/autotbl.fmt",
+        "kind": "regular",
+        "bytes": 35313,
+        "sha256": "713229151490c66f043cb4865147c97458b4f33e4eb5f2bb4133c58cbe77041e"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/database/biblio/biblio.dbf",
+        "kind": "regular",
+        "bytes": 75798,
+        "sha256": "aefc2bb614c2e307870405e0fd72f4a22cf794c396a73ce0551f18a478e80ed2"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/database/biblio/biblio.dbt",
+        "kind": "regular",
+        "bytes": 46601,
+        "sha256": "3ab142231d8075fdd02c95a691ddce590e0f81450744cb87ca610fd06d75cac1"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/database/biblio.odb",
+        "kind": "regular",
+        "bytes": 2892,
+        "sha256": "c3dd4e9008be33cdede3abf822e9b748a201704adf95aad92ab894dd98b3fe85"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/database/evolocal.odb",
+        "kind": "regular",
+        "bytes": 3759,
+        "sha256": "c72f8fd2b0e8f2b90e967a4cc29ae2f6333901a25862d69a81fc47fe44a444df"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/buildid",
+        "kind": "regular",
+        "bytes": 40,
+        "sha256": "fc72e2827bf4dcc349fffd1a8f96259dd6977424c4899e43e412c42f50d8c41b"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/extensions.pmap",
+        "kind": "regular",
+        "bytes": 426,
+        "sha256": "6e216dad65cf467f572ec3d1f11a0df3b11b964eddd1eb81be539e9747405ccb"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/lastsynchronized",
+        "kind": "regular",
+        "bytes": 1,
+        "sha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.bundle.PackageRegistryBackend/backenddb.xml",
+        "kind": "regular",
+        "bytes": 2274,
+        "sha256": "c2f806daf66eb57cfa4be9316f35ddace537ee3a6f82477a5a30bc4536423b60"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.component.PackageRegistryBackend/unorc",
+        "kind": "regular",
+        "bytes": 213,
+        "sha256": "38821ce4d23b0ecef0488b89be2a76ff4a86d1307ada900e4a52d6af3970d20d"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.configuration.PackageRegistryBackend/backenddb.xml",
+        "kind": "regular",
+        "bytes": 2353,
+        "sha256": "09139a7c9beacebd776a5c52af37fc5737a0ceb4e7c8cd87c1878292ab182c92"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.configuration.PackageRegistryBackend/configmgr.ini",
+        "kind": "regular",
+        "bytes": 649,
+        "sha256": "b1a78c19a16ac25087410698a5ab0df297cb5f8fe2701d08c3994b79c76d8a3e"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.configuration.PackageRegistryBackend/lu716461wr768.tmp/dictionaries.xcu",
+        "kind": "regular",
+        "bytes": 4827,
+        "sha256": "cc684e84dd4df3b2b7f4526f213d3d5da605514f2a1b2de4c269e841e81c6132"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.configuration.PackageRegistryBackend/lu716461wr769.tmp/OptionsDialog.xcu",
+        "kind": "regular",
+        "bytes": 19987,
+        "sha256": "7a154660546227e7b76c670ce77c26199610482925cf7c878caf00e4b649373b"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.configuration.PackageRegistryBackend/lu716461wr76b.tmp/dictionaries.xcu",
+        "kind": "regular",
+        "bytes": 2282,
+        "sha256": "f46fc6dd545cf294597e88f200303d40e4f1e9b2593ba8887978f0cac1223462"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.configuration.PackageRegistryBackend/lu716461wr76c.tmp/dictionaries.xcu",
+        "kind": "regular",
+        "bytes": 14270,
+        "sha256": "fd7270205da6750c6f663c02e6782f4a01b75f930095cdee02c79461cd8723f4"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/bundled/registry/com.sun.star.comp.deployment.help.PackageRegistryBackend/backenddb.xml",
+        "kind": "regular",
+        "bytes": 308,
+        "sha256": "66dffd081b589797ad38577fa87a6958a84f034cbfc5b3025a440bb56a7f02aa"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/shared/lastsynchronized",
+        "kind": "regular",
+        "bytes": 1,
+        "sha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/shared/registry/com.sun.star.comp.deployment.configuration.PackageRegistryBackend/backenddb.xml",
+        "kind": "regular",
+        "bytes": 135,
+        "sha256": "ac6f585621eb04b34549a95c99e015ad5810a4156e021df46c46731e7a087698"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/shared/registry/com.sun.star.comp.deployment.help.PackageRegistryBackend/backenddb.xml",
+        "kind": "regular",
+        "bytes": 117,
+        "sha256": "845041424286d5b794c11ff0a59d3df289dcb1567fb448ef0b85297108675b46"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/tmp/registry/com.sun.star.comp.deployment.configuration.PackageRegistryBackend/backenddb.xml",
+        "kind": "regular",
+        "bytes": 135,
+        "sha256": "ac6f585621eb04b34549a95c99e015ad5810a4156e021df46c46731e7a087698"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/extensions/tmp/registry/com.sun.star.comp.deployment.help.PackageRegistryBackend/backenddb.xml",
+        "kind": "regular",
+        "bytes": 117,
+        "sha256": "845041424286d5b794c11ff0a59d3df289dcb1567fb448ef0b85297108675b46"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/gallery/sg30.sdv",
+        "kind": "regular",
+        "bytes": 2048,
+        "sha256": "65365530165a871772e21962a5d7dda107d8d010f329bf59c878eabc3465bbe4"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/gallery/sg30.thm",
+        "kind": "regular",
+        "bytes": 565,
+        "sha256": "f1f24dff4f58a716033bcf96ad175d3436bff0e0a233ab09f6215973ed843fed"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/pack/ExtensionInfo.pack",
+        "kind": "regular",
+        "bytes": 68,
+        "sha256": "e4dfcd95db895f2e8db954e5fb51d2941345ab076d4d1d8003243a872a12c924"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/pack/autotext/mytexts.pack",
+        "kind": "regular",
+        "bytes": 402,
+        "sha256": "b4abd7f401785dff560c1a3b1d816b9dbbec81985e1092011675909b4b03ae7b"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/pack/basic/Standard/Module1.pack",
+        "kind": "regular",
+        "bytes": 644,
+        "sha256": "fe0861e0d877fa3649f03890b80a99adb2a0625e158c4dd1d932515d339bca5a"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/pack/basic/Standard/dialog.pack",
+        "kind": "regular",
+        "bytes": 220,
+        "sha256": "48f7e1fdd8661f0be6e676f55c9e0d0ccdfffbee9c67dd977d951129e45648fb"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/pack/basic/Standard/script.pack",
+        "kind": "regular",
+        "bytes": 241,
+        "sha256": "6961af566352be513bb45dbcc2b92151b0833b59cb65bee346919d31a69d788a"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/pack/basic/dialog.pack",
+        "kind": "regular",
+        "bytes": 238,
+        "sha256": "9a896cbae1ca92f439535587209ff596b14177401358c935227fd1af1efff9ee"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/pack/basic/script.pack",
+        "kind": "regular",
+        "bytes": 238,
+        "sha256": "9a896cbae1ca92f439535587209ff596b14177401358c935227fd1af1efff9ee"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/pack/config/autotbl.pack",
+        "kind": "regular",
+        "bytes": 1780,
+        "sha256": "1d3e419163e832bfba4c7f8424dd268cca313564ae87b1ede785b6488db6238a"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/pack/database/biblio/biblio.pack",
+        "kind": "regular",
+        "bytes": 2147,
+        "sha256": "d0db6a1f5a456ffe7ec476e6dda13eef51628deafea9f80d23e6cdc366776d4e"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/pack/database/biblio.pack",
+        "kind": "regular",
+        "bytes": 2432,
+        "sha256": "093d969bcb085884376e2c69353852e5a57fe7614de2257097984dcc29043b2e"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/pack/database/evolocal.pack",
+        "kind": "regular",
+        "bytes": 1203,
+        "sha256": "9555163d322df5d630457d72562431f39e384beedce6ab8329d99f06b590afbd"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/pack/registrymodifications.pack",
+        "kind": "regular",
+        "bytes": 3442,
+        "sha256": "f5794762bc56af524adb06a8798cb63211df991e3e896e3386efc98daec7e02d"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/registrymodifications.xcu",
+        "kind": "regular",
+        "bytes": 124492,
+        "sha256": "3a68e255e39df5d42cbbd963d0ca2d56237cbd743cf8b56893b8cbc8e1268918"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/uno_packages/cache/registry/com.sun.star.comp.deployment.configuration.PackageRegistryBackend/backenddb.xml",
+        "kind": "regular",
+        "bytes": 135,
+        "sha256": "ac6f585621eb04b34549a95c99e015ad5810a4156e021df46c46731e7a087698"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-profile/user/uno_packages/cache/registry/com.sun.star.comp.deployment.help.PackageRegistryBackend/backenddb.xml",
+        "kind": "regular",
+        "bytes": 117,
+        "sha256": "845041424286d5b794c11ff0a59d3df289dcb1567fb448ef0b85297108675b46"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-qa.dmg",
+        "kind": "regular",
+        "bytes": 298773447,
+        "sha256": "8858d8058da4f862f47559486814e65efc27294da67c5e4bb56b006b1ee59f89"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/renderer-ip-denied.sb",
+        "kind": "regular",
+        "bytes": 110,
+        "sha256": "314270c689b77ce517976632be774c853301f762bd7f11652ee4b31a043d139d"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/renderer-network-only.sb",
+        "kind": "regular",
+        "bytes": 44,
+        "sha256": "5c358b8d847211333e7ba22df82d84f796b5f30a41a2682209a949d783adbd08"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/renderer.sb",
+        "kind": "regular",
+        "bytes": 202,
+        "sha256": "f8efab5a45d011cbebbf98d98a2efa0983c1dafa5c0512b95980dd7afeb81f40"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/reviewer-circular-pages.json",
+        "kind": "regular",
+        "bytes": 342,
+        "sha256": "1f4b5e3274bfb68806b8d45e22c1483fa66f56a81e3ce6f38b9188999d2d966d"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/reviewer-wales-export.json",
+        "kind": "regular",
+        "bytes": 1609,
+        "sha256": "b8a4fc8ffed0d731f4e5c816704c9749c500924f3adeabbcaf33a165c608cb43"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/reviewer-wales-pages.json",
+        "kind": "regular",
+        "bytes": 352,
+        "sha256": "66fc72a9d19ba3fda972973fcd09c65c133dc2fdf4ea48caf0ff3b18a79397be"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment1.png",
+        "kind": "regular",
+        "bytes": 1040,
+        "sha256": "6fc8235dc48a6a6e95981a99d54eb4da30a9c1b7c1c899c8246904a175be6b66",
+        "pixel_dimensions": [
+          68,
+          68
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment10.png",
+        "kind": "regular",
+        "bytes": 47987,
+        "sha256": "2a08218f2770a9bd337eab72c54eb9f6568dd310469ab4838820e024dd409b14",
+        "pixel_dimensions": [
+          164,
+          151
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment11.png",
+        "kind": "regular",
+        "bytes": 34957,
+        "sha256": "63c0b7d8cfbfa66825af57e531ef2644dcc3f6b567a170a512b685bbc12eb272",
+        "pixel_dimensions": [
+          168,
+          168
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment12.jpeg",
+        "kind": "regular",
+        "bytes": 9873,
+        "sha256": "3a4f32774b299a0caadc741e57bca127e6d8a2fc4661c915cb656daa00288e4d"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment13.png",
+        "kind": "regular",
+        "bytes": 884,
+        "sha256": "96698ff734bf22ca5242e185c70c69b1fb6b359b6e2910f9ca4b1ac65a0f75ab",
+        "pixel_dimensions": [
+          69,
+          69
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment14.png",
+        "kind": "regular",
+        "bytes": 8577,
+        "sha256": "482a1e54397f48adcf6c02afa52bb9f6056ba53721fcb7cbd3614b1740378b88",
+        "pixel_dimensions": [
+          121,
+          121
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment15.png",
+        "kind": "regular",
+        "bytes": 34478,
+        "sha256": "2f66b42f5f0aec10c9ec18d3758031b2553520648fdf47778d24808687fa569c",
+        "pixel_dimensions": [
+          157,
+          157
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment16.png",
+        "kind": "regular",
+        "bytes": 17384,
+        "sha256": "9dec32a5299ef04fefb73cc878c1d392fb27c9d244fba4cb309b404d5552e98f",
+        "pixel_dimensions": [
+          361,
+          346
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment17.png",
+        "kind": "regular",
+        "bytes": 294621,
+        "sha256": "981cf82109e1e58472a8aeb3ab1f7c3fadb448ec4b3aefb7c87211cb27bd90b6",
+        "pixel_dimensions": [
+          427,
+          427
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment18.png",
+        "kind": "regular",
+        "bytes": 37768,
+        "sha256": "ba24ffafe067200fffeab2e876b4c990e596924ff50e5b99771f74445a7745e8",
+        "pixel_dimensions": [
+          168,
+          168
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment19.png",
+        "kind": "regular",
+        "bytes": 4897,
+        "sha256": "641f8c00c49d7a6ea52e1dd71ea3ca2ad3f7abde02135adeaf69611511344a1b",
+        "pixel_dimensions": [
+          123,
+          151
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment2.jpeg",
+        "kind": "regular",
+        "bytes": 5810,
+        "sha256": "84bb5e1eeceeafb7eb3883017184ef060164b67a4d23ee3e670e09743744a583"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment20.png",
+        "kind": "regular",
+        "bytes": 34529,
+        "sha256": "54fadd135da083a027721bedd746896dce29d21015c211af7e272418582b50a1",
+        "pixel_dimensions": [
+          127,
+          147
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment21.png",
+        "kind": "regular",
+        "bytes": 98314,
+        "sha256": "ecaeca609aa1c4e21dba1df95cb009c24b06d978b3164f52fae98ec476e44100",
+        "pixel_dimensions": [
+          238,
+          219
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment22.png",
+        "kind": "regular",
+        "bytes": 3613,
+        "sha256": "7f0da8c177ae5dade926d8e6e237058b7ba9b5c217427271784d5603500dbd4e",
+        "pixel_dimensions": [
+          117,
+          117
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment23.png",
+        "kind": "regular",
+        "bytes": 71244,
+        "sha256": "a5bcd27251b37664f0d30d086108d195d249bc4df17b2e77fd1654d33d4502d2",
+        "pixel_dimensions": [
+          162,
+          162
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment24.png",
+        "kind": "regular",
+        "bytes": 38045,
+        "sha256": "ca4c8e7806c00fbfc61185bc82d87d6fe725a39b9a77802cedc59c95fd336fb0",
+        "pixel_dimensions": [
+          163,
+          163
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment25.png",
+        "kind": "regular",
+        "bytes": 3478,
+        "sha256": "f71b6917d0985ab3f02dba92313f781e448eb1bb1acc0ffa4cd2cec52e4c06f4",
+        "pixel_dimensions": [
+          199,
+          149
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment26.png",
+        "kind": "regular",
+        "bytes": 34822,
+        "sha256": "af8503d93fff64ebfbc3c1e4ab812a0bf06e6571dbed0a14e3e9a34d1277742b",
+        "pixel_dimensions": [
+          157,
+          160
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment27.jpeg",
+        "kind": "regular",
+        "bytes": 4916,
+        "sha256": "1f7761f4f91c039f4e9446dfeb2c3c153e1cc3a4d33c59fcea369a1da1fbdef5"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment28.png",
+        "kind": "regular",
+        "bytes": 17384,
+        "sha256": "9dec32a5299ef04fefb73cc878c1d392fb27c9d244fba4cb309b404d5552e98f",
+        "pixel_dimensions": [
+          361,
+          346
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment29.png",
+        "kind": "regular",
+        "bytes": 26115,
+        "sha256": "6ffb95d577d18eeadf9dc63aaa2a1b634d93a0b0896a2b3ffd86ac99c9dccdda",
+        "pixel_dimensions": [
+          136,
+          136
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment3.png",
+        "kind": "regular",
+        "bytes": 21851,
+        "sha256": "76ad2b5ad71ed9624c427d99e0a95dae52c74ddca1b933bb99f9851b24359e8f",
+        "pixel_dimensions": [
+          153,
+          104
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment30.png",
+        "kind": "regular",
+        "bytes": 15434,
+        "sha256": "e9c43cc265cefa48916eec306e542393500cf01245f9772020c4eac168f53b1a",
+        "pixel_dimensions": [
+          96,
+          147
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment31.png",
+        "kind": "regular",
+        "bytes": 29878,
+        "sha256": "ba92e89bf574583e1916f6362dfe91e332c86f53db484e8283734e0753b1658a",
+        "pixel_dimensions": [
+          165,
+          165
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment32.png",
+        "kind": "regular",
+        "bytes": 30189,
+        "sha256": "8c95d2da6fd4c2b9d033eaa295445a1a5f07f177214466bf6534f4bb2a43f25f",
+        "pixel_dimensions": [
+          150,
+          213
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment33.jpeg",
+        "kind": "regular",
+        "bytes": 4827,
+        "sha256": "0cddad2c097cb57d683d7052d091654eaea71f3d7064418c0257054bf8668050"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment34.jpeg",
+        "kind": "regular",
+        "bytes": 4717,
+        "sha256": "651210c25fab10c0c2fc2606a2a0057f208791105636a7cd22c66e02a820cea9"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment35.jpeg",
+        "kind": "regular",
+        "bytes": 1674,
+        "sha256": "d01ffc10c553b87768aed9f4e2317ba2fb14f42b58dd371530e537055303b88b"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment36.png",
+        "kind": "regular",
+        "bytes": 8888,
+        "sha256": "b8061f5e8332599e68efb1f72da342af3bba9352ec2a095700701483af89ca5d",
+        "pixel_dimensions": [
+          134,
+          136
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment37.png",
+        "kind": "regular",
+        "bytes": 21255,
+        "sha256": "6aefda339a139f7609c9816b77bc9d2f2daec5670f0f2ac52a6943d6d7f26779",
+        "pixel_dimensions": [
+          149,
+          151
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment38.png",
+        "kind": "regular",
+        "bytes": 29592,
+        "sha256": "1eadb2758a0fdc90da09dab64ba612a2a4fcfcdf8f0b658d753ca6d3ceb16147",
+        "pixel_dimensions": [
+          162,
+          162
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment39.png",
+        "kind": "regular",
+        "bytes": 8665,
+        "sha256": "bde4d4de366149ebbdd8444b585b8df3992e920221826b87a38c424716da97c8",
+        "pixel_dimensions": [
+          161,
+          161
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment4.png",
+        "kind": "regular",
+        "bytes": 1594,
+        "sha256": "1f0b40f9d643503bebdaa96acba5c6b8f1bfecf8b7dd820c9bdad65861a7da8a",
+        "pixel_dimensions": [
+          74,
+          74
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment40.png",
+        "kind": "regular",
+        "bytes": 34304,
+        "sha256": "ebe5c4614d183622c560c07011196da888dbb87af77794a1f5f9458ac48d7d86",
+        "pixel_dimensions": [
+          154,
+          154
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment41.png",
+        "kind": "regular",
+        "bytes": 36908,
+        "sha256": "6848ac1caeadb2cfef0016e30925fc2a1ef22f06871ee72fcaa023721af3d12e",
+        "pixel_dimensions": [
+          179,
+          179
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment42.png",
+        "kind": "regular",
+        "bytes": 36113,
+        "sha256": "1d0fe59123997d38ba3ae4a904c42c82c44a62229a75f0f2863487c1d4623345",
+        "pixel_dimensions": [
+          182,
+          182
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment43.png",
+        "kind": "regular",
+        "bytes": 9133,
+        "sha256": "41c157599599862672efbb8580d4c6f23bb07098666e320955f00e3422338f2d",
+        "pixel_dimensions": [
+          151,
+          151
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment44.png",
+        "kind": "regular",
+        "bytes": 8337,
+        "sha256": "a92793c09b1f1b00fb3e28e195b56e7b64f1173ef68dcb1cfba37e6134571f03",
+        "pixel_dimensions": [
+          218,
+          145
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment45.png",
+        "kind": "regular",
+        "bytes": 6751,
+        "sha256": "eb8e8224ed59562aaa20e36ce9fb5cb614799761a4b9b8797c8883c7f4ebbb03",
+        "pixel_dimensions": [
+          319,
+          319
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment46.png",
+        "kind": "regular",
+        "bytes": 20878,
+        "sha256": "3e94b07d1e7192943f9da319815fe196e2d49940af32f402424a3a215be40a7d",
+        "pixel_dimensions": [
+          151,
+          151
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment47.png",
+        "kind": "regular",
+        "bytes": 14228,
+        "sha256": "cf4bba778ab6320fb4c4fb62c1672ba8891c2c64b29b5c80d597c7dbe2d1bc31",
+        "pixel_dimensions": [
+          71,
+          163
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment48.png",
+        "kind": "regular",
+        "bytes": 10300,
+        "sha256": "5c464ff141ff3f4d4e2b62c84e4899605b43c72de29f8d514fd992077a111415",
+        "pixel_dimensions": [
+          147,
+          147
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment49.jpeg",
+        "kind": "regular",
+        "bytes": 5840,
+        "sha256": "c178f45d3b1761ea97859bf6a01cf39d68b19ec66a9be32ded872e9c7ad95cc1"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment5.png",
+        "kind": "regular",
+        "bytes": 25800,
+        "sha256": "92179046eb9958b4b4d3bd51c7de14383142997da1dc767e59cbbb3049b79a26",
+        "pixel_dimensions": [
+          151,
+          125
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment50.png",
+        "kind": "regular",
+        "bytes": 30133,
+        "sha256": "2e2e2d1dee5f2078b35c7f2e16069fc45226ed287d8c3006271c211ff6feaf42",
+        "pixel_dimensions": [
+          144,
+          144
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment51.jpeg",
+        "kind": "regular",
+        "bytes": 3834,
+        "sha256": "af88217ab403d6437e1b87d9f3d470c881e8a396d357148572da5a19c8191675"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment52.png",
+        "kind": "regular",
+        "bytes": 30836,
+        "sha256": "7b8e0200ba5fc711234aaf4d9dbc542c9d2c3cf091be10b49cbbaa4df34597be",
+        "pixel_dimensions": [
+          165,
+          165
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment53.png",
+        "kind": "regular",
+        "bytes": 12105,
+        "sha256": "502c3350c83a5a260b798d874dfdda03d2fdd8b86306264f9a3c707350907522",
+        "pixel_dimensions": [
+          153,
+          136
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment54.png",
+        "kind": "regular",
+        "bytes": 36908,
+        "sha256": "6848ac1caeadb2cfef0016e30925fc2a1ef22f06871ee72fcaa023721af3d12e",
+        "pixel_dimensions": [
+          179,
+          179
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment55.jpeg",
+        "kind": "regular",
+        "bytes": 2666,
+        "sha256": "e10e60c5deb274c4b045a7a2e8e9c0b46e011c15b4f25436bb95c072f1c419d1"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment56.jpeg",
+        "kind": "regular",
+        "bytes": 5481,
+        "sha256": "90a86efc23476b2cca08e1659380aa07be85bc23546d72a3391c28e5c65d7080"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment57.png",
+        "kind": "regular",
+        "bytes": 34577,
+        "sha256": "89c62611b7077a65757186308f8f0c15d2a120704fbefcb9b1cfb8b8f1e0bdda",
+        "pixel_dimensions": [
+          163,
+          163
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment58.png",
+        "kind": "regular",
+        "bytes": 31808,
+        "sha256": "30794df6485cb378ee031621577533f87187bfe72cdb21a7f0476d932e4d60c1",
+        "pixel_dimensions": [
+          151,
+          151
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment59.jpeg",
+        "kind": "regular",
+        "bytes": 8822,
+        "sha256": "018d09a17da0c8dcefef0b8a4593eb26d3d4fbb4760ac5c50c40ce67605fea10"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment6.png",
+        "kind": "regular",
+        "bytes": 7573,
+        "sha256": "c0e0b375eaed238603a8be902e00a94b77936b04c3ecd89bc9378d8e5d0e8db2",
+        "pixel_dimensions": [
+          122,
+          122
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment60.png",
+        "kind": "regular",
+        "bytes": 14823,
+        "sha256": "a155b2c5cedbb2815e685f6f19adb3d37ddc260224c634c6e302ed919f7da990",
+        "pixel_dimensions": [
+          181,
+          161
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment61.png",
+        "kind": "regular",
+        "bytes": 51049,
+        "sha256": "a41f9aad9b1466813e274776895c369c2d3e319bc9fc6dcf97988cfd442b14ef",
+        "pixel_dimensions": [
+          169,
+          156
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment62.png",
+        "kind": "regular",
+        "bytes": 26502,
+        "sha256": "ae109439ffc62180127556fbc59584c9999c8b504a091a41b99fe5367eb2ad18",
+        "pixel_dimensions": [
+          134,
+          134
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment63.png",
+        "kind": "regular",
+        "bytes": 931,
+        "sha256": "5bcc4fd510564cd1377ee16e30e54edaf982bb82da516be99b4689b9b3b8b0f2",
+        "pixel_dimensions": [
+          67,
+          67
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment64.png",
+        "kind": "regular",
+        "bytes": 9367,
+        "sha256": "a5ac0a9174dd9e7dd564169d959badfab6406c3a99ec0af5844aca3992a8a8df",
+        "pixel_dimensions": [
+          151,
+          151
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment65.jpeg",
+        "kind": "regular",
+        "bytes": 5045,
+        "sha256": "1d577d2d2ec8735f5295f87f23560306c3e063333e3e63eaa73c5360de1a45de"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment66.jpeg",
+        "kind": "regular",
+        "bytes": 4696,
+        "sha256": "bff6229399b2ea2b997599e0fc38f734557d1d5601822e1c51925c4936694ece"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment67.png",
+        "kind": "regular",
+        "bytes": 21625,
+        "sha256": "7941ae88e77433fbde9b72355ccbb671bc9baee6c8f74ae672a56dd75ca0790d",
+        "pixel_dimensions": [
+          121,
+          121
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment68.png",
+        "kind": "regular",
+        "bytes": 15434,
+        "sha256": "e9c43cc265cefa48916eec306e542393500cf01245f9772020c4eac168f53b1a",
+        "pixel_dimensions": [
+          96,
+          147
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment69.png",
+        "kind": "regular",
+        "bytes": 32676,
+        "sha256": "eac5141fc63c1f56b352cb5d08f3abdbf070e9a9e4b567bd28ca4f46b134f6f2",
+        "pixel_dimensions": [
+          157,
+          157
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment7.jpeg",
+        "kind": "regular",
+        "bytes": 3676,
+        "sha256": "5ef00a7049981675437eb08639d74e27175df52f64a17824b888dca74a4a26f8"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment70.jpeg",
+        "kind": "regular",
+        "bytes": 4594,
+        "sha256": "c1b6ca41df4391c29e4bb2f85085bec96fe27ec981a890b0c44cee4b627d6786"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment8.png",
+        "kind": "regular",
+        "bytes": 22826,
+        "sha256": "f2265abcd9b749f349da119b3755debf7346c3a01bc96242cfa5711077737b88",
+        "pixel_dimensions": [
+          166,
+          166
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Attachment9.png",
+        "kind": "regular",
+        "bytes": 4829,
+        "sha256": "74176f6dcba5b883313fae0c95c2d79540a236cdb538ee31115ab4c5ceed66b7",
+        "pixel_dimensions": [
+          131,
+          109
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/Preview.html",
+        "kind": "regular",
+        "bytes": 59853,
+        "sha256": "a783221db0bbe2266d0979173d85c86876bc7bf197cf8bcfbb628d6e9559a3ba"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview/wales-citizen-voice-easy-read.docx.qlpreview/PreviewProperties.plist",
+        "kind": "regular",
+        "bytes": 2380718,
+        "sha256": "d9f0a1d59cad692faee1075ff3bce0834f6d95ff21603b4ffcb9616c31439eaf"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-preview.log",
+        "kind": "regular",
+        "bytes": 946,
+        "sha256": "202f627329114b266eabb622260b02041907f72dfd73c12eed9ae2e0cae12881"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-thumbnail/wales-citizen-voice-easy-read.docx.png",
+        "kind": "regular",
+        "bytes": 799320,
+        "sha256": "66c7bfad6029b9f14ea6cf13e49d83488766ad9e668c6cf977481a8515374b68",
+        "pixel_dimensions": [
+          1141,
+          1600
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-citizen-voice-easy-read-thumbnail.log",
+        "kind": "regular",
+        "bytes": 875,
+        "sha256": "d93cd98010ae5dbbdfd59555df6f6949493445717fe4ffe7433e78ed1c3cf2ad"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-original-pages/page-01.png",
+        "kind": "regular",
+        "bytes": 571715,
+        "sha256": "070a00c9721432ef2af4d52c8763a8c000038bd04bded9fdcadd493d84b49bc2",
+        "pixel_dimensions": [
+          1132,
+          1600
+        ]
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-original-pages/page-02.png",
+        "kind": "regular",
+        "bytes": 356427,
+        "sha256": "c01ff9bc97fd4a30faa825866ce5a7423687ffb1709f3c161acebe758574e11a",
+        "pixel_dimensions": [
+          1132,
+          1600
+        ]
+      }
+    ],
+    "file_count": 248,
+    "total_bytes": 349763744,
+    "cleanup": "None; active exact ignored inventory retained. Original cache inputs remain read-only. No broad traversal/cleanup.",
+    "other_lstat_entries": [
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-mount",
+        "kind": "read-only-renderer-mount",
+        "descendants": "Excluded; tool binding separate",
+        "device": 16777237,
+        "inode": 2
+      }
+    ],
+    "inventory_stage": "Baseline snapshot, excludes mounted renderer descendants; root configs/profile/tool acquisition are root-owned. Final refresh after edited product QA."
+  },
+  "limitations": [
+    "No original artwork adaptation, asset redistribution, external linked resource acquisition or network.",
+    "No product tests/source freeze proof/implementation or final QA claim from feasibility.",
+    "Native preview attachments remain disposable local QA; PDFs/images are not canonical product fixtures or inferred rendered pages.",
+    "Earlier QuickLook and failed renderer confinement/export attempts remain preserved; genuine current IP-denied PDF success does not erase limitations or qualify edited outputs."
+  ],
+  "renderer_binding": {
+    "acquisition": {
+      "url": "https://download.documentfoundation.org/libreoffice/stable/26.8.0/mac/aarch64/LibreOffice_26.8.0_MacOS_aarch64.dmg",
+      "finalUrl": "https://southfront.mm.fcix.net/tdf/libreoffice/stable/26.8.0/mac/aarch64/LibreOffice_26.8.0_MacOS_aarch64.dmg",
+      "bytes": 298773447,
+      "sha256": "8858d8058da4f862f47559486814e65efc27294da67c5e4bb56b006b1ee59f89",
+      "version": "26.8.0",
+      "role": "QA-only portable paginated renderer; not product dependency",
+      "utc": "2026-09-15T03:24:44.673985+00:00"
+    },
+    "dmg_authenticated": true,
+    "readonly_mount": "tmp/docx71-layout-qa/libreoffice-mount",
+    "signature": "Root reported verification passed; not repeated by independent worker",
+    "mount_descendants_excluded": true
+  },
+  "baseline_paginated": {
+    "pdfs": [
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-original/circular-economy.pdf",
+        "sha256": "003244dd37a5ce6ca9f7fcbaab485b5627328afd31be8aa767a98142b8ba0d06",
+        "bytes": 4212813,
+        "pdfinfo": "Title:           Australia\u2019s circular economy: unlocking the opportunities\nSubject:         Inquiry report\nAuthor:          Productivity Commission\nCreator:         Writer\nProducer:        LibreOffice 26.8.0.3 (AARCH64)\nCreationDate:    Mon Sep 14 22:31:03 2026 CDT\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           167\nEncrypted:       no\nPage size:       595.304 x 841.89 pts (A4)\nPage rot:        0\nFile size:       4212813 bytes\nOptimized:       no\nPDF version:     1.7\n"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-original/wales-citizen-voice-easy-read.pdf",
+        "sha256": "b8ee886002d1ef00b1c0ed549772dc35a4c0fd41a9f3ff63ad1e4040f26e368d",
+        "bytes": 634082,
+        "pdfinfo": "Author:          User\nCreator:         Writer\nProducer:        LibreOffice 26.8.0.3 (AARCH64)\nCreationDate:    Mon Sep 14 22:31:43 2026 CDT\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           27\nEncrypted:       no\nPage size:       595.304 x 841.89 pts (A4)\nPage rot:        0\nFile size:       634082 bytes\nOptimized:       no\nPDF version:     1.7\n"
+      }
+    ],
+    "exports": [
+      {
+        "args": [
+          "/usr/bin/sandbox-exec",
+          "-f",
+          "/Users/kjopek/Workspace/poe-setup-scripts/tmp/docx71-layout-qa/renderer-ip-denied.sb",
+          "/Users/kjopek/Workspace/poe-setup-scripts/tmp/docx71-layout-qa/libreoffice-mount/LibreOffice.app/Contents/MacOS/soffice",
+          "-env:UserInstallation=file:///Users/kjopek/Workspace/poe-setup-scripts/tmp/docx71-layout-qa/libreoffice-profile",
+          "--headless",
+          "--nologo",
+          "--nodefault",
+          "--nofirststartwizard",
+          "--convert-to",
+          "pdf",
+          "--outdir",
+          "/Users/kjopek/Workspace/poe-setup-scripts/tmp/docx71-layout-qa/libreoffice-original",
+          "/Users/kjopek/Workspace/poe-setup-scripts/.cache/docx-corpus/circular-economy.docx"
+        ],
+        "returncode": 0,
+        "stdout": "convert /Users/kjopek/Workspace/poe-setup-scripts/.cache/docx-corpus/circular-economy.docx as a Writer document -> /Users/kjopek/Workspace/poe-setup-scripts/tmp/docx71-layout-qa/libreoffice-original/circular-economy.pdf using filter : writer_pdf_Export\n",
+        "stderr": "Fontconfig warning: no <cachedir> elements found. Check configuration.\nFontconfig warning: adding <cachedir>/usr/local/var/cache/fontconfig</cachedir>\nFontconfig warning: adding <cachedir prefix=\"xdg\">fontconfig</cachedir>\nFontconfig warning: no <cachedir> elements found. Check configuration.\nFontconfig warning: adding <cachedir>/usr/local/var/cache/fontconfig</cachedir>\nFontconfig warning: adding <cachedir prefix=\"xdg\">fontconfig</cachedir>\n",
+        "seconds": 12.867471624995233,
+        "sandbox": "IP inbound/outbound denied; Unix IPC allowed; exclusive profile/temp; no whole-host write confinement claim"
+      },
+      {
+        "args": [
+          "/usr/bin/sandbox-exec",
+          "-f",
+          "/Users/kjopek/Workspace/poe-setup-scripts/tmp/docx71-layout-qa/renderer-ip-denied.sb",
+          "/Users/kjopek/Workspace/poe-setup-scripts/tmp/docx71-layout-qa/libreoffice-mount/LibreOffice.app/Contents/MacOS/soffice",
+          "-env:UserInstallation=file:///Users/kjopek/Workspace/poe-setup-scripts/tmp/docx71-layout-qa/libreoffice-profile",
+          "--headless",
+          "--nologo",
+          "--nodefault",
+          "--nofirststartwizard",
+          "--convert-to",
+          "pdf",
+          "--outdir",
+          "/Users/kjopek/Workspace/poe-setup-scripts/tmp/docx71-layout-qa/libreoffice-original",
+          "/Users/kjopek/Workspace/poe-setup-scripts/.cache/docx-corpus/wales-citizen-voice-easy-read.docx"
+        ],
+        "returncode": 0,
+        "stdout": "convert /Users/kjopek/Workspace/poe-setup-scripts/.cache/docx-corpus/wales-citizen-voice-easy-read.docx as a Writer document -> /Users/kjopek/Workspace/poe-setup-scripts/tmp/docx71-layout-qa/libreoffice-original/wales-citizen-voice-easy-read.pdf using filter : writer_pdf_Export\n",
+        "stderr": "Fontconfig warning: no <cachedir> elements found. Check configuration.\nFontconfig warning: adding <cachedir>/usr/local/var/cache/fontconfig</cachedir>\nFontconfig warning: adding <cachedir prefix=\"xdg\">fontconfig</cachedir>\n",
+        "seconds": 5.022329875006108,
+        "environment": {
+          "TMPDIR": "/Users/kjopek/Workspace/poe-setup-scripts/tmp/docx71-layout-qa/reviewer-wales-temp/"
+        },
+        "sandbox": "IP inbound/outbound denied; Unix IPC allowed; exclusive profile/temp; no whole-host write confinement claim",
+        "source_unchanged": true,
+        "output_exists": true
+      }
+    ],
+    "rasterizations": [
+      {
+        "args": [
+          "/opt/homebrew/bin/pdftoppm",
+          "-f",
+          "1",
+          "-l",
+          "3",
+          "-scale-to",
+          "1600",
+          "-png",
+          "tmp/docx71-layout-qa/libreoffice-original/circular-economy.pdf",
+          "tmp/docx71-layout-qa/circular-original-pages/page"
+        ],
+        "returncode": 0,
+        "stdout": "",
+        "stderr": "",
+        "seconds": 1.4065455829986604
+      },
+      {
+        "args": [
+          "/opt/homebrew/bin/pdftoppm",
+          "-f",
+          "1",
+          "-l",
+          "2",
+          "-scale-to",
+          "1600",
+          "-png",
+          "tmp/docx71-layout-qa/libreoffice-original/wales-citizen-voice-easy-read.pdf",
+          "tmp/docx71-layout-qa/wales-original-pages/page"
+        ],
+        "returncode": 0,
+        "stdout": "",
+        "stderr": "",
+        "seconds": 1.8318783750000875
+      }
+    ],
+    "visual_inspection": [
+      {
+        "input": "circular-economy",
+        "pages": [
+          1,
+          2,
+          3
+        ],
+        "page_images": [
+          "tmp/docx71-layout-qa/circular-original-pages/page-001.png",
+          "tmp/docx71-layout-qa/circular-original-pages/page-002.png",
+          "tmp/docx71-layout-qa/circular-original-pages/page-003.png"
+        ],
+        "finding": "Actual A4 pagination established. Page1 original baseline combines cover/acknowledgement/about/copyright with anchor near acknowledgement; text crowding/overlap is baseline renderer behavior, never inferred product defect or Word accuracy. Page2reference, page3blanknumbered."
+      },
+      {
+        "input": "wales-citizen-voice-easy-read",
+        "pages": [
+          1,
+          2
+        ],
+        "page_images": [
+          "tmp/docx71-layout-qa/wales-original-pages/page-01.png",
+          "tmp/docx71-layout-qa/wales-original-pages/page-02.png"
+        ],
+        "finding": "Actual A4 pagination established; cover/page2 are readable and grouped imagery coherent. This demonstrates native baseline handling only, not product editing of groups. Page2 bottom figure extends/crops at page boundary; this is retained baseline limitation. Future product before/after use same renderer, no requirement to repair unrelated original baseline."
+      }
+    ],
+    "product_pass": false,
+    "word_layout_coordinate_accuracy_claim": false,
+    "root_visual_inspection": "Root inspected all5 actual baseline page PNGs; agrees original-only actual pagination, never fidelity/coordinate accuracy."
+  },
+  "edited_report_qa": {
+    "recorded_utc": "2026-09-15T04:15:27.555492+00:00",
+    "procedure": "docs/plans/docx-floating-image-layout.md#edited-report-qa-procedure",
+    "status": "completed_scoped_report_qualification_with_explicit_admission_and_branch_limits",
+    "immutable_baseline": {
+      "commit": "e1c691d6f20dff81a24d9b61887159eb978c78b6",
+      "sha256": "e05e3ce75bac4a6529c993393ae34f25ceeb970db3d5a13227d6550a8881bbbe",
+      "git_bytes_authenticated": true,
+      "all_original_baseline_fields_preserved": true
+    },
+    "original_inputs_authenticated_before_after": [
+      {
+        "path": ".cache/docx-corpus/circular-economy.docx",
+        "bytes": 8320866,
+        "sha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a"
+      },
+      {
+        "path": ".cache/docx-corpus/wales-citizen-voice-easy-read.docx",
+        "bytes": 4409375,
+        "sha256": "6742f9af325c2ead61f49d0152a2f7ab21f78c69fbafb01f85fcea24c7e396d5"
+      }
+    ],
+    "source_freeze": {
+      "source_count": 270,
+      "added": [],
+      "removed": [],
+      "changed": [],
+      "head": "e1c691d6f20dff81a24d9b61887159eb978c78b6",
+      "branch": "main",
+      "index": "",
+      "proof": "Current270path explicit source/Shell cohort reauthenticated after productcampaign; mounted/nativeQA tools excluded"
+    },
+    "successful_sdk_results": [
+      {
+        "label": "sdk-rotation-admitted",
+        "host": {
+          "work": 4294967296,
+          "retainedBytes": 2147483648,
+          "xmlNodes": 8000000
+        },
+        "archive_limits": {
+          "maxArchiveBytes": 16777216,
+          "maxEntryBytes": 33554432,
+          "maxTotalBytes": 134217728,
+          "maxMembers": 512,
+          "maxPathBytes": 1024,
+          "maxDepth": 64,
+          "maxExtraBytes": 65536,
+          "maxCommentBytes": 65535,
+          "maxRetainedBytes": 536870912,
+          "chunkSize": 65536
+        },
+        "options": {
+          "rotation": 5
+        },
+        "conservative_reservations_not_RSS": true,
+        "result": {
+          "changed": true,
+          "changes": [
+            {
+              "kind": "set",
+              "before": {
+                "kind": "image",
+                "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI0ODVhOWRjYjJmZjNiNjc5ZDRhODNmNDg2OTBmODYxNTliZjAxNWVmZWY3NjNhMTJjNjA0OTkzYzQ4NmMxNTRhIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwxLDEsNiwyLDEsMSwxLDIsMCw4LDAsMCwxLDBdLCJyYW5nZSI6bnVsbH0",
+                "value": {
+                  "version": 1,
+                  "sourceSha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+                  "generation": 0,
+                  "part": "/word/document.xml",
+                  "story": "/word/document.xml#body",
+                  "path": [
+                    0,
+                    1,
+                    1,
+                    6,
+                    2,
+                    1,
+                    1,
+                    1,
+                    2,
+                    0,
+                    8,
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "range": null
+                },
+                "positions": {
+                  "section": 2,
+                  "control": 1,
+                  "table": 1,
+                  "paragraph": 6,
+                  "run": 1,
+                  "image": 1
+                }
+              },
+              "after": {
+                "kind": "image",
+                "value": {
+                  "version": 1,
+                  "sourceSha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+                  "generation": 1,
+                  "part": "/word/document.xml",
+                  "story": "/word/document.xml#body",
+                  "path": [
+                    0,
+                    1,
+                    1,
+                    6,
+                    2,
+                    1,
+                    1,
+                    1,
+                    2,
+                    0,
+                    8,
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "range": null
+                },
+                "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI0ODVhOWRjYjJmZjNiNjc5ZDRhODNmNDg2OTBmODYxNTliZjAxNWVmZWY3NjNhMTJjNjA0OTkzYzQ4NmMxNTRhIiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwxLDEsNiwyLDEsMSwxLDIsMCw4LDAsMCwxLDBdLCJyYW5nZSI6bnVsbH0",
+                "positions": {
+                  "section": 2,
+                  "control": 1,
+                  "table": 1,
+                  "paragraph": 6,
+                  "run": 1,
+                  "image": 1
+                }
+              }
+            }
+          ],
+          "dryRun": false,
+          "output": {
+            "path": "-",
+            "bytes": 13686442,
+            "sha256": "ba2c5a4fdd93fad8cb53134490d05799a8ac00053cfeda2704e565403ff96fc1"
+          }
+        },
+        "bytes": 13686442,
+        "sha256": "ba2c5a4fdd93fad8cb53134490d05799a8ac00053cfeda2704e565403ff96fc1",
+        "exact_original": false,
+        "writes": 1,
+        "published_bytes": 13686442,
+        "seconds": 23.589,
+        "budget_usage": {
+          "compressedInput": 8320866,
+          "expandedPackage": 13664151,
+          "zipEntries": 193,
+          "xmlPartBytes": 0,
+          "xmlNodes": 2165202,
+          "xmlDepth": 0,
+          "embeddedMediaBytes": 0,
+          "retainedBytes": 1163588195,
+          "serializedOutput": 13686442,
+          "batchOperations": 0,
+          "matches": 0,
+          "insertedNodes": 45,
+          "tableCells": 0,
+          "tableRows": 0,
+          "tableColumns": 0,
+          "diagnosticBytes": 0,
+          "work": 2706242510
+        },
+        "original_sha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a"
+      },
+      {
+        "label": "sdk-axis-admitted",
+        "host": {
+          "work": 4294967296,
+          "retainedBytes": 2147483648,
+          "xmlNodes": 8000000
+        },
+        "archive_limits": {
+          "maxArchiveBytes": 16777216,
+          "maxEntryBytes": 33554432,
+          "maxTotalBytes": 134217728,
+          "maxMembers": 512,
+          "maxPathBytes": 1024,
+          "maxDepth": 64,
+          "maxExtraBytes": 65536,
+          "maxCommentBytes": 65535,
+          "maxRetainedBytes": 536870912,
+          "chunkSize": 65536
+        },
+        "options": {
+          "horizontalRelativeFrom": "page"
+        },
+        "conservative_reservations_not_RSS": true,
+        "result": {
+          "changed": true,
+          "changes": [
+            {
+              "kind": "set",
+              "before": {
+                "kind": "image",
+                "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI0ODVhOWRjYjJmZjNiNjc5ZDRhODNmNDg2OTBmODYxNTliZjAxNWVmZWY3NjNhMTJjNjA0OTkzYzQ4NmMxNTRhIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwxLDEsNiwyLDEsMSwxLDIsMCw4LDAsMCwxLDBdLCJyYW5nZSI6bnVsbH0",
+                "value": {
+                  "version": 1,
+                  "sourceSha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+                  "generation": 0,
+                  "part": "/word/document.xml",
+                  "story": "/word/document.xml#body",
+                  "path": [
+                    0,
+                    1,
+                    1,
+                    6,
+                    2,
+                    1,
+                    1,
+                    1,
+                    2,
+                    0,
+                    8,
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "range": null
+                },
+                "positions": {
+                  "section": 2,
+                  "control": 1,
+                  "table": 1,
+                  "paragraph": 6,
+                  "run": 1,
+                  "image": 1
+                }
+              },
+              "after": {
+                "kind": "image",
+                "value": {
+                  "version": 1,
+                  "sourceSha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+                  "generation": 1,
+                  "part": "/word/document.xml",
+                  "story": "/word/document.xml#body",
+                  "path": [
+                    0,
+                    1,
+                    1,
+                    6,
+                    2,
+                    1,
+                    1,
+                    1,
+                    2,
+                    0,
+                    8,
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "range": null
+                },
+                "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI0ODVhOWRjYjJmZjNiNjc5ZDRhODNmNDg2OTBmODYxNTliZjAxNWVmZWY3NjNhMTJjNjA0OTkzYzQ4NmMxNTRhIiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwxLDEsNiwyLDEsMSwxLDIsMCw4LDAsMCwxLDBdLCJyYW5nZSI6bnVsbH0",
+                "positions": {
+                  "section": 2,
+                  "control": 1,
+                  "table": 1,
+                  "paragraph": 6,
+                  "run": 1,
+                  "image": 1
+                }
+              }
+            }
+          ],
+          "dryRun": false,
+          "output": {
+            "path": "-",
+            "bytes": 13686427,
+            "sha256": "5fc830a2115199dd85bad6815e4318dc29a8e53f42a4942be06085fbb907d4cb"
+          }
+        },
+        "bytes": 13686427,
+        "sha256": "5fc830a2115199dd85bad6815e4318dc29a8e53f42a4942be06085fbb907d4cb",
+        "exact_original": false,
+        "writes": 1,
+        "published_bytes": 13686427,
+        "seconds": 23.745,
+        "budget_usage": {
+          "compressedInput": 8320866,
+          "expandedPackage": 13664151,
+          "zipEntries": 193,
+          "xmlPartBytes": 0,
+          "xmlNodes": 2165107,
+          "xmlDepth": 0,
+          "embeddedMediaBytes": 0,
+          "retainedBytes": 1163312188,
+          "serializedOutput": 13686427,
+          "batchOperations": 0,
+          "matches": 0,
+          "insertedNodes": 0,
+          "tableCells": 0,
+          "tableRows": 0,
+          "tableColumns": 0,
+          "diagnosticBytes": 0,
+          "work": 2706076911
+        },
+        "original_sha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a"
+      },
+      {
+        "label": "sdk-distance-admitted",
+        "host": {
+          "work": 4294967296,
+          "retainedBytes": 2147483648,
+          "xmlNodes": 8000000
+        },
+        "archive_limits": {
+          "maxArchiveBytes": 16777216,
+          "maxEntryBytes": 33554432,
+          "maxTotalBytes": 134217728,
+          "maxMembers": 512,
+          "maxPathBytes": 1024,
+          "maxDepth": 64,
+          "maxExtraBytes": 65536,
+          "maxCommentBytes": 65535,
+          "maxRetainedBytes": 536870912,
+          "chunkSize": 65536
+        },
+        "options": {
+          "distanceLeft": {
+            "value": 12700,
+            "unit": "emu"
+          }
+        },
+        "conservative_reservations_not_RSS": true,
+        "result": {
+          "changed": true,
+          "changes": [
+            {
+              "kind": "set",
+              "before": {
+                "kind": "image",
+                "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI0ODVhOWRjYjJmZjNiNjc5ZDRhODNmNDg2OTBmODYxNTliZjAxNWVmZWY3NjNhMTJjNjA0OTkzYzQ4NmMxNTRhIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwxLDEsNiwyLDEsMSwxLDIsMCw4LDAsMCwxLDBdLCJyYW5nZSI6bnVsbH0",
+                "value": {
+                  "version": 1,
+                  "sourceSha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+                  "generation": 0,
+                  "part": "/word/document.xml",
+                  "story": "/word/document.xml#body",
+                  "path": [
+                    0,
+                    1,
+                    1,
+                    6,
+                    2,
+                    1,
+                    1,
+                    1,
+                    2,
+                    0,
+                    8,
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "range": null
+                },
+                "positions": {
+                  "section": 2,
+                  "control": 1,
+                  "table": 1,
+                  "paragraph": 6,
+                  "run": 1,
+                  "image": 1
+                }
+              },
+              "after": {
+                "kind": "image",
+                "value": {
+                  "version": 1,
+                  "sourceSha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+                  "generation": 1,
+                  "part": "/word/document.xml",
+                  "story": "/word/document.xml#body",
+                  "path": [
+                    0,
+                    1,
+                    1,
+                    6,
+                    2,
+                    1,
+                    1,
+                    1,
+                    2,
+                    0,
+                    8,
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "range": null
+                },
+                "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI0ODVhOWRjYjJmZjNiNjc5ZDRhODNmNDg2OTBmODYxNTliZjAxNWVmZWY3NjNhMTJjNjA0OTkzYzQ4NmMxNTRhIiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwxLDEsNiwyLDEsMSwxLDIsMCw4LDAsMCwxLDBdLCJyYW5nZSI6bnVsbH0",
+                "positions": {
+                  "section": 2,
+                  "control": 1,
+                  "table": 1,
+                  "paragraph": 6,
+                  "run": 1,
+                  "image": 1
+                }
+              }
+            }
+          ],
+          "dryRun": false,
+          "output": {
+            "path": "-",
+            "bytes": 13686428,
+            "sha256": "81871d316434f7efbaa5c4809d4d78bf26dd5339002e555bf6d49397e4619e8c"
+          }
+        },
+        "bytes": 13686428,
+        "sha256": "81871d316434f7efbaa5c4809d4d78bf26dd5339002e555bf6d49397e4619e8c",
+        "exact_original": false,
+        "writes": 1,
+        "published_bytes": 13686428,
+        "seconds": 23.52,
+        "budget_usage": {
+          "compressedInput": 8320866,
+          "expandedPackage": 13664151,
+          "zipEntries": 193,
+          "xmlPartBytes": 0,
+          "xmlNodes": 2299287,
+          "xmlDepth": 0,
+          "embeddedMediaBytes": 0,
+          "retainedBytes": 1225284413,
+          "serializedOutput": 13686428,
+          "batchOperations": 0,
+          "matches": 0,
+          "insertedNodes": 0,
+          "tableCells": 0,
+          "tableRows": 0,
+          "tableColumns": 0,
+          "diagnosticBytes": 0,
+          "work": 2742943893
+        },
+        "original_sha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a"
+      },
+      {
+        "label": "sdk-aspect-admitted",
+        "host": {
+          "work": 4294967296,
+          "retainedBytes": 2147483648,
+          "xmlNodes": 8000000
+        },
+        "archive_limits": {
+          "maxArchiveBytes": 16777216,
+          "maxEntryBytes": 33554432,
+          "maxTotalBytes": 134217728,
+          "maxMembers": 512,
+          "maxPathBytes": 1024,
+          "maxDepth": 64,
+          "maxExtraBytes": 65536,
+          "maxCommentBytes": 65535,
+          "maxRetainedBytes": 536870912,
+          "chunkSize": 65536
+        },
+        "options": {
+          "lockAspect": false
+        },
+        "conservative_reservations_not_RSS": true,
+        "result": {
+          "changed": true,
+          "changes": [
+            {
+              "kind": "set",
+              "before": {
+                "kind": "image",
+                "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI0ODVhOWRjYjJmZjNiNjc5ZDRhODNmNDg2OTBmODYxNTliZjAxNWVmZWY3NjNhMTJjNjA0OTkzYzQ4NmMxNTRhIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwxLDEsNiwyLDEsMSwxLDIsMCw4LDAsMCwxLDBdLCJyYW5nZSI6bnVsbH0",
+                "value": {
+                  "version": 1,
+                  "sourceSha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+                  "generation": 0,
+                  "part": "/word/document.xml",
+                  "story": "/word/document.xml#body",
+                  "path": [
+                    0,
+                    1,
+                    1,
+                    6,
+                    2,
+                    1,
+                    1,
+                    1,
+                    2,
+                    0,
+                    8,
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "range": null
+                },
+                "positions": {
+                  "section": 2,
+                  "control": 1,
+                  "table": 1,
+                  "paragraph": 6,
+                  "run": 1,
+                  "image": 1
+                }
+              },
+              "after": {
+                "kind": "image",
+                "value": {
+                  "version": 1,
+                  "sourceSha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+                  "generation": 1,
+                  "part": "/word/document.xml",
+                  "story": "/word/document.xml#body",
+                  "path": [
+                    0,
+                    1,
+                    1,
+                    6,
+                    2,
+                    1,
+                    1,
+                    1,
+                    2,
+                    0,
+                    8,
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "range": null
+                },
+                "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI0ODVhOWRjYjJmZjNiNjc5ZDRhODNmNDg2OTBmODYxNTliZjAxNWVmZWY3NjNhMTJjNjA0OTkzYzQ4NmMxNTRhIiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwxLDEsNiwyLDEsMSwxLDIsMCw4LDAsMCwxLDBdLCJyYW5nZSI6bnVsbH0",
+                "positions": {
+                  "section": 2,
+                  "control": 1,
+                  "table": 1,
+                  "paragraph": 6,
+                  "run": 1,
+                  "image": 1
+                }
+              }
+            }
+          ],
+          "dryRun": false,
+          "output": {
+            "path": "-",
+            "bytes": 13686429,
+            "sha256": "f09d434475a1477f90cb43be83d2bdfd4f9be36837adce0af3a9928fcd18af8d"
+          }
+        },
+        "bytes": 13686429,
+        "sha256": "f09d434475a1477f90cb43be83d2bdfd4f9be36837adce0af3a9928fcd18af8d",
+        "exact_original": false,
+        "writes": 1,
+        "published_bytes": 13686429,
+        "seconds": 24.762,
+        "budget_usage": {
+          "compressedInput": 8320866,
+          "expandedPackage": 13664151,
+          "zipEntries": 193,
+          "xmlPartBytes": 0,
+          "xmlNodes": 2433467,
+          "xmlDepth": 0,
+          "embeddedMediaBytes": 0,
+          "retainedBytes": 1322398914,
+          "serializedOutput": 13686429,
+          "batchOperations": 0,
+          "matches": 0,
+          "insertedNodes": 0,
+          "tableCells": 0,
+          "tableRows": 0,
+          "tableColumns": 0,
+          "diagnosticBytes": 0,
+          "work": 2782584229
+        },
+        "original_sha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a"
+      },
+      {
+        "label": "sdk-noop-admitted",
+        "host": {
+          "work": 4294967296,
+          "retainedBytes": 2147483648,
+          "xmlNodes": 8000000
+        },
+        "archive_limits": {
+          "maxArchiveBytes": 16777216,
+          "maxEntryBytes": 33554432,
+          "maxTotalBytes": 134217728,
+          "maxMembers": 512,
+          "maxPathBytes": 1024,
+          "maxDepth": 64,
+          "maxExtraBytes": 65536,
+          "maxCommentBytes": 65535,
+          "maxRetainedBytes": 536870912,
+          "chunkSize": 65536
+        },
+        "options": {
+          "x": {
+            "value": 322,
+            "unit": "emu"
+          },
+          "y": {
+            "value": 46753,
+            "unit": "emu"
+          },
+          "allowOverlap": true,
+          "zOrder": 251658240
+        },
+        "conservative_reservations_not_RSS": true,
+        "result": {
+          "changed": false,
+          "changes": [],
+          "dryRun": false,
+          "output": {
+            "path": "-",
+            "bytes": 8320866,
+            "sha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a"
+          }
+        },
+        "bytes": 8320866,
+        "sha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+        "exact_original": true,
+        "writes": 1,
+        "published_bytes": 8320866,
+        "seconds": 31.891,
+        "budget_usage": {
+          "compressedInput": 16641732,
+          "expandedPackage": 27328302,
+          "zipEntries": 386,
+          "xmlPartBytes": 0,
+          "xmlNodes": 3072041,
+          "xmlDepth": 0,
+          "embeddedMediaBytes": 0,
+          "retainedBytes": 1465394034,
+          "serializedOutput": 8320866,
+          "batchOperations": 0,
+          "matches": 0,
+          "insertedNodes": 0,
+          "tableCells": 0,
+          "tableRows": 0,
+          "tableColumns": 0,
+          "diagnosticBytes": 0,
+          "work": 3005708188
+        },
+        "original_sha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a"
+      }
+    ],
+    "independent_package_comparisons": [
+      {
+        "label": "sdk-rotation-admitted",
+        "bytes": 13686442,
+        "sha256": "ba2c5a4fdd93fad8cb53134490d05799a8ac00053cfeda2704e565403ff96fc1",
+        "members": 193,
+        "member_order_identical": true,
+        "changed_members": [
+          "word/document.xml"
+        ],
+        "all_media_byte_identical": true,
+        "media_count": 43,
+        "all_relationships_byte_identical": true,
+        "relationship_count": 18,
+        "raw_xml_outside_selected_anchor_identical": true,
+        "semantic_xml_after_restoring_requested_attributes_identical": true,
+        "native_verified": {
+          "rotation_units": 300000,
+          "degrees": 5
+        }
+      },
+      {
+        "label": "sdk-axis-admitted",
+        "bytes": 13686427,
+        "sha256": "5fc830a2115199dd85bad6815e4318dc29a8e53f42a4942be06085fbb907d4cb",
+        "members": 193,
+        "member_order_identical": true,
+        "changed_members": [
+          "word/document.xml"
+        ],
+        "all_media_byte_identical": true,
+        "media_count": 43,
+        "all_relationships_byte_identical": true,
+        "relationship_count": 18,
+        "raw_xml_outside_selected_anchor_identical": true,
+        "semantic_xml_after_restoring_requested_attributes_identical": true,
+        "native_verified": {
+          "horizontalRelativeFrom": "page"
+        }
+      },
+      {
+        "label": "sdk-distance-admitted",
+        "bytes": 13686428,
+        "sha256": "81871d316434f7efbaa5c4809d4d78bf26dd5339002e555bf6d49397e4619e8c",
+        "members": 193,
+        "member_order_identical": true,
+        "changed_members": [
+          "word/document.xml"
+        ],
+        "all_media_byte_identical": true,
+        "media_count": 43,
+        "all_relationships_byte_identical": true,
+        "relationship_count": 18,
+        "raw_xml_outside_selected_anchor_identical": true,
+        "semantic_xml_after_restoring_requested_attributes_identical": true,
+        "native_verified": {
+          "anchorDistanceLeftEmu": 12700
+        }
+      },
+      {
+        "label": "sdk-aspect-admitted",
+        "bytes": 13686429,
+        "sha256": "f09d434475a1477f90cb43be83d2bdfd4f9be36837adce0af3a9928fcd18af8d",
+        "members": 193,
+        "member_order_identical": true,
+        "changed_members": [
+          "word/document.xml"
+        ],
+        "all_media_byte_identical": true,
+        "media_count": 43,
+        "all_relationships_byte_identical": true,
+        "relationship_count": 18,
+        "raw_xml_outside_selected_anchor_identical": true,
+        "semantic_xml_after_restoring_requested_attributes_identical": true,
+        "native_verified": {
+          "graphicFrameNoChangeAspect": false,
+          "pictureNoChangeAspect": false,
+          "otherLocksPreserved": true
+        }
+      }
+    ],
+    "active_wales_refusal": {
+      "profile": "trusted hostwork4GiB;512MiB retained; active VML grouped alternate carrier",
+      "selection": {
+        "kind": "image",
+        "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI2NzQyZjlhZjMyNWMyZWFkNjFmNDlkMDE1MmEyZjdhYjIxZjc4YzY5ZmJhZmIwMWY4NWZjZWEyNGM3ZTM5NmQ1IiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMSwxLDAsMCwzLDIsMF0sInJhbmdlIjpudWxsfQ",
+        "value": {
+          "version": 1,
+          "sourceSha256": "6742f9af325c2ead61f49d0152a2f7ab21f78c69fbafb01f85fcea24c7e396d5",
+          "generation": 0,
+          "part": "/word/document.xml",
+          "story": "/word/document.xml#body",
+          "path": [
+            0,
+            0,
+            1,
+            1,
+            1,
+            0,
+            0,
+            3,
+            2,
+            0
+          ],
+          "range": null
+        },
+        "positions": {
+          "section": 1,
+          "paragraph": 1,
+          "run": 1,
+          "image": 1
+        }
+      },
+      "options": {
+        "width": {
+          "value": 914400,
+          "unit": "emu"
+        }
+      },
+      "initial_native_choice_inactive": true,
+      "error": {
+        "code": "unsupported-edit",
+        "message": "Selected image metadata cannot be edited coherently."
+      },
+      "writes": 0,
+      "bytes": 0,
+      "seconds": 8.069,
+      "budget_usage": {
+        "compressedInput": 4409375,
+        "expandedPackage": 5404034,
+        "zipEntries": 155,
+        "xmlPartBytes": 0,
+        "xmlNodes": 182420,
+        "xmlDepth": 0,
+        "embeddedMediaBytes": 0,
+        "retainedBytes": 361710579,
+        "serializedOutput": 0,
+        "batchOperations": 0,
+        "matches": 0,
+        "insertedNodes": 0,
+        "tableCells": 0,
+        "tableRows": 0,
+        "tableColumns": 0,
+        "diagnosticBytes": 0,
+        "work": 774853584
+      },
+      "input_unchanged": true
+    },
+    "actual_shell_report": {
+      "label": "shell-edited-original-default-work",
+      "command": "docx images set input.docx --select 'docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI0ODVhOWRjYjJmZjNiNjc5ZDRhODNmNDg2OTBmODYxNTliZjAxNWVmZWY3NjNhMTJjNjA0OTkzYzQ4NmMxNTRhIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwxLDEsNiwyLDEsMSwxLDIsMCw4LDAsMCwxLDBdLCJyYW5nZSI6bnVsbH0' --horizontal-relative-from page --vertical-relative-from page --x 914400emu --y 914400emu --distance-left 12700emu --lock-aspect false --rotation 5 --output edited.docx --json",
+      "exitCode": 4,
+      "stderr": "docx: Document operation failed: limit-exceeded\n",
+      "stdout": "{\"version\":1,\"operation\":\"images.set\",\"ok\":false,\"data\":null,\"warnings\":[],\"errors\":[{\"code\":\"limit-exceeded\",\"message\":\"Document operation failed: limit-exceeded\"}],\"affected\":0,\"locations\":[]}\n",
+      "bytes": 0,
+      "sha256": null,
+      "input_unchanged": true,
+      "seconds": 3.252
+    },
+    "renderer_export": {
+      "args": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "/Users/kjopek/Workspace/poe-setup-scripts/tmp/docx71-layout-qa/renderer-ip-denied.sb",
+        "/Users/kjopek/Workspace/poe-setup-scripts/tmp/docx71-layout-qa/libreoffice-mount/LibreOffice.app/Contents/MacOS/soffice",
+        "-env:UserInstallation=file:///Users/kjopek/Workspace/poe-setup-scripts/tmp/docx71-layout-qa/libreoffice-profile",
+        "--headless",
+        "--nologo",
+        "--nodefault",
+        "--nofirststartwizard",
+        "--convert-to",
+        "pdf",
+        "--outdir",
+        "/Users/kjopek/Workspace/poe-setup-scripts/tmp/docx71-layout-qa/edited-product-v1/rotation-pdf",
+        "/Users/kjopek/Workspace/poe-setup-scripts/tmp/docx71-layout-qa/edited-product-v1/sdk-rotation-admitted.docx"
+      ],
+      "returncode": 0,
+      "stdout": "convert /Users/kjopek/Workspace/poe-setup-scripts/tmp/docx71-layout-qa/edited-product-v1/sdk-rotation-admitted.docx as a Writer document -> /Users/kjopek/Workspace/poe-setup-scripts/tmp/docx71-layout-qa/edited-product-v1/rotation-pdf/sdk-rotation-admitted.pdf using filter : writer_pdf_Export\n",
+      "stderr": "Fontconfig warning: no <cachedir> elements found. Check configuration.\nFontconfig warning: adding <cachedir>/usr/local/var/cache/fontconfig</cachedir>\nFontconfig warning: adding <cachedir prefix=\"xdg\">fontconfig</cachedir>\n",
+      "seconds": 9.876327707999735,
+      "external_timeout_seconds": 120,
+      "network": "IP inbound/outbound denied; UnixIPC permitted",
+      "write_isolation": "exclusive profile/temp/output; no whole-host write confinement claim",
+      "source_sha256_after": "ba2c5a4fdd93fad8cb53134490d05799a8ac00053cfeda2704e565403ff96fc1"
+    },
+    "actual_pdf_and_rasterization": {
+      "pdf_bytes": 4235529,
+      "pdf_sha256": "8d3152b748fb0496456d8d013a01a708725cb1c93c3f83a3757c5ea6aabfb2d7",
+      "runs": [
+        {
+          "args": [
+            "pdfinfo",
+            "tmp/docx71-layout-qa/edited-product-v1/rotation-pdf/sdk-rotation-admitted.pdf"
+          ],
+          "returncode": 0,
+          "stdout": "Title:           Australia\u2019s circular economy: unlocking the opportunities\nSubject:         Inquiry report\nAuthor:          Productivity Commission\nCreator:         Writer\nProducer:        LibreOffice 26.8.0.3 (AARCH64)\nCreationDate:    Mon Sep 14 23:11:10 2026 CDT\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           167\nEncrypted:       no\nPage size:       595.304 x 841.89 pts (A4)\nPage rot:        0\nFile size:       4235529 bytes\nOptimized:       no\nPDF version:     1.7\n",
+          "stderr": "",
+          "seconds": 0.11740329199528787,
+          "external_timeout_seconds": 45
+        },
+        {
+          "args": [
+            "pdftoppm",
+            "-f",
+            "1",
+            "-l",
+            "3",
+            "-scale-to",
+            "1600",
+            "-png",
+            "tmp/docx71-layout-qa/edited-product-v1/rotation-pdf/sdk-rotation-admitted.pdf",
+            "tmp/docx71-layout-qa/edited-product-v1/rotation-pages/page"
+          ],
+          "returncode": 0,
+          "stdout": "",
+          "stderr": "",
+          "seconds": 0.581058124997071,
+          "external_timeout_seconds": 45
+        }
+      ]
+    },
+    "visual_comparison": {
+      "method": "Actual PNG visual inspection plus SHA256/bytecomparison and PNGIHDR dimensions; no decodedpixelmetrics claim",
+      "pages": [
+        {
+          "page": 1,
+          "baseline_path": "tmp/docx71-layout-qa/circular-original-pages/page-001.png",
+          "edited_path": "tmp/docx71-layout-qa/edited-product-v1/rotation-pages/page-001.png",
+          "dimensions": [
+            1132,
+            1600
+          ],
+          "png_byte_identical": false,
+          "baseline_sha256": "4147ccbaac1b035dd25edf8fa34b99812e18245bae98a2194cfb934279e8e971",
+          "edited_sha256": "4aaa76ccb8070cf36484b4b7f51befcfcbc57826cc663690c00e0393e6a5448c"
+        },
+        {
+          "page": 2,
+          "baseline_path": "tmp/docx71-layout-qa/circular-original-pages/page-002.png",
+          "edited_path": "tmp/docx71-layout-qa/edited-product-v1/rotation-pages/page-002.png",
+          "dimensions": [
+            1132,
+            1600
+          ],
+          "png_byte_identical": true,
+          "baseline_sha256": "65708b8ce3af639071d840958412b493174b6cce05fdbaa8b0c8319748040cd8",
+          "edited_sha256": "65708b8ce3af639071d840958412b493174b6cce05fdbaa8b0c8319748040cd8"
+        },
+        {
+          "page": 3,
+          "baseline_path": "tmp/docx71-layout-qa/circular-original-pages/page-003.png",
+          "edited_path": "tmp/docx71-layout-qa/edited-product-v1/rotation-pages/page-003.png",
+          "dimensions": [
+            1132,
+            1600
+          ],
+          "png_byte_identical": true,
+          "baseline_sha256": "2bf21706004467a7b98d0009b46373af6d5b8d0cc0d779edd4e280b1f3227a1e",
+          "edited_sha256": "2bf21706004467a7b98d0009b46373af6d5b8d0cc0d779edd4e280b1f3227a1e"
+        }
+      ],
+      "visual_inspection": {
+        "page1": "Cover/copyright composite and acknowledgment-symbol/text overlap already present in baseline. Small symbol shows subtle5degree rotation. Surrounding text/photo/page margins remain visually unchanged; no new gross clipping observed.",
+        "page2": "Reference panel, large blank region and roman footer remain unchanged.",
+        "page3": "Blank numbered page remains unchanged.",
+        "before_after_page_count": 167,
+        "scope": "Only first3representative actualpages inspected; not all167",
+        "word_parity_claim": false,
+        "coordinate_accuracy_claim": false
+      },
+      "root_independent_visual_approval": {
+        "inspected_pages": [
+          1,
+          2,
+          3
+        ],
+        "baseline_page1_inspected": true,
+        "finding": "Baseline cover/ack/copyright overlap persists; blueackicon subtle rotation; page2recognizable; page3blank numbered; no newgrossclipping seen; noWord/coordinate/all167claim",
+        "event_time": "Not recorded; explicit root approval message received during this campaign"
+      },
+      "optional_pixel_probe": {
+        "status": "unavailable",
+        "error": "ModuleNotFoundError: No module named PIL",
+        "dependencies_added": false,
+        "pixel_metrics_claim": false
+      }
+    },
+    "final_outcome_denominators": {
+      "single_field_sdk_writes_pass": 4,
+      "single_field_sdk_writes_attempted": 4,
+      "exact_original_typed_noop_pass": 1,
+      "exact_original_typed_noop_attempted": 1,
+      "active_grouped_vml_refusal_zero_output_pass": 1,
+      "active_grouped_vml_refusal_attempted": 1,
+      "actual_shell_original_report_admission_refusal_exit4": 1,
+      "report_shell_successful_output_parity_qualified": false,
+      "edited_actual_pages_inspected": 3,
+      "actual_pdf_pages": 167,
+      "all167pages_inspected": false
+    },
+    "bounded_profiles": {
+      "archive_limits": {
+        "maxArchiveBytes": 16777216,
+        "maxEntryBytes": 33554432,
+        "maxTotalBytes": 134217728,
+        "maxMembers": 512,
+        "maxPathBytes": 1024,
+        "maxDepth": 64,
+        "maxExtraBytes": 65536,
+        "maxCommentBytes": 65535,
+        "maxRetainedBytes": 536870912,
+        "chunkSize": 65536
+      },
+      "default_work_bytes": 536870912,
+      "first_raised_work_only": {
+        "work": 4294967296,
+        "retainedBytes": 536870912
+      },
+      "final_authorized_sdk_host": {
+        "work": 4294967296,
+        "retainedBytes": 2147483648,
+        "xmlNodes": 8000000
+      },
+      "remaining_ceilings_unchanged": true,
+      "external_timeout_seconds_per_final_sdk_operation": 120,
+      "cumulative_conservative_reservations_are_not_actual_RSS": true,
+      "no_product_default_or_source_changes": true
+    },
+    "preserved_attempts": {
+      "default_sdk_work_refusal": {
+        "limits": {
+          "maxArchiveBytes": 16777216,
+          "maxEntryBytes": 33554432,
+          "maxTotalBytes": 134217728,
+          "maxMembers": 512,
+          "maxPathBytes": 1024,
+          "maxDepth": 64,
+          "maxExtraBytes": 65536,
+          "maxCommentBytes": 65535,
+          "maxRetainedBytes": 536870912,
+          "chunkSize": 65536
+        },
+        "runs": [
+          {
+            "kind": "inventory",
+            "input": "circular-economy",
+            "error": {
+              "code": "limit-exceeded",
+              "message": "Document work limit exceeded."
+            },
+            "seconds": 0.698
+          }
+        ]
+      },
+      "raised_sdk_selector_attempt": {
+        "limits": {
+          "maxArchiveBytes": 16777216,
+          "maxEntryBytes": 33554432,
+          "maxTotalBytes": 134217728,
+          "maxMembers": 512,
+          "maxPathBytes": 1024,
+          "maxDepth": 64,
+          "maxExtraBytes": 65536,
+          "maxCommentBytes": 65535,
+          "maxRetainedBytes": 536870912,
+          "chunkSize": 65536
+        },
+        "host": {
+          "work": 4294967296
+        },
+        "runs": [
+          {
+            "label": "sdk-inventory",
+            "input": "circular-economy",
+            "count": 92,
+            "selected": {
+              "kind": "image",
+              "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI0ODVhOWRjYjJmZjNiNjc5ZDRhODNmNDg2OTBmODYxNTliZjAxNWVmZWY3NjNhMTJjNjA0OTkzYzQ4NmMxNTRhIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwxLDEsNiwyLDEsMSwxLDIsMCw4LDAsMCwxLDBdLCJyYW5nZSI6bnVsbH0",
+              "value": {
+                "version": 1,
+                "sourceSha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+                "generation": 0,
+                "part": "/word/document.xml",
+                "story": "/word/document.xml#body",
+                "path": [
+                  0,
+                  1,
+                  1,
+                  6,
+                  2,
+                  1,
+                  1,
+                  1,
+                  2,
+                  0,
+                  8,
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                "range": null
+              },
+              "positions": {
+                "section": 2,
+                "control": 1,
+                "table": 1,
+                "paragraph": 6,
+                "run": 1,
+                "image": 1
+              }
+            },
+            "details": {
+              "kind": "images",
+              "part": "/word/media/image2.emf",
+              "mime": "image/emf",
+              "declaredMime": "image/x-emf",
+              "bytes": 33108,
+              "sha256": "598ae4476ff308a39beb351bcdca490dc66225f7379889e5b657d5276c348bca",
+              "pixelWidth": null,
+              "pixelHeight": null,
+              "widthEmu": 630000,
+              "heightEmu": 637200,
+              "placement": "floating",
+              "crop": null,
+              "rotation": null,
+              "flipHorizontal": null,
+              "flipVertical": null,
+              "wrapText": "bothSides",
+              "wrapPolygon": null,
+              "distances": {
+                "top": 0,
+                "bottom": 0,
+                "left": 114300,
+                "right": 114300
+              },
+              "allowOverlap": true,
+              "behindText": false,
+              "lockAspect": true,
+              "wrap": "square",
+              "zOrder": 251658240,
+              "horizontalPosition": {
+                "relativeFrom": "column",
+                "offsetEmu": 322,
+                "alignment": null
+              },
+              "verticalPosition": {
+                "relativeFrom": "paragraph",
+                "offsetEmu": 46753,
+                "alignment": null
+              },
+              "alt": null,
+              "decorative": null,
+              "owners": [
+                {
+                  "kind": "image",
+                  "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI0ODVhOWRjYjJmZjNiNjc5ZDRhODNmNDg2OTBmODYxNTliZjAxNWVmZWY3NjNhMTJjNjA0OTkzYzQ4NmMxNTRhIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwxLDEsNiwyLDEsMSwxLDIsMCw4LDAsMCwxLDBdLCJyYW5nZSI6bnVsbH0",
+                  "value": {
+                    "version": 1,
+                    "sourceSha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+                    "generation": 0,
+                    "part": "/word/document.xml",
+                    "story": "/word/document.xml#body",
+                    "path": [
+                      0,
+                      1,
+                      1,
+                      6,
+                      2,
+                      1,
+                      1,
+                      1,
+                      2,
+                      0,
+                      8,
+                      0,
+                      0,
+                      1,
+                      0
+                    ],
+                    "range": null
+                  },
+                  "positions": {
+                    "section": 2,
+                    "control": 1,
+                    "table": 1,
+                    "paragraph": 6,
+                    "run": 1,
+                    "image": 1
+                  }
+                }
+              ],
+              "fallbackPart": null,
+              "alternateParts": [],
+              "linked": false
+            },
+            "warnings": [
+              {
+                "code": "unrecognized-image-type",
+                "message": "Image bytes have an unknown or mismatched declared media type; exact bytes remain preserved."
+              },
+              {
+                "code": "unrecognized-image-metadata",
+                "message": "Missing, invalid or unsupported image metadata remains null; no layout or decoding is inferred."
+              }
+            ],
+            "budget_usage": {
+              "compressedInput": 8320866,
+              "expandedPackage": 13664151,
+              "zipEntries": 193,
+              "xmlPartBytes": 0,
+              "xmlNodes": 506520,
+              "xmlDepth": 0,
+              "embeddedMediaBytes": 0,
+              "retainedBytes": 288011224,
+              "serializedOutput": 0,
+              "batchOperations": 0,
+              "matches": 0,
+              "insertedNodes": 0,
+              "tableCells": 0,
+              "tableRows": 0,
+              "tableColumns": 0,
+              "diagnosticBytes": 0,
+              "work": 1075500807
+            },
+            "seconds": 9.634
+          },
+          {
+            "label": "sdk-inventory",
+            "input": "wales-citizen-voice-easy-read",
+            "error": {
+              "code": "ERR_ASSERTION",
+              "message": "undefined == true"
+            },
+            "budget_usage": {
+              "compressedInput": 4409375,
+              "expandedPackage": 5404034,
+              "zipEntries": 155,
+              "xmlPartBytes": 0,
+              "xmlNodes": 67919,
+              "xmlDepth": 0,
+              "embeddedMediaBytes": 0,
+              "retainedBytes": 164117007,
+              "serializedOutput": 0,
+              "batchOperations": 0,
+              "matches": 0,
+              "insertedNodes": 0,
+              "tableCells": 0,
+              "tableRows": 0,
+              "tableColumns": 0,
+              "diagnosticBytes": 0,
+              "work": 494823870
+            }
+          }
+        ]
+      },
+      "raised_work_only_edit_and_noop_refusals": {
+        "limits": {
+          "maxArchiveBytes": 16777216,
+          "maxEntryBytes": 33554432,
+          "maxTotalBytes": 134217728,
+          "maxMembers": 512,
+          "maxPathBytes": 1024,
+          "maxDepth": 64,
+          "maxExtraBytes": 65536,
+          "maxCommentBytes": 65535,
+          "maxRetainedBytes": 536870912,
+          "chunkSize": 65536
+        },
+        "host": {
+          "work": 4294967296
+        },
+        "default_work": 536870912,
+        "encoding": {
+          "order": "input",
+          "compression": "store"
+        },
+        "product_import": "packages/docx/dist/index.js public SDK",
+        "selected": {
+          "kind": "image",
+          "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI0ODVhOWRjYjJmZjNiNjc5ZDRhODNmNDg2OTBmODYxNTliZjAxNWVmZWY3NjNhMTJjNjA0OTkzYzQ4NmMxNTRhIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwxLDEsNiwyLDEsMSwxLDIsMCw4LDAsMCwxLDBdLCJyYW5nZSI6bnVsbH0",
+          "value": {
+            "version": 1,
+            "sourceSha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+            "generation": 0,
+            "part": "/word/document.xml",
+            "story": "/word/document.xml#body",
+            "path": [
+              0,
+              1,
+              1,
+              6,
+              2,
+              1,
+              1,
+              1,
+              2,
+              0,
+              8,
+              0,
+              0,
+              1,
+              0
+            ],
+            "range": null
+          },
+          "positions": {
+            "section": 2,
+            "control": 1,
+            "table": 1,
+            "paragraph": 6,
+            "run": 1,
+            "image": 1
+          }
+        },
+        "runs": [
+          {
+            "label": "sdk-edited",
+            "options": {
+              "horizontalRelativeFrom": "page",
+              "verticalRelativeFrom": "page",
+              "x": {
+                "value": 914400,
+                "unit": "emu"
+              },
+              "y": {
+                "value": 914400,
+                "unit": "emu"
+              },
+              "distanceLeft": {
+                "value": 12700,
+                "unit": "emu"
+              },
+              "lockAspect": false,
+              "rotation": 5
+            },
+            "error": {
+              "code": "limit-exceeded",
+              "message": "Document retainedBytes limit exceeded."
+            },
+            "writes": 0,
+            "bytes": 0,
+            "budget_usage": {
+              "compressedInput": 8320866,
+              "expandedPackage": 13664151,
+              "zipEntries": 193,
+              "xmlPartBytes": 0,
+              "xmlNodes": 1023370,
+              "xmlDepth": 0,
+              "embeddedMediaBytes": 0,
+              "retainedBytes": 526184510,
+              "serializedOutput": 0,
+              "batchOperations": 0,
+              "matches": 0,
+              "insertedNodes": 0,
+              "tableCells": 0,
+              "tableRows": 0,
+              "tableColumns": 0,
+              "diagnosticBytes": 0,
+              "work": 1456088292
+            },
+            "input_unchanged": true,
+            "seconds": 13.096
+          },
+          {
+            "label": "sdk-noop",
+            "options": {
+              "x": {
+                "value": 322,
+                "unit": "emu"
+              },
+              "y": {
+                "value": 46753,
+                "unit": "emu"
+              },
+              "allowOverlap": true,
+              "zOrder": 251658240
+            },
+            "error": {
+              "code": "limit-exceeded",
+              "message": "Document retainedBytes limit exceeded."
+            },
+            "writes": 0,
+            "bytes": 0,
+            "budget_usage": {
+              "compressedInput": 8320866,
+              "expandedPackage": 13664151,
+              "zipEntries": 193,
+              "xmlPartBytes": 0,
+              "xmlNodes": 1023370,
+              "xmlDepth": 0,
+              "embeddedMediaBytes": 0,
+              "retainedBytes": 526184499,
+              "serializedOutput": 0,
+              "batchOperations": 0,
+              "matches": 0,
+              "insertedNodes": 0,
+              "tableCells": 0,
+              "tableRows": 0,
+              "tableColumns": 0,
+              "diagnosticBytes": 0,
+              "work": 1456088292
+            },
+            "input_unchanged": true,
+            "seconds": 12.537
+          },
+          {
+            "label": "shell-edited-original-default-work",
+            "command": "docx images set input.docx --select 'docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI0ODVhOWRjYjJmZjNiNjc5ZDRhODNmNDg2OTBmODYxNTliZjAxNWVmZWY3NjNhMTJjNjA0OTkzYzQ4NmMxNTRhIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwxLDEsNiwyLDEsMSwxLDIsMCw4LDAsMCwxLDBdLCJyYW5nZSI6bnVsbH0' --horizontal-relative-from page --vertical-relative-from page --x 914400emu --y 914400emu --distance-left 12700emu --lock-aspect false --rotation 5 --output edited.docx --json",
+            "exitCode": 4,
+            "stderr": "docx: Document operation failed: limit-exceeded\n",
+            "stdout": "{\"version\":1,\"operation\":\"images.set\",\"ok\":false,\"data\":null,\"warnings\":[],\"errors\":[{\"code\":\"limit-exceeded\",\"message\":\"Document operation failed: limit-exceeded\"}],\"affected\":0,\"locations\":[]}\n",
+            "bytes": 0,
+            "sha256": null,
+            "input_unchanged": true,
+            "seconds": 3.252
+          }
+        ]
+      },
+      "combined_seven_field_final_profile_refusal": {
+        "label": "sdk-edited-admitted",
+        "host": {
+          "work": 4294967296,
+          "retainedBytes": 2147483648,
+          "xmlNodes": 8000000
+        },
+        "archive_limits": {
+          "maxArchiveBytes": 16777216,
+          "maxEntryBytes": 33554432,
+          "maxTotalBytes": 134217728,
+          "maxMembers": 512,
+          "maxPathBytes": 1024,
+          "maxDepth": 64,
+          "maxExtraBytes": 65536,
+          "maxCommentBytes": 65535,
+          "maxRetainedBytes": 536870912,
+          "chunkSize": 65536
+        },
+        "options": {
+          "horizontalRelativeFrom": "page",
+          "verticalRelativeFrom": "page",
+          "x": {
+            "value": 914400,
+            "unit": "emu"
+          },
+          "y": {
+            "value": 914400,
+            "unit": "emu"
+          },
+          "distanceLeft": {
+            "value": 12700,
+            "unit": "emu"
+          },
+          "lockAspect": false,
+          "rotation": 5
+        },
+        "conservative_reservations_not_RSS": true,
+        "error": {
+          "code": "limit-exceeded",
+          "message": "Document retainedBytes limit exceeded."
+        },
+        "writes": 0,
+        "published_bytes": 0,
+        "seconds": 31.128,
+        "budget_usage": {
+          "compressedInput": 8320866,
+          "expandedPackage": 13664151,
+          "zipEntries": 193,
+          "xmlPartBytes": 0,
+          "xmlNodes": 3946609,
+          "xmlDepth": 0,
+          "embeddedMediaBytes": 0,
+          "retainedBytes": 2131699288,
+          "serializedOutput": 0,
+          "batchOperations": 0,
+          "matches": 0,
+          "insertedNodes": 45,
+          "tableCells": 0,
+          "tableRows": 0,
+          "tableColumns": 0,
+          "diagnosticBytes": 0,
+          "work": 2324272300
+        },
+        "original_sha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a"
+      },
+      "combined_external_supervision": {
+        "returncode": 0,
+        "stdout": "{\"label\":\"sdk-edited-admitted\",\"error\":{\"code\":\"limit-exceeded\",\"message\":\"Document retainedBytes limit exceeded.\"},\"seconds\":31.128,\"work\":2324272300,\"retained\":2131699288,\"nodes\":3946609}\n",
+        "stderr": "",
+        "seconds": 31.670984958007466,
+        "external_timeout_seconds": 120
+      },
+      "optional_decoded_pixel_probe": {
+        "status": "unavailable",
+        "error": "ModuleNotFoundError: No module named PIL",
+        "dependencies_added": false,
+        "pixel_metrics_claim": false
+      },
+      "reduction_first_inline_attempt": {
+        "error": "QA harness SyntaxError before execution; reduction repeated in smaller inline commands",
+        "product_mutation": false,
+        "saved_script": false
+      },
+      "QA_selector_assertion_failure_not_product_defect": true,
+      "no_failed_product_operation_counted_as_success": true
+    },
+    "branch_selection": {
+      "initial_independent_native_choice": {
+        "blip_path": [
+          0,
+          0,
+          1,
+          1,
+          0,
+          0,
+          0,
+          8,
+          0,
+          0,
+          4,
+          4,
+          1,
+          0
+        ],
+        "anchor_path": [
+          0,
+          0,
+          1,
+          1,
+          0,
+          0,
+          0
+        ],
+        "docPr": {
+          "id": "236",
+          "name": "Group 236"
+        },
+        "picture_count": 3,
+        "grouped": true,
+        "embed": "rId12",
+        "anchor_attributes": {
+          "distT": "0",
+          "distB": "0",
+          "distL": "114300",
+          "distR": "114300",
+          "simplePos": "0",
+          "relativeHeight": "251661366",
+          "behindDoc": "1",
+          "locked": "0",
+          "layoutInCell": "1",
+          "allowOverlap": "1",
+          "{http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing}anchorId": "08C4FB18",
+          "{http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing}editId": "2EA87975"
+        },
+        "horizontal": "<ns0:positionH xmlns:ns0=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\" relativeFrom=\"column\"><ns0:posOffset>-1432560</ns0:posOffset></ns0:positionH>",
+        "vertical": "<ns0:positionV xmlns:ns0=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\" relativeFrom=\"paragraph\"><ns0:posOffset>-601345</ns0:posOffset></ns0:positionV>",
+        "extent": {
+          "cx": "8580120",
+          "cy": "10927080"
+        }
+      },
+      "actual_public_active_selection": {
+        "selected": {
+          "location": {
+            "kind": "image",
+            "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI2NzQyZjlhZjMyNWMyZWFkNjFmNDlkMDE1MmEyZjdhYjIxZjc4YzY5ZmJhZmIwMWY4NWZjZWEyNGM3ZTM5NmQ1IiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMSwxLDAsMCwzLDIsMF0sInJhbmdlIjpudWxsfQ",
+            "value": {
+              "version": 1,
+              "sourceSha256": "6742f9af325c2ead61f49d0152a2f7ab21f78c69fbafb01f85fcea24c7e396d5",
+              "generation": 0,
+              "part": "/word/document.xml",
+              "story": "/word/document.xml#body",
+              "path": [
+                0,
+                0,
+                1,
+                1,
+                1,
+                0,
+                0,
+                3,
+                2,
+                0
+              ],
+              "range": null
+            },
+            "positions": {
+              "section": 1,
+              "paragraph": 1,
+              "run": 1,
+              "image": 1
+            }
+          },
+          "node_name": "{urn:schemas-microsoft-com:vml}imagedata",
+          "node_attributes": {
+            "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id": "rId15",
+            "{urn:schemas-microsoft-com:office:office}title": "Text\n\nDescription automatically generated"
+          },
+          "ancestor_names": [
+            "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}document",
+            "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}body",
+            "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}p",
+            "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}r",
+            "{http://schemas.openxmlformats.org/markup-compatibility/2006}AlternateContent",
+            "{http://schemas.openxmlformats.org/markup-compatibility/2006}Fallback",
+            "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}pict",
+            "{urn:schemas-microsoft-com:vml}group",
+            "{urn:schemas-microsoft-com:vml}group",
+            "{urn:schemas-microsoft-com:vml}shape",
+            "{urn:schemas-microsoft-com:vml}imagedata"
+          ],
+          "active_vml_group": true,
+          "placement": null
+        },
+        "active_grouped_carriers": 59,
+        "initial_native_choice_inactive": true,
+        "profile": "core-v1 public active inventory; no inactive branch override"
+      },
+      "public_active_carriers": 70,
+      "exposed_grouped_VML_carriers": 59,
+      "inactive_native_grouped_choice_exercised": false,
+      "native_grouped_tests_are_separate_original_unit_evidence": true
+    },
+    "original_ts_gate_evidence": {
+      "root_reported_selected_build_workspaces": 5,
+      "root_package": {
+        "pass": 2509,
+        "files": 114,
+        "log": "/tmp/docx71-root-workspace-unit-final-v2.log"
+      },
+      "root_portable_exports_pass": 2,
+      "root_guarded_safe_bash_consumer_groups": 26,
+      "independent_focused": {
+        "pass": 254,
+        "files": 12,
+        "log": "/tmp/docx71-reviewer-focused-v1.log"
+      },
+      "independent_added_contract": {
+        "pass": 6,
+        "files": 1,
+        "log": "/tmp/docx71-reviewer-image-contract-v2.log"
+      },
+      "independent_actual_docx_shell": {
+        "pass": 121,
+        "files": 17,
+        "skips": 0,
+        "log": "/tmp/docx71-reviewer-shell-v1.log"
+      },
+      "independent_literal_registration": {
+        "pass": 108,
+        "skips": 0,
+        "log": "/tmp/docx71-reviewer-literal-v1.log"
+      }
+    },
+    "limits_and_gaps": [
+      "Actual report Shell refused defaultwork admission; report SDK/Shell output parity unqualified. Maintained original tinyShell equivalence is separate.",
+      "Combined7field SDK edit refused cumulative retention under2GiB; final outputs exercise independent single fields, never privately combined.",
+      "Wales native grouped Choices inactive core-v1; only actual active grouped VML alternate refusal qualified.",
+      "Only3actual edited pages inspected, baseline overlap persists; no Word parity/coordinate accuracy/all167visual qualification.",
+      "Utility batch execution/live drawing and collection models remain unsupported.",
+      "No universal artwork rights/redistribution or large-file compatibility claim."
+    ],
+    "renderer_scope": {
+      "QA_only_portable_tool": true,
+      "product_build_dependency_added": false,
+      "IP_inbound_outbound_denied": true,
+      "UnixIPC_allowed": true,
+      "exclusive_profile_temp_outputs": true,
+      "whole_host_write_confinement_claim": false,
+      "mounted_descendants_excluded": true,
+      "tool_acquisition_authenticated_in_baseline": {
+        "acquisition": {
+          "url": "https://download.documentfoundation.org/libreoffice/stable/26.8.0/mac/aarch64/LibreOffice_26.8.0_MacOS_aarch64.dmg",
+          "finalUrl": "https://southfront.mm.fcix.net/tdf/libreoffice/stable/26.8.0/mac/aarch64/LibreOffice_26.8.0_MacOS_aarch64.dmg",
+          "bytes": 298773447,
+          "sha256": "8858d8058da4f862f47559486814e65efc27294da67c5e4bb56b006b1ee59f89",
+          "version": "26.8.0",
+          "role": "QA-only portable paginated renderer; not product dependency",
+          "utc": "2026-09-15T03:24:44.673985+00:00"
+        },
+        "dmg_authenticated": true,
+        "readonly_mount": "tmp/docx71-layout-qa/libreoffice-mount",
+        "signature": "Root reported verification passed; not repeated by independent worker",
+        "mount_descendants_excluded": true
+      }
+    },
+    "immutable_paginated_baseline_files_reauthenticated_after": [
+      {
+        "path": "tmp/docx71-layout-qa/circular-original-pages/page-001.png",
+        "sha256": "4147ccbaac1b035dd25edf8fa34b99812e18245bae98a2194cfb934279e8e971"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-original-pages/page-002.png",
+        "sha256": "65708b8ce3af639071d840958412b493174b6cce05fdbaa8b0c8319748040cd8"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/circular-original-pages/page-003.png",
+        "sha256": "2bf21706004467a7b98d0009b46373af6d5b8d0cc0d779edd4e280b1f3227a1e"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-original/circular-economy.pdf",
+        "sha256": "003244dd37a5ce6ca9f7fcbaab485b5627328afd31be8aa767a98142b8ba0d06"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/libreoffice-original/wales-citizen-voice-easy-read.pdf",
+        "sha256": "b8ee886002d1ef00b1c0ed549772dc35a4c0fd41a9f3ff63ad1e4040f26e368d"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-original-pages/page-01.png",
+        "sha256": "070a00c9721432ef2af4d52c8763a8c000038bd04bded9fdcadd493d84b49bc2"
+      },
+      {
+        "path": "tmp/docx71-layout-qa/wales-original-pages/page-02.png",
+        "sha256": "c01ff9bc97fd4a30faa825866ce5a7423687ffb1709f3c161acebe758574e11a"
+      }
+    ],
+    "final_new_output_inventory": {
+      "scope": "Sparse exact inventory of reviewer-created edited-product-v1 additions ONLY; committed248-file baseline census preserved verbatim; no whole-cache/tool/profile recensus claimed",
+      "directory": "tmp/docx71-layout-qa/edited-product-v1",
+      "device": 16777234,
+      "inode": 366193135,
+      "files": [
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/circular-product-runs.json",
+          "bytes": 4701,
+          "sha256": "0e4edd4f07ebb4cc665c531a7da884eff64852d0c543ffffe7a7f4b23bf730a3"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/independent-package-comparison-part1.json",
+          "bytes": 1423,
+          "sha256": "b2722886352dddab7b031d68a794a4fb7756fa40ba0cd707efae150e9b51143d"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/independent-package-comparison-part2.json",
+          "bytes": 1373,
+          "sha256": "d65a3e73c77ac9858a36d484db3ee0951bf1ee84ee89ea21735437812aba711d"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/independent-selection.json",
+          "bytes": 3908,
+          "sha256": "cbd0e5fe1ad411bc16a320605beddf5e813d77f9a3f69fa12cf72e8c953a3b30"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/post-campaign-source-authentication.json",
+          "bytes": 47487,
+          "sha256": "c962881da68c71caeec859b926ee56f3f055b9e40095098898231bdb6491edac"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/product-runs-inventory-failure.json",
+          "bytes": 527,
+          "sha256": "cfd418c1d460815c68c3a38eed83597764be05df01b091857a594ff547f64ef4"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/product-runs-raised-inventory-failure.json",
+          "bytes": 5746,
+          "sha256": "686c180cd3a4c0b92628036dbce26f5578acd5d4e43da5bf48d4341ea0b21598"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/rotation-export.json",
+          "bytes": 1627,
+          "sha256": "17d9eaffec95b7519d50cba630fef90b27f36f8b3e7ed2fda78e007954a36f69"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/rotation-pages/page-001.png",
+          "bytes": 736384,
+          "sha256": "4aaa76ccb8070cf36484b4b7f51befcfcbc57826cc663690c00e0393e6a5448c"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/rotation-pages/page-002.png",
+          "bytes": 37974,
+          "sha256": "65708b8ce3af639071d840958412b493174b6cce05fdbaa8b0c8319748040cd8"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/rotation-pages/page-003.png",
+          "bytes": 8201,
+          "sha256": "2bf21706004467a7b98d0009b46373af6d5b8d0cc0d779edd4e280b1f3227a1e"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/rotation-pdf/sdk-rotation-admitted.pdf",
+          "bytes": 4235529,
+          "sha256": "8d3152b748fb0496456d8d013a01a708725cb1c93c3f83a3757c5ea6aabfb2d7"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/rotation-rasterization.json",
+          "bytes": 1478,
+          "sha256": "4ebc0b7ae103f6797d77dea38257890bcd64d7691af0c5b7a1a8bff0868c2659"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/rotation-visual-comparison.json",
+          "bytes": 2798,
+          "sha256": "251f42e17d9fb91500af05142330e360250ca2da653aba4608ec63b216c4a11a"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/sdk-aspect-admitted-supervision.json",
+          "bytes": 300,
+          "sha256": "ac907217015296010e05413158282d5d80944553d58da4bc9adcd79d80563f06"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/sdk-aspect-admitted.docx",
+          "bytes": 13686429,
+          "sha256": "f09d434475a1477f90cb43be83d2bdfd4f9be36837adce0af3a9928fcd18af8d"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/sdk-aspect-admitted.json",
+          "bytes": 3883,
+          "sha256": "68ac8a4519baf18b4ed301858d217a20bfa742539b8322d3a8c10290326df67c"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/sdk-axis-admitted-supervision.json",
+          "bytes": 298,
+          "sha256": "2b2a1a43a07c73880637d82bab70798c0146c0cac82670c53ad124a5e7ce9f01"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/sdk-axis-admitted.docx",
+          "bytes": 13686427,
+          "sha256": "5fc830a2115199dd85bad6815e4318dc29a8e53f42a4942be06085fbb907d4cb"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/sdk-axis-admitted.json",
+          "bytes": 3894,
+          "sha256": "850654226cee3e4265a83a2161120c752decacd0816bcb7700ea870ac1f074ce"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/sdk-distance-admitted-supervision.json",
+          "bytes": 299,
+          "sha256": "1a70ead4a769ec4948f4bb04a8a741fb32e6fc8ad79e1a8629b31ba13828defe"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/sdk-distance-admitted.docx",
+          "bytes": 13686428,
+          "sha256": "81871d316434f7efbaa5c4809d4d78bf26dd5339002e555bf6d49397e4619e8c"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/sdk-distance-admitted.json",
+          "bytes": 3930,
+          "sha256": "712615981503ca94d7161cf6f4568a0a0dd17dd35c3ff0b221636d81a7b47bad"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/sdk-edited-admitted-supervision.json",
+          "bytes": 334,
+          "sha256": "d8442b3c3437cfc894779aaafe7f70f323466d314d5c34b42b8ad2868d70fe42"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/sdk-edited-admitted.json",
+          "bytes": 1521,
+          "sha256": "7eb0bfe67ce2c134f50cc3f8c6101cd36476c10d01372ab5050cfc6970b16227"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/sdk-noop-admitted-supervision.json",
+          "bytes": 296,
+          "sha256": "68e6a9deb1ebef2be5953ed01a96b32e2dde03b70213e75ea66a2a05b2851b5c"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/sdk-noop-admitted.docx",
+          "bytes": 8320866,
+          "sha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/sdk-noop-admitted.json",
+          "bytes": 1640,
+          "sha256": "eaede292c205773cea87854ca6531e782db7858b55287f37162945d17ee2a1ab"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/sdk-rotation-admitted-supervision.json",
+          "bytes": 302,
+          "sha256": "ac84eb5bf6205f52b9c8a0291652923d3c3082962d533211d7e9aa5f74a26c32"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/sdk-rotation-admitted.docx",
+          "bytes": 13686442,
+          "sha256": "ba2c5a4fdd93fad8cb53134490d05799a8ac00053cfeda2704e565403ff96fc1"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/sdk-rotation-admitted.json",
+          "bytes": 3880,
+          "sha256": "ffa115c3f2c94aab629f6bd0a434e8024f37a24737dc30783d7c5b0890548533"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/wales-active-group-refusal.json",
+          "bytes": 1706,
+          "sha256": "4bf83b514d6ebc4b3b79433c239cffda0170e0465a32e3943e08d04b2d4bd585"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/wales-active-group-selection.json",
+          "bytes": 2178,
+          "sha256": "768acb11990dac6f713a0d1f6d5f36076871436621e1a283a049d2c441334bac"
+        },
+        {
+          "path": "tmp/docx71-layout-qa/edited-product-v1/wales-active-inventory.json",
+          "bytes": 71991,
+          "sha256": "f007b8d03ece36ac53243c94b5002c658941f284a07d038b435b72633ac0ebdf"
+        }
+      ],
+      "directories": [
+        "tmp/docx71-layout-qa/edited-product-v1",
+        "tmp/docx71-layout-qa/edited-product-v1/renderer-temp",
+        "tmp/docx71-layout-qa/edited-product-v1/rotation-pages",
+        "tmp/docx71-layout-qa/edited-product-v1/rotation-pdf"
+      ],
+      "other_lstat_entries": [],
+      "file_count": 34,
+      "total_bytes": 68252200,
+      "mount": "tmp/docx71-layout-qa/libreoffice-mount excluded, not traversed",
+      "cleanup": "None; active cache retained for task72image campaign. No mount/profile mutation during final lint."
+    }
+  },
+  "current_campaign_stage": "Current edited_report_qa qualification supersedes preserved historical baseline stage/status fields"
+}

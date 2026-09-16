@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "status": "documentation-checks-only",
+  "implementedThrough": null,
+  "inputs": {
+    "docs/specs/pptx.md": "d907f73d3fcf8b608d8ddd404654b3f87ac1fc236c40f0ed5cd429f61cd82e8f",
+    "docs/specs/office-cli.md": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce",
+    "docs/specs/office-sdk.md": "a73354b0e643eef159f9bda0cb9b096234fb34f0d224c3fbead5a92f38e673b9",
+    "docs/pptx/upstream-test-audit.md": "63a4ba0c9845b2d4e833288d5e7fd459684be1c25cea1712727c1e9afe32528b",
+    "docs/pptx/upstream-test-inventory.json": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+    "docs/pptx/upstream-api-audit.md": "8e755f16aff69fe329f78d640de6a0254af14b27396f1abce5c56740e7d3c5ec",
+    "docs/pptx/upstream-api-inventory.json": "cd6467079c8f93d5be57758646f3fcd3667a6a13a1782fb371320c378803b934",
+    "docs/pptx/test-case-map.json": "5b95df3ba16704fe4761c739d1936b14aeaee770e224d8884cbbe6ce8660e6da",
+    "docs/pptx/public-api-map.json": "705907588d468a7711a8451a74a578ca24dc247e3bcbe88ea894bc099d2e0340",
+    "docs/pptx/corpus-manifest.json": "0d64b6d546028d82b74d51995cfe464ca15a65870582c6d00e91f061319eb380",
+    "docs/pptx/upstream-license-notice.txt": "7652f271e46d0d533e9dc463f3b5fcbdcacf4d6a9c8d6b554d15efd0f37f6132",
+    "docs/pptx/test-case-map-notice.txt": "7652f271e46d0d533e9dc463f3b5fcbdcacf4d6a9c8d6b554d15efd0f37f6132",
+    "docs/pptx/public-api-map-notice.txt": "7652f271e46d0d533e9dc463f3b5fcbdcacf4d6a9c8d6b554d15efd0f37f6132",
+    "docs/pptx/command-coverage.json": "c16d39386ff3d0b1a67141b8930e276c5bd688df2cadac3f9fe5a0ce0a268218",
+    "docs/pptx/command-coverage-notes.md": "0695bd9d0a834704d0c047f0f204f18b63fe86b8f71c9e6986fca7209e91e4c9"
+  },
+  "accounting": {
+    "unitVariants": 2700,
+    "expandedBddExamples": 973,
+    "exactLedgerPointers": 3673,
+    "ledgerStatusCounts": {
+      "semantic_review_required": 2665,
+      "specified_not_implemented": 110,
+      "proposed_design_not_implemented": 897,
+      "deferred_public_behavior": 1
+    },
+    "apiSourceRecords": 2407,
+    "apiTargetRecords": 2424,
+    "additiveViews": 17,
+    "corpusDocuments": 12,
+    "featureIds": 60,
+    "operations": 1933,
+    "directOperations": 182,
+    "localSchemaReferences": 9414,
+    "schemaFragments": 5981,
+    "definitions": 102,
+    "schemaSpecimensPassed": 20,
+    "plannedCommandCases": 6321,
+    "newOriginalRegressionDesigns": 20,
+    "implementedProductCases": 0,
+    "executedProductCases": 0
+  },
+  "limitations": [
+    "Existing semantic adaptation gaps remain visible; no whole-API parity claim.",
+    "JSON Schema checks do not execute cross-field semantics, product code or renderers.",
+    "No downloads, corpus mutation, reference runtime, native runtime, product network, screenshots, push or release."
+  ],
+  "procedure": "docs/plans/pptx-format-contract.md"
+}

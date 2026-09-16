@@ -1,0 +1,561 @@
+{
+  "date": "2026-09-04",
+  "selectedDiagnosticPlatform": "GNU coreutils 9.7 Darwin arm64 LC_ALL=C",
+  "binary": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/truncate",
+  "sha256": "e72b70379db18bf088208ebf5db983b6c555684218a0ed4d6e5a26c42fb058f7",
+  "predecessor": "packages/safe-bash/tests/commands/truncate/oracle-clean-evidence.json",
+  "predecessorSha256": "de4005053ef996005cacd700dc937d9fa2e38543b728068b62c6e8526db3225f",
+  "manualFixtureRoot": "/tmp/truncate-darwin-followup-0GWavT",
+  "unitDiskWrites": false,
+  "comparison": "raw native status/stdout/stderr and target bytes; every native result and effect also checked unchanged against predecessor",
+  "total": 539,
+  "exact": 539,
+  "changedDiagnostics": 32,
+  "normalization": "none; all 32 overflow cases remain native and virtual exit 1",
+  "corrected": [
+    {
+      "args": [
+        "-cs",
+        "Z",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'Z': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'Z': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "1Z",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1Z': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1Z': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "ZB",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'ZB': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'ZB': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "1ZB",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1ZB': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1ZB': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "ZD",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'ZD': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'ZD': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "1ZD",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1ZD': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1ZD': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "ZiB",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'ZiB': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'ZiB': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "1ZiB",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1ZiB': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1ZiB': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "Y",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'Y': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'Y': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "1Y",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1Y': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1Y': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "YB",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'YB': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'YB': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "1YB",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1YB': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1YB': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "YD",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'YD': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'YD': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "1YD",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1YD': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1YD': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "YiB",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'YiB': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'YiB': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "1YiB",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1YiB': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1YiB': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "R",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'R': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'R': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "1R",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1R': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1R': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "RB",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'RB': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'RB': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "1RB",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1RB': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1RB': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "RD",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'RD': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'RD': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "1RD",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1RD': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1RD': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "RiB",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'RiB': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'RiB': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "1RiB",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1RiB': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1RiB': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "Q",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'Q': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'Q': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "1Q",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1Q': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1Q': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "QB",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'QB': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'QB': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "1QB",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1QB': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1QB': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "QD",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'QD': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'QD': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "1QD",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1QD': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1QD': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "QiB",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'QiB': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: 'QiB': Value too large to be stored in data type\n"
+      }
+    },
+    {
+      "args": [
+        "-cs",
+        "1QiB",
+        "absent"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1QiB': Value too large to be stored in data type\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "truncate: Invalid number: '1QiB': Value too large to be stored in data type\n"
+      }
+    }
+  ]
+}

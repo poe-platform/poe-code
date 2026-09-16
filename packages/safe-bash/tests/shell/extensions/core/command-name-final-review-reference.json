@@ -1,0 +1,145 @@
+{
+  "oracle": {
+    "path": "/tmp/safe-bash-gnu-5.3-adjudication.0zMRKT/bash-5.3/bash",
+    "sha256": "a0cfc1af0ff50f6b6e67c638979e2604f1c276c90116937fbaafcabb62ee2b40",
+    "profile": "Bash 5.3.0 Darwin 25.4.0; previously admitted C, en_US.UTF-8, C.UTF-8"
+  },
+  "capture": {
+    "script": "/tmp/safe-bash-scripting-oracles-20260904/command-name-final-review.YWmMf2/native.mjs",
+    "sha256": "d820ddb6804cef4b6aae1fb3d4472f12eb90fed1f198c5446869c72aadb0cbc2",
+    "argv0": "shell",
+    "args": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "<source>"
+    ],
+    "environment": {
+      "PATH": "/usr/bin:/bin",
+      "HOME": "/tmp/safe-bash-scripting-oracles-20260904/command-name-final-review.YWmMf2/no-home",
+      "LC_ALL": "<record.locale>"
+    }
+  },
+  "records": [
+    {
+      "name": "nested command raw UTF8",
+      "locale": "C.UTF-8",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; command command \"$name\"",
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202427c3a95c333737e4b8ad273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "builtin command raw UTF8",
+      "locale": "en_US.UTF-8",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; builtin command \"$name\"",
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202427c3a95c333737e4b8ad273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "command builtin raw UTF8",
+      "locale": "C.UTF-8",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; command builtin \"$name\"",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206275696c74696e3a20c3a9ffe4b8ad3a206e6f742061207368656c6c206275696c74696e0a"
+      }
+    },
+    {
+      "name": "inline C overrides UTF8",
+      "locale": "C.UTF-8",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; LC_ALL=C LC_CTYPE=C.UTF-8 \"$name\"",
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202427c3a95c333737e4b8ad273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "empty ALL exposes C CTYPE",
+      "locale": "en_US.UTF-8",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; LC_ALL= LC_CTYPE=C \"$name\"",
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202427c3a95c333737e4b8ad273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "empty ALL CTYPE exposes UTF8 LANG",
+      "locale": "C",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; LC_ALL= LC_CTYPE= LANG=C.UTF-8 \"$name\"",
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024275c3330335c3235315c3337375c3334345c3237305c323535273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "inline UTF8 overrides C",
+      "locale": "C",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; LC_ALL=en_US.UTF-8 \"$name\"",
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024275c3330335c3235315c3337375c3334345c3237305c323535273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "invalid lead before escaped apostrophe",
+      "locale": "C.UTF-8",
+      "source": "$'\\303\\047\\344\\270\\255'",
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024275c3330335c27e4b8ad273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "invalid lead before escaped backslash",
+      "locale": "C.UTF-8",
+      "source": "$'\\360\\234\\134\\303\\251'",
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024275c3336305c3233345c5cc3a9273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "nonprinting variation boundary printable neighbor",
+      "locale": "en_US.UTF-8",
+      "source": "$'\\363\\240\\207\\260\\363\\240\\207\\257'",
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024275c3336335c3234305c3230375c323630f3a087af273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "replacement character is printable not original raw FF",
+      "locale": "C.UTF-8",
+      "source": "$'\\303\\251\\357\\277\\275\\344\\270\\255'",
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20c3a9efbfbde4b8ad3a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "printable ASCII quote backslash remain raw",
+      "locale": "C.UTF-8",
+      "source": "$'\\047\\134\\303\\251'",
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20275cc3a93a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    }
+  ]
+}

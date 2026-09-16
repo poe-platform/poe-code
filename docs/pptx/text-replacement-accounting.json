@@ -1,0 +1,1035 @@
+{
+  "schemaVersion": 1,
+  "kind": "research-provenance",
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "Literal preserving replacement; adjacent destructive text APIs and preservation dependencies are explicitly accounted without parity claims.",
+  "sourceInventories": [
+    "upstream-test-inventory.json",
+    "upstream-api-inventory.json"
+  ],
+  "selection": {
+    "unitCaseNameFragments": [
+      "it_knows_what_text_it_contains",
+      "it_can_replace_the_text_it_contains",
+      "it_can_change_its_text",
+      "it_can_get_the_text_of_the_run",
+      "it_can_clear_itself_of_content",
+      "it_provides_access_to_its_font",
+      "it_provides_access_to_a_hyperlink_proxy",
+      "Describe_Hyperlink::"
+    ],
+    "bdd": "All .text getter/setter expanded scenarios plus run/cell hyperlink workflows in txt-font-props.",
+    "api": "All .text properties, including inherited placeholders, plus TextFrame/Paragraph clear and run/paragraph/font/hyperlink accessors.",
+    "excluded": "Font layout/fitting and unrelated mutation APIs remain in the complete inventories; preserving styles does not implement their setters.",
+    "unitFiles": [
+      "tests/text/test_text.py",
+      "tests/shapes/test_autoshape.py",
+      "tests/test_table.py"
+    ]
+  },
+  "counts": {
+    "unitVariants": 49,
+    "bddExpandedCases": 23,
+    "apiRecords": 20,
+    "directPreservingReplacementSourceCases": 0,
+    "sourceParityClaims": 0
+  },
+  "unitCases": [
+    {
+      "sourceId": "tests/shapes/test_autoshape.py::DescribeShape::it_knows_what_text_it_contains",
+      "sourceFile": "tests/shapes/test_autoshape.py",
+      "line": 352,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_autoshape.py::DescribeShape::it_can_change_its_text",
+      "sourceFile": "tests/shapes/test_autoshape.py",
+      "line": 361,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_Cell::it_knows_what_text_it_contains",
+      "sourceFile": "tests/test_table.py",
+      "line": 320,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_Cell::it_can_change_its_text",
+      "sourceFile": "tests/test_table.py",
+      "line": 329,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_can_clear_itself_of_content[p:txBody/(a:p,a:p,a:p)]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 71,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_can_clear_itself_of_content[p:txBody/a:p/a:r/a:t\"foo\"]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 71,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_can_clear_itself_of_content[p:txBody/a:p/(a:br,a:r/a:t\"foo\")]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 71,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_can_clear_itself_of_content[p:txBody/a:p/(a:fld,a:br,a:r/a:t\"foo\")]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 71,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_what_text_it_contains[text_get_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 158,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_what_text_it_contains[text_get_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 158,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_can_replace_the_text_it_contains[text_set_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 169,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": [],
+      "reviewedBehavior": "Empty text frame gains a text run."
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_can_replace_the_text_it_contains[text_set_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 169,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": [],
+      "reviewedBehavior": "Existing frame text is replaced wholesale."
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_can_replace_the_text_it_contains[text_set_fixture2]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 169,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": [],
+      "reviewedBehavior": "LF separates new paragraphs in whole-frame assignment."
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_can_replace_the_text_it_contains[text_set_fixture3]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 169,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": [],
+      "reviewedBehavior": "Multiple source paragraphs collapse into one assigned paragraph."
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_can_replace_the_text_it_contains[text_set_fixture4]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 169,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": [],
+      "reviewedBehavior": "Empty assignment retains the required empty paragraph."
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_can_replace_the_text_it_contains[text_set_fixture5]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 169,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": [],
+      "reviewedBehavior": "U+000B creates a soft line-break element in whole-frame assignment."
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Hyperlink::it_knows_the_target_url_of_the_hyperlink",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 677,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Hyperlink::it_has_None_for_address_when_no_hyperlink_is_present",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 682,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Hyperlink::it_can_set_the_target_url",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 685,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Hyperlink::it_can_remove_the_hyperlink",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 692,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Hyperlink::it_should_remove_the_hyperlink_when_url_set_to_empty_string",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 698,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Hyperlink::it_can_change_the_target_url",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 704,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_can_clear_itself_of_content[clear_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 810,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_can_clear_itself_of_content[clear_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 810,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_can_clear_itself_of_content[clear_fixture2]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 810,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_what_text_it_contains[text_get_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 864,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_what_text_it_contains[text_get_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 864,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_what_text_it_contains[text_get_fixture2]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 864,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_what_text_it_contains[text_get_fixture3]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 864,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_what_text_it_contains[text_get_fixture4]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 864,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_what_text_it_contains[text_get_fixture5]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 864,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_what_text_it_contains[text_get_fixture6]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 864,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_what_text_it_contains[text_get_fixture7]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 864,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_text[a:p/(a:r/a:t\"foo\",a:r/a:t\"bar\")-foobar-a:p/a:r/a:t\"foobar\"]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 873,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_text[a:p--a:p]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 873,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_text[a:p-foobar-a:p/a:r/a:t\"foobar\"]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 873,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_text[a:p-foo\\nbar-a:p/(a:r/a:t\"foo\",a:br,a:r/a:t\"bar\")]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 873,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_text[a:p-\\x0bfoo\\n-a:p/(a:br,a:r/a:t\"foo\",a:br)]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 873,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_text[a:p-\\n\\nfoo-a:p/(a:br,a:br,a:r/a:t\"foo\")]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 873,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_text[a:p-foo\\n-a:p/(a:r/a:t\"foo\",a:br)]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 873,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_text[a:p-foo\\x07\\n-a:p/(a:r/a:t\"foo_x0007_\",a:br)]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 873,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": [],
+      "reviewedBehavior": "Whole-model assignment encodes otherwise invalid XML controls using DrawingML escape spelling; preserving replacement deliberately rejects forbidden XML input instead, so this is not equivalent."
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_text[a:p-\\u016e\\u0166\\u0191-8\\x1bliteral-a:p/a:r/a:t\"\\u016e\\u0166\\u0191-8_x001B_literal\"]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 873,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": [],
+      "reviewedBehavior": "Whole-model assignment encodes otherwise invalid XML controls using DrawingML escape spelling; preserving replacement deliberately rejects forbidden XML input instead, so this is not equivalent."
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_text[a:p-utf-8 unicode: H\\xe9r er texti-a:p/a:r/a:t\"utf-8 unicode: H\\xe9r er texti\"]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 873,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Run::it_provides_access_to_its_font",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 1145,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Run::it_provides_access_to_a_hyperlink_proxy",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 1151,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Run::it_can_get_the_text_of_the_run",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 1157,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Run::it_can_change_its_text[a:r/a:t-barfoo-a:r/a:t\"barfoo\"]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 1163,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Run::it_can_change_its_text[a:r/a:t-bar\\x1bfoo-a:r/a:t\"bar_x001B_foo\"]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 1163,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": [],
+      "reviewedBehavior": "Whole-model assignment encodes otherwise invalid XML controls using DrawingML escape spelling; preserving replacement deliberately rejects forbidden XML input instead, so this is not equivalent."
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Run::it_can_change_its_text[a:r/a:t-bar\\tfoo-a:r/a:t\"bar\\tfoo\"]",
+      "sourceFile": "tests/text/test_text.py",
+      "line": 1163,
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This exact source variant exercises a live-model member. Prior extraction may cover related getter text, but preserving replacement is not live-model accessor/setter/clear or hyperlink mutation parity. See complete case map for earlier extraction evidence.",
+      "originalTests": []
+    }
+  ],
+  "bddCases": [
+    {
+      "sourceId": "features/shp-autoshape.feature:18",
+      "sourceName": "Shape.text getter",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "features/shp-autoshape.feature:23",
+      "sourceName": "Shape.text setter",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "features/tbl-cell.feature:82",
+      "sourceName": "_Cell.text getter",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "features/tbl-cell.feature:87",
+      "sourceName": "_Cell.text setter",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "features/txt-font-props.feature:134",
+      "sourceName": "Add hyperlink",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "features/txt-font-props.feature:140",
+      "sourceName": "Add hyperlink in table cell",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "features/txt-font-props.feature:146",
+      "sourceName": "Remove hyperlink",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "features/txt-paragraph.feature:81",
+      "sourceName": "_Paragraph.text getter -- @1.1 _Paragraph line break combinations",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "features/txt-paragraph.feature:82",
+      "sourceName": "_Paragraph.text getter -- @1.2 _Paragraph line break combinations",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "features/txt-paragraph.feature:92",
+      "sourceName": "_Paragraph.text setter -- @1.1 _Paragraph assigned text replacement cases",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "features/txt-paragraph.feature:93",
+      "sourceName": "_Paragraph.text setter -- @1.2 _Paragraph assigned text replacement cases",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "features/txt-paragraph.feature:94",
+      "sourceName": "_Paragraph.text setter -- @1.3 _Paragraph assigned text replacement cases",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "features/txt-paragraph.feature:95",
+      "sourceName": "_Paragraph.text setter -- @1.4 _Paragraph assigned text replacement cases",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "features/txt-text.feature:7",
+      "sourceName": "_Run.text getter",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": [],
+      "reviewedBehavior": "Run getter preserves leading and trailing spaces."
+    },
+    {
+      "sourceId": "features/txt-text.feature:19",
+      "sourceName": "_Run.text setter -- @1.1 _Paragraph assigned text replacement cases",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": [],
+      "reviewedBehavior": "Ordinary text assignment."
+    },
+    {
+      "sourceId": "features/txt-text.feature:20",
+      "sourceName": "_Run.text setter -- @1.2 _Paragraph assigned text replacement cases",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": [],
+      "reviewedBehavior": "Run assignment keeps tab and LF within run text."
+    },
+    {
+      "sourceId": "features/txt-text.feature:21",
+      "sourceName": "_Run.text setter -- @1.3 _Paragraph assigned text replacement cases",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": [],
+      "reviewedBehavior": "Run assignment escapes U+001B."
+    },
+    {
+      "sourceId": "features/txt-text.feature:22",
+      "sourceName": "_Run.text setter -- @1.4 _Paragraph assigned text replacement cases",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": [],
+      "reviewedBehavior": "Run assignment escapes U+000B."
+    },
+    {
+      "sourceId": "features/txt-text.feature:23",
+      "sourceName": "_Run.text setter -- @1.5 _Paragraph assigned text replacement cases",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": [],
+      "reviewedBehavior": "Run assignment keeps LF and escapes U+000B."
+    },
+    {
+      "sourceId": "features/txt-textframe.feature:51",
+      "sourceName": "TextFrame.text getter -- @1.1 Textframe paragraph and line break combinations",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "features/txt-textframe.feature:52",
+      "sourceName": "TextFrame.text getter -- @1.2 Textframe paragraph and line break combinations",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "features/txt-textframe.feature:62",
+      "sourceName": "TextFrame.text setter -- @1.1 Textframe paragraph and line break combinations",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": []
+    },
+    {
+      "sourceId": "features/txt-textframe.feature:63",
+      "sourceName": "TextFrame.text setter -- @1.2 Textframe paragraph and line break combinations",
+      "status": "adjacent_api_deferred_not_equivalent",
+      "reason": "This expanded live-model workflow remains independently tracked. Existing extraction may cover related getter output; preserving replacement does not establish the complete live-model semantics.",
+      "originalTests": []
+    }
+  ],
+  "apiRecords": [
+    {
+      "sourceId": "pptx.shapes.autoshape.Shape.text",
+      "declaredOn": "pptx.shapes.autoshape.Shape",
+      "readable": true,
+      "writable": true,
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J10"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "text",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.text",
+      "declaredOn": "pptx.shapes.autoshape.Shape",
+      "readable": true,
+      "writable": true,
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J10"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "text",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.text",
+      "declaredOn": "pptx.shapes.autoshape.Shape",
+      "readable": true,
+      "writable": true,
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J10"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "text",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.text",
+      "declaredOn": "pptx.shapes.autoshape.Shape",
+      "readable": true,
+      "writable": true,
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J10"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "text",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.text",
+      "declaredOn": "pptx.shapes.autoshape.Shape",
+      "readable": true,
+      "writable": true,
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J10"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "text",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.text",
+      "declaredOn": "pptx.shapes.autoshape.Shape",
+      "readable": true,
+      "writable": true,
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J10"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "text",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.text",
+      "declaredOn": "pptx.shapes.autoshape.Shape",
+      "readable": true,
+      "writable": true,
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J10"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "text",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.text",
+      "declaredOn": "pptx.shapes.autoshape.Shape",
+      "readable": true,
+      "writable": true,
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J10"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "text",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.table._Cell.text",
+      "declaredOn": "pptx.table._Cell",
+      "readable": true,
+      "writable": true,
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J10"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "text",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.text.text.TextFrame.clear",
+      "declaredOn": "pptx.text.text.TextFrame",
+      "mappingRules": [
+        "J01",
+        "J10"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "clear",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.text.text.TextFrame.paragraphs",
+      "declaredOn": "pptx.text.text.TextFrame",
+      "readable": true,
+      "writable": false,
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "paragraphs",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.text.text.TextFrame.text",
+      "declaredOn": "pptx.text.text.TextFrame",
+      "readable": true,
+      "writable": true,
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J10"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "text",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.text.text._Hyperlink.address",
+      "declaredOn": "pptx.text.text._Hyperlink",
+      "readable": true,
+      "writable": true,
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "address",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.text.text._Paragraph.clear",
+      "declaredOn": "pptx.text.text._Paragraph",
+      "mappingRules": [
+        "J01",
+        "J10"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "clear",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.text.text._Paragraph.font",
+      "declaredOn": "pptx.text.text._Paragraph",
+      "readable": true,
+      "writable": false,
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "font",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.text.text._Paragraph.runs",
+      "declaredOn": "pptx.text.text._Paragraph",
+      "readable": true,
+      "writable": false,
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "runs",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.text.text._Paragraph.text",
+      "declaredOn": "pptx.text.text._Paragraph",
+      "readable": true,
+      "writable": true,
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J10"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "text",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.text.text._Run.font",
+      "declaredOn": "pptx.text.text._Run",
+      "readable": true,
+      "writable": false,
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "font",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.text.text._Run.hyperlink",
+      "declaredOn": "pptx.text.text._Run",
+      "readable": true,
+      "writable": false,
+      "mappingRules": [
+        "J01",
+        "J02"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "hyperlink",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    },
+    {
+      "sourceId": "pptx.text.text._Run.text",
+      "declaredOn": "pptx.text.text._Run",
+      "readable": true,
+      "writable": true,
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J10"
+      ],
+      "status": "adjacent_api_deferred_not_equivalent",
+      "targetMember": "text",
+      "reason": "Retain neutral documented spelling and public visibility, including inherited and underscore-prefixed types; operation-level replacement does not implement this live model member."
+    }
+  ],
+  "languageSecurityMappings": [
+    {
+      "id": "J01/J10",
+      "mapping": "Operation options are typed camelCase; live-model neutral snake_case spellings remain separately documented. Never route destructive text setters through preserving text.replace."
+    },
+    {
+      "id": "F16/F20",
+      "mapping": "Exact JavaScript strings; no implicit coercion, regex, normalization, host locale or malformed surrogate splitting. Combining sequences are preserved literally, not canonically equated."
+    },
+    {
+      "id": "J06/J09",
+      "mapping": "Only admitted bytes or capability-scoped VFS input; async admission/publication. XML mutation stays within owned package nodes. No ambient filesystem, network, native runtime, font discovery, arbitrary evaluation or host identity."
+    },
+    {
+      "id": "J08/J10",
+      "mapping": "CLI ordinals are one-based; SDK selection follows explicit selector types. Require exactly one first/all/occurrence, report zero matches unless allowEmpty, and retain common error/envelope/publication rules."
+    },
+    {
+      "id": "J02/J03",
+      "mapping": "The byte operation returns a new byte snapshot and containing locations, not live Run/Paragraph collections. Separate live ownership, mutation invalidation, iteration and accessors remain required; existing extraction evidence is not erased."
+    },
+    {
+      "id": "F16 explicit override extension",
+      "mapping": "replacePresentationText(input: BinaryInput, options: ReplacePresentationTextOptions, context: SelectionContext): Promise<TextReplacementResult>; options.style?: { bold?: boolean; italic?: boolean }. CLI --style-json uses identical typed keys. Missing properties inherit; explicit false disables; unknown fields fail; changes affect inserted spans only. A supplied override must contain at least one supported property."
+    },
+    {
+      "id": "J09 bounded implementation",
+      "mapping": "Package-internal XmlPart gains setText(element, text) and markup(element, standalone?: boolean). The package export map and index do not expose XmlPart. These bounded owned-node helpers support text/style edits and namespace-complete reuse; they do not implement the public live-model .element/.part API or expose arbitrary XPath, method dispatch or host access."
+    }
+  ],
+  "originalReplacementTests": [
+    {
+      "file": "packages/pptx/src/text-replacement.test.ts",
+      "cases": [
+        "joins adjacent runs and preserves first style and untouched suffix markup",
+        "replaces literal scalar sequences %j %j",
+        "honors cardinality %j",
+        "keeps field, soft break and paragraph boundaries immutable",
+        "rejects zero matches unless explicitly allowed",
+        "rejects invalid options before reading %j",
+        "overrides only replacement style and retains inherited run metadata",
+        "retains hyperlinks on the first affected run and unaffected trailing runs",
+        "counts occurrences in paragraph and shape order while preventing cross-shape matches",
+        "supports empty intervening runs, authored escapes and style overrides without a prior run style",
+        "bounds expansion before constructing oversized replacement runs",
+        "rejects editing text with interleaved annotations instead of removing them",
+        "joins runs within one table cell and never joins neighboring cells",
+        "edits strict text while preserving its namespace dialect"
+      ],
+      "status": "passed maintained pptx package suite",
+      "parameterCoverage": "Six literal variants: split combining sequence, adjacent supplementary characters, no canonical normalization, overlapping repeated candidates, regex/replacement metacharacters treated literally, and deletion. Three explicit cardinalities and invalid search/replacement/cardinality/style input variants are independently enumerated."
+    },
+    {
+      "file": "packages/pptx/src/command-text-replace.test.ts",
+      "cases": [
+        "applies explicit %s cardinality",
+        "rejects invalid cardinality %j before reading",
+        "fails zero matches without publication and allows an explicit no-change dry-run",
+        "exposes a result and option schema that agrees with explicit modes",
+        "supports binary stdout and exact shape selection without emitting JSON",
+        "rejects invalid publication or unsupported selectors %j",
+        "replaces a literal match split across independently authored runs through the command",
+        "rejects invalid replacement style %s before reading",
+        "applies the typed style override through direct command flags"
+      ],
+      "status": "passed maintained pptx package suite"
+    },
+    {
+      "file": "packages/pptx/src/xml.test.ts",
+      "cases": [
+        "sets simple element text while preserving namespace bindings and attributes",
+        "serializes an owned subtree with inherited namespace bindings for standalone reuse"
+      ],
+      "status": "passed maintained pptx package suite"
+    }
+  ],
+  "validationStatus": "Passed maintained package unit tests, selected build closure, package lint, safe-bash selector tests, corpus SDK QA and visual CLI review.",
+  "legal": "Original implementation and cases; existing research MIT notice retained separately at upstream-license-notice.txt. No substantial source code/assets copied.",
+  "researchInspection": {
+    "files": [
+      "/tmp/pptx-upstream-review/tests/text/test_text.py",
+      "/tmp/pptx-upstream-review/features/txt-text.feature",
+      "/tmp/pptx-upstream-review/features/txt-paragraph.feature",
+      "/tmp/pptx-upstream-review/features/txt-textframe.feature"
+    ],
+    "finding": "Source setters split LF/U+000B differently by model level and encode prohibited controls. This makes a one-to-one setter-to-preserving-replacement adaptation invalid. Exact source identities retained above for future model work."
+  },
+  "validationEvidence": {
+    "corpus": {
+      "fixture": ".cache/pptx-corpus/IXPE-Presentation-Template.pptx",
+      "status": "passed, repeated after finalized SDK with identical outcomes",
+      "first": {
+        "affected": 1,
+        "changedParts": [
+          "ppt/slides/slide2.xml"
+        ],
+        "unchangedMembers": 37
+      },
+      "all": {
+        "affected": 4,
+        "changedParts": [
+          "ppt/slides/slide2.xml",
+          "ppt/slides/slide3.xml",
+          "ppt/slides/slide4.xml",
+          "ppt/slides/slide5.xml"
+        ],
+        "unchangedMembers": 34
+      },
+      "zeroMatches": "38-member byte-identical archive with allowEmpty",
+      "sourceUnchanged": true,
+      "outputFilesWritten": false,
+      "oracleCorrection": "Compare member sets and untouched bytes rather than order; maintained writer sorts entries."
+    },
+    "maintainedChecks": {
+      "packageUnitTests": {
+        "passed": 1305,
+        "files": 50,
+        "durationSeconds": 22.49
+      },
+      "sdkReplacementTests": {
+        "passed": 30,
+        "approximateMilliseconds": 647
+      },
+      "commandReplacementTests": {
+        "passed": 23,
+        "approximateMilliseconds": 359
+      },
+      "selectedWorkspaceBuild": {
+        "passed": true,
+        "closureWorkspaces": 3
+      },
+      "safeBashSelectorTests": {
+        "passed": 44
+      },
+      "lint": "passed final maintained pptx package lint and focused command/adapter lint"
+    },
+    "screenshot": {
+      "path": "screenshots/pptx-text-replacement.png",
+      "ignored": true,
+      "visuallyInspected": true,
+      "exitStatuses": [
+        0,
+        0,
+        0,
+        2
+      ],
+      "scenarios": [
+        "before",
+        "replace two matches",
+        "after",
+        "missing explicit mode usage error"
+      ],
+      "route": "npm run screenshot; nested safe-bash command is not a root poe-code route"
+    },
+    "diffCheck": "git diff --check passed"
+  }
+}

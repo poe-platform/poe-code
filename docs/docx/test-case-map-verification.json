@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "task": "map-all-upstream-tests",
+  "verified_at": "2026-09-14",
+  "baseline_revision": "5c53d7c6baab57ef9b49c83758e8f3a78b484e4a",
+  "source_commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+  "scope": "Documentation/research only; no product or source test execution.",
+  "documentary_red": {
+    "command": "Node assert.ok(fs.existsSync(\"docs/docx/test-case-map.json\"))",
+    "exit": 1,
+    "result": "AssertionError: required 2259-row research crosswalk is absent",
+    "product_red": false
+  },
+  "accounting": {
+    "unit": 1609,
+    "bdd": 650,
+    "rows": 2259,
+    "duplicates": 0,
+    "missing": 0,
+    "orphans": 0
+  },
+  "unique_targets": 2259,
+  "negative_controls_rejected": ["missing", "duplicate", "orphan"],
+  "source_files_verified_against_git_blobs": 149,
+  "assertion_and_fixture_witnesses": 1350,
+  "bdd_step_definitions_in_catalog": 467,
+  "bdd_step_definitions_referenced": 466,
+  "bdd_bound_steps": 1856,
+  "parameters_equal_fresh_collection": true,
+  "bdd_identities_and_expansions_equal_parser": true,
+  "owner_order_and_totals_verified": true,
+  "api_inventory_records": 920,
+  "api_map_rows": 1337,
+  "mapping_rules_equal_api_map": true,
+  "drift_decisions": 23,
+  "implementation": {
+    "written_target_tests": 0,
+    "passing_target_tests": 0,
+    "architecture_only": 0,
+    "all_red_and_green_pending": true
+  },
+  "inputs": [
+    {
+      "path": "docs/specs/docx.md",
+      "sha256": "632b73d5950ef80124ecc82fa3f174dcd6fa72281a192d1731e4cc1530ab64d1"
+    },
+    {
+      "path": "docs/specs/office-cli.md",
+      "sha256": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce"
+    },
+    {
+      "path": "docs/specs/office-sdk.md",
+      "sha256": "a73354b0e643eef159f9bda0cb9b096234fb34f0d224c3fbead5a92f38e673b9"
+    },
+    {
+      "path": "docs/docx/upstream-test-inventory.json",
+      "sha256": "14c609ceb775158cb36c0423d24678b4a3e9f09d429085730b28103a759ad797"
+    },
+    {
+      "path": "docs/docx/upstream-api-inventory.json",
+      "sha256": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac"
+    },
+    {
+      "path": "docs/docx/public-api-map.json",
+      "sha256": "b5d04eb79f7b24f00fee4abffef9f0a78998a02dfbadb0b2d009b68051dd87b1"
+    },
+    {
+      "path": "docs/docx/upstream-test-audit.md",
+      "sha256": "f5691b85c65bb1f3c72cb912b268b3b06d259f386613407cc3f2b3d398846716"
+    },
+    {
+      "path": "docs/pptx/upstream-test-audit.md",
+      "sha256": "63a4ba0c9845b2d4e833288d5e7fd459684be1c25cea1712727c1e9afe32528b"
+    },
+    {
+      "path": "docs/plans/docx-typescript-safe-bash.md",
+      "sha256": "b4eebe186ed51396e97517ff80675087d686b5fefa666e7d5089e7d46e7ee66f"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/docx/test-case-map.json",
+      "sha256": "777a9ad8baffbaeb83db45dda6af7e16a0924585620e9a424a019c0c31e18e4f"
+    },
+    {
+      "path": "docs/docx/test-case-source-evidence.json",
+      "sha256": "ca5a8e0028fc76b9c0437a26da58dfd7e1399ec2ac5571e655e634721a52b9a7"
+    }
+  ],
+  "checks": {
+    "identity_and_semantic_binding": "passed",
+    "source_pin": "passed",
+    "neutral_target_names": "passed",
+    "prettier": "passed: npm exec --no -- prettier --check on the five owned paths",
+    "git_diff_check": "passed: git diff --check"
+  },
+  "not_run": [
+    "Product build/unit tests: documentation-only scope",
+    "CLI/document screenshots: no visual change",
+    "Reference unit/BDD execution: collection and matching only",
+    "Fixture adaptation/cleanup: later owned tasks",
+    "Push/release: explicitly prohibited"
+  ],
+  "limitations": [
+    "Mapping is proposed original test ownership, not implemented behavioral parity.",
+    "Source witness expressions need independently authored in-memory fixtures; no automatic code translation is claimed.",
+    "All public API/format/security cases absent from the source tests remain additive requirements.",
+    "Historical source-suite raw artifact limits remain as recorded in upstream-test-audit.md."
+  ]
+}

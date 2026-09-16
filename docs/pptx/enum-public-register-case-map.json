@@ -1,0 +1,4215 @@
+{
+  "schema_version": 1,
+  "scope": "Exact original public enum literal matching; bounded SDK receipts only.",
+  "numeric_members": 698,
+  "action_members": 15,
+  "definition_aliases": 13,
+  "unreconciled_ole_members": 3,
+  "rows": [
+    {
+      "source_id": "pptx.enum.action.PP_ACTION",
+      "original_test": "packages/pptx/src/public-enums.test.ts",
+      "literal": ["PP_ACTION", "PP_ACTION_TYPE"]
+    },
+    {
+      "source_id": "pptx.enum.action.PP_ACTION_TYPE.END_SHOW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["END_SHOW", 6]
+    },
+    {
+      "source_id": "pptx.enum.action.PP_ACTION_TYPE.FIRST_SLIDE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["FIRST_SLIDE", 3]
+    },
+    {
+      "source_id": "pptx.enum.action.PP_ACTION_TYPE.HYPERLINK",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["HYPERLINK", 7]
+    },
+    {
+      "source_id": "pptx.enum.action.PP_ACTION_TYPE.LAST_SLIDE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["LAST_SLIDE", 4]
+    },
+    {
+      "source_id": "pptx.enum.action.PP_ACTION_TYPE.LAST_SLIDE_VIEWED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["LAST_SLIDE_VIEWED", 5]
+    },
+    {
+      "source_id": "pptx.enum.action.PP_ACTION_TYPE.NAMED_SLIDE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["NAMED_SLIDE", 101]
+    },
+    {
+      "source_id": "pptx.enum.action.PP_ACTION_TYPE.NAMED_SLIDE_SHOW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["NAMED_SLIDE_SHOW", 10]
+    },
+    {
+      "source_id": "pptx.enum.action.PP_ACTION_TYPE.NEXT_SLIDE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["NEXT_SLIDE", 1]
+    },
+    {
+      "source_id": "pptx.enum.action.PP_ACTION_TYPE.NONE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["NONE", 0]
+    },
+    {
+      "source_id": "pptx.enum.action.PP_ACTION_TYPE.OLE_VERB",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["OLE_VERB", 11]
+    },
+    {
+      "source_id": "pptx.enum.action.PP_ACTION_TYPE.OPEN_FILE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["OPEN_FILE", 102]
+    },
+    {
+      "source_id": "pptx.enum.action.PP_ACTION_TYPE.PLAY",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PLAY", 12]
+    },
+    {
+      "source_id": "pptx.enum.action.PP_ACTION_TYPE.PREVIOUS_SLIDE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PREVIOUS_SLIDE", 2]
+    },
+    {
+      "source_id": "pptx.enum.action.PP_ACTION_TYPE.RUN_MACRO",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["RUN_MACRO", 8]
+    },
+    {
+      "source_id": "pptx.enum.action.PP_ACTION_TYPE.RUN_PROGRAM",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["RUN_PROGRAM", 9]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_AXIS_CROSSES.AUTOMATIC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_AXIS_CROSSES", "AUTOMATIC", -4105],
+      "xml_conversion": ["XL_AXIS_CROSSES", -4105, "autoZero"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_AXIS_CROSSES.CUSTOM",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_AXIS_CROSSES", "CUSTOM", -4114],
+      "xml_conversion": ["XL_AXIS_CROSSES", -4114, null]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_AXIS_CROSSES.MAXIMUM",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_AXIS_CROSSES", "MAXIMUM", 2],
+      "xml_conversion": ["XL_AXIS_CROSSES", 2, "max"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_AXIS_CROSSES.MINIMUM",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_AXIS_CROSSES", "MINIMUM", 4],
+      "xml_conversion": ["XL_AXIS_CROSSES", 4, "min"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CATEGORY_TYPE.AUTOMATIC_SCALE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CATEGORY_TYPE", "AUTOMATIC_SCALE", -4105]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CATEGORY_TYPE.CATEGORY_SCALE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CATEGORY_TYPE", "CATEGORY_SCALE", 2]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CATEGORY_TYPE.TIME_SCALE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CATEGORY_TYPE", "TIME_SCALE", 3]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.AREA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "AREA", 1]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.AREA_STACKED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "AREA_STACKED", 76]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.AREA_STACKED_100",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "AREA_STACKED_100", 77]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.BAR_CLUSTERED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "BAR_CLUSTERED", 57]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.BAR_OF_PIE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "BAR_OF_PIE", 71]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.BAR_STACKED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "BAR_STACKED", 58]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.BAR_STACKED_100",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "BAR_STACKED_100", 59]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.BUBBLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "BUBBLE", 15]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.BUBBLE_THREE_D_EFFECT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "BUBBLE_THREE_D_EFFECT", 87]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.COLUMN_CLUSTERED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "COLUMN_CLUSTERED", 51]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.COLUMN_STACKED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "COLUMN_STACKED", 52]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.COLUMN_STACKED_100",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "COLUMN_STACKED_100", 53]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CONE_BAR_CLUSTERED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "CONE_BAR_CLUSTERED", 102]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CONE_BAR_STACKED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "CONE_BAR_STACKED", 103]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CONE_BAR_STACKED_100",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "CONE_BAR_STACKED_100", 104]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CONE_COL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "CONE_COL", 105]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CONE_COL_CLUSTERED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "CONE_COL_CLUSTERED", 99]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CONE_COL_STACKED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "CONE_COL_STACKED", 100]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CONE_COL_STACKED_100",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "CONE_COL_STACKED_100", 101]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CYLINDER_BAR_CLUSTERED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "CYLINDER_BAR_CLUSTERED", 95]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CYLINDER_BAR_STACKED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "CYLINDER_BAR_STACKED", 96]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CYLINDER_BAR_STACKED_100",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "CYLINDER_BAR_STACKED_100", 97]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CYLINDER_COL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "CYLINDER_COL", 98]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CYLINDER_COL_CLUSTERED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "CYLINDER_COL_CLUSTERED", 92]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CYLINDER_COL_STACKED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "CYLINDER_COL_STACKED", 93]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.CYLINDER_COL_STACKED_100",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "CYLINDER_COL_STACKED_100", 94]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.DOUGHNUT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "DOUGHNUT", -4120]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.DOUGHNUT_EXPLODED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "DOUGHNUT_EXPLODED", 80]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "LINE", 4]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.LINE_MARKERS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "LINE_MARKERS", 65]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.LINE_MARKERS_STACKED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "LINE_MARKERS_STACKED", 66]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.LINE_MARKERS_STACKED_100",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "LINE_MARKERS_STACKED_100", 67]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.LINE_STACKED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "LINE_STACKED", 63]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.LINE_STACKED_100",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "LINE_STACKED_100", 64]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PIE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "PIE", 5]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PIE_EXPLODED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "PIE_EXPLODED", 69]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PIE_OF_PIE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "PIE_OF_PIE", 68]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PYRAMID_BAR_CLUSTERED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "PYRAMID_BAR_CLUSTERED", 109]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PYRAMID_BAR_STACKED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "PYRAMID_BAR_STACKED", 110]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PYRAMID_BAR_STACKED_100",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "PYRAMID_BAR_STACKED_100", 111]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PYRAMID_COL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "PYRAMID_COL", 112]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PYRAMID_COL_CLUSTERED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "PYRAMID_COL_CLUSTERED", 106]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PYRAMID_COL_STACKED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "PYRAMID_COL_STACKED", 107]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.PYRAMID_COL_STACKED_100",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "PYRAMID_COL_STACKED_100", 108]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.RADAR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "RADAR", -4151]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.RADAR_FILLED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "RADAR_FILLED", 82]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.RADAR_MARKERS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "RADAR_MARKERS", 81]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.STOCK_HLC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "STOCK_HLC", 88]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.STOCK_OHLC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "STOCK_OHLC", 89]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.STOCK_VHLC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "STOCK_VHLC", 90]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.STOCK_VOHLC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "STOCK_VOHLC", 91]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.SURFACE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "SURFACE", 83]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.SURFACE_TOP_VIEW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "SURFACE_TOP_VIEW", 85]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.SURFACE_TOP_VIEW_WIREFRAME",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "SURFACE_TOP_VIEW_WIREFRAME", 86]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.SURFACE_WIREFRAME",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "SURFACE_WIREFRAME", 84]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_AREA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "THREE_D_AREA", -4098]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_AREA_STACKED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "THREE_D_AREA_STACKED", 78]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_AREA_STACKED_100",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "THREE_D_AREA_STACKED_100", 79]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_BAR_CLUSTERED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "THREE_D_BAR_CLUSTERED", 60]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_BAR_STACKED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "THREE_D_BAR_STACKED", 61]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_BAR_STACKED_100",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "THREE_D_BAR_STACKED_100", 62]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_COLUMN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "THREE_D_COLUMN", -4100]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_COLUMN_CLUSTERED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "THREE_D_COLUMN_CLUSTERED", 54]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_COLUMN_STACKED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "THREE_D_COLUMN_STACKED", 55]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_COLUMN_STACKED_100",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "THREE_D_COLUMN_STACKED_100", 56]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "THREE_D_LINE", -4101]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_PIE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "THREE_D_PIE", -4102]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.THREE_D_PIE_EXPLODED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "THREE_D_PIE_EXPLODED", 70]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.XY_SCATTER",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "XY_SCATTER", -4169]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.XY_SCATTER_LINES",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "XY_SCATTER_LINES", 74]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.XY_SCATTER_LINES_NO_MARKERS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "XY_SCATTER_LINES_NO_MARKERS", 75]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.XY_SCATTER_SMOOTH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "XY_SCATTER_SMOOTH", 72]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_CHART_TYPE.XY_SCATTER_SMOOTH_NO_MARKERS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_CHART_TYPE", "XY_SCATTER_SMOOTH_NO_MARKERS", 73]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_DATA_LABEL_POSITION.ABOVE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_DATA_LABEL_POSITION", "ABOVE", 0],
+      "xml_conversion": ["XL_DATA_LABEL_POSITION", 0, "t"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_DATA_LABEL_POSITION.BELOW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_DATA_LABEL_POSITION", "BELOW", 1],
+      "xml_conversion": ["XL_DATA_LABEL_POSITION", 1, "b"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_DATA_LABEL_POSITION.BEST_FIT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_DATA_LABEL_POSITION", "BEST_FIT", 5],
+      "xml_conversion": ["XL_DATA_LABEL_POSITION", 5, "bestFit"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_DATA_LABEL_POSITION.CENTER",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_DATA_LABEL_POSITION", "CENTER", -4108],
+      "xml_conversion": ["XL_DATA_LABEL_POSITION", -4108, "ctr"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_DATA_LABEL_POSITION.INSIDE_BASE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_DATA_LABEL_POSITION", "INSIDE_BASE", 4],
+      "xml_conversion": ["XL_DATA_LABEL_POSITION", 4, "inBase"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_DATA_LABEL_POSITION.INSIDE_END",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_DATA_LABEL_POSITION", "INSIDE_END", 3],
+      "xml_conversion": ["XL_DATA_LABEL_POSITION", 3, "inEnd"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_DATA_LABEL_POSITION.LEFT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_DATA_LABEL_POSITION", "LEFT", -4131],
+      "xml_conversion": ["XL_DATA_LABEL_POSITION", -4131, "l"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_DATA_LABEL_POSITION.MIXED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_DATA_LABEL_POSITION", "MIXED", 6],
+      "xml_conversion": ["XL_DATA_LABEL_POSITION", 6, null]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_DATA_LABEL_POSITION.OUTSIDE_END",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_DATA_LABEL_POSITION", "OUTSIDE_END", 2],
+      "xml_conversion": ["XL_DATA_LABEL_POSITION", 2, "outEnd"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_DATA_LABEL_POSITION.RIGHT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_DATA_LABEL_POSITION", "RIGHT", -4152],
+      "xml_conversion": ["XL_DATA_LABEL_POSITION", -4152, "r"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_LABEL_POSITION",
+      "original_test": "packages/pptx/src/public-enums.test.ts",
+      "literal": ["XL_LABEL_POSITION", "XL_DATA_LABEL_POSITION"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_LEGEND_POSITION.BOTTOM",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_LEGEND_POSITION", "BOTTOM", -4107],
+      "xml_conversion": ["XL_LEGEND_POSITION", -4107, "b"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_LEGEND_POSITION.CORNER",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_LEGEND_POSITION", "CORNER", 2],
+      "xml_conversion": ["XL_LEGEND_POSITION", 2, "tr"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_LEGEND_POSITION.CUSTOM",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_LEGEND_POSITION", "CUSTOM", -4161],
+      "xml_conversion": ["XL_LEGEND_POSITION", -4161, null]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_LEGEND_POSITION.LEFT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_LEGEND_POSITION", "LEFT", -4131],
+      "xml_conversion": ["XL_LEGEND_POSITION", -4131, "l"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_LEGEND_POSITION.RIGHT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_LEGEND_POSITION", "RIGHT", -4152],
+      "xml_conversion": ["XL_LEGEND_POSITION", -4152, "r"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_LEGEND_POSITION.TOP",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_LEGEND_POSITION", "TOP", -4160],
+      "xml_conversion": ["XL_LEGEND_POSITION", -4160, "t"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_MARKER_STYLE.AUTOMATIC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_MARKER_STYLE", "AUTOMATIC", -4105],
+      "xml_conversion": ["XL_MARKER_STYLE", -4105, "auto"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_MARKER_STYLE.CIRCLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_MARKER_STYLE", "CIRCLE", 8],
+      "xml_conversion": ["XL_MARKER_STYLE", 8, "circle"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_MARKER_STYLE.DASH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_MARKER_STYLE", "DASH", -4115],
+      "xml_conversion": ["XL_MARKER_STYLE", -4115, "dash"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_MARKER_STYLE.DIAMOND",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_MARKER_STYLE", "DIAMOND", 2],
+      "xml_conversion": ["XL_MARKER_STYLE", 2, "diamond"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_MARKER_STYLE.DOT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_MARKER_STYLE", "DOT", -4118],
+      "xml_conversion": ["XL_MARKER_STYLE", -4118, "dot"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_MARKER_STYLE.NONE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_MARKER_STYLE", "NONE", -4142],
+      "xml_conversion": ["XL_MARKER_STYLE", -4142, "none"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_MARKER_STYLE.PICTURE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_MARKER_STYLE", "PICTURE", -4147],
+      "xml_conversion": ["XL_MARKER_STYLE", -4147, "picture"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_MARKER_STYLE.PLUS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_MARKER_STYLE", "PLUS", 9],
+      "xml_conversion": ["XL_MARKER_STYLE", 9, "plus"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_MARKER_STYLE.SQUARE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_MARKER_STYLE", "SQUARE", 1],
+      "xml_conversion": ["XL_MARKER_STYLE", 1, "square"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_MARKER_STYLE.STAR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_MARKER_STYLE", "STAR", 5],
+      "xml_conversion": ["XL_MARKER_STYLE", 5, "star"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_MARKER_STYLE.TRIANGLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_MARKER_STYLE", "TRIANGLE", 3],
+      "xml_conversion": ["XL_MARKER_STYLE", 3, "triangle"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_MARKER_STYLE.X",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_MARKER_STYLE", "X", -4168],
+      "xml_conversion": ["XL_MARKER_STYLE", -4168, "x"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_TICK_LABEL_POSITION.HIGH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_TICK_LABEL_POSITION", "HIGH", -4127],
+      "xml_conversion": ["XL_TICK_LABEL_POSITION", -4127, "high"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_TICK_LABEL_POSITION.LOW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_TICK_LABEL_POSITION", "LOW", -4134],
+      "xml_conversion": ["XL_TICK_LABEL_POSITION", -4134, "low"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_TICK_LABEL_POSITION.NEXT_TO_AXIS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_TICK_LABEL_POSITION", "NEXT_TO_AXIS", 4],
+      "xml_conversion": ["XL_TICK_LABEL_POSITION", 4, "nextTo"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_TICK_LABEL_POSITION.NONE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_TICK_LABEL_POSITION", "NONE", -4142],
+      "xml_conversion": ["XL_TICK_LABEL_POSITION", -4142, "none"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_TICK_MARK.CROSS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_TICK_MARK", "CROSS", 4],
+      "xml_conversion": ["XL_TICK_MARK", 4, "cross"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_TICK_MARK.INSIDE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_TICK_MARK", "INSIDE", 2],
+      "xml_conversion": ["XL_TICK_MARK", 2, "in"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_TICK_MARK.NONE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_TICK_MARK", "NONE", -4142],
+      "xml_conversion": ["XL_TICK_MARK", -4142, "none"]
+    },
+    {
+      "source_id": "pptx.enum.chart.XL_TICK_MARK.OUTSIDE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["XL_TICK_MARK", "OUTSIDE", 3],
+      "xml_conversion": ["XL_TICK_MARK", 3, "out"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_COLOR_TYPE.HSL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_COLOR_TYPE", "HSL", 101]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_COLOR_TYPE.PRESET",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_COLOR_TYPE", "PRESET", 102]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_COLOR_TYPE.RGB",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_COLOR_TYPE", "RGB", 1]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_COLOR_TYPE.SCHEME",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_COLOR_TYPE", "SCHEME", 2]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_COLOR_TYPE.SCRGB",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_COLOR_TYPE", "SCRGB", 103]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_COLOR_TYPE.SYSTEM",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_COLOR_TYPE", "SYSTEM", 104]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_FILL",
+      "original_test": "packages/pptx/src/public-enums.test.ts",
+      "literal": ["MSO_FILL", "MSO_FILL_TYPE"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_FILL_TYPE.BACKGROUND",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_FILL_TYPE", "BACKGROUND", 5]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_FILL_TYPE.GRADIENT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_FILL_TYPE", "GRADIENT", 3]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_FILL_TYPE.GROUP",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_FILL_TYPE", "GROUP", 101]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_FILL_TYPE.PATTERNED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_FILL_TYPE", "PATTERNED", 2]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_FILL_TYPE.PICTURE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_FILL_TYPE", "PICTURE", 6]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_FILL_TYPE.SOLID",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_FILL_TYPE", "SOLID", 1]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_FILL_TYPE.TEXTURED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_FILL_TYPE", "TEXTURED", 4]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_LINE",
+      "original_test": "packages/pptx/src/public-enums.test.ts",
+      "literal": ["MSO_LINE", "MSO_LINE_DASH_STYLE"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_LINE_DASH_STYLE.DASH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LINE_DASH_STYLE", "DASH", 4],
+      "xml_conversion": ["MSO_LINE_DASH_STYLE", 4, "dash"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_LINE_DASH_STYLE.DASH_DOT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LINE_DASH_STYLE", "DASH_DOT", 5],
+      "xml_conversion": ["MSO_LINE_DASH_STYLE", 5, "dashDot"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_LINE_DASH_STYLE.DASH_DOT_DOT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LINE_DASH_STYLE", "DASH_DOT_DOT", 6],
+      "xml_conversion": ["MSO_LINE_DASH_STYLE", 6, "lgDashDotDot"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_LINE_DASH_STYLE.DASH_STYLE_MIXED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LINE_DASH_STYLE", "DASH_STYLE_MIXED", -2],
+      "xml_conversion": ["MSO_LINE_DASH_STYLE", -2, null]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_LINE_DASH_STYLE.LONG_DASH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LINE_DASH_STYLE", "LONG_DASH", 7],
+      "xml_conversion": ["MSO_LINE_DASH_STYLE", 7, "lgDash"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_LINE_DASH_STYLE.LONG_DASH_DOT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LINE_DASH_STYLE", "LONG_DASH_DOT", 8],
+      "xml_conversion": ["MSO_LINE_DASH_STYLE", 8, "lgDashDot"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_LINE_DASH_STYLE.ROUND_DOT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LINE_DASH_STYLE", "ROUND_DOT", 3],
+      "xml_conversion": ["MSO_LINE_DASH_STYLE", 3, "sysDot"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_LINE_DASH_STYLE.SOLID",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LINE_DASH_STYLE", "SOLID", 1],
+      "xml_conversion": ["MSO_LINE_DASH_STYLE", 1, "solid"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_LINE_DASH_STYLE.SQUARE_DOT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LINE_DASH_STYLE", "SQUARE_DOT", 2],
+      "xml_conversion": ["MSO_LINE_DASH_STYLE", 2, "sysDash"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN",
+      "original_test": "packages/pptx/src/public-enums.test.ts",
+      "literal": ["MSO_PATTERN", "MSO_PATTERN_TYPE"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.CROSS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "CROSS", 51],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 51, "cross"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.DARK_DOWNWARD_DIAGONAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "DARK_DOWNWARD_DIAGONAL", 15],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 15, "dkDnDiag"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.DARK_HORIZONTAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "DARK_HORIZONTAL", 13],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 13, "dkHorz"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.DARK_UPWARD_DIAGONAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "DARK_UPWARD_DIAGONAL", 16],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 16, "dkUpDiag"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.DARK_VERTICAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "DARK_VERTICAL", 14],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 14, "dkVert"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.DASHED_DOWNWARD_DIAGONAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "DASHED_DOWNWARD_DIAGONAL", 28],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 28, "dashDnDiag"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.DASHED_HORIZONTAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "DASHED_HORIZONTAL", 32],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 32, "dashHorz"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.DASHED_UPWARD_DIAGONAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "DASHED_UPWARD_DIAGONAL", 27],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 27, "dashUpDiag"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.DASHED_VERTICAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "DASHED_VERTICAL", 31],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 31, "dashVert"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.DIAGONAL_BRICK",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "DIAGONAL_BRICK", 40],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 40, "diagBrick"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.DIAGONAL_CROSS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "DIAGONAL_CROSS", 54],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 54, "diagCross"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.DIVOT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "DIVOT", 46],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 46, "divot"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.DOTTED_DIAMOND",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "DOTTED_DIAMOND", 24],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 24, "dotDmnd"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.DOTTED_GRID",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "DOTTED_GRID", 45],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 45, "dotGrid"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.DOWNWARD_DIAGONAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "DOWNWARD_DIAGONAL", 52],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 52, "dnDiag"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.ERCENT_40",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "PERCENT_40", 6],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 6, "pct40"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.HORIZONTAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "HORIZONTAL", 49],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 49, "horz"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.HORIZONTAL_BRICK",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "HORIZONTAL_BRICK", 35],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 35, "horzBrick"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.LARGE_CHECKER_BOARD",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "LARGE_CHECKER_BOARD", 36],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 36, "lgCheck"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.LARGE_CONFETTI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "LARGE_CONFETTI", 33],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 33, "lgConfetti"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.LARGE_GRID",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "LARGE_GRID", 34],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 34, "lgGrid"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.LIGHT_DOWNWARD_DIAGONAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "LIGHT_DOWNWARD_DIAGONAL", 21],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 21, "ltDnDiag"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.LIGHT_HORIZONTAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "LIGHT_HORIZONTAL", 19],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 19, "ltHorz"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.LIGHT_UPWARD_DIAGONAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "LIGHT_UPWARD_DIAGONAL", 22],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 22, "ltUpDiag"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.LIGHT_VERTICAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "LIGHT_VERTICAL", 20],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 20, "ltVert"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.MIXED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "MIXED", -2],
+      "xml_conversion": ["MSO_PATTERN_TYPE", -2, null]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.NARROW_HORIZONTAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "NARROW_HORIZONTAL", 30],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 30, "narHorz"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.NARROW_VERTICAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "NARROW_VERTICAL", 29],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 29, "narVert"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.OUTLINED_DIAMOND",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "OUTLINED_DIAMOND", 41],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 41, "openDmnd"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.PERCENT_10",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "PERCENT_10", 2],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 2, "pct10"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.PERCENT_20",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "PERCENT_20", 3],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 3, "pct20"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.PERCENT_25",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "PERCENT_25", 4],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 4, "pct25"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.PERCENT_30",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "PERCENT_30", 5],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 5, "pct30"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.PERCENT_5",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "PERCENT_5", 1],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 1, "pct5"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.PERCENT_50",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "PERCENT_50", 7],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 7, "pct50"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.PERCENT_60",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "PERCENT_60", 8],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 8, "pct60"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.PERCENT_70",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "PERCENT_70", 9],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 9, "pct70"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.PERCENT_75",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "PERCENT_75", 10],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 10, "pct75"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.PERCENT_80",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "PERCENT_80", 11],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 11, "pct80"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.PERCENT_90",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "PERCENT_90", 12],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 12, "pct90"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.PLAID",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "PLAID", 42],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 42, "plaid"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.SHINGLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "SHINGLE", 47],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 47, "shingle"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.SMALL_CHECKER_BOARD",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "SMALL_CHECKER_BOARD", 17],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 17, "smCheck"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.SMALL_CONFETTI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "SMALL_CONFETTI", 37],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 37, "smConfetti"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.SMALL_GRID",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "SMALL_GRID", 23],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 23, "smGrid"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.SOLID_DIAMOND",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "SOLID_DIAMOND", 39],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 39, "solidDmnd"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.SPHERE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "SPHERE", 43],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 43, "sphere"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.TRELLIS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "TRELLIS", 18],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 18, "trellis"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.UPWARD_DIAGONAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "UPWARD_DIAGONAL", 53],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 53, "upDiag"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.VERTICAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "VERTICAL", 50],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 50, "vert"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.WAVE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "WAVE", 48],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 48, "wave"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.WEAVE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "WEAVE", 44],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 44, "weave"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.WIDE_DOWNWARD_DIAGONAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "WIDE_DOWNWARD_DIAGONAL", 25],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 25, "wdDnDiag"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.WIDE_UPWARD_DIAGONAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "WIDE_UPWARD_DIAGONAL", 26],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 26, "wdUpDiag"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_PATTERN_TYPE.ZIG_ZAG",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_PATTERN_TYPE", "ZIG_ZAG", 38],
+      "xml_conversion": ["MSO_PATTERN_TYPE", 38, "zigZag"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR",
+      "original_test": "packages/pptx/src/public-enums.test.ts",
+      "literal": ["MSO_THEME_COLOR", "MSO_THEME_COLOR_INDEX"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR_INDEX.ACCENT_1",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_THEME_COLOR_INDEX", "ACCENT_1", 5],
+      "xml_conversion": ["MSO_THEME_COLOR_INDEX", 5, "accent1"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR_INDEX.ACCENT_2",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_THEME_COLOR_INDEX", "ACCENT_2", 6],
+      "xml_conversion": ["MSO_THEME_COLOR_INDEX", 6, "accent2"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR_INDEX.ACCENT_3",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_THEME_COLOR_INDEX", "ACCENT_3", 7],
+      "xml_conversion": ["MSO_THEME_COLOR_INDEX", 7, "accent3"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR_INDEX.ACCENT_4",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_THEME_COLOR_INDEX", "ACCENT_4", 8],
+      "xml_conversion": ["MSO_THEME_COLOR_INDEX", 8, "accent4"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR_INDEX.ACCENT_5",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_THEME_COLOR_INDEX", "ACCENT_5", 9],
+      "xml_conversion": ["MSO_THEME_COLOR_INDEX", 9, "accent5"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR_INDEX.ACCENT_6",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_THEME_COLOR_INDEX", "ACCENT_6", 10],
+      "xml_conversion": ["MSO_THEME_COLOR_INDEX", 10, "accent6"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR_INDEX.BACKGROUND_1",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_THEME_COLOR_INDEX", "BACKGROUND_1", 14],
+      "xml_conversion": ["MSO_THEME_COLOR_INDEX", 14, "bg1"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR_INDEX.BACKGROUND_2",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_THEME_COLOR_INDEX", "BACKGROUND_2", 16],
+      "xml_conversion": ["MSO_THEME_COLOR_INDEX", 16, "bg2"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR_INDEX.DARK_1",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_THEME_COLOR_INDEX", "DARK_1", 1],
+      "xml_conversion": ["MSO_THEME_COLOR_INDEX", 1, "dk1"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR_INDEX.DARK_2",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_THEME_COLOR_INDEX", "DARK_2", 3],
+      "xml_conversion": ["MSO_THEME_COLOR_INDEX", 3, "dk2"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR_INDEX.FOLLOWED_HYPERLINK",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_THEME_COLOR_INDEX", "FOLLOWED_HYPERLINK", 12],
+      "xml_conversion": ["MSO_THEME_COLOR_INDEX", 12, "folHlink"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR_INDEX.HYPERLINK",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_THEME_COLOR_INDEX", "HYPERLINK", 11],
+      "xml_conversion": ["MSO_THEME_COLOR_INDEX", 11, "hlink"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR_INDEX.LIGHT_1",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_THEME_COLOR_INDEX", "LIGHT_1", 2],
+      "xml_conversion": ["MSO_THEME_COLOR_INDEX", 2, "lt1"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR_INDEX.LIGHT_2",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_THEME_COLOR_INDEX", "LIGHT_2", 4],
+      "xml_conversion": ["MSO_THEME_COLOR_INDEX", 4, "lt2"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR_INDEX.MIXED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_THEME_COLOR_INDEX", "MIXED", -2],
+      "xml_conversion": ["MSO_THEME_COLOR_INDEX", -2, null]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR_INDEX.NOT_THEME_COLOR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_THEME_COLOR_INDEX", "NOT_THEME_COLOR", 0],
+      "xml_conversion": ["MSO_THEME_COLOR_INDEX", 0, null]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR_INDEX.TEXT_1",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_THEME_COLOR_INDEX", "TEXT_1", 13],
+      "xml_conversion": ["MSO_THEME_COLOR_INDEX", 13, "tx1"]
+    },
+    {
+      "source_id": "pptx.enum.dml.MSO_THEME_COLOR_INDEX.TEXT_2",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_THEME_COLOR_INDEX", "TEXT_2", 15],
+      "xml_conversion": ["MSO_THEME_COLOR_INDEX", 15, "tx2"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.AFRIKAANS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "AFRIKAANS", 1078],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1078, "af-ZA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ALBANIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ALBANIAN", 1052],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1052, "sq-AL"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.AMHARIC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "AMHARIC", 1118],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1118, "am-ET"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ARABIC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ARABIC", 1025],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1025, "ar-SA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ARABIC_ALGERIA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ARABIC_ALGERIA", 5121],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 5121, "ar-DZ"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ARABIC_BAHRAIN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ARABIC_BAHRAIN", 15361],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 15361, "ar-BH"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ARABIC_EGYPT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ARABIC_EGYPT", 3073],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 3073, "ar-EG"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ARABIC_IRAQ",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ARABIC_IRAQ", 2049],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2049, "ar-IQ"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ARABIC_JORDAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ARABIC_JORDAN", 11265],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 11265, "ar-JO"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ARABIC_KUWAIT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ARABIC_KUWAIT", 13313],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 13313, "ar-KW"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ARABIC_LEBANON",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ARABIC_LEBANON", 12289],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 12289, "ar-LB"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ARABIC_LIBYA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ARABIC_LIBYA", 4097],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 4097, "ar-LY"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ARABIC_MOROCCO",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ARABIC_MOROCCO", 6145],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 6145, "ar-MA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ARABIC_OMAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ARABIC_OMAN", 8193],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 8193, "ar-OM"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ARABIC_QATAR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ARABIC_QATAR", 16385],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 16385, "ar-QA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ARABIC_SYRIA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ARABIC_SYRIA", 10241],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 10241, "ar-SY"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ARABIC_TUNISIA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ARABIC_TUNISIA", 7169],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 7169, "ar-TN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ARABIC_UAE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ARABIC_UAE", 14337],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 14337, "ar-AE"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ARABIC_YEMEN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ARABIC_YEMEN", 9217],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 9217, "ar-YE"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ARMENIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ARMENIAN", 1067],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1067, "hy-AM"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ASSAMESE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ASSAMESE", 1101],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1101, "as-IN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.AZERI_CYRILLIC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "AZERI_CYRILLIC", 2092],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2092, "az-AZ"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.AZERI_LATIN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "AZERI_LATIN", 1068],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1068, "az-Latn-AZ"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.BASQUE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "BASQUE", 1069],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1069, "eu-ES"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.BELGIAN_DUTCH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "BELGIAN_DUTCH", 2067],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2067, "nl-BE"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.BELGIAN_FRENCH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "BELGIAN_FRENCH", 2060],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2060, "fr-BE"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.BENGALI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "BENGALI", 1093],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1093, "bn-IN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.BOSNIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "BOSNIAN", 4122],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 4122, "hr-BA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.BOSNIAN_BOSNIA_HERZEGOVINA_CYRILLIC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "BOSNIAN_BOSNIA_HERZEGOVINA_CYRILLIC", 8218],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 8218, "bs-BA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.BOSNIAN_BOSNIA_HERZEGOVINA_LATIN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "BOSNIAN_BOSNIA_HERZEGOVINA_LATIN", 5146],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 5146, "bs-Latn-BA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.BRAZILIAN_PORTUGUESE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "BRAZILIAN_PORTUGUESE", 1046],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1046, "pt-BR"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.BULGARIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "BULGARIAN", 1026],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1026, "bg-BG"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.BURMESE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "BURMESE", 1109],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1109, "my-MM"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.BYELORUSSIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "BYELORUSSIAN", 1059],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1059, "be-BY"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.CATALAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "CATALAN", 1027],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1027, "ca-ES"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.CHEROKEE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "CHEROKEE", 1116],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1116, "chr-US"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.CHINESE_HONG_KONG_SAR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "CHINESE_HONG_KONG_SAR", 3076],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 3076, "zh-HK"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.CHINESE_MACAO_SAR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "CHINESE_MACAO_SAR", 5124],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 5124, "zh-MO"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.CHINESE_SINGAPORE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "CHINESE_SINGAPORE", 4100],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 4100, "zh-SG"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.CROATIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "CROATIAN", 1050],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1050, "hr-HR"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.CZECH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "CZECH", 1029],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1029, "cs-CZ"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.DANISH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "DANISH", 1030],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1030, "da-DK"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.DIVEHI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "DIVEHI", 1125],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1125, "div-MV"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.DUTCH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "DUTCH", 1043],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1043, "nl-NL"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.EDO",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "EDO", 1126],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1126, "bin-NG"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ENGLISH_AUS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ENGLISH_AUS", 3081],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 3081, "en-AU"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ENGLISH_BELIZE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ENGLISH_BELIZE", 10249],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 10249, "en-BZ"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ENGLISH_CANADIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ENGLISH_CANADIAN", 4105],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 4105, "en-CA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ENGLISH_CARIBBEAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ENGLISH_CARIBBEAN", 9225],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 9225, "en-CB"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ENGLISH_INDONESIA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ENGLISH_INDONESIA", 14345],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 14345, "en-ID"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ENGLISH_IRELAND",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ENGLISH_IRELAND", 6153],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 6153, "en-IE"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ENGLISH_JAMAICA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ENGLISH_JAMAICA", 8201],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 8201, "en-JA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ENGLISH_NEW_ZEALAND",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ENGLISH_NEW_ZEALAND", 5129],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 5129, "en-NZ"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ENGLISH_PHILIPPINES",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ENGLISH_PHILIPPINES", 13321],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 13321, "en-PH"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ENGLISH_SOUTH_AFRICA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ENGLISH_SOUTH_AFRICA", 7177],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 7177, "en-ZA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ENGLISH_TRINIDAD_TOBAGO",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ENGLISH_TRINIDAD_TOBAGO", 11273],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 11273, "en-TT"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ENGLISH_UK",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ENGLISH_UK", 2057],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2057, "en-GB"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ENGLISH_US",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ENGLISH_US", 1033],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1033, "en-US"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ENGLISH_ZIMBABWE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ENGLISH_ZIMBABWE", 12297],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 12297, "en-ZW"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ESTONIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ESTONIAN", 1061],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1061, "et-EE"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FAEROESE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FAEROESE", 1080],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1080, "fo-FO"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FARSI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FARSI", 1065],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1065, "fa-IR"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FILIPINO",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FILIPINO", 1124],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1124, "fil-PH"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FINNISH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FINNISH", 1035],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1035, "fi-FI"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FRANCH_CONGO_DRC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FRANCH_CONGO_DRC", 9228],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 9228, "fr-CD"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FRENCH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FRENCH", 1036],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1036, "fr-FR"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FRENCH_CAMEROON",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FRENCH_CAMEROON", 11276],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 11276, "fr-CM"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FRENCH_CANADIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FRENCH_CANADIAN", 3084],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 3084, "fr-CA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FRENCH_COTED_IVOIRE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FRENCH_COTED_IVOIRE", 12300],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 12300, "fr-CI"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FRENCH_HAITI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FRENCH_HAITI", 15372],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 15372, "fr-HT"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FRENCH_LUXEMBOURG",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FRENCH_LUXEMBOURG", 5132],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 5132, "fr-LU"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FRENCH_MALI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FRENCH_MALI", 13324],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 13324, "fr-ML"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FRENCH_MONACO",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FRENCH_MONACO", 6156],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 6156, "fr-MC"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FRENCH_MOROCCO",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FRENCH_MOROCCO", 14348],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 14348, "fr-MA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FRENCH_REUNION",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FRENCH_REUNION", 8204],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 8204, "fr-RE"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FRENCH_SENEGAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FRENCH_SENEGAL", 10252],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 10252, "fr-SN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FRENCH_WEST_INDIES",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FRENCH_WEST_INDIES", 7180],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 7180, "fr-WINDIES"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FRISIAN_NETHERLANDS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FRISIAN_NETHERLANDS", 1122],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1122, "fy-NL"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.FULFULDE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "FULFULDE", 1127],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1127, "ff-NG"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.GAELIC_IRELAND",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "GAELIC_IRELAND", 2108],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2108, "ga-IE"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.GAELIC_SCOTLAND",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "GAELIC_SCOTLAND", 1084],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1084, "en-US"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.GALICIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "GALICIAN", 1110],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1110, "gl-ES"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.GEORGIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "GEORGIAN", 1079],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1079, "ka-GE"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.GERMAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "GERMAN", 1031],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1031, "de-DE"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.GERMAN_AUSTRIA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "GERMAN_AUSTRIA", 3079],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 3079, "de-AT"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.GERMAN_LIECHTENSTEIN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "GERMAN_LIECHTENSTEIN", 5127],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 5127, "de-LI"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.GERMAN_LUXEMBOURG",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "GERMAN_LUXEMBOURG", 4103],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 4103, "de-LU"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.GREEK",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "GREEK", 1032],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1032, "el-GR"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.GUARANI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "GUARANI", 1140],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1140, "gn-PY"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.GUJARATI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "GUJARATI", 1095],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1095, "gu-IN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.HAUSA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "HAUSA", 1128],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1128, "ha-NG"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.HAWAIIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "HAWAIIAN", 1141],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1141, "haw-US"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.HEBREW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "HEBREW", 1037],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1037, "he-IL"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.HINDI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "HINDI", 1081],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1081, "hi-IN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.HUNGARIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "HUNGARIAN", 1038],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1038, "hu-HU"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.IBIBIO",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "IBIBIO", 1129],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1129, "ibb-NG"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ICELANDIC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ICELANDIC", 1039],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1039, "is-IS"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.IGBO",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "IGBO", 1136],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1136, "ig-NG"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.INDONESIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "INDONESIAN", 1057],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1057, "id-ID"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.INUKTITUT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "INUKTITUT", 1117],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1117, "iu-Cans-CA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ITALIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ITALIAN", 1040],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1040, "it-IT"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.JAPANESE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "JAPANESE", 1041],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1041, "ja-JP"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.KANNADA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "KANNADA", 1099],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1099, "kn-IN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.KANURI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "KANURI", 1137],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1137, "kr-NG"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.KASHMIRI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "KASHMIRI", 1120],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1120, "ks-Arab"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.KASHMIRI_DEVANAGARI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "KASHMIRI_DEVANAGARI", 2144],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2144, "ks-Deva"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.KAZAKH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "KAZAKH", 1087],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1087, "kk-KZ"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.KHMER",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "KHMER", 1107],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1107, "kh-KH"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.KIRGHIZ",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "KIRGHIZ", 1088],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1088, "ky-KG"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.KONKANI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "KONKANI", 1111],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1111, "kok-IN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.KOREAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "KOREAN", 1042],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1042, "ko-KR"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.KYRGYZ",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "KYRGYZ", 1088],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1088, "ky-KG"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.LAO",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "LAO", 1108],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1108, "lo-LA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.LATIN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "LATIN", 1142],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1142, "la-Latn"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.LATVIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "LATVIAN", 1062],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1062, "lv-LV"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.LITHUANIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "LITHUANIAN", 1063],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1063, "lt-LT"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.MACEDONINAN_FYROM",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "MACEDONINAN_FYROM", 1071],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1071, "mk-MK"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.MALAYALAM",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "MALAYALAM", 1100],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1100, "ml-IN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.MALAYSIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "MALAYSIAN", 1086],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1086, "ms-MY"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.MALAY_BRUNEI_DARUSSALAM",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "MALAY_BRUNEI_DARUSSALAM", 2110],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2110, "ms-BN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.MALTESE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "MALTESE", 1082],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1082, "mt-MT"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.MANIPURI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "MANIPURI", 1112],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1112, "mni-IN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.MAORI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "MAORI", 1153],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1153, "mi-NZ"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.MARATHI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "MARATHI", 1102],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1102, "mr-IN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.MEXICAN_SPANISH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "MEXICAN_SPANISH", 2058],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2058, "es-MX"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.MIXED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "MIXED", -2],
+      "xml_conversion": ["MSO_LANGUAGE_ID", -2, null]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.MONGOLIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "MONGOLIAN", 1104],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1104, "mn-MN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.NEPALI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "NEPALI", 1121],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1121, "ne-NP"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.NONE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "NONE", 0],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 0, null]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.NORWEGIAN_BOKMOL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "NORWEGIAN_BOKMOL", 1044],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1044, "nb-NO"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.NORWEGIAN_NYNORSK",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "NORWEGIAN_NYNORSK", 2068],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2068, "nn-NO"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.NO_PROOFING",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "NO_PROOFING", 1024],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1024, "en-US"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ORIYA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ORIYA", 1096],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1096, "or-IN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.OROMO",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "OROMO", 1138],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1138, "om-Ethi-ET"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.PASHTO",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "PASHTO", 1123],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1123, "ps-AF"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.POLISH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "POLISH", 1045],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1045, "pl-PL"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.PORTUGUESE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "PORTUGUESE", 2070],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2070, "pt-PT"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.PUNJABI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "PUNJABI", 1094],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1094, "pa-IN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.QUECHUA_BOLIVIA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "QUECHUA_BOLIVIA", 1131],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1131, "quz-BO"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.QUECHUA_ECUADOR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "QUECHUA_ECUADOR", 2155],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2155, "quz-EC"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.QUECHUA_PERU",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "QUECHUA_PERU", 3179],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 3179, "quz-PE"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.RHAETO_ROMANIC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "RHAETO_ROMANIC", 1047],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1047, "rm-CH"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ROMANIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ROMANIAN", 1048],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1048, "ro-RO"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ROMANIAN_MOLDOVA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ROMANIAN_MOLDOVA", 2072],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2072, "ro-MO"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.RUSSIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "RUSSIAN", 1049],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1049, "ru-RU"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.RUSSIAN_MOLDOVA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "RUSSIAN_MOLDOVA", 2073],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2073, "ru-MO"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SAMI_LAPPISH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SAMI_LAPPISH", 1083],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1083, "se-NO"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SANSKRIT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SANSKRIT", 1103],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1103, "sa-IN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SEPEDI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SEPEDI", 1132],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1132, "ns-ZA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SERBIAN_BOSNIA_HERZEGOVINA_CYRILLIC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SERBIAN_BOSNIA_HERZEGOVINA_CYRILLIC", 7194],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 7194, "sr-BA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SERBIAN_BOSNIA_HERZEGOVINA_LATIN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SERBIAN_BOSNIA_HERZEGOVINA_LATIN", 6170],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 6170, "sr-Latn-BA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SERBIAN_CYRILLIC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SERBIAN_CYRILLIC", 3098],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 3098, "sr-SP"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SERBIAN_LATIN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SERBIAN_LATIN", 2074],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2074, "sr-Latn-CS"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SESOTHO",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SESOTHO", 1072],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1072, "st-ZA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SIMPLIFIED_CHINESE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SIMPLIFIED_CHINESE", 2052],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2052, "zh-CN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SINDHI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SINDHI", 1113],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1113, "sd-Deva-IN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SINDHI_PAKISTAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SINDHI_PAKISTAN", 2137],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2137, "sd-Arab-PK"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SINHALESE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SINHALESE", 1115],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1115, "si-LK"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SLOVAK",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SLOVAK", 1051],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1051, "sk-SK"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SLOVENIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SLOVENIAN", 1060],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1060, "sl-SI"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SOMALI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SOMALI", 1143],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1143, "so-SO"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SORBIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SORBIAN", 1070],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1070, "wen-DE"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH", 1034],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1034, "es-ES_tradnl"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH_ARGENTINA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH_ARGENTINA", 11274],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 11274, "es-AR"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH_BOLIVIA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH_BOLIVIA", 16394],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 16394, "es-BO"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH_CHILE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH_CHILE", 13322],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 13322, "es-CL"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH_COLOMBIA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH_COLOMBIA", 9226],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 9226, "es-CO"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH_COSTA_RICA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH_COSTA_RICA", 5130],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 5130, "es-CR"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH_DOMINICAN_REPUBLIC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH_DOMINICAN_REPUBLIC", 7178],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 7178, "es-DO"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH_ECUADOR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH_ECUADOR", 12298],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 12298, "es-EC"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH_EL_SALVADOR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH_EL_SALVADOR", 17418],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 17418, "es-SV"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH_GUATEMALA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH_GUATEMALA", 4106],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 4106, "es-GT"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH_HONDURAS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH_HONDURAS", 18442],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 18442, "es-HN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH_MODERN_SORT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH_MODERN_SORT", 3082],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 3082, "es-ES"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH_NICARAGUA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH_NICARAGUA", 19466],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 19466, "es-NI"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH_PANAMA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH_PANAMA", 6154],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 6154, "es-PA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH_PARAGUAY",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH_PARAGUAY", 15370],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 15370, "es-PY"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH_PERU",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH_PERU", 10250],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 10250, "es-PE"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH_PUERTO_RICO",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH_PUERTO_RICO", 20490],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 20490, "es-PR"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH_URUGUAY",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH_URUGUAY", 14346],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 14346, "es-UR"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SPANISH_VENEZUELA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SPANISH_VENEZUELA", 8202],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 8202, "es-VE"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SUTU",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SUTU", 1072],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1072, "st-ZA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SWAHILI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SWAHILI", 1089],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1089, "sw-KE"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SWEDISH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SWEDISH", 1053],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1053, "sv-SE"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SWEDISH_FINLAND",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SWEDISH_FINLAND", 2077],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2077, "sv-FI"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SWISS_FRENCH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SWISS_FRENCH", 4108],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 4108, "fr-CH"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SWISS_GERMAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SWISS_GERMAN", 2055],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2055, "de-CH"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SWISS_ITALIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SWISS_ITALIAN", 2064],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2064, "it-CH"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.SYRIAC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "SYRIAC", 1114],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1114, "syr-SY"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.TAJIK",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "TAJIK", 1064],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1064, "tg-TJ"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.TAMAZIGHT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "TAMAZIGHT", 1119],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1119, "tzm-Arab-MA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.TAMAZIGHT_LATIN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "TAMAZIGHT_LATIN", 2143],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2143, "tmz-DZ"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.TAMIL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "TAMIL", 1097],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1097, "ta-IN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.TATAR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "TATAR", 1092],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1092, "tt-RU"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.TELUGU",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "TELUGU", 1098],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1098, "te-IN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.THAI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "THAI", 1054],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1054, "th-TH"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.TIBETAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "TIBETAN", 1105],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1105, "bo-CN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.TIGRIGNA_ERITREA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "TIGRIGNA_ERITREA", 2163],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2163, "ti-ER"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.TIGRIGNA_ETHIOPIC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "TIGRIGNA_ETHIOPIC", 1139],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1139, "ti-ET"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.TRADITIONAL_CHINESE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "TRADITIONAL_CHINESE", 1028],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1028, "zh-TW"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.TSONGA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "TSONGA", 1073],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1073, "ts-ZA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.TSWANA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "TSWANA", 1074],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1074, "tn-ZA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.TURKISH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "TURKISH", 1055],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1055, "tr-TR"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.TURKMEN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "TURKMEN", 1090],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1090, "tk-TM"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.UKRAINIAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "UKRAINIAN", 1058],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1058, "uk-UA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.URDU",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "URDU", 1056],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1056, "ur-PK"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.UZBEK_CYRILLIC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "UZBEK_CYRILLIC", 2115],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 2115, "uz-UZ"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.UZBEK_LATIN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "UZBEK_LATIN", 1091],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1091, "uz-Latn-UZ"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.VENDA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "VENDA", 1075],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1075, "ve-ZA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.VIETNAMESE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "VIETNAMESE", 1066],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1066, "vi-VN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.WELSH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "WELSH", 1106],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1106, "cy-GB"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.XHOSA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "XHOSA", 1076],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1076, "xh-ZA"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.YI",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "YI", 1144],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1144, "ii-CN"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.YIDDISH",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "YIDDISH", 1085],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1085, "yi-Hebr"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.YORUBA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "YORUBA", 1130],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1130, "yo-NG"]
+    },
+    {
+      "source_id": "pptx.enum.lang.MSO_LANGUAGE_ID.ZULU",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_LANGUAGE_ID", "ZULU", 1077],
+      "xml_conversion": ["MSO_LANGUAGE_ID", 1077, "zu-ZA"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO",
+      "original_test": "packages/pptx/src/public-enums.test.ts",
+      "literal": ["MSO", "MSO_SHAPE_TYPE"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ACTION_BUTTON_BACK_OR_PREVIOUS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ACTION_BUTTON_BACK_OR_PREVIOUS", 129],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 129, "actionButtonBackPrevious"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ACTION_BUTTON_BEGINNING",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ACTION_BUTTON_BEGINNING", 131],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 131, "actionButtonBeginning"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ACTION_BUTTON_CUSTOM",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ACTION_BUTTON_CUSTOM", 125],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 125, "actionButtonBlank"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ACTION_BUTTON_DOCUMENT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ACTION_BUTTON_DOCUMENT", 134],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 134, "actionButtonDocument"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ACTION_BUTTON_END",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ACTION_BUTTON_END", 132],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 132, "actionButtonEnd"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ACTION_BUTTON_FORWARD_OR_NEXT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ACTION_BUTTON_FORWARD_OR_NEXT", 130],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 130, "actionButtonForwardNext"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ACTION_BUTTON_HELP",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ACTION_BUTTON_HELP", 127],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 127, "actionButtonHelp"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ACTION_BUTTON_HOME",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ACTION_BUTTON_HOME", 126],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 126, "actionButtonHome"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ACTION_BUTTON_INFORMATION",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ACTION_BUTTON_INFORMATION", 128],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 128, "actionButtonInformation"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ACTION_BUTTON_MOVIE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ACTION_BUTTON_MOVIE", 136],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 136, "actionButtonMovie"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ACTION_BUTTON_RETURN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ACTION_BUTTON_RETURN", 133],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 133, "actionButtonReturn"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ACTION_BUTTON_SOUND",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ACTION_BUTTON_SOUND", 135],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 135, "actionButtonSound"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ARC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ARC", 25],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 25, "arc"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.BALLOON",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "BALLOON", 137],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 137, "wedgeRoundRectCallout"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.BENT_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "BENT_ARROW", 41],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 41, "bentArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.BENT_UP_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "BENT_UP_ARROW", 44],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 44, "bentUpArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.BEVEL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "BEVEL", 15],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 15, "bevel"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.BLOCK_ARC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "BLOCK_ARC", 20],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 20, "blockArc"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CAN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CAN", 13],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 13, "can"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CHART_PLUS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CHART_PLUS", 182],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 182, "chartPlus"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CHART_STAR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CHART_STAR", 181],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 181, "chartStar"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CHART_X",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CHART_X", 180],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 180, "chartX"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CHEVRON",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CHEVRON", 52],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 52, "chevron"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CHORD",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CHORD", 161],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 161, "chord"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CIRCULAR_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CIRCULAR_ARROW", 60],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 60, "circularArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CLOUD",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CLOUD", 179],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 179, "cloud"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CLOUD_CALLOUT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CLOUD_CALLOUT", 108],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 108, "cloudCallout"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CORNER",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CORNER", 162],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 162, "corner"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CORNER_TABS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CORNER_TABS", 169],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 169, "cornerTabs"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CROSS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CROSS", 11],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 11, "plus"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CUBE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CUBE", 14],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 14, "cube"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CURVED_DOWN_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CURVED_DOWN_ARROW", 48],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 48, "curvedDownArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CURVED_DOWN_RIBBON",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CURVED_DOWN_RIBBON", 100],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 100, "ellipseRibbon"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CURVED_LEFT_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CURVED_LEFT_ARROW", 46],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 46, "curvedLeftArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CURVED_RIGHT_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CURVED_RIGHT_ARROW", 45],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 45, "curvedRightArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CURVED_UP_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CURVED_UP_ARROW", 47],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 47, "curvedUpArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.CURVED_UP_RIBBON",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "CURVED_UP_RIBBON", 99],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 99, "ellipseRibbon2"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.DECAGON",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "DECAGON", 144],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 144, "decagon"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.DIAGONAL_STRIPE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "DIAGONAL_STRIPE", 141],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 141, "diagStripe"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.DIAMOND",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "DIAMOND", 4],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 4, "diamond"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.DODECAGON",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "DODECAGON", 146],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 146, "dodecagon"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.DONUT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "DONUT", 18],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 18, "donut"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.DOUBLE_BRACE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "DOUBLE_BRACE", 27],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 27, "bracePair"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.DOUBLE_BRACKET",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "DOUBLE_BRACKET", 26],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 26, "bracketPair"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.DOUBLE_WAVE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "DOUBLE_WAVE", 104],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 104, "doubleWave"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.DOWN_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "DOWN_ARROW", 36],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 36, "downArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.DOWN_ARROW_CALLOUT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "DOWN_ARROW_CALLOUT", 56],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 56, "downArrowCallout"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.DOWN_RIBBON",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "DOWN_RIBBON", 98],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 98, "ribbon"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.EXPLOSION1",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "EXPLOSION1", 89],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 89, "irregularSeal1"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.EXPLOSION2",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "EXPLOSION2", 90],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 90, "irregularSeal2"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_ALTERNATE_PROCESS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_ALTERNATE_PROCESS", 62],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 62, "flowChartAlternateProcess"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_CARD",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_CARD", 75],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 75, "flowChartPunchedCard"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_COLLATE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_COLLATE", 79],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 79, "flowChartCollate"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_CONNECTOR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_CONNECTOR", 73],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 73, "flowChartConnector"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_DATA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_DATA", 64],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 64, "flowChartInputOutput"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_DECISION",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_DECISION", 63],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 63, "flowChartDecision"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_DELAY",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_DELAY", 84],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 84, "flowChartDelay"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_DIRECT_ACCESS_STORAGE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_DIRECT_ACCESS_STORAGE", 87],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 87, "flowChartMagneticDrum"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_DISPLAY",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_DISPLAY", 88],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 88, "flowChartDisplay"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_DOCUMENT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_DOCUMENT", 67],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 67, "flowChartDocument"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_EXTRACT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_EXTRACT", 81],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 81, "flowChartExtract"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_INTERNAL_STORAGE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_INTERNAL_STORAGE", 66],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 66, "flowChartInternalStorage"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_MAGNETIC_DISK",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_MAGNETIC_DISK", 86],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 86, "flowChartMagneticDisk"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_MANUAL_INPUT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_MANUAL_INPUT", 71],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 71, "flowChartManualInput"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_MANUAL_OPERATION",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_MANUAL_OPERATION", 72],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 72, "flowChartManualOperation"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_MERGE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_MERGE", 82],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 82, "flowChartMerge"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_MULTIDOCUMENT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_MULTIDOCUMENT", 68],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 68, "flowChartMultidocument"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_OFFLINE_STORAGE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_OFFLINE_STORAGE", 139],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 139, "flowChartOfflineStorage"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_OFFPAGE_CONNECTOR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_OFFPAGE_CONNECTOR", 74],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 74, "flowChartOffpageConnector"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_OR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_OR", 78],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 78, "flowChartOr"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_PREDEFINED_PROCESS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_PREDEFINED_PROCESS", 65],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 65, "flowChartPredefinedProcess"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_PREPARATION",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_PREPARATION", 70],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 70, "flowChartPreparation"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_PROCESS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_PROCESS", 61],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 61, "flowChartProcess"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_PUNCHED_TAPE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_PUNCHED_TAPE", 76],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 76, "flowChartPunchedTape"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_SEQUENTIAL_ACCESS_STORAGE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_SEQUENTIAL_ACCESS_STORAGE", 85],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 85, "flowChartMagneticTape"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_SORT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_SORT", 80],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 80, "flowChartSort"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_STORED_DATA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_STORED_DATA", 83],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 83, "flowChartOnlineStorage"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_SUMMING_JUNCTION",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_SUMMING_JUNCTION", 77],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 77, "flowChartSummingJunction"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FLOWCHART_TERMINATOR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FLOWCHART_TERMINATOR", 69],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 69, "flowChartTerminator"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FOLDED_CORNER",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FOLDED_CORNER", 16],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 16, "foldedCorner"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FRAME",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FRAME", 158],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 158, "frame"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.FUNNEL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "FUNNEL", 174],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 174, "funnel"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.GEAR_6",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "GEAR_6", 172],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 172, "gear6"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.GEAR_9",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "GEAR_9", 173],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 173, "gear9"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.HALF_FRAME",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "HALF_FRAME", 159],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 159, "halfFrame"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.HEART",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "HEART", 21],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 21, "heart"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.HEPTAGON",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "HEPTAGON", 145],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 145, "heptagon"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.HEXAGON",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "HEXAGON", 10],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 10, "hexagon"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.HORIZONTAL_SCROLL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "HORIZONTAL_SCROLL", 102],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 102, "horizontalScroll"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ISOSCELES_TRIANGLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ISOSCELES_TRIANGLE", 7],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 7, "triangle"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LEFT_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LEFT_ARROW", 34],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 34, "leftArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LEFT_ARROW_CALLOUT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LEFT_ARROW_CALLOUT", 54],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 54, "leftArrowCallout"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LEFT_BRACE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LEFT_BRACE", 31],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 31, "leftBrace"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LEFT_BRACKET",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LEFT_BRACKET", 29],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 29, "leftBracket"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LEFT_CIRCULAR_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LEFT_CIRCULAR_ARROW", 176],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 176, "leftCircularArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LEFT_RIGHT_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LEFT_RIGHT_ARROW", 37],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 37, "leftRightArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LEFT_RIGHT_ARROW_CALLOUT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LEFT_RIGHT_ARROW_CALLOUT", 57],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 57, "leftRightArrowCallout"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LEFT_RIGHT_CIRCULAR_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LEFT_RIGHT_CIRCULAR_ARROW", 177],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 177, "leftRightCircularArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LEFT_RIGHT_RIBBON",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LEFT_RIGHT_RIBBON", 140],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 140, "leftRightRibbon"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LEFT_RIGHT_UP_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LEFT_RIGHT_UP_ARROW", 40],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 40, "leftRightUpArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LEFT_UP_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LEFT_UP_ARROW", 43],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 43, "leftUpArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LIGHTNING_BOLT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LIGHTNING_BOLT", 22],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 22, "lightningBolt"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LINE_CALLOUT_1",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LINE_CALLOUT_1", 109],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 109, "borderCallout1"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LINE_CALLOUT_1_ACCENT_BAR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LINE_CALLOUT_1_ACCENT_BAR", 113],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 113, "accentCallout1"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LINE_CALLOUT_1_BORDER_AND_ACCENT_BAR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LINE_CALLOUT_1_BORDER_AND_ACCENT_BAR", 121],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 121, "accentBorderCallout1"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LINE_CALLOUT_1_NO_BORDER",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LINE_CALLOUT_1_NO_BORDER", 117],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 117, "callout1"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LINE_CALLOUT_2",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LINE_CALLOUT_2", 110],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 110, "borderCallout2"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LINE_CALLOUT_2_ACCENT_BAR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LINE_CALLOUT_2_ACCENT_BAR", 114],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 114, "accentCallout2"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LINE_CALLOUT_2_BORDER_AND_ACCENT_BAR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LINE_CALLOUT_2_BORDER_AND_ACCENT_BAR", 122],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 122, "accentBorderCallout2"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LINE_CALLOUT_2_NO_BORDER",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LINE_CALLOUT_2_NO_BORDER", 118],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 118, "callout2"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LINE_CALLOUT_3",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LINE_CALLOUT_3", 111],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 111, "borderCallout3"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LINE_CALLOUT_3_ACCENT_BAR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LINE_CALLOUT_3_ACCENT_BAR", 115],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 115, "accentCallout3"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LINE_CALLOUT_3_BORDER_AND_ACCENT_BAR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LINE_CALLOUT_3_BORDER_AND_ACCENT_BAR", 123],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 123, "accentBorderCallout3"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LINE_CALLOUT_3_NO_BORDER",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LINE_CALLOUT_3_NO_BORDER", 119],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 119, "callout3"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LINE_CALLOUT_4",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LINE_CALLOUT_4", 112],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 112, "borderCallout3"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LINE_CALLOUT_4_ACCENT_BAR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LINE_CALLOUT_4_ACCENT_BAR", 116],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 116, "accentCallout3"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LINE_CALLOUT_4_BORDER_AND_ACCENT_BAR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LINE_CALLOUT_4_BORDER_AND_ACCENT_BAR", 124],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 124, "accentBorderCallout3"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LINE_CALLOUT_4_NO_BORDER",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LINE_CALLOUT_4_NO_BORDER", 120],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 120, "callout3"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.LINE_INVERSE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "LINE_INVERSE", 183],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 183, "lineInv"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.MATH_DIVIDE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "MATH_DIVIDE", 166],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 166, "mathDivide"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.MATH_EQUAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "MATH_EQUAL", 167],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 167, "mathEqual"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.MATH_MINUS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "MATH_MINUS", 164],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 164, "mathMinus"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.MATH_MULTIPLY",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "MATH_MULTIPLY", 165],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 165, "mathMultiply"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.MATH_NOT_EQUAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "MATH_NOT_EQUAL", 168],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 168, "mathNotEqual"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.MATH_PLUS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "MATH_PLUS", 163],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 163, "mathPlus"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.MOON",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "MOON", 24],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 24, "moon"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.NON_ISOSCELES_TRAPEZOID",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "NON_ISOSCELES_TRAPEZOID", 143],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 143, "nonIsoscelesTrapezoid"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.NOTCHED_RIGHT_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "NOTCHED_RIGHT_ARROW", 50],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 50, "notchedRightArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.NO_SYMBOL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "NO_SYMBOL", 19],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 19, "noSmoking"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.OCTAGON",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "OCTAGON", 6],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 6, "octagon"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.OVAL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "OVAL", 9],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 9, "ellipse"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.OVAL_CALLOUT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "OVAL_CALLOUT", 107],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 107, "wedgeEllipseCallout"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.PARALLELOGRAM",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "PARALLELOGRAM", 2],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 2, "parallelogram"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.PENTAGON",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "PENTAGON", 51],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 51, "homePlate"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.PIE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "PIE", 142],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 142, "pie"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.PIE_WEDGE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "PIE_WEDGE", 175],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 175, "pieWedge"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.PLAQUE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "PLAQUE", 28],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 28, "plaque"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.PLAQUE_TABS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "PLAQUE_TABS", 171],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 171, "plaqueTabs"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.QUAD_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "QUAD_ARROW", 39],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 39, "quadArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.QUAD_ARROW_CALLOUT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "QUAD_ARROW_CALLOUT", 59],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 59, "quadArrowCallout"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.RECTANGLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "RECTANGLE", 1],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 1, "rect"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.RECTANGULAR_CALLOUT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "RECTANGULAR_CALLOUT", 105],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 105, "wedgeRectCallout"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.REGULAR_PENTAGON",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "REGULAR_PENTAGON", 12],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 12, "pentagon"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.RIGHT_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "RIGHT_ARROW", 33],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 33, "rightArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.RIGHT_ARROW_CALLOUT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "RIGHT_ARROW_CALLOUT", 53],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 53, "rightArrowCallout"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.RIGHT_BRACE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "RIGHT_BRACE", 32],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 32, "rightBrace"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.RIGHT_BRACKET",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "RIGHT_BRACKET", 30],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 30, "rightBracket"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.RIGHT_TRIANGLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "RIGHT_TRIANGLE", 8],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 8, "rtTriangle"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ROUNDED_RECTANGLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ROUNDED_RECTANGLE", 5],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 5, "roundRect"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ROUNDED_RECTANGULAR_CALLOUT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ROUNDED_RECTANGULAR_CALLOUT", 106],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 106, "wedgeRoundRectCallout"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ROUND_1_RECTANGLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ROUND_1_RECTANGLE", 151],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 151, "round1Rect"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ROUND_2_DIAG_RECTANGLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ROUND_2_DIAG_RECTANGLE", 153],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 153, "round2DiagRect"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ROUND_2_SAME_RECTANGLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "ROUND_2_SAME_RECTANGLE", 152],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 152, "round2SameRect"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.SMILEY_FACE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "SMILEY_FACE", 17],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 17, "smileyFace"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.SNIP_1_RECTANGLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "SNIP_1_RECTANGLE", 155],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 155, "snip1Rect"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.SNIP_2_DIAG_RECTANGLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "SNIP_2_DIAG_RECTANGLE", 157],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 157, "snip2DiagRect"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.SNIP_2_SAME_RECTANGLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "SNIP_2_SAME_RECTANGLE", 156],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 156, "snip2SameRect"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.SNIP_ROUND_RECTANGLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "SNIP_ROUND_RECTANGLE", 154],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 154, "snipRoundRect"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.SQUARE_TABS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "SQUARE_TABS", 170],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 170, "squareTabs"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.STAR_10_POINT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "STAR_10_POINT", 149],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 149, "star10"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.STAR_12_POINT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "STAR_12_POINT", 150],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 150, "star12"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.STAR_16_POINT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "STAR_16_POINT", 94],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 94, "star16"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.STAR_24_POINT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "STAR_24_POINT", 95],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 95, "star24"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.STAR_32_POINT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "STAR_32_POINT", 96],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 96, "star32"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.STAR_4_POINT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "STAR_4_POINT", 91],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 91, "star4"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.STAR_5_POINT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "STAR_5_POINT", 92],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 92, "star5"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.STAR_6_POINT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "STAR_6_POINT", 147],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 147, "star6"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.STAR_7_POINT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "STAR_7_POINT", 148],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 148, "star7"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.STAR_8_POINT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "STAR_8_POINT", 93],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 93, "star8"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.STRIPED_RIGHT_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "STRIPED_RIGHT_ARROW", 49],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 49, "stripedRightArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.SUN",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "SUN", 23],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 23, "sun"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.SWOOSH_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "SWOOSH_ARROW", 178],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 178, "swooshArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.TEAR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "TEAR", 160],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 160, "teardrop"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.TRAPEZOID",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "TRAPEZOID", 3],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 3, "trapezoid"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.UP_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "UP_ARROW", 35],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 35, "upArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.UP_ARROW_CALLOUT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "UP_ARROW_CALLOUT", 55],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 55, "upArrowCallout"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.UP_DOWN_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "UP_DOWN_ARROW", 38],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 38, "upDownArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.UP_DOWN_ARROW_CALLOUT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "UP_DOWN_ARROW_CALLOUT", 58],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 58, "upDownArrowCallout"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.UP_RIBBON",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "UP_RIBBON", 97],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 97, "ribbon2"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.U_TURN_ARROW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "U_TURN_ARROW", 42],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 42, "uturnArrow"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.VERTICAL_SCROLL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "VERTICAL_SCROLL", 101],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 101, "verticalScroll"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.WAVE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SHAPE_TYPE", "WAVE", 103],
+      "xml_conversion": ["MSO_AUTO_SHAPE_TYPE", 103, "wave"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_CONNECTOR",
+      "original_test": "packages/pptx/src/public-enums.test.ts",
+      "literal": ["MSO_CONNECTOR", "MSO_CONNECTOR_TYPE"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_CONNECTOR_TYPE.CURVE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_CONNECTOR_TYPE", "CURVE", 3],
+      "xml_conversion": ["MSO_CONNECTOR_TYPE", 3, "curvedConnector3"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_CONNECTOR_TYPE.ELBOW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_CONNECTOR_TYPE", "ELBOW", 2],
+      "xml_conversion": ["MSO_CONNECTOR_TYPE", 2, "bentConnector3"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_CONNECTOR_TYPE.MIXED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_CONNECTOR_TYPE", "MIXED", -2],
+      "xml_conversion": ["MSO_CONNECTOR_TYPE", -2, null]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_CONNECTOR_TYPE.STRAIGHT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_CONNECTOR_TYPE", "STRAIGHT", 1],
+      "xml_conversion": ["MSO_CONNECTOR_TYPE", 1, "line"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE",
+      "original_test": "packages/pptx/src/public-enums.test.ts",
+      "literal": ["MSO_SHAPE", "MSO_AUTO_SHAPE_TYPE"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.AUTO_SHAPE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "AUTO_SHAPE", 1]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.CALLOUT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "CALLOUT", 2]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.CANVAS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "CANVAS", 20]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.CHART",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "CHART", 3]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.COMMENT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "COMMENT", 4]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.DIAGRAM",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "DIAGRAM", 21]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "EMBEDDED_OLE_OBJECT", 7]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.FORM_CONTROL",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "FORM_CONTROL", 8]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.FREEFORM",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "FREEFORM", 5]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.GROUP",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "GROUP", 6]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.IGX_GRAPHIC",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "IGX_GRAPHIC", 24]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.INK",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "INK", 22]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.INK_COMMENT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "INK_COMMENT", 23]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "LINE", 9]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.LINKED_OLE_OBJECT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "LINKED_OLE_OBJECT", 10]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.LINKED_PICTURE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "LINKED_PICTURE", 11]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.MEDIA",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "MEDIA", 16]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.MIXED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "MIXED", -2]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.OLE_CONTROL_OBJECT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "OLE_CONTROL_OBJECT", 12]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.PICTURE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "PICTURE", 13]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.PLACEHOLDER",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "PLACEHOLDER", 14]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.SCRIPT_ANCHOR",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "SCRIPT_ANCHOR", 18]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.TABLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "TABLE", 19]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.TEXT_BOX",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "TEXT_BOX", 17]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.TEXT_EFFECT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "TEXT_EFFECT", 15]
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.WEB_VIDEO",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_SHAPE_TYPE", "WEB_VIDEO", 26]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_MEDIA_TYPE.MIXED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_MEDIA_TYPE", "MIXED", -2]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_MEDIA_TYPE.MOVIE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_MEDIA_TYPE", "MOVIE", 3]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_MEDIA_TYPE.OTHER",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_MEDIA_TYPE", "OTHER", 1]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_MEDIA_TYPE.SOUND",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_MEDIA_TYPE", "SOUND", 1]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER",
+      "original_test": "packages/pptx/src/public-enums.test.ts",
+      "literal": ["PP_PLACEHOLDER", "PP_PLACEHOLDER_TYPE"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.BITMAP",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "BITMAP", 9],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 9, "clipArt"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.BODY",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "BODY", 2],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 2, "body"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.CENTER_TITLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "CENTER_TITLE", 3],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 3, "ctrTitle"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.CHART",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "CHART", 8],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 8, "chart"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.DATE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "DATE", 16],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 16, "dt"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.FOOTER",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "FOOTER", 15],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 15, "ftr"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.HEADER",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "HEADER", 14],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 14, "hdr"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.MEDIA_CLIP",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "MEDIA_CLIP", 10],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 10, "media"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.MIXED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "MIXED", -2],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", -2, null]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.OBJECT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "OBJECT", 7],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 7, "obj"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.ORG_CHART",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "ORG_CHART", 11],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 11, "dgm"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.PICTURE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "PICTURE", 18],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 18, "pic"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.SLIDE_IMAGE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "SLIDE_IMAGE", 101],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 101, "sldImg"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.SLIDE_NUMBER",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "SLIDE_NUMBER", 13],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 13, "sldNum"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.SUBTITLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "SUBTITLE", 4],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 4, "subTitle"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.TABLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "TABLE", 12],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 12, "tbl"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.TITLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "TITLE", 1],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 1, "title"]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.VERTICAL_BODY",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "VERTICAL_BODY", 6],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 6, null]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.VERTICAL_OBJECT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "VERTICAL_OBJECT", 17],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 17, null]
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.VERTICAL_TITLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PLACEHOLDER_TYPE", "VERTICAL_TITLE", 5],
+      "xml_conversion": ["PP_PLACEHOLDER_TYPE", 5, null]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_ANCHOR",
+      "original_test": "packages/pptx/src/public-enums.test.ts",
+      "literal": ["MSO_ANCHOR", "MSO_VERTICAL_ANCHOR"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_AUTO_SIZE.MIXED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SIZE", "MIXED", -2]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_AUTO_SIZE.NONE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SIZE", "NONE", 0]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SIZE", "SHAPE_TO_FIT_TEXT", 1]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_AUTO_SIZE", "TEXT_TO_FIT_SHAPE", 2]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.DASH_HEAVY_LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "DASH_HEAVY_LINE", 8],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", 8, "dashHeavy"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.DASH_LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "DASH_LINE", 7],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", 7, "dash"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.DASH_LONG_HEAVY_LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "DASH_LONG_HEAVY_LINE", 10],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", 10, "dashLongHeavy"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.DASH_LONG_LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "DASH_LONG_LINE", 9],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", 9, "dashLong"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.DOTTED_HEAVY_LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "DOTTED_HEAVY_LINE", 6],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", 6, "dottedHeavy"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.DOTTED_LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "DOTTED_LINE", 5],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", 5, "dotted"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.DOT_DASH_HEAVY_LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "DOT_DASH_HEAVY_LINE", 12],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", 12, "dotDashHeavy"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.DOT_DASH_LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "DOT_DASH_LINE", 11],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", 11, "dotDash"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.DOT_DOT_DASH_HEAVY_LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "DOT_DOT_DASH_HEAVY_LINE", 14],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", 14, "dotDotDashHeavy"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.DOT_DOT_DASH_LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "DOT_DOT_DASH_LINE", 13],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", 13, "dotDotDash"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.DOUBLE_LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "DOUBLE_LINE", 3],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", 3, "dbl"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.HEAVY_LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "HEAVY_LINE", 4],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", 4, "heavy"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.MIXED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "MIXED", -2],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", -2, null]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.NONE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "NONE", 0],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", 0, "none"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.SINGLE_LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "SINGLE_LINE", 2],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", 2, "sng"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.WAVY_DOUBLE_LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "WAVY_DOUBLE_LINE", 17],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", 17, "wavyDbl"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.WAVY_HEAVY_LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "WAVY_HEAVY_LINE", 16],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", 16, "wavyHeavy"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.WAVY_LINE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "WAVY_LINE", 15],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", 15, "wavy"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_TEXT_UNDERLINE_TYPE.WORDS",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_TEXT_UNDERLINE_TYPE", "WORDS", 1],
+      "xml_conversion": ["MSO_TEXT_UNDERLINE_TYPE", 1, "words"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_UNDERLINE",
+      "original_test": "packages/pptx/src/public-enums.test.ts",
+      "literal": ["MSO_UNDERLINE", "MSO_TEXT_UNDERLINE_TYPE"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_VERTICAL_ANCHOR.BOTTOM",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_VERTICAL_ANCHOR", "BOTTOM", 4],
+      "xml_conversion": ["MSO_VERTICAL_ANCHOR", 4, "b"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_VERTICAL_ANCHOR.MIDDLE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_VERTICAL_ANCHOR", "MIDDLE", 3],
+      "xml_conversion": ["MSO_VERTICAL_ANCHOR", 3, "ctr"]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_VERTICAL_ANCHOR.MIXED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_VERTICAL_ANCHOR", "MIXED", -2],
+      "xml_conversion": ["MSO_VERTICAL_ANCHOR", -2, null]
+    },
+    {
+      "source_id": "pptx.enum.text.MSO_VERTICAL_ANCHOR.TOP",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["MSO_VERTICAL_ANCHOR", "TOP", 1],
+      "xml_conversion": ["MSO_VERTICAL_ANCHOR", 1, "t"]
+    },
+    {
+      "source_id": "pptx.enum.text.PP_ALIGN",
+      "original_test": "packages/pptx/src/public-enums.test.ts",
+      "literal": ["PP_ALIGN", "PP_PARAGRAPH_ALIGNMENT"]
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.CENTER",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PARAGRAPH_ALIGNMENT", "CENTER", 2],
+      "xml_conversion": ["PP_PARAGRAPH_ALIGNMENT", 2, "ctr"]
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.DISTRIBUTE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PARAGRAPH_ALIGNMENT", "DISTRIBUTE", 5],
+      "xml_conversion": ["PP_PARAGRAPH_ALIGNMENT", 5, "dist"]
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.JUSTIFY",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PARAGRAPH_ALIGNMENT", "JUSTIFY", 4],
+      "xml_conversion": ["PP_PARAGRAPH_ALIGNMENT", 4, "just"]
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.JUSTIFY_LOW",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PARAGRAPH_ALIGNMENT", "JUSTIFY_LOW", 7],
+      "xml_conversion": ["PP_PARAGRAPH_ALIGNMENT", 7, "justLow"]
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.LEFT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PARAGRAPH_ALIGNMENT", "LEFT", 1],
+      "xml_conversion": ["PP_PARAGRAPH_ALIGNMENT", 1, "l"]
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.MIXED",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PARAGRAPH_ALIGNMENT", "MIXED", -2],
+      "xml_conversion": ["PP_PARAGRAPH_ALIGNMENT", -2, null]
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.RIGHT",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PARAGRAPH_ALIGNMENT", "RIGHT", 3],
+      "xml_conversion": ["PP_PARAGRAPH_ALIGNMENT", 3, "r"]
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.THAI_DISTRIBUTE",
+      "original_test": "packages/pptx/src/public-enum-values.test.ts",
+      "literal": ["PP_PARAGRAPH_ALIGNMENT", "THAI_DISTRIBUTE", 6],
+      "xml_conversion": ["PP_PARAGRAPH_ALIGNMENT", 6, "thaiDist"]
+    }
+  ]
+}

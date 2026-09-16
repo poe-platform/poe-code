@@ -6,6 +6,12 @@ import "./safe-packages-response-body-mode.mjs";
 import "./safe-packages-atomic.mjs";
 import "./safe-packages-mkdir.mjs";
 
+const browserCore = await import("@poe-platform/safe-bash");
+for (const name of ["arraysExtension", "jobsExtension", "mapfileExtension", "readExtension", "trapExtension", "createYesCommand", "createCmpCommand", "createDdCommand", "createShufCommand", "createTruncateCommand", "createInstallCommand"]) {
+  if (Object.hasOwn(browserCore, name)) throw new Error(`Optional factory entered the browser core: ${name}`);
+}
+if (typeof browserCore.createYqCommand !== "function") throw new Error("Restricted core YAML/TOML factory is missing");
+
 if (FsError !== CoreFsError) throw new Error("Browser filesystem identity diverged");
 if (FsError !== CompatibilityFsError) throw new Error("Compatibility filesystem identity diverged");
 await verifyNullDeviceView({ createMemoryFileSystem, createDeviceFileSystem });

@@ -1,0 +1,6 @@
+packages/docx/src/workflow-behavior-variants.test.ts(3017,35): error TS2322: Type 'Uint8Array<ArrayBuffer>' is not assignable to type 'DirectoryContent'.
+  Type 'Uint8Array<ArrayBuffer>' is missing the following properties from type 'Buffer<ArrayBufferLike>': write, toJSON, equals, compare, and 66 more.
+packages/docx/src/workflow-behavior-variants.test.ts(3018,158): error TS2322: Type '(path: string) => Promise<Uint8Array<ArrayBuffer>[]>' is not assignable to type '(path: string, options: { readonly signal: AbortSignal; readonly maxBytes: number; }) => ByteSource | Promise<ByteSource>'.
+  Type 'Promise<Uint8Array<ArrayBuffer>[]>' is not assignable to type 'ByteSource | Promise<ByteSource>'.
+    Type 'Promise<Uint8Array<ArrayBuffer>[]>' is not assignable to type 'Promise<ByteSource>'.
+      Property '[Symbol.asyncIterator]' is missing in type 'Uint8Array<ArrayBuffer>[]' but required in type 'AsyncIterable<Uint8Array<ArrayBufferLike>>'.

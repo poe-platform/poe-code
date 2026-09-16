@@ -1,0 +1,6 @@
+{
+  "browserVersion": "153.0.8010.36",
+  "command": "/Users/kjopek/.codex/skills/playwright/scripts/playwright_cli.sh -s=pyodide-documents run-code 'async page => page.context().browser().version()'",
+  "screenshot": "output/playwright/pyodide-documents-attempt-07.png",
+  "screenshotNote": "Page status text replaced by a concise JSON summary derived from actual window.results after all profiles completed; source files unchanged."
+}

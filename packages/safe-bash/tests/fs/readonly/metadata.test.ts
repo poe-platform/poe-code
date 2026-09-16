@@ -7,7 +7,7 @@ import { createFixture } from "./fixture.js";
 type Mutable<Value> = { -readonly [Key in keyof Value]: Value[Key] };
 type Representation = "prototype-accessors" | "nonenumerable-own";
 
-const optionalFields = ["allocatedBytes", "preferredIoBlockSize", "birthtimeMs", "ino", "dev", "nlink", "uid", "gid"] as const;
+const optionalFields = ["allocatedBytes", "ioBlockSize", "preferredIoBlockSize", "birthtimeMs", "ino", "dev", "rdevMajor", "rdevMinor", "nlink", "uid", "gid"] as const;
 
 function metadata<Value extends object>(values: Value, representation: Representation) {
   class MetadataView {}
@@ -42,7 +42,7 @@ function requiredStat(): Mutable<FileStat> {
 }
 
 function fullStat(): Mutable<Required<FileStat>> {
-  return { ...requiredStat(), revision: 7, allocatedBytes: 4096, preferredIoBlockSize: 4096, birthtimeMs: 10, identityScope: Symbol(), ino: 21, dev: 22, nlink: 2, uid: 0, gid: 0 };
+  return { ...requiredStat(), revision: 7, allocatedBytes: 4096, ioBlockSize: 1024, preferredIoBlockSize: 4096, birthtimeMs: 10, identityScope: Symbol(), ino: 21, dev: 22, rdevMajor: 0, rdevMinor: 0, nlink: 2, uid: 0, gid: 0 };
 }
 
 for (const representation of ["prototype-accessors", "nonenumerable-own"] as const) {
@@ -80,6 +80,10 @@ for (const representation of ["prototype-accessors", "nonenumerable-own"] as con
       mutable.ino = 999;
       assert.equal(delegate.view.mode, 0);
       assert.equal(delegate.view.ino, 103);
+      for (const key of ["ioBlockSize", "rdevMajor", "rdevMinor"] as const) {
+        mutable[key] = 999;
+        assert.equal(delegate.view[key], 103);
+      }
     });
 
     test(`${method} preserves optional absence for ${representation}`, async () => {

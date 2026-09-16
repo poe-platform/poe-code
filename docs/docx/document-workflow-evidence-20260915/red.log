@@ -1,0 +1,99 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/document-workflow-boundaries.test.ts (4 tests | 4 failed) 299ms
+   × adds title and heading levels with original styles and exact text 69ms
+   × adds a page break paragraph without treating it as cached rendered pagination 62ms
+   × adds sections with retained old headers and linked new variants 73ms
+   × runs document creation workflows through closed SDK batch operations 93ms
+FAIL packages/docx/src/document-workflow-boundaries.test.ts > adds title and heading levels with original styles and exact text
+TypeError: document.add_heading is not a function
+ ❯ packages/docx/src/document-workflow-boundaries.test.ts:16:30
+     14|   const document = await Document() as WorkflowDocument;
+     15|   for (const level of [0, 1, 2, 5, 9]) {
+     16|     const heading = document.add_heading(`Survey ${level} 🌊`, level);
+       |                              ^
+     17|     expect(heading.text).toBe(`Survey ${level} 🌊`);
+     18|     expect(heading.style?.name).toBe(level === 0 ? "Title" : `Heading …
+
+FAIL packages/docx/src/document-workflow-boundaries.test.ts > adds a page break paragraph without treating it as cached rendered pagination
+TypeError: document.add_page_break is not a function
+ ❯ packages/docx/src/document-workflow-boundaries.test.ts:30:29
+     28|   const document = await Document() as WorkflowDocument;
+     29|   document.add_paragraph("Start");
+     30|   const inserted = document.add_page_break();
+       |                             ^
+     31|   expect(document.paragraphs.at(-1)).toBe(inserted);
+     32|   expect(inserted.text).toBe("");
+
+FAIL packages/docx/src/document-workflow-boundaries.test.ts > adds sections with retained old headers and linked new variants
+TypeError: document.add_section is not a function
+ ❯ packages/docx/src/document-workflow-boundaries.test.ts:45:26
+     43|   first.footer.paragraphs[0]!.text = "Coast footer";
+     44|   document.add_paragraph("Body");
+     45|   const added = document.add_section(WD_SECTION_START.EVEN_PAGE);
+       |                          ^
+     46|   added.orientation = WD_ORIENT.LANDSCAPE;
+     47|   expect(document.sections).toHaveLength(2);
+
+FAIL packages/docx/src/document-workflow-boundaries.test.ts > runs document creation workflows through closed SDK batch operations
+Error: This model operation is not implemented by the style batch executor.
+ ❯ applyStyleModelBatch packages/docx/src/style-model-batch.ts:28:154
+
+ ❯ packages/docx/src/document-workflow-boundaries.test.ts:68:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'unsupported-profile' }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/document-workflow-boundaries.test.ts > adds title and heading levels with original styles and exact text
+TypeError: document.add_heading is not a function
+ ❯ packages/docx/src/document-workflow-boundaries.test.ts:16:30
+     14|   const document = await Document() as WorkflowDocument;
+     15|   for (const level of [0, 1, 2, 5, 9]) {
+     16|     const heading = document.add_heading(`Survey ${level} 🌊`, level);
+       |                              ^
+     17|     expect(heading.text).toBe(`Survey ${level} 🌊`);
+     18|     expect(heading.style?.name).toBe(level === 0 ? "Title" : `Heading …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  packages/docx/src/document-workflow-boundaries.test.ts > adds a page break paragraph without treating it as cached rendered pagination
+TypeError: document.add_page_break is not a function
+ ❯ packages/docx/src/document-workflow-boundaries.test.ts:30:29
+     28|   const document = await Document() as WorkflowDocument;
+     29|   document.add_paragraph("Start");
+     30|   const inserted = document.add_page_break();
+       |                             ^
+     31|   expect(document.paragraphs.at(-1)).toBe(inserted);
+     32|   expect(inserted.text).toBe("");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  packages/docx/src/document-workflow-boundaries.test.ts > adds sections with retained old headers and linked new variants
+TypeError: document.add_section is not a function
+ ❯ packages/docx/src/document-workflow-boundaries.test.ts:45:26
+     43|   first.footer.paragraphs[0]!.text = "Coast footer";
+     44|   document.add_paragraph("Body");
+     45|   const added = document.add_section(WD_SECTION_START.EVEN_PAGE);
+       |                          ^
+     46|   added.orientation = WD_ORIENT.LANDSCAPE;
+     47|   expect(document.sections).toHaveLength(2);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  packages/docx/src/document-workflow-boundaries.test.ts > runs document creation workflows through closed SDK batch operations
+Error: This model operation is not implemented by the style batch executor.
+ ❯ applyStyleModelBatch packages/docx/src/style-model-batch.ts:28:154
+
+ ❯ packages/docx/src/document-workflow-boundaries.test.ts:68:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed (4)
+   Start at  22:42:59
+   Duration  1.37s (transform 847ms, setup 28ms, import 992ms, tests 299ms, environment 0ms)
+

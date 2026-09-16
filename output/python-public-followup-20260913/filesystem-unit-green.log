@@ -1,0 +1,49 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/safe-fs/tests/python-filesystem.test.ts (14 tests | 1 failed) 90ms
+   ✓ preserves read-only rmdir errors through mounted canonical Python filesystems 7ms
+   × refuses snapshot-only directory removal without delegating from Python 2ms
+     ✓ retains descriptor identity across rename, unlink and path replacement 6ms
+     ✓ passes exclusive and append acquisition atomically and refuses unsupported flags 1ms
+     ✓ refuses oversized transfers before backend work and preserves read-only errors 1ms
+     ✓ closes late acquisitions when shutdown begins and drains delayed work 2ms
+   ✓ preserves canonical partial I/O, sequential positions and errors without replay 1ms
+   ✓ propagates exact abort reasons to delayed backends and drains on close 0ms
+   ✓ retains quota accounting for unlinked open files 1ms
+   ✓ rejects sparse and accessor byte requests before invoking untrusted getters or writing 1ms
+   ✓ shares one close completion when cooperative abort callbacks reenter cleanup 1ms
+   ✓ preserves symlink-sensitive caller cwd components for authoritative resolution 0ms
+   ✓ exclusive open bypasses following capability probes and atomically refuses final self-loop entries 44ms
+   ✓ preserves readonly mutation precedence over descriptor capability refusal 21ms
+FAIL packages/safe-fs/tests/python-filesystem.test.ts > refuses snapshot-only directory removal without delegating from Python
+Error: The property "capabilitiesFor" is not defined on the object.
+ ❯ packages/safe-fs/tests/python-filesystem.test.ts:28:6
+     26|   const fs = new MemoryFileSystem();
+     27|   await fs.mkdir("/empty");
+     28|   vi.spyOn(fs, "capabilitiesFor").mockResolvedValue({ ...fs.capabiliti…
+       |      ^
+     29|   const remove = vi.spyOn(fs, "rmdir");
+     30|   const service = new PythonFileSystem(fs, { cwd: "/" });
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-fs/tests/python-filesystem.test.ts > refuses snapshot-only directory removal without delegating from Python
+Error: The property "capabilitiesFor" is not defined on the object.
+ ❯ packages/safe-fs/tests/python-filesystem.test.ts:28:6
+     26|   const fs = new MemoryFileSystem();
+     27|   await fs.mkdir("/empty");
+     28|   vi.spyOn(fs, "capabilitiesFor").mockResolvedValue({ ...fs.capabiliti…
+       |      ^
+     29|   const remove = vi.spyOn(fs, "rmdir");
+     30|   const service = new PythonFileSystem(fs, { cwd: "/" });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 13 passed (14)
+   Start at  21:42:23
+   Duration  652ms (transform 417ms, setup 116ms, import 319ms, tests 90ms, environment 0ms)
+

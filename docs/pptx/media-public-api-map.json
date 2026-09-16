@@ -1,0 +1,2499 @@
+{
+  "schema_version": 1,
+  "source_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "Image values; returned movie/media-format/OLE interfaces; picture image and graphic-frame OLE accessors; slide/group asset insertion; inherited Movie obligations",
+  "evidence": [
+    "image-public-values-evidence.md",
+    "media-public-model-evidence.md",
+    "media-public-integration-evidence.md"
+  ],
+  "limitations": [
+    "Scoped receipt, not complete API coverage. Planned entries and opaque fixture variants remain visible.",
+    "Tests listed for mapped rows are bounded observable counterparts; inherited behavior is not automatically certified.",
+    "Movie return annotation is documentation drift: Promise<Movie>, not Promise<GraphicFrame>.",
+    "Source identities occur only in research inventory/receipts.",
+    "Exact API signatures and status are additive receipts; historical upstream inventories are not rewritten."
+  ],
+  "api": [
+    {
+      "source_id": "pptx.parts.image.Image",
+      "signature": "(blob: 'bytes', filename: 'str | None')",
+      "python_kind": "type",
+      "source_evidence": {
+        "file": "src/pptx/parts/image.py",
+        "line": 142,
+        "end_line": 275
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "new Image(blob: Uint8Array, filename: string | null = null, contentType?: string)",
+      "tests": [
+        "packages/pptx/src/image-value.test.ts"
+      ],
+      "cli_route": "images list|get|add; public-value-only constructor has no separate command",
+      "notes": "Immutable byte snapshot; tuples are frozen arrays; SHA-1 compatibility only. Filename is explicit inert metadata. Missing dimensions raise invalid-value on size. See image-public-values-evidence.md for six-format characterization limits."
+    },
+    {
+      "source_id": "pptx.parts.image.Image.__init__",
+      "source_signature": "(self, blob: bytes, filename: str | None)",
+      "python_kind": "constructor",
+      "source_evidence": {
+        "file": "src/pptx/parts/image.py",
+        "line": 142,
+        "end_line": 275
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "new Image(blob: Uint8Array, filename: string | null = null, contentType?: string)",
+      "tests": [
+        "packages/pptx/src/image-value.test.ts"
+      ],
+      "cli_route": "images list|get|add; public-value-only constructor has no separate command",
+      "notes": "Immutable byte snapshot; tuples are frozen arrays; SHA-1 compatibility only. Filename is explicit inert metadata. Missing dimensions raise invalid-value on size. See image-public-values-evidence.md for six-format characterization limits."
+    },
+    {
+      "source_id": "pptx.parts.image.Image.blob",
+      "source_signature": "(self) -> bytes",
+      "read_signature": "(self) -> bytes",
+      "write_signature": null,
+      "declared_on": "pptx.parts.image.Image",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/parts/image.py",
+        "line": 177,
+        "end_line": 179
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "Image.blob: Uint8Array",
+      "tests": [
+        "packages/pptx/src/image-value.test.ts"
+      ],
+      "cli_route": "images list|get|add; public-value-only constructor has no separate command",
+      "notes": "Immutable byte snapshot; tuples are frozen arrays; SHA-1 compatibility only. Filename is explicit inert metadata. Missing dimensions raise invalid-value on size. See image-public-values-evidence.md for six-format characterization limits.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "bytes",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.parts.image.Image.content_type",
+      "source_signature": "(self) -> str",
+      "read_signature": "(self) -> str",
+      "write_signature": null,
+      "declared_on": "pptx.parts.image.Image",
+      "python_kind": "lazyproperty",
+      "source_evidence": {
+        "file": "src/pptx/parts/image.py",
+        "line": 182,
+        "end_line": 184
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "Image.content_type: string",
+      "tests": [
+        "packages/pptx/src/image-value.test.ts"
+      ],
+      "cli_route": "images list|get|add; public-value-only constructor has no separate command",
+      "notes": "Immutable byte snapshot; tuples are frozen arrays; SHA-1 compatibility only. Filename is explicit inert metadata. Missing dimensions raise invalid-value on size. See image-public-values-evidence.md for six-format characterization limits.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "str",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.parts.image.Image.dpi",
+      "source_signature": "(self) -> tuple[int, int]",
+      "read_signature": "(self) -> tuple[int, int]",
+      "write_signature": null,
+      "declared_on": "pptx.parts.image.Image",
+      "python_kind": "lazyproperty",
+      "source_evidence": {
+        "file": "src/pptx/parts/image.py",
+        "line": 187,
+        "end_line": 217
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "Image.dpi: readonly [number, number]",
+      "tests": [
+        "packages/pptx/src/image-value.test.ts"
+      ],
+      "cli_route": "images list|get|add; public-value-only constructor has no separate command",
+      "notes": "Immutable byte snapshot; tuples are frozen arrays; SHA-1 compatibility only. Filename is explicit inert metadata. Missing dimensions raise invalid-value on size. See image-public-values-evidence.md for six-format characterization limits.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "tuple[int, int]",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.parts.image.Image.ext",
+      "source_signature": "(self) -> str",
+      "read_signature": "(self) -> str",
+      "write_signature": null,
+      "declared_on": "pptx.parts.image.Image",
+      "python_kind": "lazyproperty",
+      "source_evidence": {
+        "file": "src/pptx/parts/image.py",
+        "line": 220,
+        "end_line": 238
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "Image.ext: string",
+      "tests": [
+        "packages/pptx/src/image-value.test.ts"
+      ],
+      "cli_route": "images list|get|add; public-value-only constructor has no separate command",
+      "notes": "Immutable byte snapshot; tuples are frozen arrays; SHA-1 compatibility only. Filename is explicit inert metadata. Missing dimensions raise invalid-value on size. See image-public-values-evidence.md for six-format characterization limits.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "str",
+      "direct_raises": [
+        "ValueError"
+      ]
+    },
+    {
+      "source_id": "pptx.parts.image.Image.filename",
+      "source_signature": "(self) -> str | None",
+      "read_signature": "(self) -> str | None",
+      "write_signature": null,
+      "declared_on": "pptx.parts.image.Image",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/parts/image.py",
+        "line": 241,
+        "end_line": 246
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "Image.filename: string | null",
+      "tests": [
+        "packages/pptx/src/image-value.test.ts"
+      ],
+      "cli_route": "images list|get|add; public-value-only constructor has no separate command",
+      "notes": "Immutable byte snapshot; tuples are frozen arrays; SHA-1 compatibility only. Filename is explicit inert metadata. Missing dimensions raise invalid-value on size. See image-public-values-evidence.md for six-format characterization limits.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "str | None",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.parts.image.Image.sha1",
+      "source_signature": "(self) -> str",
+      "read_signature": "(self) -> str",
+      "write_signature": null,
+      "declared_on": "pptx.parts.image.Image",
+      "python_kind": "lazyproperty",
+      "source_evidence": {
+        "file": "src/pptx/parts/image.py",
+        "line": 249,
+        "end_line": 251
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "Image.sha1: string",
+      "tests": [
+        "packages/pptx/src/image-value.test.ts"
+      ],
+      "cli_route": "images list|get|add; public-value-only constructor has no separate command",
+      "notes": "Immutable byte snapshot; tuples are frozen arrays; SHA-1 compatibility only. Filename is explicit inert metadata. Missing dimensions raise invalid-value on size. See image-public-values-evidence.md for six-format characterization limits.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "str",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.parts.image.Image.size",
+      "source_signature": "(self) -> tuple[int, int]",
+      "read_signature": "(self) -> tuple[int, int]",
+      "write_signature": null,
+      "declared_on": "pptx.parts.image.Image",
+      "python_kind": "lazyproperty",
+      "source_evidence": {
+        "file": "src/pptx/parts/image.py",
+        "line": 254,
+        "end_line": 256
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "Image.size: readonly [number, number]",
+      "tests": [
+        "packages/pptx/src/image-value.test.ts"
+      ],
+      "cli_route": "images list|get|add; public-value-only constructor has no separate command",
+      "notes": "Immutable byte snapshot; tuples are frozen arrays; SHA-1 compatibility only. Filename is explicit inert metadata. Missing dimensions raise invalid-value on size. See image-public-values-evidence.md for six-format characterization limits.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "tuple[int, int]",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.ole_format",
+      "source_signature": "(self) -> _OleFormat",
+      "read_signature": "(self) -> _OleFormat",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/graphfrm.py",
+        "line": 76,
+        "end_line": 86
+      },
+      "disposition": "implemented",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "GraphicFrame.ole_format: OleFormat",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "objects list|extract",
+      "notes": "Original observable acceptance; no literal source-runtime parity claim.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "_OleFormat",
+      "direct_raises": [
+        "ValueError"
+      ]
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat",
+      "python_kind": "type",
+      "source_evidence": {
+        "file": "src/pptx/shapes/graphfrm.py",
+        "line": 133,
+        "end_line": 166
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "returned OleFormat interface",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "objects list|extract",
+      "notes": "Returned public interface is retained; source raw XML constructor is not a public allocation promise."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.__eq__",
+      "source_signature": "(self, other: object) -> bool",
+      "declared_on": "pptx.shared.ElementProxy",
+      "python_kind": "function",
+      "source_evidence": {
+        "file": "src/pptx/shared.py",
+        "line": 24,
+        "end_line": 33
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "JavaScript reference equality; no overloaded equality operator",
+      "tests": [],
+      "cli_route": "objects list|extract",
+      "notes": "Source element-proxy equality is not JS wrapper identity. Exact repeated-wrapper equality behavior is not asserted by this receipt.",
+      "source_returns": "bool",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.__init__",
+      "source_signature": "(self, graphicData: CT_GraphicalObjectData, parent: ProvidesPart)",
+      "python_kind": "constructor",
+      "source_evidence": {
+        "file": "src/pptx/shapes/graphfrm.py",
+        "line": 133,
+        "end_line": 166
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "returned OleFormat interface",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "objects list|extract",
+      "notes": "Returned public interface is retained; source raw XML constructor is not a public allocation promise."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.blob",
+      "source_signature": "(self) -> bytes | None",
+      "read_signature": "(self) -> bytes | None",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.graphfrm._OleFormat",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/graphfrm.py",
+        "line": 143,
+        "end_line": 151
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "OleFormat.blob: Uint8Array | null",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "objects list|extract",
+      "notes": "Returned live owner view; bytes copied; bounded XML/package views replace runtime dependency proxies. Missing icon flag maps to false; absent linked/embedded bytes return null without fetching.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "bytes | None",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.element",
+      "source_signature": "(self)",
+      "read_signature": "(self)",
+      "write_signature": null,
+      "declared_on": "pptx.shared.ElementProxy",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shared.py",
+        "line": 41,
+        "end_line": 43
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "OleFormat.element: XmlElement",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "objects list|extract",
+      "notes": "Returned live owner view; bytes copied; bounded XML/package views replace runtime dependency proxies. Missing icon flag maps to false; absent linked/embedded bytes return null without fetching.",
+      "readable": true,
+      "writable": false,
+      "source_returns": null,
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.parent",
+      "source_signature": "(self)",
+      "read_signature": "(self)",
+      "write_signature": null,
+      "declared_on": "pptx.shared.ParentedElementProxy",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shared.py",
+        "line": 59,
+        "end_line": 64
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "OleFormat.parent: GraphicFrame",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "objects list|extract",
+      "notes": "Returned live owner view; bytes copied; bounded XML/package views replace runtime dependency proxies. Missing icon flag maps to false; absent linked/embedded bytes return null without fetching.",
+      "readable": true,
+      "writable": false,
+      "source_returns": null,
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.part",
+      "source_signature": "(self) -> XmlPart",
+      "read_signature": "(self) -> XmlPart",
+      "write_signature": null,
+      "declared_on": "pptx.shared.ParentedElementProxy",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shared.py",
+        "line": 67,
+        "end_line": 69
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "OleFormat.part: PartView",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "objects list|extract",
+      "notes": "Returned live owner view; bytes copied; bounded XML/package views replace runtime dependency proxies. Missing icon flag maps to false; absent linked/embedded bytes return null without fetching.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "XmlPart",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.prog_id",
+      "source_signature": "(self) -> str | None",
+      "read_signature": "(self) -> str | None",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.graphfrm._OleFormat",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/graphfrm.py",
+        "line": 154,
+        "end_line": 161
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "OleFormat.prog_id: string | null",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "objects list|extract",
+      "notes": "Returned live owner view; bytes copied; bounded XML/package views replace runtime dependency proxies. Missing icon flag maps to false; absent linked/embedded bytes return null without fetching.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "str | None",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.show_as_icon",
+      "source_signature": "(self) -> bool | None",
+      "read_signature": "(self) -> bool | None",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.graphfrm._OleFormat",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/graphfrm.py",
+        "line": 164,
+        "end_line": 166
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "OleFormat.show_as_icon: boolean",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "objects list|extract",
+      "notes": "Returned live owner view; bytes copied; bounded XML/package views replace runtime dependency proxies. Missing icon flag maps to false; absent linked/embedded bytes return null without fetching.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "bool | None",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie",
+      "python_kind": "type",
+      "source_evidence": {
+        "file": "src/pptx/shapes/picture.py",
+        "line": 98,
+        "end_line": 139
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "returned Movie extends Picture",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": null,
+      "notes": "Source private XML constructor maps to owner-created returned interface."
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.__eq__",
+      "source_signature": "(self, other: object) -> bool",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "python_kind": "function",
+      "source_evidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 32,
+        "end_line": 40
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "JavaScript reference equality; no overloaded equality operator",
+      "tests": [],
+      "cli_route": null,
+      "notes": "No assertion of source wrapper equality; live ownership is tested separately.",
+      "source_returns": "bool",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.__init__",
+      "source_signature": "(self, pic: CT_Picture, parent: ProvidesPart)",
+      "python_kind": "constructor",
+      "source_evidence": {
+        "file": "src/pptx/shapes/picture.py",
+        "line": 98,
+        "end_line": 139
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "returned Movie extends Picture",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": null,
+      "notes": "Source private XML constructor maps to owner-created returned interface."
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.click_action",
+      "source_signature": "(self) -> ActionSetting",
+      "read_signature": "(self) -> ActionSetting",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "python_kind": "lazyproperty",
+      "source_evidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 48,
+        "end_line": 57
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.click_action: ActionSetting",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "ActionSetting",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.crop_bottom",
+      "source_signature": "(self) -> float",
+      "read_signature": "(self) -> float",
+      "write_signature": "(self, value: float)",
+      "declared_on": "pptx.shapes.picture._BasePicture",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/picture.py",
+        "line": 27,
+        "end_line": 37
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.crop_bottom: number",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": true,
+      "source_returns": "float",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.crop_left",
+      "source_signature": "(self) -> float",
+      "read_signature": "(self) -> float",
+      "write_signature": "(self, value: float)",
+      "declared_on": "pptx.shapes.picture._BasePicture",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/picture.py",
+        "line": 40,
+        "end_line": 50
+      },
+      "disposition": "implemented",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "Movie.crop_left: number",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "media list|get|set",
+      "notes": "Original observable acceptance; no literal source-runtime parity claim.",
+      "readable": true,
+      "writable": true,
+      "source_returns": "float",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.crop_right",
+      "source_signature": "(self) -> float",
+      "read_signature": "(self) -> float",
+      "write_signature": "(self, value: float)",
+      "declared_on": "pptx.shapes.picture._BasePicture",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/picture.py",
+        "line": 53,
+        "end_line": 62
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.crop_right: number",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": true,
+      "source_returns": "float",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.crop_top",
+      "source_signature": "(self) -> float",
+      "read_signature": "(self) -> float",
+      "write_signature": "(self, value: float)",
+      "declared_on": "pptx.shapes.picture._BasePicture",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/picture.py",
+        "line": 65,
+        "end_line": 74
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.crop_top: number",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": true,
+      "source_returns": "float",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.element",
+      "source_signature": "(self) -> ShapeElement",
+      "read_signature": "(self) -> ShapeElement",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 60,
+        "end_line": 66
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.element: XmlElement",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "ShapeElement",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.get_or_add_ln",
+      "source_signature": "(self)",
+      "declared_on": "pptx.shapes.picture._BasePicture",
+      "python_kind": "function",
+      "source_evidence": {
+        "file": "src/pptx/shapes/picture.py",
+        "line": 76,
+        "end_line": 81
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": null,
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "source_returns": null,
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.has_chart",
+      "source_signature": "(self) -> bool",
+      "read_signature": "(self) -> bool",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 69,
+        "end_line": 77
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.has_chart: boolean",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "bool",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.has_table",
+      "source_signature": "(self) -> bool",
+      "read_signature": "(self) -> bool",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 80,
+        "end_line": 88
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.has_table: boolean",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "bool",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.has_text_frame",
+      "source_signature": "(self) -> bool",
+      "read_signature": "(self) -> bool",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 91,
+        "end_line": 94
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.has_text_frame: boolean",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "bool",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.height",
+      "source_signature": "(self) -> Length",
+      "read_signature": "(self) -> Length",
+      "write_signature": "(self, value: Length)",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 97,
+        "end_line": 103
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.height: Length | null",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": true,
+      "source_returns": "Length",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.is_placeholder",
+      "source_signature": "(self) -> bool",
+      "read_signature": "(self) -> bool",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 106,
+        "end_line": 111
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.is_placeholder: boolean",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "bool",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.left",
+      "source_signature": "(self) -> Length",
+      "read_signature": "(self) -> Length",
+      "write_signature": "(self, value: Length)",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 114,
+        "end_line": 123
+      },
+      "disposition": "implemented",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "Movie.left: Length | null",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "media list|get|set",
+      "notes": "Original observable acceptance; no literal source-runtime parity claim.",
+      "readable": true,
+      "writable": true,
+      "source_returns": "Length",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.line",
+      "source_signature": "(self) -> LineFormat",
+      "read_signature": "(self) -> LineFormat",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.picture._BasePicture",
+      "python_kind": "lazyproperty",
+      "source_evidence": {
+        "file": "src/pptx/shapes/picture.py",
+        "line": 84,
+        "end_line": 86
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.line: LineFormat",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "LineFormat",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.ln",
+      "source_signature": "(self) -> CT_LineProperties | None",
+      "read_signature": "(self) -> CT_LineProperties | None",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.picture._BasePicture",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/picture.py",
+        "line": 89,
+        "end_line": 95
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": null,
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "CT_LineProperties | None",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.media_format",
+      "source_signature": "(self) -> _MediaFormat",
+      "read_signature": "(self) -> _MediaFormat",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.picture.Movie",
+      "python_kind": "lazyproperty",
+      "source_evidence": {
+        "file": "src/pptx/shapes/picture.py",
+        "line": 106,
+        "end_line": 111
+      },
+      "disposition": "implemented",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "Movie.media_format: MediaFormat",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "media list|get|set",
+      "notes": "Original observable acceptance; no literal source-runtime parity claim.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "_MediaFormat",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.media_type",
+      "source_signature": "(self) -> PP_MEDIA_TYPE",
+      "read_signature": "(self) -> PP_MEDIA_TYPE",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.picture.Movie",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/picture.py",
+        "line": 114,
+        "end_line": 119
+      },
+      "disposition": "implemented",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "Movie.media_type: PP_MEDIA_TYPE",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "media list|get|set",
+      "notes": "Original observable acceptance; no literal source-runtime parity claim.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "PP_MEDIA_TYPE",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.name",
+      "source_signature": "(self) -> str",
+      "read_signature": "(self) -> str",
+      "write_signature": "(self, value: str)",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 126,
+        "end_line": 132
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.name: string",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": true,
+      "source_returns": "str",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.part",
+      "source_signature": "(self) -> BaseSlidePart",
+      "read_signature": "(self) -> BaseSlidePart",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 135,
+        "end_line": 141
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.part: PartView",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "BaseSlidePart",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.placeholder_format",
+      "source_signature": "(self) -> _PlaceholderFormat",
+      "read_signature": "(self) -> _PlaceholderFormat",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 144,
+        "end_line": 152
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.placeholder_format: PlaceholderFormat",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "_PlaceholderFormat",
+      "direct_raises": [
+        "ValueError"
+      ]
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.poster_frame",
+      "source_signature": "(self)",
+      "read_signature": "(self)",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.picture.Movie",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/picture.py",
+        "line": 122,
+        "end_line": 130
+      },
+      "disposition": "implemented",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "Movie.poster_frame: Image | null",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "media list|get|set",
+      "notes": "Original observable acceptance; no literal source-runtime parity claim.",
+      "readable": true,
+      "writable": false,
+      "source_returns": null,
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.rotation",
+      "source_signature": "(self) -> float",
+      "read_signature": "(self) -> float",
+      "write_signature": "(self, value: float)",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 155,
+        "end_line": 165
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.rotation: number",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": true,
+      "source_returns": "float",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.shadow",
+      "source_signature": "(self) -> ShadowFormat",
+      "read_signature": "(self) -> ShadowFormat",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "python_kind": "lazyproperty",
+      "source_evidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 168,
+        "end_line": 175
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.shadow: ShadowFormat",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "ShadowFormat",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.shape_id",
+      "source_signature": "(self) -> int",
+      "read_signature": "(self) -> int",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 178,
+        "end_line": 183
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.shape_id: number",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "int",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.shape_type",
+      "source_signature": "(self) -> MSO_SHAPE_TYPE",
+      "read_signature": "(self) -> MSO_SHAPE_TYPE",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.picture.Movie",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/picture.py",
+        "line": 133,
+        "end_line": 139
+      },
+      "disposition": "implemented",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "Movie.shape_type: 16",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "media list|get|set",
+      "notes": "Original observable acceptance; no literal source-runtime parity claim.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "MSO_SHAPE_TYPE",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.top",
+      "source_signature": "(self) -> Length",
+      "read_signature": "(self) -> Length",
+      "write_signature": "(self, value: Length)",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 194,
+        "end_line": 203
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.top: Length | null",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": true,
+      "source_returns": "Length",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Movie.width",
+      "source_signature": "(self) -> Length",
+      "read_signature": "(self) -> Length",
+      "write_signature": "(self, value: Length)",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/base.py",
+        "line": 206,
+        "end_line": 215
+      },
+      "disposition": "planned",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "Movie.width: Length | null",
+      "tests": [],
+      "cli_route": null,
+      "notes": "Inherited member retained. Base/Picture tests are not automatically counted as Movie acceptance; direct Movie coverage remains planned in this scoped receipt.",
+      "readable": true,
+      "writable": true,
+      "source_returns": "Length",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture.Picture.image",
+      "source_signature": "(self)",
+      "read_signature": "(self)",
+      "write_signature": null,
+      "declared_on": "pptx.shapes.picture.Picture",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shapes/picture.py",
+        "line": 182,
+        "end_line": 190
+      },
+      "disposition": "implemented",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "Picture.image: Image",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "images get",
+      "notes": "Original observable acceptance; no literal source-runtime parity claim.",
+      "readable": true,
+      "writable": false,
+      "source_returns": null,
+      "direct_raises": [
+        "ValueError"
+      ]
+    },
+    {
+      "source_id": "pptx.shapes.picture._MediaFormat",
+      "python_kind": "type",
+      "source_evidence": {
+        "file": "src/pptx/shapes/picture.py",
+        "line": 198,
+        "end_line": 203
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "returned MediaFormat interface",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "media list|get",
+      "notes": "Returned public interface is retained; source raw XML constructor is not a public allocation promise."
+    },
+    {
+      "source_id": "pptx.shapes.picture._MediaFormat.__eq__",
+      "source_signature": "(self, other: object) -> bool",
+      "declared_on": "pptx.shared.ElementProxy",
+      "python_kind": "function",
+      "source_evidence": {
+        "file": "src/pptx/shared.py",
+        "line": 24,
+        "end_line": 33
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "unverified-in-this-receipt",
+      "target_js_signature": "JavaScript reference equality; no overloaded equality operator",
+      "tests": [],
+      "cli_route": "media list|get",
+      "notes": "Source element-proxy equality is not JS wrapper identity. Exact repeated-wrapper equality behavior is not asserted by this receipt.",
+      "source_returns": "bool",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture._MediaFormat.__init__",
+      "source_signature": "(self, element: BaseOxmlElement, parent: ProvidesPart)",
+      "python_kind": "constructor",
+      "source_evidence": {
+        "file": "src/pptx/shapes/picture.py",
+        "line": 198,
+        "end_line": 203
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "returned MediaFormat interface",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "media list|get",
+      "notes": "Returned public interface is retained; source raw XML constructor is not a public allocation promise."
+    },
+    {
+      "source_id": "pptx.shapes.picture._MediaFormat.element",
+      "source_signature": "(self)",
+      "read_signature": "(self)",
+      "write_signature": null,
+      "declared_on": "pptx.shared.ElementProxy",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shared.py",
+        "line": 41,
+        "end_line": 43
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "MediaFormat.element: XmlElement",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "media list|get",
+      "notes": "Returned live owner view; bytes copied; bounded XML/package views replace runtime dependency proxies. Missing icon flag maps to false; absent linked/embedded bytes return null without fetching.",
+      "readable": true,
+      "writable": false,
+      "source_returns": null,
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture._MediaFormat.parent",
+      "source_signature": "(self)",
+      "read_signature": "(self)",
+      "write_signature": null,
+      "declared_on": "pptx.shared.ParentedElementProxy",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shared.py",
+        "line": 59,
+        "end_line": 64
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "MediaFormat.parent: Movie",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "media list|get",
+      "notes": "Returned live owner view; bytes copied; bounded XML/package views replace runtime dependency proxies. Missing icon flag maps to false; absent linked/embedded bytes return null without fetching.",
+      "readable": true,
+      "writable": false,
+      "source_returns": null,
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.picture._MediaFormat.part",
+      "source_signature": "(self) -> XmlPart",
+      "read_signature": "(self) -> XmlPart",
+      "write_signature": null,
+      "declared_on": "pptx.shared.ParentedElementProxy",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/shared.py",
+        "line": 67,
+        "end_line": 69
+      },
+      "disposition": "language-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "MediaFormat.part: PartView",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "media list|get",
+      "notes": "Returned live owner view; bytes copied; bounded XML/package views replace runtime dependency proxies. Missing icon flag maps to false; absent linked/embedded bytes return null without fetching.",
+      "readable": true,
+      "writable": false,
+      "source_returns": "XmlPart",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.GroupShapes.add_ole_object",
+      "source_signature": "(self, object_file: str | IO[bytes], prog_id: str, left: Length, top: Length, width: Length | None=None, height: Length | None=None, icon_file: str | IO[bytes] | None=None, icon_width: Length | None=None, icon_height: Length | None=None) -> GraphicFrame",
+      "signature": "(self, object_file: 'str | IO[bytes]', prog_id: 'str', left: 'Length', top: 'Length', width: 'Length | None' = None, height: 'Length | None' = None, icon_file: 'str | IO[bytes] | None' = None, icon_width: 'Length | None' = None, icon_height: 'Length | None' = None) -> 'GraphicFrame'",
+      "declared_on": "pptx.shapes.shapetree._BaseGroupShapes",
+      "python_kind": "function",
+      "source_evidence": {
+        "file": "src/pptx/shapes/shapetree.py",
+        "line": 296,
+        "end_line": 351
+      },
+      "disposition": "security-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "add_ole_object(input: BinaryInput, prog_id: string | OleApplication, left: Length, top: Length, options: {icon_file: BinaryInput; width?: Length; height?: Length; icon_width?: Length; icon_height?: Length}): Promise<GraphicFrame>",
+      "tests": [
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "objects add",
+      "notes": "Always async explicit admitted byte capabilities; no host paths, codec execution, poster generation or implicit icon lookup. Optional source icon/poster defaults map to required supplied inert icon/poster. Group picture/OLE insertion preserves group ownership. Movie return annotation corrected from GraphicFrame to Movie.",
+      "source_returns": "GraphicFrame",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.GroupShapes.add_picture",
+      "source_signature": "(self, image_file: str | IO[bytes], left: Length, top: Length, width: Length | None=None, height: Length | None=None) -> Picture",
+      "signature": "(self, image_file: 'str | IO[bytes]', left: 'Length', top: 'Length', width: 'Length | None' = None, height: 'Length | None' = None) -> 'Picture'",
+      "declared_on": "pptx.shapes.shapetree._BaseGroupShapes",
+      "python_kind": "function",
+      "source_evidence": {
+        "file": "src/pptx/shapes/shapetree.py",
+        "line": 353,
+        "end_line": 373
+      },
+      "disposition": "security-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "add_picture(input: BinaryInput, left: Length, top: Length, width: Length | null = null, height: Length | null = null): Promise<Picture>",
+      "tests": [
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "images add",
+      "notes": "Always async explicit admitted byte capabilities; no host paths, codec execution, poster generation or implicit icon lookup. Optional source icon/poster defaults map to required supplied inert icon/poster. Group picture/OLE insertion preserves group ownership. Movie return annotation corrected from GraphicFrame to Movie.",
+      "source_returns": "Picture",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.SlideShapes.add_movie",
+      "source_signature": "(self, movie_file: str | IO[bytes], left: Length, top: Length, width: Length, height: Length, poster_frame_image: str | IO[bytes] | None=None, mime_type: str=CT.VIDEO) -> GraphicFrame",
+      "signature": "(self, movie_file: 'str | IO[bytes]', left: 'Length', top: 'Length', width: 'Length', height: 'Length', poster_frame_image: 'str | IO[bytes] | None' = None, mime_type: 'str' = 'video/unknown') -> 'GraphicFrame'",
+      "declared_on": "pptx.shapes.shapetree.SlideShapes",
+      "python_kind": "function",
+      "source_evidence": {
+        "file": "src/pptx/shapes/shapetree.py",
+        "line": 547,
+        "end_line": 587
+      },
+      "disposition": "security-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "add_movie(input: BinaryInput, left: Length, top: Length, width: Length, height: Length, options: {poster_frame_image: BinaryInput; mime_type: string}): Promise<Movie>",
+      "tests": [
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "media add --kind video",
+      "notes": "Always async explicit admitted byte capabilities; no host paths, codec execution, poster generation or implicit icon lookup. Optional source icon/poster defaults map to required supplied inert icon/poster. Group picture/OLE insertion preserves group ownership. Movie return annotation corrected from GraphicFrame to Movie.",
+      "source_returns": "GraphicFrame",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.SlideShapes.add_ole_object",
+      "source_signature": "(self, object_file: str | IO[bytes], prog_id: str, left: Length, top: Length, width: Length | None=None, height: Length | None=None, icon_file: str | IO[bytes] | None=None, icon_width: Length | None=None, icon_height: Length | None=None) -> GraphicFrame",
+      "signature": "(self, object_file: 'str | IO[bytes]', prog_id: 'str', left: 'Length', top: 'Length', width: 'Length | None' = None, height: 'Length | None' = None, icon_file: 'str | IO[bytes] | None' = None, icon_width: 'Length | None' = None, icon_height: 'Length | None' = None) -> 'GraphicFrame'",
+      "declared_on": "pptx.shapes.shapetree._BaseGroupShapes",
+      "python_kind": "function",
+      "source_evidence": {
+        "file": "src/pptx/shapes/shapetree.py",
+        "line": 296,
+        "end_line": 351
+      },
+      "disposition": "security-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "add_ole_object(input: BinaryInput, prog_id: string | OleApplication, left: Length, top: Length, options: {icon_file: BinaryInput; width?: Length; height?: Length; icon_width?: Length; icon_height?: Length}): Promise<GraphicFrame>",
+      "tests": [
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "objects add",
+      "notes": "Always async explicit admitted byte capabilities; no host paths, codec execution, poster generation or implicit icon lookup. Optional source icon/poster defaults map to required supplied inert icon/poster. Group picture/OLE insertion preserves group ownership. Movie return annotation corrected from GraphicFrame to Movie.",
+      "source_returns": "GraphicFrame",
+      "direct_raises": []
+    },
+    {
+      "source_id": "pptx.shapes.shapetree.SlideShapes.add_picture",
+      "source_signature": "(self, image_file: str | IO[bytes], left: Length, top: Length, width: Length | None=None, height: Length | None=None) -> Picture",
+      "signature": "(self, image_file: 'str | IO[bytes]', left: 'Length', top: 'Length', width: 'Length | None' = None, height: 'Length | None' = None) -> 'Picture'",
+      "declared_on": "pptx.shapes.shapetree._BaseGroupShapes",
+      "python_kind": "function",
+      "source_evidence": {
+        "file": "src/pptx/shapes/shapetree.py",
+        "line": 353,
+        "end_line": 373
+      },
+      "disposition": "security-mapped",
+      "implementation_status": "tested-bounded-behavior",
+      "target_js_signature": "add_picture(input: BinaryInput, left: Length, top: Length, width: Length | null = null, height: Length | null = null): Promise<Picture>",
+      "tests": [
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "cli_route": "images add",
+      "notes": "Always async explicit admitted byte capabilities; no host paths, codec execution, poster generation or implicit icon lookup. Optional source icon/poster defaults map to required supplied inert icon/poster. Group picture/OLE insertion preserves group ownership. Movie return annotation corrected from GraphicFrame to Movie.",
+      "source_returns": "Picture",
+      "direct_raises": []
+    }
+  ],
+  "source_tests": [
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImagePart::it_can_construct_from_an_image_object",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 32,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "No original observable equivalence established by this scoped receipt."
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImagePart::it_provides_access_to_its_image",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 50,
+      "disposition": "language-mapped",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "notes": "Original returned-interface assertions replace source wrapper mocks; no runtime activation."
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImagePart::it_can_scale_its_dimensions[None-None-2590800-2590800]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 61,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "No original observable equivalence established by this scoped receipt."
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImagePart::it_can_scale_its_dimensions[1000-None-1000-1000]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 61,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "No original observable equivalence established by this scoped receipt."
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImagePart::it_can_scale_its_dimensions[None-3000-3000-3000]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 61,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "No original observable equivalence established by this scoped receipt."
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImagePart::it_can_scale_its_dimensions[3337-9999-3337-9999]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 61,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "No original observable equivalence established by this scoped receipt."
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImagePart::it_knows_its_pixel_dimensions_to_help",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 77,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "No original observable equivalence established by this scoped receipt."
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_can_construct_from_a_path",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 94,
+      "disposition": "security-mapped",
+      "tests": [
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "notes": "No ambient path opening; explicit BinaryInput capabilities replace source path/stream authority. Not a literal fixture replay."
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_can_construct_from_a_stream",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 104,
+      "disposition": "security-mapped",
+      "tests": [
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "notes": "No ambient path opening; explicit BinaryInput capabilities replace source path/stream authority. Not a literal fixture replay."
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_can_construct_from_a_blob",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 110,
+      "disposition": "language-mapped",
+      "tests": [
+        "packages/pptx/src/image-value.test.ts"
+      ],
+      "notes": "Observable byte/hash/name snapshot behavior covered; source proxy/mock call assertions are not reproduced."
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_blob",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 116,
+      "disposition": "language-mapped",
+      "tests": [
+        "packages/pptx/src/image-value.test.ts"
+      ],
+      "notes": "Observable byte/hash/name snapshot behavior covered; source proxy/mock call assertions are not reproduced."
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_content_type[content_type_fixture0]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 120,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_content_type[content_type_fixture1]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 120,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_content_type[content_type_fixture2]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 120,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_content_type[content_type_fixture3]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 120,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_content_type[content_type_fixture4]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 120,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_content_type[content_type_fixture5]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 120,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_canonical_filename_extension[ext_fixture0]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 124,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_canonical_filename_extension[ext_fixture1]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 124,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_canonical_filename_extension[ext_fixture2]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 124,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_canonical_filename_extension[ext_fixture3]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 124,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_canonical_filename_extension[ext_fixture4]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 124,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_canonical_filename_extension[ext_fixture5]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 124,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_dpi[dpi_fixture0]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 128,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_dpi[dpi_fixture1]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 128,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_dpi[dpi_fixture2]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 128,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_dpi[dpi_fixture3]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 128,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_dpi[dpi_fixture4]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 128,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_filename[foo.bar]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 132,
+      "disposition": "language-mapped",
+      "tests": [
+        "packages/pptx/src/image-value.test.ts"
+      ],
+      "notes": "Observable byte/hash/name snapshot behavior covered; source proxy/mock call assertions are not reproduced."
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_filename[None]",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 132,
+      "disposition": "language-mapped",
+      "tests": [
+        "packages/pptx/src/image-value.test.ts"
+      ],
+      "notes": "Observable byte/hash/name snapshot behavior covered; source proxy/mock call assertions are not reproduced."
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_sha1_hash",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 136,
+      "disposition": "language-mapped",
+      "tests": [
+        "packages/pptx/src/image-value.test.ts"
+      ],
+      "notes": "Observable byte/hash/name snapshot behavior covered; source proxy/mock call assertions are not reproduced."
+    },
+    {
+      "source_node_id": "tests/parts/test_image.py::DescribeImage::it_knows_its_PIL_properties_to_help",
+      "source_file": "tests/parts/test_image.py",
+      "source_line": 140,
+      "disposition": "language-mapped",
+      "tests": [
+        "packages/pptx/src/image-value.test.ts"
+      ],
+      "notes": "Dependency decoder internals replaced with bounded container characterization; no decoder exposed. Format limitations remain explicit."
+    },
+    {
+      "source_node_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_whether_it_contains_a_chart[http://schemas.openxmlformats.org/presentationml/2006/ole-False]",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "source_line": 56,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "No original observable equivalence established by this scoped receipt."
+    },
+    {
+      "source_node_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_whether_it_contains_a_table[http://schemas.openxmlformats.org/presentationml/2006/ole-False]",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "source_line": 68,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "No original observable equivalence established by this scoped receipt."
+    },
+    {
+      "source_node_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_provides_access_to_the_OleFormat_object",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "source_line": 80,
+      "disposition": "language-mapped",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "notes": "Original returned-interface assertions replace source wrapper mocks; no runtime activation."
+    },
+    {
+      "source_node_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::but_it_raises_on_ole_format_when_this_is_not_an_OLE_object",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "source_line": 97,
+      "disposition": "language-mapped",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "notes": "Original returned-interface assertions replace source wrapper mocks; no runtime activation."
+    },
+    {
+      "source_node_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_its_shape_type[http://schemas.openxmlformats.org/presentationml/2006/ole-embed-EMBEDDED_OLE_OBJECT (7)]",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "source_line": 114,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "No original observable equivalence established by this scoped receipt."
+    },
+    {
+      "source_node_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_its_shape_type[http://schemas.openxmlformats.org/presentationml/2006/ole-link-LINKED_OLE_OBJECT (10)]",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "source_line": 114,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "No original observable equivalence established by this scoped receipt."
+    },
+    {
+      "source_node_id": "tests/shapes/test_graphfrm.py::Describe_OleFormat::it_provides_access_to_the_OLE_object_blob",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "source_line": 150,
+      "disposition": "language-mapped",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "notes": "Original returned-interface assertions replace source wrapper mocks; no runtime activation."
+    },
+    {
+      "source_node_id": "tests/shapes/test_graphfrm.py::Describe_OleFormat::it_knows_the_OLE_object_prog_id",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "source_line": 162,
+      "disposition": "language-mapped",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "notes": "Original returned-interface assertions replace source wrapper mocks; no runtime activation."
+    },
+    {
+      "source_node_id": "tests/shapes/test_graphfrm.py::Describe_OleFormat::it_knows_whether_to_show_the_OLE_object_as_an_icon",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "source_line": 166,
+      "disposition": "language-mapped",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "notes": "Original returned-interface assertions replace source wrapper mocks; no runtime activation."
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture0]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 19,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture1]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 19,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture2]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 19,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture3]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 19,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture4]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 19,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture5]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 19,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture6]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 19,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture0]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 24,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture1]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 24,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture2]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 24,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture3]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 24,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture4]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 24,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture5]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 24,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture6]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 24,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture7]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 24,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture8]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 24,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture9]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 24,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture10]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 24,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture11]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 24,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::DescribeMovie::it_knows_its_shape_type",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 146,
+      "disposition": "language-mapped",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "notes": "Original returned-interface assertions replace source wrapper mocks; no runtime activation."
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::DescribeMovie::it_knows_its_media_type",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 150,
+      "disposition": "language-mapped",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "notes": "Original returned-interface assertions replace source wrapper mocks; no runtime activation."
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::DescribeMovie::it_provides_access_to_its_media_format",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 154,
+      "disposition": "language-mapped",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "notes": "Original returned-interface assertions replace source wrapper mocks; no runtime activation."
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::DescribeMovie::it_provides_access_to_its_poster_frame_image[pfrm_fixture0]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 160,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::DescribeMovie::it_provides_access_to_its_poster_frame_image[pfrm_fixture1]",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 160,
+      "disposition": "planned",
+      "tests": [],
+      "notes": "Opaque fixture variant retained exactly. Related original tests exist, but unavailable source fixture payload prevents claiming variant equivalence.",
+      "related_tests": [
+        "packages/pptx/src/image-value.test.ts",
+        "packages/pptx/src/image-metadata.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ]
+    },
+    {
+      "source_node_id": "tests/shapes/test_picture.py::DescribePicture::it_provides_access_to_its_image",
+      "source_file": "tests/shapes/test_picture.py",
+      "source_line": 237,
+      "disposition": "language-mapped",
+      "tests": [
+        "packages/pptx/src/media-public-model.test.ts",
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "notes": "Original returned-interface assertions replace source wrapper mocks; no runtime activation."
+    },
+    {
+      "source_node_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_an_ole_object",
+      "source_file": "tests/shapes/test_shapetree.py",
+      "source_line": 359,
+      "disposition": "security-mapped",
+      "tests": [
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "notes": "Always-async insertion of explicit inert bytes; supplied icon/poster; original save/reopen and group-owner assertions."
+    },
+    {
+      "source_node_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_picture",
+      "source_file": "tests/shapes/test_shapetree.py",
+      "source_line": 403,
+      "disposition": "security-mapped",
+      "tests": [
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "notes": "Always-async insertion of explicit inert bytes; supplied icon/poster; original save/reopen and group-owner assertions."
+    },
+    {
+      "source_node_id": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_can_add_a_movie",
+      "source_file": "tests/shapes/test_shapetree.py",
+      "source_line": 1242,
+      "disposition": "security-mapped",
+      "tests": [
+        "packages/pptx/src/media-public-insertion.test.ts"
+      ],
+      "notes": "Always-async insertion of explicit inert bytes; supplied icon/poster; original save/reopen and group-owner assertions."
+    }
+  ],
+  "source_bdd": [
+    {
+      "source_file": "features/shp-movie-props.feature",
+      "source_line": 7,
+      "source_name": "Movie shape",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-movie-props.feature",
+      "source_line": 12,
+      "source_name": "Movie.shape_type",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-movie-props.feature",
+      "source_line": 17,
+      "source_name": "Movie.media_type",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-movie-props.feature",
+      "source_line": 22,
+      "source_name": "Movie.media_format",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 48,
+      "source_name": "GroupShapes.add_picture()",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 229,
+      "source_name": "SlideShapes.add_movie() -- @1.1 add_movie() preconditions",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 230,
+      "source_name": "SlideShapes.add_movie() -- @1.2 add_movie() preconditions",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 248,
+      "source_name": "SlideShapes.add_ole_object() -- @1.1 add_ole_object() variations",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 249,
+      "source_name": "SlideShapes.add_ole_object() -- @1.2 add_ole_object() variations",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 250,
+      "source_name": "SlideShapes.add_ole_object() -- @1.3 add_ole_object() variations",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 262,
+      "source_name": "SlideShapes.add_picture() (using filename) -- @1.1 image files of supported types",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 263,
+      "source_name": "SlideShapes.add_picture() (using filename) -- @1.2 image files of supported types",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 264,
+      "source_name": "SlideShapes.add_picture() (using filename) -- @1.3 image files of supported types",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 265,
+      "source_name": "SlideShapes.add_picture() (using filename) -- @1.4 image files of supported types",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 266,
+      "source_name": "SlideShapes.add_picture() (using filename) -- @1.5 image files of supported types",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 267,
+      "source_name": "SlideShapes.add_picture() (using filename) -- @1.6 image files of supported types",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 268,
+      "source_name": "SlideShapes.add_picture() (using filename) -- @1.7 image files of supported types",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 280,
+      "source_name": "SlideShapes.add_picture() (using file-like object) -- @1.1 image files of supported types",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 281,
+      "source_name": "SlideShapes.add_picture() (using file-like object) -- @1.2 image files of supported types",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 282,
+      "source_name": "SlideShapes.add_picture() (using file-like object) -- @1.3 image files of supported types",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 283,
+      "source_name": "SlideShapes.add_picture() (using file-like object) -- @1.4 image files of supported types",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 284,
+      "source_name": "SlideShapes.add_picture() (using file-like object) -- @1.5 image files of supported types",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 285,
+      "source_name": "SlideShapes.add_picture() (using file-like object) -- @1.6 image files of supported types",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "source_line": 286,
+      "source_name": "SlideShapes.add_picture() (using file-like object) -- @1.7 image files of supported types",
+      "disposition": "planned",
+      "related_tests": [
+        "packages/pptx/src/media-public-insertion.test.ts",
+        "packages/pptx/src/media-public-model.test.ts"
+      ],
+      "notes": "Original scenario behavior is related, but exact source steps/fixture values are not established by this receipt; no scenario parity claim."
+    }
+  ]
+}

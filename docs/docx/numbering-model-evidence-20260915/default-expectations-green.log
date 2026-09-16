@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/styles-model.test.ts (9 tests) 768ms
+ ✓ packages/docx/src/collection-value-protocols.test.ts (21 tests) 413ms
+ ✓ packages/docx/src/package-behavior-variants.test.ts (130 tests) 4834ms
+
+ Test Files  3 passed (3)
+      Tests  160 passed (160)
+   Start at  23:04:33
+   Duration  5.80s (transform 1.32s, setup 64ms, import 1.93s, tests 6.01s, environment 0ms)
+

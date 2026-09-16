@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/publication-conflict-guidance.test.ts (2 tests) 178ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  18:37:59
+   Duration  2.18s (transform 1.54s, setup 58ms, import 1.81s, tests 178ms, environment 0ms)

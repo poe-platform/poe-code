@@ -1,0 +1,33 @@
+--- packages/safe-bash/src/commands/python/execution.ts
++++ packages/safe-bash/src/commands/python/execution.ts
+@@ -1,6 +1,6 @@
+ /** Executed by CPython after canonical storage and byte streams are installed. */
+ export const pythonExecution = `
+-import sys, os, json, runpy, traceback, types, warnings, textwrap, io, struct
++import sys, os, json, runpy, traceback, types, warnings, textwrap, io, struct, linecache
+ _safe_invocation = json.loads(_safe_invocation_json)
+ os.environ.clear()
+ os.environ.update(_safe_invocation['env'])
+@@ -122,7 +122,11 @@
+  if not options_terminated and args and args[0] == '-c':
+   sys.argv = ['-c'] + args[2:]
+   if not safe_path: sys.path.insert(0, '')
+-  exec(compile(textwrap.dedent(args[1]), '<string>', 'exec'), main.__dict__)
++  source = textwrap.dedent(args[1])
++  code = compile(source, '<string>', 'exec')
++  # CPython 3.14 retains -c source for both top-level and nested tracebacks.
++  linecache._register_code(code, source, '<string>')
++  exec(code, main.__dict__)
+  elif not options_terminated and args and args[0] == '-m':
+   sys.argv = args[1:]
+   if not safe_path: sys.path.insert(0, os.getcwd())
+@@ -134,7 +138,8 @@
+   exec(compile(sys.stdin.buffer.read(), '<stdin>', 'exec'), main.__dict__)
+  else:
+   sys.argv = args
+-  path = os.path.abspath(args[0])
++  # CPython makes __file__ absolute without collapsing ./ or ../ components.
++  path = args[0] if os.path.isabs(args[0]) else os.path.join(os.getcwd(), args[0])
+   importer = __import__('pkgutil').get_importer(path)
+   if importer is not None:
+    sys.path.insert(0, path)

@@ -1,0 +1,1880 @@
+{
+  "schema_version": 1,
+  "task": "adapt-upstream-opc-xml-images",
+  "status": "all-369-selected-rows-reconciled",
+  "reconciliation": {
+    "sources": 369,
+    "unique_targets": 369,
+    "passing_links": 369
+  },
+  "negative_controls": [
+    {
+      "name": "missing",
+      "rejected": true
+    },
+    {
+      "name": "duplicate",
+      "rejected": true
+    },
+    {
+      "name": "orphan",
+      "rejected": true
+    },
+    {
+      "name": "nonpassing",
+      "rejected": true
+    }
+  ],
+  "source_scope": {
+    "files": [
+      "tests/image/test_bmp.py",
+      "tests/image/test_gif.py",
+      "tests/image/test_helpers.py",
+      "tests/image/test_image.py",
+      "tests/image/test_jpeg.py",
+      "tests/image/test_png.py",
+      "tests/image/test_tiff.py",
+      "tests/opc/test_oxml.py",
+      "tests/opc/test_package.py",
+      "tests/opc/test_packuri.py",
+      "tests/opc/test_part.py",
+      "tests/opc/test_phys_pkg.py",
+      "tests/opc/test_pkgreader.py",
+      "tests/opc/test_pkgwriter.py",
+      "tests/opc/test_rel.py",
+      "tests/oxml/test__init__.py",
+      "tests/oxml/test_ns.py",
+      "tests/oxml/test_xmlchemy.py",
+      "tests/test_package.py"
+    ],
+    "count": 369,
+    "excluded_other_owned_task_rows": [
+      {
+        "source": "tests/opc/test_package.py::DescribeOpcPackage::it_provides_access_to_the_core_properties",
+        "owning_task": "typed-document-properties",
+        "disposition": "Retained in its separate typed-properties task; not counted in this 369-row overlay."
+      },
+      {
+        "source": "tests/opc/test_package.py::DescribeOpcPackage::it_provides_access_to_the_core_properties_part_to_help",
+        "owning_task": "typed-document-properties",
+        "disposition": "Retained in its separate typed-properties task; not counted in this 369-row overlay."
+      }
+    ],
+    "unique_native_inventory_matches": 369
+  },
+  "authorities": [
+    {
+      "path": "docs/specs/docx.md",
+      "sha256": "2fedeca20c1c83a7ad004f312c00238918ff2dad83ec70dff4d9d82b4bf373bd"
+    },
+    {
+      "path": "docs/specs/office-cli.md",
+      "sha256": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce"
+    },
+    {
+      "path": "docs/specs/office-sdk.md",
+      "sha256": "1b2dd9f411621ebdc6ce24974e48f6143e0d3c9fe1191200207dfd6a3ddbfe64"
+    },
+    {
+      "path": "docs/docx/upstream-test-audit.md",
+      "sha256": "6face10da31a65b542df8f6696a774190d976062f320513cae44e137592f2b3c"
+    },
+    {
+      "path": "docs/pptx/upstream-test-audit.md",
+      "sha256": "63a4ba0c9845b2d4e833288d5e7fd459684be1c25cea1712727c1e9afe32528b"
+    },
+    {
+      "path": "docs/docx/upstream-test-inventory.json",
+      "sha256": "14c609ceb775158cb36c0423d24678b4a3e9f09d429085730b28103a759ad797"
+    },
+    {
+      "path": "docs/docx/upstream-api-audit.md",
+      "sha256": "7fa8e6aaa9d2eb584c67911f4f2f5fe159abd164ab7f3f4f2bd44795d02eef9d"
+    },
+    {
+      "path": "docs/docx/upstream-api-inventory.json",
+      "sha256": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac"
+    }
+  ],
+  "focused": {
+    "command": "npx vitest run <the nine listed test files> --reporter=json",
+    "passed": 422,
+    "failed": 0,
+    "skipped": 0,
+    "report_sha256": "dc1f08a848e7254e07c489913f5df933e8d583471866dc07d386c4b4c0de6dfc",
+    "executions": [
+      {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "sha256": "12ef0e38ab1aa2788533fac079981463ce33b6997a697fe701d90a1d6ef4c08f",
+        "assertions": [
+          {
+            "title": "BMP admission extracts dimensions and density",
+            "status": "passed"
+          },
+          {
+            "title": "BMP MIME follows the signature",
+            "status": "passed"
+          },
+          {
+            "title": "BMP anonymous suffix follows the signature",
+            "status": "passed"
+          },
+          {
+            "title": "GIF admission extracts dimensions and density",
+            "status": "passed"
+          },
+          {
+            "title": "GIF MIME follows the signature",
+            "status": "passed"
+          },
+          {
+            "title": "GIF anonymous suffix follows the signature",
+            "status": "passed"
+          },
+          {
+            "title": "Offset signature reads ignore unrelated backing bytes",
+            "status": "passed"
+          },
+          {
+            "title": "Truncated integer intervals reject through header admission",
+            "status": "passed"
+          },
+          {
+            "title": "big endian unsigned values survive bounded header reads",
+            "status": "passed"
+          },
+          {
+            "title": "little endian unsigned values survive bounded header reads",
+            "status": "passed"
+          },
+          {
+            "title": "Blob admission snapshots caller bytes before awaiting",
+            "status": "passed"
+          },
+          {
+            "title": "Capability input retains the basename",
+            "status": "passed"
+          },
+          {
+            "title": "Explicit byte source closes after complete admission",
+            "status": "passed"
+          },
+          {
+            "title": "Named stream equivalent uses an explicit VFS basename",
+            "status": "passed"
+          },
+          {
+            "title": "Anonymous source receives a canonical basename",
+            "status": "passed"
+          },
+          {
+            "title": "Blob getters return independent owned bytes",
+            "status": "passed"
+          },
+          {
+            "title": "Admitted MIME is derived from bytes",
+            "status": "passed"
+          },
+          {
+            "title": "Pixel dimensions remain independent axes",
+            "status": "passed"
+          },
+          {
+            "title": "DPI metadata remains independent axes",
+            "status": "passed"
+          },
+          {
+            "title": "Unequal axis density controls native physical size",
+            "status": "passed"
+          },
+          {
+            "title": "Physical scaling with width null and height null",
+            "status": "passed"
+          },
+          {
+            "title": "Physical scaling with width 100 and height null",
+            "status": "passed"
+          },
+          {
+            "title": "Physical scaling with width null and height 500",
+            "status": "passed"
+          },
+          {
+            "title": "Physical scaling with width 1500 and height 1500",
+            "status": "passed"
+          },
+          {
+            "title": "Explicit filename survives admission",
+            "status": "passed"
+          },
+          {
+            "title": "Named input retains its final filename suffix",
+            "status": "passed"
+          },
+          {
+            "title": "Compatibility digest follows exact original admitted bytes",
+            "status": "passed"
+          },
+          {
+            "title": "BMP 211 by 71 metadata from original header bytes",
+            "status": "passed"
+          },
+          {
+            "title": "GIF 290 by 360 metadata from original header bytes",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG 204 by 204 metadata from original header bytes",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG 1504 by 1936 metadata from original header bytes",
+            "status": "passed"
+          },
+          {
+            "title": "PNG 150 by 214 metadata from original header bytes",
+            "status": "passed"
+          },
+          {
+            "title": "PNG 901 by 1350 metadata from original header bytes",
+            "status": "passed"
+          },
+          {
+            "title": "PNG 860 by 579 metadata from original header bytes",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF 48 by 48 metadata from original header bytes",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF 2464 by 3248 metadata from original header bytes",
+            "status": "passed"
+          },
+          {
+            "title": "Fragmented png source consumes owned bytes from its explicit origin",
+            "status": "passed"
+          },
+          {
+            "title": "Fragmented jpeg-jfif source consumes owned bytes from its explicit origin",
+            "status": "passed"
+          },
+          {
+            "title": "Fragmented jpeg-exif source consumes owned bytes from its explicit origin",
+            "status": "passed"
+          },
+          {
+            "title": "Fragmented gif source consumes owned bytes from its explicit origin",
+            "status": "passed"
+          },
+          {
+            "title": "Fragmented tiff source consumes owned bytes from its explicit origin",
+            "status": "passed"
+          },
+          {
+            "title": "Fragmented tiff-little-endian source consumes owned bytes from its explicit origin",
+            "status": "passed"
+          },
+          {
+            "title": "Fragmented bmp source consumes owned bytes from its explicit origin",
+            "status": "passed"
+          },
+          {
+            "title": "Unknown image signatures fail asynchronous admission",
+            "status": "passed"
+          },
+          {
+            "title": "Unadmitted MIME cannot be manufactured by construction",
+            "status": "passed"
+          },
+          {
+            "title": "Unadmitted extension cannot be manufactured by construction",
+            "status": "passed"
+          },
+          {
+            "title": "Base dimension observations use admitted values",
+            "status": "passed"
+          },
+          {
+            "title": "Base axis observations use admitted values",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG signature MIME",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG canonical suffix",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG embedded-directory owned metadata extraction",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG application-header owned metadata extraction",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG segment collection owned metadata extraction",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG segment collection APP0 density location",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG segment collection APP1 density location",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG missing optional APP0 retains dimensions",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG missing optional APP1 retains dimensions",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG segment collection frame location",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG missing frame rejects before a scan",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG segment role segment setting 0",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG segment role segment setting 1",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG density segment owned metadata extraction",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG density variant setting 0",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG density variant setting 1",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG density variant setting 2",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG directory segment owned metadata extraction",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG non-Exif APP1 metadata remains inert",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG directory segment embedded directory density extraction",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG embedded resolution retains unequal axes",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG frame segment owned metadata extraction",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG frame segment frame dimension extraction",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG signature dispatch marker role \\xe0",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG signature dispatch marker role \\xe1",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG signature dispatch marker role \\xc0",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG signature dispatch marker role \\xc7",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG signature dispatch marker role \\xda",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG segment scan owned metadata extraction",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG scanner boundary 0 preserves fill and segment traversal",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG scanner boundary 1 preserves fill and segment traversal",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG scanner boundary 2 preserves fill and segment traversal",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG scanner boundary 3 preserves fill and segment traversal",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG scanner boundary 4 preserves fill and segment traversal",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG scanner boundary 6 preserves fill and segment traversal",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG scanner boundary 8 preserves fill and segment traversal",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG segment reader owned metadata extraction",
+            "status": "passed"
+          },
+          {
+            "title": "JPEG segment reader marker traversal",
+            "status": "passed"
+          },
+          {
+            "title": "PNG owned metadata admission",
+            "status": "passed"
+          },
+          {
+            "title": "PNG signature MIME",
+            "status": "passed"
+          },
+          {
+            "title": "PNG canonical suffix",
+            "status": "passed"
+          },
+          {
+            "title": "PNG header reader owned metadata admission",
+            "status": "passed"
+          },
+          {
+            "title": "PNG header reader dimension extraction",
+            "status": "passed"
+          },
+          {
+            "title": "PNG header reader physical density extraction",
+            "status": "passed"
+          },
+          {
+            "title": "PNG density fallback no_setting 0",
+            "status": "passed"
+          },
+          {
+            "title": "PNG density fallback no_setting 1",
+            "status": "passed"
+          },
+          {
+            "title": "PNG density fallback no_setting 2",
+            "status": "passed"
+          },
+          {
+            "title": "PNG density fallback no_setting 3",
+            "status": "passed"
+          },
+          {
+            "title": "PNG density fallback no_setting 4",
+            "status": "passed"
+          },
+          {
+            "title": "PNG chunk sequence owned metadata admission",
+            "status": "passed"
+          },
+          {
+            "title": "PNG chunk sequence dimension chunk selection",
+            "status": "passed"
+          },
+          {
+            "title": "PNG optional density present is observable",
+            "status": "passed"
+          },
+          {
+            "title": "PNG optional density absent is observable",
+            "status": "passed"
+          },
+          {
+            "title": "PNG without a dimension header rejects",
+            "status": "passed"
+          },
+          {
+            "title": "PNG chunk reader owned metadata admission",
+            "status": "passed"
+          },
+          {
+            "title": "PNG chunk reader ordered chunk traversal",
+            "status": "passed"
+          },
+          {
+            "title": "PNG chunk reader bounded ancillary intervals",
+            "status": "passed"
+          },
+          {
+            "title": "PNG chunk dispatch dimension chunk selection",
+            "status": "passed"
+          },
+          {
+            "title": "PNG chunk dispatch chunk role pHYs",
+            "status": "passed"
+          },
+          {
+            "title": "PNG chunk dispatch chunk role IEND",
+            "status": "passed"
+          },
+          {
+            "title": "PNG record bounded ancillary intervals",
+            "status": "passed"
+          },
+          {
+            "title": "PNG dimension record bounded ancillary intervals",
+            "status": "passed"
+          },
+          {
+            "title": "PNG density record bounded ancillary intervals",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF admission extracts independent dimensions and densities",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF signature MIME",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF canonical suffix",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF directory reader owned header extraction",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF big endian directory admission",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF little endian directory admission",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF directory reader dimension extraction",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF resolution variant setting 0",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF resolution variant setting 1",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF resolution variant setting 2",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF resolution variant setting 3",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF resolution variant setting 4",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF directory fields owned header extraction",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF directory fields tag selection independent of ordering",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF directory traversal directory traversal",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF inert directory type 1 remains bounded",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF inert directory type 2 remains bounded",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF inert directory type 3 remains bounded",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF inert directory type 4 remains bounded",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF inert directory type 5 remains bounded",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF inert directory type 6 remains bounded",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF directory field owned header extraction",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF directory field metadata ownership",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF text field bounded original ASCII field",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF short field SHORT dimension field",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF long field LONG dimension field",
+            "status": "passed"
+          },
+          {
+            "title": "TIFF rational field fractional rational fields",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "packages/docx/src/numeric-property-command.test.ts",
+        "sha256": "e66a5b2a78aed046d9526eff381bbfdd2fd04893529c2dee5214a2d9792540fa",
+        "assertions": [
+          {
+            "title": "checks SDK and CLI priority assignment 0",
+            "status": "passed"
+          },
+          {
+            "title": "checks SDK and CLI priority assignment null",
+            "status": "passed"
+          },
+          {
+            "title": "checks SDK and CLI priority assignment 24",
+            "status": "passed"
+          },
+          {
+            "title": "checks SDK and CLI priority assignment 0.5",
+            "status": "passed"
+          },
+          {
+            "title": "checks SDK and CLI priority assignment -4",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "packages/docx/src/numeric-property-schema-contract.test.ts",
+        "sha256": "220984a4d37092137e1fe3693f47147a09bb6d2381fae7b3758b186133004bf7",
+        "assertions": [
+          {
+            "title": "declares checked nullable priority for model.styles.style.BaseStyle.priority.set",
+            "status": "passed"
+          },
+          {
+            "title": "declares checked nullable priority for model.styles.style.CharacterStyle.priority.set",
+            "status": "passed"
+          },
+          {
+            "title": "declares checked nullable priority for model.styles.style.ParagraphStyle.priority.set",
+            "status": "passed"
+          },
+          {
+            "title": "declares checked nullable priority for model.styles.style._TableStyle.priority.set",
+            "status": "passed"
+          },
+          {
+            "title": "declares checked nullable priority for model.styles.style._NumberingStyle.priority.set",
+            "status": "passed"
+          },
+          {
+            "title": "declares checked nullable priority for model.styles.latent.LatentStyles.default_priority.set",
+            "status": "passed"
+          },
+          {
+            "title": "declares checked nullable priority for model.styles.latent._LatentStyle.priority.set",
+            "status": "passed"
+          },
+          {
+            "title": "declares checked positive revision across all input surfaces",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "packages/docx/src/pack-uri.test.ts",
+        "sha256": "ac31c48b03619fa0e5ea708397deb51a795a86e5691ae4afaf2718709fbd37fe",
+        "assertions": [
+          {
+            "title": "package URI values > constructs an owner-relative sibling URI",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > rejects a URI without a leading slash",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > calculates root and nested base directories",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > calculates empty and XML extensions",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > calculates root and nested filenames",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > distinguishes absent filename numbers from one",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > calculates ZIP member names without a leading slash",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > calculates relative references from root same and sibling directories",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > calculates package and nested relationship part URIs",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > retains an immutable explicitly converted string value",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > reads the checked trailing number in /page0.xml",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > reads the checked trailing number in /page001.xml",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > reads the checked trailing number in /2page.xml",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > reads the checked trailing number in /page12.tar.xml",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > reads the checked trailing number in /page42",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > reads the checked trailing number in /page9007199254740991.xml",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > rejects an unsafe filename number when it is read",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > rejects non-string construction undefined",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > rejects non-string construction null",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > rejects non-string construction 0",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > rejects non-string construction false",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > rejects non-string construction {}",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > rejects unsafe part spelling /a//b",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > rejects unsafe part spelling /a/../b",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > rejects unsafe part spelling /a%2fb",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > rejects unsafe part spelling /a b",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > rejects unsafe part spelling /a?x",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > rejects unsafe part spelling /a#x",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > round trips escaped Unicode and colon-leading relative targets",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > retains empty relative reference from /reports",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > retains empty relative reference from /",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > rejects fragments in a part-only relative constructor",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > checks relative directory argument undefined",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > checks relative directory argument null",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > checks relative directory argument false",
+            "status": "passed"
+          },
+          {
+            "title": "package URI values > checks relative directory argument 1",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "sha256": "b44188d3b529f4fb085da6b02cb213cfe7b498536383bfa98b5048176ea1bd35",
+        "assertions": [
+          {
+            "title": "Default declarations expose extension and media type",
+            "status": "passed"
+          },
+          {
+            "title": "Default declarations survive XML serialization",
+            "status": "passed"
+          },
+          {
+            "title": "Override declarations expose exact owned part names",
+            "status": "passed"
+          },
+          {
+            "title": "Override declarations survive original archive serialization",
+            "status": "passed"
+          },
+          {
+            "title": "Relationship XML values retain their owner-local metadata",
+            "status": "passed"
+          },
+          {
+            "title": "Relationship XML distinguishes absent internal and external target modes",
+            "status": "passed"
+          },
+          {
+            "title": "New owner relationship collection serializes an empty root",
+            "status": "passed"
+          },
+          {
+            "title": "Relationship additions serialize internal and external edges in insertion order",
+            "status": "passed"
+          },
+          {
+            "title": "Empty relationship XML serializes as explicit UTF-8 bytes",
+            "status": "passed"
+          },
+          {
+            "title": "Content type XML exposes two independent default declarations",
+            "status": "passed"
+          },
+          {
+            "title": "Content type XML exposes three independent override declarations",
+            "status": "passed"
+          },
+          {
+            "title": "Missing content type children return empty query lists",
+            "status": "passed"
+          },
+          {
+            "title": "Empty content type element remains a valid XML value",
+            "status": "passed"
+          },
+          {
+            "title": "Content declarations retain mixed default and override media types",
+            "status": "passed"
+          },
+          {
+            "title": "Package factory asynchronously admits an explicit original byte source",
+            "status": "passed"
+          },
+          {
+            "title": "Owner-local relationship access retains collection identity",
+            "status": "passed"
+          },
+          {
+            "title": "Root relationship loading records explicit owned targets",
+            "status": "passed"
+          },
+          {
+            "title": "Root relationship establishment returns a stable owner-local identifier",
+            "status": "passed"
+          },
+          {
+            "title": "Package parts list equals the deterministic reachable traversal",
+            "status": "passed"
+          },
+          {
+            "title": "Cyclic traversal visits owned parts once and skips external targets",
+            "status": "passed"
+          },
+          {
+            "title": "Part allocation fills gap 1 among no occupied numbers",
+            "status": "passed"
+          },
+          {
+            "title": "Part allocation fills gap 2 among 1",
+            "status": "passed"
+          },
+          {
+            "title": "Part allocation fills gap 3 among 1, 2",
+            "status": "passed"
+          },
+          {
+            "title": "Part allocation fills gap 1 among 2, 3",
+            "status": "passed"
+          },
+          {
+            "title": "Part allocation fills gap 2 among 1, 3",
+            "status": "passed"
+          },
+          {
+            "title": "Root relationship type lookup returns the original target owner",
+            "status": "passed"
+          },
+          {
+            "title": "Package output reopens with reachable owned parts and unchanged payloads",
+            "status": "passed"
+          },
+          {
+            "title": "Absent core properties create one owned resource with deterministic defaults",
+            "status": "passed"
+          },
+          {
+            "title": "Package finalization preserves admitted owner identity and valid traversal",
+            "status": "passed"
+          },
+          {
+            "title": "Admission restores exact part bytes with subtype ownership",
+            "status": "passed"
+          },
+          {
+            "title": "Admission resolves root and child relationships to their original owners",
+            "status": "passed"
+          },
+          {
+            "title": "Part factory returns an admitted inert owner",
+            "status": "passed"
+          },
+          {
+            "title": "Part name is an immutable validated URI value",
+            "status": "passed"
+          },
+          {
+            "title": "Part rename updates owner identity and incoming references",
+            "status": "passed"
+          },
+          {
+            "title": "Part content type remains the admitted declaration",
+            "status": "passed"
+          },
+          {
+            "title": "Part package points to the original admitted owner",
+            "status": "passed"
+          },
+          {
+            "title": "Part admission hook validates ownership without replacing handles",
+            "status": "passed"
+          },
+          {
+            "title": "Part publication hook validates the maintained package graph",
+            "status": "passed"
+          },
+          {
+            "title": "Loaded inert part retains exact independent bytes",
+            "status": "passed"
+          },
+          {
+            "title": "Part relationship access retains one owner-local collection",
+            "status": "passed"
+          },
+          {
+            "title": "Part relationship loading honors explicit IDs",
+            "status": "passed"
+          },
+          {
+            "title": "Part relationship establishment deduplicates owner and type",
+            "status": "passed"
+          },
+          {
+            "title": "Part external relationship establishment stores an inert target",
+            "status": "passed"
+          },
+          {
+            "title": "Part deletion removes an unreferenced owned edge",
+            "status": "passed"
+          },
+          {
+            "title": "Part relationship-type lookup returns the original part",
+            "status": "passed"
+          },
+          {
+            "title": "Part related-part snapshot resolves owner-local IDs",
+            "status": "passed"
+          },
+          {
+            "title": "Part target lookup retains exact external spelling",
+            "status": "passed"
+          },
+          {
+            "title": "Factory subtype follows admitted image MIME",
+            "status": "passed"
+          },
+          {
+            "title": "Factory subtype follows admitted XML MIME",
+            "status": "passed"
+          },
+          {
+            "title": "Factory default preserves generic inert bytes",
+            "status": "passed"
+          },
+          {
+            "title": "XML factory returns an admitted XML owner",
+            "status": "passed"
+          },
+          {
+            "title": "XML part changes serialize through the original admitted owner",
+            "status": "passed"
+          },
+          {
+            "title": "XML part children retain the original part owner",
+            "status": "passed"
+          },
+          {
+            "title": "Relationship deletion checks 0 remaining XML references",
+            "status": "passed"
+          },
+          {
+            "title": "Relationship deletion checks 1 remaining XML references",
+            "status": "passed"
+          },
+          {
+            "title": "Relationship deletion checks 2 remaining XML references",
+            "status": "passed"
+          },
+          {
+            "title": "Explicit tree inventory produces bounded original archive members",
+            "status": "passed"
+          },
+          {
+            "title": "Explicit tree cleanup is idempotent and preserves unrelated memory entries",
+            "status": "passed"
+          },
+          {
+            "title": "Explicit tree retrieves a member by its validated package URI",
+            "status": "passed"
+          },
+          {
+            "title": "Explicit tree reads exact content declaration bytes",
+            "status": "passed"
+          },
+          {
+            "title": "Explicit tree retrieves root relationship bytes exactly",
+            "status": "passed"
+          },
+          {
+            "title": "Explicit tree missing part relationships remain an empty collection",
+            "status": "passed"
+          },
+          {
+            "title": "Invalid package bytes reject without ambient path access",
+            "status": "passed"
+          },
+          {
+            "title": "ZIP source transport produces bounded original archive members",
+            "status": "passed"
+          },
+          {
+            "title": "Explicit archive source snapshots fragments and closes after admission",
+            "status": "passed"
+          },
+          {
+            "title": "Archive input initialization produces bounded original archive members",
+            "status": "passed"
+          },
+          {
+            "title": "Archive input cleanup is idempotent and preserves unrelated memory entries",
+            "status": "passed"
+          },
+          {
+            "title": "ZIP source retrieves a member by its validated package URI",
+            "status": "passed"
+          },
+          {
+            "title": "ZIP source reads exact content declaration bytes",
+            "status": "passed"
+          },
+          {
+            "title": "ZIP source retrieves root relationship bytes exactly",
+            "status": "passed"
+          },
+          {
+            "title": "ZIP source missing part relationships remain an empty collection",
+            "status": "passed"
+          },
+          {
+            "title": "Explicit output transport produces bounded original archive members",
+            "status": "passed"
+          },
+          {
+            "title": "Archive output initialization produces bounded original archive members",
+            "status": "passed"
+          },
+          {
+            "title": "Archive output cleanup is idempotent and preserves unrelated memory entries",
+            "status": "passed"
+          },
+          {
+            "title": "Archive writer preserves an original member payload exactly",
+            "status": "passed"
+          },
+          {
+            "title": "Reader construction admits a complete owned archive",
+            "status": "passed"
+          },
+          {
+            "title": "Reader enumerates exact serialized part records",
+            "status": "passed"
+          },
+          {
+            "title": "Relationship reader retains root and child owner separation",
+            "status": "passed"
+          },
+          {
+            "title": "Reader loads exact content type and serialized bytes",
+            "status": "passed"
+          },
+          {
+            "title": "Package reader traverses cycles shared targets and external edges once",
+            "status": "passed"
+          },
+          {
+            "title": "Relationship reader returns owner-relative targets without creating missing members",
+            "status": "passed"
+          },
+          {
+            "title": "Content map admission distinguishes defaults and overrides",
+            "status": "passed"
+          },
+          {
+            "title": "Override lookup preserves case-insensitive variant 1",
+            "status": "passed"
+          },
+          {
+            "title": "Override lookup preserves case-insensitive variant 2",
+            "status": "passed"
+          },
+          {
+            "title": "Override lookup preserves case-insensitive variant 3",
+            "status": "passed"
+          },
+          {
+            "title": "Default lookup preserves extension case variant 1",
+            "status": "passed"
+          },
+          {
+            "title": "Default lookup preserves extension case variant 2",
+            "status": "passed"
+          },
+          {
+            "title": "Default lookup preserves extension case variant 3",
+            "status": "passed"
+          },
+          {
+            "title": "Missing content type mapping fails before graph acceptance",
+            "status": "passed"
+          },
+          {
+            "title": "Content lookup requires an explicit validated string URI",
+            "status": "passed"
+          },
+          {
+            "title": "Serialized part metadata retain original bytes and owner-relative relationships",
+            "status": "passed"
+          },
+          {
+            "title": "Serialized edge metadata retain ID type target and mode",
+            "status": "passed"
+          },
+          {
+            "title": "Serialized target modes distinguish internal external and invalid values",
+            "status": "passed"
+          },
+          {
+            "title": "Serialized internal targets resolve root nested and parent-relative owners",
+            "status": "passed"
+          },
+          {
+            "title": "Serialized external targets cannot dereference owned parts",
+            "status": "passed"
+          },
+          {
+            "title": "Serialized XML admission retains independent relationship rows",
+            "status": "passed"
+          },
+          {
+            "title": "Serialized edge collection has deterministic empty iteration",
+            "status": "passed"
+          },
+          {
+            "title": "Writer finalizes a complete original package with validated relationships",
+            "status": "passed"
+          },
+          {
+            "title": "Writer retains exact content declaration stream bytes",
+            "status": "passed"
+          },
+          {
+            "title": "Writer retains exact package relationship stream bytes",
+            "status": "passed"
+          },
+          {
+            "title": "Writer emits part and nonempty relationship members without inventing empty owners",
+            "status": "passed"
+          },
+          {
+            "title": "Content declaration serialization variant 1 retains default semantics",
+            "status": "passed"
+          },
+          {
+            "title": "Content declaration serialization variant 2 retains default semantics",
+            "status": "passed"
+          },
+          {
+            "title": "Content declaration serialization variant 3 retains default semantics",
+            "status": "passed"
+          },
+          {
+            "title": "Content declaration serialization variant 4 retains default semantics",
+            "status": "passed"
+          },
+          {
+            "title": "Content declaration serialization variant 5 retains override semantics",
+            "status": "passed"
+          },
+          {
+            "title": "Content declaration serialization variant 6 retains override semantics",
+            "status": "passed"
+          },
+          {
+            "title": "Content declaration serialization variant 7 retains override semantics",
+            "status": "passed"
+          },
+          {
+            "title": "Relationship creation retains ID type and owned target",
+            "status": "passed"
+          },
+          {
+            "title": "External relationship part access rejects without acquisition",
+            "status": "passed"
+          },
+          {
+            "title": "External relationship reference preserves the inert target",
+            "status": "passed"
+          },
+          {
+            "title": "Internal relationship references rebase across sibling directories",
+            "status": "passed"
+          },
+          {
+            "title": "Relationship collection adds an explicitly owned internal edge",
+            "status": "passed"
+          },
+          {
+            "title": "Relationship collection adds a new inert external edge",
+            "status": "passed"
+          },
+          {
+            "title": "Relationship ID lookup returns the original owned entry",
+            "status": "passed"
+          },
+          {
+            "title": "Internal relationship matching reuses an entry and distinguishes a new type",
+            "status": "passed"
+          },
+          {
+            "title": "Equal external type and target reuse an existing explicit ID",
+            "status": "passed"
+          },
+          {
+            "title": "Related-part map excludes external edges and retains target identity",
+            "status": "passed"
+          },
+          {
+            "title": "Missing keyed relationship lookup distinguishes null from a typed failure",
+            "status": "passed"
+          },
+          {
+            "title": "Relationship type lookup resolves the original internal target",
+            "status": "passed"
+          },
+          {
+            "title": "Relationship XML serializes internal rebase and external target mode",
+            "status": "passed"
+          },
+          {
+            "title": "Relationship ID allocation fills the first owner-local gap",
+            "status": "passed"
+          },
+          {
+            "title": "Package image admission reuses equal bytes without another resource",
+            "status": "passed"
+          },
+          {
+            "title": "Image collection discovers unreferenced admitted resources after reopening",
+            "status": "passed"
+          },
+          {
+            "title": "Image byte equality returns the original admitted part",
+            "status": "passed"
+          },
+          {
+            "title": "Different image bytes produce distinct owned parts",
+            "status": "passed"
+          },
+          {
+            "title": "Image allocation fills gap 1 among 2, 3",
+            "status": "passed"
+          },
+          {
+            "title": "Image allocation fills gap 2 among 1, 3",
+            "status": "passed"
+          },
+          {
+            "title": "Image allocation fills gap 3 among 1, 2",
+            "status": "passed"
+          },
+          {
+            "title": "New image admission joins the original owned collection",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "packages/docx/src/relationship-deletion-command.test.ts",
+        "sha256": "c2461677122e373bb9a931b172cc3f9c00d585781c3af9a317d8f8faabc681a7",
+        "assertions": [
+          {
+            "title": "keeps SDK and CLI relationship deletion safe with referenced=false",
+            "status": "passed"
+          },
+          {
+            "title": "keeps SDK and CLI relationship deletion safe with referenced=true",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "packages/docx/src/relationship-deletion-references.test.ts",
+        "sha256": "30b19002d8540e07a48db106f5178a93e7f3d24f3a2870ce3000aa4b2ea9eded",
+        "assertions": [
+          {
+            "title": "protects nested references for 'transitional ID'",
+            "status": "passed"
+          },
+          {
+            "title": "protects nested references for 'strict ID'",
+            "status": "passed"
+          },
+          {
+            "title": "protects nested references for 'embedded target'",
+            "status": "passed"
+          },
+          {
+            "title": "protects nested references for 'linked target'",
+            "status": "passed"
+          },
+          {
+            "title": "protects nested references for 'legacy target'",
+            "status": "passed"
+          },
+          {
+            "title": "keeps collection clear transactional when a reference remains",
+            "status": "passed"
+          },
+          {
+            "title": "keeps collection pop transactional when a reference remains",
+            "status": "passed"
+          },
+          {
+            "title": "keeps collection popitem transactional when a reference remains",
+            "status": "passed"
+          },
+          {
+            "title": "does not confuse text comments or foreign attributes with relationship references",
+            "status": "passed"
+          },
+          {
+            "title": "scopes the same identifier to its XML owner",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "sha256": "49286f158b0990d0a0eea9d1ff26e3e1972ff6f8965e5447e3a03132a6c8d101",
+        "assertions": [
+          {
+            "title": "Parsed XML returns an owned expanded-name element",
+            "status": "passed"
+          },
+          {
+            "title": "Element attributes retain original names and values",
+            "status": "passed"
+          },
+          {
+            "title": "Additional namespace declarations retain separate bindings",
+            "status": "passed"
+          },
+          {
+            "title": "Interelement whitespace survives owned parse and publication",
+            "status": "passed"
+          },
+          {
+            "title": "UTF-8 input retains original Unicode scalar text",
+            "status": "passed"
+          },
+          {
+            "title": "Explicit UTF-8 encoding handles Unicode declaration variants",
+            "status": "passed"
+          },
+          {
+            "title": "Known element binding exposes original owned style values",
+            "status": "passed"
+          },
+          {
+            "title": "Element behavior follows its admitted owner rather than a mutable class registry",
+            "status": "passed"
+          },
+          {
+            "title": "Namespace qualified string spelling remains explicit",
+            "status": "passed"
+          },
+          {
+            "title": "Namespace expanded name identity remains explicit",
+            "status": "passed"
+          },
+          {
+            "title": "Namespace expanded-name construction remains explicit",
+            "status": "passed"
+          },
+          {
+            "title": "Namespace local-name component remains explicit",
+            "status": "passed"
+          },
+          {
+            "title": "Namespace namespace snapshot remains explicit",
+            "status": "passed"
+          },
+          {
+            "title": "Namespace prefix spelling remains explicit",
+            "status": "passed"
+          },
+          {
+            "title": "Namespace namespace URI component remains explicit",
+            "status": "passed"
+          },
+          {
+            "title": "Display XML indents element-only content and retains Unicode text",
+            "status": "passed"
+          },
+          {
+            "title": "Display XML returns a bounded JavaScript string",
+            "status": "passed"
+          },
+          {
+            "title": "XML complete parse observation 1",
+            "status": "passed"
+          },
+          {
+            "title": "XML complete parse observation 2",
+            "status": "passed"
+          },
+          {
+            "title": "XML complete parse observation 3",
+            "status": "passed"
+          },
+          {
+            "title": "XML complete parse observation 4",
+            "status": "passed"
+          },
+          {
+            "title": "XML complete parse observation 5",
+            "status": "passed"
+          },
+          {
+            "title": "XML comparison observes simple elm",
+            "status": "passed"
+          },
+          {
+            "title": "XML comparison observes nsp tagname",
+            "status": "passed"
+          },
+          {
+            "title": "XML comparison observes indent",
+            "status": "passed"
+          },
+          {
+            "title": "XML comparison observes attrs",
+            "status": "passed"
+          },
+          {
+            "title": "XML comparison observes nsdecl order",
+            "status": "passed"
+          },
+          {
+            "title": "XML comparison observes closing elm",
+            "status": "passed"
+          },
+          {
+            "title": "XML exclusive leaf present observation",
+            "status": "passed"
+          },
+          {
+            "title": "XML exclusive absence observation",
+            "status": "passed"
+          },
+          {
+            "title": "XML exclusive creation returns independently admitted bytes",
+            "status": "passed"
+          },
+          {
+            "title": "XML exclusive inserts before declared successors",
+            "status": "passed"
+          },
+          {
+            "title": "XML exclusive owned addition preserves existing siblings",
+            "status": "passed"
+          },
+          {
+            "title": "XML exclusive transition from alternate child",
+            "status": "passed"
+          },
+          {
+            "title": "XML exclusive transition from absent child",
+            "status": "passed"
+          },
+          {
+            "title": "XML exclusive transition from same child",
+            "status": "passed"
+          },
+          {
+            "title": "XML required single leaf present observation",
+            "status": "passed"
+          },
+          {
+            "title": "XML required repeated leaf present observation",
+            "status": "passed"
+          },
+          {
+            "title": "XML required repeated creation returns independently admitted bytes",
+            "status": "passed"
+          },
+          {
+            "title": "XML required repeated inserts before declared successors",
+            "status": "passed"
+          },
+          {
+            "title": "XML required repeated owned addition preserves existing siblings",
+            "status": "passed"
+          },
+          {
+            "title": "XML required repeated public addition preserves existing siblings",
+            "status": "passed"
+          },
+          {
+            "title": "Optional numeric reads retain their edge value",
+            "status": "passed"
+          },
+          {
+            "title": "Optional numeric assignment stores 36",
+            "status": "passed"
+          },
+          {
+            "title": "Optional numeric assignment stores null",
+            "status": "passed"
+          },
+          {
+            "title": "Nullable attribute metadata is declared in discovery",
+            "status": "passed"
+          },
+          {
+            "title": "Required numeric reads retain their edge value",
+            "status": "passed"
+          },
+          {
+            "title": "Required numeric assignment stores 24",
+            "status": "passed"
+          },
+          {
+            "title": "Required attribute metadata is declared in discovery",
+            "status": "passed"
+          },
+          {
+            "title": "Missing required relationship attributes fail package admission",
+            "status": "passed"
+          },
+          {
+            "title": "Required numeric assignment rejects null",
+            "status": "passed"
+          },
+          {
+            "title": "Required numeric assignment rejects -4",
+            "status": "passed"
+          },
+          {
+            "title": "Required numeric assignment rejects \"2\"",
+            "status": "passed"
+          },
+          {
+            "title": "XML optional repeated leaf present observation",
+            "status": "passed"
+          },
+          {
+            "title": "XML optional repeated creation returns independently admitted bytes",
+            "status": "passed"
+          },
+          {
+            "title": "XML optional repeated inserts before declared successors",
+            "status": "passed"
+          },
+          {
+            "title": "XML optional repeated owned addition preserves existing siblings",
+            "status": "passed"
+          },
+          {
+            "title": "XML optional repeated public addition preserves existing siblings",
+            "status": "passed"
+          },
+          {
+            "title": "Repeated-child declaration has no competing singular accessor",
+            "status": "passed"
+          },
+          {
+            "title": "XML optional single leaf present observation",
+            "status": "passed"
+          },
+          {
+            "title": "XML optional single absence observation",
+            "status": "passed"
+          },
+          {
+            "title": "XML optional single owned addition preserves existing siblings",
+            "status": "passed"
+          },
+          {
+            "title": "XML optional single inserts before declared successors",
+            "status": "passed"
+          },
+          {
+            "title": "XML optional single ensures a child when present",
+            "status": "passed"
+          },
+          {
+            "title": "XML optional single ensures a child when absent",
+            "status": "passed"
+          },
+          {
+            "title": "XML optional single removal when present",
+            "status": "passed"
+          },
+          {
+            "title": "XML optional single removal when absent",
+            "status": "passed"
+          },
+          {
+            "title": "XML optional exclusive absence observation",
+            "status": "passed"
+          },
+          {
+            "title": "XML optional exclusive leaf present observation",
+            "status": "passed"
+          },
+          {
+            "title": "XML optional exclusive branch present observation",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "sha256": "b3ca73d7788428bfe2c17a16e3133683a9394b0b21c0aba339fb7b500a41b6dd",
+        "assertions": [
+          {
+            "title": "ordered XML child observations > observes the first selected child for 'middle match'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > observes the first selected child for 'last match'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > observes the first selected child for 'missing last'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > observes the first selected child for 'missing alternatives'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > observes the first selected child for 'first among all'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > observes the first selected child for 'empty sequence'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > inserts an owned child for 'two successors'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > inserts an owned child for 'last successor'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > inserts an owned child for 'empty parent'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > inserts an owned child for 'middle insertion'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > inserts an owned child for 'append'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > removes selected children for 'retain middle and last'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > removes selected children for 'remove all once'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > removes selected children for 'retain last'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > removes selected children for 'remove repeated middle'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > removes selected children for 'remove middle'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > removes selected children for 'retain middle'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > removes selected children for 'no names'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > removes selected children for 'remove last'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > removes selected children for 'remove reversed names'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > removes selected children for 'retain repeated last'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > removes selected children for 'absent name'",
+            "status": "passed"
+          },
+          {
+            "title": "ordered XML child observations > removes selected children for 'empty children'",
+            "status": "passed"
+          }
+        ]
+      }
+    ]
+  },
+  "checks": {
+    "unit": {
+      "command": "npm test --workspace=docx",
+      "passed": 3987,
+      "skipped": 4,
+      "files": 201,
+      "duration_seconds": 167.66,
+      "log_sha256": "b3df74f83100a581cb88bc27d501415898821b23594b7de969026427188334d4",
+      "skips": "Existing cross-format PPTX pending paths; not counted as passes."
+    },
+    "lint": {
+      "command": "npm run lint --workspace=docx",
+      "exit_code": 0,
+      "errors": 0,
+      "warnings": 1,
+      "warning": "Existing operation-types.test.ts unused type-only variable.",
+      "log_sha256": "84c1834281fa8da3f8c09b0303161b9df2250ed57bcf81ada9496816a62a8619"
+    },
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=docx",
+      "exit_code": 0,
+      "log_sha256": "fc1bf5d0a2e72b95835347ff2f0dcb493f71933967ee91eb771cb9ce9450fbb4"
+    }
+  },
+  "limitations": "Four existing PPTX pending cases skipped in maintained package run, not counted as passes. Native baseline inventories are unchanged. Complete public API, pixel decoding and rendered document parity remain outside this task. No downloaded/cloned fixture was consumed or deleted.",
+  "visual_qa": [
+    "opc-xml-image-numeric-schema-receipt.json",
+    "opc-xml-image-relationship-deletion-receipt.json"
+  ],
+  "prior_failed_screenshot": "Concurrent root predev builds conflicted during memory dist cleanup; failed schema attempt excluded. Sequential maintained retry passed and PNG inspected."
+}

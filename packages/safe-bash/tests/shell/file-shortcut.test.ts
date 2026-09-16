@@ -24,6 +24,7 @@ test("file shortcut respects capture limits and cancellation", async () => {
   await assert.rejects(shell.exec('value=$(<input)'), /maxOutputBytes/u);
   const controller = new AbortController();
   const reason = new Error("stop shortcut");
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false } });
   fs.readStream = () => ({ [Symbol.asyncIterator]() { return { next: () => new Promise<IteratorResult<Uint8Array>>(() => {}), return: async () => ({ value: undefined, done: true as const }) }; } });
   const pending = shell.exec('value=$(<input)', { signal: controller.signal });
   setTimeout(() => controller.abort(reason), 20);

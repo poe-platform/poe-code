@@ -18,6 +18,41 @@ import { assertAdmittedInputPath, assertLiteralInputPath, readIntegrationTypeInp
 
 const owner = "fixture producer";
 
+test("Pyodide real-runtime verification has explicit opt-in entries and a pinned runtime", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const manifest = JSON.parse(readRegularInput(root, "tests/integration/pyodide-runtime/package.json", 4096));
+  assert.equal(manifest.private, true);
+  assert.equal(manifest.dependencies.pyodide, "314.0.6");
+  assert.equal(manifest.scripts["provision:public"], "node provision-public-runtime.mjs");
+  assert.equal(manifest.scripts["test:public"], "node --test --test-concurrency=1 public-command-parity.test.mjs public-documents.test.mjs public-lifecycle.test.mjs");
+  for (const path of [
+    "tests/integration/pyodide-runtime/stdio-proof.test.mjs",
+    "tests/integration/pyodide-runtime/public-command-parity.test.mjs",
+    "tests/integration/pyodide-runtime/public-documents.test.mjs",
+    "tests/integration/pyodide-runtime/public-lifecycle.test.mjs",
+    "tests/integration/pyodide-runtime/public-runtime-fixture.mjs",
+    "tests/integration/pyodide-runtime/provision-public-runtime.mjs",
+    "tests/integration/pyodide-runtime/fixtures/documents-create.py",
+    "tests/integration/pyodide-runtime/fixtures/documents-edit.py",
+    "tests/integration/pyodide-runtime/fixtures/documents-verify.py",
+    "tests/integration/pyodide-runtime/fixtures/documents-streams.py",
+    "tests/integration/pyodide-runtime/product-worker.test.mjs",
+    "tests/integration/pyodide-runtime/package-provisioning.test.mjs",
+    "tests/integration/pyodide-runtime/launcher.test.mjs",
+    "tests/integration/pyodide-runtime/command-acceptance.test.mjs",
+    "tests/integration/pyodide-runtime/mount-regressions.test.mjs",
+    "tests/integration/pyodide-runtime/verify.mjs",
+    "tests/integration/pyodide-runtime/promise-callback.mjs",
+    "tests/integration/pyodide-runtime/metadata-path-probe.mjs",
+    "tests/integration/pyodide-runtime/host-capability-probe.mjs",
+    "tests/integration/pyodide-runtime/cancel-fs.mjs",
+    "tests/integration/pyodide-runtime/stat-identity.mjs",
+    "tests/integration/pyodide-runtime/browser-documents/server.mjs",
+    "tests/integration/pyodide-runtime/browser-documents/page.mjs",
+    "tests/integration/pyodide-runtime/browser-documents/worker.mjs",
+  ]) assert.ok(readRegularInput(root, path, 65536).length > 0, path);
+});
+
 function shardFixture() {
   const selected = ["tests/safe-a.test.ts", "tests/safe-b.test.ts", "tests/native.test.ts"];
   const contents = new Map([
@@ -343,6 +378,46 @@ test("runner exposes no native qualification selector", async () => {
   const runner = await import("./test.mjs");
   assert.equal(Object.hasOwn(runner, "selectNativeTests"), false);
 });
+
+test("optional scripting leaves stay outside the default build and package exports", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  const configuration = JSON.parse(readRegularInput(root, "tsconfig.build.json", 65536, fs, boundaries));
+  const metadata = JSON.parse(readRegularInput(root, "package.json", 65536, fs, boundaries));
+  assert.equal(metadata.peerDependencies.yaml, "2.9.0");
+  assert.equal(metadata.peerDependenciesMeta.yaml.optional, true);
+  for (const path of [
+    "src/commands/cmp/compare.ts", "src/commands/cmp/index.ts", "src/commands/cmp/io.ts", "src/commands/cmp/options.ts",
+    "src/commands/dd/conversions.ts", "src/commands/dd/index.ts", "src/commands/dd/io.ts", "src/commands/dd/options.ts", "src/commands/dd/report.ts",
+    "src/commands/install/arguments.ts", "src/commands/install/index.ts", "src/commands/install/mode.ts", "src/commands/install/options.ts",
+    "src/commands/shuf/args.ts", "src/commands/shuf/index.ts", "src/commands/shuf/input.ts", "src/commands/shuf/options.ts",
+    "src/commands/shuf/random.ts", "src/commands/shuf/shuf.ts", "src/commands/shuf/usage.ts",
+    "src/commands/truncate/arguments.ts", "src/commands/truncate/index.ts", "src/commands/yes/index.ts",
+    "src/commands/yq/arguments.ts", "src/commands/yq/nodes.ts", "src/commands/yq/expression.ts", "src/commands/yq/evaluate.ts",
+    "src/commands/yq/inplace.ts", "src/commands/yq/mike.ts", "src/commands/yq/native-encoder.ts", "src/commands/yq/native-work.ts",
+    "src/fs/devices/index.ts",
+    "src/optional.ts",
+    "src/shell/extensions/trap/index.ts",
+    "src/shell/extensions/jobs/index.ts",
+    "src/shell/extensions/jobs/state.ts",
+    "src/shell/extensions/mapfile/index.ts",
+    "src/shell/extensions/read/index.ts",
+  ]) assert.ok(configuration.exclude.includes(path), `optional source must not ship in the default build: ${path}`);
+  for (const path of ["!dist/optional.js", "!dist/optional.js.map", "!dist/optional.d.ts", "!dist/optional.d.ts.map", "!dist/commands/cmp", "!dist/commands/dd", "!dist/commands/install", "!dist/commands/shuf", "!dist/commands/truncate", "!dist/commands/yes", "!dist/fs/devices", "!dist/shell/extensions/trap", "!dist/shell/extensions/jobs", "!dist/shell/extensions/mapfile", "!dist/shell/extensions/read"]) {
+    assert.ok(metadata.files.includes(path), `optional artifacts must remain unpublished after explicit compilation: ${path}`);
+  }
+  for (const name of ["arguments", "evaluate", "expression", "inplace", "mike", "native-encoder", "native-work", "nodes"]) {
+    for (const suffix of ["js", "js.map", "d.ts", "d.ts.map"]) {
+      const path = `!dist/commands/yq/${name}.${suffix}`;
+      assert.ok(metadata.files.includes(path), `optional YAML artifact must remain unpublished: ${path}`);
+    }
+  }
+  assert.equal(metadata.files.includes("!dist/commands/yq"), false, "shared restricted yq must remain packaged");
+  for (const path of ["./commands/cmp", "./commands/dd", "./commands/install", "./commands/shuf", "./commands/truncate", "./commands/yes", "./fs/devices", "./shell/extensions/trap", "./shell/extensions/mapfile", "./shell/extensions/read"]) {
+    assert.equal(Object.hasOwn(metadata.exports, path), false, `optional leaf is not a default package export: ${path}`);
+  }
+});
+
 const fixture = {
   path: "tests/review/run/source",
   owner: "tests/review/produce.mjs",
@@ -389,6 +464,9 @@ function assertSource7Discovery(files) {
     "tests/commands/network/response-body-mode.test.ts",
     "tests/commands/network/file-output-budget.test.ts",
     "tests/contracts/value.test.ts",
+    "tests/contracts/runtime-identity.test.ts",
+    "tests/plugins/optional-runtime.test.ts",
+    "tests/plugins/optional-host.test.ts",
     "tests/shell/value-state.test.ts",
     "tests/shell/byte-values.test.ts",
     "tests/shell/background-jobs.test.ts",
@@ -418,6 +496,323 @@ function assertSource7Discovery(files) {
     "tests/commands/bytes/compression/native-codec-safety.test.ts",
     "tests/shell/network-execution-deadline.test.ts",
   ]) assert.ok(files.includes(path), "retained byte-value test is missing: " + path);
+  for (const path of [
+    "tests/contracts/filesystem-descriptor.test.ts",
+    "tests/contracts/filesystem-descriptor-review.test.ts",
+    "tests/contracts/exclusive-file-output-review.test.ts",
+    "tests/shell/counted-file-output.test.ts",
+  ]) assert.ok(files.includes(path), "counted descriptor test is missing: " + path);
+  for (const path of [
+    "tests/contracts/filesystem-output-descriptor.test.ts",
+    "tests/contracts/retained-output-review.test.ts",
+    "tests/commands/retained-output-descriptor.test.ts",
+    "tests/plugins/retained-output-api-runtime.test.ts",
+    "tests/shell/extensions/core/retained-output-runtime.test.ts",
+    "tests/shell/extensions/core/retained-output-runtime-review.test.ts",
+    "tests/plugins/retained-output-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "retained output API test is missing: " + path);
+  for (const path of [
+    "tests/commands/yes/yes.test.ts",
+    "tests/commands/yes/native.test.ts",
+    "tests/commands/yes/integration.test.ts",
+  ]) assert.ok(files.includes(path), "optional yes test is missing: " + path);
+  for (const path of [
+    "tests/commands/cmp/cmp.test.ts",
+    "tests/commands/cmp/blocks.test.ts",
+    "tests/commands/cmp/native.test.ts",
+    "tests/commands/cmp/parity.test.ts",
+    "tests/commands/cmp/oracle-lifecycle.test.ts",
+    "tests/commands/cmp/review.test.ts",
+  ]) assert.ok(files.includes(path), "optional cmp test is missing: " + path);
+  for (const path of [
+    "tests/commands/shuf/behavior.test.ts",
+    "tests/commands/shuf/lifecycle.test.ts",
+    "tests/commands/shuf/helpers.test.ts",
+    "tests/commands/shuf/parity.test.ts",
+    "tests/commands/shuf/integration.test.ts",
+    "tests/commands/shuf/review.test.ts",
+  ]) assert.ok(files.includes(path), "optional shuf test is missing: " + path);
+  for (const path of [
+    "tests/commands/truncate/behavior.test.ts",
+    "tests/commands/truncate/capabilities.test.ts",
+    "tests/commands/truncate/grammar.test.ts",
+    "tests/commands/truncate/review.test.ts",
+  ]) assert.ok(files.includes(path), "optional truncate test is missing: " + path);
+  for (const path of [
+    "tests/commands/install/behavior.test.ts",
+    "tests/commands/install/budget.test.ts",
+    "tests/commands/install/grammar.test.ts",
+    "tests/commands/install/safety.test.ts",
+    "tests/commands/install/review.test.ts",
+  ]) assert.ok(files.includes(path), "optional install test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/trap/builtin.test.ts",
+    "tests/shell/extensions/trap/host.test.ts",
+    "tests/shell/extensions/trap/infrastructure.test.ts",
+    "tests/shell/extensions/trap/lifecycle.test.ts",
+    "tests/shell/extensions/trap/oracle.test.ts",
+    "tests/shell/extensions/trap/review.test.ts",
+  ]) assert.ok(files.includes(path), "optional trap test is missing: " + path);
+  for (const path of [
+    "tests/commands/yq-scripting/regressions.test.ts",
+    "tests/commands/yq-scripting/oracle.test.ts",
+    "tests/commands/yq-scripting/review.test.ts",
+    "tests/commands/yq-scripting/lifecycle.test.ts",
+  ]) assert.ok(files.includes(path), "optional yq scripting test is missing: " + path);
+  for (const path of [
+    "tests/commands/yq-native/behavior.test.ts",
+    "tests/commands/yq-native/parity.test.ts",
+    "tests/commands/yq-native/lazy.test.ts",
+    "tests/commands/yq-native/edge.test.ts",
+    "tests/commands/yq-native/lifecycle.test.ts",
+    "tests/commands/yq-native/review.test.ts",
+    "tests/commands/yq-native/next-review.test.ts",
+    "tests/plugins/yq-native-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "native-profile yq test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/arrays/cells.test.ts",
+    "tests/shell/extensions/arrays/input-bytes.test.ts",
+    "tests/shell/extensions/arrays/process-bytes.test.ts",
+    "tests/shell/extensions/arrays/runtime-bytes.test.ts",
+    "tests/shell/extensions/arrays/review.test.ts",
+    "tests/plugins/byte-array-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "byte-array foundation test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/arrays/keys.test.ts",
+    "tests/shell/extensions/arrays/keys-review.test.ts",
+    "tests/plugins/array-keys-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "opt-in array keys test is missing: " + path);
+  assert.ok(files.includes("tests/shell/extensions/arrays/indexed-element-operators.test.ts"), "opt-in literal indexed element operators test is missing");
+  for (const path of [
+    "tests/shell/extensions/arrays/readonly-indexed-review.test.ts",
+    "tests/shell/extensions/arrays/readonly-indexed-independent.test.ts",
+    "tests/shell/extensions/arrays/readonly-indexed-author.test.ts",
+    "tests/plugins/readonly-indexed-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "opt-in indexed readonly test is missing: " + path);
+  for (const path of [
+    "tests/plugins/descriptor-provider-runtime.test.ts",
+    "tests/plugins/descriptor-provider-observation-runtime.test.ts",
+    "tests/plugins/descriptor-append-position-runtime.test.ts",
+    "tests/contracts/filesystem-descriptor-append-position.test.ts",
+    "tests/contracts/filesystem-descriptor-append-review.test.ts",
+    "tests/contracts/filesystem-descriptor-zero-write.test.ts",
+    "tests/contracts/filesystem-descriptor-zero-write-review.test.ts",
+    "tests/plugins/descriptor-zero-write-runtime.test.ts",
+    "tests/contracts/filesystem-descriptor-observation.test.ts",
+    "tests/contracts/filesystem-output-observation.test.ts",
+    "tests/contracts/filesystem-observation-review.test.ts",
+    "tests/shell/extensions/core/provider-observation-runtime.test.ts",
+    "tests/shell/extensions/core/provider-observation-review.test.ts",
+  ]) assert.ok(files.includes(path), "public descriptor provider test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/core/bindings.test.ts",
+    "tests/shell/extensions/core/declarations.test.ts",
+    "tests/shell/extensions/core/input.test.ts",
+    "tests/shell/extensions/core/positional-length.test.ts",
+    "tests/shell/extensions/core/review.test.ts",
+    "tests/plugins/extension-core-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "extension-core boundary test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/core/builtin-replacement.test.ts",
+    "tests/shell/extensions/core/borrowed-input.test.ts",
+    "tests/shell/extensions/core/builtin-replacement-review.test.ts",
+    "tests/shell/extensions/core/borrowed-input-review.test.ts",
+    "tests/plugins/extension-input-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "extension input bridge test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/core/diagnostic-bytes.test.ts",
+    "tests/shell/extensions/core/descriptor-access.test.ts",
+    "tests/shell/extensions/core/diagnostic-descriptor-runtime.test.ts",
+    "tests/shell/extensions/core/diagnostic-descriptor-review.test.ts",
+    "tests/plugins/extension-descriptor-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "extension diagnostic/descriptor test is missing: " + path);
+  for (const path of [
+    "tests/contracts/pipe-endpoint-lifetime.test.ts",
+    "tests/contracts/pipe-endpoint-review.test.ts",
+    "tests/shell/extensions/core/descriptor-observer.test.ts",
+    "tests/shell/extensions/core/descriptor-observer-review.test.ts",
+    "tests/shell/extensions/core/descriptor-alias-lifetime.test.ts",
+    "tests/plugins/descriptor-observer-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "descriptor observation/lifetime test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/core/evaluation-exit.test.ts",
+    "tests/shell/extensions/core/evaluation-exit-runtime.test.ts",
+    "tests/shell/extensions/core/evaluation-exit-review.test.ts",
+    "tests/plugins/extension-evaluation-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "extension evaluation exit test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/core/function-coordinate-review.test.ts",
+    "tests/shell/extensions/core/function-diagnostic-origin.test.ts",
+    "tests/shell/extensions/core/function-diagnostic-runtime.test.ts",
+    "tests/shell/extensions/core/function-origin-review.test.ts",
+    "tests/plugins/function-diagnostic-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "function diagnostic origin test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/core/command-name-diagnostic.test.ts",
+    "tests/shell/extensions/core/command-name-review.test.ts",
+    "tests/shell/extensions/core/command-name-runtime.test.ts",
+    "tests/shell/extensions/core/command-name-final-review.test.ts",
+    "tests/plugins/command-name-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "command name diagnostic test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/mapfile/arguments.test.ts",
+    "tests/shell/extensions/mapfile/behavior.test.ts",
+    "tests/shell/extensions/mapfile/callback-boundary.test.ts",
+    "tests/shell/extensions/mapfile/evaluation-exit-review.test.ts",
+    "tests/shell/extensions/mapfile/fixture-revision.test.ts",
+    "tests/shell/extensions/mapfile/lifecycle.test.ts",
+    "tests/shell/extensions/mapfile/native.test.ts",
+    "tests/shell/extensions/mapfile/prerequisites.test.ts",
+    "tests/shell/extensions/mapfile/review.test.ts",
+    "tests/shell/extensions/mapfile/syntax.test.ts",
+    "tests/plugins/mapfile-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "optional mapfile test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/read/descriptor-order.test.ts",
+    "tests/shell/extensions/read/descriptor-selection.test.ts",
+    "tests/shell/extensions/read/diagnostic-bytes.test.ts",
+    "tests/shell/extensions/read/diagnostic-review.test.ts",
+    "tests/shell/extensions/read/independent-current.test.ts",
+    "tests/shell/extensions/read/lifecycle.test.ts",
+    "tests/shell/extensions/read/native.test.ts",
+    "tests/shell/extensions/read/nonterminal.test.ts",
+    "tests/shell/extensions/read/numeric-sign-author.test.ts",
+    "tests/shell/extensions/read/observer-review.test.ts",
+    "tests/shell/extensions/read/observer.test.ts",
+    "tests/shell/extensions/read/primary53.test.ts",
+    "tests/shell/extensions/read/read.test.ts",
+    "tests/shell/extensions/read/readiness-precedence.test.ts",
+    "tests/shell/extensions/read/retained-eof.test.ts",
+    "tests/shell/extensions/read/separator-snapshot.test.ts",
+    "tests/shell/extensions/read/review.test.ts",
+    "tests/shell/extensions/read/timed-native.test.ts",
+    "tests/shell/extensions/read/timed-review.test.ts",
+    "tests/shell/extensions/read/timed.test.ts",
+    "tests/plugins/read-runtime.test.ts",
+    "tests/plugins/read-separator-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "optional read test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/core/syntax.test.ts",
+    "tests/shell/extensions/core/syntax-review.test.ts",
+  ]) assert.ok(files.includes(path), "opt-in parser syntax test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/arrays/input-deadlines.test.ts",
+    "tests/shell/extensions/arrays/input-deadlines-review.test.ts",
+  ]) assert.ok(files.includes(path), "input deadline test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/arrays/source-readiness.test.ts",
+    "tests/shell/extensions/arrays/source-readiness-review.test.ts",
+    "tests/plugins/input-readiness-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "owned source readiness test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/core/source-input-runtime.test.ts",
+    "tests/shell/extensions/core/source-input-review.test.ts",
+    "tests/plugins/prepared-input-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "owning source construction test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/core/source-pipeline-cleanup.test.ts",
+    "tests/shell/extensions/core/source-pipeline-cleanup-review.test.ts",
+    "tests/shell/extensions/arrays/prepared-input-cleanup.test.ts",
+    "tests/shell/extensions/arrays/prepared-input-cleanup-review.test.ts",
+  ]) assert.ok(files.includes(path), "prepared source cleanup test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/arrays/retained-file-eof.test.ts",
+    "tests/shell/extensions/arrays/retained-file-eof-review.test.ts",
+  ]) assert.ok(files.includes(path), "retained regular-file EOF test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/arrays/retained-input-budget.test.ts",
+    "tests/shell/extensions/arrays/retained-input-budget-review.test.ts",
+  ]) assert.ok(files.includes(path), "retained input budget test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/arrays/raw-records.test.ts",
+    "tests/shell/extensions/arrays/raw-records-review.test.ts",
+  ]) assert.ok(files.includes(path), "raw input record test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/core/incremental-bindings.test.ts",
+    "tests/shell/extensions/core/incremental-bindings-review.test.ts",
+    "tests/plugins/incremental-bindings-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "incremental indexed writer test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/core/binding-reference.test.ts",
+    "tests/shell/extensions/core/binding-reference-independent.test.ts",
+    "tests/plugins/binding-reference-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "generic reference binding test is missing: " + path);
+  assert.ok(files.includes("tests/plugins/wait-options-runtime.test.ts"), "compiled wait-option test is missing");
+  assert.ok(files.includes("tests/plugins/indexed-element-operators-runtime.test.ts"), "compiled indexed-element operator test is missing");
+  assert.ok(files.includes("tests/plugins/trapped-wait-runtime.test.ts"), "compiled trapped ordinary-wait test is missing");
+  assert.ok(files.includes("tests/plugins/wait-destination-runtime.test.ts"), "compiled wait-destination test is missing");
+  assert.ok(files.includes("tests/plugins/wait-retirement-runtime.test.ts"), "compiled wait-retirement test is missing");
+  assert.ok(files.includes("tests/plugins/wait-foreground-runtime.test.ts"), "compiled wait-foreground test is missing");
+  for (const path of [
+    "tests/shell/extensions/core/checkpoint.test.ts",
+    "tests/shell/extensions/core/checkpoint-independent.test.ts",
+    "tests/shell/extensions/core/foreground-checkpoint.test.ts",
+    "tests/plugins/checkpoint-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "loop-checkpoint test is missing: " + path);
+  assert.ok(files.includes("tests/shell/extensions/jobs/next53-reference.test.ts"), "wait-option reference guard test is missing");
+  assert.ok(files.includes("tests/shell/extensions/jobs/foreground53-reference.test.ts"), "foreground wait reference guard test is missing");
+  assert.ok(files.includes("tests/shell/extensions/jobs/wait-options.test.ts"), "wait-option implementation test is missing");
+  assert.ok(files.includes("tests/shell/extensions/jobs/trapped-wait.test.ts"), "cooperative trapped ordinary-wait test is missing");
+  assert.ok(files.includes("tests/shell/extensions/jobs/trapped-wait-combinations.test.ts"), "cooperative trapped wait-combination test is missing");
+  assert.ok(files.includes("tests/shell/extensions/jobs/trapped-wait-destinations.test.ts"), "trapped wait destination and operand-transition test is missing");
+  assert.ok(files.includes("tests/shell/extensions/trap/pending-signals.test.ts"), "pending signal dispatch and nested-wait test is missing");
+  assert.ok(files.includes("tests/shell/extensions/jobs/wait-options-independent.test.ts"), "independent wait-option test is missing");
+  assert.ok(files.includes("tests/shell/substitution-provenance.test.ts"), "substitution provenance test is missing");
+  for (const path of [
+    "tests/shell/extensions/jobs/state.test.ts",
+    "tests/shell/extensions/jobs/review.test.ts",
+  ]) assert.ok(files.includes(path), "optional jobs-state test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/core/jobs-runtime.test.ts",
+    "tests/shell/extensions/jobs/metadata.test.ts",
+    "tests/shell/extensions/jobs/lifecycle-review.test.ts",
+    "tests/shell/extensions/jobs/final-lifecycle-review.test.ts",
+    "tests/shell/extensions/jobs/jlr4-review.test.ts",
+    "tests/shell/extensions/jobs/primary53-reference.test.ts",
+    "tests/shell/extensions/jobs/grammar.test.ts",
+    "tests/shell/extensions/jobs/grammar53-reference.test.ts",
+    "tests/shell/extensions/jobs/negation53-reference.test.ts",
+    "tests/shell/extensions/jobs/negation-extended53-reference.test.ts",
+    "tests/shell/extensions/jobs/grammar-review.test.ts",
+    "tests/shell/extensions/jobs/wait.test.ts",
+    "tests/plugins/jobs-runtime.test.ts",
+    "tests/plugins/jobs-lifecycle-runtime.test.ts",
+    "tests/plugins/jobs-collector-runtime.test.ts",
+    "tests/plugins/jobs-completion-runtime.test.ts",
+    "tests/plugins/jobs-negation-extended-runtime.test.ts",
+    "tests/plugins/jobs-grammar-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "optional jobs runtime test is missing: " + path);
+  for (const path of [
+    "tests/shell/extensions/jobs/native.test.ts",
+    "tests/shell/extensions/jobs/native-review.test.ts",
+    "tests/shell/extensions/jobs/trap-wait-native.test.ts",
+    "tests/shell/extensions/jobs/trap-wait-native-review.test.ts",
+  ]) assert.ok(files.includes(path), "native jobs qualification test is missing: " + path);
+  for (const path of [
+    "tests/contracts/filesystem-descriptor-ack-review.test.ts",
+    "tests/plugins/descriptor-ack-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "descriptor acknowledgement test is missing: " + path);
+  assert.ok(files.includes("tests/plugins/descriptor-position-runtime.test.ts"), "public descriptor position test is missing");
+  for (const path of [
+    "tests/commands/dd/dd.test.ts",
+    "tests/commands/dd/descriptor.test.ts",
+    "tests/commands/dd/io.test.ts",
+    "tests/commands/dd/native.test.ts",
+    "tests/commands/dd/oracle-hygiene.test.ts",
+    "tests/commands/dd/report.test.ts",
+    "tests/commands/dd/review.test.ts",
+  ]) assert.ok(files.includes(path), "optional dd test is missing: " + path);
+  for (const path of [
+    "tests/fs/devices/devices.test.ts",
+    "tests/fs/devices/native.test.ts",
+    "tests/fs/devices/review.test.ts",
+    "tests/fs/devices/shell.test.ts",
+    "tests/fs/devices/canonical-descriptor.test.ts",
+    "tests/fs/devices/canonical-author.test.ts",
+    "tests/fs/devices/canonical-independent.test.ts",
+    "tests/plugins/device-canonical-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "optional device test is missing: " + path);
+  assert.ok(files.includes("tests/commands/device-metadata.test.ts"), "character metadata test is missing");
   assert.equal(new Set(files).size, files.length);
   for (const path of removed) assert.ok(!files.includes(path), "removed filesystem test remains selected: " + path);
   for (const path of added) assert.ok(files.includes(path), "retained filesystem test is missing: " + path);
@@ -468,6 +863,8 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/shell/parse-admission.test.ts"));
   assert.ok(files.includes("tests/shell/parse-admission-runtime.test.ts"));
   assert.ok(files.includes("tests/shell/source-line-units.test.ts"));
+  assert.ok(files.includes("tests/shell/parser-integration.test.ts"));
+  assert.ok(files.includes("tests/shell/input-integration.test.ts"));
   assert.ok(files.includes("tests/shell/ifs-membership.test.ts"));
   assert.ok(files.includes("tests/shell/child-dispatch-retirement.test.ts"));
   assert.ok(files.includes("tests/shell/inline-input-retirement.test.ts"));
@@ -539,6 +936,22 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/core-sort/record-admission.test.ts"));
   assert.ok(files.includes("tests/commands/core-sort/record-integration.test.ts"));
   assert.ok(files.includes("tests/plugins/git-removal.test.ts"));
+  assert.ok(files.includes("tests/commands/python/runtime.test.ts"));
+  assert.ok(files.includes("tests/commands/python/admission.test.ts"));
+  assert.ok(files.includes("tests/commands/python/invocation.test.ts"));
+  assert.ok(files.includes("tests/commands/python/installation.test.ts"));
+  assert.ok(files.includes("tests/commands/python/provisioning.test.ts"));
+  assert.ok(files.includes("tests/commands/python/provisioning-runtime.test.ts"));
+  assert.ok(files.includes("tests/plugins/python-exports.test.ts"));
+  assert.ok(files.includes("tests/shell/plugin-shebang.test.ts"));
+  assert.ok(files.includes("tests/commands/python/worker.test.ts"));
+  assert.ok(files.includes("tests/commands/python/reply.test.ts"));
+  for (const integration of [
+    "tests/integration/pyodide-runtime/public-command-parity.test.mjs",
+    "tests/integration/pyodide-runtime/public-documents.test.mjs",
+    "tests/integration/pyodide-runtime/public-lifecycle.test.mjs",
+    "tests/integration/pyodide-runtime/provision-public-runtime.mjs",
+  ]) assert.ok(!files.includes(integration), "real-runtime integration must stay outside fast unit discovery: " + integration);
   assert.ok(files.includes("tests/shell-stress/invocation-closure/v2-batch-controls.test.ts"));
   assert.ok(!files.includes("tests/commands/git/io-cleanup.test.ts"));
 }
@@ -1907,6 +2320,67 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/cut-portable.test.ts"));
   assert.ok(files.includes("tests/commands/capability-requirements.test.ts"));
   assert.ok(files.includes("tests/commands/filesystem-output.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/io.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/xml-parts.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/sections.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/tables.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/bookmarks.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/notes.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/tracked-text.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/revision-decisions.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/content-removal.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/dummy-text.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/control-values.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/control-records.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/package-resources.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/typed-properties.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/image-inventory.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/raster-insertion.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/image-model.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/table-model.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/inline-picture-model.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/image-replacement.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/image-layout.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/svg-fallback.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/shapes.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/charts.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/diagrams.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/equations.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/objects.test.ts"));
+  assert.ok(files.includes("tests/commands/docx-registration.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/selectors.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/transitions.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/animation-inventory.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/animation-editing.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/batch-preflight.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/inventory.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/diagram-inventory.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/opaque-objects.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/image-inventory.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/chart-inventory.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/chart-editing.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/chart-crossing.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/image-density.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/image-replacement.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/image-extraction.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/image-formatting.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/create.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/slide-lifecycle-invariants.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/tables.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/equations.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/links.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/diff.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/accessibility.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/media-inventory.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/media-track-preservation.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/media-root-owner.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/modern-comments.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/template-bindings.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/template-repeat.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/metadata.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/sanitization.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/package-safety-regressions.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/capabilities-input.test.ts"));
   assert.ok(files.includes("tests/contracts/filesystem-output.test.ts"));
   assert.ok(files.includes("tests/contracts/filesystem-output-task-reactions.test.ts"));
   assert.ok(files.includes("tests/contracts/filesystem-output-descriptor-stream.test.ts"));
@@ -2100,11 +2574,27 @@ test("published root mirrors only declared subpaths and keeps the feature isolat
   assert.equal(source.engines.node, ">=22");
   assert.equal(source.name, "virtual-bash");
   assert.equal(source.private, true);
-  assert.deepEqual(source.dependencies, { "@noble/hashes": "2.4.0", pako: "3.0.1" });
+  assert.deepEqual(source.dependencies, {});
+  assert.equal(source.devDependencies["@noble/hashes"], "2.4.0");
+  assert.equal(source.devDependencies.pako, "3.0.1");
+  assert.equal(source.devDependencies["@poe-code/office-package"], "*");
+  const archive = JSON.parse(readFileSync(new URL("../../office-package/package.json", import.meta.url), "utf8"));
+  assert.equal(archive.name, "@poe-code/office-package");
+  assert.deepEqual(archive.dependencies, { pako: "3.0.1" });
+  assert.equal(root.devDependencies["@poe-code/office-package"], "*");
+  assert.equal(root.dependencies.pako, "3.0.1");
+  assert.ok(root.files.includes("packages/office-package/dist"));
+  assert.ok(root.files.includes("packages/office-package/LICENSE"));
+  assert.deepEqual(source.exports["./commands/pptx"], { types: "./dist/commands/pptx/index.d.ts", import: "./dist/commands/pptx/index.js" });
+  assert.deepEqual(root.exports["./pptx"], { types: "./packages/pptx/dist/index.d.ts", import: "./packages/pptx/dist/index.js" });
+  assert.equal(root.devDependencies.pptx, "*");
+  assert.equal(root.dependencies.saxes, "6.0.0");
+  assert.ok(root.files.includes("packages/pptx/dist"));
+  assert.ok(root.files.includes("packages/pptx/LICENSE"));
   assert.equal(root.dependencies["virtual-bash"], undefined);
   assert.equal(root.devDependencies["virtual-bash"], "*");
   assert.ok(root.files.includes("packages/safe-bash/dist"));
-  assert.deepEqual(source.poeCode.packageLint.sourceExclude, build.exclude.filter(path => path.startsWith("src/")));
+  assert.deepEqual([...source.poeCode.packageLint.sourceExclude].sort(), build.exclude.filter(path => path.startsWith("src/")).sort());
   const entry = readFileSync(new URL("../../../src/index.ts", import.meta.url), "utf8");
   assert.equal(entry.includes("virtual-bash"), false);
   assert.equal(entry.includes("safe-bash"), false);
@@ -2515,7 +3005,7 @@ test("alternate typecheck emission guards output before compilation and preserve
   await buildForTypecheck("/package", (label, args) => {
     compilations++;
     assert.equal(label, "build");
-    assert.deepEqual(args, ["-p", "tsconfig.build.json"]);
+    assert.deepEqual(args, ["/package/scripts/build.mjs"]);
     return { status: 0 };
   }, fileSystem);
   assert.equal(compilations, 1);

@@ -1,0 +1,459 @@
+{
+  "schema_version": 1,
+  "inspected_commit": "a7fbba9c421decb4ba710db2c6c16543eba10c34",
+  "scope": "Committed-source and documentation verification only; no runtime execution or conformance certification",
+  "committed_source_sha256": {
+    "packages/pptx/src/index.ts": "03fce8734f2d796b38b47144bcd53a9c34487911b5d30e1708501f0a6e9fcfaa",
+    "packages/pptx/src/command-engine.ts": "0994024e083f2f725471a6c893f63656b4c9d5da96dac1459ba93f834c1a0ce9",
+    "packages/pptx/src/capabilities-discovery.ts": "556a8037134f97e8f1e6beba4834ce18b7c10cf89df0e141828256ab32f5c7e5",
+    "packages/pptx/src/presentation-model.ts": "9a651b92ae3e2769d5703b78f1d75028831edc897bfb74b4915705cc078ca1f7",
+    "packages/pptx/src/package-reader.ts": "a549a09ce2310595f8db9b7541a7f96e0d95d848d50d58e7b142952f722039a5",
+    "packages/pptx/src/compatibility.ts": "bcff90af4f72a3edfc538b7578c6970e5c842b6ef0a6f20ea1c6b4d2202a300c",
+    "packages/pptx/src/validation.ts": "af8bc65cdfaaa8f28aa6c9d0933f7bd430d7e3a1cb64444a5944f996b2caf2b0",
+    "packages/pptx/src/media.ts": "d4c63406717d36c11bea8ef41db5e3783989dabcb905101c1f210c87c87e9d6f",
+    "packages/pptx/src/images-schema.ts": "b471518c09e4700af684fb42285c65d73767cfe702e26840795fa144fe056132",
+    "packages/pptx/src/security-admission.test.ts": "f163c01927b0f360125912b3fafa6516d85be62af37cbf15e7d91bf51296a2e6",
+    "packages/pptx/src/freeform-builder.test.ts": "30930605a7d1e380461e5874daa55a1f9e69833af16d2d66a58ede85cc71a606",
+    "packages/pptx/src/chart-model-objects.test.ts": "0ff0b31e70f18f9dd48f18cff2b89930cf9026e31166a23a4fca2403ce72137d",
+    "packages/pptx/src/capabilities-discovery.test.ts": "93d61c119a0946151f1caada66a13738ac2af3afc91c3156a794ce4448e73c1a",
+    "packages/pptx/src/collection-index-boundary.test.ts": "172d13cf9be4cc43e15a8d67d7682d537f1221cdaccd56a65f6530eb807977df",
+    "packages/pptx/src/live-collection-indexing.test.ts": "f4516bd825b13d2a74fc176c62061731eaf1b4777eed77c8a898a048c50d87f5",
+    "packages/pptx/src/template-bindings.ts": "f1e1fe1370bfb80fc2afec91a55bdc31bb901314b5e470b71fbfaea31ff6db9c",
+    "packages/pptx/src/image-insertion.ts": "da44547f2139160798c1e0b2b045eccf2cfb93b35ae28a58baae78be643c4ff6",
+    "packages/pptx/src/command-metadata.ts": "2cb087042e9c31a14e19e09587c5af0e002f225b425b10e792bebe33666ea2bc",
+    "packages/pptx/src/command-package-tools.ts": "dde73ab194431b28e9f34a7c933465bff95ba4632940ca9dda813ff35873755e",
+    "packages/pptx/src/animation-batch-schema.ts": "2af0c38ea07de57f98e3368644081f514f035c54f940896be07117354a020809"
+  },
+  "workspace_input_sha256": {
+    "docs/specs/office-cli.md": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce",
+    "docs/specs/office-sdk.md": "a73354b0e643eef159f9bda0cb9b096234fb34f0d224c3fbead5a92f38e673b9",
+    "docs/pptx/upstream-test-audit.md": "63a4ba0c9845b2d4e833288d5e7fd459684be1c25cea1712727c1e9afe32528b",
+    "docs/pptx/upstream-test-inventory.json": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+    "docs/pptx/upstream-api-audit.md": "577da3d38cb651cb7b39bc776932058ce1c9f528d322209662434d4e7487f9b0",
+    "docs/pptx/upstream-api-inventory.json": "119a4ba61a96c88f487fb769fa268bc3a5d520b58315b8aa08606540fc92b421",
+    "docs/pptx/public-api-map.json": "e1af75d442ec97a100834db34433d2dbdd3a2bcf7d2a5779789dcd28d08e147c",
+    "docs/pptx/test-case-map.json": "64a66c9adb50530945d94bc1f3ec9d5c79e7220b48afe46950e3dfc5ca9fa3d0",
+    "docs/pptx/api-language-mappings.md": "ab20d566f5a1ff2e4ec4726017cd4cd206f0cca621e5cdfb6db18e75bfdd1541",
+    "docs/pptx/corpus-manifest.json": "9a496556696893ad3f9d988636822d8129b3b3b2e7f6ba2c42e0e6cde04cea23",
+    "docs/pptx/corpus-gap-regressions.json": "3a9d81067e4ac0dd377f3af23b8cee1a689b54609dfef28fce4e8b3d9f646f96",
+    "docs/pptx/evidence-retention-review.json": "b91a488737c16fee20bbcc4a35eeb3b1fba349c93f96f8cd64d3f29e1e5a905a",
+    "docs/pptx/upstream-license-notice.txt": "7652f271e46d0d533e9dc463f3b5fcbdcacf4d6a9c8d6b554d15efd0f37f6132"
+  },
+  "preexisting_untracked_dependencies": [
+    "docs/specs/office-cli.md",
+    "docs/specs/office-sdk.md",
+    "docs/pptx/upstream-test-audit.md",
+    "docs/pptx/upstream-test-inventory.json",
+    "docs/pptx/upstream-license-notice.txt"
+  ],
+  "test_accounting": {
+    "unit": 2700,
+    "bdd": 973,
+    "exact_identity_location_revision_joins": 3673,
+    "unique_original_typescript_obligations": 3673,
+    "statuses": {
+      "semantic_review_required": 2585,
+      "original_ts_passed": 43,
+      "specified_not_implemented": 167,
+      "proposed_design_not_implemented": 877,
+      "deferred_public_behavior": 1
+    },
+    "recorded_passes_by_kind": {
+      "unit": 26,
+      "bdd": 17
+    },
+    "architecture_only": 0,
+    "remaining_open": 3630,
+    "promoted_this_review": 0
+  },
+  "api_accounting": {
+    "inventory_records": 2409,
+    "target_rows": 2426,
+    "all_source_ids_have_targets": true,
+    "underscore_path_records": 425,
+    "whole_public_api_coverage": false
+  },
+  "features": [
+    {
+      "id": "F01",
+      "family": "ZIP",
+      "level": "edit",
+      "boundary": "Bounded shared ZIP codec, ZIP64 read, owned bytes and package writing; no encrypted/multi-disk admission promise."
+    },
+    {
+      "id": "F02",
+      "family": "OPC",
+      "level": "edit",
+      "boundary": "Content types, relationships and bounded graph operations; unknown references can block mutation/import."
+    },
+    {
+      "id": "F03",
+      "family": "Dialects/kinds",
+      "level": "edit",
+      "boundary": "Macro-free Transitional presentation/template/show creation; Strict read/MCE handling exists, but Strict creation and mixed-dialect import reject. No universal Strict edit claim."
+    },
+    {
+      "id": "F04",
+      "family": "XML/MCE",
+      "level": "edit",
+      "boundary": "Namespace-aware parsing, compatibility view and bounded XML replacement with explicit validation limits; opaque branches retained, unsupported required namespaces reject."
+    },
+    {
+      "id": "F05",
+      "family": "Inspection",
+      "level": "read",
+      "boundary": "Ordered slides, graph, hashes, locations and bounded style provenance; no complete semantic census."
+    },
+    {
+      "id": "F06",
+      "family": "Creation",
+      "level": "edit",
+      "boundary": "Original blank master/layout and structured text slides; supplied-template creation rejects."
+    },
+    {
+      "id": "F07",
+      "family": "Slide lifecycle",
+      "level": "edit",
+      "boundary": "Add/move/name/hide/remove/duplicate with supported reference policies; opaque dependencies can reject."
+    },
+    {
+      "id": "F08",
+      "family": "Merge/split/import",
+      "level": "edit",
+      "boundary": "Bounded dependency closure and deterministic remapping; conflicting notes masters, table styles, fonts, mixed dialects and unsupported references reject."
+    },
+    {
+      "id": "F09",
+      "family": "Sections/custom shows",
+      "level": "edit",
+      "boundary": "Names/order and supported membership; sections require contiguous nonoverlapping membership."
+    },
+    {
+      "id": "F10",
+      "family": "Presentation settings",
+      "level": "edit",
+      "boundary": "Canvas, number start, loop and show mode; restricted explicit scaling. Grid/view/print settings otherwise retained."
+    },
+    {
+      "id": "F11",
+      "family": "Slide masters",
+      "level": "edit",
+      "boundary": "Create/rename, supported text/shapes/backgrounds with explicit shared scope; not arbitrary master editing."
+    },
+    {
+      "id": "F12",
+      "family": "Layouts/placeholders",
+      "level": "edit",
+      "boundary": "Create/edit/apply/remove unreferenced layouts, explicit type/index mapping; ambiguity rejects."
+    },
+    {
+      "id": "F13",
+      "family": "Themes/inheritance",
+      "level": "edit",
+      "boundary": "Existing palette/font slots and overrides, bounded effective text provenance; no complete effective-style resolver."
+    },
+    {
+      "id": "F14",
+      "family": "Backgrounds",
+      "level": "edit",
+      "boundary": "Solid/linear RGB gradient/picture and inherited backgrounds; advanced effects retained."
+    },
+    {
+      "id": "F15",
+      "family": "Text reading",
+      "level": "read",
+      "boundary": "Logical paragraph/run/break/field order and explicit notes/master scopes; no visual order or fine-grained selector completeness."
+    },
+    {
+      "id": "F16",
+      "family": "Text editing",
+      "level": "edit",
+      "boundary": "Literal cross-run replacement within paragraphs; fields/breaks stop matches, explicit cardinality, no normalization."
+    },
+    {
+      "id": "F17",
+      "family": "Text styling",
+      "level": "edit",
+      "boundary": "Local run formatting and shared font model; unset/inherited values remain distinct. Not full rendering fidelity."
+    },
+    {
+      "id": "F18",
+      "family": "Paragraphs/lists",
+      "level": "edit",
+      "boundary": "Local spacing/alignment/indent/bullets/numbering/RTL/tabs; no layout engine."
+    },
+    {
+      "id": "F19",
+      "family": "Text frames",
+      "level": "edit",
+      "boundary": "Insets/columns/wrap/rotation/autofit metadata; fit uses supplied scalar metrics and bounded horizontal single-column text."
+    },
+    {
+      "id": "F20",
+      "family": "International text",
+      "level": "edit",
+      "boundary": "Logical Unicode replacement and direction/language metadata; shaping, fallback and visual bidi remain unverified."
+    },
+    {
+      "id": "F21",
+      "family": "Fields",
+      "level": "edit",
+      "boundary": "Cached field text with explicit caller text/time; no automatic field evaluation."
+    },
+    {
+      "id": "F22",
+      "family": "Shapes",
+      "level": "edit",
+      "boundary": "Text boxes/presets and supported identity/geometry/format metadata; unsupported geometry/effects remain bounded."
+    },
+    {
+      "id": "F23",
+      "family": "Custom geometry",
+      "level": "edit",
+      "boundary": "Integer EMU move/line/quadratic/cubic/close and live builder; bounded commands, no arbitrary formula/winding evaluation."
+    },
+    {
+      "id": "F24",
+      "family": "Transforms/groups",
+      "level": "edit",
+      "boundary": "Parent-coordinate geometry and restricted grouping/ungrouping with tolerance; unsafe transformed geometry rejects."
+    },
+    {
+      "id": "F25",
+      "family": "Z-order/alignment",
+      "level": "edit",
+      "boundary": "Explicit sibling order/alignment/distribution/duplication; locked or unsupported referenced objects reject."
+    },
+    {
+      "id": "F26",
+      "family": "Connectors",
+      "level": "edit",
+      "boundary": "Straight/elbow/curved connectors, bounded sites and detach/remove policies; arbitrary routing and rotated coordinate edits unsupported."
+    },
+    {
+      "id": "F27",
+      "family": "Drawing effects",
+      "level": "edit",
+      "boundary": "Solid/gradient/pattern/picture fills, lines/alpha/simple shadows; advanced stacks, DAGs and 3D retained."
+    },
+    {
+      "id": "F28",
+      "family": "Tables",
+      "level": "edit",
+      "boundary": "Rectangular grid, text/format/sizes; direct CLI uses row,column and fails shared B2 grammar."
+    },
+    {
+      "id": "F29",
+      "family": "Merged cells",
+      "level": "edit",
+      "boundary": "Rectangular spans, split, explicit insertion/deletion conflict policies; not arbitrary malformed-span repair."
+    },
+    {
+      "id": "F30",
+      "family": "Image inventory",
+      "level": "read",
+      "boundary": "Occurrences/unique parts, hashes, crop/geometry/alt text, inherited scopes and inert targets."
+    },
+    {
+      "id": "F31",
+      "family": "Image insertion",
+      "level": "edit",
+      "boundary": "PNG/JPEG/GIF/BMP/TIFF/placeable-WMF byte admission with bounded metadata/sizing; no native decoder."
+    },
+    {
+      "id": "F32",
+      "family": "Image replacement",
+      "level": "edit",
+      "boundary": "Template image bindings provide a bounded replacement path; standalone images replace is absent at this commit. Uncommitted implementation is excluded."
+    },
+    {
+      "id": "F33",
+      "family": "Image formatting",
+      "level": "edit",
+      "boundary": "Contain/cover/stretch, crop/rotation/flips/opacity/solid border/alt text; positive visible area required on crop edits."
+    },
+    {
+      "id": "F34",
+      "family": "Vector images",
+      "level": "preserve",
+      "boundary": "Retain vector/fallback bytes; placeable-WMF admission is a specific exception, not general SVG/EMF decoding/editing."
+    },
+    {
+      "id": "F35",
+      "family": "Image extraction",
+      "level": "read",
+      "boundary": "Exact original bytes with safe names/manifests; explicit transactional or partial publication required."
+    },
+    {
+      "id": "F36",
+      "family": "Charts",
+      "level": "edit",
+      "boundary": "Bounded category/XY/bubble families and live object edits; unsupported extensions retained, not arbitrary chart creation."
+    },
+    {
+      "id": "F37",
+      "family": "Chart formatting",
+      "level": "edit",
+      "boundary": "Live titles/legend/axes/ticks/plots/series/markers/labels/font/drawing subsets; case-by-case payload review remains open."
+    },
+    {
+      "id": "F38",
+      "family": "Workbook-backed charts",
+      "level": "edit",
+      "boundary": "Simple embedded data/cache/range synchronization and builders; no formula evaluation or external data fetch."
+    },
+    {
+      "id": "F39",
+      "family": "Advanced charts",
+      "level": "preserve",
+      "boundary": "Unsupported chartEx/advanced substructures retained; no silent conversion or full semantic editing claim."
+    },
+    {
+      "id": "F40",
+      "family": "SmartArt",
+      "level": "preserve",
+      "boundary": "Diagram resource graph/fallback inventory and supported import closure; no semantic layout engine."
+    },
+    {
+      "id": "F41",
+      "family": "Equations",
+      "level": "edit",
+      "boundary": "OMML inspection/extraction and validated authored insertion; set/remove/typesetting/evaluation unavailable."
+    },
+    {
+      "id": "F42",
+      "family": "Audio/video",
+      "level": "edit",
+      "boundary": "Explicit inert bytes/posters, insertion/replacement/extraction and metadata; no playback/transcoding proof."
+    },
+    {
+      "id": "F43",
+      "family": "Captions/media extensions",
+      "level": "read",
+      "boundary": "Caption/track metadata inventory and retention; uncommitted track-editing work excluded, no independent playback evidence."
+    },
+    {
+      "id": "F44",
+      "family": "Transitions",
+      "level": "edit",
+      "boundary": "Cut/fade/push/wipe and explicit timing; unsupported/Morph/sound content retained."
+    },
+    {
+      "id": "F45",
+      "family": "Animation inventory",
+      "level": "read",
+      "boundary": "Timing nodes/triggers/targets inspected without execution; not playback equivalence."
+    },
+    {
+      "id": "F46",
+      "family": "Animation editing",
+      "level": "edit",
+      "boundary": "Appear/fade-in/fade-out/pulse, simple triggers/sequences; complex timelines retained and unsafe edits rejected."
+    },
+    {
+      "id": "F47",
+      "family": "Hyperlinks/actions",
+      "level": "edit",
+      "boundary": "Ordinary URL/slide navigation; other actions inert and retained, never executed."
+    },
+    {
+      "id": "F48",
+      "family": "Notes",
+      "level": "edit",
+      "boundary": "Speaker body and explicit scoped notes/master text; competing master imports reject and whole live notes API remains incomplete."
+    },
+    {
+      "id": "F49",
+      "family": "Handouts/print",
+      "level": "edit",
+      "boundary": "Handout inventory and explicit master text replacement, notes size; print/view retained without pagination."
+    },
+    {
+      "id": "F50",
+      "family": "Comments",
+      "level": "edit",
+      "boundary": "Legacy comments with explicit author/time/position; modern threads/mentions/reactions retained."
+    },
+    {
+      "id": "F51",
+      "family": "Metadata/tags",
+      "level": "edit",
+      "boundary": "Core/typed custom properties and supported tags; unknown/custom XML retained, shared tag edits reject."
+    },
+    {
+      "id": "F52",
+      "family": "Accessibility",
+      "level": "edit",
+      "boundary": "Alt/decorative metadata, title checks and structural order; no accessibility certification or contrast/visual-order proof."
+    },
+    {
+      "id": "F53",
+      "family": "Embedded content",
+      "level": "edit",
+      "boundary": "Opaque inventory/extraction plus inert OLE byte insertion; controls/web/3D preserved without activation or recursive parsing."
+    },
+    {
+      "id": "F54",
+      "family": "Fonts",
+      "level": "preserve",
+      "boundary": "Font declarations and embedded bytes inventoried/retained; no installation, rendering or license assurance."
+    },
+    {
+      "id": "F55",
+      "family": "Security/signatures",
+      "level": "read",
+      "boundary": "Marker detection and bounded mutation refusal; no cryptographic validity, full rights interpretation or complete signature-removal claim."
+    },
+    {
+      "id": "F56",
+      "family": "Sanitization",
+      "level": "edit",
+      "boundary": "Explicit supported property removal only at this commit; broad sanitization work in the working tree is excluded."
+    },
+    {
+      "id": "F57",
+      "family": "Templates",
+      "level": "edit",
+      "boundary": "Explicit text/fixed-table/image bindings and repeated slides; not create --template support."
+    },
+    {
+      "id": "F58",
+      "family": "Batch",
+      "level": "edit",
+      "boundary": "Ordered animation add/set/remove only; general property/model batches and handles unavailable."
+    },
+    {
+      "id": "F59",
+      "family": "Diff",
+      "level": "read",
+      "boundary": "Structural/text/media/relationship/raw-format differences; effective-formatting mode rejects, no visual diff."
+    },
+    {
+      "id": "F60",
+      "family": "Package tools",
+      "level": "edit",
+      "boundary": "Explicit bounded extract/pack/XML replacement and semantic validation; validator says schema not-checked, standalone validate CLI remains a gap."
+    }
+  ],
+  "corpus": {
+    "manifest_documents": 14,
+    "manifest_bytes": 643143571,
+    "binaries_read_or_changed": false,
+    "cleanup_complete": false,
+    "absent_download_tests": "not_run"
+  },
+  "verification": {
+    "inventory_joins": "passed",
+    "feature_ids": "60 unique ordered IDs",
+    "documentation_checks": "write-spec checker passed with zero warnings; installed maintained Prettier and explicit diff/link checks recorded in plan",
+    "runtime_tests": "not_run",
+    "rendering_playback": "not_run",
+    "pipeline": "not_run"
+  },
+  "delivery": {
+    "remote_main_verified": false,
+    "push": "not_authorized_not_attempted",
+    "release": "not_authorized_not_attempted",
+    "readme": "unchanged_permission_dependency"
+  }
+}

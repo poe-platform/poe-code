@@ -1,0 +1,252 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/table-behavior-variants.test.ts (181 tests | 2 failed) 7042ms
+     ✓ 'table alignment boundary 78' 47ms
+     ✓ 'table alignment boundary 79' 37ms
+     ✓ 'table alignment boundary 80' 41ms
+     ✓ 'table alignment boundary 81' 39ms
+     ✓ 'table alignment boundary 82' 41ms
+     ✓ 'table alignment boundary 83' 40ms
+     ✓ 'table alignment boundary 84' 38ms
+     ✓ 'table autofit boundary 85' 37ms
+     ✓ 'table autofit boundary 86' 38ms
+     ✓ 'table autofit boundary 87' 38ms
+     ✓ 'table autofit boundary 88' 37ms
+     ✓ 'table autofit boundary 89' 39ms
+     ✓ 'table autofit boundary 90' 39ms
+     ✓ 'table autofit boundary 91' 39ms
+     ✓ 'table autofit boundary 92' 38ms
+     ✓ 'table table_direction boundary 94' 36ms
+     ✓ 'table table_direction boundary 95' 38ms
+     ✓ 'table table_direction boundary 96' 38ms
+     ✓ 'table table_direction boundary 97' 39ms
+     ✓ 'table table_direction boundary 98' 38ms
+     ✓ 'table table_direction boundary 99' 40ms
+     ✓ 'table table_direction boundary 100' 39ms
+     ✓ 'table table_direction boundary 101' 38ms
+     ✓ 'cell grid_span boundary 112' 39ms
+     ✓ 'cell grid_span boundary 113' 39ms
+     ✓ 'cell grid_span boundary 114' 38ms
+     ✓ 'cell grid_span boundary 115' 40ms
+     ✓ 'cell vertical_alignment boundary 124' 39ms
+     ✓ 'cell vertical_alignment boundary 125' 37ms
+     ✓ 'cell vertical_alignment boundary 126' 39ms
+     ✓ 'cell vertical_alignment boundary 127' 39ms
+     ✓ 'cell vertical_alignment boundary 128' 36ms
+     ✓ 'cell vertical_alignment boundary 129' 37ms
+     ✓ 'cell vertical_alignment boundary 130' 38ms
+     ✓ 'cell vertical_alignment boundary 131' 38ms
+     ✓ 'cell vertical_alignment boundary 132' 37ms
+     ✓ 'cell vertical_alignment boundary 133' 37ms
+     ✓ 'cell width boundary 134' 38ms
+     ✓ 'cell width boundary 135' 38ms
+     ✓ 'cell width boundary 136' 38ms
+     ✓ 'cell width boundary 137' 38ms
+     ✓ 'cell width boundary 138' 37ms
+     ✓ 'cell width boundary 139' 39ms
+     ✓ 'column width boundary 153' 38ms
+     ✓ 'column width boundary 154' 38ms
+     ✓ 'column width boundary 155' 36ms
+     ✓ 'column width boundary 156' 38ms
+     ✓ 'column width boundary 157' 38ms
+     ✓ 'column width boundary 158' 37ms
+     ✓ 'column width boundary 159' 38ms
+     ✓ 'column width boundary 160' 40ms
+     ✓ 'column width boundary 161' 41ms
+     ✓ 'column width boundary 162' 42ms
+     ✓ 'row grid_cols_after boundary 167' 41ms
+     ✓ 'row grid_cols_after boundary 168' 46ms
+     ✓ 'row grid_cols_after boundary 169' 43ms
+     ✓ 'row grid_cols_after boundary 170' 39ms
+     ✓ 'row grid_cols_before boundary 171' 39ms
+     ✓ 'row grid_cols_before boundary 172' 35ms
+     ✓ 'row grid_cols_before boundary 173' 37ms
+     ✓ 'row grid_cols_before boundary 174' 37ms
+     ✓ 'row height boundary 175' 38ms
+     ✓ 'row height boundary 176' 38ms
+     ✓ 'row height boundary 177' 38ms
+     ✓ 'row height boundary 178' 38ms
+     ✓ 'row height boundary 179' 35ms
+     ✓ 'row height boundary 180' 38ms
+     ✓ 'row height boundary 181' 38ms
+     ✓ 'row height boundary 182' 38ms
+     ✓ 'row height boundary 183' 39ms
+     ✓ 'row height boundary 184' 37ms
+     ✓ 'row height boundary 185' 38ms
+     ✓ 'row height boundary 186' 39ms
+     ✓ 'row height boundary 187' 39ms
+     ✓ 'row height_rule boundary 188' 37ms
+     ✓ 'row height_rule boundary 189' 39ms
+     ✓ 'row height_rule boundary 190' 37ms
+     ✓ 'row height_rule boundary 191' 39ms
+     ✓ 'row height_rule boundary 192' 41ms
+     ✓ 'row height_rule boundary 193' 42ms
+     ✓ 'row height_rule boundary 194' 43ms
+     ✓ 'row height_rule boundary 195' 45ms
+     ✓ 'row height_rule boundary 196' 41ms
+     ✓ 'row height_rule boundary 197' 39ms
+     ✓ 'row height_rule boundary 198' 38ms
+     ✓ 'row height_rule boundary 199' 37ms
+     ✓ 'row height_rule boundary 200' 36ms
+     ✓ rejects incomplete endpoint rectangle 1:0,0-1,0 39ms
+     ✓ rejects incomplete endpoint rectangle 1:1,0-0,0 40ms
+     ✓ rejects incomplete endpoint rectangle 2:0,2-0,1 40ms
+     ✓ rejects incomplete endpoint rectangle 5:0,1-1,0 39ms
+     ✓ rejects incomplete endpoint rectangle 5:1,0-2,1 39ms
+     ✓ rejects incomplete endpoint rectangle 6:1,0-0,1 39ms
+     ✓ rejects incomplete endpoint rectangle 6:0,1-1,2 37ms
+   ✓ 'physical cell top boundary 1' 39ms
+   ✓ 'physical cell top boundary 2' 38ms
+   ✓ 'physical cell top boundary 3' 39ms
+   ✓ 'physical cell top boundary 4' 40ms
+   ✓ 'physical cell left boundary 5' 39ms
+   ✓ 'physical cell left boundary 6' 39ms
+   ✓ 'physical cell left boundary 7' 37ms
+   ✓ 'physical cell left boundary 8' 37ms
+   ✓ 'physical cell bottom boundary 9' 39ms
+   ✓ 'physical cell bottom boundary 10' 38ms
+   ✓ 'physical cell bottom boundary 11' 39ms
+   ✓ 'physical cell bottom boundary 12' 41ms
+   ✓ 'physical cell right boundary 13' 40ms
+   ✓ 'physical cell right boundary 14' 41ms
+   ✓ 'physical cell right boundary 15' 40ms
+   ✓ 'rectangle endpoint boundary 1' 39ms
+   ✓ 'rectangle endpoint boundary 2' 39ms
+   ✓ 'rectangle endpoint boundary 3' 40ms
+   ✓ 'rectangle endpoint boundary 4' 40ms
+   ✓ 'rectangle endpoint boundary 5' 40ms
+   ✓ 'rectangle endpoint boundary 6' 40ms
+   ✓ 'rectangle endpoint boundary 7' 40ms
+   ✓ 'rectangle endpoint boundary 8' 40ms
+   ✓ 'rectangle endpoint boundary 9' 39ms
+   ✓ 'rectangle endpoint boundary 10' 39ms
+   ✓ row sequence length 0 38ms
+   ✓ row sequence length 1 38ms
+   ✓ row sequence length 2 38ms
+   ✓ row sequence length 3 37ms
+   ✓ row sequence bounds 0:0 36ms
+   ✓ row sequence bounds 0:1 38ms
+   ✓ row sequence bounds 0:-1 36ms
+   ✓ row sequence bounds 1:1 39ms
+   ✓ row sequence bounds 1:-2 39ms
+   ✓ row sequence bounds 3:3 41ms
+   ✓ row sequence bounds 3:-4 41ms
+   ✓ row exclusive slice 1:3 43ms
+   ✓ row exclusive slice 0:-1 45ms
+   ✓ physical offset with omitted prefix 0:0:0 42ms
+   ✓ physical offset with omitted prefix 0:1:1 41ms
+   ✓ physical offset with omitted prefix 2:0:2 37ms
+   ✓ physical offset with omitted prefix 2:1:3 38ms
+   ✓ physical offset with omitted prefix 4:2:6 39ms
+   ✓ logical alias layout 0 39ms
+   ✓ logical alias layout 1 39ms
+   ✓ logical alias layout 2 38ms
+   ✓ logical alias layout 3 38ms
+   ✓ logical alias layout 4 39ms
+   ✓ span growth 0:0:0:2:1 38ms
+   ✓ span growth 0:0:1:1:2 40ms
+   ✓ span growth 0:1:1:2:2 40ms
+   ✓ span growth 1:0:0:2:2 40ms
+   ✓ span growth 2:0:0:2:2 40ms
+   ✓ span growth 2:1:2:1:2 38ms
+   ✓ merge width presence true:true 37ms
+   ✓ merge width presence false:false 39ms
+   ✓ merge width presence false:true 39ms
+   ✓ merge width presence true:false 40ms
+   ✓ horizontal absorption 1:1:0:false 40ms
+   ✓ horizontal absorption 1:1:1:false 41ms
+   ✓ horizontal absorption 1:1:0:true 42ms
+   ✓ horizontal absorption 2:1:0:false 40ms
+   ✓ horizontal absorption 1:2:0:false 43ms
+   ✓ direct cell text boundary "" 38ms
+   ✓ direct cell text boundary "Harbor" 42ms
+   ✓ direct cell text boundary "Harbor\nSounding" 39ms
+   ✓ direct cell text boundary "Harbor" 38ms
+   ✓ direct cell text boundary "Ti\tde\nReef\n" 38ms
+   ✓ whole cell text assignment "Harbor" 38ms
+   ✓ whole cell text assignment "Ti\tde\rReef\n" 37ms
+   ✓ rejects whole cell replacement that would erase a nested table 38ms
+   ✓ direct nested table count 0:false 38ms
+   ✓ direct nested table count 1:false 38ms
+   ✓ direct nested table count 2:false 38ms
+   ✓ direct nested table count 1:true 38ms
+   ✓ direct nested table count 2:true 38ms
+   ✓ cell paragraph append boundary "" 38ms
+   ✓ cell paragraph append boundary "<w:p/>" 37ms
+   ✓ cell paragraph append boundary "<w:tbl><w:tblGrid><w:gridCol/></w:tblGrid><w:tr><w:tc><w:tcPr></w:tcPr><w:p><w:r><w:t>Nested</w:t></w:r></w:p></w:tc></w:tr></w:tbl>" 38ms
+   ✓ row aliases width 1 height 1 row 0 37ms
+   ✓ row aliases width 2 height 1 row 0 38ms
+   ✓ row aliases width 1 height 2 row 1 38ms
+   ✓ row aliases width 2 height 2 row 1 39ms
+   ✓ row property container insertion boundary "" 40ms
+   × row property container insertion boundary "<w:tblPrEx/>" 43ms
+   ✓ row property container insertion boundary "<w:tc><w:tcPr></w:tcPr><w:p/></w:tc>" 38ms
+   × row property container insertion boundary "<w:sdt/><w:del/><w:tc><w:tcPr></w:tcPr><w:p/></w:tc>" 41ms
+FAIL packages/docx/src/table-behavior-variants.test.ts > row property container insertion boundary "<w:tblPrEx/>"
+AssertionError: expected +0 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1148:33
+    1146|   table.rows.at(0).height=Length(914400);
+    1147|   const names=store.node(table.rows.at(0).ref).children.map(n=>n.local…
+    1148|   expect(names.indexOf("trPr")).toBe(children.includes("tblPrEx") ? 1 …
+       |                                 ^
+    1149| });
+    1150|
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > row property container insertion boundary "<w:sdt/><w:del/><w:tc><w:tcPr></w:tcPr><w:p/></w:tc>"
+AssertionError: expected [Function] to throw an error
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1142:61
+    1140|   if(children.includes("<w:sdt")) {
+    1141|     const before=store.xml(store.mainPart).serialize();
+    1142|     expect(() => {table.rows.at(0).height=Length(914400);}).toThrow();
+       |                                                             ^
+    1143|     expect(store.xml(store.mainPart).serialize()).toEqual(before);
+    1144|     return;
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > row property container insertion boundary "<w:tblPrEx/>"
+AssertionError: expected +0 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1148:33
+    1146|   table.rows.at(0).height=Length(914400);
+    1147|   const names=store.node(table.rows.at(0).ref).children.map(n=>n.local…
+    1148|   expect(names.indexOf("trPr")).toBe(children.includes("tblPrEx") ? 1 …
+       |                                 ^
+    1149| });
+    1150|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > row property container insertion boundary "<w:sdt/><w:del/><w:tc><w:tcPr></w:tcPr><w:p/></w:tc>"
+AssertionError: expected [Function] to throw an error
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1142:61
+    1140|   if(children.includes("<w:sdt")) {
+    1141|     const before=store.xml(store.mainPart).serialize();
+    1142|     expect(() => {table.rows.at(0).height=Length(914400);}).toThrow();
+       |                                                             ^
+    1143|     expect(store.xml(store.mainPart).serialize()).toEqual(before);
+    1144|     return;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 179 passed (181)
+   Start at  22:47:26
+   Duration  8.06s (transform 785ms, setup 26ms, import 923ms, tests 7.04s, environment 0ms)
+

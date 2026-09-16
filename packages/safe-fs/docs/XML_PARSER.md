@@ -22,6 +22,7 @@ generator. Merely iterating it synchronously does not provide cancellation.
 | `maxAttributesPerElement` | 128 | Attribute count on one element |
 | `maxNamespaces` | 256 | Namespace bindings in one scope |
 | `maxContentNodes` | 100,000 | Retained elements, attributes, and content nodes |
+| `maxTextLength` | `Number.MAX_SAFE_INTEGER` | Cumulative decoded scalar UTF-16 code units |
 | `retainContent` | true | Retain ordered mixed content and metadata |
 | `expectedEncoding` | omitted | Require an explicit declaration to match the caller's decoding |
 | `onElement` | omitted | Admission callback receiving element name, parent name, and depth |
@@ -46,3 +47,21 @@ applies. This lightweight mode supports the existing WebDAV parser without
 retaining query-only metadata. `onElement` runs after name, namespace, and
 structural admission and before descendants, allowing protocol-specific resource
 checks without putting protocol rules in the generic parser.
+
+Rich roots additionally expose ordered `prolog` and `epilog` arrays for whitespace,
+comments and processing instructions outside the document element. The declaration
+remains separate. These nodes consume `maxContentNodes`; lightweight mode omits
+them. Character references outside the root are invalid even when they decode to
+whitespace. Declaration field names and standalone values are case-sensitive.
+A generic `UTF-16` declaration also matches `expectedEncoding: "UTF-16LE"` or
+`"UTF-16BE"`; an opposite explicit byte order still rejects.
+
+`maxTextLength` optionally bounds cumulative decoded text, CDATA, comment and
+processing-instruction data, and attribute values in UTF-16 code units. Its
+compatibility default is `Number.MAX_SAFE_INTEGER`; document callers must supply
+a finite application ceiling. This counts values before retention, including
+metadata in lightweight mode. Source bytes, token/name lengths and cumulative
+work still need caller admission and generator charge accounting.
+
+The isolated `@poe-code/safe-fs/xml` export exposes this parser and its types
+without importing filesystem implementations or host/native adapters.

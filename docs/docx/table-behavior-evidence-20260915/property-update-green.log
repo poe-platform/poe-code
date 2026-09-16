@@ -1,0 +1,130 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/table-model.test.ts (14 tests) 304ms
+ ❯ packages/docx/src/table-behavior-variants.test.ts (94 tests | 1 failed) 3560ms
+     ✓ 'table alignment boundary 78' 45ms
+     ✓ 'table alignment boundary 79' 40ms
+     ✓ 'table alignment boundary 80' 39ms
+     ✓ 'table alignment boundary 81' 38ms
+     ✓ 'table alignment boundary 82' 40ms
+     ✓ 'table alignment boundary 83' 39ms
+     ✓ 'table alignment boundary 84' 39ms
+     ✓ 'table autofit boundary 85' 39ms
+     ✓ 'table autofit boundary 86' 39ms
+     ✓ 'table autofit boundary 87' 37ms
+     ✓ 'table autofit boundary 88' 36ms
+     ✓ 'table autofit boundary 89' 39ms
+     ✓ 'table autofit boundary 90' 39ms
+     ✓ 'table autofit boundary 91' 39ms
+     ✓ 'table autofit boundary 92' 35ms
+     ✓ 'table table_direction boundary 94' 36ms
+     ✓ 'table table_direction boundary 95' 36ms
+     ✓ 'table table_direction boundary 96' 37ms
+     ✓ 'table table_direction boundary 97' 38ms
+     ✓ 'table table_direction boundary 98' 38ms
+     ✓ 'table table_direction boundary 99' 38ms
+     ✓ 'table table_direction boundary 100' 38ms
+     ✓ 'table table_direction boundary 101' 38ms
+     ✓ 'cell grid_span boundary 112' 36ms
+     ✓ 'cell grid_span boundary 113' 37ms
+     ✓ 'cell grid_span boundary 114' 38ms
+     ✓ 'cell grid_span boundary 115' 38ms
+     ✓ 'cell vertical_alignment boundary 124' 38ms
+     ✓ 'cell vertical_alignment boundary 125' 36ms
+     ✓ 'cell vertical_alignment boundary 126' 37ms
+     ✓ 'cell vertical_alignment boundary 127' 38ms
+     ✓ 'cell vertical_alignment boundary 128' 39ms
+     ✓ 'cell vertical_alignment boundary 129' 36ms
+     ✓ 'cell vertical_alignment boundary 130' 39ms
+     ✓ 'cell vertical_alignment boundary 131' 38ms
+     ✓ 'cell vertical_alignment boundary 132' 38ms
+     ✓ 'cell vertical_alignment boundary 133' 38ms
+     ✓ 'cell width boundary 134' 37ms
+     ✓ 'cell width boundary 135' 36ms
+     ✓ 'cell width boundary 136' 37ms
+     ✓ 'cell width boundary 137' 37ms
+     ✓ 'cell width boundary 138' 37ms
+     × 'cell width boundary 139' 41ms
+     ✓ 'column width boundary 153' 36ms
+     ✓ 'column width boundary 154' 38ms
+     ✓ 'column width boundary 155' 38ms
+     ✓ 'column width boundary 156' 37ms
+     ✓ 'column width boundary 157' 37ms
+     ✓ 'column width boundary 158' 37ms
+     ✓ 'column width boundary 159' 39ms
+     ✓ 'column width boundary 160' 39ms
+     ✓ 'column width boundary 161' 36ms
+     ✓ 'column width boundary 162' 38ms
+     ✓ 'row grid_cols_after boundary 167' 37ms
+     ✓ 'row grid_cols_after boundary 168' 37ms
+     ✓ 'row grid_cols_after boundary 169' 38ms
+     ✓ 'row grid_cols_after boundary 170' 38ms
+     ✓ 'row grid_cols_before boundary 171' 36ms
+     ✓ 'row grid_cols_before boundary 172' 36ms
+     ✓ 'row grid_cols_before boundary 173' 39ms
+     ✓ 'row grid_cols_before boundary 174' 37ms
+     ✓ 'row height boundary 175' 37ms
+     ✓ 'row height boundary 176' 36ms
+     ✓ 'row height boundary 177' 38ms
+     ✓ 'row height boundary 178' 38ms
+     ✓ 'row height boundary 179' 37ms
+     ✓ 'row height boundary 180' 38ms
+     ✓ 'row height boundary 181' 37ms
+     ✓ 'row height boundary 182' 38ms
+     ✓ 'row height boundary 183' 38ms
+     ✓ 'row height boundary 184' 38ms
+     ✓ 'row height boundary 185' 38ms
+     ✓ 'row height boundary 186' 38ms
+     ✓ 'row height boundary 187' 36ms
+     ✓ 'row height_rule boundary 188' 35ms
+     ✓ 'row height_rule boundary 189' 38ms
+     ✓ 'row height_rule boundary 190' 38ms
+     ✓ 'row height_rule boundary 191' 38ms
+     ✓ 'row height_rule boundary 192' 37ms
+     ✓ 'row height_rule boundary 193' 37ms
+     ✓ 'row height_rule boundary 194' 38ms
+     ✓ 'row height_rule boundary 195' 38ms
+     ✓ 'row height_rule boundary 196' 36ms
+     ✓ 'row height_rule boundary 197' 40ms
+     ✓ 'row height_rule boundary 198' 39ms
+     ✓ 'row height_rule boundary 199' 39ms
+     ✓ 'row height_rule boundary 200' 37ms
+     ✓ rejects incomplete endpoint rectangle 1:0,0-1,0 38ms
+     ✓ rejects incomplete endpoint rectangle 1:1,0-0,0 40ms
+     ✓ rejects incomplete endpoint rectangle 2:0,2-0,1 40ms
+     ✓ rejects incomplete endpoint rectangle 5:0,1-1,0 40ms
+     ✓ rejects incomplete endpoint rectangle 5:1,0-2,1 39ms
+     ✓ rejects incomplete endpoint rectangle 6:1,0-0,1 40ms
+     ✓ rejects incomplete endpoint rectangle 6:0,1-1,2 40ms
+FAIL packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'cell width boundary 139'
+AssertionError: expected [Function] to throw an error
+ ❯ packages/docx/src/table-behavior-variants.test.ts:724:55
+    722|     if (write && body.includes('w:w="25%"')) {
+    723|       const before = table.store.xml(table.store.mainPart).serialize();
+    724|       expect(() => { properties[property] = value; }).toThrow();
+       |                                                       ^
+    725|       expect(table.store.xml(table.store.mainPart).serialize()).toEqua…
+    726|       return;
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'cell width boundary 139'
+AssertionError: expected [Function] to throw an error
+ ❯ packages/docx/src/table-behavior-variants.test.ts:724:55
+    722|     if (write && body.includes('w:w="25%"')) {
+    723|       const before = table.store.xml(table.store.mainPart).serialize();
+    724|       expect(() => { properties[property] = value; }).toThrow();
+       |                                                       ^
+    725|       expect(table.store.xml(table.store.mainPart).serialize()).toEqua…
+    726|       return;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 107 passed (108)
+   Start at  22:43:20
+   Duration  4.57s (transform 1.53s, setup 62ms, import 1.85s, tests 3.86s, environment 0ms)
+

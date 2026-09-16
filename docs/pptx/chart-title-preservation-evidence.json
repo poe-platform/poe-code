@@ -1,0 +1,338 @@
+{
+  "schemaVersion": 1,
+  "scope": "Title preservation correction; complete broader chart ledgers remain authoritative and unchanged.",
+  "notice": "Research only; standalone existing MIT notices remain intact. Tests and implementation are original.",
+  "wholeRowParity": false,
+  "caseCount": 47,
+  "cases": [
+    {
+      "identity": "tests/chart/test_chart.py::DescribeChartTitle::it_provides_access_to_its_format",
+      "source": "upstream-test-inventory.json#/unit_cases/345",
+      "status": "outstanding-live-model",
+      "relatedEvidence": "chart-editing-preservation.test.ts: title structure preservation and four text admission variants; not getter/ownership parity"
+    },
+    {
+      "identity": "tests/chart/test_chart.py::DescribeChartTitle::it_knows_whether_it_has_a_text_frame[has_tf_get_fixture0]",
+      "source": "upstream-test-inventory.json#/unit_cases/346",
+      "status": "outstanding-live-model",
+      "relatedEvidence": "chart-editing-preservation.test.ts: title structure preservation and four text admission variants; not getter/ownership parity"
+    },
+    {
+      "identity": "tests/chart/test_chart.py::DescribeChartTitle::it_knows_whether_it_has_a_text_frame[has_tf_get_fixture1]",
+      "source": "upstream-test-inventory.json#/unit_cases/347",
+      "status": "outstanding-live-model",
+      "relatedEvidence": "chart-editing-preservation.test.ts: title structure preservation and four text admission variants; not getter/ownership parity"
+    },
+    {
+      "identity": "tests/chart/test_chart.py::DescribeChartTitle::it_knows_whether_it_has_a_text_frame[has_tf_get_fixture2]",
+      "source": "upstream-test-inventory.json#/unit_cases/348",
+      "status": "outstanding-live-model",
+      "relatedEvidence": "chart-editing-preservation.test.ts: title structure preservation and four text admission variants; not getter/ownership parity"
+    },
+    {
+      "identity": "tests/chart/test_chart.py::DescribeChartTitle::it_knows_whether_it_has_a_text_frame[has_tf_get_fixture3]",
+      "source": "upstream-test-inventory.json#/unit_cases/349",
+      "status": "outstanding-live-model",
+      "relatedEvidence": "chart-editing-preservation.test.ts: title structure preservation and four text admission variants; not getter/ownership parity"
+    },
+    {
+      "identity": "tests/chart/test_chart.py::DescribeChartTitle::it_can_change_whether_it_has_a_text_frame[has_tf_set_fixture0]",
+      "source": "upstream-test-inventory.json#/unit_cases/350",
+      "status": "outstanding-live-model",
+      "relatedEvidence": "chart-editing-preservation.test.ts: title structure preservation and four text admission variants; not getter/ownership parity"
+    },
+    {
+      "identity": "tests/chart/test_chart.py::DescribeChartTitle::it_can_change_whether_it_has_a_text_frame[has_tf_set_fixture1]",
+      "source": "upstream-test-inventory.json#/unit_cases/351",
+      "status": "outstanding-live-model",
+      "relatedEvidence": "chart-editing-preservation.test.ts: title structure preservation and four text admission variants; not getter/ownership parity"
+    },
+    {
+      "identity": "tests/chart/test_chart.py::DescribeChartTitle::it_can_change_whether_it_has_a_text_frame[has_tf_set_fixture2]",
+      "source": "upstream-test-inventory.json#/unit_cases/352",
+      "status": "outstanding-live-model",
+      "relatedEvidence": "chart-editing-preservation.test.ts: title structure preservation and four text admission variants; not getter/ownership parity"
+    },
+    {
+      "identity": "tests/chart/test_chart.py::DescribeChartTitle::it_can_change_whether_it_has_a_text_frame[has_tf_set_fixture3]",
+      "source": "upstream-test-inventory.json#/unit_cases/353",
+      "status": "outstanding-live-model",
+      "relatedEvidence": "chart-editing-preservation.test.ts: title structure preservation and four text admission variants; not getter/ownership parity"
+    },
+    {
+      "identity": "tests/chart/test_chart.py::DescribeChartTitle::it_can_change_whether_it_has_a_text_frame[has_tf_set_fixture4]",
+      "source": "upstream-test-inventory.json#/unit_cases/354",
+      "status": "outstanding-live-model",
+      "relatedEvidence": "chart-editing-preservation.test.ts: title structure preservation and four text admission variants; not getter/ownership parity"
+    },
+    {
+      "identity": "tests/chart/test_chart.py::DescribeChartTitle::it_can_change_whether_it_has_a_text_frame[has_tf_set_fixture5]",
+      "source": "upstream-test-inventory.json#/unit_cases/355",
+      "status": "outstanding-live-model",
+      "relatedEvidence": "chart-editing-preservation.test.ts: title structure preservation and four text admission variants; not getter/ownership parity"
+    },
+    {
+      "identity": "tests/chart/test_chart.py::DescribeChartTitle::it_can_change_whether_it_has_a_text_frame[has_tf_set_fixture6]",
+      "source": "upstream-test-inventory.json#/unit_cases/356",
+      "status": "outstanding-live-model",
+      "relatedEvidence": "chart-editing-preservation.test.ts: title structure preservation and four text admission variants; not getter/ownership parity"
+    },
+    {
+      "identity": "tests/chart/test_chart.py::DescribeChartTitle::it_can_change_whether_it_has_a_text_frame[has_tf_set_fixture7]",
+      "source": "upstream-test-inventory.json#/unit_cases/357",
+      "status": "outstanding-live-model",
+      "relatedEvidence": "chart-editing-preservation.test.ts: title structure preservation and four text admission variants; not getter/ownership parity"
+    },
+    {
+      "identity": "tests/chart/test_chart.py::DescribeChartTitle::it_provides_access_to_its_text_frame",
+      "source": "upstream-test-inventory.json#/unit_cases/358",
+      "status": "outstanding-live-model",
+      "relatedEvidence": "chart-editing-preservation.test.ts: title structure preservation and four text admission variants; not getter/ownership parity"
+    },
+    {
+      "identity": "features/cht-axis-props.feature:7:Get Axis.axis_title",
+      "source": "upstream-test-inventory.json#/bdd_cases/72",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-axis-props.feature:116:Get Axis.has_title -- @1.1 axis title presence cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/102",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-axis-props.feature:117:Get Axis.has_title -- @1.2 axis title presence cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/103",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-axis-props.feature:127:Set Axis.has_title -- @1.1 axis title assignment cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/104",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-axis-props.feature:128:Set Axis.has_title -- @1.2 axis title assignment cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/105",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-axis-props.feature:129:Set Axis.has_title -- @1.3 axis title assignment cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/106",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-axis-props.feature:130:Set Axis.has_title -- @1.4 axis title assignment cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/107",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-axistitle-props.feature:7:AxisTitle.format",
+      "source": "upstream-test-inventory.json#/bdd_cases/127",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-axistitle-props.feature:20:Get AxisTitle.has_text_frame -- @1.1 text frame presence cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/128",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-axistitle-props.feature:21:Get AxisTitle.has_text_frame -- @1.2 text frame presence cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/129",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-axistitle-props.feature:31:Set AxisTitle.has_text_frame -- @1.1 axis_title.has_text_frame assignment cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/130",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-axistitle-props.feature:32:Set AxisTitle.has_text_frame -- @1.2 axis_title.has_text_frame assignment cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/131",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-axistitle-props.feature:33:Set AxisTitle.has_text_frame -- @1.3 axis_title.has_text_frame assignment cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/132",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-axistitle-props.feature:34:Set AxisTitle.has_text_frame -- @1.4 axis_title.has_text_frame assignment cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/133",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-axistitle-props.feature:43:Get AxisTitle.text_frame -- @1.1 text frame presence cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/134",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-axistitle-props.feature:44:Get AxisTitle.text_frame -- @1.2 text frame presence cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/135",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-chart.feature:13:Chart.chart_title -- @1.1 chart title presence cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/158",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-chart.feature:14:Chart.chart_title -- @1.2 chart title presence cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/159",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-chart.feature:78:Get Chart.has_title -- @1.1 chart title presence cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/195",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-chart.feature:79:Get Chart.has_title -- @1.2 chart title presence cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/196",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-chart.feature:89:Set Chart.has_title -- @1.1 chart title assignment cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/197",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-chart.feature:90:Set Chart.has_title -- @1.2 chart title assignment cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/198",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-chart.feature:91:Set Chart.has_title -- @1.3 chart title assignment cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/199",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-chart.feature:92:Set Chart.has_title -- @1.4 chart title assignment cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/200",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-charttitle-props.feature:7:ChartTitle.format",
+      "source": "upstream-test-inventory.json#/bdd_cases/205",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-charttitle-props.feature:20:Get ChartTitle.has_text_frame -- @1.1 text frame presence cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/206",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-charttitle-props.feature:21:Get ChartTitle.has_text_frame -- @1.2 text frame presence cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/207",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-charttitle-props.feature:31:Set ChartTitle.has_text_frame -- @1.1 chart_title.has_text_frame assignment cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/208",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-charttitle-props.feature:32:Set ChartTitle.has_text_frame -- @1.2 chart_title.has_text_frame assignment cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/209",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-charttitle-props.feature:33:Set ChartTitle.has_text_frame -- @1.3 chart_title.has_text_frame assignment cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/210",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-charttitle-props.feature:34:Set ChartTitle.has_text_frame -- @1.4 chart_title.has_text_frame assignment cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/211",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-charttitle-props.feature:43:Get ChartTitle.text_frame -- @1.1 text frame presence cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/212",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    },
+    {
+      "identity": "features/cht-charttitle-props.feature:44:Get ChartTitle.text_frame -- @1.2 text frame presence cases",
+      "source": "upstream-test-inventory.json#/bdd_cases/213",
+      "status": "outstanding-exact-workflow",
+      "relatedEvidence": "SDK/CLI title assignment preservation; not whole scenario parity"
+    }
+  ],
+  "publicMemberCount": 7,
+  "publicMembers": [
+    {
+      "identity": "pptx.chart.chart.ChartTitle",
+      "source": "upstream-api-inventory.json#/objects/143",
+      "status": "outstanding-live-model"
+    },
+    {
+      "identity": "pptx.chart.chart.ChartTitle.__eq__",
+      "source": "upstream-api-inventory.json#/objects/144",
+      "status": "outstanding-live-model"
+    },
+    {
+      "identity": "pptx.chart.chart.ChartTitle.__init__",
+      "source": "upstream-api-inventory.json#/objects/145",
+      "status": "outstanding-live-model"
+    },
+    {
+      "identity": "pptx.chart.chart.ChartTitle.element",
+      "source": "upstream-api-inventory.json#/objects/146",
+      "status": "outstanding-live-model"
+    },
+    {
+      "identity": "pptx.chart.chart.ChartTitle.format",
+      "source": "upstream-api-inventory.json#/objects/147",
+      "status": "outstanding-live-model"
+    },
+    {
+      "identity": "pptx.chart.chart.ChartTitle.has_text_frame",
+      "source": "upstream-api-inventory.json#/objects/148",
+      "status": "outstanding-live-model"
+    },
+    {
+      "identity": "pptx.chart.chart.ChartTitle.text_frame",
+      "source": "upstream-api-inventory.json#/objects/149",
+      "status": "outstanding-live-model"
+    }
+  ],
+  "broaderCaseLedger": "chart-editing-case-map.json",
+  "broaderApiLedger": "chart-editing-api-map.json",
+  "languageSecurityMappings": {
+    "mutation": "Async setCharts explicit bytes and context; CLI charts set through the same domain editor. One-based slide selection or fingerprinted token; no live model alias is introduced.",
+    "titleText": "Empty string creates empty content; existing rich text retains body/list settings and replaces paragraph content using the package whole-frame assignment semantics. Individual run formatting is replaced.",
+    "model": "Neutral chart_title, has_text_frame, text_frame and format remain public obligations. Getters, creation side effects, inheritance and live ownership are not emulated by snapshots.",
+    "authority": "No implicit host I/O, native runtime, external workbook fetching, reflection or network."
+  },
+  "documentationDrift": "Audit adaptation-not-started statements describe historical checkpoints. This receipt establishes only current title preservation, not complete chart API support."
+}

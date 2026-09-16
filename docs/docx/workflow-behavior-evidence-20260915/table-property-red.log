@@ -1,0 +1,157 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts (64 tests | 2 failed) 2449ms
+   ✓ workflow-352 observes cell grid_span read 45ms
+   ✓ workflow-353 observes cell grid_span read 40ms
+   ✓ workflow-354 observes cell grid_span read 40ms
+   ✓ workflow-355 observes cell vertical_alignment read 39ms
+   ✓ workflow-356 observes cell vertical_alignment read 39ms
+   ✓ workflow-357 observes cell vertical_alignment read 39ms
+   ✓ workflow-358 observes cell vertical_alignment transition 41ms
+   ✓ workflow-359 observes cell vertical_alignment transition 39ms
+   ✓ workflow-360 observes cell vertical_alignment transition 36ms
+   ✓ workflow-361 observes cell vertical_alignment transition 39ms
+   ✓ workflow-362 observes cell width read 36ms
+   ✓ workflow-363 observes cell width read 38ms
+   ✓ workflow-364 observes cell width transition 38ms
+   × workflow-365 observes cell width transition 41ms
+   ✓ workflow-367 observes column width read 37ms
+   ✓ workflow-368 observes column width read 39ms
+   ✓ workflow-369 observes column width transition 38ms
+   ✓ workflow-370 observes column width transition 39ms
+   ✓ workflow-371 observes column width transition 39ms
+   ✓ workflow-372 observes column width transition 37ms
+   ✓ workflow-373 observes column width transition 39ms
+   ✓ workflow-392 observes table alignment read 38ms
+   ✓ workflow-393 observes table alignment read 38ms
+   ✓ workflow-394 observes table alignment read 38ms
+   ✓ workflow-395 observes table alignment read 37ms
+   ✓ workflow-396 observes table alignment transition 38ms
+   ✓ workflow-397 observes table alignment transition 39ms
+   ✓ workflow-398 observes table alignment transition 36ms
+   ✓ workflow-399 observes table alignment transition 38ms
+   ✓ workflow-400 observes table autofit read 38ms
+   ✓ workflow-401 observes table autofit read 38ms
+   ✓ workflow-402 observes table autofit read 38ms
+   ✓ workflow-403 observes table autofit transition 38ms
+   ✓ workflow-404 observes table autofit transition 39ms
+   ✓ workflow-405 observes table autofit transition 36ms
+   ✓ workflow-406 observes table autofit transition 39ms
+   ✓ workflow-407 observes table autofit transition 37ms
+   ✓ workflow-408 observes table autofit transition 38ms
+   ✓ workflow-409 observes table table_direction read 37ms
+   ✓ workflow-410 observes table table_direction read 38ms
+   ✓ workflow-411 observes table table_direction read 37ms
+   ✓ workflow-412 observes table table_direction transition 38ms
+   ✓ workflow-413 observes table table_direction transition 37ms
+   ✓ workflow-414 observes table table_direction transition 39ms
+   ✓ workflow-415 observes row grid_cols_after read 37ms
+   ✓ workflow-416 observes row grid_cols_after read 37ms
+   ✓ workflow-417 observes row grid_cols_after read 37ms
+   ✓ workflow-418 observes row grid_cols_before read 39ms
+   ✓ workflow-419 observes row grid_cols_before read 38ms
+   ✓ workflow-420 observes row grid_cols_before read 38ms
+   ✓ workflow-421 observes row height_rule read 38ms
+   ✓ workflow-422 observes row height_rule read 39ms
+   ✓ workflow-423 observes row height_rule read 39ms
+   ✓ workflow-424 observes row height_rule transition 39ms
+   ✓ workflow-425 observes row height_rule transition 37ms
+   × workflow-426 observes row height_rule transition 39ms
+   ✓ workflow-427 observes row height_rule transition 38ms
+   ✓ workflow-428 observes row height read 38ms
+   ✓ workflow-429 observes row height read 38ms
+   ✓ workflow-430 observes row height read 37ms
+   ✓ workflow-431 observes row height transition 37ms
+   ✓ workflow-432 observes row height transition 37ms
+   ✓ workflow-433 observes row height transition 38ms
+   ✓ workflow-434 observes row height transition 38ms
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-365 observes cell width transition
+Error: The XML edit cannot establish faithful preservation.
+ ❯ unsupported packages/docx/src/xml-write.ts:24:9
+     22|
+     23| function unsupported(): never {
+     24|   throw new UnsupportedEditError("The XML edit cannot establish faithf…
+       |         ^
+     25| }
+     26|
+ ❯ DocumentXmlEditor.#assertOwnedEdit packages/docx/src/xml-write.ts:466:116
+ ❯ DocumentXmlEditor.setQualifiedAttribute packages/docx/src/xml-write.ts:435:10
+ ❯ packages/docx/src/table-model.ts:91:13
+ ❯ ModelStore.change packages/docx/src/model-store.ts:328:7
+ ❯ properties packages/docx/src/table-model.ts:84:9
+ ❯ _Cell.set width [as width] packages/docx/src/table-model.ts:387:5
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:105:8
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'unsupported-edit' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-426 observes row height_rule transition
+AssertionError: expected { Object (enum, name) } to deeply equal null
+
+- Expected:
+null
+
++ Received:
+{
+  "enum": "WD_ROW_HEIGHT_RULE",
+  "name": "AT_LEAST",
+}
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:421:28
+    419|  const target = table.rows.at(0);
+    420| target.height_rule = null;
+    421| expect(target.height_rule).toEqual(null);
+       |                            ^
+    422| });
+    423|
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-365 observes cell width transition
+Error: The XML edit cannot establish faithful preservation.
+ ❯ unsupported packages/docx/src/xml-write.ts:24:9
+     22|
+     23| function unsupported(): never {
+     24|   throw new UnsupportedEditError("The XML edit cannot establish faithf…
+       |         ^
+     25| }
+     26|
+ ❯ DocumentXmlEditor.#assertOwnedEdit packages/docx/src/xml-write.ts:466:116
+ ❯ DocumentXmlEditor.setQualifiedAttribute packages/docx/src/xml-write.ts:435:10
+ ❯ packages/docx/src/table-model.ts:91:13
+ ❯ ModelStore.change packages/docx/src/model-store.ts:328:7
+ ❯ properties packages/docx/src/table-model.ts:84:9
+ ❯ _Cell.set width [as width] packages/docx/src/table-model.ts:387:5
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:105:8
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-426 observes row height_rule transition
+AssertionError: expected { Object (enum, name) } to deeply equal null
+
+- Expected:
+null
+
++ Received:
+{
+  "enum": "WD_ROW_HEIGHT_RULE",
+  "name": "AT_LEAST",
+}
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:421:28
+    419|  const target = table.rows.at(0);
+    420| target.height_rule = null;
+    421| expect(target.height_rule).toEqual(null);
+       |                            ^
+    422| });
+    423|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 62 passed (64)
+   Start at  22:41:44
+   Duration  3.48s (transform 809ms, setup 28ms, import 946ms, tests 2.45s, environment 0ms)
+

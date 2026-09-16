@@ -201,7 +201,7 @@ function currentCoreFixture() {
     "packages/safe-js/dist/safe-fs-core.js": 'export { value } from "./shared.js";\n',
     "packages/safe-js/dist/shared.js": "export const value = 42;\n",
   };
-  const lock = { packages: { "packages/safe-bash": { devDependencies: manifest.devDependencies }, "node_modules/poe-code": { resolved: "", link: true } } };
+  const lock = { packages: { "packages/safe-bash": { devDependencies: manifest.devDependencies, peerDependencies: { "poe-code": ">=13.0.0" } }, "node_modules/poe-code": { resolved: "", link: true } } };
   const io = createFsFromVolume(Volume.fromJSON({
     ...Object.fromEntries(Object.entries(files).map(([path, bytes]) => [`/checkout/${path}`, bytes])),
     [`${root}/package.json`]: JSON.stringify(manifest),

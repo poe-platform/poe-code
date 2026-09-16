@@ -1,4 +1,6 @@
 import { FsError, isFsError } from "../../contracts/errors.js";
+import { finishCleanup } from "../../contracts/cleanup.js";
+import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import type {
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileResizeOperation, FileResizeOptions, FileStat, FileSystem, OpenReadFileOptions, OpenResizeFileOptions,
   FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
@@ -17,17 +19,18 @@ const views = new WeakMap<FileSystem, DeviceFileSystem>();
 const deviceCapabilities: FileSystemCapabilities = Object.freeze({
   readOnly: false, read: true, stat: true, realpath: true, access: true, readdir: false,
   write: true, append: true, exclusiveCreate: true, streamingRead: true, retainedRead: true,
-  streamingWrite: true, streamingAppend: true, copy: true, exclusiveCopy: true,
+  streamingWrite: true, streamingAppend: true, independentWriteStreams: true, copy: true, exclusiveCopy: true,
   remove: false, removeDirectory: false, recursiveRemove: false, rename: false,
   mkdir: false, recursiveMkdir: false, symlinks: false, hardlinks: false, readlink: false,
   permissions: false, timestamps: false, truncate: false, randomAccessWrite: false,
-  atomicFileMutation: false, atomicEntryRemoval: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
+  open: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
   atomicRename: false, atomicRenameNoReplace: false, descriptorWriteStream: true, retainedResize: true, atomicResize: false,
 });
 
 function globalCapabilities(filesystem: FileSystem): FileSystemCapabilities {
   const capabilities: Record<string, boolean | undefined> = { readOnly: false };
   const optional: Record<string, readonly (keyof FileSystem)[]> = {
+    open: ["open"],
     atomicEntryRemoval: ["removeEntryConditional"], atomicFileMutation: ["writeFileConditional", "removeFileConditional"], atomicFileStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile"], atomicDirectoryMetadata: ["prepareDirectory"],
     streamingRead: ["readStream"], streamingWrite: ["writeStream"], retainedRead: ["openReadFile"],
     streamingAppend: ["writeStream"], descriptorWriteStream: ["writeStream"], retainedResize: ["openResizeFile"], atomicResize: ["resizeFile"],
@@ -124,7 +127,7 @@ export class DeviceFileSystem implements FileSystem {
     if (options.create !== undefined && (resolved === deviceDirectory || resolved === "/")) throw new FsError("EISDIR", { syscall: "capabilitiesFor", path });
     if (resolved === nullPath) return deviceCapabilities;
     if (resolved === deviceDirectory) return { ...deviceCapabilities, readdir: true, write: false, append: false,
-      exclusiveCreate: false, streamingWrite: false, streamingAppend: false, descriptorWriteStream: false,
+      exclusiveCreate: false, streamingWrite: false, streamingAppend: false, independentWriteStreams: false, descriptorWriteStream: false,
       retainedRead: false, retainedResize: false, streamingRead: false, copy: false, exclusiveCopy: false };
     const query = this.#filesystem.capabilitiesFor;
     options.signal?.throwIfAborted();
@@ -134,6 +137,7 @@ export class DeviceFileSystem implements FileSystem {
     options.signal?.throwIfAborted();
     const capabilities = observed.retainedResize === true ? retainedResizeCapabilities(this.#filesystem, observed) : observed;
     const unavailable: Record<string, false> = {};
+    if (typeof this.#filesystem.open !== "function") unavailable.open = false;
     if (typeof this.#filesystem.readStream !== "function") unavailable.streamingRead = false;
     if (typeof this.#filesystem.writeStream !== "function") {
       unavailable.streamingWrite = false;
@@ -217,6 +221,32 @@ export class DeviceFileSystem implements FileSystem {
       async seekEnd(settings = {}) { check(settings); return 0n; },
       async close() { closed = true; },
     };
+  }
+
+  async open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
+    options?.signal?.throwIfAborted();
+    if (!options || typeof options !== "object") throw new FsError("EINVAL", { syscall: "open", path });
+    const resolved = await this.#resolve(path, options, options.creation !== "exclusive");
+    options.signal?.throwIfAborted();
+    if (resolved === nullPath || resolved === deviceDirectory) throw new FsError("ENOTSUP", { syscall: "open", path });
+    const query = this.#filesystem.capabilitiesFor;
+    options.signal?.throwIfAborted();
+    const capabilities = query && options.creation !== "exclusive" ? await Reflect.apply(query, this.#filesystem, [path, options]) : this.#filesystem.capabilities;
+    options.signal?.throwIfAborted();
+    const open = this.#filesystem.open;
+    options.signal?.throwIfAborted();
+    if (capabilities.readOnly === true && (options.access === "write" || options.access === "readwrite" || options.creation === "ifMissing" || options.creation === "exclusive" || options.truncate === true || options.append === true)) throw new FsError("EROFS", { syscall: "open", path });
+    if (capabilities.open === false || typeof open !== "function") throw new FsError("ENOTSUP", { syscall: "open", path });
+    let descriptor: FileDescriptor | undefined;
+    try {
+      descriptor = await Reflect.apply(open, this.#filesystem, [path, options]);
+      options.signal?.throwIfAborted();
+      return descriptor;
+    } catch (error) {
+      if (descriptor) await finishCleanup(() => descriptor!.close(), true);
+      options.signal?.throwIfAborted();
+      throw error;
+    }
   }
 
   async resizeFile(path: string, operation: FileResizeOperation, options: FileResizeOptions = {}): Promise<void> {
@@ -324,6 +354,13 @@ export class DeviceFileSystem implements FileSystem {
   async rm(path: string, options: RemoveOptions = {}): Promise<void> {
     await this.#mutable(path, options, false);
     await this.#filesystem.rm(path, options);
+  }
+
+  async unlink(path: string, options: FsOptions = {}): Promise<void> {
+    await this.#mutable(path, options, false);
+    if (!this.#filesystem.unlink) throw new FsError("ENOTSUP", { syscall: "unlink", path });
+    options.signal?.throwIfAborted();
+    await this.#filesystem.unlink(path, options);
   }
 
   async rmdir(path: string, options: FsOptions = {}): Promise<void> {

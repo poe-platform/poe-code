@@ -233,8 +233,11 @@ export type CommandHandler = (
 
 export type AsyncCommandHandler = (context: CommandContext) => Promise<CommandResult>;
 
+export const commandRuntimeIdentity: object = Object.freeze({});
+
 export interface CommandDefinition {
   readonly name: string;
+  readonly runtimeIdentity?: object;
   readonly description?: string;
   readonly filesystemRequirements?: readonly CommandFileSystemRequirement[];
   readonly execute: CommandHandler;
@@ -252,17 +255,20 @@ export class CommandRegistry {
   }
 
   register(command: CommandDefinition, options: RegisterCommandOptions = {}): this {
-    const { name, execute } = command;
+    const { name, execute, runtimeIdentity, ...metadata } = command;
     if (typeof name !== "string" || !name || /[\s/\0]/u.test(name)) {
       throw new TypeError("Command names must be nonempty and contain no whitespace, slash, or NUL");
     }
     if (typeof execute !== "function") {
       throw new TypeError("Command execute must be a function");
     }
+    if (runtimeIdentity !== undefined && runtimeIdentity !== commandRuntimeIdentity) {
+      throw new TypeError("Command requires its matching shell runtime; do not mix source and compiled runtime modules");
+    }
     if (this.#commands.has(name) && !options.replace) {
       throw new Error(`Command already registered: ${name}`);
     }
-    this.#commands.set(name, Object.freeze({ ...command, name, execute }));
+    this.#commands.set(name, Object.freeze({ ...metadata, name, execute, ...(runtimeIdentity === undefined ? {} : { runtimeIdentity }) }));
     return this;
   }
 

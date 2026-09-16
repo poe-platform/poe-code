@@ -1,0 +1,391 @@
+{
+  "schema_version": 1,
+  "scope": "opc-identity",
+  "source_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "uri_cases": [
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_can_construct_from_relative_ref",
+      "source_line": 13,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "resolves and emits relative references from %s; resolves internal dot segments and absolute targets",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_should_raise_on_construct_with_bad_pack_uri_str",
+      "source_line": 17,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "rejects unsafe part name %s",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_base_URI[/-/]",
+      "source_line": 21,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_base_URI[/ppt/presentation.xml-/ppt]",
+      "source_line": 21,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_base_URI[/ppt/slides/slide1.xml-/ppt/slides]",
+      "source_line": 21,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_extension[/-]",
+      "source_line": 32,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_extension[/ppt/presentation.xml-xml]",
+      "source_line": 32,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_extension[/ppt/media/image.PnG-PnG]",
+      "source_line": 32,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_filename[/-]",
+      "source_line": 43,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_filename[/ppt/presentation.xml-presentation.xml]",
+      "source_line": 43,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_filename[/ppt/media/image.png-image.png]",
+      "source_line": 43,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_filename_index[/-None]",
+      "source_line": 54,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_filename_index[/ppt/presentation.xml-None]",
+      "source_line": 54,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_filename_index[/ppt/,foo,grob!.xml-None]",
+      "source_line": 54,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_filename_index[/ppt/media/image42.png-42]",
+      "source_line": 54,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_can_compute_its_relative_reference[/ppt/presentation.xml-/-ppt/presentation.xml]",
+      "source_line": 66,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "resolves and emits relative references from %s; resolves internal dot segments and absolute targets",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_can_compute_its_relative_reference[/ppt/slideMasters/slideMaster1.xml-/ppt-slideMasters/slideMaster1.xml]",
+      "source_line": 66,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "resolves and emits relative references from %s; resolves internal dot segments and absolute targets",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_can_compute_its_relative_reference[/ppt/slideLayouts/slideLayout1.xml-/ppt/slides-../slideLayouts/slideLayout1.xml]",
+      "source_line": 66,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "resolves and emits relative references from %s; resolves internal dot segments and absolute targets",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_uri_of_its_rels_part[/-/_rels/.rels]",
+      "source_line": 85,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_uri_of_its_rels_part[/ppt/presentation.xml-/ppt/_rels/presentation.xml.rels]",
+      "source_line": 85,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_uri_of_its_rels_part[/ppt/slides/slide42.xml-/ppt/slides/_rels/slide42.xml.rels]",
+      "source_line": 85,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    }
+  ],
+  "content_type_cases": [
+    {
+      "source": "tests/opc/test_package.py::Describe_ContentTypeMap::it_can_construct_from_content_types_xml",
+      "source_line": 550,
+      "test_file": "packages/pptx/src/content-types.test.ts",
+      "status": "implemented",
+      "mapping": "selects an override before a default for %s",
+      "language_mapping": "Observe parsed lookup values and precedence instead of constructor/mock calls. Names/assets are independently authored; all seven parameter variants have separate expected values."
+    },
+    {
+      "source": "tests/opc/test_package.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[/docProps/core.xml-application/vnd.openxmlformats-package.core-properties+xml]",
+      "source_line": 571,
+      "test_file": "packages/pptx/src/content-types.test.ts",
+      "status": "implemented",
+      "mapping": "selects an override before a default for %s",
+      "language_mapping": "Observe parsed lookup values and precedence instead of constructor/mock calls. Names/assets are independently authored; all seven parameter variants have separate expected values."
+    },
+    {
+      "source": "tests/opc/test_package.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[/ppt/presentation.xml-application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml]",
+      "source_line": 571,
+      "test_file": "packages/pptx/src/content-types.test.ts",
+      "status": "implemented",
+      "mapping": "selects an override before a default for %s",
+      "language_mapping": "Observe parsed lookup values and precedence instead of constructor/mock calls. Names/assets are independently authored; all seven parameter variants have separate expected values."
+    },
+    {
+      "source": "tests/opc/test_package.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[/PPT/Presentation.XML-application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml]",
+      "source_line": 571,
+      "test_file": "packages/pptx/src/content-types.test.ts",
+      "status": "implemented",
+      "mapping": "selects an override before a default for %s",
+      "language_mapping": "Observe parsed lookup values and precedence instead of constructor/mock calls. Names/assets are independently authored; all seven parameter variants have separate expected values."
+    },
+    {
+      "source": "tests/opc/test_package.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[/ppt/viewprops.xml-application/vnd.openxmlformats-officedocument.presentationml.viewProps+xml]",
+      "source_line": 571,
+      "test_file": "packages/pptx/src/content-types.test.ts",
+      "status": "implemented",
+      "mapping": "selects an override before a default for %s",
+      "language_mapping": "Observe parsed lookup values and precedence instead of constructor/mock calls. Names/assets are independently authored; all seven parameter variants have separate expected values."
+    },
+    {
+      "source": "tests/opc/test_package.py::Describe_ContentTypeMap::it_falls_back_to_case_insensitive_extension_default_match[/foo/bar.xml-application/xml]",
+      "source_line": 585,
+      "test_file": "packages/pptx/src/content-types.test.ts",
+      "status": "implemented",
+      "mapping": "selects an override before a default for %s",
+      "language_mapping": "Observe parsed lookup values and precedence instead of constructor/mock calls. Names/assets are independently authored; all seven parameter variants have separate expected values."
+    },
+    {
+      "source": "tests/opc/test_package.py::Describe_ContentTypeMap::it_falls_back_to_case_insensitive_extension_default_match[/FOO/BAR.Rels-application/vnd.openxmlformats-package.relationships+xml]",
+      "source_line": 585,
+      "test_file": "packages/pptx/src/content-types.test.ts",
+      "status": "implemented",
+      "mapping": "selects an override before a default for %s",
+      "language_mapping": "Observe parsed lookup values and precedence instead of constructor/mock calls. Names/assets are independently authored; all seven parameter variants have separate expected values."
+    },
+    {
+      "source": "tests/opc/test_package.py::Describe_ContentTypeMap::it_falls_back_to_case_insensitive_extension_default_match[/foo/bar.jpeg-image/jpeg]",
+      "source_line": 585,
+      "test_file": "packages/pptx/src/content-types.test.ts",
+      "status": "implemented",
+      "mapping": "selects an override before a default for %s",
+      "language_mapping": "Observe parsed lookup values and precedence instead of constructor/mock calls. Names/assets are independently authored; all seven parameter variants have separate expected values."
+    },
+    {
+      "source": "tests/opc/test_package.py::Describe_ContentTypeMap::it_raises_KeyError_on_partname_not_found",
+      "source_line": 598,
+      "test_file": "packages/pptx/src/content-types.test.ts",
+      "status": "implemented",
+      "mapping": "reports missing types and rejects nonstring keys",
+      "language_mapping": "Missing lookup throws OfficeError missing-binding."
+    },
+    {
+      "source": "tests/opc/test_package.py::Describe_ContentTypeMap::it_raises_TypeError_on_key_not_instance_of_PackURI",
+      "source_line": 605,
+      "test_file": "packages/pptx/src/content-types.test.ts",
+      "status": "implemented",
+      "mapping": "reports missing types and rejects nonstring keys",
+      "language_mapping": "Validated URI strings replace source string-subclass keys; strings are intentionally accepted; nonstrings reject with OfficeError invalid-type."
+    }
+  ],
+  "bdd_note": "No dedicated URI BDD scenarios. Full open/save and image workflows remain outstanding; package primitives alone do not establish their completion.",
+  "related_deferred_cases": [
+    {
+      "source": "tests/opc/test_package.py::DescribePart::it_knows_its_content_type",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Live Part/PartFactory dispatch belongs to the model/graph milestone."
+    },
+    {
+      "source": "tests/opc/test_package.py::DescribePartFactory::it_constructs_custom_part_type_for_registered_content_types",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Live Part/PartFactory dispatch belongs to the model/graph milestone."
+    },
+    {
+      "source": "tests/opc/test_serialized.py::DescribePackageWriter::it_can_write_a_content_types_stream",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Content-type writing/composition is a later serializer obligation."
+    },
+    {
+      "source": "tests/opc/test_serialized.py::Describe_ContentTypesItem::it_provides_an_interface_classmethod",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Content-type writing/composition is a later serializer obligation."
+    },
+    {
+      "source": "tests/opc/test_serialized.py::Describe_ContentTypesItem::it_can_compose_content_types_xml",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Content-type writing/composition is a later serializer obligation."
+    },
+    {
+      "source": "tests/opc/test_serialized.py::Describe_ContentTypesItem::it_computes_defaults_and_overrides_to_help",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Content-type writing/composition is a later serializer obligation."
+    },
+    {
+      "source": "tests/parts/test_image.py::DescribeImage::it_knows_its_content_type[content_type_fixture0]",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Image/video characterization is not content-type XML parsing."
+    },
+    {
+      "source": "tests/parts/test_image.py::DescribeImage::it_knows_its_content_type[content_type_fixture1]",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Image/video characterization is not content-type XML parsing."
+    },
+    {
+      "source": "tests/parts/test_image.py::DescribeImage::it_knows_its_content_type[content_type_fixture2]",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Image/video characterization is not content-type XML parsing."
+    },
+    {
+      "source": "tests/parts/test_image.py::DescribeImage::it_knows_its_content_type[content_type_fixture3]",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Image/video characterization is not content-type XML parsing."
+    },
+    {
+      "source": "tests/parts/test_image.py::DescribeImage::it_knows_its_content_type[content_type_fixture4]",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Image/video characterization is not content-type XML parsing."
+    },
+    {
+      "source": "tests/parts/test_image.py::DescribeImage::it_knows_its_content_type[content_type_fixture5]",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Image/video characterization is not content-type XML parsing."
+    },
+    {
+      "source": "tests/test_media.py::DescribeVideo::it_knows_its_content_type",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Image/video characterization is not content-type XML parsing."
+    }
+  ],
+  "related_bdd_cases": [
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 6,
+      "name": "Round-trip a basic presentation",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Whole Presentation open/save, VFS publication and graph round-trip require later model/graph work; not claimed from primitive admission."
+    },
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 12,
+      "name": "Start presentation from package stream",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Whole Presentation open/save, VFS publication and graph round-trip require later model/graph work; not claimed from primitive admission."
+    },
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 18,
+      "name": "Start presentation from package extracted into directory",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Whole Presentation open/save, VFS publication and graph round-trip require later model/graph work; not claimed from primitive admission."
+    },
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 24,
+      "name": "Save presentation to package stream",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Whole Presentation open/save, VFS publication and graph round-trip require later model/graph work; not claimed from primitive admission."
+    },
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 31,
+      "name": "Round-trip external relationships",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Whole Presentation open/save, VFS publication and graph round-trip require later model/graph work; not claimed from primitive admission."
+    },
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 37,
+      "name": "Load presentation with invalid image/jpg MIME-type",
+      "status": "not_implemented_in_this_milestone",
+      "reason": "Original test preserves image/jpg as a legal media type; image access/characterization remains outstanding."
+    }
+  ],
+  "validation": {
+    "uri_cases": 41,
+    "content_type_cases": 74,
+    "pptx_suite_cases": 266,
+    "scope": "Original tests, selected workspace lint/build and three hash-verified corpus admissions; no CLI exists and no whole-model coverage claim.",
+    "corpus": [
+      {
+        "path": ".cache/pptx-corpus/IXPE-Presentation-Template.pptx",
+        "parts": 37
+      },
+      {
+        "path": ".cache/pptx-corpus/CERN-job-opp-250925.pptx",
+        "parts": 28
+      },
+      {
+        "path": ".cache/pptx-corpus/WWL-template-1slide.pptx",
+        "parts": 42
+      }
+    ],
+    "corpus_result": "All part type lookups succeeded; all main types were pptx. Existing bytes read only; no acquisition or fixture modifications."
+  },
+  "source_inventory_sha256": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d"
+}

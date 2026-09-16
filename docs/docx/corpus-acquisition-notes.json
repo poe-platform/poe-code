@@ -1,0 +1,13 @@
+{
+  "observed_at": "2026-09-12T17:56:08.314374+00:00",
+  "events": [
+    {
+      "source_url": "https://www.health.govt.nz/publications/health-and-independence-report-2023",
+      "outcome": "HTTP 403 on normal page fetch; not bypassed; not downloaded"
+    },
+    {
+      "source_url": "https://environment.govt.nz/facts-and-science/climate-change/new-zealands-greenhouse-gas-inventory/previous-greenhouse-gas-inventories/",
+      "outcome": "Page links contain unresolved CMS file_link shortcodes. Two official-host asset URLs were inferred from adjacent published naming, probed and downloaded; see document discovery_note."
+    }
+  ]
+}

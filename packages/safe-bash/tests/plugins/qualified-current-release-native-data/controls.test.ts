@@ -5,7 +5,45 @@ import { join, relative } from "node:path";
 import test from "node:test";
 import { baseline, compile, createCopy, diagnostics, native, owned, root, run } from "./helpers.js";
 import { collectSourceInputs, isAdmittedSourcePath, type SourceInputFileSystem } from "../../source-census.js";
-import { compilerToolPaths } from "../../shell-stress/invocation-cleanup-runtime/migration/binding.js";
+import { assertCommittedInputs, compilerToolPaths, digest, type CommittedInputs } from "../../shell-stress/invocation-cleanup-runtime/migration/binding.js";
+
+test("committed cleanup binds every shared source and root metadata byte", () => {
+  const packageBytes = Buffer.from(JSON.stringify({ dependencies: { "@poe-code/office-package": "*" } }));
+  const captured = { files: { "package.json": digest(packageBytes) }, bytes: new Map([["package.json", packageBytes]]) };
+  const roots = new Map([["packages/office-package/src/zip.ts", Buffer.from("export const size = 17;")], ["package.json", Buffer.from("{}")]]);
+  const expected: CommittedInputs = { format: "public-cleanup-committed-v1", revision: "1".repeat(40), tree: "2".repeat(40), files: captured.files };
+  assert.throws(() => assertCommittedInputs(captured, expected, roots), /root input/);
+  expected.rootInputs = Object.fromEntries([...roots].map(([path, bytes]) => [path, digest(bytes)]));
+  assert.doesNotThrow(() => assertCommittedInputs(captured, expected, roots));
+  roots.set("packages/office-package/src/zip.ts", Buffer.from("export const size = 18;"));
+  assert.throws(() => assertCommittedInputs(captured, expected, roots), /root input/);
+  roots.set("packages/office-package/src/zip.ts", Buffer.from("export const size = 17;"));
+  expected.rootInputs["unclaimed.ts"] = "3".repeat(64);
+  assert.throws(() => assertCommittedInputs(captured, expected, roots), /root input/);
+  delete expected.rootInputs["unclaimed.ts"];
+  delete expected.rootInputs["package.json"];
+  assert.throws(() => assertCommittedInputs(captured, expected, roots), /root input/);
+});
+
+test("committed cleanup requires root source identities for pinned development codecs", () => {
+  const packageBytes = Buffer.from(JSON.stringify({ dependencies: {}, devDependencies: {
+    "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*"
+  } }));
+  const captured = { files: { "package.json": digest(packageBytes) }, bytes: new Map([["package.json", packageBytes]]) };
+  const roots = new Map([["packages/office-package/src/zip.ts", Buffer.from("export const size = 23;")]]);
+  const expected: CommittedInputs = { format: "public-cleanup-committed-v1", revision: "1".repeat(40), tree: "2".repeat(40), files: captured.files };
+  assert.throws(() => assertCommittedInputs(captured, expected, roots), /root input/);
+  expected.rootInputs = Object.fromEntries([...roots].map(([path, bytes]) => [path, digest(bytes)]));
+  assert.doesNotThrow(() => assertCommittedInputs(captured, expected, roots));
+  roots.set("packages/office-package/src/zip.ts", Buffer.from("export const size = 24;"));
+  assert.throws(() => assertCommittedInputs(captured, expected, roots), /root input/);
+});
+
+test("committed cleanup retains the original standalone dependency expectation", () => {
+  const packageBytes = Buffer.from('{"dependencies":{"pako":"3.0.1"}}');
+  const captured = { files: { "package.json": digest(packageBytes) }, bytes: new Map([["package.json", packageBytes]]) };
+  assert.doesNotThrow(() => assertCommittedInputs(captured, { format: "public-cleanup-committed-v1", revision: "1".repeat(40), tree: "2".repeat(40), files: captured.files }));
+});
 
 test("public snapshot resolves only the compiler and its hoisted type dependencies", () => {
   const calls: [string, string][] = [];

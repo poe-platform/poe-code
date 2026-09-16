@@ -1,0 +1,97 @@
+[
+  {
+    "heading": "## Setup and ordinary Python usage",
+    "lang": "sh",
+    "source": "npm run build\nnpm ci --prefix packages/safe-bash/tests/integration/pyodide-runtime --ignore-scripts\n"
+  },
+  {
+    "heading": "## Setup and ordinary Python usage",
+    "lang": "js",
+    "source": "import { runBash } from 'poe-code';\nimport { MemoryFileSystem } from 'poe-code/safe-bash';\n\nconst fs = new MemoryFileSystem();\nawait fs.mkdir('/work', { recursive: true });\nawait fs.writeFile('/work/report.py', new TextEncoder().encode(\n  'from pathlib import Path\\n'\n  + 'Path(\"report.txt\").write_text(\"hello from Python\\\\n\", encoding=\"utf-8\")\\n'\n  + 'print(Path(\"report.txt\").read_text(encoding=\"utf-8\"), end=\"\")\\n'\n));\nconst result = await runBash({\n  fs, cwd: '/work', source: 'python report.py',\n  python: {\n    trustedPython: true,\n    runtimeModuleURL: new URL(\n      './packages/safe-bash/tests/integration/pyodide-runtime/node_modules/pyodide/pyodide.mjs',\n      import.meta.url,\n    ).href,\n  },\n});\nprocess.stdout.write(result.stdout);\nprocess.stderr.write(result.stderr);\nprocess.exitCode = result.exitCode;\n"
+  },
+  {
+    "heading": "## Setup and ordinary Python usage",
+    "lang": "js",
+    "source": "import { Shell, agentCommands } from 'poe-code/safe-bash';\nimport { pythonCommands } from 'poe-code/safe-bash/commands/python';\nimport { createNodePythonWorker } from 'poe-code/safe-bash/commands/python/node';\n\n// fs and runtimeModuleURL are explicitly supplied by the host as above.\nconst shell = new Shell({ fs, cwd: '/work' }).use(agentCommands()).use(\n  pythonCommands({\n    createWorker: () => createNodePythonWorker({ trustedPython: true, runtimeModuleURL }),\n  }),\n);\ntry {\n  const result = await shell.exec('python report.py');\n  console.log(result.stdout);\n} finally {\n  await shell.dispose();\n}\n"
+  },
+  {
+    "heading": "## Setup and ordinary Python usage",
+    "lang": "sh",
+    "source": "python report.py\npython3 report.py\npython -c 'from pathlib import Path; print(Path(\"report.txt\").read_text(), end=\"\")'\nprintf '{\"count\":3}\\n' | python -m json.tool\npython - <<'PY'\nfrom pathlib import Path\nprint(Path(\"report.txt\").read_text(encoding=\"utf-8\"), end=\"\")\nPY\nprintf 'alpha\\nbeta\\n' | python -c 'import sys; print(sys.stdin.read().upper(), end=\"\")' | head -n 1\n"
+  },
+  {
+    "heading": "## Setup and ordinary Python usage",
+    "lang": "sh",
+    "source": "node bin/poe-code.js bash --root /absolute/project --cwd / \\\n  --python-trusted --python-runtime file:///absolute/runtime/pyodide.mjs \\\n  -c 'python report.py'\n"
+  },
+  {
+    "heading": "## Installation, local wheels and offline reuse",
+    "lang": "sh",
+    "source": "node bin/poe-code.js bash --root /absolute/project \\\n  --python-trusted --python-runtime file:///absolute/runtime/pyodide.mjs \\\n  --python-package-profile documents --python-package-cache /python-cache \\\n  --python-package-allow-origin https://cdn.jsdelivr.net \\\n  --python-package-allow-origin https://pypi.org \\\n  --python-package-allow-origin https://files.pythonhosted.org \\\n  -c 'python report.py'\n"
+  },
+  {
+    "heading": "## Installation, local wheels and offline reuse",
+    "lang": "sh",
+    "source": "python -m pip install pypdf==6.18.1\npython -m pip install -r /requirements.txt\npython -m pip install /wheels/et_xmlfile-2.0.0-py3-none-any.whl\n"
+  },
+  {
+    "heading": "### DOCX: `docx_report.py`",
+    "lang": "python",
+    "source": "from pathlib import Path\nfrom docx import Document\n\noutput = Path(\"report.docx\")\ndocument = Document()\ndocument.add_heading(\"Quarterly report\", level=0)\ndocument.add_paragraph(\"Café results — created with python-docx 1.2.0.\")\ntable = document.add_table(rows=1, cols=2)\ntable.rows[0].cells[0].text = \"Item\"\ntable.rows[0].cells[1].text = \"Count\"\nrow = table.add_row().cells\nrow[0].text, row[1].text = \"Reports\", \"3\"\ndocument.save(output)\nreopened = Document(output)\nreopened.tables[0].cell(1, 1).text = \"4\"\nreopened.save(output)\nassert Document(output).tables[0].cell(1, 1).text == \"4\"\nwith output.open(\"rb\") as handle:\n    assert handle.read(2) == b\"PK\"\nprint(output.name, \"reopened and edited\")\n"
+  },
+  {
+    "heading": "### XLSX: `xlsx_report.py`",
+    "lang": "python",
+    "source": "from pathlib import Path\nfrom openpyxl import Workbook, load_workbook\nfrom openpyxl.styles import Font\nimport xlsxwriter\n\noutput = Path(\"report.xlsx\")\nbook = Workbook()\nsheet = book.active\nsheet.title = \"Summary\"\nsheet.append([\"Count\", \"Value\"])\nsheet.append([1, 7])\nsheet.append([2, 3])\nsheet[\"B4\"] = \"=SUM(B2:B3)\"\nsheet[\"A1\"].font = Font(bold=True)\nbook.save(output)\nbook.close()\nedited = load_workbook(output)\nedited[\"Summary\"][\"B2\"] = 9\nedited.save(output)\nedited.close()\ncheck = load_workbook(output)\nassert check[\"Summary\"][\"B2\"].value == 9\nassert check[\"Summary\"][\"B4\"].value == \"=SUM(B2:B3)\"\ncheck.close()\ncached = load_workbook(output, data_only=True)\nassert cached[\"Summary\"][\"B4\"].value is None\ncached.close()\n\nwith xlsxwriter.Workbook(\"writer.xlsx\") as writer:\n    sheet = writer.add_worksheet(\"Summary\")\n    sheet.write_row(\"A1\", [7, 3])\n    # The caller supplies 10; XlsxWriter does not calculate this formula.\n    sheet.write_formula(\"C1\", \"=SUM(A1:B1)\", None, 10)\ncached = load_workbook(\"writer.xlsx\", data_only=True)\nassert cached[\"Summary\"][\"C1\"].value == 10\ncached.close()\nprint(\"report.xlsx edited; writer.xlsx cached result verified\")\n"
+  },
+  {
+    "heading": "### PDF: `pdf_report.py`",
+    "lang": "python",
+    "source": "from pathlib import Path\nfrom fpdf import FPDF\nfrom pypdf import PdfReader, PdfWriter\n\noutput = Path(\"report.pdf\")\npdf = FPDF()\npdf.add_page()\npdf.set_font(\"Helvetica\", size=16)\npdf.cell(text=\"Quarterly report\")\npdf.add_page()\npdf.set_font(\"Helvetica\", size=12)\npdf.cell(text=\"Second page\")\npdf.output(str(output))\nwith output.open(\"rb\") as source:\n    reader = PdfReader(source)\n    assert len(reader.pages) == 2\n    assert \"Quarterly report\" in reader.pages[0].extract_text()\n    writer = PdfWriter()\n    writer.add_page(reader.pages[0])\n    writer.add_metadata({\"/Title\": \"Extracted report\"})\n    with open(\"first-page.pdf\", \"wb\") as destination:\n        writer.write(destination)\nwith open(\"first-page.pdf\", \"rb\") as source:\n    assert len(PdfReader(source).pages) == 1\nprint(\"report.pdf generated; first-page.pdf reopened\")\n"
+  },
+  {
+    "heading": "## Earlier product user review: 2026-09-13",
+    "lang": "sh",
+    "source": "node --import tsx --test packages/safe-bash/tests/integration/pyodide-runtime/product-worker.test.mjs\n"
+  },
+  {
+    "heading": "### Filesystem bridge and stack-suspension verification",
+    "lang": "sh",
+    "source": "npm ci --prefix packages/safe-bash/tests/integration/pyodide-runtime --ignore-scripts\nnode --import tsx packages/safe-bash/tests/integration/pyodide-runtime/verify.mjs 0\nnode --import tsx packages/safe-bash/tests/integration/pyodide-runtime/verify.mjs 1\nnode --import tsx packages/safe-bash/tests/integration/pyodide-runtime/cancel-fs.mjs\nnode packages/safe-bash/tests/integration/pyodide-runtime/promise-callback.mjs\nnpx --yes --package=node@24.21.0 node --experimental-wasm-stack-switching packages/safe-bash/tests/integration/pyodide-runtime/promise-callback.mjs\n"
+  },
+  {
+    "heading": "### Filesystem bridge and stack-suspension verification",
+    "lang": "sh",
+    "source": "node --import tsx packages/safe-bash/tests/integration/pyodide-runtime/verify.mjs 1 --root-mount\n"
+  },
+  {
+    "heading": "## Initial integration gate (before user edge review)",
+    "lang": "sh",
+    "source": "node --import tsx --test packages/safe-bash/tests/integration/pyodide-runtime/mount-regressions.test.mjs\n"
+  },
+  {
+    "heading": "### Pinned installation inputs",
+    "lang": "javascript",
+    "source": "const pyodide = await loadPyodide({\n  indexURL: 'https://cdn.jsdelivr.net/pyodide/v314.0.6/full/'\n});\nawait pyodide.loadPackage(['micropip', 'lxml', 'pillow']);\n// Evaluated separately; failure must not prevent the primary package probes.\nawait pyodide.loadPackage('pymupdf');\n"
+  },
+  {
+    "heading": "### Pinned installation inputs",
+    "lang": "python",
+    "source": "import micropip\nawait micropip.install([\n    'python-docx==1.2.0',\n    'openpyxl==3.1.5',\n    'XlsxWriter==3.2.9',\n    'pypdf==6.18.1',\n    'fpdf2==2.8.8',\n    'fonttools==4.65.0',\n    'defusedxml==0.7.1',\n    'et-xmlfile==2.0.0',\n    'typing-extensions==4.16.0',\n], deps=True)\n"
+  },
+  {
+    "heading": "### Reproduce and remaining gates",
+    "lang": "sh",
+    "source": "npm ci --prefix packages/safe-bash/tests/integration/pyodide-runtime --ignore-scripts\nnode packages/safe-bash/tests/integration/pyodide-runtime/browser-documents/server.mjs NEW_CAPTURE_ID\n"
+  },
+  {
+    "heading": "### Reproduce and remaining gates",
+    "lang": "sh",
+    "source": "node --test --test-name-pattern='Pyodide real-runtime verification' packages/safe-bash/scripts/integration-inputs.test.mjs\n"
+  },
+  {
+    "heading": "### Checks and remaining required workflows",
+    "lang": "sh",
+    "source": "node packages/safe-bash/tests/integration/pyodide-runtime/browser-documents/server.mjs user-edge-05\nnode --import tsx --test packages/safe-bash/tests/integration/pyodide-runtime/mount-regressions.test.mjs\nnode --import tsx --test packages/safe-bash/tests/integration/pyodide-runtime/stdio-proof.test.mjs\nnode --import tsx packages/safe-bash/tests/integration/pyodide-runtime/verify.mjs 1\nnode --import tsx packages/safe-bash/tests/integration/pyodide-runtime/cancel-fs.mjs\nnode --test --test-name-pattern='Pyodide real-runtime verification' packages/safe-bash/scripts/integration-inputs.test.mjs\n"
+  }
+]

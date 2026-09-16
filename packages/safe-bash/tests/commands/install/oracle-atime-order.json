@@ -1,0 +1,493 @@
+{
+  "kind": "Manual native atime observation audit. Synchronous lstat of installed target precedes all target reads; complete bytes then separate post-read stat. Initial captures preserved.",
+  "binary": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/ginstall",
+  "sha256": "efd5c3373a8b3d8fdc4edc7c506bc1cc3ee215ed27fdd8eca151e70e8fa1893a",
+  "rows": [
+    {
+      "setup": "plain",
+      "repeat": 0,
+      "before": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048861.5327,
+        "mode": 416,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199423,
+        "dev": 16777234,
+        "size": 5
+      },
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "targetBeforeRead": {
+        "atimeMs": 1788562048868.5715,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048869.105,
+        "mode": 493,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199424,
+        "dev": 16777234,
+        "size": 5
+      },
+      "sourceBeforeRead": {
+        "atimeMs": 1788562048868.5715,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048861.5327,
+        "mode": 416,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199423,
+        "dev": 16777234,
+        "size": 5
+      },
+      "hex": "ff0080410a",
+      "targetAfterRead": {
+        "atimeMs": 1788562048868.5715,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048869.105,
+        "mode": 493,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199424,
+        "dev": 16777234,
+        "size": 5
+      }
+    },
+    {
+      "setup": "plain",
+      "repeat": 1,
+      "before": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048870.4856,
+        "mode": 416,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199426,
+        "dev": 16777234,
+        "size": 5
+      },
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "targetBeforeRead": {
+        "atimeMs": 1788562048876.5576,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048877.0032,
+        "mode": 493,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199427,
+        "dev": 16777234,
+        "size": 5
+      },
+      "sourceBeforeRead": {
+        "atimeMs": 1788562048876.5576,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048870.4856,
+        "mode": 416,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199426,
+        "dev": 16777234,
+        "size": 5
+      },
+      "hex": "ff0080410a",
+      "targetAfterRead": {
+        "atimeMs": 1788562048876.5576,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048877.0032,
+        "mode": 493,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199427,
+        "dev": 16777234,
+        "size": 5
+      }
+    },
+    {
+      "setup": "plain",
+      "repeat": 2,
+      "before": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048878.3604,
+        "mode": 416,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199429,
+        "dev": 16777234,
+        "size": 5
+      },
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "targetBeforeRead": {
+        "atimeMs": 1788562048884.7065,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048885.124,
+        "mode": 493,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199430,
+        "dev": 16777234,
+        "size": 5
+      },
+      "sourceBeforeRead": {
+        "atimeMs": 1788562048884.7065,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048878.3604,
+        "mode": 416,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199429,
+        "dev": 16777234,
+        "size": 5
+      },
+      "hex": "ff0080410a",
+      "targetAfterRead": {
+        "atimeMs": 1788562048884.7065,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048885.124,
+        "mode": 493,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199430,
+        "dev": 16777234,
+        "size": 5
+      }
+    },
+    {
+      "setup": "hardlink",
+      "repeat": 0,
+      "before": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048886.8906,
+        "mode": 416,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199432,
+        "dev": 16777234,
+        "size": 5
+      },
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "targetBeforeRead": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048893.922,
+        "mode": 493,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199435,
+        "dev": 16777234,
+        "size": 5
+      },
+      "sourceBeforeRead": {
+        "atimeMs": 1788562048893.8635,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048886.8906,
+        "mode": 416,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199432,
+        "dev": 16777234,
+        "size": 5
+      },
+      "hex": "ff0080410a",
+      "targetAfterRead": {
+        "atimeMs": 1788562048894.5798,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048893.922,
+        "mode": 493,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199435,
+        "dev": 16777234,
+        "size": 5
+      }
+    },
+    {
+      "setup": "hardlink",
+      "repeat": 1,
+      "before": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048895.765,
+        "mode": 416,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199437,
+        "dev": 16777234,
+        "size": 5
+      },
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "targetBeforeRead": {
+        "atimeMs": 1788562048896.462,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048902.5046,
+        "mode": 493,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199440,
+        "dev": 16777234,
+        "size": 5
+      },
+      "sourceBeforeRead": {
+        "atimeMs": 1788562048896.462,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048895.765,
+        "mode": 416,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199437,
+        "dev": 16777234,
+        "size": 5
+      },
+      "hex": "ff0080410a",
+      "targetAfterRead": {
+        "atimeMs": 1788562048896.462,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048902.5046,
+        "mode": 493,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199440,
+        "dev": 16777234,
+        "size": 5
+      }
+    },
+    {
+      "setup": "hardlink",
+      "repeat": 2,
+      "before": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048904.3445,
+        "mode": 416,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199442,
+        "dev": 16777234,
+        "size": 5
+      },
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "targetBeforeRead": {
+        "atimeMs": 1788562048909.6306,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048911.7183,
+        "mode": 493,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199447,
+        "dev": 16777234,
+        "size": 5
+      },
+      "sourceBeforeRead": {
+        "atimeMs": 1788562048909.6306,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048904.3445,
+        "mode": 416,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199442,
+        "dev": 16777234,
+        "size": 5
+      },
+      "hex": "ff0080410a",
+      "targetAfterRead": {
+        "atimeMs": 1788562048909.6306,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048911.7183,
+        "mode": 493,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199447,
+        "dev": 16777234,
+        "size": 5
+      }
+    },
+    {
+      "setup": "pre-read-reset",
+      "repeat": 0,
+      "before": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048913.7087,
+        "mode": 416,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199449,
+        "dev": 16777234,
+        "size": 5
+      },
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "targetBeforeRead": {
+        "atimeMs": 1788562048914.8054,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048920.944,
+        "mode": 493,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199452,
+        "dev": 16777234,
+        "size": 5
+      },
+      "sourceBeforeRead": {
+        "atimeMs": 1788562048914.8054,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048913.7087,
+        "mode": 416,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199449,
+        "dev": 16777234,
+        "size": 5
+      },
+      "hex": "ff0080410a",
+      "targetAfterRead": {
+        "atimeMs": 1788562048914.8054,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048920.944,
+        "mode": 493,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199452,
+        "dev": 16777234,
+        "size": 5
+      }
+    },
+    {
+      "setup": "pre-read-reset",
+      "repeat": 1,
+      "before": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048922.8997,
+        "mode": 416,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199454,
+        "dev": 16777234,
+        "size": 5
+      },
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "targetBeforeRead": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048930.3044,
+        "mode": 493,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199457,
+        "dev": 16777234,
+        "size": 5
+      },
+      "sourceBeforeRead": {
+        "atimeMs": 1788562048930.1113,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048922.8997,
+        "mode": 416,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199454,
+        "dev": 16777234,
+        "size": 5
+      },
+      "hex": "ff0080410a",
+      "targetAfterRead": {
+        "atimeMs": 1788562048930.9607,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048930.3044,
+        "mode": 493,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199457,
+        "dev": 16777234,
+        "size": 5
+      }
+    },
+    {
+      "setup": "pre-read-reset",
+      "repeat": 2,
+      "before": {
+        "atimeMs": 1788562048932.4976,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048932.3337,
+        "mode": 416,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199459,
+        "dev": 16777234,
+        "size": 5
+      },
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "targetBeforeRead": {
+        "atimeMs": 1788562048932.4976,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048939.734,
+        "mode": 493,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199462,
+        "dev": 16777234,
+        "size": 5
+      },
+      "sourceBeforeRead": {
+        "atimeMs": 1788562048932.4976,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048932.3337,
+        "mode": 416,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199459,
+        "dev": 16777234,
+        "size": 5
+      },
+      "hex": "ff0080410a",
+      "targetAfterRead": {
+        "atimeMs": 1788562048932.4976,
+        "mtimeMs": 2000,
+        "ctimeMs": 1788562048939.734,
+        "mode": 493,
+        "uid": 501,
+        "gid": 0,
+        "ino": 237199462,
+        "dev": 16777234,
+        "size": 5
+      }
+    }
+  ]
+}

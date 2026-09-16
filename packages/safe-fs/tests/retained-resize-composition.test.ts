@@ -931,7 +931,7 @@ describe.each(["mount", "readonly", "overlay", "devices"])("%s preferred I/O met
 
 it("bridge uses an observed hint and preserves its existing unknown fallback", async () => {
   const { handle } = await fixture();
-  const stat = await handle.stat();
+  const { ioBlockSize: ignoredLegacyHint, ...stat } = await handle.stat();
   expect(bridgeStats(stat).blksize).toBe(8192);
   const { preferredIoBlockSize: ignored, ...unknown } = stat;
   expect(bridgeStats(unknown).blksize).toBe(4096);

@@ -1,0 +1,161 @@
+{
+  "kind": "Current implementation fresh raw qualification; all native errors retained. Grammar rows are fresh; detailed baseline hashes bind earlier snapshots. Unsupported outcomes are not parity.",
+  "binary": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/ginstall",
+  "sha256": "efd5c3373a8b3d8fdc4edc7c506bc1cc3ee215ed27fdd8eca151e70e8fa1893a",
+  "platform": "darwin",
+  "arch": "arm64",
+  "uid": 501,
+  "gid": 20,
+  "grammar": {
+    "cases": 201,
+    "exact": 201,
+    "differences": []
+  },
+  "modeGaps": [
+    {
+      "args": [
+        "-m",
+        "2700",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not supported (backend did not retain requested mode)\n"
+      },
+      "nativeMode": 384,
+      "realMode": 448
+    },
+    {
+      "args": [
+        "-m",
+        "7777",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not supported (backend did not retain requested mode)\n"
+      },
+      "nativeMode": 384,
+      "realMode": 3071
+    },
+    {
+      "args": [
+        "-m",
+        "a+s",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not supported (backend did not retain requested mode)\n"
+      },
+      "nativeMode": 384,
+      "realMode": 2048
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a+s",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "real": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": 2048
+    },
+    {
+      "args": [
+        "-m",
+        "g+s",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not supported (backend did not retain requested mode)\n"
+      },
+      "nativeMode": 384,
+      "realMode": 0
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "g+s",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "real": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": 0
+    }
+  ],
+  "emptyDestination": {
+    "native": {
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "install: cannot overwrite directory '' with non-directory 'source'\n"
+    },
+    "virtual": {
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "install: cannot overwrite directory '' with non-directory 'source'\n"
+    }
+  },
+  "previousCaptures": {
+    "oracle-grammar-initial.json": "37f717d12256f1b0d1cf1c2e59c62f0de902bdf49c2b735b63211ad7971b4ce3",
+    "oracle-modes-initial.json": "e900f9536c56acc3648b54b20d9e441e79f2de1e108447adac58950438e708c8",
+    "oracle-effects-initial.json": "50925340681dd8717d469bf8614cb413f636f47cef58f19f559fb11c0abef59f",
+    "oracle-modes-followup.json": "a44ccd0eecd57abc11afed264a2ccee300e16d53f70cb20bddc1496996a479b5",
+    "oracle-modes-harness-error.json": "2b66dff775f30bd36b69cc2f19f8a2e8eb79f412d106f2ffd30c4d7a2f053782"
+  }
+}

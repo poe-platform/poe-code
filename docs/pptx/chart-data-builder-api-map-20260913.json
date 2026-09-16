@@ -1,0 +1,1901 @@
+{
+  "schema_version": 1,
+  "source_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "source_member_count": 189,
+  "objects": [
+    {
+      "source_id": "pptx.chart.data.BubbleChartData",
+      "source_signature": "(number_format='General')",
+      "target": "BubbleChartData",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.__contains__",
+      "source_signature": null,
+      "target": "BubbleChartData.includes",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.__getitem__",
+      "source_signature": "(self, index)",
+      "target": "BubbleChartData.at / numeric lookup / slice",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.__init__",
+      "source_signature": "(self, number_format='General')",
+      "target": "BubbleChartData.constructor",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.__iter__",
+      "source_signature": null,
+      "target": "BubbleChartData.Symbol.iterator",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.__len__",
+      "source_signature": "(self)",
+      "target": "BubbleChartData.length",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.__reversed__",
+      "source_signature": null,
+      "target": "BubbleChartData.reversed",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.add_series",
+      "source_signature": "(self, name, number_format=None)",
+      "target": "BubbleChartData.add_series",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.append",
+      "source_signature": "(self, series)",
+      "target": "BubbleChartData.append",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.bubble_sizes_ref",
+      "source_signature": "(self, series)",
+      "target": "BubbleChartData.bubble_sizes_ref",
+      "mapping": "Worksheet-layout mapping: shared target writer uses adjacent column pairs/triples rather than vertical source tables; public helpers, XML formulas and workbook cells use matching references.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.count",
+      "source_signature": null,
+      "target": "BubbleChartData.count",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.data_point_offset",
+      "source_signature": "(self, series)",
+      "target": "BubbleChartData.data_point_offset",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.index",
+      "source_signature": null,
+      "target": "BubbleChartData.index",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.number_format",
+      "source_signature": "(self)",
+      "target": "BubbleChartData.number_format",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.series_index",
+      "source_signature": "(self, series)",
+      "target": "BubbleChartData.series_index",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.series_name_ref",
+      "source_signature": "(self, series)",
+      "target": "BubbleChartData.series_name_ref",
+      "mapping": "Worksheet-layout mapping: shared target writer uses adjacent column pairs/triples rather than vertical source tables; public helpers, XML formulas and workbook cells use matching references.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.x_values_ref",
+      "source_signature": "(self, series)",
+      "target": "BubbleChartData.x_values_ref",
+      "mapping": "Worksheet-layout mapping: shared target writer uses adjacent column pairs/triples rather than vertical source tables; public helpers, XML formulas and workbook cells use matching references.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.xlsx_blob",
+      "source_signature": "(self)",
+      "target": "BubbleChartData.xlsx_blob",
+      "mapping": "security mapping: async xlsx_blob(context,date1904=false); explicit byte/archive/XML limits; Uint8Array result",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.xml_bytes",
+      "source_signature": "(self, chart_type)",
+      "target": "BubbleChartData.xml_bytes",
+      "mapping": "synchronous Uint8Array generation through shared chart writer; numeric enum or creation enum name",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleChartData.y_values_ref",
+      "source_signature": "(self, series)",
+      "target": "BubbleChartData.y_values_ref",
+      "mapping": "Worksheet-layout mapping: shared target writer uses adjacent column pairs/triples rather than vertical source tables; public helpers, XML formulas and workbook cells use matching references.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleDataPoint",
+      "source_signature": null,
+      "target": "BubbleDataPoint",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleDataPoint.__init__",
+      "source_signature": "(self, series_data, x, y, size, number_format)",
+      "target": "BubbleDataPoint.constructor",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleDataPoint.bubble_size",
+      "source_signature": "(self)",
+      "target": "BubbleDataPoint.bubble_size",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleDataPoint.number_format",
+      "source_signature": "(self)",
+      "target": "BubbleDataPoint.number_format",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleDataPoint.x",
+      "source_signature": "(self)",
+      "target": "BubbleDataPoint.x",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleDataPoint.y",
+      "source_signature": "(self)",
+      "target": "BubbleDataPoint.y",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData",
+      "source_signature": "(chart_data, name, number_format)",
+      "target": "BubbleSeriesData",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.__contains__",
+      "source_signature": null,
+      "target": "BubbleSeriesData.includes",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.__getitem__",
+      "source_signature": "(self, index)",
+      "target": "BubbleSeriesData.at / numeric lookup / slice",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.__init__",
+      "source_signature": "(self, chart_data, name, number_format)",
+      "target": "BubbleSeriesData.constructor",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.__iter__",
+      "source_signature": null,
+      "target": "BubbleSeriesData.Symbol.iterator",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.__len__",
+      "source_signature": "(self)",
+      "target": "BubbleSeriesData.length",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.__reversed__",
+      "source_signature": null,
+      "target": "BubbleSeriesData.reversed",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.add_data_point",
+      "source_signature": "(self, x, y, size, number_format=None)",
+      "target": "BubbleSeriesData.add_data_point",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.append",
+      "source_signature": "(self, data_point)",
+      "target": "BubbleSeriesData.append",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.bubble_sizes",
+      "source_signature": "(self)",
+      "target": "BubbleSeriesData.bubble_sizes",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.bubble_sizes_ref",
+      "source_signature": "(self)",
+      "target": "BubbleSeriesData.bubble_sizes_ref",
+      "mapping": "Worksheet-layout mapping: shared target writer uses adjacent column pairs/triples rather than vertical source tables; public helpers, XML formulas and workbook cells use matching references.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.count",
+      "source_signature": null,
+      "target": "BubbleSeriesData.count",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.data_point_offset",
+      "source_signature": "(self)",
+      "target": "BubbleSeriesData.data_point_offset",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.index",
+      "source_signature": "(self)",
+      "target": "BubbleSeriesData.index",
+      "mapping": "readonly series ordinal shadows inherited sequence index method, as documented",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.name",
+      "source_signature": "(self)",
+      "target": "BubbleSeriesData.name",
+      "mapping": "Null names and category labels read as empty string. Date labels are defensive UTC Date copies.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.name_ref",
+      "source_signature": "(self)",
+      "target": "BubbleSeriesData.name_ref",
+      "mapping": "Worksheet-layout mapping: shared target writer uses adjacent column pairs/triples rather than vertical source tables; public helpers, XML formulas and workbook cells use matching references.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.number_format",
+      "source_signature": "(self)",
+      "target": "BubbleSeriesData.number_format",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.x_values",
+      "source_signature": "(self)",
+      "target": "BubbleSeriesData.x_values",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.x_values_ref",
+      "source_signature": "(self)",
+      "target": "BubbleSeriesData.x_values_ref",
+      "mapping": "Worksheet-layout mapping: shared target writer uses adjacent column pairs/triples rather than vertical source tables; public helpers, XML formulas and workbook cells use matching references.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.y_values",
+      "source_signature": "(self)",
+      "target": "BubbleSeriesData.y_values",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.BubbleSeriesData.y_values_ref",
+      "source_signature": "(self)",
+      "target": "BubbleSeriesData.y_values_ref",
+      "mapping": "Worksheet-layout mapping: shared target writer uses adjacent column pairs/triples rather than vertical source tables; public helpers, XML formulas and workbook cells use matching references.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Categories",
+      "source_signature": "()",
+      "target": "Categories",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Categories.__contains__",
+      "source_signature": null,
+      "target": "Categories.includes",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Categories.__getitem__",
+      "source_signature": "(self, idx)",
+      "target": "Categories.at / numeric lookup / slice",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Categories.__init__",
+      "source_signature": "(self)",
+      "target": "Categories.constructor",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Categories.__iter__",
+      "source_signature": null,
+      "target": "Categories.Symbol.iterator",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Categories.__len__",
+      "source_signature": "(self)",
+      "target": "Categories.length",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Categories.__reversed__",
+      "source_signature": null,
+      "target": "Categories.reversed",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Categories.add_category",
+      "source_signature": "(self, label)",
+      "target": "Categories.add_category",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Categories.are_dates",
+      "source_signature": "(self)",
+      "target": "Categories.are_dates",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Categories.are_numeric",
+      "source_signature": "(self)",
+      "target": "Categories.are_numeric",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Categories.count",
+      "source_signature": null,
+      "target": "Categories.count",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Categories.depth",
+      "source_signature": "(self)",
+      "target": "Categories.depth",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Categories.index",
+      "source_signature": "(self, category)",
+      "target": "Categories.index",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Categories.leaf_count",
+      "source_signature": "(self)",
+      "target": "Categories.leaf_count",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Categories.levels",
+      "source_signature": "(self)",
+      "target": "Categories.levels",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Categories.number_format",
+      "source_signature": "(self)",
+      "target": "Categories.number_format",
+      "mapping": "Getter defaults General or exact escaped yyyy\\-mm\\-dd for dates; setter string override or null to restore inferred default.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Category",
+      "source_signature": "(label, parent)",
+      "target": "Category",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Category.__init__",
+      "source_signature": "(self, label, parent)",
+      "target": "Category.constructor",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Category.add_sub_category",
+      "source_signature": "(self, label)",
+      "target": "Category.add_sub_category",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Category.depth",
+      "source_signature": "(self)",
+      "target": "Category.depth",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Category.idx",
+      "source_signature": "(self)",
+      "target": "Category.idx",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Category.index",
+      "source_signature": "(self, sub_category)",
+      "target": "Category.index",
+      "mapping": "Global leaf offset, including preceding root category leaves; ValueError for foreign child.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Category.label",
+      "source_signature": "(self)",
+      "target": "Category.label",
+      "mapping": "Null names and category labels read as empty string. Date labels are defensive UTC Date copies.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Category.leaf_count",
+      "source_signature": "(self)",
+      "target": "Category.leaf_count",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Category.numeric_str_val",
+      "source_signature": "(self, date_1904=False)",
+      "target": "Category.numeric_str_val",
+      "mapping": "Dates: UTC day serial with one decimal and explicit 1900/1904 epoch; other values String(value), including JS null spelling \"null\".",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.Category.sub_categories",
+      "source_signature": "(self)",
+      "target": "Category.sub_categories",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData",
+      "source_signature": "(number_format='General')",
+      "target": "CategoryChartData",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.__contains__",
+      "source_signature": null,
+      "target": "CategoryChartData.includes",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.__getitem__",
+      "source_signature": "(self, index)",
+      "target": "CategoryChartData.at / numeric lookup / slice",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.__init__",
+      "source_signature": "(self, number_format='General')",
+      "target": "CategoryChartData.constructor",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.__iter__",
+      "source_signature": null,
+      "target": "CategoryChartData.Symbol.iterator",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.__len__",
+      "source_signature": "(self)",
+      "target": "CategoryChartData.length",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.__reversed__",
+      "source_signature": null,
+      "target": "CategoryChartData.reversed",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.add_category",
+      "source_signature": "(self, label)",
+      "target": "CategoryChartData.add_category",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.add_series",
+      "source_signature": "(self, name, values=(), number_format=None)",
+      "target": "CategoryChartData.add_series",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.append",
+      "source_signature": "(self, series)",
+      "target": "CategoryChartData.append",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.categories",
+      "source_signature": "(self)",
+      "target": "CategoryChartData.categories",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.categories_ref",
+      "source_signature": "(self)",
+      "target": "CategoryChartData.categories_ref",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.count",
+      "source_signature": null,
+      "target": "CategoryChartData.count",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.data_point_offset",
+      "source_signature": "(self, series)",
+      "target": "CategoryChartData.data_point_offset",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.index",
+      "source_signature": null,
+      "target": "CategoryChartData.index",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.number_format",
+      "source_signature": "(self)",
+      "target": "CategoryChartData.number_format",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.series_index",
+      "source_signature": "(self, series)",
+      "target": "CategoryChartData.series_index",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.series_name_ref",
+      "source_signature": "(self, series)",
+      "target": "CategoryChartData.series_name_ref",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.values_ref",
+      "source_signature": "(self, series)",
+      "target": "CategoryChartData.values_ref",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.x_values_ref",
+      "source_signature": "(self, series)",
+      "target": "CategoryChartData.x_values_ref",
+      "mapping": "Inherited category coordinate member targets missing source point/writer member. Empty x_values/y_values return readonly []; nonempty coordinate getters and all coordinate refs raise PropertyAccessError. Explicit equivalents are categories/categories_ref and values/values_ref.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "documentation-error; public member retained with typed property-unavailable error"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.xlsx_blob",
+      "source_signature": "(self)",
+      "target": "CategoryChartData.xlsx_blob",
+      "mapping": "security mapping: async xlsx_blob(context,date1904=false); explicit byte/archive/XML limits; Uint8Array result",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.xml_bytes",
+      "source_signature": "(self, chart_type)",
+      "target": "CategoryChartData.xml_bytes",
+      "mapping": "synchronous Uint8Array generation through shared chart writer; numeric enum or creation enum name",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryChartData.y_values_ref",
+      "source_signature": "(self, series)",
+      "target": "CategoryChartData.y_values_ref",
+      "mapping": "Inherited category coordinate member targets missing source point/writer member. Empty x_values/y_values return readonly []; nonempty coordinate getters and all coordinate refs raise PropertyAccessError. Explicit equivalents are categories/categories_ref and values/values_ref.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "documentation-error; public member retained with typed property-unavailable error"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryDataPoint",
+      "source_signature": null,
+      "target": "CategoryDataPoint",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryDataPoint.__init__",
+      "source_signature": "(self, series_data, value, number_format)",
+      "target": "CategoryDataPoint.constructor",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryDataPoint.number_format",
+      "source_signature": "(self)",
+      "target": "CategoryDataPoint.number_format",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategoryDataPoint.value",
+      "source_signature": "(self)",
+      "target": "CategoryDataPoint.value",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData",
+      "source_signature": null,
+      "target": "CategorySeriesData",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.__contains__",
+      "source_signature": null,
+      "target": "CategorySeriesData.includes",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.__getitem__",
+      "source_signature": "(self, index)",
+      "target": "CategorySeriesData.at / numeric lookup / slice",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.__init__",
+      "source_signature": "(self, chart_data, name, number_format)",
+      "target": "CategorySeriesData.constructor",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.__iter__",
+      "source_signature": null,
+      "target": "CategorySeriesData.Symbol.iterator",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.__len__",
+      "source_signature": "(self)",
+      "target": "CategorySeriesData.length",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.__reversed__",
+      "source_signature": null,
+      "target": "CategorySeriesData.reversed",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.add_data_point",
+      "source_signature": "(self, value, number_format=None)",
+      "target": "CategorySeriesData.add_data_point",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.append",
+      "source_signature": "(self, data_point)",
+      "target": "CategorySeriesData.append",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.categories",
+      "source_signature": "(self)",
+      "target": "CategorySeriesData.categories",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.categories_ref",
+      "source_signature": "(self)",
+      "target": "CategorySeriesData.categories_ref",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.count",
+      "source_signature": null,
+      "target": "CategorySeriesData.count",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.data_point_offset",
+      "source_signature": "(self)",
+      "target": "CategorySeriesData.data_point_offset",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.index",
+      "source_signature": "(self)",
+      "target": "CategorySeriesData.index",
+      "mapping": "readonly series ordinal shadows inherited sequence index method, as documented",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.name",
+      "source_signature": "(self)",
+      "target": "CategorySeriesData.name",
+      "mapping": "Null names and category labels read as empty string. Date labels are defensive UTC Date copies.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.name_ref",
+      "source_signature": "(self)",
+      "target": "CategorySeriesData.name_ref",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.number_format",
+      "source_signature": "(self)",
+      "target": "CategorySeriesData.number_format",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.values",
+      "source_signature": "(self)",
+      "target": "CategorySeriesData.values",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.values_ref",
+      "source_signature": "(self)",
+      "target": "CategorySeriesData.values_ref",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.x_values",
+      "source_signature": "(self)",
+      "target": "CategorySeriesData.x_values",
+      "mapping": "Inherited category coordinate member targets missing source point/writer member. Empty x_values/y_values return readonly []; nonempty coordinate getters and all coordinate refs raise PropertyAccessError. Explicit equivalents are categories/categories_ref and values/values_ref.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "documentation-error; public member retained with typed property-unavailable error"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.x_values_ref",
+      "source_signature": "(self)",
+      "target": "CategorySeriesData.x_values_ref",
+      "mapping": "Inherited category coordinate member targets missing source point/writer member. Empty x_values/y_values return readonly []; nonempty coordinate getters and all coordinate refs raise PropertyAccessError. Explicit equivalents are categories/categories_ref and values/values_ref.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "documentation-error; public member retained with typed property-unavailable error"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.y_values",
+      "source_signature": "(self)",
+      "target": "CategorySeriesData.y_values",
+      "mapping": "Inherited category coordinate member targets missing source point/writer member. Empty x_values/y_values return readonly []; nonempty coordinate getters and all coordinate refs raise PropertyAccessError. Explicit equivalents are categories/categories_ref and values/values_ref.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "documentation-error; public member retained with typed property-unavailable error"
+    },
+    {
+      "source_id": "pptx.chart.data.CategorySeriesData.y_values_ref",
+      "source_signature": "(self)",
+      "target": "CategorySeriesData.y_values_ref",
+      "mapping": "Inherited category coordinate member targets missing source point/writer member. Empty x_values/y_values return readonly []; nonempty coordinate getters and all coordinate refs raise PropertyAccessError. Explicit equivalents are categories/categories_ref and values/values_ref.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "documentation-error; public member retained with typed property-unavailable error"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData",
+      "source_signature": "(number_format='General')",
+      "target": "ChartData",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.__contains__",
+      "source_signature": null,
+      "target": "ChartData.includes",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.__getitem__",
+      "source_signature": "(self, index)",
+      "target": "ChartData.at / numeric lookup / slice",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.__init__",
+      "source_signature": "(self, number_format='General')",
+      "target": "ChartData.constructor",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.__iter__",
+      "source_signature": null,
+      "target": "ChartData.Symbol.iterator",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.__len__",
+      "source_signature": "(self)",
+      "target": "ChartData.length",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.__reversed__",
+      "source_signature": null,
+      "target": "ChartData.reversed",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.add_category",
+      "source_signature": "(self, label)",
+      "target": "ChartData.add_category",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.add_series",
+      "source_signature": "(self, name, values=(), number_format=None)",
+      "target": "ChartData.add_series",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.append",
+      "source_signature": "(self, series)",
+      "target": "ChartData.append",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.categories",
+      "source_signature": "(self)",
+      "target": "ChartData.categories",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.categories_ref",
+      "source_signature": "(self)",
+      "target": "ChartData.categories_ref",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.count",
+      "source_signature": null,
+      "target": "ChartData.count",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.data_point_offset",
+      "source_signature": "(self, series)",
+      "target": "ChartData.data_point_offset",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.index",
+      "source_signature": null,
+      "target": "ChartData.index",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.number_format",
+      "source_signature": "(self)",
+      "target": "ChartData.number_format",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.series_index",
+      "source_signature": "(self, series)",
+      "target": "ChartData.series_index",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.series_name_ref",
+      "source_signature": "(self, series)",
+      "target": "ChartData.series_name_ref",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.values_ref",
+      "source_signature": "(self, series)",
+      "target": "ChartData.values_ref",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.x_values_ref",
+      "source_signature": "(self, series)",
+      "target": "ChartData.x_values_ref",
+      "mapping": "Inherited category coordinate member targets missing source point/writer member. Empty x_values/y_values return readonly []; nonempty coordinate getters and all coordinate refs raise PropertyAccessError. Explicit equivalents are categories/categories_ref and values/values_ref.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "documentation-error; public member retained with typed property-unavailable error"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.xlsx_blob",
+      "source_signature": "(self)",
+      "target": "ChartData.xlsx_blob",
+      "mapping": "security mapping: async xlsx_blob(context,date1904=false); explicit byte/archive/XML limits; Uint8Array result",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.xml_bytes",
+      "source_signature": "(self, chart_type)",
+      "target": "ChartData.xml_bytes",
+      "mapping": "synchronous Uint8Array generation through shared chart writer; numeric enum or creation enum name",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.ChartData.y_values_ref",
+      "source_signature": "(self, series)",
+      "target": "ChartData.y_values_ref",
+      "mapping": "Inherited category coordinate member targets missing source point/writer member. Empty x_values/y_values return readonly []; nonempty coordinate getters and all coordinate refs raise PropertyAccessError. Explicit equivalents are categories/categories_ref and values/values_ref.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "documentation-error; public member retained with typed property-unavailable error"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData",
+      "source_signature": "(number_format='General')",
+      "target": "XyChartData",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData.__contains__",
+      "source_signature": null,
+      "target": "XyChartData.includes",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData.__getitem__",
+      "source_signature": "(self, index)",
+      "target": "XyChartData.at / numeric lookup / slice",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData.__init__",
+      "source_signature": "(self, number_format='General')",
+      "target": "XyChartData.constructor",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData.__iter__",
+      "source_signature": null,
+      "target": "XyChartData.Symbol.iterator",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData.__len__",
+      "source_signature": "(self)",
+      "target": "XyChartData.length",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData.__reversed__",
+      "source_signature": null,
+      "target": "XyChartData.reversed",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData.add_series",
+      "source_signature": "(self, name, number_format=None)",
+      "target": "XyChartData.add_series",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData.append",
+      "source_signature": "(self, series)",
+      "target": "XyChartData.append",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData.count",
+      "source_signature": null,
+      "target": "XyChartData.count",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData.data_point_offset",
+      "source_signature": "(self, series)",
+      "target": "XyChartData.data_point_offset",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData.index",
+      "source_signature": null,
+      "target": "XyChartData.index",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData.number_format",
+      "source_signature": "(self)",
+      "target": "XyChartData.number_format",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData.series_index",
+      "source_signature": "(self, series)",
+      "target": "XyChartData.series_index",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData.series_name_ref",
+      "source_signature": "(self, series)",
+      "target": "XyChartData.series_name_ref",
+      "mapping": "Worksheet-layout mapping: shared target writer uses adjacent column pairs/triples rather than vertical source tables; public helpers, XML formulas and workbook cells use matching references.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData.x_values_ref",
+      "source_signature": "(self, series)",
+      "target": "XyChartData.x_values_ref",
+      "mapping": "Worksheet-layout mapping: shared target writer uses adjacent column pairs/triples rather than vertical source tables; public helpers, XML formulas and workbook cells use matching references.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData.xlsx_blob",
+      "source_signature": "(self)",
+      "target": "XyChartData.xlsx_blob",
+      "mapping": "security mapping: async xlsx_blob(context,date1904=false); explicit byte/archive/XML limits; Uint8Array result",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData.xml_bytes",
+      "source_signature": "(self, chart_type)",
+      "target": "XyChartData.xml_bytes",
+      "mapping": "synchronous Uint8Array generation through shared chart writer; numeric enum or creation enum name",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyChartData.y_values_ref",
+      "source_signature": "(self, series)",
+      "target": "XyChartData.y_values_ref",
+      "mapping": "Worksheet-layout mapping: shared target writer uses adjacent column pairs/triples rather than vertical source tables; public helpers, XML formulas and workbook cells use matching references.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyDataPoint",
+      "source_signature": null,
+      "target": "XyDataPoint",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyDataPoint.__init__",
+      "source_signature": "(self, series_data, x, y, number_format)",
+      "target": "XyDataPoint.constructor",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyDataPoint.number_format",
+      "source_signature": "(self)",
+      "target": "XyDataPoint.number_format",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyDataPoint.x",
+      "source_signature": "(self)",
+      "target": "XyDataPoint.x",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XyDataPoint.y",
+      "source_signature": "(self)",
+      "target": "XyDataPoint.y",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData",
+      "source_signature": "(chart_data, name, number_format)",
+      "target": "XySeriesData",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData.__contains__",
+      "source_signature": null,
+      "target": "XySeriesData.includes",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData.__getitem__",
+      "source_signature": "(self, index)",
+      "target": "XySeriesData.at / numeric lookup / slice",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData.__init__",
+      "source_signature": "(self, chart_data, name, number_format)",
+      "target": "XySeriesData.constructor",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData.__iter__",
+      "source_signature": null,
+      "target": "XySeriesData.Symbol.iterator",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData.__len__",
+      "source_signature": "(self)",
+      "target": "XySeriesData.length",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData.__reversed__",
+      "source_signature": null,
+      "target": "XySeriesData.reversed",
+      "mapping": "JS sequence/constructor protocol; slices accept start,end,step; numeric bounds errors",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData.add_data_point",
+      "source_signature": "(self, x, y, number_format=None)",
+      "target": "XySeriesData.add_data_point",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData.append",
+      "source_signature": "(self, data_point)",
+      "target": "XySeriesData.append",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData.count",
+      "source_signature": null,
+      "target": "XySeriesData.count",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData.data_point_offset",
+      "source_signature": "(self)",
+      "target": "XySeriesData.data_point_offset",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData.index",
+      "source_signature": "(self)",
+      "target": "XySeriesData.index",
+      "mapping": "readonly series ordinal shadows inherited sequence index method, as documented",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData.name",
+      "source_signature": "(self)",
+      "target": "XySeriesData.name",
+      "mapping": "Null names and category labels read as empty string. Date labels are defensive UTC Date copies.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData.name_ref",
+      "source_signature": "(self)",
+      "target": "XySeriesData.name_ref",
+      "mapping": "Worksheet-layout mapping: shared target writer uses adjacent column pairs/triples rather than vertical source tables; public helpers, XML formulas and workbook cells use matching references.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData.number_format",
+      "source_signature": "(self)",
+      "target": "XySeriesData.number_format",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData.x_values",
+      "source_signature": "(self)",
+      "target": "XySeriesData.x_values",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData.x_values_ref",
+      "source_signature": "(self)",
+      "target": "XySeriesData.x_values_ref",
+      "mapping": "Worksheet-layout mapping: shared target writer uses adjacent column pairs/triples rather than vertical source tables; public helpers, XML formulas and workbook cells use matching references.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData.y_values",
+      "source_signature": "(self)",
+      "target": "XySeriesData.y_values",
+      "mapping": "neutral spelling retained; detached owned model",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    },
+    {
+      "source_id": "pptx.chart.data.XySeriesData.y_values_ref",
+      "source_signature": "(self)",
+      "target": "XySeriesData.y_values_ref",
+      "mapping": "Worksheet-layout mapping: shared target writer uses adjacent column pairs/triples rather than vertical source tables; public helpers, XML formulas and workbook cells use matching references.",
+      "tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "status": "implemented; focused behavior evidence; package export verified separately"
+    }
+  ],
+  "primary_source_reconciliation": [
+    "https://raw.githubusercontent.com/scanny/python-pptx/278b47b1dedd5b46ee84c286e77cdfb0bf4594be/src/pptx/chart/data.py",
+    "https://raw.githubusercontent.com/scanny/python-pptx/278b47b1dedd5b46ee84c286e77cdfb0bf4594be/src/pptx/chart/xlsx.py"
+  ]
+}

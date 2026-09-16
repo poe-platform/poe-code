@@ -30,7 +30,12 @@ export const historicalTypeModelDefinitions = Object.freeze([
     callers: [
       { path: "tests/commands/diff-patch-stress/emptyfile-delta/native.ts", bytes: 4509, sha256: "1ff5846fcbda25d94007d8f1cbbd54a1743864311664cc12b7e6fd926867e5a4", specifier: "../gnu-target/oracle.js" },
       { path: "tests/commands/diff-patch-stress/gnu-revised-acceptance/capture.ts", bytes: 2329, sha256: "603b54d264f79d7ea10a535b40c7cacce83b851b729250f3031c126140f9ac0e", specifier: "../gnu-target/oracle.js" },
-      { path: "tests/commands/diff-patch-stress/gnu-revised-acceptance/lab.ts", bytes: 5223, sha256: "e4d6ae1d40e98f47ddf56b38dab81e21521e39241b48e11b549079483ea24a43", specifier: "../gnu-target/oracle.js" },
+      {
+        path: "tests/commands/diff-patch-stress/gnu-revised-acceptance/lab.ts", bytes: 5448,
+        sha256: "a62e60c75c7fe51acfc4f830c95e2656ca0cbe93b60d66e6c4ce7e9fa6085fdf", specifier: "../gnu-target/oracle.js",
+        previousCaller: Object.freeze({ bytes: 5223, sha256: "e4d6ae1d40e98f47ddf56b38dab81e21521e39241b48e11b549079483ea24a43" }),
+        review: "Current caller explicitly rejects character and unsupported namespace entries; retired oracle import and one-argument call shape are unchanged.",
+      },
       { path: "tests/commands/diff-patch-stress/gnu-safety-strip-followup/capture.ts", bytes: 994, sha256: "0421e4f097441dd90df439528c39283e7a32bd046c71baa6b7bac64ebb142878", specifier: "../gnu-target/oracle.js" },
     ],
   },

@@ -11,6 +11,31 @@ import {
 } from "../../src/contracts/index.js";
 import { fixture } from "./helpers.js";
 
+for (const retainedOnly of [false, true]) test(`cmp unequal shared regular-file skips preserve the admitted cursor, retainedOnly=${retainedOnly}`, async () => {
+  const fs = await fixture({ left: new Uint8Array(100).fill(1) });
+  if (retainedOnly) Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false } });
+  const shell = new Shell({ fs, cwd: "/work", env: { LC_ALL: "C" } });
+  const comparator = cmpCommand();
+  let position = -1;
+  shell.register({ ...comparator, name: "compare", async execute(context) {
+    assert.equal(context.stdinInput?.stat?.type, "file");
+    assert.equal(typeof context.stdinInput?.seek, retainedOnly ? "function" : "undefined");
+    const result = await comparator.execute(context);
+    position = context.stdinInput!.position;
+    return result;
+  } });
+  shell.register({ name: "replace", async execute() {
+    await fs.rename("/work/left", "/work/old");
+    await fs.writeFile("/work/left", Uint8Array.of(9));
+    return { exitCode: 0 };
+  } });
+  try {
+    const result = await shell.exec("{ replace; compare -i1:2 - -; } <left");
+    assert.deepEqual([result.exitCode, result.stdout, result.stderr], [2, "", "cmp: EOF on - which is empty\ncmp: -: Bad file descriptor\n"]);
+    assert.equal(position, 100);
+  } finally { await shell.dispose(); }
+});
+
 for (const [name, script, expected] of [
   ["left pipe skip", "cat left | { cmp -n0 -i2:0 - right; cat; }", [128, 255]],
   ["right pipe skip", "cat left | { cmp -n0 -i0:2 right -; cat; }", [128, 255]],

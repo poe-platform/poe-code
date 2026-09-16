@@ -1,0 +1,54 @@
+
+> virtual-bash@0.0.0 typecheck
+> node scripts/typecheck.mjs
+
+typecheck: source-and-tests: exit 1
+tests/commands/python/provisioning.test.ts(167,144): error TS2345: Argument of type '{ fs: { readFile(path: string, options?: ReadFileOptions | undefined): Promise<Uint8Array<ArrayBufferLike>>; capabilities: Readonly<{ read: true; stat: true; readdir: true; realpath: true; access: true; open: true; write: true; append: true; exclusiveCreate: true; explicitDirectories: true; implicitDirectories: fals...' is not assignable to parameter of type 'PythonPackageContext & { requirements?: readonly string[]; requirementFiles?: readonly string[]; offline?: boolean; }'.
+  Type '{ fs: { readFile(path: string, options?: ReadFileOptions | undefined): Promise<Uint8Array<ArrayBufferLike>>; capabilities: Readonly<{ read: true; stat: true; readdir: true; realpath: true; access: true; open: true; write: true; append: true; exclusiveCreate: true; explicitDirectories: true; implicitDirectories: fals...' is not assignable to type 'PythonPackageContext'.
+    Types of property 'fs' are incompatible.
+      Type '{ readFile(path: string, options?: ReadFileOptions | undefined): Promise<Uint8Array<ArrayBufferLike>>; capabilities: Readonly<...>; }' is missing the following properties from type 'FileSystem': writeFile, appendFile, stat, lstat, and 7 more.
+tests/commands/python/provisioning.test.ts(169,91): error TS2345: Argument of type '{ fs: { readFile(path: string, options?: ReadFileOptions | undefined): Promise<Uint8Array<ArrayBufferLike>>; capabilities: Readonly<{ read: true; stat: true; readdir: true; realpath: true; access: true; open: true; write: true; append: true; exclusiveCreate: true; explicitDirectories: true; implicitDirectories: fals...' is not assignable to parameter of type 'PythonPackageContext'.
+  Types of property 'fs' are incompatible.
+    Type '{ readFile(path: string, options?: ReadFileOptions | undefined): Promise<Uint8Array<ArrayBufferLike>>; capabilities: Readonly<...>; }' is missing the following properties from type 'FileSystem': writeFile, appendFile, stat, lstat, and 7 more.
+historical models: six authenticated retired edges and one raw-memory type edge; compile-only, no runtime availability or qualification
+typecheck: historical-build-first-consumer: exit 0
+typecheck: source-consumer-atomic-webdav-profile-source: exit 0
+typecheck: source-consumer-atomic-webdav-independent-source: exit 0
+typecheck: source-consumer-env-split-public-source: exit 0
+typecheck: consumer-shell-parse-limits-public: exit 0
+typecheck: consumer-timeout-options-public-types: exit 0
+typecheck: consumer-webdav-directory-access-public-types: exit 0
+typecheck: consumer-du-leaf: exit 0
+typecheck: consumer-grep-aliases-public: exit 0
+typecheck: consumer-column-public: exit 0
+typecheck: consumer-network-zero-caps-public: exit 0
+typecheck: consumer-regex: exit 0
+typecheck: consumer-regex-continuation: exit 0
+typecheck: consumer-regex-followup: exit 0
+typecheck: consumer-regex-production: exit 0
+typecheck: consumer-regex-production-continuation: exit 0
+typecheck: consumer-s3-constructor: exit 0
+typecheck: consumer-s3-http-author: exit 0
+typecheck: consumer-s3-http-independent: exit 0
+typecheck: consumer-s3-rmdir: exit 0
+typecheck: consumer-webdav-loopback: exit 0
+typecheck: consumer-webdav-services: exit 0
+typecheck: consumer-stream-inspection: exit 0
+typecheck: consumer-stream-five: exit 0
+typecheck: consumer-time-env-public: exit 0
+typecheck: consumer-time-env-leaf: exit 0
+typecheck: consumer-env-split-public-types: exit 0
+typecheck: consumer-webdav-atomic: exit 0
+typecheck: consumer-webdav-atomic-independent: exit 0
+typecheck: consumer-webdav-timestamp-independent: exit 0
+typecheck: negative-env-split-invalid-binding: exit 2
+typecheck: negative-time-env-public-negative: exit 2
+typecheck: negative-time-env-leaf-negative: exit 2
+{"status":"typecheck-failed","builds":0,"currentConsumerGroups":26,"heldEvidenceInputs":4,"runtimeExecutions":0,"cleaned":true}
+npm error Lifecycle script `typecheck` failed with error:
+npm error code 2
+npm error path /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash
+npm error workspace virtual-bash@0.0.0
+npm error location /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash
+npm error command failed
+npm error command sh -c node scripts/typecheck.mjs

@@ -1,0 +1,125 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/numbering-model-workflow.test.ts (6 tests | 6 failed) 296ms
+   × counts concrete numbering definitions independently of abstract entries 0 57ms
+   × counts concrete numbering definitions independently of abstract entries 1 49ms
+   × counts concrete numbering definitions independently of abstract entries 10 48ms
+   × keeps the concrete-definition collection live across bounded XML edits 49ms
+   × rejects unavailable numbering creation without mutating the owner package 39ms
+   × rejects ambiguous internal numbering ownership without choosing a target 52ms
+FAIL packages/docx/src/numbering-model-workflow.test.ts > counts concrete numbering definitions independently of abstract entries 0
+AssertionError: expected undefined to be an instance of XmlPartView
+ ❯ packages/docx/src/numbering-model-workflow.test.ts:18:21
+     16|   const main=model.package.main_document_part as DocumentOwner;
+     17|   const numbering=main.numbering_part;
+     18|   expect(numbering).toBeInstanceOf(XmlPartView);
+       |                     ^
+     19|   expect(numbering.numbering_definitions.length).toBe(count);
+     20|   expect(numbering.numbering_definitions).toBe(numbering.numbering_def…
+
+FAIL packages/docx/src/numbering-model-workflow.test.ts > counts concrete numbering definitions independently of abstract entries 1
+AssertionError: expected undefined to be an instance of XmlPartView
+ ❯ packages/docx/src/numbering-model-workflow.test.ts:18:21
+     16|   const main=model.package.main_document_part as DocumentOwner;
+     17|   const numbering=main.numbering_part;
+     18|   expect(numbering).toBeInstanceOf(XmlPartView);
+       |                     ^
+     19|   expect(numbering.numbering_definitions.length).toBe(count);
+     20|   expect(numbering.numbering_definitions).toBe(numbering.numbering_def…
+
+FAIL packages/docx/src/numbering-model-workflow.test.ts > counts concrete numbering definitions independently of abstract entries 10
+AssertionError: expected undefined to be an instance of XmlPartView
+ ❯ packages/docx/src/numbering-model-workflow.test.ts:18:21
+     16|   const main=model.package.main_document_part as DocumentOwner;
+     17|   const numbering=main.numbering_part;
+     18|   expect(numbering).toBeInstanceOf(XmlPartView);
+       |                     ^
+     19|   expect(numbering.numbering_definitions.length).toBe(count);
+     20|   expect(numbering.numbering_definitions).toBe(numbering.numbering_def…
+
+FAIL packages/docx/src/numbering-model-workflow.test.ts > keeps the concrete-definition collection live across bounded XML edits
+TypeError: Cannot read properties of undefined (reading 'numbering_definitions')
+ ❯ packages/docx/src/numbering-model-workflow.test.ts:32:26
+
+
+FAIL packages/docx/src/numbering-model-workflow.test.ts > rejects unavailable numbering creation without mutating the owner package
+AssertionError: expected [Function] to throw an error
+ ❯ packages/docx/src/numbering-model-workflow.test.ts:42:35
+     40|   const main=model.package.main_document_part as DocumentOwner;
+     41|   const before=model.package.parts.map(p=>[p.partname.toString(),p.blo…
+     42|   expect(()=>main.numbering_part).toThrow();
+       |                                   ^
+     43|   expect(model.package.parts.map(p=>[p.partname.toString(),p.blob])).t…
+     44| });
+
+FAIL packages/docx/src/numbering-model-workflow.test.ts > rejects ambiguous internal numbering ownership without choosing a target
+TypeError: Expected a target owned by this package.
+ ❯ Relationships.add_relationship packages/docx/src/package-view.ts:577:84
+    575|     if (is_external) { if (typeof target !== "string" || !target) thro…
+    576|     else {
+    577|       if (!(target instanceof PartView) || target.package !== this.#pa…
+       |                                                                                    ^
+    578|       target_ref = relativePartTarget(this.#owner?.partname.toString()…
+    579|     }
+ ❯ XmlPartView.load_rel packages/docx/src/package-view.ts:402:108
+ ❯ packages/docx/src/numbering-model-workflow.test.ts:48:8
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'usage' }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/numbering-model-workflow.test.ts > counts concrete numbering definitions independently of abstract entries 0
+ FAIL  packages/docx/src/numbering-model-workflow.test.ts > counts concrete numbering definitions independently of abstract entries 1
+ FAIL  packages/docx/src/numbering-model-workflow.test.ts > counts concrete numbering definitions independently of abstract entries 10
+AssertionError: expected undefined to be an instance of XmlPartView
+ ❯ packages/docx/src/numbering-model-workflow.test.ts:18:21
+     16|   const main=model.package.main_document_part as DocumentOwner;
+     17|   const numbering=main.numbering_part;
+     18|   expect(numbering).toBeInstanceOf(XmlPartView);
+       |                     ^
+     19|   expect(numbering.numbering_definitions.length).toBe(count);
+     20|   expect(numbering.numbering_definitions).toBe(numbering.numbering_def…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  packages/docx/src/numbering-model-workflow.test.ts > keeps the concrete-definition collection live across bounded XML edits
+TypeError: Cannot read properties of undefined (reading 'numbering_definitions')
+ ❯ packages/docx/src/numbering-model-workflow.test.ts:32:26
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  packages/docx/src/numbering-model-workflow.test.ts > rejects unavailable numbering creation without mutating the owner package
+AssertionError: expected [Function] to throw an error
+ ❯ packages/docx/src/numbering-model-workflow.test.ts:42:35
+     40|   const main=model.package.main_document_part as DocumentOwner;
+     41|   const before=model.package.parts.map(p=>[p.partname.toString(),p.blo…
+     42|   expect(()=>main.numbering_part).toThrow();
+       |                                   ^
+     43|   expect(model.package.parts.map(p=>[p.partname.toString(),p.blob])).t…
+     44| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  packages/docx/src/numbering-model-workflow.test.ts > rejects ambiguous internal numbering ownership without choosing a target
+TypeError: Expected a target owned by this package.
+ ❯ Relationships.add_relationship packages/docx/src/package-view.ts:577:84
+    575|     if (is_external) { if (typeof target !== "string" || !target) thro…
+    576|     else {
+    577|       if (!(target instanceof PartView) || target.package !== this.#pa…
+       |                                                                                    ^
+    578|       target_ref = relativePartTarget(this.#owner?.partname.toString()…
+    579|     }
+ ❯ XmlPartView.load_rel packages/docx/src/package-view.ts:402:108
+ ❯ packages/docx/src/numbering-model-workflow.test.ts:48:8
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed (6)
+   Start at  22:55:45
+   Duration  1.31s (transform 785ms, setup 27ms, import 920ms, tests 296ms, environment 0ms)
+

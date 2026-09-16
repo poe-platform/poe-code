@@ -1,0 +1,60 @@
+{
+  "date": "2026-09-15",
+  "imports": [
+    "readArchive",
+    "getDocxDiscovery",
+    "parseDocxArguments",
+    "createDocxInspectionCommandEngine",
+    "inspectDocxCapabilities",
+    "Image",
+    "openDocumentStyleModel"
+  ],
+  "parsedCommands": 7,
+  "operationDeclarations": 1517,
+  "featureFamilies": 50,
+  "inventoryRecords": 920,
+  "inheritedRecords": 417,
+  "underscoreRecords": 185,
+  "hashes": {
+    "docs/specs/docx.md": "3c70e7b9f600f0bef7aa321405cf482559831783eb38b061a7ad60472e918136",
+    "docs/specs/office-cli.md": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce",
+    "docs/specs/office-sdk.md": "1b2dd9f411621ebdc6ce24974e48f6143e0d3c9fe1191200207dfd6a3ddbfe64",
+    "docs/docx/upstream-api-audit.md": "09a14366c1a659e484653b0e2d8c6fe205ece28adf8748db7cb75c76af1bc269",
+    "docs/docx/upstream-api-inventory.json": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac",
+    "packages/docx/src/index.ts": "a7a60320b3b71fa1ad5a7edd5a8027bd19fce698cd3dc5e455a65d569d3b8298",
+    "docs/docx/usage-contracts.json": "daf60a27c82930ee8f8e7b4c72aa7c82dc32d49a1fab6954868583e6777d91f3"
+  },
+  "checks": {
+    "build": {
+      "receipt": "docs/docx/usage-evidence/build.log",
+      "sha256": "58c6ef1bcb03dc248818dd29ff4a91d8d4b19438f4095bb3a070faeb3e1885c6"
+    },
+    "unit": {
+      "receipt": "docs/docx/usage-evidence/tests.log",
+      "sha256": "992000c0617f45cc40b48746a359ceb6300acd97a4044b91e0e2efb1bfed373e"
+    },
+    "lint": {
+      "receipt": "docs/docx/usage-evidence/lint.log",
+      "sha256": "31dea107353a44757fd9933cb9eb330132edb17c88b43610baf32f2132513aa6"
+    },
+    "schemaPrerequisiteFailure": {
+      "receipt": "docs/docx/usage-evidence/schemas.log",
+      "sha256": "332a6cd3e63c4bb47fb556122e85f3fc959b457446b6042c37e99b2073cb178f"
+    },
+    "schemaConfigured": {
+      "receipt": "docs/docx/usage-evidence/schemas-configured.log",
+      "sha256": "2e750e0692c448c810086384d6a093e1afdb9bbf477319a32f5317599fbe3f9e"
+    }
+  },
+  "unit": {
+    "filesPassed": 178,
+    "testsPassed": 3438,
+    "testsSkipped": 4
+  },
+  "schema": {
+    "checksPassed": 10,
+    "strictGrammarQualified": false,
+    "environment": "Test-only DOCX_SCHEMA_ROOT; no product environment variables"
+  },
+  "receiptNote": "Check output retained with trailing blank lines normalized; hashes cover retained receipts."
+}

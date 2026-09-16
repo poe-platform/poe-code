@@ -1,0 +1,3666 @@
+{
+  "schema_version": 1,
+  "purpose": "Research/provenance only; bounded package tools do not establish whole-public-API parity.",
+  "inventory_sha256": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+  "scope": {
+    "unit": "Every tests/opc/ inventory variant, including every test_serialized.py case; neighboring unimplemented model obligations remain explicit.",
+    "bdd": "All six prs-open-save scenarios and the core-properties package-save scenario.",
+    "unit_count": 157,
+    "bdd_count": 7
+  },
+  "notice": "Existing upstream-license-notice.txt and test-case-map-notice.txt retained; no reference fixtures or implementation copied.",
+  "status_counts": {
+    "gap_not_claimed": 97,
+    "existing_test_source_reviewed": 44,
+    "observable_architecture_mapping": 9,
+    "partial_observable_mapping": 5,
+    "explicit_manifest_security_mapping": 4,
+    "bounded_workflow_source_reviewed": 5
+  },
+  "rows": [
+    {
+      "id": "presentation-unit-94678300c43b",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1168",
+        "identity": "tests/opc/test_oxml.py::DescribeCT_Default::it_provides_read_access_to_xml_values",
+        "file": "tests/opc/test_oxml.py",
+        "line": 30,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-58d7225bc9e2",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1169",
+        "identity": "tests/opc/test_oxml.py::DescribeCT_Override::it_provides_read_access_to_xml_values",
+        "file": "tests/opc/test_oxml.py",
+        "line": 39,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-8324e6e465be",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1170",
+        "identity": "tests/opc/test_oxml.py::DescribeCT_Relationship::it_provides_read_access_to_xml_values",
+        "file": "tests/opc/test_oxml.py",
+        "line": 50,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-ce50bb7403bf",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1171",
+        "identity": "tests/opc/test_oxml.py::DescribeCT_Relationship::it_constructs_an_internal_relationship_when_no_target_mode_is_provided",
+        "file": "tests/opc/test_oxml.py",
+        "line": 60,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-070c7e7c2652",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1172",
+        "identity": "tests/opc/test_oxml.py::DescribeCT_Relationship::and_it_constructs_an_internal_relationship_when_target_mode_INTERNAL_is_specified",
+        "file": "tests/opc/test_oxml.py",
+        "line": 71,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-14ca9bc52a35",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1173",
+        "identity": "tests/opc/test_oxml.py::DescribeCT_Relationship::and_it_constructs_an_external_relationship_when_target_mode_EXTERNAL_is_specified",
+        "file": "tests/opc/test_oxml.py",
+        "line": 82,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-2cb201b9157a",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1174",
+        "identity": "tests/opc/test_oxml.py::DescribeCT_Relationships::it_can_construct_a_new_relationships_element",
+        "file": "tests/opc/test_oxml.py",
+        "line": 98,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-d36ea6e2a939",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1175",
+        "identity": "tests/opc/test_oxml.py::DescribeCT_Relationships::it_can_build_rels_element_incrementally",
+        "file": "tests/opc/test_oxml.py",
+        "line": 104,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-c6324083ceca",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1176",
+        "identity": "tests/opc/test_oxml.py::DescribeCT_Relationships::it_can_generate_rels_file_xml",
+        "file": "tests/opc/test_oxml.py",
+        "line": 120,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-dd8070fc6993",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1177",
+        "identity": "tests/opc/test_oxml.py::DescribeCT_Types::it_provides_access_to_default_child_elements",
+        "file": "tests/opc/test_oxml.py",
+        "line": 131,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-1a573938b61a",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1178",
+        "identity": "tests/opc/test_oxml.py::DescribeCT_Types::it_provides_access_to_override_child_elements",
+        "file": "tests/opc/test_oxml.py",
+        "line": 136,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-02295f25feac",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1179",
+        "identity": "tests/opc/test_oxml.py::DescribeCT_Types::it_should_have_empty_list_on_no_matching_elements",
+        "file": "tests/opc/test_oxml.py",
+        "line": 141,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-09aee7248427",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1180",
+        "identity": "tests/opc/test_oxml.py::DescribeCT_Types::it_can_construct_a_new_types_element",
+        "file": "tests/opc/test_oxml.py",
+        "line": 146,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-5fe5593c7371",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1181",
+        "identity": "tests/opc/test_oxml.py::DescribeCT_Types::it_can_build_types_element_incrementally",
+        "file": "tests/opc/test_oxml.py",
+        "line": 152,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-d423e5ce96bc",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1182",
+        "identity": "tests/opc/test_oxml.py::Describe_serialize_part_xml::it_produces_properly_formatted_xml_for_an_opc_part",
+        "file": "tests/opc/test_oxml.py",
+        "line": 188,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-ab7016f17b11",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1183",
+        "identity": "tests/opc/test_package.py::Describe_RelatableMixin::it_can_find_a_part_related_by_reltype",
+        "file": "tests/opc/test_package.py",
+        "line": 56,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-6807ef664034",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1184",
+        "identity": "tests/opc/test_package.py::Describe_RelatableMixin::it_can_establish_a_relationship_to_another_part",
+        "file": "tests/opc/test_package.py",
+        "line": 66,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-47e6e7962279",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1185",
+        "identity": "tests/opc/test_package.py::Describe_RelatableMixin::and_it_can_establish_a_relationship_to_an_external_link",
+        "file": "tests/opc/test_package.py",
+        "line": 76,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-b8437bc77d1a",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1186",
+        "identity": "tests/opc/test_package.py::Describe_RelatableMixin::it_can_find_a_related_part_by_rId",
+        "file": "tests/opc/test_package.py",
+        "line": 88,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-95de3817ada7",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1187",
+        "identity": "tests/opc/test_package.py::Describe_RelatableMixin::it_can_find_a_target_ref_URI_by_rId",
+        "file": "tests/opc/test_package.py",
+        "line": 101,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-4ecdfb460cda",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1188",
+        "identity": "tests/opc/test_package.py::DescribeOpcPackage::it_can_open_a_pkg_file",
+        "file": "tests/opc/test_package.py",
+        "line": 136,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-7a90e0f81955",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1189",
+        "identity": "tests/opc/test_package.py::DescribeOpcPackage::it_can_drop_a_relationship",
+        "file": "tests/opc/test_package.py",
+        "line": 147,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-3d4b2b5be0af",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1190",
+        "identity": "tests/opc/test_package.py::DescribeOpcPackage::it_can_iterate_over_its_parts",
+        "file": "tests/opc/test_package.py",
+        "line": 154,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-07b65af0b783",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1191",
+        "identity": "tests/opc/test_package.py::DescribeOpcPackage::it_can_iterate_over_its_relationships",
+        "file": "tests/opc/test_package.py",
+        "line": 172,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-71fbf6d78708",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1192",
+        "identity": "tests/opc/test_package.py::DescribeOpcPackage::it_provides_access_to_the_main_document_part",
+        "file": "tests/opc/test_package.py",
+        "line": 214,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-4a7fff6b91e2",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1193",
+        "identity": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_partname[ns0-1]",
+        "file": "tests/opc/test_package.py",
+        "line": 226,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "ns": "()",
+            "expected_n": "1"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-8300811832ed",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1194",
+        "identity": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_partname[ns1-2]",
+        "file": "tests/opc/test_package.py",
+        "line": 226,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "ns": "(1,)",
+            "expected_n": "2"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-472f051e7fd2",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1195",
+        "identity": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_partname[ns2-3]",
+        "file": "tests/opc/test_package.py",
+        "line": 226,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "ns": "(1, 2)",
+            "expected_n": "3"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-b0dfa1bd3a67",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1196",
+        "identity": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_partname[ns3-3]",
+        "file": "tests/opc/test_package.py",
+        "line": 226,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "ns": "(2, 4)",
+            "expected_n": "3"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-bc33c739e927",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1197",
+        "identity": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_partname[ns4-3]",
+        "file": "tests/opc/test_package.py",
+        "line": 226,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "ns": "(1, 4)",
+            "expected_n": "3"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-133ff1f48271",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1198",
+        "identity": "tests/opc/test_package.py::DescribeOpcPackage::it_can_save_to_a_pkg_file",
+        "file": "tests/opc/test_package.py",
+        "line": 248,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-4ef605b08e18",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1199",
+        "identity": "tests/opc/test_package.py::DescribeOpcPackage::it_loads_the_pkg_file_to_help",
+        "file": "tests/opc/test_package.py",
+        "line": 259,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-6fbd9b00a6b3",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1200",
+        "identity": "tests/opc/test_package.py::DescribeOpcPackage::it_constructs_its_relationships_object_to_help",
+        "file": "tests/opc/test_package.py",
+        "line": 273,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-d9294ae5bcb9",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1201",
+        "identity": "tests/opc/test_package.py::Describe_PackageLoader::it_provides_a_load_interface_classmethod",
+        "file": "tests/opc/test_package.py",
+        "line": 298,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-4c1f95f71415",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1202",
+        "identity": "tests/opc/test_package.py::Describe_PackageLoader::it_loads_the_package_to_help",
+        "file": "tests/opc/test_package.py",
+        "line": 315,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-6834f8adafce",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1203",
+        "identity": "tests/opc/test_package.py::Describe_PackageLoader::it_loads_the_xml_relationships_from_the_package_to_help",
+        "file": "tests/opc/test_package.py",
+        "line": 337,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-850e21153e22",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1204",
+        "identity": "tests/opc/test_package.py::DescribePart::it_can_be_constructed_by_PartFactory",
+        "file": "tests/opc/test_package.py",
+        "line": 391,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-cb320a32ccfe",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1205",
+        "identity": "tests/opc/test_package.py::DescribePart::it_uses_the_load_blob_as_its_blob",
+        "file": "tests/opc/test_package.py",
+        "line": 400,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-dfdb04e5ecc1",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1206",
+        "identity": "tests/opc/test_package.py::DescribePart::it_can_change_its_blob",
+        "file": "tests/opc/test_package.py",
+        "line": 403,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-8a47228c196e",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1207",
+        "identity": "tests/opc/test_package.py::DescribePart::it_knows_its_content_type",
+        "file": "tests/opc/test_package.py",
+        "line": 408,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-d36af7f3c6c2",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1208",
+        "identity": "tests/opc/test_package.py::DescribePart::it_knows_the_package_it_belongs_to",
+        "file": "tests/opc/test_package.py",
+        "line": 411,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-9b0e2694b84a",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1209",
+        "identity": "tests/opc/test_package.py::DescribePart::it_knows_its_partname",
+        "file": "tests/opc/test_package.py",
+        "line": 414,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-7163fd1175d9",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1210",
+        "identity": "tests/opc/test_package.py::DescribePart::it_can_change_its_partname",
+        "file": "tests/opc/test_package.py",
+        "line": 417,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-d83401160696",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1211",
+        "identity": "tests/opc/test_package.py::DescribePart::it_provides_access_to_its_relationships_for_traversal",
+        "file": "tests/opc/test_package.py",
+        "line": 422,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-a8f2ca0edce7",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1212",
+        "identity": "tests/opc/test_package.py::DescribePart::it_can_load_a_blob_from_a_file_path_to_help",
+        "file": "tests/opc/test_package.py",
+        "line": 426,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-d6cd0e714c30",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1213",
+        "identity": "tests/opc/test_package.py::DescribePart::it_can_load_a_blob_from_a_file_like_object_to_help",
+        "file": "tests/opc/test_package.py",
+        "line": 434,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-bb637ea9347a",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1214",
+        "identity": "tests/opc/test_package.py::DescribePart::it_constructs_its_relationships_object_to_help",
+        "file": "tests/opc/test_package.py",
+        "line": 438,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-11d765ed1a81",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1215",
+        "identity": "tests/opc/test_package.py::DescribeXmlPart::it_can_be_constructed_by_PartFactory",
+        "file": "tests/opc/test_package.py",
+        "line": 463,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-10acfda66185",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1216",
+        "identity": "tests/opc/test_package.py::DescribeXmlPart::it_can_serialize_to_xml",
+        "file": "tests/opc/test_package.py",
+        "line": 476,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-006c239049ee",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1217",
+        "identity": "tests/opc/test_package.py::DescribeXmlPart::it_can_drop_a_relationship[2-calls0]",
+        "file": "tests/opc/test_package.py",
+        "line": 486,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "ref_count": "2",
+            "calls": "[]"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-341c29d68530",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1218",
+        "identity": "tests/opc/test_package.py::DescribeXmlPart::it_can_drop_a_relationship[1-calls1]",
+        "file": "tests/opc/test_package.py",
+        "line": 486,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "ref_count": "1",
+            "calls": "[call('rId42')]"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-19ba08fb9a2f",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1219",
+        "identity": "tests/opc/test_package.py::DescribeXmlPart::it_knows_it_is_the_part_for_its_child_objects",
+        "file": "tests/opc/test_package.py",
+        "line": 499,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-62cf83ffcb19",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1220",
+        "identity": "tests/opc/test_package.py::DescribePartFactory::it_constructs_custom_part_type_for_registered_content_types",
+        "file": "tests/opc/test_package.py",
+        "line": 513,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-7867ecdc00a3",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1221",
+        "identity": "tests/opc/test_package.py::DescribePartFactory::it_constructs_part_using_default_class_when_no_custom_registered",
+        "file": "tests/opc/test_package.py",
+        "line": 524,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-84c8cd26b352",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1222",
+        "identity": "tests/opc/test_package.py::Describe_ContentTypeMap::it_can_construct_from_content_types_xml",
+        "file": "tests/opc/test_package.py",
+        "line": 550,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/content-types.test.ts",
+          "name": "selects an override before a default for %s"
+        }
+      ],
+      "equivalence_and_limits": "Original property/main/view overrides and XML/relationship/JPEG extension defaults retain every selected case category, including ASCII case-insensitive lookups. Missing binding and invalid key type have typed failures; no PackURI runtime subclass is required.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-2088d782ad2e",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1223",
+        "identity": "tests/opc/test_package.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[/docProps/core.xml-application/vnd.openxmlformats-package.core-properties+xml]",
+        "file": "tests/opc/test_package.py",
+        "line": 571,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "partname": "'/docProps/core.xml'",
+            "expected_value": "CT.OPC_CORE_PROPERTIES"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/content-types.test.ts",
+          "name": "selects an override before a default for %s"
+        }
+      ],
+      "equivalence_and_limits": "Original property/main/view overrides and XML/relationship/JPEG extension defaults retain every selected case category, including ASCII case-insensitive lookups. Missing binding and invalid key type have typed failures; no PackURI runtime subclass is required.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-588421e6fcc5",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1224",
+        "identity": "tests/opc/test_package.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[/ppt/presentation.xml-application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml]",
+        "file": "tests/opc/test_package.py",
+        "line": 571,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "partname": "'/ppt/presentation.xml'",
+            "expected_value": "CT.PML_PRESENTATION_MAIN"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/content-types.test.ts",
+          "name": "selects an override before a default for %s"
+        }
+      ],
+      "equivalence_and_limits": "Original property/main/view overrides and XML/relationship/JPEG extension defaults retain every selected case category, including ASCII case-insensitive lookups. Missing binding and invalid key type have typed failures; no PackURI runtime subclass is required.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-4295c2a3438c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1225",
+        "identity": "tests/opc/test_package.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[/PPT/Presentation.XML-application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml]",
+        "file": "tests/opc/test_package.py",
+        "line": 571,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "partname": "'/PPT/Presentation.XML'",
+            "expected_value": "CT.PML_PRESENTATION_MAIN"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/content-types.test.ts",
+          "name": "selects an override before a default for %s"
+        }
+      ],
+      "equivalence_and_limits": "Original property/main/view overrides and XML/relationship/JPEG extension defaults retain every selected case category, including ASCII case-insensitive lookups. Missing binding and invalid key type have typed failures; no PackURI runtime subclass is required.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-0cea6b1c1859",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1226",
+        "identity": "tests/opc/test_package.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[/ppt/viewprops.xml-application/vnd.openxmlformats-officedocument.presentationml.viewProps+xml]",
+        "file": "tests/opc/test_package.py",
+        "line": 571,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "partname": "'/ppt/viewprops.xml'",
+            "expected_value": "CT.PML_VIEW_PROPS"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/content-types.test.ts",
+          "name": "selects an override before a default for %s"
+        }
+      ],
+      "equivalence_and_limits": "Original property/main/view overrides and XML/relationship/JPEG extension defaults retain every selected case category, including ASCII case-insensitive lookups. Missing binding and invalid key type have typed failures; no PackURI runtime subclass is required.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-94cef13c598f",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1227",
+        "identity": "tests/opc/test_package.py::Describe_ContentTypeMap::it_falls_back_to_case_insensitive_extension_default_match[/foo/bar.xml-application/xml]",
+        "file": "tests/opc/test_package.py",
+        "line": 585,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "partname": "'/foo/bar.xml'",
+            "expected_value": "CT.XML"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/content-types.test.ts",
+          "name": "selects an override before a default for %s"
+        }
+      ],
+      "equivalence_and_limits": "Original property/main/view overrides and XML/relationship/JPEG extension defaults retain every selected case category, including ASCII case-insensitive lookups. Missing binding and invalid key type have typed failures; no PackURI runtime subclass is required.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-63563a5b95da",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1228",
+        "identity": "tests/opc/test_package.py::Describe_ContentTypeMap::it_falls_back_to_case_insensitive_extension_default_match[/FOO/BAR.Rels-application/vnd.openxmlformats-package.relationships+xml]",
+        "file": "tests/opc/test_package.py",
+        "line": 585,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "partname": "'/FOO/BAR.Rels'",
+            "expected_value": "CT.OPC_RELATIONSHIPS"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/content-types.test.ts",
+          "name": "selects an override before a default for %s"
+        }
+      ],
+      "equivalence_and_limits": "Original property/main/view overrides and XML/relationship/JPEG extension defaults retain every selected case category, including ASCII case-insensitive lookups. Missing binding and invalid key type have typed failures; no PackURI runtime subclass is required.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-da0f653a8e85",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1229",
+        "identity": "tests/opc/test_package.py::Describe_ContentTypeMap::it_falls_back_to_case_insensitive_extension_default_match[/foo/bar.jpeg-image/jpeg]",
+        "file": "tests/opc/test_package.py",
+        "line": 585,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "partname": "'/foo/bar.jpeg'",
+            "expected_value": "CT.JPEG"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/content-types.test.ts",
+          "name": "selects an override before a default for %s"
+        }
+      ],
+      "equivalence_and_limits": "Original property/main/view overrides and XML/relationship/JPEG extension defaults retain every selected case category, including ASCII case-insensitive lookups. Missing binding and invalid key type have typed failures; no PackURI runtime subclass is required.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-f49001a748c5",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1230",
+        "identity": "tests/opc/test_package.py::Describe_ContentTypeMap::it_raises_KeyError_on_partname_not_found",
+        "file": "tests/opc/test_package.py",
+        "line": 598,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/content-types.test.ts",
+          "name": "reports missing types and rejects nonstring keys"
+        }
+      ],
+      "equivalence_and_limits": "Original property/main/view overrides and XML/relationship/JPEG extension defaults retain every selected case category, including ASCII case-insensitive lookups. Missing binding and invalid key type have typed failures; no PackURI runtime subclass is required.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-13191af2fc05",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1231",
+        "identity": "tests/opc/test_package.py::Describe_ContentTypeMap::it_raises_TypeError_on_key_not_instance_of_PackURI",
+        "file": "tests/opc/test_package.py",
+        "line": 605,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/content-types.test.ts",
+          "name": "reports missing types and rejects nonstring keys"
+        }
+      ],
+      "equivalence_and_limits": "Original property/main/view overrides and XML/relationship/JPEG extension defaults retain every selected case category, including ASCII case-insensitive lookups. Missing binding and invalid key type have typed failures; no PackURI runtime subclass is required.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-330dd5a87fb8",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1232",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_knows_whether_it_contains_a_relationship_with_rId[rId1-True]",
+        "file": "tests/opc/test_package.py",
+        "line": 620,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "rId": "'rId1'",
+            "expected_value": "True"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-5f06db7fe5cd",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1233",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_knows_whether_it_contains_a_relationship_with_rId[rId2-False]",
+        "file": "tests/opc/test_package.py",
+        "line": 620,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "rId": "'rId2'",
+            "expected_value": "False"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-fde7e0b36a58",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1234",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_has_dict_style_lookup_of_rel_by_rId",
+        "file": "tests/opc/test_package.py",
+        "line": 627,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-c4439e0f7205",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1235",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::but_it_raises_KeyError_when_no_relationship_has_rId",
+        "file": "tests/opc/test_package.py",
+        "line": 631,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-188c35a3eee3",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1236",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_can_iterate_the_rIds_of_the_relationships_it_contains",
+        "file": "tests/opc/test_package.py",
+        "line": 637,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-9216ba0fef0f",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1237",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_has_a_len",
+        "file": "tests/opc/test_package.py",
+        "line": 647,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-a75e6be3b56c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1238",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_can_add_a_relationship_to_a_target_part",
+        "file": "tests/opc/test_package.py",
+        "line": 651,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-7b3deed63383",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1239",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::but_it_returns_an_existing_relationship_if_it_matches",
+        "file": "tests/opc/test_package.py",
+        "line": 662,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-a536f434f655",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1240",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_can_add_an_external_relationship_to_a_URI",
+        "file": "tests/opc/test_package.py",
+        "line": 671,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-68fda2e58591",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1241",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::but_it_returns_an_existing_external_relationship_if_it_matches",
+        "file": "tests/opc/test_package.py",
+        "line": 686,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-dbe172e9c776",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1242",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_can_load_from_the_xml_in_a_rels_part",
+        "file": "tests/opc/test_package.py",
+        "line": 697,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-d0f88641782a",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1243",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_can_find_a_part_with_reltype",
+        "file": "tests/opc/test_package.py",
+        "line": 714,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-1bd3983943d5",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1244",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::but_it_raises_KeyError_when_there_is_no_such_part",
+        "file": "tests/opc/test_package.py",
+        "line": 723,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-9f85f0397466",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1245",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::and_it_raises_ValueError_when_there_is_more_than_one_part_with_reltype",
+        "file": "tests/opc/test_package.py",
+        "line": 734,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-205bdd63886c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1246",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_can_pop_a_relationship_to_remove_it_from_the_collection",
+        "file": "tests/opc/test_package.py",
+        "line": 750,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-3ac15d9307ae",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1247",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_can_serialize_itself_to_XML",
+        "file": "tests/opc/test_package.py",
+        "line": 760,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-516ec798a3b6",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1248",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_can_add_a_relationship_to_a_part_to_help",
+        "file": "tests/opc/test_package.py",
+        "line": 791,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-11bf1946fdf4",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1249",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::and_it_can_add_an_external_relationship_to_help",
+        "file": "tests/opc/test_package.py",
+        "line": 813,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-408bbe4fa052",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1250",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_can_get_a_matching_relationship_to_help[http://url-True-rId1]",
+        "file": "tests/opc/test_package.py",
+        "line": 829,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "target_ref": "'http://url'",
+            "is_external": "True",
+            "expected_value": "'rId1'"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-ca03622a2ac3",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1251",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_can_get_a_matching_relationship_to_help[part_1-False-rId2]",
+        "file": "tests/opc/test_package.py",
+        "line": 829,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "target_ref": "'part_1'",
+            "is_external": "False",
+            "expected_value": "'rId2'"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-1ee0c406430e",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1252",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_can_get_a_matching_relationship_to_help[http://foo-True-rId3]",
+        "file": "tests/opc/test_package.py",
+        "line": 829,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "target_ref": "'http://foo'",
+            "is_external": "True",
+            "expected_value": "'rId3'"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-fd4f29f84373",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1253",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_can_get_a_matching_relationship_to_help[part_2-False-rId4]",
+        "file": "tests/opc/test_package.py",
+        "line": 829,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "target_ref": "'part_2'",
+            "is_external": "False",
+            "expected_value": "'rId4'"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-603940173ce4",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1254",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_can_get_a_matching_relationship_to_help[http://bar-True-None]",
+        "file": "tests/opc/test_package.py",
+        "line": 829,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "target_ref": "'http://bar'",
+            "is_external": "True",
+            "expected_value": "None"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-2e43ae21b12d",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1255",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::but_it_returns_None_when_there_is_no_matching_relationship",
+        "file": "tests/opc/test_package.py",
+        "line": 868,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-d60bbaedb66b",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1256",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_finds_the_next_rId_to_help[rIds0-rId1]",
+        "file": "tests/opc/test_package.py",
+        "line": 874,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "rIds": "()",
+            "expected_value": "'rId1'"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-3eec0736f169",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1257",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_finds_the_next_rId_to_help[rIds1-rId2]",
+        "file": "tests/opc/test_package.py",
+        "line": 874,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "rIds": "('rId1',)",
+            "expected_value": "'rId2'"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-a534fe7f92fb",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1258",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_finds_the_next_rId_to_help[rIds2-rId3]",
+        "file": "tests/opc/test_package.py",
+        "line": 874,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "rIds": "('rId1', 'rId2')",
+            "expected_value": "'rId3'"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-e44d575e9a5b",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1259",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_finds_the_next_rId_to_help[rIds3-rId3]",
+        "file": "tests/opc/test_package.py",
+        "line": 874,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "rIds": "('rId1', 'rId4')",
+            "expected_value": "'rId3'"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-83295bed32f2",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1260",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_finds_the_next_rId_to_help[rIds4-rId3]",
+        "file": "tests/opc/test_package.py",
+        "line": 874,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "rIds": "('rId1', 'rId4', 'rId6')",
+            "expected_value": "'rId3'"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-d22fa2c5b587",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1261",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_finds_the_next_rId_to_help[rIds5-rId4]",
+        "file": "tests/opc/test_package.py",
+        "line": 874,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 5,
+          "bindings": {
+            "rIds": "('rId1', 'rId2', 'rId6')",
+            "expected_value": "'rId4'"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-ffbff1bee347",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1262",
+        "identity": "tests/opc/test_package.py::Describe_Relationships::it_collects_relationships_by_reltype_to_help",
+        "file": "tests/opc/test_package.py",
+        "line": 891,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-c3c14611cb59",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1263",
+        "identity": "tests/opc/test_package.py::Describe_Relationship::it_can_construct_from_xml",
+        "file": "tests/opc/test_package.py",
+        "line": 945,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-fdc42024487f",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1264",
+        "identity": "tests/opc/test_package.py::Describe_Relationship::it_knows_whether_it_is_external[Internal-False]",
+        "file": "tests/opc/test_package.py",
+        "line": 962,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "target_mode": "RTM.INTERNAL",
+            "expected_value": "False"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-5069875301f6",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1265",
+        "identity": "tests/opc/test_package.py::Describe_Relationship::it_knows_whether_it_is_external[External-True]",
+        "file": "tests/opc/test_package.py",
+        "line": 962,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "target_mode": "RTM.EXTERNAL",
+            "expected_value": "True"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-488524af7271",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1266",
+        "identity": "tests/opc/test_package.py::Describe_Relationship::it_knows_whether_it_is_external[None-False]",
+        "file": "tests/opc/test_package.py",
+        "line": 962,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "target_mode": "None",
+            "expected_value": "False"
+          }
+        }
+      ],
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-37fa943d941b",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1267",
+        "identity": "tests/opc/test_package.py::Describe_Relationship::it_knows_its_relationship_type",
+        "file": "tests/opc/test_package.py",
+        "line": 970,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-51b11a44597a",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1268",
+        "identity": "tests/opc/test_package.py::Describe_Relationship::it_knows_its_rId",
+        "file": "tests/opc/test_package.py",
+        "line": 974,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-225ef4fe3200",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1269",
+        "identity": "tests/opc/test_package.py::Describe_Relationship::it_provides_access_to_its_target_part",
+        "file": "tests/opc/test_package.py",
+        "line": 978,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-c5d5b395d9b0",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1270",
+        "identity": "tests/opc/test_package.py::Describe_Relationship::but_it_raises_ValueError_on_target_part_for_external_rel",
+        "file": "tests/opc/test_package.py",
+        "line": 982,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-e9a360d9320b",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1271",
+        "identity": "tests/opc/test_package.py::Describe_Relationship::it_knows_its_target_partname",
+        "file": "tests/opc/test_package.py",
+        "line": 990,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-06d4eaf733c0",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1272",
+        "identity": "tests/opc/test_package.py::Describe_Relationship::but_it_raises_ValueError_on_target_partname_for_external_rel",
+        "file": "tests/opc/test_package.py",
+        "line": 996,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-cecbb56b83e2",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1273",
+        "identity": "tests/opc/test_package.py::Describe_Relationship::it_knows_the_target_uri_for_an_external_rel",
+        "file": "tests/opc/test_package.py",
+        "line": 1007,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-6acd1a84f8fc",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1274",
+        "identity": "tests/opc/test_package.py::Describe_Relationship::and_it_knows_the_relative_partname_for_an_internal_rel",
+        "file": "tests/opc/test_package.py",
+        "line": 1011,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "gap_not_claimed",
+      "original_tests": [],
+      "equivalence_and_limits": "This bounded package-tools receipt does not establish the live model/low-level constructor behavior in this row; retained as an explicit gap, not a private API exclusion.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-f60aebd4dd04",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1275",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_can_construct_from_relative_ref",
+        "file": "tests/opc/test_packuri.py",
+        "line": 13,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "resolves and emits relative references from %s"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-c68c7c5bb805",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1276",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_should_raise_on_construct_with_bad_pack_uri_str",
+        "file": "tests/opc/test_packuri.py",
+        "line": 17,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "rejects unsafe part name %s"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-f95d1cd911e9",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1277",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_base_URI[/-/]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 21,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "uri": "'/'",
+            "expected_value": "'/'"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "describes %s without host path rules"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-12797f00ad82",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1278",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_base_URI[/ppt/presentation.xml-/ppt]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 21,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "uri": "'/ppt/presentation.xml'",
+            "expected_value": "'/ppt'"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "describes %s without host path rules"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-2155a13de21e",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1279",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_base_URI[/ppt/slides/slide1.xml-/ppt/slides]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 21,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "uri": "'/ppt/slides/slide1.xml'",
+            "expected_value": "'/ppt/slides'"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "describes %s without host path rules"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-d19695b3e4ab",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1280",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_extension[/-]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 32,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "uri": "'/'",
+            "expected_value": "''"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "describes %s without host path rules"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-090177c732d0",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1281",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_extension[/ppt/presentation.xml-xml]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 32,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "uri": "'/ppt/presentation.xml'",
+            "expected_value": "'xml'"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "describes %s without host path rules"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-dc26a2f33a82",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1282",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_extension[/ppt/media/image.PnG-PnG]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 32,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "uri": "'/ppt/media/image.PnG'",
+            "expected_value": "'PnG'"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "describes %s without host path rules"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-b9ec35637fb3",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1283",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_filename[/-]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 43,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "uri": "'/'",
+            "expected_value": "''"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "describes %s without host path rules"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-5255ef8025d5",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1284",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_filename[/ppt/presentation.xml-presentation.xml]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 43,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "uri": "'/ppt/presentation.xml'",
+            "expected_value": "'presentation.xml'"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "describes %s without host path rules"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-2426e6450cdd",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1285",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_filename[/ppt/media/image.png-image.png]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 43,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "uri": "'/ppt/media/image.png'",
+            "expected_value": "'image.png'"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "describes %s without host path rules"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-625882b46a9b",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1286",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_filename_index[/-None]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 54,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "uri": "'/'",
+            "expected_value": "None"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "describes %s without host path rules"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-be8a826ad4f3",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1287",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_filename_index[/ppt/presentation.xml-None]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 54,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "uri": "'/ppt/presentation.xml'",
+            "expected_value": "None"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "describes %s without host path rules"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-6c5ab1e44580",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1288",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_filename_index[/ppt/,foo,grob!.xml-None]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 54,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "uri": "'/ppt/,foo,grob!.xml'",
+            "expected_value": "None"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "describes %s without host path rules"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-233e70e95696",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1289",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_filename_index[/ppt/media/image42.png-42]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 54,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "uri": "'/ppt/media/image42.png'",
+            "expected_value": "42"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "describes %s without host path rules"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-9f5736942bc2",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1290",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_can_compute_its_relative_reference[/ppt/presentation.xml-/-ppt/presentation.xml]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 66,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "uri": "'/ppt/presentation.xml'",
+            "base_uri": "'/'",
+            "expected_value": "'ppt/presentation.xml'"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "resolves and emits relative references from %s"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-a732e7d4af19",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1291",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_can_compute_its_relative_reference[/ppt/slideMasters/slideMaster1.xml-/ppt-slideMasters/slideMaster1.xml]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 66,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "uri": "'/ppt/slideMasters/slideMaster1.xml'",
+            "base_uri": "'/ppt'",
+            "expected_value": "'slideMasters/slideMaster1.xml'"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "resolves and emits relative references from %s"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-e789a62a85c4",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1292",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_can_compute_its_relative_reference[/ppt/slideLayouts/slideLayout1.xml-/ppt/slides-../slideLayouts/slideLayout1.xml]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 66,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "uri": "'/ppt/slideLayouts/slideLayout1.xml'",
+            "base_uri": "'/ppt/slides'",
+            "expected_value": "'../slideLayouts/slideLayout1.xml'"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "resolves and emits relative references from %s"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-d53622a58f26",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1293",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_uri_of_its_rels_part[/-/_rels/.rels]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 85,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "uri": "'/'",
+            "expected_value": "'/_rels/.rels'"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "describes %s without host path rules"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-5b3e87491649",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1294",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_uri_of_its_rels_part[/ppt/presentation.xml-/ppt/_rels/presentation.xml.rels]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 85,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "uri": "'/ppt/presentation.xml'",
+            "expected_value": "'/ppt/_rels/presentation.xml.rels'"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "describes %s without host path rules"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-73a2ddd03158",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1295",
+        "identity": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_uri_of_its_rels_part[/ppt/slides/slide42.xml-/ppt/slides/_rels/slide42.xml.rels]",
+        "file": "tests/opc/test_packuri.py",
+        "line": 85,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "literal_table_id_match",
+      "selected_parameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "uri": "'/ppt/slides/slide42.xml'",
+            "expected_value": "'/ppt/slides/_rels/slide42.xml.rels'"
+          }
+        }
+      ],
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-uri.test.ts",
+          "name": "describes %s without host path rules"
+        }
+      ],
+      "equivalence_and_limits": "Original /deck path table retains root, nested owner, extension-case, missing-index, punctuation and index-42 categories; relative table retains root/sibling/parent traversal. Only explicit package URI arithmetic is supported; host path semantics are excluded.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-31e3517b988f",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1296",
+        "identity": "tests/opc/test_serialized.py::DescribePackageReader::it_knows_whether_it_contains_a_partname",
+        "file": "tests/opc/test_serialized.py",
+        "line": 50,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-reader.test.ts",
+          "name": "provides exact bytes, presence and absent-member errors"
+        }
+      ],
+      "equivalence_and_limits": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-321d51a314e5",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1297",
+        "identity": "tests/opc/test_serialized.py::DescribePackageReader::it_can_get_a_blob_by_partname",
+        "file": "tests/opc/test_serialized.py",
+        "line": 57,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-reader.test.ts",
+          "name": "provides exact bytes, presence and absent-member errors"
+        }
+      ],
+      "equivalence_and_limits": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-c449714c735a",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1298",
+        "identity": "tests/opc/test_serialized.py::DescribePackageReader::it_can_get_the_rels_xml_for_a_partname",
+        "file": "tests/opc/test_serialized.py",
+        "line": 63,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-reader.test.ts",
+          "name": "returns relationship bytes or null without creating parts"
+        }
+      ],
+      "equivalence_and_limits": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-d722248c746c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1299",
+        "identity": "tests/opc/test_serialized.py::DescribePackageReader::but_it_returns_None_when_the_part_has_no_rels",
+        "file": "tests/opc/test_serialized.py",
+        "line": 69,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-reader.test.ts",
+          "name": "returns relationship bytes or null without creating parts"
+        }
+      ],
+      "equivalence_and_limits": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-ba82e2a9572b",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1300",
+        "identity": "tests/opc/test_serialized.py::DescribePackageReader::it_constructs_its_blob_reader_to_help",
+        "file": "tests/opc/test_serialized.py",
+        "line": 75,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-reader.test.ts",
+          "name": "reads a memfs capability once and retains data across producer reuse"
+        }
+      ],
+      "equivalence_and_limits": "Explicit bytes/pull source or memfs VfsPath replaces ambient filesystem paths and Python file objects. Plain host path strings fail before I/O; the capability is invoked once and the admitted bytes survive source removal.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-bbc13d68c133",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1301",
+        "identity": "tests/opc/test_serialized.py::DescribePackageWriter::it_provides_a_write_interface_classmethod",
+        "file": "tests/opc/test_serialized.py",
+        "line": 96,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "observable_architecture_mapping",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        }
+      ],
+      "equivalence_and_limits": "Explicit entry bytes and root/owner relationship streams replace mock delegation. Independent ZIP inspection checks emitted names and exact payloads. Writer sorting replaces source call order; no live part factory is claimed.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-d193a341ff7f",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1302",
+        "identity": "tests/opc/test_serialized.py::DescribePackageWriter::it_can_write_a_package",
+        "file": "tests/opc/test_serialized.py",
+        "line": 107,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "observable_architecture_mapping",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        }
+      ],
+      "equivalence_and_limits": "Explicit entry bytes and root/owner relationship streams replace mock delegation. Independent ZIP inspection checks emitted names and exact payloads. Writer sorting replaces source call order; no live part factory is claimed.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-cb27d9b2704d",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1303",
+        "identity": "tests/opc/test_serialized.py::DescribePackageWriter::it_can_write_a_content_types_stream",
+        "file": "tests/opc/test_serialized.py",
+        "line": 127,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "partial_observable_mapping",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        },
+        {
+          "file": "packages/pptx/src/content-types.test.ts",
+          "name": "selects an override before a default for %s"
+        }
+      ],
+      "equivalence_and_limits": "Writer preserves explicitly supplied content-type bytes; parser checks override/default lookup. Automatic minimal content-type XML synthesis from live parts is not implemented by this low-level writer and remains a visible gap.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-8bc29d75cf6e",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1304",
+        "identity": "tests/opc/test_serialized.py::DescribePackageWriter::it_can_write_a_sequence_of_parts",
+        "file": "tests/opc/test_serialized.py",
+        "line": 143,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "observable_architecture_mapping",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes three parts and their explicitly supplied relationship streams"
+        }
+      ],
+      "equivalence_and_limits": "Explicit entry bytes and root/owner relationship streams replace mock delegation. Independent ZIP inspection checks emitted names and exact payloads. Writer sorting replaces source call order; no live part factory is claimed.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-cf656ff6a8a9",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1305",
+        "identity": "tests/opc/test_serialized.py::DescribePackageWriter::it_can_write_a_pkg_rels_item",
+        "file": "tests/opc/test_serialized.py",
+        "line": 169,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "observable_architecture_mapping",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        }
+      ],
+      "equivalence_and_limits": "Explicit entry bytes and root/owner relationship streams replace mock delegation. Independent ZIP inspection checks emitted names and exact payloads. Writer sorting replaces source call order; no live part factory is claimed.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-260ffed0138b",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1306",
+        "identity": "tests/opc/test_serialized.py::Describe_PhysPkgReader::it_constructs_ZipPkgReader_when_pkg_is_file_like",
+        "file": "tests/opc/test_serialized.py",
+        "line": 195,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-reader.test.ts",
+          "name": "accepts a direct pull source and finishes it before returning"
+        }
+      ],
+      "equivalence_and_limits": "Explicit bytes/pull source or memfs VfsPath replaces ambient filesystem paths and Python file objects. Plain host path strings fail before I/O; the capability is invoked once and the admitted bytes survive source removal.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-59a8caca1d85",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1307",
+        "identity": "tests/opc/test_serialized.py::Describe_PhysPkgReader::and_it_constructs_DirPkgReader_when_pkg_is_a_dir",
+        "file": "tests/opc/test_serialized.py",
+        "line": 206,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "explicit_manifest_security_mapping",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-reader.test.ts",
+          "name": "rejects non-archives and implicit host paths"
+        },
+        {
+          "file": "packages/pptx/src/package-tools.test.ts",
+          "name": "extracts deterministic safe names with independent hashes and preserves opaque bytes on repack"
+        }
+      ],
+      "equivalence_and_limits": "Implicit directory reading is rejected. Explicit manifest members carry canonical URI, SHA-256 and bounded VFS byte capabilities; the original memfs extraction/repack test proves exact byte preservation. This replaces directory discovery rather than implementing a live native directory reader.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-26dc72c6d363",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1308",
+        "identity": "tests/opc/test_serialized.py::Describe_PhysPkgReader::and_it_constructs_ZipPkgReader_when_pkg_is_a_zip_file_path",
+        "file": "tests/opc/test_serialized.py",
+        "line": 217,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-reader.test.ts",
+          "name": "reads a memfs capability once and retains data across producer reuse"
+        }
+      ],
+      "equivalence_and_limits": "Explicit bytes/pull source or memfs VfsPath replaces ambient filesystem paths and Python file objects. Plain host path strings fail before I/O; the capability is invoked once and the admitted bytes survive source removal.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-df5fad432b6c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1309",
+        "identity": "tests/opc/test_serialized.py::Describe_PhysPkgReader::but_it_raises_when_pkg_path_is_not_a_package",
+        "file": "tests/opc/test_serialized.py",
+        "line": 228,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-reader.test.ts",
+          "name": "rejects non-archives and implicit host paths"
+        }
+      ],
+      "equivalence_and_limits": "Explicit bytes/pull source or memfs VfsPath replaces ambient filesystem paths and Python file objects. Plain host path strings fail before I/O; the capability is invoked once and the admitted bytes survive source removal.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-d1ee4399e095",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1310",
+        "identity": "tests/opc/test_serialized.py::Describe_DirPkgReader::it_knows_whether_it_contains_a_partname",
+        "file": "tests/opc/test_serialized.py",
+        "line": 247,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "explicit_manifest_security_mapping",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-reader.test.ts",
+          "name": "rejects non-archives and implicit host paths"
+        },
+        {
+          "file": "packages/pptx/src/package-tools.test.ts",
+          "name": "extracts deterministic safe names with independent hashes and preserves opaque bytes on repack"
+        }
+      ],
+      "equivalence_and_limits": "Implicit directory reading is rejected. Explicit manifest members carry canonical URI, SHA-256 and bounded VFS byte capabilities; the original memfs extraction/repack test proves exact byte preservation. This replaces directory discovery rather than implementing a live native directory reader.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-25b410d42440",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1311",
+        "identity": "tests/opc/test_serialized.py::Describe_DirPkgReader::it_can_retrieve_the_blob_for_a_pack_uri",
+        "file": "tests/opc/test_serialized.py",
+        "line": 251,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "explicit_manifest_security_mapping",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-reader.test.ts",
+          "name": "rejects non-archives and implicit host paths"
+        },
+        {
+          "file": "packages/pptx/src/package-tools.test.ts",
+          "name": "extracts deterministic safe names with independent hashes and preserves opaque bytes on repack"
+        }
+      ],
+      "equivalence_and_limits": "Implicit directory reading is rejected. Explicit manifest members carry canonical URI, SHA-256 and bounded VFS byte capabilities; the original memfs extraction/repack test proves exact byte preservation. This replaces directory discovery rather than implementing a live native directory reader.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-51aeab95552f",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1312",
+        "identity": "tests/opc/test_serialized.py::Describe_DirPkgReader::but_it_raises_KeyError_when_requested_member_is_not_present",
+        "file": "tests/opc/test_serialized.py",
+        "line": 255,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "explicit_manifest_security_mapping",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-reader.test.ts",
+          "name": "rejects non-archives and implicit host paths"
+        },
+        {
+          "file": "packages/pptx/src/package-tools.test.ts",
+          "name": "extracts deterministic safe names with independent hashes and preserves opaque bytes on repack"
+        }
+      ],
+      "equivalence_and_limits": "Implicit directory reading is rejected. Explicit manifest members carry canonical URI, SHA-256 and bounded VFS byte capabilities; the original memfs extraction/repack test proves exact byte preservation. This replaces directory discovery rather than implementing a live native directory reader.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-d6ced90911ab",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1313",
+        "identity": "tests/opc/test_serialized.py::Describe_ZipPkgReader::it_knows_whether_it_contains_a_partname",
+        "file": "tests/opc/test_serialized.py",
+        "line": 272,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-reader.test.ts",
+          "name": "provides exact bytes, presence and absent-member errors"
+        }
+      ],
+      "equivalence_and_limits": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-2cd2c92afa3e",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1314",
+        "identity": "tests/opc/test_serialized.py::Describe_ZipPkgReader::it_can_get_a_blob_by_partname",
+        "file": "tests/opc/test_serialized.py",
+        "line": 276,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-reader.test.ts",
+          "name": "provides exact bytes, presence and absent-member errors"
+        }
+      ],
+      "equivalence_and_limits": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-f1bfabd8e14d",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1315",
+        "identity": "tests/opc/test_serialized.py::Describe_ZipPkgReader::but_it_raises_KeyError_when_requested_member_is_not_present",
+        "file": "tests/opc/test_serialized.py",
+        "line": 280,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-reader.test.ts",
+          "name": "provides exact bytes, presence and absent-member errors"
+        }
+      ],
+      "equivalence_and_limits": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-1a49f2877baa",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1316",
+        "identity": "tests/opc/test_serialized.py::Describe_ZipPkgReader::it_loads_the_package_blobs_on_first_access_to_help",
+        "file": "tests/opc/test_serialized.py",
+        "line": 287,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-reader.test.ts",
+          "name": "provides exact bytes, presence and absent-member errors"
+        }
+      ],
+      "equivalence_and_limits": "Eager validation replaces private lazy blob-cache access: enumeration is complete before return, every member CRC is checked, and future lookups need no input access. Original package has four authored members instead of 38 copied fixture assets.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-0a7773a5e6fa",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1317",
+        "identity": "tests/opc/test_serialized.py::Describe_PhysPkgWriter::it_constructs_ZipPkgWriter_unconditionally",
+        "file": "tests/opc/test_serialized.py",
+        "line": 303,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "observable_architecture_mapping",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        }
+      ],
+      "equivalence_and_limits": "Async owned-byte result replaces ZIP handle/context-manager topology. Result is a complete independently inspected ZIP; there is no exposed native archive or implicit file handle to close. Original container policy is explicit store/auto rather than ambient runtime defaults.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-e9d00755e855",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1318",
+        "identity": "tests/opc/test_serialized.py::Describe_ZipPkgWriter::it_has_an__enter__method_for_context_management",
+        "file": "tests/opc/test_serialized.py",
+        "line": 318,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "observable_architecture_mapping",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        }
+      ],
+      "equivalence_and_limits": "Async owned-byte result replaces ZIP handle/context-manager topology. Result is a complete independently inspected ZIP; there is no exposed native archive or implicit file handle to close. Original container policy is explicit store/auto rather than ambient runtime defaults.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-b7e3c03f589e",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1319",
+        "identity": "tests/opc/test_serialized.py::Describe_ZipPkgWriter::and_it_closes_the_zip_archive_on_context__exit__",
+        "file": "tests/opc/test_serialized.py",
+        "line": 322,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "observable_architecture_mapping",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        }
+      ],
+      "equivalence_and_limits": "Async owned-byte result replaces ZIP handle/context-manager topology. Result is a complete independently inspected ZIP; there is no exposed native archive or implicit file handle to close. Original container policy is explicit store/auto rather than ambient runtime defaults.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-fb3241fdcc74",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1320",
+        "identity": "tests/opc/test_serialized.py::Describe_ZipPkgWriter::it_can_write_a_blob",
+        "file": "tests/opc/test_serialized.py",
+        "line": 326,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "observable_architecture_mapping",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        }
+      ],
+      "equivalence_and_limits": "Async owned-byte result replaces ZIP handle/context-manager topology. Result is a complete independently inspected ZIP; there is no exposed native archive or implicit file handle to close. Original container policy is explicit store/auto rather than ambient runtime defaults.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-0e259389f2d2",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1321",
+        "identity": "tests/opc/test_serialized.py::Describe_ZipPkgWriter::it_provides_access_to_the_open_zip_file_to_help",
+        "file": "tests/opc/test_serialized.py",
+        "line": 338,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "observable_architecture_mapping",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        }
+      ],
+      "equivalence_and_limits": "Async owned-byte result replaces ZIP handle/context-manager topology. Result is a complete independently inspected ZIP; there is no exposed native archive or implicit file handle to close. Original container policy is explicit store/auto rather than ambient runtime defaults.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-7532c81dba59",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1322",
+        "identity": "tests/opc/test_serialized.py::Describe_ContentTypesItem::it_provides_an_interface_classmethod",
+        "file": "tests/opc/test_serialized.py",
+        "line": 359,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "partial_observable_mapping",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        },
+        {
+          "file": "packages/pptx/src/content-types.test.ts",
+          "name": "selects an override before a default for %s"
+        }
+      ],
+      "equivalence_and_limits": "Writer preserves explicitly supplied content-type bytes; parser checks override/default lookup. Automatic minimal content-type XML synthesis from live parts is not implemented by this low-level writer and remains a visible gap.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-b429311e3394",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1323",
+        "identity": "tests/opc/test_serialized.py::Describe_ContentTypesItem::it_can_compose_content_types_xml",
+        "file": "tests/opc/test_serialized.py",
+        "line": 368,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "partial_observable_mapping",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        },
+        {
+          "file": "packages/pptx/src/content-types.test.ts",
+          "name": "selects an override before a default for %s"
+        }
+      ],
+      "equivalence_and_limits": "Writer preserves explicitly supplied content-type bytes; parser checks override/default lookup. Automatic minimal content-type XML synthesis from live parts is not implemented by this low-level writer and remains a visible gap.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-unit-638db727b8b8",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1324",
+        "identity": "tests/opc/test_serialized.py::Describe_ContentTypesItem::it_computes_defaults_and_overrides_to_help",
+        "file": "tests/opc/test_serialized.py",
+        "line": 386,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "not_parameterized",
+      "selected_parameters": {},
+      "disposition": "partial_observable_mapping",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        },
+        {
+          "file": "packages/pptx/src/content-types.test.ts",
+          "name": "selects an override before a default for %s"
+        }
+      ],
+      "equivalence_and_limits": "Writer preserves explicitly supplied content-type bytes; parser checks override/default lookup. Automatic minimal content-type XML synthesis from live parts is not implemented by this low-level writer and remains a visible gap.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-bdd-c3e63cc985fd",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/532",
+        "identity": "added core props part is saved",
+        "file": "features/prs-coreprops.feature",
+        "line": 16,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "expanded_bdd",
+      "selected_parameters": {},
+      "disposition": "existing_test_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/properties.test.ts",
+          "name": "creates missing core metadata through the live getter and reloads all dates"
+        }
+      ],
+      "equivalence_and_limits": "Original live getter creates missing metadata, saves and reloads it with supplied UTC values. This is existing source evidence, not a new package-tools execution claim.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-bdd-0a35a55fdbcb",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/534",
+        "identity": "Round-trip a basic presentation",
+        "file": "features/prs-open-save.feature",
+        "line": 6,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "expanded_bdd",
+      "selected_parameters": {},
+      "disposition": "bounded_workflow_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-tools.test.ts",
+          "name": "extracts deterministic safe names with independent hashes and preserves opaque bytes on repack"
+        },
+        {
+          "file": "packages/pptx/src/command-package-tools.test.ts",
+          "name": "extracts explicit parts and repacks an explicit hashed manifest through the command engine"
+        }
+      ],
+      "equivalence_and_limits": "Original in-memory presentation extraction/repack uses explicit memfs paths and compares every uncompressed member with an independent ZIP parser. Command test extracts, reconstructs an explicit hashed manifest, inspects the repack and retains an unrelated file. Pull-source reader and byte-sink writer cases separately cover streams; there is no implicit directory reader or claim of a complete live Presentation model.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-bdd-2ff9df5704a8",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/535",
+        "identity": "Start presentation from package stream",
+        "file": "features/prs-open-save.feature",
+        "line": 12,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "expanded_bdd",
+      "selected_parameters": {},
+      "disposition": "bounded_workflow_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-tools.test.ts",
+          "name": "extracts deterministic safe names with independent hashes and preserves opaque bytes on repack"
+        },
+        {
+          "file": "packages/pptx/src/command-package-tools.test.ts",
+          "name": "extracts explicit parts and repacks an explicit hashed manifest through the command engine"
+        }
+      ],
+      "equivalence_and_limits": "Original in-memory presentation extraction/repack uses explicit memfs paths and compares every uncompressed member with an independent ZIP parser. Command test extracts, reconstructs an explicit hashed manifest, inspects the repack and retains an unrelated file. Pull-source reader and byte-sink writer cases separately cover streams; there is no implicit directory reader or claim of a complete live Presentation model.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-bdd-35a991ce48e0",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/536",
+        "identity": "Start presentation from package extracted into directory",
+        "file": "features/prs-open-save.feature",
+        "line": 18,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "expanded_bdd",
+      "selected_parameters": {},
+      "disposition": "bounded_workflow_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-tools.test.ts",
+          "name": "extracts deterministic safe names with independent hashes and preserves opaque bytes on repack"
+        },
+        {
+          "file": "packages/pptx/src/command-package-tools.test.ts",
+          "name": "extracts explicit parts and repacks an explicit hashed manifest through the command engine"
+        }
+      ],
+      "equivalence_and_limits": "Original in-memory presentation extraction/repack uses explicit memfs paths and compares every uncompressed member with an independent ZIP parser. Command test extracts, reconstructs an explicit hashed manifest, inspects the repack and retains an unrelated file. Pull-source reader and byte-sink writer cases separately cover streams; there is no implicit directory reader or claim of a complete live Presentation model.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-bdd-c997d7cdee4e",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/537",
+        "identity": "Save presentation to package stream",
+        "file": "features/prs-open-save.feature",
+        "line": 24,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "expanded_bdd",
+      "selected_parameters": {},
+      "disposition": "bounded_workflow_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/package-tools.test.ts",
+          "name": "extracts deterministic safe names with independent hashes and preserves opaque bytes on repack"
+        },
+        {
+          "file": "packages/pptx/src/command-package-tools.test.ts",
+          "name": "extracts explicit parts and repacks an explicit hashed manifest through the command engine"
+        }
+      ],
+      "equivalence_and_limits": "Original in-memory presentation extraction/repack uses explicit memfs paths and compares every uncompressed member with an independent ZIP parser. Command test extracts, reconstructs an explicit hashed manifest, inspects the repack and retains an unrelated file. Pull-source reader and byte-sink writer cases separately cover streams; there is no implicit directory reader or claim of a complete live Presentation model.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-bdd-243f342fddfc",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/538",
+        "identity": "Round-trip external relationships",
+        "file": "features/prs-open-save.feature",
+        "line": 31,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "expanded_bdd",
+      "selected_parameters": {},
+      "disposition": "bounded_workflow_source_reviewed",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/relationships.test.ts",
+          "name": "preserves external relationship streams through package serialization"
+        }
+      ],
+      "equivalence_and_limits": "Original graph round-trip checks exact external stream bytes and retained relationship-stream count; no network requests. Live Presentation object parity remains separate.",
+      "execution": "not rerun for this documentation receipt"
+    },
+    {
+      "id": "presentation-bdd-de957907b33b",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/539",
+        "identity": "Load presentation with invalid image/jpg MIME-type",
+        "file": "features/prs-open-save.feature",
+        "line": 37,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "parameter_resolution": "expanded_bdd",
+      "selected_parameters": {},
+      "disposition": "partial_observable_mapping",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/content-types.test.ts",
+          "name": "preserves legal media type spelling %s"
+        }
+      ],
+      "equivalence_and_limits": "Parser preserves image/jpg spelling. This parser case alone does not prove the scenario\u2019s JPEG image-model access; complete model workflow remains an explicit gap.",
+      "execution": "not rerun for this documentation receipt"
+    }
+  ],
+  "package_tools_supplement": [
+    {
+      "file": "packages/pptx/src/package-tools.test.ts",
+      "name": "extracts deterministic safe names with independent hashes and preserves opaque bytes on repack",
+      "execution": "source reviewed; root records maintained execution"
+    },
+    {
+      "file": "packages/pptx/src/package-tools.test.ts",
+      "name": "selects canonical parts in requested order without interpreting member paths as output paths",
+      "execution": "source reviewed; root records maintained execution"
+    },
+    {
+      "file": "packages/pptx/src/package-tools.test.ts",
+      "name": "rejects unsafe manifest part %s before reading capabilities",
+      "execution": "source reviewed; root records maintained execution"
+    },
+    {
+      "file": "packages/pptx/src/package-tools.test.ts",
+      "name": "rejects manifest namespace collisions before reading capabilities",
+      "execution": "source reviewed; root records maintained execution"
+    },
+    {
+      "file": "packages/pptx/src/package-tools.test.ts",
+      "name": "rejects changed hashes, incomplete graphs and mismatched presentation kinds",
+      "execution": "source reviewed; root records maintained execution"
+    },
+    {
+      "file": "packages/pptx/src/package-tools.test.ts",
+      "name": "rejects cumulative input overflow and cancellation",
+      "execution": "source reviewed; root records maintained execution"
+    },
+    {
+      "file": "packages/pptx/src/package-tools.test.ts",
+      "name": "rejects extraction selection budgets and accessor records before input reads",
+      "execution": "source reviewed; root records maintained execution"
+    },
+    {
+      "file": "packages/pptx/src/package-tools.test.ts",
+      "name": "owns later byte members before awaiting earlier capabilities",
+      "execution": "source reviewed; root records maintained execution"
+    },
+    {
+      "file": "packages/pptx/src/command-package-tools.test.ts",
+      "name": "extracts explicit parts and repacks an explicit hashed manifest through the command engine",
+      "execution": "package_commands agent reports six command tests passing; exact maintained checks recorded by root"
+    },
+    {
+      "file": "packages/pptx/src/command-package-tools.test.ts",
+      "name": "rejects invalid package command flags before reading",
+      "execution": "package_commands agent reports six command tests passing; exact maintained checks recorded by root"
+    },
+    {
+      "file": "packages/pptx/src/command-package-tools.test.ts",
+      "name": "preflights every destination before writing and preserves a colliding directory",
+      "execution": "package_commands agent reports six command tests passing; exact maintained checks recorded by root"
+    },
+    {
+      "file": "packages/pptx/src/command-package-tools.test.ts",
+      "name": "reports exactly completed extracted parts on remote partial failure",
+      "execution": "package_commands agent reports six command tests passing; exact maintained checks recorded by root"
+    },
+    {
+      "file": "packages/pptx/src/command-package-tools.test.ts",
+      "name": "resolves manifest member files relative to the manifest and dry runs without publication",
+      "execution": "package_commands agent reports six command tests passing; exact maintained checks recorded by root"
+    },
+    {
+      "file": "packages/pptx/src/command-package-tools.test.ts",
+      "name": "publishes a complete extraction transaction and exposes closed discovery results",
+      "execution": "package_commands agent reports six command tests passing; exact maintained checks recorded by root"
+    }
+  ],
+  "api_scope": "Presentation loading/saving and inherited part/element obligations remain in upstream-api-inventory.json. Leading underscores do not exclude documented public APIs. This case ledger is not an API completion certificate."
+}

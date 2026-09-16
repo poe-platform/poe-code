@@ -1,4 +1,5 @@
 import type { FileStaging, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, RenameOptions } from "../contracts/filesystem.js";
+import type { FileDescriptor, OpenFileOptions } from "../contracts/descriptor.js";
 import { FsError } from "../contracts/errors.js";
 import type { ByteSource } from "../contracts/io.js";
 import { finishCleanup } from "../contracts/cleanup.js";
@@ -10,7 +11,7 @@ const operations = new Set<keyof FileSystem>([
   "removeEntryConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory",
   "access", "appendFile", "canonicalizeMissingTarget", "capabilitiesFor", "chmod", "compareEntry",
   "copyFile", "link", "lstat", "mkdir", "openReadFile", "openResizeFile", "readFile", "readStream", "readdir",
-  "readlink", "realpath", "rename", "resizeFile", "rm", "rmdir", "stat", "symlink", "truncate", "utimes",
+  "readlink", "realpath", "rename", "resizeFile", "rm", "rmdir", "unlink", "stat", "symlink", "truncate", "utimes",
   "writeFile", "writeStream",
 ]);
 
@@ -95,6 +96,34 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       close: () => closing ??= Promise.resolve().then(() => handle.close()),
     };
   };
+  const wrapDescriptor = (descriptor: FileDescriptor): FileDescriptor => {
+    let closing: Promise<void> | undefined;
+    const invoke = async <Result>(options: FsOptions, action: (options: FsOptions) => Promise<Result>): Promise<Result> => {
+      assertOpen(options);
+      if (closing) throw new FsError("EBADF");
+      admit(options);
+      assertOpen(options);
+      if (closing) throw new FsError("EBADF");
+      try {
+        const result = await action(resizeOptions(options));
+        assertOpen(options);
+        return result;
+      } catch (error) { assertOpen(options); throw error; }
+    };
+    const getPosition = descriptor.getPosition;
+    const probeRead = descriptor.probeRead;
+    return {
+      capabilities: Object.freeze({ ...descriptor.capabilities }),
+      ...(getPosition === undefined ? {} : { getPosition: (options: FsOptions = {}) => invoke(options, scoped => getPosition.call(descriptor, scoped)) }),
+      ...(probeRead === undefined ? {} : { probeRead: (options: FsOptions = {}) => invoke(options, scoped => probeRead.call(descriptor, scoped)) }),
+      stat: (options = {}) => invoke(options, scoped => descriptor.stat(scoped)),
+      read: (buffer, position, options = {}) => invoke(options, scoped => descriptor.read(buffer, position, scoped)),
+      write: (buffer, position, options = {}) => invoke(options, scoped => descriptor.write(buffer, position, scoped)),
+      truncate: (length, options = {}) => invoke(options, scoped => descriptor.truncate(length, scoped)),
+      sync: (dataOnly, options = {}) => invoke(options, scoped => descriptor.sync(dataOnly, scoped)),
+      close: () => closing ??= Promise.resolve().then(() => descriptor.close()),
+    };
+  };
   const wrapStream = (source: ByteSource, options?: FsOptions): ByteSource => ({
     [Symbol.asyncIterator]() {
       assertOpen(options);
@@ -161,7 +190,22 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
         })();
         return Reflect.apply(method, original, args);
       };
-      const scoped = property === "openResizeFile"
+      const scoped = property === "open"
+        ? async (path: string, options: OpenFileOptions) => {
+          admit(options);
+          const selected = resizeOptions(options);
+          let descriptor: FileDescriptor | undefined;
+          try {
+            descriptor = await Reflect.apply(method, original, [path, selected]) as FileDescriptor;
+            assertOpen(options);
+            return wrapDescriptor(descriptor);
+          } catch (error) {
+            if (descriptor) await finishCleanup(() => descriptor!.close(), true);
+            assertOpen(options);
+            throw error;
+          }
+        }
+        : property === "openResizeFile"
         ? async (path: string, options: OpenResizeFileOptions = {}) => {
           admit(options);
           assertOpen(options);

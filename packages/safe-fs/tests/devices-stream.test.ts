@@ -10,6 +10,26 @@ function deferred<Value>() {
   return { promise, resolve, reject };
 }
 
+it("advertises independent null writers and completes one while another remains open", async () => {
+  const view = createDeviceFileSystem(new MemoryFileSystem());
+  expect((await view.capabilitiesFor("/dev/null")).independentWriteStreams).toBe(true);
+  expect((await view.capabilitiesFor("/dev/null")).open).toBe(false);
+  const started = deferred<void>();
+  const release = deferred<void>();
+  let firstClosed = false;
+  const first = view.writeStream("/dev/null", (async function* () {
+    started.resolve();
+    await release.promise;
+    yield new Uint8Array([1]);
+  })()).then(() => { firstClosed = true; });
+  await started.promise;
+  try {
+    await view.writeStream("/dev/null", (async function* () { yield new Uint8Array([2]); })());
+    expect(firstClosed).toBe(false);
+    expect((await view.stat("/dev/null")).size).toBe(0);
+  } finally { release.resolve(); await first; }
+});
+
 it("closes unconsumed ordinary stream producers exactly once and awaits cleanup", async () => {
   const cleanup = deferred<void>();
   const started = deferred<void>();

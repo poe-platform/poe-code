@@ -1,0 +1,60 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/table-command-boundaries.test.ts (3 tests | 2 failed) 179ms
+   × checks row slice types through the same closed action as direct model access 74ms
+   × validates detached table receivers before returning their self owner 61ms
+   ✓ keeps row slicing and owner metadata on the declared SDK batch graph 43ms
+FAIL packages/docx/src/table-command-boundaries.test.ts > checks row slice types through the same closed action as direct model access
+AssertionError: expected function to throw an error, but it didn't
+ ❯ packages/docx/src/table-command-boundaries.test.ts:13:42
+     11|   const slice = structureModelBatchActions.get("model.table._Rows.__ge…
+     12|   for (const start of [0.5, NaN, Infinity, "0", null]) {
+     13|     expect(() => slice(rows, { start })).toThrow(InputTypeError);
+       |                                          ^
+     14|   }
+     15|   expect(slice(rows, { start: -1 })).toEqual([rows.at(-1)]);
+
+FAIL packages/docx/src/table-command-boundaries.test.ts > validates detached table receivers before returning their self owner
+AssertionError: expected function to throw an error, but it didn't
+ ❯ packages/docx/src/table-command-boundaries.test.ts:26:32
+     24|   document.store.change(owner.ref.part, (xml) => xml.replaceElement(do…
+     25|   expect(() => owner.table).toThrow(StaleHandleError);
+     26|   expect(() => get(owner, {})).toThrow(StaleHandleError);
+       |                                ^
+     27| });
+     28|
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/table-command-boundaries.test.ts > checks row slice types through the same closed action as direct model access
+AssertionError: expected function to throw an error, but it didn't
+ ❯ packages/docx/src/table-command-boundaries.test.ts:13:42
+     11|   const slice = structureModelBatchActions.get("model.table._Rows.__ge…
+     12|   for (const start of [0.5, NaN, Infinity, "0", null]) {
+     13|     expect(() => slice(rows, { start })).toThrow(InputTypeError);
+       |                                          ^
+     14|   }
+     15|   expect(slice(rows, { start: -1 })).toEqual([rows.at(-1)]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/docx/src/table-command-boundaries.test.ts > validates detached table receivers before returning their self owner
+AssertionError: expected function to throw an error, but it didn't
+ ❯ packages/docx/src/table-command-boundaries.test.ts:26:32
+     24|   document.store.change(owner.ref.part, (xml) => xml.replaceElement(do…
+     25|   expect(() => owner.table).toThrow(StaleHandleError);
+     26|   expect(() => get(owner, {})).toThrow(StaleHandleError);
+       |                                ^
+     27| });
+     28|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 1 passed (3)
+   Start at  22:40:37
+   Duration  1.18s (transform 789ms, setup 31ms, import 919ms, tests 179ms, environment 0ms)
+

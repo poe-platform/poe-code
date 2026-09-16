@@ -1,0 +1,17 @@
+{
+  "args": [
+    "text",
+    "replace",
+    "-",
+    "--find",
+    "Absent",
+    "--with",
+    "Final",
+    "--all",
+    "--dry-run",
+    "--json"
+  ],
+  "exitCode": 1,
+  "stdout": "{\"version\":1,\"operation\":\"text.replace\",\"ok\":false,\"data\":null,\"warnings\":[],\"errors\":[{\"code\":\"missing-selection\",\"message\":\"Document operation failed: missing-selection. Review --find, --scope and selection; see docx help text replace. Use --allow-empty only when a no-match result is intended.\"}],\"affected\":0,\"locations\":[]}\n",
+  "stderr": "docx: Document operation failed: missing-selection. Review --find, --scope and selection; see docx help text replace. Use --allow-empty only when a no-match result is intended.\n"
+}

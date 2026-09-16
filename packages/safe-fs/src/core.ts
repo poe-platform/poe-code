@@ -1,6 +1,8 @@
 export * from "./contracts/errors.js";
 export * from "./contracts/filesystem.js";
 export * from "./contracts/io.js";
+export { openFileDescriptor } from "./fs/descriptor.js";
+export type { DescriptorBackend, DescriptorOpenOptions } from "./fs/descriptor.js";
 export {
   assertPathWithin, isPathWithin, normalizePath, relativePath, resolvePath, validatePath
 } from "./contracts/virtual-path.js";
@@ -15,6 +17,7 @@ export { scopeFileSystem, retainFileSystemCleanup } from "./fs/scoped.js";
 export type { RetainedFileSystemCleanupView, RetainedFileSystemCleanupOptions } from "./fs/scoped.js";
 export * from "./fs/webdav/index.js";
 export * from "./bridge/index.js";
+export * from "./python/index.js";
 export { compareEntries } from "./fs/mount/comparison.js";
 export { parseXml, parseXmlSteps, XmlLimitError } from "./xml.js";
 export type { XmlName, XmlAttribute, XmlContent, XmlElement, XmlLimits } from "./xml.js";

@@ -68,6 +68,7 @@ export async function runHoldoutProbe(name: string): Promise<void> {
       assert.equal((await fs.readFile("/before")).length, 0);
     } else if (name === "shortcut-read-error-restores-outer-stream") {
       await fs.writeFile("/fault", new TextEncoder().encode("unchanged"));
+      Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false } });
       let reads = 0;
       const originalReadStream = fs.readStream.bind(fs);
       const failure = new Error("holdout injected read failure");

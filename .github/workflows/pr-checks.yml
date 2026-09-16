@@ -53,6 +53,7 @@ jobs:
       - run: npm ci
       - name: Build root public peer and workspace dependencies
         run: npm run build
+      - uses: ./.github/actions/setup-bash-oracle
       - name: Run the complete virtual-bash unit suite serially
         run: npm run test:unit --workspace virtual-bash -- --test-concurrency=1
   bun-public-imports:

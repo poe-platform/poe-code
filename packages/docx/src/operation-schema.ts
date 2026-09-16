@@ -1,3 +1,4 @@
+import { isEnumMember } from "./formatting-values.js";
 import { documentLimitDefaults } from "./budget.js";
 import { decodeLocation } from "./location-token.js";
 import { DocxUsageError, validateOriginalDocumentContent, validateTemplateData } from "./argument-json.js";
@@ -37,7 +38,7 @@ freezeDeclaration(docxCommonFields);
 freezeDeclaration(docxEnumSymbols);
 export const docxOperationSchemas = operationDeclarations;
 export const docxCommonOptions = docxCommonFields;
-export const docxEnumCanonicalNames: Readonly<Record<string, string>> = Object.freeze({ MSO_THEME_COLOR_INDEX: "MSO_THEME_COLOR", WD_ALIGN_PARAGRAPH: "WD_PARAGRAPH_ALIGNMENT" });
+export const docxEnumCanonicalNames: Readonly<Record<string, string>> = Object.freeze({ MSO_THEME_COLOR_INDEX: "MSO_THEME_COLOR", WD_ALIGN_PARAGRAPH: "WD_PARAGRAPH_ALIGNMENT", WD_ALIGN_VERTICAL: "WD_CELL_VERTICAL_ALIGNMENT", WD_BREAK: "WD_BREAK_TYPE", WD_SECTION: "WD_SECTION_START" });
 
 type ObjectValue = Record<string, unknown>;
 function object(value: unknown): value is ObjectValue {
@@ -59,6 +60,7 @@ function safeGraph(value: unknown, visiting = new Set<object>(), depth = 0, budg
   if (typeof value === "number") return Number.isFinite(value);
   if (value === undefined || value === null || typeof value === "boolean") return true;
   if (typeof value !== "object" || visiting.has(value)) return false;
+  if (isEnumMember(value)) return true;
   if (value instanceof Uint8Array) return ArrayBuffer.isView(value);
   if (value instanceof Date) return Object.getPrototypeOf(value) === Date.prototype && Reflect.ownKeys(value).length === 0 && Number.isFinite(Date.prototype.getTime.call(value));
   if (!Array.isArray(value) && !object(value)) return false;

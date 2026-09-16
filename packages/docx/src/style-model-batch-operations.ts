@@ -1,7 +1,7 @@
 import { packUriBatchActions } from "./pack-uri-batch-operations.js";
 import { docxOperationSchemas } from "./operation-schema.js";
 import { imageBatchActions } from "./image-batch-operations.js";
-import { Length, Emu, Inches, Cm, Mm, Pt, Twips, isLength, enumMembers, enumString, enumValue, enumFromValue, enumFromXml, enumXml } from "./formatting-values.js";
+import { Length, Emu, Inches, Cm, Mm, Pt, Twips, isLength, enumFamilies, enumMembers, enumString, enumValue, enumFromValue, enumFromXml, enumToXml } from "./formatting-values.js";
 import { DocxUsageError } from "./argument-json.js";
 import { BaseStyle, CharacterStyle, ParagraphStyle, TableStyle, Styles, LatentStyles, LatentStyle } from "./styles-model.js";
 import { Font, ParagraphFormat, TabStops, TabStop, ColorFormat, RGBColor } from "./formatting-model.js";
@@ -99,6 +99,9 @@ for (const [name, factory, argument] of [["Length", Length, "emu"], ["Emu", Emu,
   });
 }
 for (const [group, family, canonical] of [
+  ["section", "WD_ORIENTATION", "WD_ORIENTATION"], ["section", "WD_SECTION_START", "WD_SECTION_START"], ["section", "WD_HEADER_FOOTER_INDEX", "WD_HEADER_FOOTER_INDEX"],
+  ["table", "WD_CELL_VERTICAL_ALIGNMENT", "WD_CELL_VERTICAL_ALIGNMENT"], ["table", "WD_TABLE_ALIGNMENT", "WD_TABLE_ALIGNMENT"], ["table", "WD_ROW_HEIGHT_RULE", "WD_ROW_HEIGHT_RULE"], ["table", "WD_TABLE_DIRECTION", "WD_TABLE_DIRECTION"],
+  ["text", "WD_BREAK_TYPE", "WD_BREAK_TYPE"], ["shape", "WD_INLINE_SHAPE_TYPE", "WD_INLINE_SHAPE_TYPE"],
   ["style", "WD_STYLE_TYPE", "WD_STYLE_TYPE"], ["style", "WD_BUILTIN_STYLE", "WD_BUILTIN_STYLE"],
   ["text", "WD_UNDERLINE", "WD_UNDERLINE"], ["text", "WD_COLOR_INDEX", "WD_COLOR_INDEX"],
   ["text", "WD_PARAGRAPH_ALIGNMENT", "WD_PARAGRAPH_ALIGNMENT"], ["text", "WD_ALIGN_PARAGRAPH", "WD_PARAGRAPH_ALIGNMENT"],
@@ -112,18 +115,18 @@ for (const [group, family, canonical] of [
     if (!found) throw new DocxUsageError("Expected a symbol from the declared enum family.");
     return found;
   };
-  for (const member of members) styleModelBatchActions.set(`${prefix}.${member.name}.get`, () => member);
+  for (const [name, member] of Object.entries(enumFamilies[canonical].members)) styleModelBatchActions.set(`${prefix}.${name}.get`, () => member);
   styleModelBatchActions.set(`${prefix}.fromValue.call`, (_receiver, args) => enumFromValue(canonical, args.value as number));
   styleModelBatchActions.set(`${prefix}.from_xml.call`, (_receiver, args) => enumFromXml(canonical, args.xmlValue as string | null));
   styleModelBatchActions.set(`${prefix}.name.get`, receiver => symbol(receiver).name);
   styleModelBatchActions.set(`${prefix}.value.get`, receiver => enumValue(symbol(receiver)));
   for (const name of ["__str__", "toString"]) styleModelBatchActions.set(`${prefix}.${name}.call`, receiver => enumString(symbol(receiver)));
-  styleModelBatchActions.set(`${prefix}.xml_value.get`, receiver => { const member = symbol(receiver); try { return enumXml(member); } catch (error) { if (error instanceof RangeError) return null; throw error; } });
+  styleModelBatchActions.set(`${prefix}.xml_value.get`, receiver => symbol(receiver).xml_value ?? null);
   styleModelBatchActions.set(`${prefix}.to_xml.call`, (receiver, args) => {
     symbol(receiver); if (args.value === null) return null;
-    return enumXml(typeof args.value === "number" ? enumFromValue(canonical, args.value) : symbol(args.value));
+    return enumToXml(canonical, typeof args.value === "number" ? args.value : symbol(args.value));
   });
-  styleModelBatchActions.set(`${prefix}.members.get`, () => new Map(members.map(member => [member.name, member])));
+  styleModelBatchActions.set(`${prefix}.members.get`, () => new Map(Object.entries(enumFamilies[canonical].members)));
   styleModelBatchActions.set(`${prefix}.Symbol.iterator.call`, () => [...members]);
 }
 export const styleModelBatchBootstrap = "model.document.Document.styles.get";

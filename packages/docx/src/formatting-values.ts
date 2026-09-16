@@ -244,12 +244,55 @@ const enumNumbers = {
     "LIST": 4,
     "PARAGRAPH": 1,
     "TABLE": 3
-  }
+  },
+  "WD_CELL_VERTICAL_ALIGNMENT": { "TOP": 0, "CENTER": 1, "BOTTOM": 3, "BOTH": 101 },
+  "WD_ORIENTATION": { "PORTRAIT": 0, "LANDSCAPE": 1 },
+  "WD_TABLE_ALIGNMENT": { "LEFT": 0, "CENTER": 1, "RIGHT": 2 },
+  "WD_ROW_HEIGHT_RULE": { "AUTO": 0, "AT_LEAST": 1, "EXACTLY": 2 },
+  "WD_SECTION_START": { "CONTINUOUS": 0, "NEW_COLUMN": 1, "NEW_PAGE": 2, "EVEN_PAGE": 3, "ODD_PAGE": 4 },
+  "WD_TABLE_DIRECTION": { "LTR": 0, "RTL": 1 },
+  "WD_BREAK_TYPE": { "COLUMN": 8, "LINE": 6, "LINE_CLEAR_LEFT": 9, "LINE_CLEAR_RIGHT": 10, "LINE_CLEAR_ALL": 11, "PAGE": 7, "SECTION_CONTINUOUS": 3, "SECTION_EVEN_PAGE": 4, "SECTION_NEXT_PAGE": 2, "SECTION_ODD_PAGE": 5, "TEXT_WRAPPING": 11 },
+  "WD_INLINE_SHAPE_TYPE": { "CHART": 12, "LINKED_PICTURE": 4, "PICTURE": 3, "SMART_ART": 15, "NOT_IMPLEMENTED": -6 },
+  "WD_HEADER_FOOTER_INDEX": { "PRIMARY": 1, "FIRST_PAGE": 2, "EVEN_PAGE": 3 }
+
 } as const;
-type FormattingEnum = keyof typeof enumNumbers;
-type Symbols<K extends FormattingEnum> = { readonly [N in keyof typeof enumNumbers[K]]: Readonly<{ enum: K; name: N }> };
+export type FormattingEnum = keyof typeof enumNumbers;
+export type EnumMember<K extends FormattingEnum> = DocxEnumValue<K> & Readonly<{ value: number; xml_value?: string | null; toString(): string }>;
+type Symbols<K extends FormattingEnum> = { readonly [N in keyof typeof enumNumbers[K]]: EnumMember<K> & Readonly<{ name: K extends "WD_BREAK_TYPE" ? N extends "TEXT_WRAPPING" ? "LINE_CLEAR_ALL" : N : N }> } & Iterable<EnumMember<K>> & Readonly<{
+  members: Readonly<{ [N in keyof typeof enumNumbers[K]]: EnumMember<K> }>;
+  fromValue(value: number): EnumMember<K>;
+  from_xml(value: string | null): EnumMember<K>;
+  to_xml(value: DocxEnumValue<K> | number | null): string | null;
+}>;
+const ownedEnumMembers = new WeakSet<object>();
+/** Trusted immutable SDK values are distinct from user-supplied transport objects. */
+export function isEnumMember(value: unknown): value is EnumMember<FormattingEnum> { return value !== null && typeof value === "object" && ownedEnumMembers.has(value); }
 function symbols<K extends FormattingEnum>(family: K): Symbols<K> {
-  return Object.freeze(Object.fromEntries(Object.keys(enumNumbers[family]).map(name => [name, Object.freeze({ enum: family, name })]))) as Symbols<K>;
+  const byValue = new Map<number, EnumMember<K>>();
+  const entries = Object.entries(enumNumbers[family]).map(([name, value]) => {
+    let member = byValue.get(value);
+    if (!member) {
+      const record = { enum: family, name } as unknown as EnumMember<K>;
+      Object.defineProperties(record, {
+        value: { value },
+        xml_value: { get: () => enumRepresentation(record) },
+        toString: { value: () => `${name} (${value})` },
+        [Symbol.toPrimitive]: { value: (hint: string) => { if (hint === "string") return `${name} (${value})`; throw new TypeError("Use explicit enum values instead of numeric coercion."); } }
+      });
+      ownedEnumMembers.add(record); member = Object.freeze(record); byValue.set(value, member);
+    }
+    return [name, member] as const;
+  });
+  const members = Object.freeze(Object.fromEntries(entries));
+  const result = Object.fromEntries(entries);
+  Object.defineProperties(result, {
+    members: { value: members },
+    fromValue: { value: (value: number) => enumFromValue(family, value) },
+    from_xml: { value: (value: string | null) => enumFromXml(family, value) },
+    to_xml: { value: (value: DocxEnumValue<K> | number | null) => enumToXml(family, value) },
+    [Symbol.iterator]: { value: function* () { yield* byValue.values(); } }
+  });
+  return Object.freeze(result) as Symbols<K>;
 }
 export const WD_UNDERLINE = symbols("WD_UNDERLINE");
 export const WD_COLOR_INDEX = symbols("WD_COLOR_INDEX");
@@ -264,18 +307,40 @@ export const WD_STYLE_TYPE = symbols("WD_STYLE_TYPE");
 export const WD_ALIGN_PARAGRAPH = WD_PARAGRAPH_ALIGNMENT;
 export const MSO_THEME_COLOR_INDEX = MSO_THEME_COLOR;
 export const WD_STYLE = WD_BUILTIN_STYLE;
-const enumSymbols = { WD_UNDERLINE, WD_COLOR_INDEX, WD_PARAGRAPH_ALIGNMENT, WD_LINE_SPACING, WD_TAB_ALIGNMENT, WD_TAB_LEADER, MSO_THEME_COLOR, MSO_COLOR_TYPE, WD_BUILTIN_STYLE, WD_STYLE_TYPE };
+export const WD_CELL_VERTICAL_ALIGNMENT = symbols("WD_CELL_VERTICAL_ALIGNMENT");
+export const WD_ORIENTATION = symbols("WD_ORIENTATION");
+export const WD_TABLE_ALIGNMENT = symbols("WD_TABLE_ALIGNMENT");
+export const WD_ROW_HEIGHT_RULE = symbols("WD_ROW_HEIGHT_RULE");
+export const WD_SECTION_START = symbols("WD_SECTION_START");
+export const WD_TABLE_DIRECTION = symbols("WD_TABLE_DIRECTION");
+export const WD_BREAK_TYPE = symbols("WD_BREAK_TYPE");
+export const WD_INLINE_SHAPE_TYPE = symbols("WD_INLINE_SHAPE_TYPE");
+export const WD_HEADER_FOOTER_INDEX = symbols("WD_HEADER_FOOTER_INDEX");
+export const WD_ALIGN_VERTICAL = WD_CELL_VERTICAL_ALIGNMENT;
+export const WD_ORIENT = WD_ORIENTATION;
+export const WD_ROW_HEIGHT = WD_ROW_HEIGHT_RULE;
+export const WD_SECTION = WD_SECTION_START;
+export const WD_BREAK = WD_BREAK_TYPE;
+export const WD_INLINE_SHAPE = WD_INLINE_SHAPE_TYPE;
+export const WD_HEADER_FOOTER = WD_HEADER_FOOTER_INDEX;
+export const enumFamilies = Object.freeze({ WD_UNDERLINE, WD_COLOR_INDEX, WD_PARAGRAPH_ALIGNMENT, WD_LINE_SPACING, WD_TAB_ALIGNMENT, WD_TAB_LEADER, MSO_THEME_COLOR, MSO_COLOR_TYPE, WD_BUILTIN_STYLE, WD_STYLE_TYPE, WD_CELL_VERTICAL_ALIGNMENT, WD_ORIENTATION, WD_TABLE_ALIGNMENT, WD_ROW_HEIGHT_RULE, WD_SECTION_START, WD_TABLE_DIRECTION, WD_BREAK_TYPE, WD_INLINE_SHAPE_TYPE, WD_HEADER_FOOTER_INDEX });
 export function enumValue(value: DocxEnumValue<keyof DocxEnumNames>): number {
-  const family = enumNumbers[value?.enum as FormattingEnum];
+  if (!isEnumMember(value)) {
+    if (value === null || typeof value !== "object" || ![Object.prototype, null].includes(Object.getPrototypeOf(value))) throw new TypeError("Expected an enum symbol.");
+    const fields = Object.getOwnPropertyDescriptors(value);
+    if (Reflect.ownKeys(fields).length !== 2 || !fields.enum || !fields.name || !("value" in fields.enum) || !("value" in fields.name) || typeof fields.enum.value !== "string" || typeof fields.name.value !== "string") throw new TypeError("Expected an inert enum symbol.");
+  }
+  if (!Object.hasOwn(enumNumbers, value.enum)) throw new RangeError("Unknown formatting enum family.");
+  const family = enumNumbers[value.enum as FormattingEnum];
   if (!family || !Object.hasOwn(family, value.name)) throw new RangeError("Unknown formatting enum symbol.");
   return (family as Readonly<Record<string, number>>)[value.name]!;
 }
-export function enumFromValue<K extends FormattingEnum>(family: K, value: number): DocxEnumValue<K> {
+export function enumFromValue<K extends FormattingEnum>(family: K, value: number): EnumMember<K> {
   if (!Number.isSafeInteger(value)) throw new TypeError("Expected an integer enum value.");
   const numbers = enumNumbers[family]; if (!numbers) throw new RangeError("Unknown formatting enum family.");
   const name = Object.keys(numbers).find(name => (numbers as Readonly<Record<string, number>>)[name] === value);
   if (!name) throw new RangeError("Unknown formatting enum value.");
-  return (enumSymbols[family] as unknown as Readonly<Record<string, DocxEnumValue<K>>>)[name]!;
+  return (enumFamilies[family] as unknown as Readonly<Record<string, EnumMember<K>>>)[name]!;
 }
 
 export interface Length extends DocxLength {
@@ -418,27 +483,52 @@ const enumXmlValues: Readonly<Partial<Record<FormattingEnum, Readonly<Record<str
     "LIST": "numbering",
     "PARAGRAPH": "paragraph",
     "TABLE": "table"
-  }
+  },
+  "WD_CELL_VERTICAL_ALIGNMENT": { "TOP": "top", "CENTER": "center", "BOTTOM": "bottom", "BOTH": "both" },
+  "WD_ORIENTATION": { "PORTRAIT": "portrait", "LANDSCAPE": "landscape" },
+  "WD_TABLE_ALIGNMENT": { "LEFT": "left", "CENTER": "center", "RIGHT": "right" },
+  "WD_ROW_HEIGHT_RULE": { "AUTO": "auto", "AT_LEAST": "atLeast", "EXACTLY": "exact" },
+  "WD_SECTION_START": { "CONTINUOUS": "continuous", "NEW_COLUMN": "nextColumn", "NEW_PAGE": "nextPage", "EVEN_PAGE": "evenPage", "ODD_PAGE": "oddPage" },
+  "WD_HEADER_FOOTER_INDEX": { "PRIMARY": "default", "FIRST_PAGE": "first", "EVEN_PAGE": "even" }
+
 };
+function enumRepresentation(value: DocxEnumValue<keyof DocxEnumNames>): string | null | undefined {
+  const representations = enumXmlValues[value.enum as FormattingEnum];
+  if (!representations) return undefined;
+  const representation = representations[value.name];
+  return representation === "UNMAPPED" ? null : representation;
+}
+export function enumToXml<K extends FormattingEnum>(family: K, value: DocxEnumValue<K> | number | null): string | null {
+  if (!enumXmlValues[family]) throw new RangeError("Enum family has no XML conversion.");
+  if (value === null) return null;
+  const number = typeof value === "number" ? value : enumValue(value);
+  if (typeof value !== "number" && value.enum !== family) throw new TypeError("Expected a symbol from the declared enum family.");
+  const member = enumFromValue(family, number);
+  const representation = enumXmlValues[family]?.[member.name];
+  if (representation === undefined || representation === "UNMAPPED") throw new RangeError("Enum member has no XML representation.");
+  return representation;
+}
 export function enumXml(value: DocxEnumValue<keyof DocxEnumNames>): string {
+  enumValue(value);
   const representation = enumXmlValues[value.enum as FormattingEnum]?.[value.name];
   if (!representation || representation === "UNMAPPED") throw new RangeError("Enum member has no XML representation.");
   return representation;
 }
-export function enumFromXml<K extends FormattingEnum>(family: K, value: string | null): DocxEnumValue<K> {
+export function enumFromXml<K extends FormattingEnum>(family: K, value: string | null): EnumMember<K> {
   if (value !== null && typeof value !== "string") throw new TypeError("Expected an XML value or null.");
   if (value === "UNMAPPED") throw new RangeError("Enum sentinel has no XML representation.");
   const representations = enumXmlValues[family];
   const name = representations && Object.keys(representations).find(name => representations[name] === value);
   if (name === undefined) throw new RangeError("Unknown enum XML value.");
-  return (enumSymbols[family] as unknown as Readonly<Record<string, DocxEnumValue<K>>>)[name]!;
+  return (enumFamilies[family] as unknown as Readonly<Record<string, EnumMember<K>>>)[name]!;
 }
-export function enumMembers<K extends FormattingEnum>(family: K): readonly DocxEnumValue<K>[] {
-  const symbols = enumSymbols[family]; if (!symbols) throw new RangeError("Unknown formatting enum family.");
-  return Object.freeze(Object.values(symbols)) as readonly DocxEnumValue<K>[];
+export function enumMembers<K extends FormattingEnum>(family: K): readonly EnumMember<K>[] {
+  const symbols = enumFamilies[family]; if (!symbols) throw new RangeError("Unknown formatting enum family.");
+  return Object.freeze([...symbols]) as unknown as readonly EnumMember<K>[];
 }
 export function isLength(value: unknown): value is Length { return value !== null && typeof value === "object" && ownedLengths.has(value); }
 export function enumString(value: DocxEnumValue<keyof DocxEnumNames>): string {
-  return `${value.name} (${enumValue(value)})`;
+  const number = enumValue(value);
+  return `${value.name} (${number})`;
 }
 export const WD_COLOR = WD_COLOR_INDEX;

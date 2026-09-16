@@ -1608,3 +1608,34 @@ test("optional hashes bind actual BOM and UTF-8 bytes, not decoded character cou
   assert.equal(result.inputHashes[root + "/src/commands/yes/helper.ts"], createHash("sha256").update(owned.memory.readFileSync(root + "/src/commands/yes/helper.ts")).digest("hex"));
   noHeldReads(owned);
 });
+
+for (const defect of ['none', 'declaration', 'runtime', 'source-import']) test(`build focused Playwright public declaration admission: ${defect}`, async () => {
+  const owned = fixture({
+    'package.json': JSON.stringify({ name: 'virtual-bash', type: 'module', peerDependencies: { 'poe-code': '>=13.0.0' }, devDependencies: { 'poe-code': 'file:../..', '@poe-code/safe-playwright': '*' }, poeCode: { integration: { peerProfile: 'checkout-root' } } }),
+    'src/index.ts': 'export { createPlaywrightController } from "poe-code/safe-playwright"; export type { PlaywrightAdapter } from "poe-code/safe-playwright/adapter";',
+    '../../package.json': JSON.stringify({ name: 'poe-code', type: 'module', exports: {
+      './safe-fs': { types: './packages/safe-fs/dist/index.d.ts', import: './packages/safe-js/dist/safe-fs.js' },
+      './safe-playwright': { types: './packages/safe-playwright/dist/index.d.ts', import: './packages/safe-playwright/dist/index.js' },
+      './safe-playwright/adapter': { types: './packages/safe-playwright/dist/adapter.d.ts', import: './packages/safe-playwright/dist/adapter.js' },
+    } }),
+    '../../packages/safe-fs/dist/index.d.ts': 'export interface FileSystem {}',
+    '../../packages/safe-playwright/dist/index.d.ts': 'export declare function createPlaywrightController(): void;',
+    '../../packages/safe-playwright/dist/adapter.d.ts': 'export interface PlaywrightAdapter {}',
+    '../../packages/safe-playwright/src/private.d.ts': 'export declare function hidden(): void;',
+  });
+  if (defect === 'declaration' || defect === 'runtime') {
+    const peer = JSON.parse(owned.memory.readFileSync('/package.json', 'utf8'));
+    if (defect === 'declaration') peer.exports['./safe-playwright'].types = './packages/safe-playwright/src/private.d.ts';
+    else peer.exports['./safe-playwright'].import = './packages/safe-playwright/src/private.js';
+    owned.memory.writeFileSync('/package.json', JSON.stringify(peer));
+    await assert.rejects(owned.run(), /canonical public Playwright/);
+  } else if (defect === 'source-import') {
+    owned.memory.writeFileSync('/packages/safe-playwright/dist/index.d.ts', 'export { hidden as createPlaywrightController } from "../src/private.js";');
+    assert.notEqual((await owned.run()).status, 0);
+    assert.equal(owned.reads.includes('/packages/safe-playwright/src/private.d.ts'), false);
+  } else {
+    assert.equal((await owned.run()).status, 0, owned.output.join(''));
+    assert.equal(owned.reads.includes('/packages/safe-playwright/dist/adapter.d.ts'), true);
+  }
+  noHeldReads(owned);
+});

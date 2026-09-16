@@ -283,6 +283,11 @@
       "types": "./dist/commands/python/node.d.ts",
       "browser": null,
       "import": "./dist/commands/python/node.js"
+    },
+    "./commands/playwright": {
+      "types": "./dist/commands/playwright/index.d.ts",
+      "browser": "./dist/commands/playwright/index.js",
+      "import": "./dist/commands/playwright/index.js"
     }
   },
   "files": [
@@ -364,7 +369,8 @@
     "typescript": "5.9",
     "@poe-code/safe-fs": "*",
     "pptx": "*",
-    "@poe-platform/op": "*"
+    "@poe-platform/op": "*",
+    "@poe-code/safe-playwright": "*"
   },
   "poeCode": {
     "packageLint": {

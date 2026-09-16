@@ -252,6 +252,18 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           if (checkout) assert.equal(core.import, "./packages/safe-js/dist/safe-fs-core.js", "canonical public SafeFS core must use the shared SafeJS runtime");
           peerPaths["poe-code/safe-fs/core"] = [resolve(peerRoot, coreTarget)];
         }
+        if (manifest.devDependencies?.['@poe-code/safe-playwright'] !== undefined) {
+          assert.equal(manifest.devDependencies['@poe-code/safe-playwright'], '*', 'Playwright build dependency must be the local workspace');
+          for (const entry of ['index', 'adapter']) {
+            const name = entry === 'index' ? './safe-playwright' : './safe-playwright/adapter';
+            const exported = peer.exports?.[name];
+            const target = `./packages/safe-playwright/dist/${entry}.d.ts`;
+            assert.equal(exported?.types, target, 'canonical public Playwright declaration entry');
+            assert.equal(exported?.import, `./packages/safe-playwright/dist/${entry}.js`, 'canonical public Playwright runtime entry');
+            peerPaths['poe-code/' + name.slice(2)] = [resolve(peerRoot, target)];
+          }
+          toolRoots.push(join(peerRoot, 'packages/safe-playwright/dist'));
+        }
       }
       const portableDependencies = Object.keys(manifest.dependencies ?? {}).length
         ? manifest.dependencies

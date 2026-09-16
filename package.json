@@ -415,6 +415,21 @@
       },
       "browser": null,
       "import": "./packages/safe-js/dist/safe-fs-bridge.js"
+    },
+    "./safe-playwright": {
+      "types": "./packages/safe-playwright/dist/index.d.ts",
+      "browser": "./packages/safe-playwright/dist/index.js",
+      "import": "./packages/safe-playwright/dist/index.js"
+    },
+    "./safe-playwright/adapter": {
+      "types": "./packages/safe-playwright/dist/adapter.d.ts",
+      "browser": "./packages/safe-playwright/dist/adapter.js",
+      "import": "./packages/safe-playwright/dist/adapter.js"
+    },
+    "./safe-bash/commands/playwright": {
+      "types": "./packages/safe-bash/dist/commands/playwright/index.d.ts",
+      "browser": "./packages/safe-bash/dist/commands/playwright/index.js",
+      "import": "./packages/safe-bash/dist/commands/playwright/index.js"
     }
   },
   "workspaces": [
@@ -634,7 +649,8 @@
     "packages/safe-fs/src/native/loader.d.ts",
     "packages/docx/dist",
     "packages/docx/LICENSE",
-    "packages/docx/THIRD_PARTY_NOTICES.txt"
+    "packages/docx/THIRD_PARTY_NOTICES.txt",
+    "packages/safe-playwright/dist"
   ],
   "engines": {
     "node": ">=18.18"
@@ -781,7 +797,8 @@
     "virtual-bash": "*",
     "vite": "6.4.3",
     "vitest": "4.1.11",
-    "@poe-code/safe-python": "*"
+    "@poe-code/safe-python": "*",
+    "@poe-code/safe-playwright": "*"
   },
   "repository": {
     "type": "git",

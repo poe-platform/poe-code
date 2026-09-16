@@ -8,28 +8,61 @@
   },
   "counts": {
     "rows": 369,
-    "passing": 31,
-    "pending": 338
+    "passing": 169,
+    "pending": 200
   },
-  "scope_note": "369 selected source rows; 9 URI and 22 XML sequence rows pass dedicated original tests. All 338 remaining cases and general public API/CLI coverage stay pending. Historical inventories are not promoted.",
+  "scope_note": "369 selected rows; 169 pass dedicated original tests and 200 remain pending. Whole public API/format/rendering parity is not claimed; later tasks remain pending.",
   "plan": "../plans/docx-opc-xml-image-adaptation.md",
   "legal_notice": "upstream-license-notice.txt",
   "checks": {
-    "workspace_unit": {
-      "command": "npm test --workspace=docx",
-      "result": "3226 passed; 161 files; zero failures or skips",
-      "duration_seconds": 157.93
+    "historical_uri_milestone": {
+      "workspace_unit": {
+        "command": "npm test --workspace=docx",
+        "result": "3226 passed; 161 files; zero failures or skips",
+        "duration_seconds": 157.93
+      },
+      "workspace_lint": {
+        "command": "npm run lint --workspace=docx",
+        "result": "passed ESLint and source/test TypeScript; zero errors; one existing operation-types.test.ts unused-variable warning"
+      },
+      "workspace_build": {
+        "command": "npm run build:workspaces -- --workspace=docx",
+        "result": "passed declared dependency closure and DOCX build"
+      },
+      "focused": "111 passed in 7 files, including 36 URI + 22 XML + 13 URI batch/CLI/schema cases",
+      "screenshot": "passed maintained screenshot command; inspected final detailed URI help PNG: operation, receiver none and required string argument readable; no clipped content"
     },
-    "workspace_lint": {
-      "command": "npm run lint --workspace=docx",
-      "result": "passed ESLint and source/test TypeScript; zero errors; one existing operation-types.test.ts unused-variable warning"
+    "completion_maintained": {
+      "unit": {
+        "command": "npm test --workspace=docx",
+        "passed": 3987,
+        "skipped": 4,
+        "files": 201,
+        "duration_seconds": 167.66,
+        "log_sha256": "b3df74f83100a581cb88bc27d501415898821b23594b7de969026427188334d4",
+        "skips": "Existing cross-format PPTX pending paths; not counted as passes."
+      },
+      "lint": {
+        "command": "npm run lint --workspace=docx",
+        "exit_code": 0,
+        "errors": 0,
+        "warnings": 1,
+        "warning": "Existing operation-types.test.ts unused type-only variable.",
+        "log_sha256": "84c1834281fa8da3f8c09b0303161b9df2250ed57bcf81ada9496816a62a8619"
+      },
+      "build": {
+        "command": "npm run build:workspaces -- --workspace=docx",
+        "exit_code": 0,
+        "log_sha256": "fc1bf5d0a2e72b95835347ff2f0dcb493f71933967ee91eb771cb9ce9450fbb4"
+      }
     },
-    "workspace_build": {
-      "command": "npm run build:workspaces -- --workspace=docx",
-      "result": "passed declared dependency closure and DOCX build"
-    },
-    "focused": "111 passed in 7 files, including 36 URI + 22 XML + 13 URI batch/CLI/schema cases",
-    "screenshot": "passed maintained screenshot command; inspected final detailed URI help PNG: operation, receiver none and required string argument readable; no clipped content"
+    "focused_completion": {
+      "passed": 422,
+      "failed": 0,
+      "skipped": 0,
+      "files": 9,
+      "raw_report_sha256": "dc1f08a848e7254e07c489913f5df933e8d583471866dc07d386c4b4c0de6dfc"
+    }
   },
   "sdk_api_rows": [
     {
@@ -132,10 +165,20 @@
         "node_id": "tests/image/test_bmp.py::DescribeBmp::it_can_construct_from_a_bmp_stream"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "BMP admission extracts dimensions and density"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "BMP admission extracts dimensions and density",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -145,10 +188,20 @@
         "node_id": "tests/image/test_bmp.py::DescribeBmp::it_knows_its_content_type"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "BMP MIME follows the signature"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "BMP MIME follows the signature",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -158,10 +211,20 @@
         "node_id": "tests/image/test_bmp.py::DescribeBmp::it_knows_its_default_ext"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "BMP anonymous suffix follows the signature"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "BMP anonymous suffix follows the signature",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -171,10 +234,20 @@
         "node_id": "tests/image/test_gif.py::DescribeGif::it_can_construct_from_a_gif_stream"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "GIF admission extracts dimensions and density"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "GIF admission extracts dimensions and density",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -184,10 +257,20 @@
         "node_id": "tests/image/test_gif.py::DescribeGif::it_knows_its_content_type"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "GIF MIME follows the signature"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "GIF MIME follows the signature",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -197,10 +280,20 @@
         "node_id": "tests/image/test_gif.py::DescribeGif::it_knows_its_default_ext"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "GIF anonymous suffix follows the signature"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "GIF anonymous suffix follows the signature",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -210,10 +303,20 @@
         "node_id": "tests/image/test_helpers.py::DescribeStreamReader::it_can_read_a_string_of_specified_len_at_offset"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Offset signature reads ignore unrelated backing bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Offset signature reads ignore unrelated backing bytes",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -223,10 +326,20 @@
         "node_id": "tests/image/test_helpers.py::DescribeStreamReader::it_raises_on_unexpected_EOF"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Truncated integer intervals reject through header admission"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Truncated integer intervals reject through header admission",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -236,10 +349,20 @@
         "node_id": "tests/image/test_helpers.py::DescribeStreamReader::it_can_read_a_long[read_long_fixture0]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "big endian unsigned values survive bounded header reads"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "big endian unsigned values survive bounded header reads",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -249,10 +372,20 @@
         "node_id": "tests/image/test_helpers.py::DescribeStreamReader::it_can_read_a_long[read_long_fixture1]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "little endian unsigned values survive bounded header reads"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "little endian unsigned values survive bounded header reads",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -262,10 +395,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_can_construct_from_an_image_blob"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Blob admission snapshots caller bytes before awaiting"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Blob admission snapshots caller bytes before awaiting",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -275,10 +418,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_can_construct_from_an_image_path"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Capability input retains the basename"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Capability input retains the basename",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -288,10 +441,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_can_construct_from_an_image_file_like"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Explicit byte source closes after complete admission"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Explicit byte source closes after complete admission",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -301,10 +464,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_can_construct_from_an_image_stream[foobar.png]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Named stream equivalent uses an explicit VFS basename"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Named stream equivalent uses an explicit VFS basename",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -314,10 +487,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_can_construct_from_an_image_stream[None]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Anonymous source receives a canonical basename"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Anonymous source receives a canonical basename",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -327,10 +510,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_provides_access_to_the_image_blob"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Blob getters return independent owned bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Blob getters return independent owned bytes",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -340,10 +533,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_knows_the_image_content_type"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Admitted MIME is derived from bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Admitted MIME is derived from bytes",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -353,10 +556,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_knows_the_image_px_dimensions"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Pixel dimensions remain independent axes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Pixel dimensions remain independent axes",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -366,10 +579,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_knows_the_horz_and_vert_dpi_of_the_image"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "DPI metadata remains independent axes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "DPI metadata remains independent axes",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -379,10 +602,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_knows_the_image_native_size"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Unequal axis density controls native physical size"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Unequal axis density controls native physical size",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -392,10 +625,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_can_scale_its_dimensions[scale_fixture0]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Physical scaling with width null and height null"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Physical scaling with width null and height null",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -405,10 +648,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_can_scale_its_dimensions[scale_fixture1]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Physical scaling with width 100 and height null"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Physical scaling with width 100 and height null",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -418,10 +671,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_can_scale_its_dimensions[scale_fixture2]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Physical scaling with width null and height 500"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Physical scaling with width null and height 500",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -431,10 +694,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_can_scale_its_dimensions[scale_fixture3]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Physical scaling with width 1500 and height 1500"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Physical scaling with width 1500 and height 1500",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -444,10 +717,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_knows_the_image_filename"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Explicit filename survives admission"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Explicit filename survives admission",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -457,10 +740,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_knows_the_image_filename_extension"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Named input retains its final filename suffix"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Named input retains its final filename suffix",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -470,10 +763,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_knows_the_sha1_of_its_image"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Compatibility digest follows exact original admitted bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Compatibility digest follows exact original admitted bytes",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -483,10 +786,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_correctly_characterizes_known_images[0]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "BMP 211 by 71 metadata from original header bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "BMP 211 by 71 metadata from original header bytes",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -496,10 +809,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_correctly_characterizes_known_images[1]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "GIF 290 by 360 metadata from original header bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "GIF 290 by 360 metadata from original header bytes",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -509,10 +832,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_correctly_characterizes_known_images[2]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG 204 by 204 metadata from original header bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG 204 by 204 metadata from original header bytes",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -522,10 +855,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_correctly_characterizes_known_images[3]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG 1504 by 1936 metadata from original header bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG 1504 by 1936 metadata from original header bytes",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -535,10 +878,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_correctly_characterizes_known_images[4]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG 150 by 214 metadata from original header bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG 150 by 214 metadata from original header bytes",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -548,10 +901,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_correctly_characterizes_known_images[5]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG 901 by 1350 metadata from original header bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG 901 by 1350 metadata from original header bytes",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -561,10 +924,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_correctly_characterizes_known_images[6]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG 860 by 579 metadata from original header bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG 860 by 579 metadata from original header bytes",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -574,10 +947,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_correctly_characterizes_known_images[7]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF 48 by 48 metadata from original header bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF 48 by 48 metadata from original header bytes",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -587,10 +970,20 @@
         "node_id": "tests/image/test_image.py::DescribeImage::it_correctly_characterizes_known_images[8]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF 2464 by 3248 metadata from original header bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF 2464 by 3248 metadata from original header bytes",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -600,10 +993,20 @@
         "node_id": "tests/image/test_image.py::Describe_ImageHeaderFactory::it_constructs_the_right_class_for_a_given_image_stream[call_fixture0]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Fragmented png source consumes owned bytes from its explicit origin"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Fragmented png source consumes owned bytes from its explicit origin",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -613,10 +1016,20 @@
         "node_id": "tests/image/test_image.py::Describe_ImageHeaderFactory::it_constructs_the_right_class_for_a_given_image_stream[call_fixture1]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Fragmented jpeg-jfif source consumes owned bytes from its explicit origin"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Fragmented jpeg-jfif source consumes owned bytes from its explicit origin",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -626,10 +1039,20 @@
         "node_id": "tests/image/test_image.py::Describe_ImageHeaderFactory::it_constructs_the_right_class_for_a_given_image_stream[call_fixture2]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Fragmented jpeg-exif source consumes owned bytes from its explicit origin"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Fragmented jpeg-exif source consumes owned bytes from its explicit origin",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -639,10 +1062,20 @@
         "node_id": "tests/image/test_image.py::Describe_ImageHeaderFactory::it_constructs_the_right_class_for_a_given_image_stream[call_fixture3]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Fragmented gif source consumes owned bytes from its explicit origin"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Fragmented gif source consumes owned bytes from its explicit origin",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -652,10 +1085,20 @@
         "node_id": "tests/image/test_image.py::Describe_ImageHeaderFactory::it_constructs_the_right_class_for_a_given_image_stream[call_fixture4]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Fragmented tiff source consumes owned bytes from its explicit origin"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Fragmented tiff source consumes owned bytes from its explicit origin",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -665,10 +1108,20 @@
         "node_id": "tests/image/test_image.py::Describe_ImageHeaderFactory::it_constructs_the_right_class_for_a_given_image_stream[call_fixture5]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Fragmented tiff-little-endian source consumes owned bytes from its explicit origin"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Fragmented tiff-little-endian source consumes owned bytes from its explicit origin",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -678,10 +1131,20 @@
         "node_id": "tests/image/test_image.py::Describe_ImageHeaderFactory::it_constructs_the_right_class_for_a_given_image_stream[call_fixture6]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Fragmented bmp source consumes owned bytes from its explicit origin"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Fragmented bmp source consumes owned bytes from its explicit origin",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -691,10 +1154,20 @@
         "node_id": "tests/image/test_image.py::Describe_ImageHeaderFactory::it_raises_on_unrecognized_image_stream"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Unknown image signatures fail asynchronous admission"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Unknown image signatures fail asynchronous admission",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -704,10 +1177,20 @@
         "node_id": "tests/image/test_image.py::DescribeBaseImageHeader::it_defines_content_type_as_an_abstract_property"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Unadmitted MIME cannot be manufactured by construction"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Unadmitted MIME cannot be manufactured by construction",
+        "status": "passed"
+      },
+      "equivalence": "Native abstract parser construction is replaced by observable factory-only admission; private parser classes are not exported public model owners."
     },
     {
       "source": {
@@ -717,10 +1200,20 @@
         "node_id": "tests/image/test_image.py::DescribeBaseImageHeader::it_defines_default_ext_as_an_abstract_property"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Unadmitted extension cannot be manufactured by construction"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Unadmitted extension cannot be manufactured by construction",
+        "status": "passed"
+      },
+      "equivalence": "Native abstract parser construction is replaced by observable factory-only admission; private parser classes are not exported public model owners."
     },
     {
       "source": {
@@ -730,10 +1223,20 @@
         "node_id": "tests/image/test_image.py::DescribeBaseImageHeader::it_knows_the_image_dimensions"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Base dimension observations use admitted values"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Base dimension observations use admitted values",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -743,10 +1246,20 @@
         "node_id": "tests/image/test_image.py::DescribeBaseImageHeader::it_knows_the_horz_and_vert_dpi_of_the_image"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "Base axis observations use admitted values"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "Base axis observations use admitted values",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -756,10 +1269,20 @@
         "node_id": "tests/image/test_jpeg.py::DescribeJpeg::it_knows_its_content_type"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG signature MIME"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG signature MIME",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -769,10 +1292,20 @@
         "node_id": "tests/image/test_jpeg.py::DescribeJpeg::it_knows_its_default_ext"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG canonical suffix"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG canonical suffix",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -782,10 +1315,20 @@
         "node_id": "tests/image/test_jpeg.py::DescribeJpeg::DescribeExif::it_can_construct_from_an_exif_stream"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG embedded-directory owned metadata extraction"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG embedded-directory owned metadata extraction",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -795,10 +1338,20 @@
         "node_id": "tests/image/test_jpeg.py::DescribeJpeg::DescribeJfif::it_can_construct_from_a_jfif_stream"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG application-header owned metadata extraction"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG application-header owned metadata extraction",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -808,10 +1361,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_JfifMarkers::it_can_construct_from_a_jfif_stream"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG segment collection owned metadata extraction"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG segment collection owned metadata extraction",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -821,10 +1384,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_JfifMarkers::it_can_find_the_APP0_marker"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG segment collection APP0 density location"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG segment collection APP0 density location",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -834,10 +1407,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_JfifMarkers::it_can_find_the_APP1_marker"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG segment collection APP1 density location"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG segment collection APP1 density location",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -847,10 +1430,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_JfifMarkers::it_raises_if_it_cant_find_the_APP0_marker"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG missing optional APP0 retains dimensions"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG missing optional APP0 retains dimensions",
+        "status": "passed"
+      },
+      "equivalence": "Private required-marker lookup exception maps to absence of optional density in an admitted complete image; independent 72-per-axis model fallback is observable."
     },
     {
       "source": {
@@ -860,10 +1453,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_JfifMarkers::it_raises_if_it_cant_find_the_APP1_marker"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG missing optional APP1 retains dimensions"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG missing optional APP1 retains dimensions",
+        "status": "passed"
+      },
+      "equivalence": "Private required-marker lookup exception maps to absence of optional density in an admitted complete image; independent 72-per-axis model fallback is observable."
     },
     {
       "source": {
@@ -873,10 +1476,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_JfifMarkers::it_can_find_the_SOF_marker"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG segment collection frame location"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG segment collection frame location",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -886,10 +1499,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_JfifMarkers::it_raises_if_it_cant_find_the_SOF_marker"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG missing frame rejects before a scan"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG missing frame rejects before a scan",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -899,10 +1522,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_Marker::it_can_construct_from_a_stream_and_offset[from_stream_fixture0]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG segment role segment setting 0"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG segment role segment setting 0",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -912,10 +1545,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_Marker::it_can_construct_from_a_stream_and_offset[from_stream_fixture1]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG segment role segment setting 1"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG segment role segment setting 1",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -925,10 +1568,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_App0Marker::it_can_construct_from_a_stream_and_offset"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG density segment owned metadata extraction"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG density segment owned metadata extraction",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -938,10 +1591,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_App0Marker::it_knows_the_image_dpi[dpi_fixture0]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG density variant setting 0"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG density variant setting 0",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -951,10 +1614,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_App0Marker::it_knows_the_image_dpi[dpi_fixture1]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG density variant setting 1"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG density variant setting 1",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -964,10 +1637,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_App0Marker::it_knows_the_image_dpi[dpi_fixture2]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG density variant setting 2"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG density variant setting 2",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -977,10 +1660,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_App1Marker::it_can_construct_from_a_stream_and_offset"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG directory segment owned metadata extraction"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG directory segment owned metadata extraction",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -990,10 +1683,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_App1Marker::it_can_construct_from_non_Exif_APP1_segment"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG non-Exif APP1 metadata remains inert"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG non-Exif APP1 metadata remains inert",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1003,10 +1706,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_App1Marker::it_gets_a_tiff_from_its_Exif_segment_to_help_construct"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG directory segment embedded directory density extraction"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG directory segment embedded directory density extraction",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1016,10 +1729,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_App1Marker::it_knows_the_image_dpi"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG embedded resolution retains unequal axes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG embedded resolution retains unequal axes",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1029,10 +1752,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_SofMarker::it_can_construct_from_a_stream_and_offset"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG frame segment owned metadata extraction"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG frame segment owned metadata extraction",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1042,10 +1775,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_SofMarker::it_knows_the_image_width_and_height"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG frame segment frame dimension extraction"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG frame segment frame dimension extraction",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1055,10 +1798,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_MarkerFactory::it_constructs_the_appropriate_marker_object[\\xe0]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG signature dispatch marker role \\xe0"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG signature dispatch marker role \\xe0",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1068,10 +1821,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_MarkerFactory::it_constructs_the_appropriate_marker_object[\\xe1]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG signature dispatch marker role \\xe1"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG signature dispatch marker role \\xe1",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1081,10 +1844,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_MarkerFactory::it_constructs_the_appropriate_marker_object[\\xc0]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG signature dispatch marker role \\xc0"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG signature dispatch marker role \\xc0",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1094,10 +1867,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_MarkerFactory::it_constructs_the_appropriate_marker_object[\\xc7]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG signature dispatch marker role \\xc7"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG signature dispatch marker role \\xc7",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1107,10 +1890,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_MarkerFactory::it_constructs_the_appropriate_marker_object[\\xda]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG signature dispatch marker role \\xda"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG signature dispatch marker role \\xda",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1120,10 +1913,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_MarkerFinder::it_can_construct_from_a_stream"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG segment scan owned metadata extraction"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG segment scan owned metadata extraction",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1133,10 +1936,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_MarkerFinder::it_can_find_the_next_marker_after_a_given_offset[next_fixture0]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG scanner boundary 0 preserves fill and segment traversal"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG scanner boundary 0 preserves fill and segment traversal",
+        "status": "passed"
+      },
+      "equivalence": "Private seek-offset scanner on a malformed fragment maps to complete original marker-fill traversal and terminal truncation rejection; no arbitrary seek API or malformed JPEG admission."
     },
     {
       "source": {
@@ -1146,10 +1959,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_MarkerFinder::it_can_find_the_next_marker_after_a_given_offset[next_fixture1]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG scanner boundary 1 preserves fill and segment traversal"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG scanner boundary 1 preserves fill and segment traversal",
+        "status": "passed"
+      },
+      "equivalence": "Private seek-offset scanner on a malformed fragment maps to complete original marker-fill traversal and terminal truncation rejection; no arbitrary seek API or malformed JPEG admission."
     },
     {
       "source": {
@@ -1159,10 +1982,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_MarkerFinder::it_can_find_the_next_marker_after_a_given_offset[next_fixture2]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG scanner boundary 2 preserves fill and segment traversal"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG scanner boundary 2 preserves fill and segment traversal",
+        "status": "passed"
+      },
+      "equivalence": "Private seek-offset scanner on a malformed fragment maps to complete original marker-fill traversal and terminal truncation rejection; no arbitrary seek API or malformed JPEG admission."
     },
     {
       "source": {
@@ -1172,10 +2005,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_MarkerFinder::it_can_find_the_next_marker_after_a_given_offset[next_fixture3]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG scanner boundary 3 preserves fill and segment traversal"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG scanner boundary 3 preserves fill and segment traversal",
+        "status": "passed"
+      },
+      "equivalence": "Private seek-offset scanner on a malformed fragment maps to complete original marker-fill traversal and terminal truncation rejection; no arbitrary seek API or malformed JPEG admission."
     },
     {
       "source": {
@@ -1185,10 +2028,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_MarkerFinder::it_can_find_the_next_marker_after_a_given_offset[next_fixture4]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG scanner boundary 4 preserves fill and segment traversal"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG scanner boundary 4 preserves fill and segment traversal",
+        "status": "passed"
+      },
+      "equivalence": "Private seek-offset scanner on a malformed fragment maps to complete original marker-fill traversal and terminal truncation rejection; no arbitrary seek API or malformed JPEG admission."
     },
     {
       "source": {
@@ -1198,10 +2051,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_MarkerFinder::it_can_find_the_next_marker_after_a_given_offset[next_fixture5]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG scanner boundary 6 preserves fill and segment traversal"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG scanner boundary 6 preserves fill and segment traversal",
+        "status": "passed"
+      },
+      "equivalence": "Private seek-offset scanner on a malformed fragment maps to complete original marker-fill traversal and terminal truncation rejection; no arbitrary seek API or malformed JPEG admission."
     },
     {
       "source": {
@@ -1211,10 +2074,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_MarkerFinder::it_can_find_the_next_marker_after_a_given_offset[next_fixture6]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG scanner boundary 8 preserves fill and segment traversal"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG scanner boundary 8 preserves fill and segment traversal",
+        "status": "passed"
+      },
+      "equivalence": "Private seek-offset scanner on a malformed fragment maps to complete original marker-fill traversal and terminal truncation rejection; no arbitrary seek API or malformed JPEG admission."
     },
     {
       "source": {
@@ -1224,10 +2097,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_MarkerParser::it_can_construct_from_a_jfif_stream"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG segment reader owned metadata extraction"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG segment reader owned metadata extraction",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1237,10 +2120,20 @@
         "node_id": "tests/image/test_jpeg.py::Describe_MarkerParser::it_can_iterate_over_the_jfif_markers_in_its_stream"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "JPEG segment reader marker traversal"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "JPEG segment reader marker traversal",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1250,10 +2143,20 @@
         "node_id": "tests/image/test_png.py::DescribePng::it_can_construct_from_a_png_stream"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG owned metadata admission"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG owned metadata admission",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1263,10 +2166,20 @@
         "node_id": "tests/image/test_png.py::DescribePng::it_knows_its_content_type"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG signature MIME"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG signature MIME",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1276,10 +2189,20 @@
         "node_id": "tests/image/test_png.py::DescribePng::it_knows_its_default_ext"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG canonical suffix"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG canonical suffix",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1289,10 +2212,20 @@
         "node_id": "tests/image/test_png.py::Describe_PngParser::it_can_parse_the_headers_of_a_PNG_stream"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG header reader owned metadata admission"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG header reader owned metadata admission",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1302,10 +2235,20 @@
         "node_id": "tests/image/test_png.py::Describe_PngParser::it_knows_the_image_width_and_height"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG header reader dimension extraction"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG header reader dimension extraction",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1315,10 +2258,20 @@
         "node_id": "tests/image/test_png.py::Describe_PngParser::it_knows_the_image_dpi"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG header reader physical density extraction"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG header reader physical density extraction",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1328,10 +2281,20 @@
         "node_id": "tests/image/test_png.py::Describe_PngParser::it_defaults_image_dpi_to_72[no_dpi_fixture0]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG density fallback no_setting 0"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG density fallback no_setting 0",
+        "status": "passed"
+      },
+      "equivalence": "Native mock null unit/density maps to absent metadata; invalid encoded units/truncated fields reject. Valid absent/zero axes independently fall back to 72."
     },
     {
       "source": {
@@ -1341,10 +2304,20 @@
         "node_id": "tests/image/test_png.py::Describe_PngParser::it_defaults_image_dpi_to_72[no_dpi_fixture1]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG density fallback no_setting 1"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG density fallback no_setting 1",
+        "status": "passed"
+      },
+      "equivalence": "Native mock null unit/density maps to absent metadata; invalid encoded units/truncated fields reject. Valid absent/zero axes independently fall back to 72."
     },
     {
       "source": {
@@ -1354,10 +2327,20 @@
         "node_id": "tests/image/test_png.py::Describe_PngParser::it_defaults_image_dpi_to_72[no_dpi_fixture2]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG density fallback no_setting 2"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG density fallback no_setting 2",
+        "status": "passed"
+      },
+      "equivalence": "Native mock null unit/density maps to absent metadata; invalid encoded units/truncated fields reject. Valid absent/zero axes independently fall back to 72."
     },
     {
       "source": {
@@ -1367,10 +2350,20 @@
         "node_id": "tests/image/test_png.py::Describe_PngParser::it_defaults_image_dpi_to_72[no_dpi_fixture3]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG density fallback no_setting 3"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG density fallback no_setting 3",
+        "status": "passed"
+      },
+      "equivalence": "Native mock null unit/density maps to absent metadata; invalid encoded units/truncated fields reject. Valid absent/zero axes independently fall back to 72."
     },
     {
       "source": {
@@ -1380,10 +2373,20 @@
         "node_id": "tests/image/test_png.py::Describe_PngParser::it_defaults_image_dpi_to_72[no_dpi_fixture4]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG density fallback no_setting 4"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG density fallback no_setting 4",
+        "status": "passed"
+      },
+      "equivalence": "Native mock null unit/density maps to absent metadata; invalid encoded units/truncated fields reject. Valid absent/zero axes independently fall back to 72."
     },
     {
       "source": {
@@ -1393,10 +2396,20 @@
         "node_id": "tests/image/test_png.py::Describe_Chunks::it_can_construct_from_a_stream"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG chunk sequence owned metadata admission"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG chunk sequence owned metadata admission",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1406,10 +2419,20 @@
         "node_id": "tests/image/test_png.py::Describe_Chunks::it_provides_access_to_the_IHDR_chunk"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG chunk sequence dimension chunk selection"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG chunk sequence dimension chunk selection",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1419,10 +2442,20 @@
         "node_id": "tests/image/test_png.py::Describe_Chunks::it_provides_access_to_the_pHYs_chunk[True]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG optional density present is observable"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG optional density present is observable",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1432,10 +2465,20 @@
         "node_id": "tests/image/test_png.py::Describe_Chunks::it_provides_access_to_the_pHYs_chunk[False]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG optional density absent is observable"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG optional density absent is observable",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1445,10 +2488,20 @@
         "node_id": "tests/image/test_png.py::Describe_Chunks::it_raises_if_theres_no_IHDR_chunk"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG without a dimension header rejects"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG without a dimension header rejects",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1458,10 +2511,20 @@
         "node_id": "tests/image/test_png.py::Describe_ChunkParser::it_can_construct_from_a_stream"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG chunk reader owned metadata admission"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG chunk reader owned metadata admission",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1471,10 +2534,20 @@
         "node_id": "tests/image/test_png.py::Describe_ChunkParser::it_can_iterate_over_the_chunks_in_its_png_stream"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG chunk reader ordered chunk traversal"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG chunk reader ordered chunk traversal",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1484,10 +2557,20 @@
         "node_id": "tests/image/test_png.py::Describe_ChunkParser::it_iterates_over_the_chunk_offsets_to_help_parse"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG chunk reader bounded ancillary intervals"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG chunk reader bounded ancillary intervals",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1497,10 +2580,20 @@
         "node_id": "tests/image/test_png.py::Describe_ChunkFactory::it_constructs_the_appropriate_Chunk_subclass[IHDR]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG chunk dispatch dimension chunk selection"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG chunk dispatch dimension chunk selection",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1510,10 +2603,20 @@
         "node_id": "tests/image/test_png.py::Describe_ChunkFactory::it_constructs_the_appropriate_Chunk_subclass[pHYs]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG chunk dispatch chunk role pHYs"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG chunk dispatch chunk role pHYs",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1523,10 +2626,20 @@
         "node_id": "tests/image/test_png.py::Describe_ChunkFactory::it_constructs_the_appropriate_Chunk_subclass[IEND]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG chunk dispatch chunk role IEND"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG chunk dispatch chunk role IEND",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1536,10 +2649,20 @@
         "node_id": "tests/image/test_png.py::Describe_Chunk::it_can_construct_from_a_stream_and_offset"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG record bounded ancillary intervals"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG record bounded ancillary intervals",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1549,10 +2672,20 @@
         "node_id": "tests/image/test_png.py::Describe_IHDRChunk::it_can_construct_from_a_stream_and_offset"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG dimension record bounded ancillary intervals"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG dimension record bounded ancillary intervals",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1562,10 +2695,20 @@
         "node_id": "tests/image/test_png.py::Describe_pHYsChunk::it_can_construct_from_a_stream_and_offset"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "PNG density record bounded ancillary intervals"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "PNG density record bounded ancillary intervals",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1575,10 +2718,20 @@
         "node_id": "tests/image/test_tiff.py::DescribeTiff::it_can_construct_from_a_tiff_stream"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF admission extracts independent dimensions and densities"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF admission extracts independent dimensions and densities",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1588,10 +2741,20 @@
         "node_id": "tests/image/test_tiff.py::DescribeTiff::it_knows_its_content_type"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF signature MIME"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF signature MIME",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1601,10 +2764,20 @@
         "node_id": "tests/image/test_tiff.py::DescribeTiff::it_knows_its_default_ext"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF canonical suffix"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF canonical suffix",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1614,10 +2787,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_TiffParser::it_can_parse_the_properties_from_a_tiff_stream"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF directory reader owned header extraction"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF directory reader owned header extraction",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1627,10 +2810,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_TiffParser::it_makes_a_stream_reader_to_help_parse[mk_stream_rdr_fixture0]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF big endian directory admission"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF big endian directory admission",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1640,10 +2833,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_TiffParser::it_makes_a_stream_reader_to_help_parse[mk_stream_rdr_fixture1]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF little endian directory admission"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF little endian directory admission",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1653,10 +2856,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_TiffParser::it_knows_image_width_and_height_after_parsing"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF directory reader dimension extraction"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF directory reader dimension extraction",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1666,10 +2879,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_TiffParser::it_knows_the_horz_and_vert_dpi_after_parsing[dpi_fixture0]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF resolution variant setting 0"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF resolution variant setting 0",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1679,10 +2902,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_TiffParser::it_knows_the_horz_and_vert_dpi_after_parsing[dpi_fixture1]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF resolution variant setting 1"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF resolution variant setting 1",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1692,10 +2925,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_TiffParser::it_knows_the_horz_and_vert_dpi_after_parsing[dpi_fixture2]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF resolution variant setting 2"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF resolution variant setting 2",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1705,10 +2948,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_TiffParser::it_knows_the_horz_and_vert_dpi_after_parsing[dpi_fixture3]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF resolution variant setting 3"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF resolution variant setting 3",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1718,10 +2971,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_TiffParser::it_knows_the_horz_and_vert_dpi_after_parsing[dpi_fixture4]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF resolution variant setting 4"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF resolution variant setting 4",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1731,10 +2994,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_IfdEntries::it_can_construct_from_a_stream_and_offset"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF directory fields owned header extraction"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF directory fields owned header extraction",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1744,10 +3017,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_IfdEntries::it_has_basic_mapping_semantics"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF directory fields tag selection independent of ordering"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF directory fields tag selection independent of ordering",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1757,10 +3040,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_IfdParser::it_can_iterate_through_the_directory_entries_in_an_IFD"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF directory traversal directory traversal"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF directory traversal directory traversal",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1770,10 +3063,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_IfdEntryFactory::it_constructs_the_right_class_for_a_given_ifd_entry[fixture0]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF inert directory type 1 remains bounded"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF inert directory type 1 remains bounded",
+        "status": "passed"
+      },
+      "equivalence": "Private typed directory-entry factory maps to safe bounded traversal of each valid entry type; unknown inert values are not exposed."
     },
     {
       "source": {
@@ -1783,10 +3086,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_IfdEntryFactory::it_constructs_the_right_class_for_a_given_ifd_entry[fixture1]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF inert directory type 2 remains bounded"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF inert directory type 2 remains bounded",
+        "status": "passed"
+      },
+      "equivalence": "Private typed directory-entry factory maps to safe bounded traversal of each valid entry type; unknown inert values are not exposed."
     },
     {
       "source": {
@@ -1796,10 +3109,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_IfdEntryFactory::it_constructs_the_right_class_for_a_given_ifd_entry[fixture2]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF inert directory type 3 remains bounded"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF inert directory type 3 remains bounded",
+        "status": "passed"
+      },
+      "equivalence": "Private typed directory-entry factory maps to safe bounded traversal of each valid entry type; unknown inert values are not exposed."
     },
     {
       "source": {
@@ -1809,10 +3132,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_IfdEntryFactory::it_constructs_the_right_class_for_a_given_ifd_entry[fixture3]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF inert directory type 4 remains bounded"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF inert directory type 4 remains bounded",
+        "status": "passed"
+      },
+      "equivalence": "Private typed directory-entry factory maps to safe bounded traversal of each valid entry type; unknown inert values are not exposed."
     },
     {
       "source": {
@@ -1822,10 +3155,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_IfdEntryFactory::it_constructs_the_right_class_for_a_given_ifd_entry[fixture4]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF inert directory type 5 remains bounded"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF inert directory type 5 remains bounded",
+        "status": "passed"
+      },
+      "equivalence": "Private typed directory-entry factory maps to safe bounded traversal of each valid entry type; unknown inert values are not exposed."
     },
     {
       "source": {
@@ -1835,10 +3178,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_IfdEntryFactory::it_constructs_the_right_class_for_a_given_ifd_entry[fixture5]"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF inert directory type 6 remains bounded"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF inert directory type 6 remains bounded",
+        "status": "passed"
+      },
+      "equivalence": "Private typed directory-entry factory maps to safe bounded traversal of each valid entry type; unknown inert values are not exposed."
     },
     {
       "source": {
@@ -1848,10 +3201,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_IfdEntry::it_can_construct_from_a_stream_and_offset"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF directory field owned header extraction"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF directory field owned header extraction",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1861,10 +3224,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_IfdEntry::it_provides_read_only_access_to_the_directory_entry"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF directory field metadata ownership"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF directory field metadata ownership",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1874,10 +3247,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_AsciiIfdEntry::it_can_parse_an_ascii_string_IFD_entry"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF text field bounded original ASCII field"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF text field bounded original ASCII field",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1887,10 +3270,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_ShortIfdEntry::it_can_parse_a_short_int_IFD_entry"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF short field SHORT dimension field"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF short field SHORT dimension field",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1900,10 +3293,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_LongIfdEntry::it_can_parse_a_long_int_IFD_entry"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF long field LONG dimension field"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF long field LONG dimension field",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -1913,10 +3316,20 @@
         "node_id": "tests/image/test_tiff.py::Describe_RationalIfdEntry::it_can_parse_a_rational_IFD_entry"
       },
       "owning_task": "raster-image-insertion",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/image-characterization-variants.test.ts",
+        "title": "TIFF rational field fractional rational fields"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-image-receipt.json",
+        "test": "TIFF rational field fractional rational fields",
+        "status": "passed"
+      },
+      "equivalence": "Original signature-valid headers replace detached parser/mock objects; observe admitted metadata, traversal or typed rejection."
     },
     {
       "source": {
@@ -5227,7 +6640,8 @@
     "packages/docx/src/style-model-batch.ts": "cdffb58fc8df0e85e9797dcb8006e5c2933b5e08de1918972c9b35b97bcc2f4b",
     "packages/docx/src/operation-schema-data.ts": "0a6050ab305e29cfdb3460c1b296e8d001668e28c2bd7b702380d0ca736f4608",
     "packages/docx/src/style-model-result-schema.ts": "7e139ac1830fd1668ff01ac42fe1f01d6da6dcec3ebe0102715b6e3d97838653",
-    "packages/docx/src/xml-sequence-cases.test.ts": "91e13d1577e7acc40192532a9bca5aa16971633417b530f0b592f6b692b2a815"
+    "packages/docx/src/xml-sequence-cases.test.ts": "91e13d1577e7acc40192532a9bca5aa16971633417b530f0b592f6b692b2a815",
+    "packages/docx/src/image-characterization-variants.test.ts": "12ef0e38ab1aa2788533fac079981463ce33b6997a697fe701d90a1d6ef4c08f"
   },
   "batch_tdd": [
     {

@@ -185,6 +185,17 @@ Exact receipt: `docs/docx/opc-xml-image-relationship-deletion-receipt.json`.
 The native one-reference drop threshold is superseded by graph integrity;
 the dedicated zero/one/two adaptation rows will record that mapping explicitly.
 
+### Image characterization adaptation
+
+All 138 image rows now have independently named original memfs tests and exact
+passing links. Bounded header records retain endian/field/unit/marker variants,
+logical dimensions and scaling edges; original nearest-integer density encodings
+retain exact 0.0254 conversion and independent per-axis fallback. Private detached
+parser/factory/seek mechanics map to admitted metadata, bounded traversal, owned
+bytes and typed rejection. No pixel decoding/rendering parity is claimed.
+The 138-test family and all maintained completion checks pass; receipt:
+`docs/docx/opc-xml-image-image-receipt.json`. Ledger: 169 passing, 200 pending.
+
 `549d639ae` adds checked URI values with typed batch CLI/schema/discovery parity.
 The next atomic test commit delivers the 22 original XML sequence variants and
 their passing row reconciliations. Both use the final maintained checks above.

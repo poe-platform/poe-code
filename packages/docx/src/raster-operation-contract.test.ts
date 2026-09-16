@@ -32,9 +32,7 @@ it("keeps insertion PNG and JPEG only while five formats have standalone read su
   expect(getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "model.image.image.Image.from_blob.call" } })!.data).toMatchObject({ operations: [{ support: "read", featureIds: ["F32"] }] });
   expect(getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "images.replace" } })!.data).toMatchObject({ operations: [{ support: "edit", featureIds: ["F32", "F35"] }] });
   expect(getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "model.parts.image.ImagePart.from_image.call" } })!.data).toMatchObject({ operations: [{ support: "edit", featureIds: ["F01", "F32"] }] });
-  for (const operation of ["model.shape.InlineShapes.__len__.get"]) {
-    expect(getDocxDiscovery({ operation: "schema", inputs: [], options: { operation } })!.data).toMatchObject({ operations: [{ support: "reject" }] });
-  }
+  expect(getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "model.shape.InlineShapes.__len__.get" } })!.data).toMatchObject({ operations: [{ support: "read" }] });
 });
 it("declares original inline insertion receipts and honest native-sizing help", () => {
   const data = getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "images.add" } })!.data as DocxSchemaData;

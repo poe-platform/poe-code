@@ -1,0 +1,4 @@
+packages/docx/src/inline-shape-model.test.ts 31ms
+packages/docx/src/inline-image-xml.ts 6ms
+packages/docx/src/document-model.ts 17ms
+packages/docx/src/structure-model-batch-operations.ts 21ms (unchanged)

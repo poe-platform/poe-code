@@ -1,0 +1,45 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/inline-shape-model.test.ts (2 tests | 1 failed) 244ms
+   ✓ admits inline picture bytes asynchronously and retains live shape sizing through save 173ms
+   × returns synchronous admitted image metadata from an ordered run drawing 70ms
+FAIL packages/docx/src/inline-shape-model.test.ts > returns synchronous admitted image metadata from an ordered run drawing
+Error: This image part has no admitted bounded raster characterization.
+ ❯ PackageView.[image] packages/docx/src/package-view.ts:149:23
+    147|   [packageImage](part: ImagePartView): Image {
+    148|     const image = this.#images.get(this[packageMetadata](part).partnam…
+    149|     if (!image) throw new UnsupportedEditError("This image part has no…
+       |                       ^
+    150|     return image;
+    151|   }
+ ❯ ImagePartView.get image [as image] packages/docx/src/package-view.ts:500:56
+ ❯ Drawing.get image [as image] packages/docx/src/inline-shape-model.ts:37:17
+ ❯ packages/docx/src/inline-shape-model.test.ts:40:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'unsupported-edit' }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/inline-shape-model.test.ts > returns synchronous admitted image metadata from an ordered run drawing
+Error: This image part has no admitted bounded raster characterization.
+ ❯ PackageView.[image] packages/docx/src/package-view.ts:149:23
+    147|   [packageImage](part: ImagePartView): Image {
+    148|     const image = this.#images.get(this[packageMetadata](part).partnam…
+    149|     if (!image) throw new UnsupportedEditError("This image part has no…
+       |                       ^
+    150|     return image;
+    151|   }
+ ❯ ImagePartView.get image [as image] packages/docx/src/package-view.ts:500:56
+ ❯ Drawing.get image [as image] packages/docx/src/inline-shape-model.ts:37:17
+ ❯ packages/docx/src/inline-shape-model.test.ts:40:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  22:58:35
+   Duration  1.43s (transform 908ms, setup 36ms, import 1.06s, tests 244ms, environment 0ms)
+

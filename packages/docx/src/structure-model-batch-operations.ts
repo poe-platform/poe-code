@@ -1,6 +1,9 @@
 import { docxOperationSchemas, docxEnumCanonicalNames } from "./operation-schema.js";
 import { DocxUsageError } from "./argument-json.js";
 import { Settings } from "./settings-model.js";
+import { Drawing, InlineShape, InlineShapes } from "./inline-shape-model.js";
+import { acquireImageModelInput, type ImageModelInput } from "./image-model.js";
+import type { DocxBinaryInput } from "./operation-types.js";
 import { DocumentView } from "./document-model.js";
 import { Paragraph, Run } from "./block-model.js";
 import { Table, _Cell, _Row, _Column, _Rows, _Columns } from "./table-model.js";
@@ -44,13 +47,21 @@ function surface(
       const values = fields.map((field) => {
         const value = args[field];
         const type = docxOperationSchemas[key]!.batchFields![field]!.type;
-        const family = enumFamilies[(docxEnumCanonicalNames[type] ?? type) as keyof typeof enumFamilies];
+        const family =
+          enumFamilies[(docxEnumCanonicalNames[type] ?? type) as keyof typeof enumFamilies];
         if (family && value !== undefined && value !== null && !isEnumMember(value)) {
-          const member = family.members[(value as { name: string }).name as keyof typeof family.members];
+          const member =
+            family.members[(value as { name: string }).name as keyof typeof family.members];
           if (!member) throw new DocxUsageError("Unknown enum value.");
           return member;
         }
-        if (field === "width" && value !== undefined && value !== null && !isLength(value))
+        if (
+          (field === "width" || field === "height") &&
+          type === "Length" &&
+          value !== undefined &&
+          value !== null &&
+          !isLength(value)
+        )
           return Length(paragraphUnits(value as DocxLength, 1));
         return value;
       });
@@ -69,9 +80,27 @@ function surface(
 surface(
   "model.document.Document",
   () => DocumentView,
-  ["paragraphs", "tables", "sections", "comments", "core_properties", "styles", "settings"],
+  [
+    "paragraphs",
+    "tables",
+    "sections",
+    "comments",
+    "core_properties",
+    "styles",
+    "settings",
+    "inline_shapes"
+  ],
   [],
-  ["add_comment", "add_paragraph", "add_table", "add_heading", "add_page_break", "add_section", "iter_inner_content"]
+  [
+    "add_comment",
+    "add_paragraph",
+    "add_table",
+    "add_heading",
+    "add_page_break",
+    "add_section",
+    "add_picture",
+    "iter_inner_content"
+  ]
 );
 surface(
   "model.settings.Settings",
@@ -101,8 +130,56 @@ surface(
   () => Run,
   ["text", "font", "style", "bold", "italic", "underline", "contains_page_break"],
   ["text", "style", "bold", "italic", "underline"],
-  ["add_break", "add_tab", "add_text", "clear", "mark_comment_range"]
+  ["add_break", "add_tab", "add_text", "clear", "mark_comment_range", "add_picture"]
 );
+register(
+  "model.text.run.Run.iter_inner_content.call",
+  () => Run,
+  (receiver) => [...(receiver as Run).iter_inner_content()]
+);
+surface(
+  "model.shape.InlineShape",
+  () => InlineShape,
+  ["width", "height", "type"],
+  ["width", "height"],
+  []
+);
+surface("model.drawing.Drawing", () => Drawing, ["has_picture", "image", "_drawing"], [], []);
+surface("model.shape.InlineShapes", () => InlineShapes, [], [], []);
+register(
+  "model.shape.InlineShapes.__len__.get",
+  () => InlineShapes,
+  (receiver) => (receiver as InlineShapes).length
+);
+register(
+  "model.shape.InlineShapes.__iter__.call",
+  () => InlineShapes,
+  (receiver) => [...(receiver as InlineShapes)]
+);
+register(
+  "model.shape.InlineShapes.__getitem__.get",
+  () => InlineShapes,
+  (receiver, args) => (receiver as InlineShapes).at(args.index as number)
+);
+for (const [prefix, owner] of [
+  ["model.document.Document", () => DocumentView],
+  ["model.text.run.Run", () => Run]
+] as const)
+  register(`${prefix}.add_picture.call`, owner, async (receiver, args) => {
+    const model = receiver as DocumentView | Run;
+    const descriptor = args.input as ImageModelInput | DocxBinaryInput;
+    const input =
+      descriptor instanceof Uint8Array
+        ? descriptor
+        : "path" in descriptor
+          ? { path: descriptor.path, capability: descriptor.capability }
+          : (await acquireImageModelInput(descriptor, model.store.context)).bytes;
+    return model.add_picture(
+      input,
+      args.width as Length | null | undefined,
+      args.height as Length | null | undefined
+    );
+  });
 surface(
   "model.table.Table",
   () => Table,

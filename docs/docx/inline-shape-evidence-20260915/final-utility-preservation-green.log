@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/raster-operation-contract.test.ts (7 tests) 76ms
+ ✓ packages/docx/src/image-insertion.test.ts (39 tests) 4359ms
+
+ Test Files  2 passed (2)
+      Tests  46 passed (46)
+   Start at  23:08:20
+   Duration  5.39s (transform 1.38s, setup 59ms, import 1.64s, tests 4.43s, environment 0ms)
+

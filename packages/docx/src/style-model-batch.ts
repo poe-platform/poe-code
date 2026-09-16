@@ -6,6 +6,7 @@ import { isLength, plainLength, Length, Inches, Cm, Mm, Pt, Twips } from "./form
 import { Image, type ImageModelContext } from "./image-model.js";
 import { imageBatchActions } from "./image-batch-operations.js";
 import { Document, DocumentView } from "./document-model.js";
+import { Drawing, InlineShape, InlineShapes } from "./inline-shape-model.js";
 import { Settings } from "./settings-model.js";
 import { Paragraph, Run } from "./block-model.js";
 import { Table, _Cell, _Row, _Column, _Rows, _Columns } from "./table-model.js";
@@ -37,7 +38,7 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
   let revision = currentRevision();
   let pendingStylesCreation = revision !== 0;
 
-  const isModel = (value: unknown): value is object => value instanceof _NumberingDefinitions || value instanceof Settings || value instanceof DocumentView || value instanceof Paragraph || value instanceof Run || value instanceof Table || value instanceof _Cell || value instanceof _Row || value instanceof _Column || value instanceof _Rows || value instanceof _Columns || value instanceof Section || value instanceof Sections || value instanceof _Header || value instanceof _Footer || value instanceof Comments || value instanceof Comment || value instanceof Hyperlink || value instanceof RenderedPageBreak || value instanceof Styles || value instanceof BaseStyle || value instanceof LatentStyles || value instanceof LatentStyle || value instanceof Font || value instanceof ParagraphFormat || value instanceof TabStops || value instanceof TabStop || value instanceof ColorFormat || value instanceof RGBColor || value instanceof PartView || value instanceof PackageView || value instanceof Relationships || value instanceof RelationshipView || value instanceof XmlElementView || value instanceof CoreProperties || value instanceof ImageParts;
+  const isModel = (value: unknown): value is object => value instanceof Drawing || value instanceof InlineShape || value instanceof InlineShapes || value instanceof _NumberingDefinitions || value instanceof Settings || value instanceof DocumentView || value instanceof Paragraph || value instanceof Run || value instanceof Table || value instanceof _Cell || value instanceof _Row || value instanceof _Column || value instanceof _Rows || value instanceof _Columns || value instanceof Section || value instanceof Sections || value instanceof _Header || value instanceof _Footer || value instanceof Comments || value instanceof Comment || value instanceof Hyperlink || value instanceof RenderedPageBreak || value instanceof Styles || value instanceof BaseStyle || value instanceof LatentStyles || value instanceof LatentStyle || value instanceof Font || value instanceof ParagraphFormat || value instanceof TabStops || value instanceof TabStop || value instanceof ColorFormat || value instanceof RGBColor || value instanceof PartView || value instanceof PackageView || value instanceof Relationships || value instanceof RelationshipView || value instanceof XmlElementView || value instanceof CoreProperties || value instanceof ImageParts;
   const type = (value: object): string => value instanceof DocumentView ? "DocumentModel" : value instanceof _Header ? "_Header" : value instanceof _Footer ? "_Footer" : value instanceof XmlElementView ? "XmlElementView" : value instanceof ImagePartView ? "ImagePart" : value instanceof CorePropertiesPartView ? "CorePropertiesPart" : value instanceof DocumentPartView ? "DocumentPart" : value instanceof NumberingPart ? "NumberingPart" : value instanceof XmlPartView ? value instanceof StylePartView ? "StylesPart" : "XmlPartView" : value instanceof PartView ? "PartView" : value instanceof PackageView ? "PackageView" : value instanceof RelationshipView ? "RelationshipView" : value instanceof TableStyle ? "_TableStyle" : value instanceof ParagraphStyle ? "ParagraphStyle" : value instanceof CharacterStyle ? "CharacterStyle" : value instanceof BaseStyle ? "BaseStyle" : value instanceof LatentStyle ? "_LatentStyle" : value.constructor.name;
   function encode(value: unknown): unknown {
     if (value instanceof Date) return value.toISOString();
@@ -82,9 +83,9 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
       if (typeof record.resultHandle !== "string" || !named.has(record.resultHandle)) throw new DocxUsageError("Unknown model result handle.");
       let found = named.get(record.resultHandle);
       if (record.index !== undefined) {
-        const sequence = Array.isArray(found) || found instanceof Sections || found instanceof _Rows || found instanceof _Columns;
+        const sequence = Array.isArray(found) || found instanceof InlineShapes || found instanceof Sections || found instanceof _Rows || found instanceof _Columns;
         if (!sequence || !Number.isSafeInteger(record.index) || Number(record.index) < 0 || Number(record.index) >= (found as { length: number }).length) throw new DocxUsageError("Result handle index is out of bounds.");
-        found = Array.isArray(found) ? found[Number(record.index)] : (found as Sections | _Rows | _Columns).at(Number(record.index));
+        found = Array.isArray(found) ? found[Number(record.index)] : (found as InlineShapes | Sections | _Rows | _Columns).at(Number(record.index));
       }
       if (record.key !== undefined) {
         if (typeof record.key === "string" && found instanceof Map) {

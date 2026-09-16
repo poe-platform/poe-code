@@ -1,0 +1,163 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/model-active-content.test.ts (4 tests | 4 failed) 195ms
+   × counts only active inline drawing alternatives 53ms
+   × uses graphic data URI rather than arbitrary descendant tags for shape type 41ms
+   × reads selected page header policy and excludes inactive alternatives 50ms
+   × inserts the page header policy before later settings properties 51ms
+FAIL packages/docx/src/model-active-content.test.ts > counts only active inline drawing alternatives
+AssertionError: expected InlineShapes{ …(3) } to have a length of 1 but got 2
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ packages/docx/src/model-active-content.test.ts:12:34
+     10| it("counts only active inline drawing alternatives", async () => {
+     11|   const document = await Document(await textFixture(`<w:p>${alternate(…
+     12|   expect(document.inline_shapes).toHaveLength(1);
+       |                                  ^
+     13|   expect([...document.inline_shapes]).toHaveLength(1);
+     14|   expect(document.inline_shapes.at(0).width.emu).toBe(12700);
+
+FAIL packages/docx/src/model-active-content.test.ts > uses graphic data URI rather than arbitrary descendant tags for shape type
+AssertionError: expected { Object (enum, name) } to be { Object (enum, name) } // Object.is equality
+
+- Expected
++ Received
+
+  {
+    "enum": "WD_INLINE_SHAPE_TYPE",
+-   "name": "CHART",
++   "name": "NOT_IMPLEMENTED",
+  }
+
+ ❯ packages/docx/src/model-active-content.test.ts:23:47
+     21|   ] as const) {
+     22|     const document = await Document(await textFixture(`<w:p>${drawing(…
+     23|     expect(document.inline_shapes.at(0).type).toBe(expected);
+       |                                               ^
+     24|   }
+     25| });
+
+FAIL packages/docx/src/model-active-content.test.ts > reads selected page header policy and excludes inactive alternatives
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ packages/docx/src/model-active-content.test.ts:29:62
+
+
+FAIL packages/docx/src/model-active-content.test.ts > inserts the page header policy before later settings properties
+AssertionError: expected [ 'compat', 'evenAndOddHeaders' ] to deeply equal [ 'evenAndOddHeaders', 'compat' ]
+
+- Expected
++ Received
+
+  [
+-   "evenAndOddHeaders",
+    "compat",
++   "evenAndOddHeaders",
+  ]
+
+ ❯ packages/docx/src/model-active-content.test.ts:36:53
+     34|   document.settings.odd_and_even_pages_header_footer = true;
+     35|   const root = parseDocumentXml(document.settings.element.serialize())…
+     36|   expect(root.children.map(node => node.localName)).toEqual(["evenAndO…
+       |                                                     ^
+     37| });
+     38|
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/model-active-content.test.ts > counts only active inline drawing alternatives
+AssertionError: expected InlineShapes{ …(3) } to have a length of 1 but got 2
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ packages/docx/src/model-active-content.test.ts:12:34
+     10| it("counts only active inline drawing alternatives", async () => {
+     11|   const document = await Document(await textFixture(`<w:p>${alternate(…
+     12|   expect(document.inline_shapes).toHaveLength(1);
+       |                                  ^
+     13|   expect([...document.inline_shapes]).toHaveLength(1);
+     14|   expect(document.inline_shapes.at(0).width.emu).toBe(12700);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  packages/docx/src/model-active-content.test.ts > uses graphic data URI rather than arbitrary descendant tags for shape type
+AssertionError: expected { Object (enum, name) } to be { Object (enum, name) } // Object.is equality
+
+- Expected
++ Received
+
+  {
+    "enum": "WD_INLINE_SHAPE_TYPE",
+-   "name": "CHART",
++   "name": "NOT_IMPLEMENTED",
+  }
+
+ ❯ packages/docx/src/model-active-content.test.ts:23:47
+     21|   ] as const) {
+     22|     const document = await Document(await textFixture(`<w:p>${drawing(…
+     23|     expect(document.inline_shapes.at(0).type).toBe(expected);
+       |                                               ^
+     24|   }
+     25| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  packages/docx/src/model-active-content.test.ts > reads selected page header policy and excludes inactive alternatives
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ packages/docx/src/model-active-content.test.ts:29:62
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  packages/docx/src/model-active-content.test.ts > inserts the page header policy before later settings properties
+AssertionError: expected [ 'compat', 'evenAndOddHeaders' ] to deeply equal [ 'evenAndOddHeaders', 'compat' ]
+
+- Expected
++ Received
+
+  [
+-   "evenAndOddHeaders",
+    "compat",
++   "evenAndOddHeaders",
+  ]
+
+ ❯ packages/docx/src/model-active-content.test.ts:36:53
+     34|   document.settings.odd_and_even_pages_header_footer = true;
+     35|   const root = parseDocumentXml(document.settings.element.serialize())…
+     36|   expect(root.children.map(node => node.localName)).toEqual(["evenAndO…
+       |                                                     ^
+     37| });
+     38|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed (4)
+   Start at  22:53:10
+   Duration  1.23s (transform 812ms, setup 28ms, import 952ms, tests 195ms, environment 0ms)
+

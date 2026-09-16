@@ -1,0 +1,83 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/model-active-content.test.ts (6 tests | 2 failed) 324ms
+   ✓ counts only active inline drawing alternatives 55ms
+   × reads and changes only selected outer and inner shape extents 49ms
+   × rejects empty lexical inline extents 39ms
+   ✓ uses graphic data URI rather than arbitrary descendant tags for shape type 79ms
+   ✓ reads selected page header policy and excludes inactive alternatives 50ms
+   ✓ inserts the page header policy before later settings properties 51ms
+FAIL packages/docx/src/model-active-content.test.ts > reads and changes only selected outer and inner shape extents
+RangeError: Invalid inline shape extent.
+ ❯ InlineShape.extent packages/docx/src/inline-shape-model.ts:71:91
+     69|     const node = this.store.node(this.ref), extent = node.children.fin…
+     70|     const raw = extent?.attributes.find(a => a.namespace === "" && a.l…
+     71|     if (raw === undefined || !Number.isSafeInteger(Number(raw)) || Num…
+       |                                                                                           ^
+     72|     return Emu(Number(raw));
+     73|   }
+ ❯ InlineShape.get width [as width] packages/docx/src/inline-shape-model.ts:86:29
+ ❯ packages/docx/src/model-active-content.test.ts:21:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'usage' }
+FAIL packages/docx/src/model-active-content.test.ts > rejects empty lexical inline extents
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ packages/docx/src/model-active-content.test.ts:31:52
+     29| it("rejects empty lexical inline extents", async () => {
+     30|   const document = await Document(await textFixture(`<w:p>${drawing(pi…
+     31|   expect(() => document.inline_shapes.at(0).width).toThrow("Invalid in…
+       |                                                    ^
+     32| });
+     33|
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/model-active-content.test.ts > reads and changes only selected outer and inner shape extents
+RangeError: Invalid inline shape extent.
+ ❯ InlineShape.extent packages/docx/src/inline-shape-model.ts:71:91
+     69|     const node = this.store.node(this.ref), extent = node.children.fin…
+     70|     const raw = extent?.attributes.find(a => a.namespace === "" && a.l…
+     71|     if (raw === undefined || !Number.isSafeInteger(Number(raw)) || Num…
+       |                                                                                           ^
+     72|     return Emu(Number(raw));
+     73|   }
+ ❯ InlineShape.get width [as width] packages/docx/src/inline-shape-model.ts:86:29
+ ❯ packages/docx/src/model-active-content.test.ts:21:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/docx/src/model-active-content.test.ts > rejects empty lexical inline extents
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ packages/docx/src/model-active-content.test.ts:31:52
+     29| it("rejects empty lexical inline extents", async () => {
+     30|   const document = await Document(await textFixture(`<w:p>${drawing(pi…
+     31|   expect(() => document.inline_shapes.at(0).width).toThrow("Invalid in…
+       |                                                    ^
+     32| });
+     33|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 4 passed (6)
+   Start at  22:57:58
+   Duration  1.66s (transform 1.04s, setup 35ms, import 1.23s, tests 324ms, environment 0ms)
+

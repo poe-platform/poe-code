@@ -1,0 +1,61 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/model-active-content.test.ts (6 tests | 1 failed) 314ms
+   ✓ counts only active inline drawing alternatives 51ms
+   × reads and changes only selected outer and inner shape extents 49ms
+   ✓ rejects empty lexical inline extents 38ms
+   ✓ uses graphic data URI rather than arbitrary descendant tags for shape type 76ms
+   ✓ reads selected page header policy and excludes inactive alternatives 45ms
+   ✓ inserts the page header policy before later settings properties 53ms
+FAIL packages/docx/src/model-active-content.test.ts > reads and changes only selected outer and inner shape extents
+Error: The XML edit cannot establish faithful preservation.
+ ❯ unsupported packages/docx/src/xml-write.ts:24:9
+     22|
+     23| function unsupported(): never {
+     24|   throw new UnsupportedEditError("The XML edit cannot establish faithf…
+       |         ^
+     25| }
+     26|
+ ❯ DocumentXmlEditor.#assertOwnedEdit packages/docx/src/xml-write.ts:466:116
+ ❯ DocumentXmlEditor.setQualifiedAttribute packages/docx/src/xml-write.ts:435:10
+ ❯ packages/docx/src/inline-shape-model.ts:84:75
+ ❯ ModelStore.change packages/docx/src/model-store.ts:334:7
+ ❯ packages/docx/src/inline-shape-model.ts:84:42
+ ❯ ModelStore.transaction packages/docx/src/model-store.ts:164:22
+ ❯ InlineShape.setExtent packages/docx/src/inline-shape-model.ts:77:16
+ ❯ InlineShape.set width [as width] packages/docx/src/inline-shape-model.ts:88:35
+ ❯ packages/docx/src/model-active-content.test.ts:22:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'unsupported-edit' }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/model-active-content.test.ts > reads and changes only selected outer and inner shape extents
+Error: The XML edit cannot establish faithful preservation.
+ ❯ unsupported packages/docx/src/xml-write.ts:24:9
+     22|
+     23| function unsupported(): never {
+     24|   throw new UnsupportedEditError("The XML edit cannot establish faithf…
+       |         ^
+     25| }
+     26|
+ ❯ DocumentXmlEditor.#assertOwnedEdit packages/docx/src/xml-write.ts:466:116
+ ❯ DocumentXmlEditor.setQualifiedAttribute packages/docx/src/xml-write.ts:435:10
+ ❯ packages/docx/src/inline-shape-model.ts:84:75
+ ❯ ModelStore.change packages/docx/src/model-store.ts:334:7
+ ❯ packages/docx/src/inline-shape-model.ts:84:42
+ ❯ ModelStore.transaction packages/docx/src/model-store.ts:164:22
+ ❯ InlineShape.setExtent packages/docx/src/inline-shape-model.ts:77:16
+ ❯ InlineShape.set width [as width] packages/docx/src/inline-shape-model.ts:88:35
+ ❯ packages/docx/src/model-active-content.test.ts:22:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 passed (6)
+   Start at  22:58:11
+   Duration  1.40s (transform 844ms, setup 28ms, import 994ms, tests 314ms, environment 0ms)
+

@@ -13,12 +13,15 @@ import type { DocxEnumValue } from "./operation-types.js";
 import { mergeStyleChildren } from "./style-properties.js";
 import { sectionPropertyOrder } from "./section-properties.js";
 import { runElementOpen } from "./run-properties.js";
-
 import { Settings } from "./settings-model.js";
+import { InlineShapes, insertModelImage } from "./inline-shape-model.js";
+import { Image, type ImageModelInput } from "./image-model.js";
+import { packageAdmitImages } from "./package-view.js";
 
 export class DocumentView {
   readonly ref: ModelRef;
   private boundSettings: Settings | undefined;
+  private boundInlineShapes: InlineShapes | undefined;
   constructor(readonly store: ModelStore) {
     const root = store.xml(store.mainPart).root;
     const body = root.children.find(
@@ -49,6 +52,20 @@ export class DocumentView {
   }
   get settings(): Settings {
     return (this.boundSettings ??= new Settings(this.store));
+  }
+  get inline_shapes(): InlineShapes {
+    return (this.boundInlineShapes ??= new InlineShapes(this.store, this.ref));
+  }
+  async add_picture(
+    input: ImageModelInput,
+    width?: number | Length | null,
+    height?: number | Length | null
+  ) {
+    const image = await Image.from_file(input, this.store.context);
+    return this.store.transaction(() => {
+      const run = this.add_paragraph().add_run();
+      return insertModelImage(this.store, run.ref, image, width, height);
+    });
   }
   add_comment(
     runs: import("./block-model.js").Run | readonly import("./block-model.js").Run[],
@@ -157,7 +174,9 @@ export async function Document(
           settings
         )
       : await readDocumentArchive(await acquireDocumentModelInput(input, settings), settings);
-  return new DocumentView(new ModelStore(archive, settings, archive.mainPart));
+  const store = new ModelStore(archive, settings, archive.mainPart);
+  await store.package[packageAdmitImages]();
+  return new DocumentView(store);
 }
 
 export { Paragraph, Run } from "./block-model.js";

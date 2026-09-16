@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/inline-shape-model.test.ts (2 tests) 321ms
+ ✓ packages/docx/src/model-active-content.test.ts (6 tests) 312ms
+
+ Test Files  2 passed (2)
+      Tests  8 passed (8)
+   Start at  23:00:03
+   Duration  1.35s (transform 1.59s, setup 64ms, import 1.88s, tests 632ms, environment 0ms)
+

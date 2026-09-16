@@ -1,3 +1,4 @@
+import { inlineImageRun } from "./inline-image-xml.js";
 import type { ByteSource } from "@poe-code/office-package";
 import { archiveSettings, InputTypeError, InvalidValueError, ResourceLimitError, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
@@ -170,19 +171,17 @@ export async function insertDocumentImage(input: Uint8Array, request: ImageInser
     if (archive.members.some(m => m.name === relname)) { const rels = editor.xml(relname); rels.insertChildren(rels.root, relationship); }
     else additions.set(owner, { name: relname, xml: `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${relationship}</Relationships>` });
     let drawingId = 1; while (drawingIds.has(String(drawingId))) drawingId++; if (drawingId > 4294967295) throw new ResourceLimitError("No drawing identifier is available."); drawingIds.add(String(drawingId));
-    const decorative = options.decorative ? '<di:extLst><di:ext uri="{C183D7F6-B498-43B3-948B-1728B52AA6E4}"><ad:decorative xmlns:ad="http://schemas.microsoft.com/office/drawing/2017/decorative" val="1"/></di:ext></di:extLst>' : "";
-    const blip = vectorPart ? `<di:blip ri:embed="${relationshipId}"><di:extLst><di:ext uri="{96DAC541-7B7A-43D3-8B79-37D633B846F1}"><asvg:svgBlip xmlns:asvg="http://schemas.microsoft.com/office/drawing/2016/SVG/main" xmlns:vr="${documentDialects.transitional.r}" vr:embed="${vectorRelationshipId}"/></di:ext></di:extLst></di:blip>` : `<di:blip ri:embed="${relationshipId}"/>`;
-    const prefix = `<wi:r xmlns:wi="${ns.w}" xmlns:wp="${ns.wp}" xmlns:di="${ns.a}" xmlns:pic="${ns.pic}" xmlns:ri="${ns.r}"><wi:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${size.width}" cy="${size.height}"/><wp:docPr id="${drawingId}" name="Image ${drawingId}" descr="`;
-    const suffix = `">${decorative}</wp:docPr><wp:cNvGraphicFramePr><di:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr><di:graphic><di:graphicData uri="${ns.pic}"><pic:pic><pic:nvPicPr><pic:cNvPr id="0" name="Image ${drawingId}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill>${blip}${size.crop.split(documentDialects.transitional.a).join(ns.a)}<di:stretch><di:fillRect/></di:stretch></pic:blipFill><pic:spPr><di:xfrm><di:off x="0" y="0"/><di:ext cx="${size.width}" cy="${size.height}"/></di:xfrm><di:prstGeom prst="rect"><di:avLst/></di:prstGeom></pic:spPr></pic:pic></di:graphicData></di:graphic></wp:inline></wi:drawing></wi:r>`;
+    const picture = inlineImageRun(ns, drawingId, relationshipId, size, { alt, decorative: options.decorative, ...(vectorRelationshipId ? { vectorRelationshipId } : {}) });
+    const { prefix, suffix } = picture;
     const containerPrefix = before.kind === "paragraph" ? "" : `<wi:p xmlns:wi="${ns.w}">`, containerSuffix = before.kind === "paragraph" ? "" : "</wi:p>";
     const fragments = [containerPrefix, prefix, suffix, containerSuffix]; let markupBytes = alternativeSize.bytes, markupCharacters = alternativeSize.characters;
     for (const fragment of fragments) { budget.charge("work", fragment.length); const measured = xmlTextSize(fragment, utf8); markupBytes += measured.bytes; markupCharacters += measured.characters; }
     const emptyExpansion = xml.sourceXml(node).endsWith("/>") ? xmlTextSize(node.name, utf8).bytes + (utf8 ? 2 : 4) : 0;
     const ownerBytes = ownerMember.bytes.length + markupBytes + emptyExpansion;
     budget.check("xmlPartBytes", ownerBytes); budget.charge("retainedBytes", markupCharacters * 8 + ownerBytes * 8); budget.charge("work", markupCharacters * 8 + ownerBytes * 4);
-    const run = prefix + xmlValue(alt) + suffix;
     const section = node.children.find(c => c.namespace === ns.w && c.localName === "sectPr"), paragraphPath = before.kind === "paragraph" ? before.value.path : [...before.value.path, section ? node.children.indexOf(section) : node.children.length];
     const runIndex = before.kind === "paragraph" ? node.children.length : 0;
+    const run = picture.run;
     xml.insertChildren(node, before.kind === "paragraph" ? run : containerPrefix + run + containerSuffix, section);
     updates.push({ before, path: [...paragraphPath, runIndex, 0, 0, 3, 0, 0, 1, 0] });
   }

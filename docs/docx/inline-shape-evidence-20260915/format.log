@@ -1,0 +1,6 @@
+packages/docx/src/inline-shape-model.ts 54ms
+packages/docx/src/inline-shape-model.test.ts 7ms
+packages/docx/src/model-active-content.test.ts 7ms
+packages/docx/src/structure-model-batch-operations.ts 14ms
+packages/docx/src/document-model.ts 11ms
+packages/docx/src/model-store.ts 39ms

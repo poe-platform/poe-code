@@ -40,6 +40,8 @@ const packageImage = Symbol("image");
 const packageImages = Symbol("images");
 /** Internal admission hook; never a batch callback or public barrel export. */
 export const packageAdmitImages = Symbol("admit-images");
+/** Internal binding of a characterized image to the same admitted package bytes. */
+export const packageBindImage = Symbol("bind-image");
 /** Internal transaction checkpoint; preserves package and retained part identities. */
 export const packageOwnerCheckpoint = Symbol("owner-checkpoint");
 const packageLoadImage = Symbol("load-image");
@@ -146,6 +148,14 @@ export class PackageView {
     const image = this.#images.get(this[packageMetadata](part).partname);
     if (!image) throw new UnsupportedEditError("This image part has no admitted bounded raster characterization.");
     return image;
+  }
+  [packageBindImage](part: ImagePartView, image: Image): void {
+    if (!(part instanceof ImagePartView) || !(image instanceof Image)) throw new InputTypeError("Expected an owned image part and characterized image.");
+    const metadata = this[packageMetadata](part), bytes = image.blob;
+    if (metadata.content_type !== image.content_type || metadata.bytes.length !== bytes.length ||
+        !metadata.bytes.every((byte, i) => byte === bytes[i]))
+      throw new InvalidValueError("Image characterization conflicts with the owned part bytes.");
+    this.#images.set(metadata.partname, image);
   }
   async [packageAdmitImages](): Promise<void> {
     for (const part of this[packageImages]()) {

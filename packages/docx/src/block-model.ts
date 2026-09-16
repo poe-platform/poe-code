@@ -10,6 +10,10 @@ import type { DocxEnumValue } from "./operation-types.js";
 import type { ParagraphStyle, CharacterStyle } from "./styles-model.js";
 import { WD_STYLE_TYPE, WD_BREAK, isEnumMember } from "./formatting-values.js";
 import { UnsupportedEditError } from "./xml-write.js";
+import { insertModelImage, Drawing } from "./inline-shape-model.js";
+import type { ImageModelInput } from "./image-model-input.js";
+import { Image } from "./image-model.js";
+import type { Length } from "./formatting-values.js";
 
 /** Stored text only; drawings and field instructions never execute. */
 export function modelText(node: XmlElement): string {
@@ -18,7 +22,8 @@ export function modelText(node: XmlElement): string {
     if (current.namespace !== node.namespace) return;
     const name = current.localName;
     if (name === "t") text += current.text;
-    else if (name === "tab") text += "\t";
+    else if (name === "tab" || name === "ptab") text += "\t";
+    else if (name === "noBreakHyphen") text += "-";
     else if (
       name === "cr" ||
       (name === "br" &&
@@ -371,10 +376,43 @@ export class Run {
   mark_comment_range(last_run: Run, comment_id: number): void {
     this.store.transaction(() => markCommentRange(this.store, this, last_run, comment_id));
   }
+  async add_picture(input: ImageModelInput, width?: Length | null, height?: Length | null) {
+    const image = await Image.from_file(input, this.store.context);
+    return insertModelImage(this.store, this.ref, image, width, height);
+  }
   get contains_page_break(): boolean {
     const r = this.store.node(this.ref);
     return r.children.some(
       (child) => child.localName === "lastRenderedPageBreak" && child.namespace === r.namespace
     );
+  }
+  *iter_inner_content(): IterableIterator<string | RenderedPageBreak | Drawing> {
+    const run = this.store.node(this.ref);
+    const findParagraph = (node: XmlElement, paragraph?: XmlElement): XmlElement | undefined => {
+      this.store.context.budget.charge("work", 1);
+      const owner = node.localName === "p" && node.namespace === run.namespace ? node : paragraph;
+      if (node === run) return owner;
+      for (const child of node.children) {
+        const found = findParagraph(child, owner);
+        if (found) return found;
+      }
+      return undefined;
+    };
+    const paragraph = findParagraph(this.store.xml(this.ref.part).root);
+    let text = "";
+    for (const child of run.children) {
+      this.store.context.budget.charge("work", 1);
+      if (child.namespace !== run.namespace) continue;
+      if (child.localName === "lastRenderedPageBreak") {
+        if (text) { yield text; text = ""; }
+        if (paragraph) yield new RenderedPageBreak(this.store, this.store.ref(this.ref.part, child), this.store.ref(this.ref.part, paragraph));
+      } else if (child.localName === "drawing") {
+        if (text) { yield text; text = ""; }
+        yield new Drawing(this.store, this.store.ref(this.ref.part, child));
+      } else if (["t", "tab", "ptab", "noBreakHyphen", "br", "cr"].includes(child.localName)) {
+        text += modelText({ ...run, children: [child] });
+      }
+    }
+    if (text) yield text;
   }
 }

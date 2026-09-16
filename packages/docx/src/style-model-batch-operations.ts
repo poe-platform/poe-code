@@ -1,14 +1,18 @@
+import { packageViewBatchActions } from "./package-view-batch-operations.js";
+import { PackageView } from "./package-view.js";
+import { XmlElementView, type XmlViewName } from "./xml-element-view.js";
+import type { DocxXmlNode } from "./operation-types.js";
 import { packUriBatchActions } from "./pack-uri-batch-operations.js";
 import { docxOperationSchemas } from "./operation-schema.js";
 import { imageBatchActions } from "./image-batch-operations.js";
 import { Length, Emu, Inches, Cm, Mm, Pt, Twips, isLength, enumFamilies, enumMembers, enumString, enumValue, enumFromValue, enumFromXml, enumToXml } from "./formatting-values.js";
 import { DocxUsageError } from "./argument-json.js";
-import { BaseStyle, CharacterStyle, ParagraphStyle, TableStyle, Styles, LatentStyles, LatentStyle } from "./styles-model.js";
+import { BaseStyle, CharacterStyle, ParagraphStyle, TableStyle, Styles, LatentStyles, LatentStyle, StylePartView } from "./styles-model.js";
 import { Font, ParagraphFormat, TabStops, TabStop, ColorFormat, RGBColor } from "./formatting-model.js";
 import type { DocxEnumValue, DocxLength } from "./operation-types.js";
 
 type Action = (receiver: unknown, args: Readonly<Record<string, unknown>>) => unknown;
-export const styleModelBatchActions = new Map<string, Action>(packUriBatchActions);
+export const styleModelBatchActions = new Map<string, Action>([...packUriBatchActions, ...packageViewBatchActions]);
 type ModelClass = abstract new (...args: never[]) => object;
 function properties(prefix: string, owner: ModelClass, names: readonly string[], writable: readonly string[] = names): void {
   for (const name of names) {
@@ -28,6 +32,13 @@ function method(prefix: string, name: string, owner: ModelClass, action: (receiv
     return action(receiver, args);
   });
 }
+properties("model.parts.styles.StylesPart", StylePartView, ["styles"], []);
+styleModelBatchActions.set("model.parts.styles.StylesPart.default.call", (_receiver, args) => StylePartView.default(args.ownerPackage as PackageView));
+properties("model.XmlElementView", XmlElementView, ["tag", "attributes", "children", "text", "tail"], ["text", "tail"]);
+method("model.XmlElementView", "set_attribute.call", XmlElementView, (receiver, args) => (receiver as XmlElementView).set_attribute(args.name as XmlViewName, args.value as string | null));
+method("model.XmlElementView", "insert.call", XmlElementView, (receiver, args) => (receiver as XmlElementView).insert(args.index as number, args.node as DocxXmlNode));
+method("model.XmlElementView", "remove.call", XmlElementView, receiver => (receiver as XmlElementView).remove());
+method("model.XmlElementView", "serialize.call", XmlElementView, receiver => (receiver as XmlElementView).serialize());
 const styleProperties = ["name", "style_id", "priority", "hidden", "locked", "quick_style", "unhide_when_used"];
 for (const [name, owner] of [["BaseStyle", BaseStyle], ["CharacterStyle", CharacterStyle], ["ParagraphStyle", ParagraphStyle], ["_TableStyle", TableStyle], ["_NumberingStyle", BaseStyle]] as const) {
   const prefix = `model.styles.style.${name}`;

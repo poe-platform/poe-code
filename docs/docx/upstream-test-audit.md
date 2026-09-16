@@ -4,6 +4,10 @@ Status: Research complete for the pinned baseline; bounded style/formatting
 TypeScript adaptation is recorded in [the scoped audit](style-formatting-audit.md)
 and [case map](style-formatting-case-map.json). Full format adaptation is pending.
 
+The [bounded XML/package record](xml-package-views.md) links original memfs
+assertions and retained source-case pointers separately. It does not count
+source/native-runtime cases as new passes or promote whole-format parity.
+
 ## Pinned source
 
 - Repository: [https://github.com/python-openxml/python-docx](https://github.com/python-openxml/python-docx)

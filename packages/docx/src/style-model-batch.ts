@@ -1,3 +1,6 @@
+import { PackageView, PartView, XmlPartView, Relationships, RelationshipView, CoreProperties, CorePropertiesPartView, ImageParts, ImagePartView } from "./package-view.js";
+import { packageViewBatchActions } from "./package-view-batch-operations.js";
+import { XmlElementView } from "./xml-element-view.js";
 import { PackURI } from "./pack-uri.js";
 import { isLength, plainLength } from "./formatting-values.js";
 import { Image, type ImageModelContext } from "./image-model.js";
@@ -22,12 +25,13 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
   const objectIds = new Map<object, string>();
   const results: { operation: string; value: unknown }[] = [];
   let affected = 0;
-  let revision = styleModelMutations.get(model.styles)!.revision;
+  let revision = styleModelMutations.get(model.styles)!.revision + model.package.revision;
   let pendingStylesCreation = revision !== 0;
-  const xmlHandles = new WeakSet<object>();
-  const isModel = (value: unknown): value is object => value instanceof Styles || value instanceof BaseStyle || value instanceof LatentStyles || value instanceof LatentStyle || value instanceof Font || value instanceof ParagraphFormat || value instanceof TabStops || value instanceof TabStop || value instanceof ColorFormat || value instanceof RGBColor || value instanceof StylePartView || typeof value === "object" && value !== null && xmlHandles.has(value);
-  const type = (value: object): string => xmlHandles.has(value) ? "XmlElementView" : value instanceof StylePartView ? "XmlPartView" : value instanceof TableStyle ? "_TableStyle" : value instanceof ParagraphStyle ? "ParagraphStyle" : value instanceof CharacterStyle ? "CharacterStyle" : value instanceof BaseStyle ? "BaseStyle" : value instanceof LatentStyle ? "_LatentStyle" : value.constructor.name;
+
+  const isModel = (value: unknown): value is object => value instanceof Styles || value instanceof BaseStyle || value instanceof LatentStyles || value instanceof LatentStyle || value instanceof Font || value instanceof ParagraphFormat || value instanceof TabStops || value instanceof TabStop || value instanceof ColorFormat || value instanceof RGBColor || value instanceof PartView || value instanceof PackageView || value instanceof Relationships || value instanceof RelationshipView || value instanceof XmlElementView || value instanceof CoreProperties || value instanceof ImageParts;
+  const type = (value: object): string => value instanceof XmlElementView ? "XmlElementView" : value instanceof ImagePartView ? "ImagePart" : value instanceof CorePropertiesPartView ? "CorePropertiesPart" : value instanceof XmlPartView ? value instanceof StylePartView ? "StylesPart" : "XmlPartView" : value instanceof PartView ? "PartView" : value instanceof PackageView ? "PackageView" : value instanceof RelationshipView ? "RelationshipView" : value instanceof TableStyle ? "_TableStyle" : value instanceof ParagraphStyle ? "ParagraphStyle" : value instanceof CharacterStyle ? "CharacterStyle" : value instanceof BaseStyle ? "BaseStyle" : value instanceof LatentStyle ? "_LatentStyle" : value.constructor.name;
   function encode(value: unknown): unknown {
+    if (value instanceof Date) return value.toISOString();
     if (isLength(value)) return plainLength(value);
     if (value instanceof PackURI) return value.toString();
     if (value instanceof Uint8Array) {
@@ -55,6 +59,8 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
   }
   function resolve(value: unknown): unknown {
     if (!value || typeof value !== "object") return value;
+    if (value instanceof Uint8Array || value instanceof Date) return value;
+    if (Array.isArray(value)) return value.map(resolve);
     const record = value as Record<string, unknown>;
     if (Object.hasOwn(record, "resultHandle")) {
       if (typeof record.resultHandle !== "string" || !named.has(record.resultHandle)) throw new DocxUsageError("Unknown model result handle.");
@@ -76,7 +82,7 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
     if (Object.hasOwn(record, "id") && Object.hasOwn(record, "owner")) {
       throw new DocxUsageError("Use a named result handle from this batch for nonroot receivers.");
     }
-    return value;
+    return Object.fromEntries(Object.entries(record).map(([key, item]) => [key, resolve(item)]));
   }
   for (const item of batch.operations) {
     await settings.budget.checkpoint();
@@ -90,14 +96,13 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
       pendingStylesCreation = false;
     } else {
       const args = Object.fromEntries(Object.entries(item.arguments).map(([key, value]) => [key, resolve(value)]));
-      const imageAction = imageBatchActions.get(item.operation);
-      value = await (imageAction ? imageAction(resolve(item.receiver), args, { ...context, ...settings }) : styleModelBatchActions.get(item.operation)!(resolve(item.receiver), args));
+      const imageAction = imageBatchActions.get(item.operation), packageAction = packageViewBatchActions.get(item.operation);
+      value = await (imageAction ? imageAction(resolve(item.receiver), args, { ...context, ...settings }) : packageAction ? packageAction(resolve(item.receiver), args, { ...context, ...settings }) : styleModelBatchActions.get(item.operation)!(resolve(item.receiver), args));
     }
-    if (docxOperationSchemas[item.operation]!.valueType === "XmlElementView" && value && typeof value === "object") xmlHandles.add(value);
     if (item.resultHandle) named.set(item.resultHandle, value);
     results.push({ operation: item.operation, value: encode(value) });
-    const nextRevision = styleModelMutations.get(model.styles)!.revision;
-    if (docxOperationSchemas[item.operation]!.mutates && (!item.operation.endsWith(".get") || createdStylesPart || nextRevision !== revision)) affected++;
+    const nextRevision = styleModelMutations.get(model.styles)!.revision + model.package.revision;
+    if (docxOperationSchemas[item.operation]!.mutates && (packageViewBatchActions.has(item.operation) ? nextRevision !== revision : !item.operation.endsWith(".get") || createdStylesPart || nextRevision !== revision)) affected++;
     revision = nextRevision;
   }
   return { save: model.save, publish: model.publish, warnings: model.warnings, results: Object.freeze(results), affected };

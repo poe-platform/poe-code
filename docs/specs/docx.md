@@ -8,7 +8,10 @@ The bounded [archive extraction record](../docx/archive-extraction.md) implement
 `extract` with all/media-only selection, optional pretty XML and conditional new-tree
 VFS publication. The bounded [packing record](../plans/docx-safe-packing.md)
 implements explicit authenticated inventory reconstruction and one staged package
-publication. Live package owners and whole-public-API coverage remain pending; the full proposed contract below is retained.
+publication. The [bounded live view record](../docx/xml-package-views.md) qualifies returned XML,
+package, part and resource views over the existing style/formatting domain. Full
+document owner bindings and whole-public-API coverage remain pending; the full
+proposed contract below is retained.
 
 Purpose: Define the intended document-format coverage and observable behavior of the original `docx` utility and its TypeScript SDK.
 

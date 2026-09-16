@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { openDocumentStyleModel, WD_STYLE_TYPE, CharacterStyle, ParagraphStyle } from "./styles-model.js";
 import { textContext, textFixture, paragraph, w } from "../tests/fixtures/text.js";
-import type { XmlElement } from "./package-xml.js";
+import type { XmlElementView } from "./xml-element-view.js";
 import { readPackage } from "../tests/assertions.js";
 import { enumValue, enumFromValue, enumFromXml, enumXml } from "./formatting-values.js";
 
@@ -10,8 +10,8 @@ const metadata = { hidden: "semiHidden", locked: "locked", quick_style: "qFormat
 const types = ["paragraph", "character", "table", "numbering"] as const;
 const lexical = [undefined, "0", "1", "on", "off", "true", "false"] as const;
 const definition = (id: string, type = "paragraph", inner = "", attributes = "") => `<w:style w:styleId="${id}"${type ? ` w:type="${type}"` : ""}${attributes}><w:name w:val="${id}"/>${inner}</w:style>`;
-const child = (node: XmlElement, name: string) => node.children.find(item => item.namespace === w && item.localName === name);
-const attr = (node: XmlElement | undefined, name = "val") => node?.attributes.find(item => item.namespace === w && item.localName === name)?.value;
+const child = (node: XmlElementView, name: string) => node.children.find(item => item.namespace === w && item.localName === name);
+const attr = (node: XmlElementView | undefined, name = "val") => [...(node?.attributes ?? [])].find(([item]) => item.namespaceURI === w && item.localName === name)?.[1];
 async function model(content: string, body = paragraph("Estuary survey")) {
   const bytes = await textFixture(body, { styles: { kind: "styles", xml: `<w:styles xmlns:w="${w}">${content}</w:styles>` } });
   const volume = Volume.fromJSON({ "/sample.docx": Buffer.from(bytes) });

@@ -1,8 +1,10 @@
+import { PackageView, XmlPartView, packageAdmitImages } from "./package-view.js";
+import { bindXmlElementView, type XmlElementView } from "./xml-element-view.js";
 import { budgetSharesReservations } from "./budget.js";
 import { modelContext, type DocumentModelContext } from "./model-context.js";
 import { acquireDocumentModelInput, type DocumentModelInput } from "./model-input.js";
 import { MissingKeyError, StaleHandleError } from "./model-errors.js";
-import { archiveSettings, InputTypeError, type ArchiveContext, type DocumentArchive } from "./archive.js";
+import { archiveSettings, InputTypeError, InvalidValueError, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
 import type { ArchiveSink } from "./archive-write.js";
 import { createDocumentArchive } from "./create.js";
@@ -40,10 +42,30 @@ class StyleStore {
   private cachedEditor: DocumentXmlEditor | undefined;
   readonly warnings: { readonly code: string }[] = [];
   readonly part: StylePartView;
+  private readonly views = new Map<string, XmlElementView>();
+  xmlView(key: string, resolve: (xml: DocumentXmlEditor) => XmlElement, removeRoot?: () => void): XmlElementView {
+    let view = this.views.get(key);
+    if (!view) {
+      view = bindXmlElementView({ budget: archiveSettings(this.context).budget, read: () => this.editor(), resolve, change: action => this.change(action),
+        ...(removeRoot ? { removeRoot } : {}),
+        inserted: (parent, node, index) => {
+          if (node.kind !== "element" || node.name.namespaceURI !== parent.namespace) return;
+          if (parent.localName === "styles" && node.name.localName === "style") this.tokens.splice(parent.children.slice(0, index).filter(n => n.localName === "style" && n.namespace === parent.namespace).length, 0, this.nextToken++);
+          if (parent.localName === "latentStyles" && node.name.localName === "lsdException") this.latentTokens.splice(index, 0, this.nextLatentToken++);
+        },
+        removed: (parent, node) => {
+          if (parent?.localName === "styles" && node.localName === "style" && node.namespace === parent.namespace) this.tokens.splice(parent.children.filter(n => n.localName === "style" && n.namespace === parent.namespace).indexOf(node), 1);
+          if (parent?.localName === "latentStyles" && node.localName === "lsdException" && node.namespace === parent.namespace) this.latentTokens.splice(parent.children.indexOf(node), 1);
+        }
+      });
+      this.views.set(key, view);
+    }
+    return view;
+  }
   private readonly identities = new Map<string, object>();
   identity(token: number, kind: string): object { const key = `${token}:${kind}`; let id = this.identities.get(key); if (!id) { id = Object.freeze({}); this.identities.set(key, id); } return id; }
-  constructor(public source: string, readonly context: ArchiveContext, readonly writable: () => void, partname: string) {
-    this.part = new StylePartView(this, partname);
+  constructor(public source: string, readonly context: ArchiveContext, readonly writable: () => void, partname: string, ownerPackage: PackageView) {
+    this.part = new StylePartView(this, partname, ownerPackage);
     this.tokens = this.nodes(this.editor()).map((_, i) => i);
     this.nextToken = this.tokens.length;
     this.latentTokens = (readLatentStyles(this.editor().root)?.entries ?? []).map((_, index) => index);
@@ -80,16 +102,24 @@ class StyleStore {
 export const styleModelMutations = new WeakMap<Styles, { readonly revision: number }>();
 
 /** Read-only part metadata with owned byte snapshots; edits use the live model. */
-export class StylePartView {
-  readonly content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml";
-  constructor(private readonly store: StyleStore, readonly partname: string) { Object.freeze(this); }
-  get blob(): Uint8Array { return new TextEncoder().encode(this.store.source); }
-  get element(): XmlElement { return this.store.editor().root; }
+export class StylePartView extends XmlPartView {
+  #styles: Styles | undefined;
+  static default(owner: PackageView): StylePartView {
+    if (!(owner instanceof PackageView)) throw new InputTypeError("Expected an admitted owner package.");
+    const edges = [...owner.main_document_part.rels.values()].filter(edge => edge.reltype.endsWith("/styles") && !edge.is_external);
+    if (edges.length !== 1 || !(edges[0]!.target_part instanceof StylePartView)) throw new InvalidValueError("Expected the live styles part of this owner.");
+    return edges[0]!.target_part as StylePartView;
+  }
+  get styles(): Styles { return this.#styles ??= new Styles(this.store); }
+  constructor(private readonly store: StyleStore, partname: string, ownerPackage: PackageView) { super(ownerPackage, partname); Object.freeze(this); }
+  override get blob(): Uint8Array { const bytes = new TextEncoder().encode(this.store.source); archiveSettings(this.store.context).budget.charge("retainedBytes", bytes.length); return bytes; }
+  override get element(): XmlElementView { return this.store.xmlView("styles-root", xml => xml.root); }
 }
 
 export class Styles implements Iterable<BaseStyle> {
   constructor(private readonly store: StyleStore) {}
-  get element(): XmlElement { return this.store.editor().root; }
+  private get rawElement(): XmlElement { return this.store.editor().root; }
+  get element(): XmlElementView { return this.store.xmlView("styles-root", xml => xml.root); }
   get part(): StylePartView { return this.store.part; }
   equals(other: unknown): boolean { return other instanceof Styles && other.store === this.store; }
   get length(): number { return this.store.tokens.length; }
@@ -122,18 +152,18 @@ export class Styles implements Iterable<BaseStyle> {
     if (this.has(name)) throw new RangeError("The style name already exists.");
     const ids = new Set([...this].map(s => s.style_id));
     let serial = 1; while (ids.has(`Style${serial}`)) serial++;
-    const namespace = this.element.namespace;
+    const namespace = this.rawElement.namespace;
     return this.wrap(this.store.add(`<st:style xmlns:st="${namespace}" st:type="${type}" st:styleId="Style${serial}"${builtin ? "" : ' st:customStyle="1"'}><st:name st:val="${xmlValue(styleStoredName(name))}"/></st:style>`));
   }
   default(style_type: DocxEnumValue<"WD_STYLE_TYPE">): BaseStyle | null {
     const type = typeName(style_type);
-    return [...this].filter(s => attr(s.element, "type") === type && ["1", "true", "on"].includes(attr(s.element, "default") ?? "0")).at(-1) ?? null;
+    return [...this].filter(s => types[s.type.name as keyof typeof types] === type && ["1", "true", "on"].includes([...s.element.attributes].find(([name]) => name.namespaceURI === s.element.namespace && name.localName === "default")?.[1] ?? "0")).at(-1) ?? null;
   }
   get_by_id(style_id: string | null, style_type: DocxEnumValue<"WD_STYLE_TYPE">): BaseStyle | null {
     if (style_id !== null && typeof style_id !== "string") throw new TypeError("Expected a style ID or null.");
     const type = typeName(style_type);
     if (style_id === null || style_id === "") return this.default(style_type);
-    return [...this].find(s => s.style_id === style_id && attr(s.element, "type") === type) ?? this.default(style_type);
+    return [...this].find(s => s.style_id === style_id && types[s.type.name as keyof typeof types] === type) ?? this.default(style_type);
   }
   get_style_id(style_or_name: BaseStyle | string | null, style_type: DocxEnumValue<"WD_STYLE_TYPE">): string | null {
     typeName(style_type);
@@ -143,34 +173,35 @@ export class Styles implements Iterable<BaseStyle> {
     return style.style_id === this.default(style_type)?.style_id ? null : style.style_id;
   }
   get latent_styles(): LatentStyles {
-    if (!child(this.element, "latentStyles")) this.store.change(xml => xml.insertChildren(xml.root, `<st:latentStyles xmlns:st="${xml.root.namespace}"/>`, this.store.nodes(xml)[0]));
+    if (!child(this.rawElement, "latentStyles")) this.store.change(xml => xml.insertChildren(xml.root, `<st:latentStyles xmlns:st="${xml.root.namespace}"/>`, this.store.nodes(xml)[0]));
     return new LatentStyles(this.store);
   }
 }
 
 export class BaseStyle {
   constructor(protected readonly store: StyleStore, protected readonly token: number, readonly collection: Styles) {}
-  get element(): XmlElement { const xml = this.store.editor(); return this.store.node(xml, this.token); }
-  get part(): StylePartView { void this.element; return this.store.part; }
-  equals(other: unknown): boolean { void this.element; return other instanceof BaseStyle && other.store === this.store && other.token === this.token; }
+  protected get rawElement(): XmlElement { const xml = this.store.editor(); return this.store.node(xml, this.token); }
+  get element(): XmlElementView { void this.rawElement; return this.store.xmlView(`style:${this.token}`, xml => this.store.node(xml, this.token), () => this.delete()); }
+  get part(): StylePartView { void this.rawElement; return this.store.part; }
+  equals(other: unknown): boolean { void this.rawElement; return other instanceof BaseStyle && other.store === this.store && other.token === this.token; }
   protected setValue(tag: string, value: string | null): void {
     this.store.change(xml => { const node = this.store.node(xml, this.token); xml.replaceElement(node, mergeStyleChildren(xml, node, new Map([[tag, value === null ? "" : `<st:${tag} xmlns:st="${node.namespace}" st:val="${xmlValue(value)}"/>`]]), order)); });
   }
   protected setAttribute(name: string, value: string | null): void {
     this.store.change(xml => { const node = this.store.node(xml, this.token); xml.replaceElement(node, mergeStyleChildren(xml, node, new Map(), order, { [name]: value })); });
   }
-  get name(): string | null { const value = attr(child(this.element, "name"), "val"); return value === undefined ? null : styleDisplayName(value); }
+  get name(): string | null { const value = attr(child(this.rawElement, "name"), "val"); return value === undefined ? null : styleDisplayName(value); }
   set name(value: string | null) { if (value !== null && typeof value !== "string") throw new TypeError("Expected a style name or null."); this.setValue("name", value); }
-  get style_id(): string | null { return attr(this.element, "styleId") ?? null; }
+  get style_id(): string | null { return attr(this.rawElement, "styleId") ?? null; }
   set style_id(value: string | null) { if (value !== null && typeof value !== "string") throw new TypeError("Expected a style ID or null."); this.setAttribute("styleId", value); }
   get type(): DocxEnumValue<"WD_STYLE_TYPE"> {
-    const type = attr(this.element, "type") ?? "paragraph";
+    const type = attr(this.rawElement, "type") ?? "paragraph";
     const key = (Object.keys(types) as (keyof typeof types)[]).find(k => types[k] === type);
     if (!key) throw new TypeError("Unknown style type.");
     return WD_STYLE_TYPE[key];
   }
-  get builtin(): boolean { return !["1", "true", "on"].includes(attr(this.element, "customStyle") ?? "0"); }
-  get priority(): number | null { return styleInteger(attr(child(this.element, "uiPriority"), "val")); }
+  get builtin(): boolean { return !["1", "true", "on"].includes(attr(this.rawElement, "customStyle") ?? "0"); }
+  get priority(): number | null { return styleInteger(attr(child(this.rawElement, "uiPriority"), "val")); }
   set priority(value: number | null) { nullableInteger(value); this.setValue("uiPriority", value === null ? null : String(value)); }
   get hidden(): boolean { return this.flag("semiHidden"); }
   set hidden(value: boolean | null) { tri(value); this.setValue("semiHidden", value ? "1" : null); }
@@ -180,14 +211,14 @@ export class BaseStyle {
   set quick_style(value: boolean | null) { tri(value); this.setValue("qFormat", value ? "1" : null); }
   get unhide_when_used(): boolean { return this.flag("unhideWhenUsed"); }
   set unhide_when_used(value: boolean | null) { tri(value); this.setValue("unhideWhenUsed", value ? "1" : null); }
-  private flag(tag: string): boolean { return styleToggle(child(this.element, tag)) ?? false; }
+  private flag(tag: string): boolean { return styleToggle(child(this.rawElement, tag)) ?? false; }
   delete(): void { this.store.remove(this.token); }
 }
 
 export class CharacterStyle extends BaseStyle {
   protected formattingOwner(kind: "r" | "p"): FormattingXmlOwner {
     const { store, token } = this;
-    return { get part() {
+    return { budget: archiveSettings(store.context).budget, get part() {
       store.node(store.editor(), token);
       return store.part;
     }, get identity() {
@@ -203,7 +234,7 @@ export class CharacterStyle extends BaseStyle {
     } };
   }
   get font(): Font { return new Font(this.formattingOwner("r")); }
-  get base_style(): BaseStyle | null { const id = attr(child(this.element, "basedOn"), "val"); return id === undefined ? null : [...this.collection].find(s => s.style_id === id) ?? null; }
+  get base_style(): BaseStyle | null { const id = attr(child(this.rawElement, "basedOn"), "val"); return id === undefined ? null : [...this.collection].find(s => s.style_id === id) ?? null; }
   set base_style(value: BaseStyle | null) {
     if (value !== null && (!(value instanceof BaseStyle) || value.collection !== this.collection || value.type.name !== this.type.name)) throw new TypeError("Expected a base style from this document of the same type.");
     const visited = new Set<string | null>();
@@ -218,7 +249,7 @@ export class CharacterStyle extends BaseStyle {
 export class ParagraphStyle extends CharacterStyle {
   get paragraph_format(): ParagraphFormat { return new ParagraphFormat(this.formattingOwner("p")); }
   get next_paragraph_style(): BaseStyle {
-    const id = attr(child(this.element, "next"), "val");
+    const id = attr(child(this.rawElement, "next"), "val");
     return [...this.collection].find(s => s.style_id === id && s.type.name === "PARAGRAPH") ?? this;
   }
   set next_paragraph_style(value: BaseStyle | null) {
@@ -231,7 +262,9 @@ export { TableStyle as _TableStyle, BaseStyle as _NumberingStyle };
 
 export class LatentStyles implements Iterable<LatentStyle> {
   constructor(private readonly store: StyleStore) {}
-  get element(): XmlElement { const node = child(this.store.editor().root, "latentStyles"); if (!node) throw new RangeError("Latent styles are no longer available."); return node; }
+  private get rawElement(): XmlElement { const node = child(this.store.editor().root, "latentStyles"); if (!node) throw new RangeError("Latent styles are no longer available."); return node; }
+  get element(): XmlElementView { void this.rawElement; return this.store.xmlView("latent-root", xml => { const node = child(xml.root, "latentStyles"); if (!node) throw new StaleHandleError("The XML owner is detached."); return node; }); }
+  xmlView(token: number): XmlElementView { void this.entry(token); return this.store.xmlView(`latent:${token}`, xml => { const root = child(xml.root, "latentStyles"); const index = this.store.latentTokens.indexOf(token); const node = root?.children.filter(n => n.namespace === root.namespace && n.localName === "lsdException")[index]; if (!node) throw new StaleHandleError("The XML owner is detached."); return node; }, () => this.remove(token)); }
   get part(): StylePartView { return this.store.part; }
   equals(other: unknown): boolean { return other instanceof LatentStyles && other.store === this.store; }
   private info() { return readLatentStyles(this.store.editor().root)!; }
@@ -286,7 +319,7 @@ export class LatentStyle {
   constructor(private readonly collection: LatentStyles, private readonly token: number) {}
   get name(): string { return this.collection.entry(this.token).name; }
   get part(): StylePartView { void this.name; return this.collection.part; }
-  get element(): XmlElement { return this.collection.node(this.token); }
+  get element(): XmlElementView { return this.collection.xmlView(this.token); }
   equals(other: unknown): boolean { void this.name; return other instanceof LatentStyle && this.collection.equals(other.collection) && this.token === other.token; }
   get priority(): number | null { return this.collection.entry(this.token).priority; }
   set priority(value: number | null) { nullableInteger(value); this.collection.change(this.token, "priority", value); }
@@ -313,21 +346,36 @@ export async function openDocumentStyleModel(input?: DocumentModelInput | null, 
   let part = edges[0]?.target_part.name;
   const createdStylesPart = part === undefined;
   if (!part) { const result = addDocumentStylesPart(admitted, admitted, "", settings.budget); archive = result.archive; part = result.name; }
-  const stylesPart = part;
-  const store = new StyleStore(new TextDecoder().decode(archive.members.find(m => m.name === stylesPart)!.bytes), settings, () => assertDocumentEditable(admitted, settings), "/" + stylesPart);
+  let stylesPart = part;
+  const packageView: PackageView = new PackageView({ context: settings, snapshot: () => snapshot(),
+    version: () => store?.revision ?? 0,
+    writable: () => { if (store.activePublications) throw new PublicationError("conflict", "Model publication is committing."); assertDocumentEditable(admitted, settings); },
+    stage: (candidate, rename) => { archive = candidate; if (rename?.from === "/" + stylesPart) stylesPart = rename.to.slice(1); },
+    save: async sink => { await model.save(sink); }
+  });
+  const store: StyleStore = new StyleStore(new TextDecoder().decode(archive.members.find(m => m.name === stylesPart)!.bytes), settings, () => assertDocumentEditable(admitted, settings), "/" + stylesPart, packageView);
   store.revision = createdStylesPart ? 1 : 0;
-  const styles = new Styles(store);
+  const styles = store.part.styles;
   styleModelMutations.set(styles, store);
-  const snapshot = (): DocumentArchive => ({ ...archive, members: archive.members.map(m => m.name === stylesPart ? { ...m, bytes: new TextEncoder().encode(store.source) } : m) });
+  const snapshot = (): DocumentArchive => {
+    const root = store.editor().root, ids = new Set<string>();
+    for (const node of store.nodes(store.editor())) {
+      const id = attr(node, "styleId"), type = attr(node, "type") ?? "paragraph";
+      if (!Object.values(types).includes(type) || id !== undefined && ids.has(id)) throw new InvalidValueError("Invalid style definition graph.");
+      if (id !== undefined) ids.add(id);
+    }
+    if (!documentDialects[admitted.dialect] || root.namespace !== documentDialects[admitted.dialect].w || root.localName !== "styles") throw new InvalidValueError("Invalid styles part root.");
+    return ({ ...archive, members: archive.members.map(m => m.name === stylesPart ? { ...m, bytes: new TextEncoder().encode(store.source) } : m) });
+  };
   const guard = () => {
-    const revision = store.revision;
+    const revision = store.revision, graphRevision = packageView.revision;
     return () => {
-      if (store.revision !== revision) throw new PublicationError("conflict", "Model changed during publication.");
+      if (store.revision !== revision || packageView.revision !== graphRevision) throw new PublicationError("conflict", "Model changed during publication.");
       store.activePublications++;
       return () => { store.activePublications--; };
     };
   };
-  return { styles, get warnings(): readonly { readonly code: string }[] { return store.warnings.slice(); }, async save(sink: ArchiveSink): Promise<void> {
+  const model = { styles, package: packageView, get warnings(): readonly { readonly code: string }[] { return store.warnings.slice(); }, async save(sink: ArchiveSink): Promise<void> {
     if (!sink || typeof sink.write !== "function") throw new InputTypeError("Expected a document byte sink.");
     assertDocumentEditable(admitted, settings);
     await publishDocumentArchive(snapshot(), { output: "-" }, { ...settings, [publicationGenerationGuard]: guard(), stdout: sink, encoding: { order: "input", compression: "store" } });
@@ -340,4 +388,6 @@ export async function openDocumentStyleModel(input?: DocumentModelInput | null, 
     const budget = settings.budget.lower(Object.fromEntries(Object.entries(settings.budget.limits).map(([key, value]) => [key, Math.min(value, caller.budget.limits[key as keyof typeof caller.budget.limits])])), signal);
     return publishDocumentArchive(snapshot(), options, { ...publication, limits, signal, budget, [publicationGenerationGuard]: guard() });
   } };
+  await packageView[packageAdmitImages]();
+  return model;
 }

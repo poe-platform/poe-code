@@ -9,16 +9,21 @@ function value(type: string): DocxJsonSchema {
   if (type === "readonly [Length, Length]") return { type: "array", items: docxValueSchema("Length"), minItems: 2, maxItems: 2 };
   if (type === "Uint8Array") return object({ kind: { const: "bytes" }, base64: string });
   if (type === "PackURI") return string;
+  if (type === "ExpandedName") return docxValueSchema(type);
+  if (type === "Date") return docxValueSchema(type);
+  if (type === "readonly [string, RelationshipView]") return { type: "array", items: { anyOf: [string, value("RelationshipView")] }, minItems: 2, maxItems: 2 };
   if (type === "Image") return object({ id: string, type: { const: "Image" }, owner: { const: "batch" }, revision: { const: 0 } });
   const variants = splitDocxType(type);
   if (variants.length > 1) return { anyOf: variants.map(value) };
   if (type.startsWith("ReadonlyMap<string, ") && type.endsWith(">")) return { type: "array", items: object({ key: string, value: value(type.slice("ReadonlyMap<string, ".length, -1)) }) };
+  if (type === "ReadonlyMap<ExpandedName, string>") return { type: "array", items: object({ key: docxValueSchema("ExpandedName"), value: string }) };
   if (["Length", "Emu", "Inches", "Cm", "Mm", "Pt", "Twips"].includes(type)) return docxValueSchema("Length");
   if (type === "void") return { type: "null" };
   if (["string", "number", "boolean", "null", "Length"].includes(type) || type.startsWith("WD_") || type.startsWith("MSO_")) return docxValueSchema(type);
   if ((type.startsWith("IterableIterator<") || type.startsWith("ReadonlyArray<")) && type.endsWith(">")) return { type: "array", items: value(type.slice(type.indexOf("<") + 1, -1)) };
   const styleTypes = ["BaseStyle", "CharacterStyle", "ParagraphStyle", "_TableStyle", "_NumberingStyle"];
-  return object({ id: string, type: styleTypes.includes(type) ? { enum: styleTypes } : { const: type }, owner: { const: "document" }, revision: { const: 0 } });
+  const partTypes = ["PartView", "XmlPartView", "StylesPart", "DocumentPart", "CorePropertiesPart", "ImagePart"];
+  return object({ id: string, type: styleTypes.includes(type) ? { enum: styleTypes } : partTypes.includes(type) ? { enum: partTypes } : { const: type }, owner: { const: "document" }, revision: { const: 0 } });
 }
 export function styleModelOperationResultSchema(id: string): DocxJsonSchema {
   return object({ operation: { const: id }, value: value(docxOperationSchemas[id]!.valueType) });

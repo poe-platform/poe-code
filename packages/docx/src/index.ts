@@ -45,6 +45,8 @@ export {
   type XmlAttribute
 } from "./package-xml.js";
 export { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+export { PackageView, PartView, XmlPartView, Relationships, RelationshipView, CoreProperties, CorePropertiesPartView, ImageParts, ImagePartView } from "./package-view.js";
+export { XmlElementView, type XmlViewName } from "./xml-element-view.js";
 export { DocumentArchiveEditor } from "./package-write.js";
 export { documentDialects, type DocumentDialect } from "./dialect.js";
 export { createDocumentArchive, createDocument, type DocumentCreateOptions, type CreateMutationData } from "./create.js";
@@ -115,7 +117,7 @@ export { getDocumentXml, replaceDocumentXmlPart, type XmlOptions, type XmlData, 
 export { inspectDocumentStyles, editDocumentStyles, type StyleEditOptions, type StyleInspectionOptions, type StyleInfo, type StyleInspectionData, type StyleMutationData } from "./styles.js";
 export type { StyleProperties } from "./style-properties.js";
 
-export { openDocumentStyleModel, Styles, BaseStyle, CharacterStyle, ParagraphStyle, TableStyle, _TableStyle, _NumberingStyle, LatentStyles, LatentStyle, _LatentStyle, WD_STYLE_TYPE } from "./styles-model.js";
+export { openDocumentStyleModel, StylePartView, Styles, BaseStyle, CharacterStyle, ParagraphStyle, TableStyle, _TableStyle, _NumberingStyle, LatentStyles, LatentStyle, _LatentStyle, WD_STYLE_TYPE } from "./styles-model.js";
 export { Font, ParagraphFormat, TabStops, TabStop, ColorFormat, RGBColor, type FormattingXmlOwner } from "./formatting-model.js";
 export { applyStyleModelBatch } from "./style-model-batch.js";
 export { executeDocumentBatch, type DocumentBatchInput, type DocumentBatchData, type DocumentBatchOptions, type DocumentBatchItemResult } from "./batch.js";

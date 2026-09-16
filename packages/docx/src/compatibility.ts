@@ -58,12 +58,12 @@ export function compatibilitySettings(profile: CompatibilityProfile): Compatibil
     profile.understoodNamespaces.some(uri => typeof uri !== "string" || uri === mc) ||
     (profile.extensionElements !== undefined && (!Array.isArray(profile.extensionElements) || profile.extensionElements.some(name =>
       !name || typeof name !== "object" || typeof name.namespace !== "string" || name.namespace === mc ||
-      typeof name.localName !== "string" || !ncName(name.localName) || Object.keys(name).some(key => !["namespace", "localName"].includes(key))))))
+      typeof name.localName !== "string" || !isXmlLocalName(name.localName) || Object.keys(name).some(key => !["namespace", "localName"].includes(key))))))
     throw new InvalidValueError("Invalid markup compatibility profile.");
   if (profile.understoodElements !== undefined && (!Array.isArray(profile.understoodElements) || profile.understoodElements.some(name =>
-    !name || typeof name.namespace !== "string" || name.namespace === mc || !ncName(name.localName) || !Array.isArray(name.attributes) ||
+    !name || typeof name.namespace !== "string" || name.namespace === mc || !isXmlLocalName(name.localName) || !Array.isArray(name.attributes) ||
     Object.keys(name).some(key => !["namespace", "localName", "attributes"].includes(key)) || name.attributes.some((attribute: ExpandedXmlName) =>
-      !attribute || typeof attribute.namespace !== "string" || attribute.namespace === mc || !ncName(attribute.localName) || Object.keys(attribute).some(key => !["namespace", "localName"].includes(key)))))) throw new InvalidValueError("Invalid exact markup compatibility names.");
+      !attribute || typeof attribute.namespace !== "string" || attribute.namespace === mc || !isXmlLocalName(attribute.localName) || Object.keys(attribute).some(key => !["namespace", "localName"].includes(key)))))) throw new InvalidValueError("Invalid exact markup compatibility names.");
   return Object.freeze({
     understoodNamespaces: Object.freeze([...profile.understoodNamespaces]),
     extensionElements: Object.freeze((profile.extensionElements ?? []).map(name => Object.freeze({ ...name }))),
@@ -95,7 +95,7 @@ function tokens(value: string): string[] {
   if (token) result.push(token);
   return result;
 }
-function ncName(value: string): boolean {
+export function isXmlLocalName(value: string): boolean {
   let first = true;
   for (const char of value) {
     const p = char.codePointAt(0)!;
@@ -113,14 +113,14 @@ function ncName(value: string): boolean {
 function namespaces(element: XmlElement, value: string): string[] {
   return tokens(value).map(prefix => {
     const uri = element.namespaces.get(prefix);
-    if (!ncName(prefix) || !uri || uri === mc) invalid();
+    if (!isXmlLocalName(prefix) || !uri || uri === mc) invalid();
     return uri;
   });
 }
 function pairs(element: XmlElement, value: string, ignorable: Set<string>): ExpandedXmlName[] {
   return tokens(value).map(token => {
     const parts = token.split(":");
-    if (parts.length !== 2 || !ncName(parts[0]!) || (parts[1] !== "*" && !ncName(parts[1]!))) invalid();
+    if (parts.length !== 2 || !isXmlLocalName(parts[0]!) || (parts[1] !== "*" && !isXmlLocalName(parts[1]!))) invalid();
     const namespace = element.namespaces.get(parts[0]!);
     if (!namespace || namespace === mc || !ignorable.has(namespace)) invalid();
     return { namespace, localName: parts[1]! };

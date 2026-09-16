@@ -1,3 +1,4 @@
+import { isXmlLocalName } from "./compatibility.js";
 import { isEnumMember } from "./formatting-values.js";
 import { documentLimitDefaults } from "./budget.js";
 import { decodeLocation } from "./location-token.js";
@@ -212,7 +213,7 @@ function valid(type: string, value: unknown): boolean {
     }
     return closed(value, fields);
   }
-  if (type === "ExpandedName") return closed(value, { namespaceURI: "string", localName: "identifier" });
+  if (type === "ExpandedName") return closed(value, { namespaceURI: "string", localName: "identifier" }) && isXmlLocalName(value.localName as string);
   if (modelTypes.has(type)) return receiver(value, type);
   return false;
 }

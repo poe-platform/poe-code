@@ -70,6 +70,12 @@ Run.clear. It preserves their live return/formatting obligations and all inherit
 collection, enum/helper and public underscore-prefixed inventory rows. The pinned
 inventory remains historical; later tasks and whole-model coverage remain pending.
 
+The [bounded XML/package view record](xml-package-views.md) and its
+[scoped API overlay](xml-package-view-api-map.json) now qualify live returned
+part/package/relationship, core-property and image-resource views over the
+existing domain. Public underscore-prefixed returns and absent full owner
+bindings remain explicit; historical whole-format counts are unchanged.
+
 ## Sources and baseline
 
 The [selective sanitization record](../plans/docx-explicit-sanitization.md)

@@ -14,7 +14,7 @@ import {assertOutsideRevisionRanges} from './revision-markup.js';
 import { collectShapeCarriers, type ShapeCarrierCensus } from "./shape-carriers.js";
 
 type Token = XmlContent | XmlAttribute;
-interface Span { start: number; end: number; owner: XmlContent; contentStart?: number; contentEnd?: number; empty?: boolean }
+interface Span { start: number; end: number; owner: XmlContent; contentStart?: number; contentEnd?: number; empty?: boolean; attributeStart?: number; attributeEnd?: number }
 
 export class UnsupportedEditError extends Error {
   readonly code = "unsupported-edit";
@@ -47,6 +47,7 @@ function indexSource(document: DocumentXml, source: string): Map<Token, Span> {
       consume("<" + node.name);
       for (const attribute of node.attributes) {
         whitespace();
+        const attributeStart = offset;
         consume(attribute.name);
         whitespace();
         consume("=");
@@ -55,8 +56,8 @@ function indexSource(document: DocumentXml, source: string): Map<Token, Span> {
         if (quote !== '"' && quote !== "'") unsupported();
         const start = offset;
         offset = until(quote);
-        spans.set(attribute, { start, end: offset, owner: node });
         offset++;
+        spans.set(attribute, { start, end: offset - 1, owner: node, attributeStart, attributeEnd: offset });
       }
       whitespace();
       if (source.startsWith("/>", offset)) {
@@ -379,6 +380,104 @@ export class DocumentXmlEditor {
     this.#stage(attribute, value, attribute.value, true);
   }
 
+  /** Leading scalar XML text, retaining every child and non-text token. */
+  setLeadingText(element: XmlElement, value: string | null): void {
+    this.#assertOwnedEdit(element);
+    const leading: XmlContent[] = [];
+    for (const token of element.content) {
+      if (token.kind !== "text" && token.kind !== "cdata") break;
+      leading.push(token);
+    }
+    if (this.#guardCompatibility && leading.some(token => !this.#canEdit(token))) unsupported();
+    const span = this.#spans.get(element)!;
+    const end = leading.length ? this.#spans.get(leading.at(-1)!)!.end + (leading.at(-1)!.kind === "cdata" ? 3 : 0) : span.contentStart!;
+    const patch = this.#source.slice(span.start, span.contentStart!) + (span.empty ? ">" : "")
+      + escapeValue(value ?? "", false) + (span.empty ? `</${element.name}>` : this.#source.slice(end, span.end));
+    this.#acceptOwnedPatch(element, patch, value ? 1 : 0);
+  }
+
+  /** Tail text is owned by the containing element, never by an external resource. */
+  setElementTail(element: XmlElement, value: string | null): void {
+    if (!this.#elements.has(element)) unsupported();
+    const parent = [...this.#elements].find(node => node.children.includes(element));
+    const owner = parent ?? element;
+    this.#assertOwnedEdit(owner);
+    const content = parent?.content ?? this.root.epilog ?? [];
+    const index = parent ? content.indexOf(element) + 1 : 0;
+    let end = this.#spans.get(element)!.end;
+    for (let offset = index; offset < content.length; offset++) {
+      const token = content[offset]!;
+      if (token.kind !== "text" && token.kind !== "cdata") break;
+      if (parent && this.#guardCompatibility && !this.#canEdit(token)) unsupported();
+      end = this.#spans.get(token)!.end + (token.kind === "cdata" ? 3 : 0);
+    }
+    if (!parent) {
+      if (end !== this.#spans.get(element)!.end) {
+        let first = true;
+        for (const token of content) {
+          if (token.kind !== "text") break;
+          this.setText(token, first ? value ?? "" : "");
+          first = false;
+        }
+        return;
+      }
+      if (!value) return;
+      this.#acceptOwnedPatch(element, this.sourceXml(element) + escapeValue(value ?? "", false), value ? 1 : 0);
+      return;
+    }
+    const span = this.#spans.get(parent)!;
+    const start = this.#spans.get(element)!.end;
+    this.#acceptOwnedPatch(parent, this.#source.slice(span.start, start) + escapeValue(value ?? "", false) + this.#source.slice(end, span.end), value ? 1 : 0);
+  }
+
+  /** Qualified attribute insertion/removal preserves unrelated lexical shells. */
+  setQualifiedAttribute(element: XmlElement, name: ExpandedXmlName, value: string | null): void {
+    this.#assertOwnedEdit(element);
+    if (name.namespace === "http://www.w3.org/2000/xmlns/" || name.localName === "xmlns") unsupported();
+    const existing = element.attributes.find(attribute => attribute.namespace === name.namespace && attribute.localName === name.localName);
+    if (existing && this.#guardCompatibility && !this.#canEdit(existing)) unsupported();
+    if (!existing && this.#guardCompatibility && !this.#profile.understoodNamespaces.includes(name.namespace)
+      && !this.#profile.understoodElements?.some(node => node.namespace === element.namespace && node.localName === element.localName
+        && node.attributes.some(attribute => attribute.namespace === name.namespace && attribute.localName === name.localName))) unsupported();
+    if (!existing && value === null) return;
+    if (existing && value !== null) { this.setAttribute(element, name, value); return; }
+    const span = this.#spans.get(element)!;
+    let patch: string;
+    if (existing) {
+      const attribute = this.#spans.get(existing)!;
+      patch = this.#source.slice(span.start, attribute.attributeStart!) + this.#source.slice(attribute.attributeEnd!, span.end);
+    } else {
+      let prefix = "", declaration = "";
+      if (name.namespace) {
+        prefix = [...element.namespaces].find(([prefix, namespace]) => prefix && namespace === name.namespace)?.[0] ?? "xv";
+        if (!element.namespaces.has(prefix)) declaration = ` xmlns:${prefix}="${escapeValue(name.namespace, true)}"`;
+        else if (element.namespaces.get(prefix) !== name.namespace) {
+          while (element.namespaces.has(prefix)) prefix += "v";
+          declaration = ` xmlns:${prefix}="${escapeValue(name.namespace, true)}"`;
+        }
+      }
+      const offset = span.empty ? span.contentStart! : span.contentStart! - 1;
+      patch = this.#source.slice(span.start, offset) + declaration + ` ${prefix ? prefix + ":" : ""}${name.localName}="${escapeValue(value!, true)}"` + this.#source.slice(offset, span.end);
+    }
+    this.#acceptOwnedPatch(element, patch, existing ? 0 : 1);
+  }
+
+  #assertOwnedEdit(element: XmlElement): void {
+    if (!this.#elements.has(element) || this.#patches.size || this.#guardCompatibility && !this.#canEdit(element)) unsupported();
+    this.assertShapeEditAllowed(element);
+  }
+
+  #acceptOwnedPatch(element: XmlElement, patch: string, inserted: number): void {
+    this.#budget.charge("work", patch.length * 4);
+    this.#budget.charge("retainedBytes", patch.length * 8);
+    this.#patches.set(element, patch);
+    try {
+      const candidate = parseDocumentXml(this.serialize(), this.#limits, this.#budget);
+      if (this.#dialect) validateXmlDialect(candidate.root, this.#dialect, this.#profile, this.#budget);
+      this.#budget.charge("insertedNodes", inserted);
+    } catch (error) { this.#patches.delete(element); throw error; }
+  }
+
   #stage(token: Token, value: string, original: string, escape: boolean): void {
     if (value.length > (this.#limits.maxBytes ?? 32 * 1024 * 1024))
       throw new ResourceLimitError("XML output byte limit exceeded.");
@@ -391,7 +490,8 @@ export class DocumentXmlEditor {
         (point >= 0x10000 && point <= 0x10ffff)))
         throw new InvalidXmlError("Invalid XML character in replacement value.");
     }
-    if (value !== original && this.#guardCompatibility && !this.#canEdit(token)) unsupported();
+    if (value !== original && this.#guardCompatibility && !this.#canEdit(token)
+      && !("kind" in token && token.kind === "text" && this.root.epilog?.includes(token))) unsupported();
     const owner = this.#spans.get(token)!.owner;
     const element = owner.kind === "element" ? owner : [...this.#elements].find(n => n.content.includes(owner));
     if (element) this.assertShapeEditAllowed(element);

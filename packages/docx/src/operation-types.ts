@@ -1006,7 +1006,7 @@ export interface DocxOperationArgumentMap {
   "model.parts.image.ImagePart.default_cx.get": Readonly<Record<string, never>>;
   "model.parts.image.ImagePart.default_cy.get": Readonly<Record<string, never>>;
   "model.parts.image.ImagePart.filename.get": Readonly<Record<string, never>>;
-  "model.parts.image.ImagePart.from_image.call": Readonly<{ "image": DocxModelHandle<"Image">; "partname": string }>;
+  "model.parts.image.ImagePart.from_image.call": Readonly<{ "image": DocxModelHandle<"Image">; "partname": string; "ownerPackage": DocxModelHandle<"PackageView"> }>;
   "model.parts.image.ImagePart.image.get": Readonly<Record<string, never>>;
   "model.parts.image.ImagePart.sha1.get": Readonly<Record<string, never>>;
   "model.parts.numbering.NumberingPart.after_unmarshal.call": Readonly<Record<string, never>>;
@@ -1202,7 +1202,7 @@ export interface DocxOperationArgumentMap {
   "model.opc.rel.Relationships.get.call": Readonly<{ "rId": string; "defaultValue"?: DocxModelHandle<"RelationshipView"> | null | undefined }>;
   "model.opc.rel.Relationships.clear.call": Readonly<Record<string, never>>;
   "model.opc.rel.Relationships.update.call": Readonly<{ "entries": readonly (readonly [string, DocxModelHandle<"RelationshipView">])[] }>;
-  "model.opc.rel.Relationships.pop.call": Readonly<{ "rId": string }>;
+  "model.opc.rel.Relationships.pop.call": Readonly<{ "rId": string; "defaultValue"?: DocxModelHandle<"RelationshipView"> | null | undefined }>;
   "model.opc.rel.Relationships.popitem.call": Readonly<Record<string, never>>;
   "model.opc.rel.Relationships.setdefault.call": Readonly<{ "rId": string; "value": DocxModelHandle<"RelationshipView"> }>;
   "model.opc.rel.Relationships.copy.call": Readonly<Record<string, never>>;
@@ -2529,7 +2529,7 @@ export interface DocxBatchArgumentMap {
   "model.parts.image.ImagePart.default_cx.get": Readonly<Record<string, never>>;
   "model.parts.image.ImagePart.default_cy.get": Readonly<Record<string, never>>;
   "model.parts.image.ImagePart.filename.get": Readonly<Record<string, never>>;
-  "model.parts.image.ImagePart.from_image.call": Readonly<{ "image": DocxModelHandle<"Image">; "partname": string }>;
+  "model.parts.image.ImagePart.from_image.call": Readonly<{ "image": DocxModelHandle<"Image">; "partname": string; "ownerPackage": DocxModelHandle<"PackageView"> }>;
   "model.parts.image.ImagePart.image.get": Readonly<Record<string, never>>;
   "model.parts.image.ImagePart.sha1.get": Readonly<Record<string, never>>;
   "model.parts.numbering.NumberingPart.after_unmarshal.call": Readonly<Record<string, never>>;
@@ -2725,7 +2725,7 @@ export interface DocxBatchArgumentMap {
   "model.opc.rel.Relationships.get.call": Readonly<{ "rId": string; "defaultValue"?: DocxModelHandle<"RelationshipView"> | null | undefined }>;
   "model.opc.rel.Relationships.clear.call": Readonly<Record<string, never>>;
   "model.opc.rel.Relationships.update.call": Readonly<{ "entries": readonly (readonly [string, DocxModelHandle<"RelationshipView">])[] }>;
-  "model.opc.rel.Relationships.pop.call": Readonly<{ "rId": string }>;
+  "model.opc.rel.Relationships.pop.call": Readonly<{ "rId": string; "defaultValue"?: DocxModelHandle<"RelationshipView"> | null | undefined }>;
   "model.opc.rel.Relationships.popitem.call": Readonly<Record<string, never>>;
   "model.opc.rel.Relationships.setdefault.call": Readonly<{ "rId": string; "value": DocxModelHandle<"RelationshipView"> }>;
   "model.opc.rel.Relationships.copy.call": Readonly<Record<string, never>>;

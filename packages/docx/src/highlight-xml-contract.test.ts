@@ -25,7 +25,7 @@ it.each(colors)("serializes the exact highlight XML value for %s", (color, lexic
   font.highlight_color = color;
   expect(font.highlight_color).toEqual(color);
   const props = font.element.children[0]!;
-  expect(props.children.map(node => [node.localName, node.attributes.filter(a => a.namespace === w).map(a => [a.localName, a.value])]))
+  expect(props.children.map(node => [node.localName, [...node.attributes].filter(([a]) => a.namespaceURI === w).map(([a, value]) => [a.localName, value])]))
     .toEqual([["b", [["val", "0"]]], ["highlight", [["val", lexical]]]]);
   expect(owner.getXml()).toContain('<w:t>潮 🌿</w:t>');
   expect(font.bold).toBe(false);

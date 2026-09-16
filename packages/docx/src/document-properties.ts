@@ -1,5 +1,6 @@
+import { createPropertyPart } from "./property-part.js";
 import { archiveSettings, InputTypeError, InvalidValueError, type ArchiveContext, type DocumentArchive } from "./archive.js";
-import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
+import { readDocumentArchive } from "./admission.js";
 import { validateDocxInvocation } from "./command.js";
 import { documentDialects } from "./dialect.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
@@ -12,7 +13,6 @@ import { normalizeDocxPropertyOptions } from "./command-properties.js";
 import { customPropertyFormatId, normalizePropertyDate, propertyDeclaration, propertyGroupDefinition, propertyNumberFits, serializePropertyScalar, readPropertyParts, type PropertyGroup, type PropertyPart, type PropertyValue, type StoredProperty, type PropertyType } from "./property-values.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { measurePackageResourceSerialization } from "./ancillary-resources.js";
-import type { DocumentBudget } from "./budget.js";
 
 export interface PropertyWarning { readonly code: string; readonly message: string }
 export interface PropertyResourceRecord {
@@ -69,16 +69,6 @@ export async function inspectDocumentProperties(input: Uint8Array, options: Prop
     }
   }
   const data = { items, warnings: warningsFor(parts) }; if (options.json) measurePackageResourceSerialization(data, budget); return data;
-}
-function createPropertyPart(archive: AdmittedDocumentArchive, group: PropertyGroup, budget: DocumentBudget): { archive: DocumentArchive; name: string } {
-  const definition = propertyGroupDefinition(group, archive.dialect), name = archive.package.allocatePartName(definition.base, ".xml");
-  const types = archive.members.find(m => m.name === "[Content_Types].xml")!, typesEditor = new DocumentXmlEditor(types.bytes, {}, undefined, budget);
-  typesEditor.insertChildren(typesEditor.root, `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="${xmlValue(name)}" ContentType="${definition.contentType}"/>`);
-  const relationships = archive.members.find(m => m.name === "_rels/.rels")!, relEditor = new DocumentXmlEditor(relationships.bytes, {}, undefined, budget), id = archive.package.allocateRelationshipId("/");
-  relEditor.insertChildren(relEditor.root, `<Relationship xmlns="http://schemas.openxmlformats.org/package/2006/relationships" Id="${id}" Type="${definition.relationship}" Target="${xmlValue(name.slice(1))}"/>`);
-  const members = archive.members.map(m => m === types ? { ...m, bytes: typesEditor.serialize() } : m === relationships ? { ...m, bytes: relEditor.serialize() } : m);
-  members.push({ name: name.slice(1), bytes: new TextEncoder().encode(`<p:${definition.root} xmlns:p="${definition.namespace}"/>`), directory: false, modified: new Date("1980-01-01T00:00:00Z") });
-  return { archive: { ...archive, members }, name };
 }
 export async function editDocumentProperties(input: Uint8Array, options: PropertyEditOptions, context: PublicationContext): Promise<PropertyMutationData> {
   const identity = options.input; closedRecord(options, ["operation", "name", "value", "type", "input", "output", "inPlace", "force", "dryRun", "allowEmpty", "json", "limit"]);

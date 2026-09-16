@@ -127,7 +127,7 @@ it("shares bounded part identity and compares independently acquired live views"
   expect(style.font.equals(again.font)).toBe(true);
   expect(style.part).toBe(model.styles.part);
   expect(style.font.part).toBe(style.part);
-  expect(style.part.partname).toBe("/word/styles.xml");
+  expect(style.part.partname.toString()).toBe("/word/styles.xml");
   const bytes = style.part.blob;
   bytes.fill(0);
   expect(style.part.blob[0]).toBe(60);

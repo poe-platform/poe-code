@@ -389,13 +389,14 @@ function batchMutates(value: unknown): boolean {
   });
 }
 function handleType(receiver: Record<string, unknown>, handles: ReadonlyMap<string, string>): string {
-  const type = handles.get(receiver.resultHandle as string);
+  let type = handles.get(receiver.resultHandle as string);
   if (!type) usage("Unknown or forward result handle.");
+  if (type.startsWith("Promise<") && type.endsWith(">")) type = type.slice(8, -1);
   if (receiver.index === undefined && receiver.key === undefined) return type;
   if (receiver.index !== undefined && receiver.key !== undefined) usage("Choose index or key lookup.");
-  if (type.startsWith("ReadonlyArray<") && type.endsWith(">")) {
+  if ((type.startsWith("ReadonlyArray<") || type.startsWith("IterableIterator<")) && type.endsWith(">")) {
     if (receiver.key !== undefined) usage("Sequences require an index.");
-    return type.slice(14, -1);
+    return type.slice(type.indexOf("<") + 1, -1);
   }
   if (type.startsWith("ReadonlyMap<string, ") && type.endsWith(">")) {
     if (receiver.index !== undefined || typeof receiver.key !== "string") usage("Maps require a string key.");
@@ -457,7 +458,8 @@ export function validateDocxBatch(value: unknown, budget = new DocumentBudget(),
         if (receiver.key !== undefined && typeof receiver.key !== "string") usage("Invalid handle key.");
         const type = handleType(receiver, handles);
         const styleReceivers: Readonly<Record<string, readonly string[]>> = { BaseStyle: ["CharacterStyle", "ParagraphStyle", "_TableStyle", "_NumberingStyle"], CharacterStyle: ["BaseStyle", "ParagraphStyle", "_TableStyle"], ParagraphStyle: ["BaseStyle", "CharacterStyle", "_TableStyle"], _TableStyle: ["BaseStyle", "CharacterStyle", "ParagraphStyle"], _NumberingStyle: ["BaseStyle"] };
-        if (!type.split(" | ").some(candidate => candidate === schema.receiver || styleReceivers[candidate]?.includes(schema.receiver!))) usage("Handle type does not match receiver.");
+        const packageReceivers: Readonly<Record<string, readonly string[]>> = { XmlPartView: ["XmlPart", "Part", "PartView", "StylesPart"], PartView: ["Part"], PackageView: ["Package", "OpcPackage"], RelationshipView: ["_Relationship"], DocumentPart: ["Part", "XmlPart", "PartView", "XmlPartView"], StylesPart: ["Part", "XmlPart", "PartView", "XmlPartView"], CorePropertiesPart: ["Part", "XmlPart", "PartView", "XmlPartView"], ImagePart: ["Part", "PartView"] };
+        if (!type.split(" | ").some(candidate => candidate === schema.receiver || styleReceivers[candidate]?.includes(schema.receiver!) || packageReceivers[candidate]?.includes(schema.receiver!))) usage("Handle type does not match receiver.");
       } else if (typeof receiver.id !== "string" || !receiver.id || typeof receiver.type !== "string" || !receiver.type || typeof receiver.owner !== "string" || !receiver.owner || typeof receiver.revision !== "number" || !Number.isSafeInteger(receiver.revision) || receiver.revision < 0) usage("Invalid model receiver.");
       else if (receiver.type !== schema.receiver) usage("Receiver type does not match operation.");
     }

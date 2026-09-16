@@ -66,7 +66,7 @@ it("edits RGB and theme colors and reads immutable color helpers", async () => {
   expect(applied.results.at(-1)).toMatchObject({ value: { enum: "MSO_COLOR_TYPE", name: "THEME" } });
   expect(applied.publish).toBeTypeOf("function");
 });
-it("returns opaque inherited XML and part handles and compares live identity without exposing storage", async () => {
+it("returns bounded inherited XML and part handles and compares live identity without exposing storage", async () => {
   const input = await textFixture(paragraph("Harbor log"));
   const applied = await applyStyleModelBatch(input, { version: 1, operations: [bootstrap, add,
     { operation: "model.styles.styles.Styles.__getitem__.call", receiver: ref("styles"), arguments: { key: "Harbor" }, resultHandle: "same" },
@@ -76,7 +76,7 @@ it("returns opaque inherited XML and part handles and compares live identity wit
   ] }, textContext);
   expect(applied.results[3]).toMatchObject({ value: true });
   expect(applied.results[4]).toMatchObject({ value: { type: "XmlElementView", owner: "document" } });
-  expect(applied.results[5]).toMatchObject({ value: { type: "XmlPartView", owner: "document" } });
+  expect(applied.results[5]).toMatchObject({ value: { type: "StylesPart", owner: "document" } });
   expect(JSON.stringify(applied.results)).not.toContain("store");
 });
 it("executes checked length accessors and formatting enum conversions", async () => {

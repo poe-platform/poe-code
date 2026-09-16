@@ -28,10 +28,11 @@ it("keeps insertion PNG and JPEG only while five formats have standalone read su
   expect(getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "images.add" } })!.data).toMatchObject({ operations: [{ support: "edit", featureIds: ["F06", "F08", "F11", "F12", "F31", "F32", "F35"] }] });
   expect(getDocxDiscovery({ operation: "schema", inputs: [], options: {} })!.data).toMatchObject({ operations: expect.arrayContaining([expect.objectContaining({ id: "images.add", support: "edit" })]) });
   const capabilities = getDocxDiscovery({ operation: "capabilities", inputs: [], options: {} })!.data;
-  expect(capabilities).toMatchObject({ features: expect.arrayContaining([expect.objectContaining({ id: "F32", level: "edit", detected: null, subsets: [expect.objectContaining({ name: "inline-png-jpeg-insertion", level: "edit", reason: expect.stringContaining("image-part, drawing and collection models remain unsupported") }), expect.objectContaining({ name: "standalone-image-values", level: "read" }), expect.objectContaining({ name: "raster-occurrence-replacement", level: "edit" })] })]) });
+  expect(capabilities).toMatchObject({ features: expect.arrayContaining([expect.objectContaining({ id: "F32", level: "edit", detected: null, subsets: [expect.objectContaining({ name: "inline-png-jpeg-insertion", level: "edit", reason: expect.stringContaining("drawing occurrence models remain unsupported") }), expect.objectContaining({ name: "standalone-image-values", level: "read" }), expect.objectContaining({ name: "raster-occurrence-replacement", level: "edit" })] })]) });
   expect(getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "model.image.image.Image.from_blob.call" } })!.data).toMatchObject({ operations: [{ support: "read", featureIds: ["F32"] }] });
   expect(getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "images.replace" } })!.data).toMatchObject({ operations: [{ support: "edit", featureIds: ["F32", "F35"] }] });
-  for (const operation of ["model.parts.image.ImagePart.from_image.call", "model.shape.InlineShapes.__len__.get"]) {
+  expect(getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "model.parts.image.ImagePart.from_image.call" } })!.data).toMatchObject({ operations: [{ support: "edit", featureIds: ["F01", "F32"] }] });
+  for (const operation of ["model.shape.InlineShapes.__len__.get"]) {
     expect(getDocxDiscovery({ operation: "schema", inputs: [], options: { operation } })!.data).toMatchObject({ operations: [{ support: "reject" }] });
   }
 });

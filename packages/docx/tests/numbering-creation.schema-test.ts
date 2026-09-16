@@ -41,3 +41,27 @@ it("validates the new Transitional numbering root against the pinned WML schema"
   const part = NumberingPart.new(model.part.package);
   expect(schemaCheck(part.blob, "transitional-profile.xsd")).toMatchObject({ status: "valid" });
 });
+
+it.each([
+  {
+    name: "canonical level",
+    children: '<w:startOverride w:val="0"/><w:lvl w:ilvl="+0"/>',
+    status: "valid"
+  },
+  {
+    name: "duplicate level",
+    children: '<w:lvl w:ilvl="0"/><w:lvl w:ilvl="00"/>',
+    status: "invalid"
+  },
+  {
+    name: "duplicate start",
+    children: '<w:startOverride w:val="1"/><w:startOverride w:val="2"/>',
+    status: "invalid"
+  },
+  { name: "missing nested level ID", children: "<w:lvl/>", status: "invalid" }
+])("independently checks numbering override grammar: $name", ({ children, status }) => {
+  const xml = `<w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:abstractNum w:abstractNumId="0"><w:lvl w:ilvl="0"/></w:abstractNum><w:num w:numId="1"><w:abstractNumId w:val="0"/><w:lvlOverride w:ilvl="00">${children}</w:lvlOverride></w:num></w:numbering>`;
+  expect(schemaCheck(new TextEncoder().encode(xml), "transitional-profile.xsd")).toMatchObject({
+    status
+  });
+});

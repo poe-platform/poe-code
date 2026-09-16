@@ -66,6 +66,77 @@ const operations: readonly DocxBatchOperation[] = [
 ];
 const snapshot = (owner: PackageView) =>
   owner.parts.map((part) => [part.partname.toString(), part.blob]);
+
+const malformedOverrides = [
+  { name: "mismatched level", xml: '<w:lvl w:ilvl="1"/>' },
+  { name: "missing level ID", xml: "<w:lvl/>" },
+  { name: "negative level", xml: '<w:lvl w:ilvl="-1"/>' },
+  { name: "level above eight", xml: '<w:lvl w:ilvl="9"/>' },
+  { name: "duplicate level", xml: '<w:lvl w:ilvl="0"/><w:lvl w:ilvl="00"/>' },
+  { name: "duplicate start", xml: '<w:startOverride w:val="1"/><w:startOverride w:val="2"/>' }
+];
+
+for (const route of ["model", "sdk", "cli"] as const) {
+  for (const strict of [false, true]) {
+    it.each(malformedOverrides)(
+      `rejects malformed nested overrides through ${route}; strict=${strict}: $name`,
+      async ({ xml }) => {
+        const input = await textFixture(
+          paragraph("Override ledger"),
+          {
+            numbering: {
+              kind: "numbering",
+              xml: `<w:numbering xmlns:w="${w}"><w:abstractNum w:abstractNumId="0"><w:lvl w:ilvl="0"/></w:abstractNum><w:num w:numId="1"><w:abstractNumId w:val="0"/><w:lvlOverride w:ilvl="0">${xml}</w:lvlOverride></w:num></w:numbering>`
+            }
+          },
+          strict
+        );
+        if (route === "model") {
+          const model = await Document(input, textContext);
+          const before = snapshot(model.part.package);
+          const part = model.part.numbering_part;
+          expect(() => NumberingPart.new(model.part.package)).toThrow(SemanticValidationError);
+          expect(snapshot(model.part.package)).toEqual(before);
+          expect(model.part.numbering_part).toBe(part);
+          expect(part.numbering_definitions.length).toBe(1);
+        } else if (route === "sdk") {
+          await expect(
+            applyStyleModelBatch(input, { version: 1, operations }, textContext)
+          ).rejects.toThrow(SemanticValidationError);
+        } else {
+          const result = await command(input, operations, ["--output", "-"]);
+          expect(result.result.exitCode).not.toBe(0);
+          expect(result.stdout).toHaveLength(0);
+        }
+      }
+    );
+  }
+}
+
+it("rejects a mismatched XML level edit without invalidating retained definitions", async () => {
+  const input = await textFixture(paragraph("Retained override"), {
+    numbering: {
+      kind: "numbering",
+      xml: `<w:numbering xmlns:w="${w}"><w:abstractNum w:abstractNumId="0"><w:lvl w:ilvl="0"/></w:abstractNum><w:num w:numId="1"><w:abstractNumId w:val="0"/><w:lvlOverride w:ilvl="0"><w:lvl w:ilvl="00"/></w:lvlOverride></w:num></w:numbering>`
+    }
+  });
+  const model = await Document(input, textContext);
+  const part = NumberingPart.new(model.part.package);
+  const definitions = part.numbering_definitions;
+  const level = part.element.children[1]!.children[1]!.children[0]!;
+  const before = snapshot(model.part.package);
+  expect(() => level.set_attribute({ namespaceURI: w, localName: "ilvl" }, "1")).toThrow(
+    SemanticValidationError
+  );
+  expect(snapshot(model.part.package)).toEqual(before);
+  expect(part.numbering_definitions).toBe(definitions);
+  expect(definitions.length).toBe(1);
+  level.set_attribute({ namespaceURI: w, localName: "ilvl" }, "+0");
+  expect((await Document(await saved(model), textContext)).part.numbering_part.blob).toEqual(
+    part.blob
+  );
+});
+
 async function saved(model: {
   save(sink: { write(bytes: Uint8Array): Promise<void> }): Promise<void>;
 }) {

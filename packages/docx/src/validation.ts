@@ -355,6 +355,17 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
         else ids.add(id);
       }
     }
+    if (name === "lvlOverride") {
+      const levels = children(node, "lvl");
+      if (levels.length > 1 || children(node, "startOverride").length > 1)
+        issue(node, "numbering-override", "Numbering overrides allow at most one level and one start value.");
+      const id = integer(attr(node, "ilvl"), 0, 8);
+      for (const level of levels) {
+        const nestedId = integer(attr(level, "ilvl"), 0, 8);
+        if (nestedId === undefined || nestedId !== id)
+          issue(level, "numbering-level", "Override level must match its owning numbering level.");
+      }
+    }
     if (name === "numPr") {
       const numId = children(node, "numId")[0];
       const level = children(node, "ilvl")[0];

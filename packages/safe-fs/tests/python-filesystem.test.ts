@@ -6,6 +6,33 @@ import type { FileStat } from "../src/contracts/filesystem.js";
 import { PythonFileSystem, translatePythonOpenFlags } from "../src/python/index.js";
 
 const bytes = (text: string) => new TextEncoder().encode(text);
+it("enforces Python directory admission when a backend returns more than requested", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/first", bytes("a"));
+  await fs.writeFile("/second", bytes("b"));
+  const entries = await fs.readdir("/");
+  const list = vi.spyOn(fs, "readdir").mockResolvedValue(entries);
+  const bounded = new PythonFileSystem(fs, { cwd: "/", maxDirectoryEntries: 1 });
+  const exact = new PythonFileSystem(fs, { cwd: "/", maxDirectoryEntries: 2 });
+  try {
+    await expect(bounded.dispatch({ op: "readdir", args: ["/"] })).rejects.toMatchObject({ code: "EFBIG" });
+    expect(list).toHaveBeenCalledWith("/", expect.objectContaining({ maxEntries: 1 }));
+    expect(await exact.dispatch({ op: "readdir", args: ["/"] })).toEqual(entries);
+    expect(await fs.readFile("/first")).toEqual(bytes("a"));
+  } finally { await Promise.all([bounded.close(), exact.close()]); }
+});
+it("preserves cancellation precedence over an oversized Python directory reply", async () => {
+  const fs = new MemoryFileSystem();
+  const controller = new AbortController();
+  vi.spyOn(fs, "readdir").mockImplementation(async () => {
+    controller.abort(false);
+    return [{ name: "first", type: "file" }, { name: "second", type: "file" }];
+  });
+  const service = new PythonFileSystem(fs, { cwd: "/", maxDirectoryEntries: 1, signal: controller.signal });
+  try {
+    await expect(service.dispatch({ op: "readdir", args: ["/"] })).rejects.toBe(false);
+  } finally { await service.close(); }
+});
 it("preserves read-only rmdir errors through mounted canonical Python filesystems", async () => {
   const storage = new MemoryFileSystem();
   await storage.mkdir("/empty");

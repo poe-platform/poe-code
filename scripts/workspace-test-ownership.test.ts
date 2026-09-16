@@ -22,6 +22,15 @@ describe("workspace test ownership", () => {
     expect(manifest.private).toBe(true);
     expect(manifest.scripts.postbuild).toContain("build-optional-cli.mjs");
     expect(fs.existsSync(new URL("../packages/safe-bash-optional/package.json", import.meta.url))).toBe(false);
+    const fileSystem = createFsFromVolume(Volume.fromJSON({
+      "/repo/package.json": JSON.stringify({ workspaces: ["packages/*"] }),
+      "/repo/turbo.json": JSON.stringify({ tasks: { build: { dependsOn: ["^build"] } } }),
+      "/repo/packages/safe-fs/package.json": JSON.stringify({ name: "@poe-code/safe-fs", scripts: { build: "node build.mjs" } }),
+      "/repo/packages/safe-bash/package.json": JSON.stringify({ name: manifest.name, scripts: { build: "node build.mjs", "test:unit": "node scripts/test.mjs" }, devDependencies: { "@poe-code/safe-fs": "*" } })
+    })) as unknown as typeof import("node:fs");
+    expect(createWorkspaceBuildPlan("/repo", fileSystem).stages.map((stage: { name: string }) => stage.name))
+      .toEqual(["@poe-code/safe-fs", "@poe-platform/safe-bash"]);
+    expect(workspaceUnitSelections("/repo", fileSystem)).toEqual([]);
   });
 
   it("exposes literal selections without changing their exclusion boundaries", () => {

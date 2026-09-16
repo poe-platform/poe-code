@@ -126,6 +126,10 @@ describe("CommonMark 0.31.2 original block structures", () => {
     ["definition escaped space invalid", "[a]: a\\ b", [p("[a]: a\\ b")]],
     ["definition escaped punctuation", "[a]: a\\(b\\)", []],
     ["setext keeps internal spaces", "a  \nb \n---", [["h", 2, "a  \nb "]]],
+    ["indented blank retains excess indentation", "    red\n      \n      blue", [code("red\n  \n  blue\n")]],
+    ["ordered delimiter change ends lazy item", "2. red\n3) blue", [list([[p("red")]], true, 2, "."), list([[p("blue")]], true, 3, ")")]],
+    ["nested quote ending blank does not loosen list", "- red\n  > blue\n  >\n- green", [list([[p("red"), ["quote", [p("blue")]]], [p("green")]])]],
+    ["null in literal code is replaced", "    red\u0000blue", [code("red�blue\n")]],
   ])("%s", async (_name, input, expected) => {
     expect(tree((await parse(input as string)).blocks)).toEqual(expected);
   });
@@ -190,11 +194,11 @@ describe("CommonMark 0.31.2 original block structures", () => {
   ])("bounds %s", async (_name, input, limits) => {
     await expect(parseCommonMarkBlocks(input, createExecutionContext("read", { limits, yield: async () => {} }))).rejects.toMatchObject({ code: "E_LIMIT" });
   });
-  it("checks cancellation and never advertises an incomplete reader", async () => {
+  it("checks cancellation and keeps CommonMark writing unavailable", async () => {
     const controller = new AbortController();
     const context = createExecutionContext("read", { signal: controller.signal });
     controller.abort();
     await expect(parseCommonMarkBlocks("hello", context)).rejects.toMatchObject({ code: "E_CANCELLED" });
-    expect(createFormatRegistry().list("read")).not.toContain("commonmark");
+    expect(createFormatRegistry().list("write")).not.toContain("commonmark");
   });
 });

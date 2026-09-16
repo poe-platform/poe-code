@@ -1,5 +1,5 @@
 import type { AdapterContext } from "./types.js";
-import { caseFoldExceptions } from "./commonmark-case-fold.js";
+import { normalizeLabel } from "./commonmark-syntax.js";
 
 export interface BlockPoint { line: number; column: number }
 export interface BlockSource { source: string; start: BlockPoint; end: BlockPoint }
@@ -215,6 +215,7 @@ export async function parseCommonMarkBlocks(
   context.checkpoint(0);
   context.charge("text", text.length);
   context.charge("retainedBytes", text.length * 2);
+  text = text.replaceAll("\u0000", "�");
   const document: CommonMarkBlockDocument = { blocks: [], definitions: [] };
   const labels = new Set<string>();
   const blankItems = new WeakSet<PendingItem>();
@@ -330,8 +331,8 @@ export async function parseCommonMarkBlocks(
       const failed = stack[matched];
       const siblingIndent = spaces(line.text, offset);
       const sibling = siblingIndent <= 3 ? marker(line.text, offset + siblingIndent) : undefined;
-      const sameList = failed?.kind === "item" && sibling && sibling.marker === failed.list.marker && (sibling.start === null) === (failed.list.start === null);
-      if (leaf?.kind === "paragraph" && !blank && !sameList && !interrupts(line.text, offset)) {
+      const siblingItem = failed?.kind === "item" && sibling;
+      if (leaf?.kind === "paragraph" && !blank && !siblingItem && !interrupts(line.text, offset)) {
         leaf.node.inline.lines.push(inlineLine(line, offset + spaces(line.text, offset)));
         leaf.node.source.end = endPoint(line);
         for (const container of stack) container.node.source.end = endPoint(line);
@@ -370,7 +371,12 @@ export async function parseCommonMarkBlocks(
     }
     if (leaf?.kind === "indent") {
       const indent = spaces(line.text, offset);
-      if (blank) { leaf.blanks.push(ending || "\n"); continue; }
+      if (blank) {
+        const value = rawFrom(line, offset + Math.min(indent, 4)) + (ending || "\n");
+        context.charge("retainedBytes", value.length * 2);
+        leaf.blanks.push(value);
+        continue;
+      }
       if (indent >= 4) {
         const value = leaf.blanks.join("") + rawFrom(line, offset + 4) + (ending || "\n");
         context.charge("retainedBytes", value.length * 2);
@@ -384,7 +390,9 @@ export async function parseCommonMarkBlocks(
     if (blank) {
       finish();
       let deepest: Extract<Container, { kind: "item" }> | undefined;
-      for (const container of stack) if (container.kind === "item") { deepest = container; blankItems.add(container.node); }
+      if (stack[stack.length - 1]?.kind === "item") {
+        for (const container of stack) if (container.kind === "item") { deepest = container; blankItems.add(container.node); }
+      }
       if (deepest) deepest.blank = true;
       continue;
     }
@@ -530,14 +538,7 @@ function readDefinition(
     if (++labelCharacters > 999) return;
   }
   if (first[i] !== "]" || first[i + 1] !== ":") return;
-  const normalized: string[] = [];
-  let gap = false;
-  for (const char of label) {
-    context.checkpoint();
-    if (char === " " || char === "\t" || char === "\n" || char === "\r") gap = normalized.length > 0;
-    else { if (gap) normalized.push(" "); normalized.push(caseFoldExceptions.get(char.codePointAt(0)!) ?? char.toLowerCase()); gap = false; }
-  }
-  label = normalized.join("");
+  label = normalizeLabel(label, context);
   if (!label) return;
   let text = first.slice(i + 2);
   i = 0;

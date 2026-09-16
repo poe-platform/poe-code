@@ -18,11 +18,14 @@
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
-    "lint": "eslint src && npm run typecheck",
+    "lint": "eslint src conformance && npm run typecheck",
     "test": "cd ../.. && vitest run packages/pandoc",
-    "test:unit": "cd ../.. && vitest run packages/pandoc"
+    "test:unit": "cd ../.. && vitest run packages/pandoc",
+    "pretest:conformance": "cd ../.. && npm run build:workspaces -- --workspace=@poe-code/pandoc",
+    "test:conformance": "node conformance/commonmark.mjs"
   },
   "dependencies": {
+    "entities": "^6.0.1",
     "jsonc-parser": "^3.3.1"
   }
 }

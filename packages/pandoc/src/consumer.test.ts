@@ -268,15 +268,15 @@ describe("public conversion seam (original adapters, no format conformance claim
     expect(ctx.reader!.read).not.toHaveBeenCalled();
     expect(ctx.writer!.write).not.toHaveBeenCalled();
   });
-  it("claims only the implemented JSON codec", async () => {
+  it("claims the implemented CommonMark reader and JSON codec", async () => {
     expect(
       formatCapabilities
         .filter((format) => format.read.available || format.write.available)
         .map((format) => format.name)
-    ).toEqual(["json"]);
+    ).toEqual(["commonmark", "json"]);
     await expect(
       readDocument({ bytes: encode("# actual syntax") }, { from: "commonmark" }, {})
-    ).rejects.toMatchObject({ code: "E_CAPABILITY" });
+    ).resolves.toMatchObject({ blocks: [{ t: "Header", c: [1, ["", [], []], [{ t: "Str", c: "actual" }, { t: "Space" }, { t: "Str", c: "syntax" }]] }] });
   });
   it("owns input, documents and binary results across capability boundaries", async () => {
     const input = encode("x");

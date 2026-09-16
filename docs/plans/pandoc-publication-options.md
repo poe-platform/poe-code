@@ -19,3 +19,8 @@ metadata now fails with `E_METADATA` unless explicit typed `yes` enables default
 Adapter,
 consumer and repository checks are tracked separately in
 `pandoc-safe-bash-plugin.md`; they are not publication-option completion evidence.
+
+Follow-up: an original failing test reproduced information tokens used as literal
+conversion option values (e.g. `-o --help`). Information inspection now considers
+only a leading standalone mode; remaining argv belongs to SDK conversion parsing.
+All 932 maintained Pandoc tests and package lint/typechecks pass after the fix.

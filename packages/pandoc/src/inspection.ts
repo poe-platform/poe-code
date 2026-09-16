@@ -4,9 +4,9 @@ import type { ConversionContext } from "./types.js";
 
 /** Information modes are validated without acquiring conversion inputs. */
 export function inspectCommand(args: readonly string[], context: ConversionContext = {}): string | undefined {
-  const end = args.indexOf("--");
-  const flags = end < 0 ? args : args.slice(0, end);
-  if (flags.some(arg => arg === "--help" || arg === "-h")) {
+  // Information modes must stand alone. Inspect their leading flag only: later
+  // tokens may be literal option values or operands belonging to conversion.
+  if (args[0] === "--help" || args[0] === "-h") {
     if (!args.every(arg => arg === "--help" || arg === "-h")) throw new PandocError("E_OPTION", "convert", "Use help flags alone");
     return "Usage: pandoc -f FORMAT -t FORMAT [OPTIONS] [FILE|- ...]\n" +
       "--from/-f --to/-t --output/-o PATH (use - for stdout) --yes --standalone/-s --wrap=none\n" +
@@ -20,11 +20,11 @@ export function inspectCommand(args: readonly string[], context: ConversionConte
       "Use -- before literal filenames. No external PDF engines, ambient fonts, filters or network fetching.\n" +
       "Capabilities (available directions):\n" + inspectFormats(["--list-input-formats", "--list-output-formats"], context);
   }
-  if (flags.includes("--version")) {
+  if (args[0] === "--version") {
     if (args.length !== 1) throw new PandocError("E_OPTION", "convert", "Use --version alone");
     return "pandoc TypeScript converter 0.0.1 (original bounded implementation)\n";
   }
-  if (flags.some(arg => arg.startsWith("--list-"))) return inspectFormats(args, context);
+  if (args[0]?.startsWith("--list-")) return inspectFormats(args, context);
   return undefined;
 }
 

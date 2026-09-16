@@ -120,7 +120,7 @@ surface("model.table._Column", () => _Column, ["cells", "width"], ["width"], [])
 register(
   "model.table.Table.table.get",
   () => Table,
-  (receiver) => receiver
+  (receiver) => (receiver as Table).table
 );
 for (const [name, owner] of [
   ["_Row", () => _Row],
@@ -207,7 +207,7 @@ for (const [prefix, owner] of [
         (receiver as _Rows | _Columns | Sections).at(args.index as number)
       );
     register(`${prefix}.__getitem__.slice`, owner, (receiver, args) =>
-      [...(receiver as Iterable<unknown>)].slice(
+      (receiver as _Rows | Sections).slice(
         args.start as number | undefined,
         args.end as number | undefined
       )

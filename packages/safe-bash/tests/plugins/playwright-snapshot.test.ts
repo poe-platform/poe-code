@@ -3,6 +3,71 @@ import { test } from 'node:test';
 import { createSnapshotEngine } from '../../src/playwright/snapshot.js';
 import type { PlaywrightPage } from '../../src/playwright/adapter.js';
 
+function contentFixture(nodes: Record<string, unknown>[], content = 'Ready\nHere is the information the agent needs to read.') {
+  const disposed: number[] = [];
+  const handles = nodes.map((node, index) => ({
+    async evaluate(callback: (element: unknown) => unknown) { return callback(node); },
+    async dispose() { disposed.push(index); },
+  }));
+  const page = { frames: () => [{ locator: (selector: string) => selector === 'body'
+    ? { evaluate: async (callback: (element: unknown) => unknown) => callback({ innerText: content }) }
+    : { elementHandles: async () => handles } }] } as unknown as PlaywrightPage;
+  return { page, handles, disposed };
+}
+
+test('snapshot includes readable headings and noninteractive page text without allocating refs', async () => {
+  const { page } = contentFixture([]);
+  const engine = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 1 });
+  const text = await engine.capture(page);
+  assert.ok(text.includes('- text "Ready"'));
+  assert.ok(text.includes('Here is the information the agent needs to read.'));
+  await assert.rejects(engine.resolve('e1'), /stale/);
+});
+
+test('snapshot names native wrapping/for labels and aria-labelledby before fallbacks', async () => {
+  const nodes = [
+    { labels: [{ textContent: 'Name' }] },
+    { labels: [{ textContent: 'Email' }, { textContent: 'address' }] },
+    { attributes: { 'aria-labelledby': 'first\tlast', 'aria-label': 'Wrong', placeholder: 'Wrong' }, ownerDocument: { getElementById: (id: string) => ({ textContent: id === 'first' ? 'Account' : 'name' }) } },
+  ].map(({ attributes = {}, ...properties }) => ({
+    tagName: 'INPUT', textContent: '', getAttribute: (name: string) => (attributes as Record<string, string>)[name] ?? null, ...properties,
+  }));
+  const { page } = contentFixture(nodes, '');
+  const text = await createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 3 }).capture(page);
+  assert.equal(text, '- textbox "Name" [ref=e1]\n- textbox "Email address" [ref=e2]\n- textbox "Account name" [ref=e3]\n');
+});
+
+test('snapshot reports native input roles, checked states and current values, but not passwords', async () => {
+  const nodes = [
+    { type: 'checkbox', checked: true },
+    { type: 'checkbox', checked: false, indeterminate: true },
+    { type: 'radio', checked: false },
+    { type: 'text', value: 'Ada "Lovelace"' },
+    { type: 'password', value: 'secret' },
+    { type: 'number', value: '42' },
+    { type: 'search', value: 'query' },
+  ].map(({ type, ...properties }) => ({ tagName: 'INPUT', textContent: '', getAttribute: (name: string) => name === 'type' ? type : null, ...properties }));
+  const { page } = contentFixture(nodes, '');
+  const text = await createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 10 }).capture(page);
+  assert.ok(text.includes('- checkbox "" [ref=e1] [checked=true]'));
+  assert.ok(text.includes('- checkbox "" [ref=e2] [checked=mixed]'));
+  assert.ok(text.includes('- radio "" [ref=e3] [checked=false]'));
+  assert.ok(text.includes('- textbox "" [ref=e4] [value="Ada \\"Lovelace\\""]'));
+  assert.ok(!text.includes('secret'));
+  assert.ok(text.includes('- spinbutton "" [ref=e6] [value="42"]'));
+  assert.ok(text.includes('- searchbox "" [ref=e7] [value="query"]'));
+});
+
+test('readable content shares the byte limit and retires previously issued refs', async () => {
+  const node = { tagName: 'BUTTON', textContent: 'Save', getAttribute: () => null };
+  const fixture = contentFixture([node], '');
+  const engine = createSnapshotEngine({ maxSnapshotBytes: 64, maxSnapshotRefs: 1 });
+  await engine.capture(fixture.page);
+  await assert.rejects(engine.capture(contentFixture([], '😀'.repeat(20)).page), /byte limit/);
+  assert.deepEqual(fixture.disposed, [0]);
+  await assert.rejects(engine.resolve('e1'), /stale/);
+});
+
 function fixture() {
   const actions: string[] = [];
   const nodes = [0, 1, 2].map(index => ({

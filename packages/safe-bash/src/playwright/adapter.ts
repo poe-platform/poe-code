@@ -10,8 +10,19 @@ export interface PlaywrightLocator {
 export interface SnapshotNode {
   readonly tagName: string;
   readonly textContent: string | null;
+  readonly innerText?: string;
   readonly isConnected: boolean;
-  readonly ownerDocument?: { readonly defaultView: { readonly document: unknown } | null };
+  readonly ownerDocument?: {
+    readonly defaultView: { readonly document: unknown } | null;
+    getElementById?(id: string): { readonly textContent: string | null } | null;
+  };
+  readonly labels?: ArrayLike<{ readonly textContent: string | null }> | null;
+  readonly value?: string;
+  readonly checked?: boolean;
+  readonly indeterminate?: boolean;
+  readonly disabled?: boolean;
+  readonly multiple?: boolean;
+  readonly size?: number;
   getAttribute(name: string): string | null;
 }
 export interface PlaywrightElementHandle {
@@ -21,7 +32,10 @@ export interface PlaywrightElementHandle {
   dispose(): Promise<void>;
 }
 export interface PlaywrightFrame {
-  locator(selector: string): { elementHandles?: () => Promise<PlaywrightElementHandle[]> };
+  locator(selector: string): {
+    elementHandles?: () => Promise<PlaywrightElementHandle[]>;
+    evaluate?: (callback: (node: SnapshotNode) => string) => Promise<string>;
+  };
 }
 
 export interface PlaywrightPage {

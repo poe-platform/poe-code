@@ -3,7 +3,6 @@ import type { PlaywrightPage, PlaywrightElementHandle } from './adapter.js';
 export interface SnapshotLimits { readonly maxSnapshotBytes: number; readonly maxSnapshotRefs: number }
 
 /** Public element handles only. Shared by regular and Cloudflare injected pages.
- * This is a DOM interaction summary, not the full Playwright CLI accessibility tree.
  * Guest text is never compiled or evaluated as a locator or browser program.
  */
 export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => string) {
@@ -37,6 +36,18 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     try {
       for (const frame of frames) {
         signal?.throwIfAborted();
+        const body = frame.locator('body');
+        if (body.evaluate) {
+          const content = await body.evaluate(node => node.innerText || '');
+          signal?.throwIfAborted();
+          for (const paragraph of content.split('\n')) {
+            if (!paragraph.trim()) continue;
+            const line = `- text ${JSON.stringify(paragraph.trim())}\n`;
+            bytes += new TextEncoder().encode(line).byteLength;
+            if (bytes > maxSnapshotBytes) throw new Error('Snapshot byte limit exceeded');
+            text += line;
+          }
+        }
         const handles = await frame.locator('button, input, textarea, select, a[href], [role], [contenteditable="true"]').elementHandles!();
         for (const handle of handles) acquired.add(handle);
         if (acquired.size > maxSnapshotRefs) throw new Error('Snapshot ref limit exceeded');
@@ -45,10 +56,34 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
           const summary = await handle.evaluate(node => {
             const tag = node.tagName.toLowerCase();
             const roles: Record<string, string> = { button: 'button', input: 'textbox', textarea: 'textbox', select: 'combobox', a: 'link' };
-            return { role: node.getAttribute('role') || roles[tag] || tag, name: node.getAttribute('aria-label') || node.getAttribute('placeholder') || node.textContent || '' };
+            const type = (node.getAttribute('type') || 'text').toLowerCase();
+            const inputRoles: Record<string, string> = { checkbox: 'checkbox', radio: 'radio', number: 'spinbutton', range: 'slider', search: 'searchbox', button: 'button', submit: 'button', reset: 'button', image: 'button' };
+            const role = node.getAttribute('role') || (tag === 'input' ? inputRoles[type] || 'textbox' : tag === 'select' && (node.multiple || (node.size ?? 0) > 1) ? 'listbox' : roles[tag] || tag);
+            const labelIds: string[] = [];
+            let labelId = '';
+            for (const character of node.getAttribute('aria-labelledby') || '') {
+              if (' \t\n\r\f'.includes(character)) {
+                if (labelId) labelIds.push(labelId);
+                labelId = '';
+              } else labelId += character;
+            }
+            if (labelId) labelIds.push(labelId);
+            const labelledBy = labelIds.map(id => node.ownerDocument?.getElementById?.(id)?.textContent || '').join(' ').trim();
+            const labels = Array.from(node.labels || []).map(label => label.textContent || '').join(' ').trim();
+            const name = labelledBy || node.getAttribute('aria-label') || labels
+              || (tag === 'input' && ['button', 'submit', 'reset'].includes(type) ? node.value || (type === 'submit' ? 'Submit' : type === 'reset' ? 'Reset' : '') : '')
+              || (tag === 'input' && type === 'image' ? node.getAttribute('alt') : '')
+              || (tag === 'input' || tag === 'textarea' || tag === 'select' ? '' : node.textContent)
+              || node.getAttribute('title') || node.getAttribute('placeholder') || '';
+            const state: string[] = [];
+            const checked = node.getAttribute('aria-checked');
+            if (['checkbox', 'radio', 'switch'].includes(role)) state.push(`checked=${checked && ['true', 'false', 'mixed'].includes(checked) ? checked : node.indeterminate ? 'mixed' : String(node.checked === true)}`);
+            if (node.disabled || node.getAttribute('aria-disabled') === 'true') state.push('disabled');
+            if (type !== 'password' && node.value !== undefined && ['textbox', 'searchbox', 'spinbutton', 'slider', 'combobox', 'listbox'].includes(role)) state.push(`value=${JSON.stringify(node.value)}`);
+            return { role, name, state };
           });
           const ref = nextRef?.() ?? `e${++sequence}`;
-          const line = `- ${JSON.stringify(summary.role).slice(1, -1)} ${JSON.stringify(summary.name.trim())} [ref=${ref}]\n`;
+          const line = `- ${JSON.stringify(summary.role).slice(1, -1)} ${JSON.stringify(summary.name.trim())} [ref=${ref}]${summary.state.map(state => ` [${state}]`).join('')}\n`;
           bytes += new TextEncoder().encode(line).byteLength;
           if (bytes > maxSnapshotBytes) throw new Error('Snapshot byte limit exceeded');
           pending.set(ref, handle);

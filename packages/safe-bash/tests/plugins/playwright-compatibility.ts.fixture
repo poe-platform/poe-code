@@ -1,0 +1,109 @@
+// Compile after copying beside the exact dependencies listed in the topic plan.
+// This fixture establishes assignability of consumed methods, not service parity.
+import { Buffer } from "node:buffer";
+import { chromium, firefox, webkit } from "playwright";
+import type { Browser as RegularBrowser, BrowserContext as RegularContext, Page as RegularPage, Locator as RegularLocator } from "playwright";
+import { launch, connect } from "@cloudflare/playwright";
+import type { Browser as CloudflareBrowser, BrowserContext as CloudflareContext, Page as CloudflarePage, Locator as CloudflareLocator, BrowserWorker } from "@cloudflare/playwright";
+import { createPlaywrightAdapter } from "@poe-platform/safe-bash/playwright";
+import type { PlaywrightBrowser, PlaywrightContext, PlaywrightPage, PlaywrightLocator, PlaywrightBrowserSource, PlaywrightFrame, PlaywrightElementHandle } from "@poe-platform/safe-bash/playwright";
+import { createPlaywrightController } from "@poe-platform/safe-bash/playwright";
+import type { PlaywrightBillingHooks } from "@poe-platform/safe-bash/playwright";
+import { createPlaywrightCli } from "poe-code/safe-bash/commands/playwright";
+
+declare const regularBrowser: RegularBrowser;
+declare const cloudflareBrowser: CloudflareBrowser;
+declare const regularContext: RegularContext;
+declare const cloudflareContext: CloudflareContext;
+declare const regularPage: RegularPage;
+declare const cloudflarePage: CloudflarePage;
+declare const regularLocator: RegularLocator;
+declare const cloudflareLocator: CloudflareLocator;
+const browsers: PlaywrightBrowser[] = [regularBrowser, cloudflareBrowser];
+const contexts: PlaywrightContext[] = [regularContext, cloudflareContext];
+const pages: PlaywrightPage[] = [regularPage, cloudflarePage];
+const locators: PlaywrightLocator[] = [regularLocator, cloudflareLocator];
+declare const regularFrame: ReturnType<RegularPage["frames"]>[number];
+declare const cloudflareFrame: ReturnType<CloudflarePage["frames"]>[number];
+declare const regularHandle: Awaited<ReturnType<RegularLocator["elementHandles"]>>[number];
+declare const cloudflareHandle: Awaited<ReturnType<CloudflareLocator["elementHandles"]>>[number];
+const frames: PlaywrightFrame[] = [regularFrame, cloudflareFrame];
+const handles: PlaywrightElementHandle[] = [regularHandle, cloudflareHandle];
+void [browsers, contexts, pages, locators, frames, handles];
+
+// Reject false compatibility produced by unresolved or conflicting ambient types.
+type IsAny<T> = 0 extends (1 & T) ? true : false;
+type AssertFalse<T extends false> = T;
+type ConsumedTypesAreConcrete = AssertFalse<
+  IsAny<RegularBrowser> | IsAny<CloudflareBrowser> |
+  IsAny<RegularContext> | IsAny<CloudflareContext> |
+  IsAny<RegularPage> | IsAny<CloudflarePage> |
+  IsAny<RegularLocator> | IsAny<CloudflareLocator> |
+  IsAny<Awaited<ReturnType<CloudflareBrowser["newContext"]>>> |
+  IsAny<Awaited<ReturnType<CloudflareContext["newPage"]>>> |
+  IsAny<Awaited<ReturnType<CloudflarePage["screenshot"]>>> |
+  IsAny<Awaited<ReturnType<RegularPage["screenshot"]>>> |
+  IsAny<Awaited<ReturnType<typeof launch>>> |
+  IsAny<Awaited<ReturnType<typeof connect>>> |
+  IsAny<ReturnType<RegularPage["frames"]>[number]> |
+  IsAny<ReturnType<CloudflarePage["frames"]>[number]> |
+  IsAny<Awaited<ReturnType<RegularLocator["elementHandles"]>>[number]> |
+  IsAny<Awaited<ReturnType<CloudflareLocator["elementHandles"]>>[number]> |
+  IsAny<Buffer>
+>;
+declare const concrete: ConsumedTypesAreConcrete;
+void concrete;
+
+const sources = Object.fromEntries([chromium, firefox, webkit].map(engine => [engine.name(), {
+  headed: true,
+  async acquireBrowser({ headless }) {
+    const browser = await engine.launch({ headless });
+    return { browser, release: () => browser.close() };
+  },
+} satisfies PlaywrightBrowserSource]));
+const adapter = createPlaywrightAdapter(sources);
+const options = { adapter, limits: { maxSessions: 2, maxTabs: 3, actionTimeoutMs: 5000, maxSnapshotBytes: 65536, maxSnapshotRefs: 100, maxArtifactBytes: 1048576 } };
+const controller = createPlaywrightController(options);
+const cli = createPlaywrightCli({ ...options, replace: false });
+void [controller.run, controller.dispose, cli.plugin, cli.dispose];
+declare const billing: PlaywrightBillingHooks;
+// @ts-expect-error SDK reporting declarations do not enable a billing runtime.
+createPlaywrightController({ ...options, billing });
+// @ts-expect-error CLI has the same billing restriction as the SDK.
+createPlaywrightCli({ ...options, billing });
+
+// BrowserType.connect's Browser.close detaches its connection; unlike CDP,
+// server and client must have matching major/minor Playwright versions.
+const regularConnected = {
+  async acquireBrowser() {
+    const browser = await chromium.connect("wss://trusted-host.invalid/playwright");
+    return { browser, release: () => browser.close() };
+  },
+} satisfies PlaywrightBrowserSource;
+void regularConnected;
+
+declare const binding: BrowserWorker;
+// Signature qualification only: upstream launch can leak a session before it
+// returns a Browser. A deployment must reconcile that partial failure externally.
+const cloudflareLaunched = {
+  async acquireBrowser() {
+    const browser = await launch(binding, { keep_alive: 60_000 });
+    return { browser, release: () => browser.close() };
+  },
+} satisfies PlaywrightBrowserSource;
+const cloudflareConnected = {
+  async acquireBrowser() {
+    const browser = await connect(binding, { sessionId: "trusted-session" });
+    return { browser, release: () => browser.close() };
+  },
+} satisfies PlaywrightBrowserSource;
+void [cloudflareLaunched, cloudflareConnected];
+
+declare const bytes: Uint8Array;
+const upload = { name: "image.png", mimeType: "image/png", buffer: Buffer.from(bytes) };
+regularLocator.setInputFiles(upload);
+cloudflareLocator.setInputFiles(upload);
+// @ts-expect-error Uint8Array lacks the required Buffer API.
+regularLocator.setInputFiles({ ...upload, buffer: bytes });
+// @ts-expect-error Same requirement in the Cloudflare public declaration.
+cloudflareLocator.setInputFiles({ ...upload, buffer: bytes });

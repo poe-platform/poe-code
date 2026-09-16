@@ -335,6 +335,16 @@
     "./trap": {
       "types": "./dist/opt-in/entrypoints/trap.d.ts",
       "import": "./dist/opt-in/entrypoints/trap.js"
+    },
+    "./commands/playwright": {
+      "types": "./dist/commands/playwright/index.d.ts",
+      "browser": "./dist/commands/playwright/index.js",
+      "import": "./dist/commands/playwright/index.js"
+    },
+    "./playwright": {
+      "types": "./dist/commands/playwright/index.d.ts",
+      "browser": "./dist/commands/playwright/index.js",
+      "import": "./dist/commands/playwright/index.js"
     }
   },
   "files": [

@@ -48,6 +48,20 @@ function optionalLeftovers() {
 }
 
 describe("scoped safe package artifacts", () => {
+  it("ships the Playwright chunk and controller without adding it to the default entry", async () => {
+    const { volume, options } = optionalLeftovers();
+    volume.mkdirSync("/repo/packages/safe-bash/dist/playwright", { recursive: true });
+    volume.writeFileSync("/repo/packages/safe-bash/dist/playwright/index.js", "export const controller = 1;");
+    volume.writeFileSync("/repo/packages/safe-bash/dist/playwright/index.d.ts", "export declare const controller: 1;");
+    for (const extension of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/playwright/index.${extension}`, 'export { controller } from "../../playwright/index.js";');
+    await packageSafeLibraries({ ...options, outDir: "/output" });
+    expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/playwright/index.js", "utf8")).toBe("export const controller = 1;");
+    const manifest = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
+    expect(manifest.exports["./playwright"]).toEqual(manifest.exports["./commands/playwright"]);
+    expect(manifest.dependencies).not.toHaveProperty("@poe-code/safe-playwright");
+    expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/index.js", "utf8")).toBe("export {};\n");
+  });
+
   it("excludes all currently declared optional leftovers while preserving every default member", async () => {
     const { volume, data, excluded, options } = optionalLeftovers();
     await packageSafeLibraries({ ...options, outDir: "/output" });

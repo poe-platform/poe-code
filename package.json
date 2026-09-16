@@ -467,6 +467,16 @@
     "./safe-bash/trap": {
       "types": "./dist/safe-bash-opt-in/entrypoints/trap.d.ts",
       "import": "./dist/safe-bash-opt-in/entrypoints/trap.js"
+    },
+    "./safe-bash/commands/playwright": {
+      "types": "./packages/safe-bash/dist/commands/playwright/index.d.ts",
+      "browser": "./packages/safe-bash/dist/commands/playwright/index.js",
+      "import": "./packages/safe-bash/dist/commands/playwright/index.js"
+    },
+    "./safe-bash/playwright": {
+      "types": "./packages/safe-bash/dist/commands/playwright/index.d.ts",
+      "browser": "./packages/safe-bash/dist/commands/playwright/index.js",
+      "import": "./packages/safe-bash/dist/commands/playwright/index.js"
     }
   },
   "workspaces": [

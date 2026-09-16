@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import fastGlob from "fast-glob";
+import { Volume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
 import * as workspaceRunner from "./build-workspaces.mjs";
 import { buildWorkspaces, createWorkspaceBuildPlan, matchesWorkspaceRange, readManifest } from "./build-workspaces.mjs";
@@ -750,6 +751,24 @@ describe("finite unit task planning", () => {
 });
 
 describe("finite unit execution and ownership", () => {
+  it("scopes the search profile to the virtual-bash unit child with in-memory manifests", async () => {
+    const root = path.dirname(path.dirname(runnerFilename)), mock = mockExecution();
+    const fileSystem = Volume.fromJSON({
+      [path.join(root, "package.json")]: JSON.stringify({ name: "owned-root", workspaces: ["packages/*"], scripts: { "test:unit": "node root-unit.cjs" } }),
+      [path.join(root, "turbo.json")]: JSON.stringify({ tasks: { build: { dependsOn: ["^build"] }, "virtual-bash#test:unit": { dependsOn: ["build"] } } }),
+      [path.join(root, "packages/bash/package.json")]: JSON.stringify({ name: "virtual-bash", scripts: { build: "node build.cjs", "test:unit": "node unit.cjs" } }),
+      [path.join(root, "packages/other/package.json")]: JSON.stringify({ name: "other", scripts: { "test:unit": "node unit.cjs" } })
+    });
+    const environment = Object.freeze({ ...mock.environment, SAFE_BASH_TEST_RG: "/owned/search-profile" });
+    await workspaceRunner.testWorkspaces(root, { ...mock, fileSystem, environment });
+    expect(mock.start.mock.calls).toHaveLength(4);
+    for (const call of mock.start.mock.calls) {
+      const feature = call[1][4] === "test:unit" && call[1].includes("--workspace=packages/bash");
+      expect(call[2].env?.SAFE_BASH_TEST_RG).toBe(feature ? environment.SAFE_BASH_TEST_RG : undefined);
+    }
+    expect(environment.SAFE_BASH_TEST_RG).toBe("/owned/search-profile");
+  });
+
   it("builds before tests, retains npm lifecycles, exact arguments and feature-only profiles", async () => {
     const owned = unitFixture(), mock = mockExecution();
     const environment = { ...mock.environment, TERM: "xterm-256color", SAFEJS_LOCAL_ROOT: "/owned/safe-js", S3_HTTP_EXPORTS_REVISION: "owned-revision", FULL_GATE_ROOT: "/owned/full-gate" };

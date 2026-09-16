@@ -39,7 +39,7 @@ it("advertises bounded link behavior in help, schema and capabilities", () => {
   expect(discovery("schema", "links", "list").data).toMatchObject({ operations: [{ id: "links.list", support: "read" }] });
   expect(discovery("help", "links", "remove").human).not.toContain("--bookmark");
   expect(discovery("help", "links", "add").human).not.toContain("--run");
-  expect(discovery("capabilities").data).toMatchObject({ features: expect.arrayContaining([{ id: "F21", level: "edit", subsets: expect.any(Array), detected: null }]) });
+  expect(discovery("capabilities").data).toMatchObject({ features: expect.arrayContaining([{ operationIds: expect.arrayContaining(["links.list"]), id: "F21", level: "edit", subsets: expect.any(Array), detected: null }]) });
 });
 
 it("rejects inapplicable link selectors instead of silently ignoring them", () => {

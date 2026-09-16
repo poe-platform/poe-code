@@ -198,7 +198,7 @@ surface(
 surface(
   "model.table._Cell",
   () => _Cell,
-  ["grid_span", "paragraphs", "tables", "text", "vertical_alignment", "width"],
+  ["grid_span", "paragraphs", "tables", "text", "vertical_alignment", "width", "table"],
   ["text", "vertical_alignment", "width"],
   ["add_paragraph", "add_table", "iter_inner_content", "merge"]
 );

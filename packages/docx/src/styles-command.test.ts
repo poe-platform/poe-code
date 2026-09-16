@@ -20,8 +20,8 @@ it("lists styles without changing the admitted file and advertises implemented s
   expect(JSON.parse(stdout)).toMatchObject({ version: 1, operation: "styles.list", ok: true, affected: 0, data: { styles: [{ id: "Coastal", name: "Coastal" }] } });
   expect(stderr).toBe("");
   expect(volume.readFileSync("/work/input.docx")).toEqual(Buffer.from(bytes));
-  expect(getDocxDiscovery(parse("schema", "styles", "set"))!.data).toMatchObject({ operations: [{ id: "styles.set", support: "edit", featureIds: ["F14"] }] });
-  expect(getDocxDiscovery(parse("capabilities"))!.data).toMatchObject({ features: expect.arrayContaining([expect.objectContaining({ id: "F14", level: "edit" })]) });
+  expect(getDocxDiscovery(parse("schema", "styles", "set"))!.data).toMatchObject({ operations: [{ id: "styles.set", support: "edit", featureIds: ["F12", "F14"] }] });
+  expect(getDocxDiscovery(parse("capabilities"))!.data).toMatchObject({ features: expect.arrayContaining([expect.objectContaining({ operationIds: expect.arrayContaining(["styles.set"]), id: "F14", level: "edit" })]) });
 });
 
 it.each([["--name", ""], ["--name", "Coastal", "--priority", "-1"], ["--name", "Coastal", "--color", "zzzzzz"], ["--name", "Coastal", "--size", "0.1pt"]].map(flags => [flags]))("rejects invalid style settings before input acquisition: %j", async flags => {

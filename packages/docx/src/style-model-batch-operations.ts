@@ -12,29 +12,29 @@ import { Font, ParagraphFormat, TabStops, TabStop, ColorFormat, RGBColor } from 
 import type { DocxEnumValue, DocxLength } from "./operation-types.js";
 
 type Action = (receiver: unknown, args: Readonly<Record<string, unknown>>) => unknown;
-export const styleModelBatchActions = new Map<string, Action>([...packUriBatchActions, ...packageViewBatchActions]);
+const styleActions = new Map<string, Action>([...packUriBatchActions, ...packageViewBatchActions]);
 type ModelClass = abstract new (...args: never[]) => object;
 function properties(prefix: string, owner: ModelClass, names: readonly string[], writable: readonly string[] = names): void {
   for (const name of names) {
-    styleModelBatchActions.set(`${prefix}.${name}.get`, receiver => {
+    styleActions.set(`${prefix}.${name}.get`, receiver => {
       if (!(receiver instanceof owner)) throw new DocxUsageError("The receiver does not support this property.");
       return Reflect.get(receiver, name);
     });
-    if (writable.includes(name)) styleModelBatchActions.set(`${prefix}.${name}.set`, (receiver, args) => {
+    if (writable.includes(name)) styleActions.set(`${prefix}.${name}.set`, (receiver, args) => {
       if (!(receiver instanceof owner)) throw new DocxUsageError("The receiver does not support this property.");
       if (!Reflect.set(receiver, name, args.value)) throw new DocxUsageError("The property is not writable.");
     });
   }
 }
 function method(prefix: string, name: string, owner: ModelClass, action: (receiver: object, args: Readonly<Record<string, unknown>>) => unknown): void {
-  styleModelBatchActions.set(`${prefix}.${name}`, (receiver, args) => {
+  styleActions.set(`${prefix}.${name}`, (receiver, args) => {
     if (!(receiver instanceof owner)) throw new DocxUsageError("The receiver does not support this method.");
     return action(receiver, args);
   });
 }
 properties("model.parts.styles.StylesPart", StylePartView, ["styles"], []);
-styleModelBatchActions.set("model.parts.styles.StylesPart.default.call", (_receiver, args) => StylePartView.default(args.ownerPackage as PackageView));
-properties("model.XmlElementView", XmlElementView, ["tag", "attributes", "children", "text", "tail"], ["text", "tail"]);
+styleActions.set("model.parts.styles.StylesPart.default.call", (_receiver, args) => StylePartView.default(args.ownerPackage as PackageView));
+properties("model.XmlElementView", XmlElementView, ["tag", "localName", "namespace", "attributes", "children", "text", "tail"], ["text", "tail"]);
 method("model.XmlElementView", "set_attribute.call", XmlElementView, (receiver, args) => (receiver as XmlElementView).set_attribute(args.name as XmlViewName, args.value as string | null));
 method("model.XmlElementView", "insert.call", XmlElementView, (receiver, args) => (receiver as XmlElementView).insert(args.index as number, args.node as DocxXmlNode));
 method("model.XmlElementView", "remove.call", XmlElementView, receiver => (receiver as XmlElementView).remove());
@@ -79,8 +79,8 @@ properties("model.text.run.Font", Font, ["color"], []);
 properties("model.dml.color.ColorFormat", ColorFormat, ["theme_color", "type"], ["theme_color"]);
 method("model.dml.color.ColorFormat", "rgb.get", ColorFormat, receiver => (receiver as ColorFormat).rgb);
 method("model.dml.color.ColorFormat", "rgb.set", ColorFormat, (receiver, args) => { (receiver as ColorFormat).rgb = args.value === null ? null : args.value instanceof RGBColor ? args.value : RGBColor.from_string(args.value as string); });
-styleModelBatchActions.set("model.shared.RGBColor.call", (_receiver, args) => new RGBColor(args.r as number, args.g as number, args.b as number));
-styleModelBatchActions.set("model.shared.RGBColor.from_string.call", (_receiver, args) => RGBColor.from_string(args.rgbHexStr as string));
+styleActions.set("model.shared.RGBColor.call", (_receiver, args) => new RGBColor(args.r as number, args.g as number, args.b as number));
+styleActions.set("model.shared.RGBColor.from_string.call", (_receiver, args) => RGBColor.from_string(args.rgbHexStr as string));
 method("model.shared.RGBColor", "__str__.call", RGBColor, receiver => (receiver as RGBColor).toString());
 method("model.shared.RGBColor", "__len__.get", RGBColor, receiver => (receiver as RGBColor).length);
 method("model.shared.RGBColor", "__iter__.call", RGBColor, receiver => [...receiver as RGBColor]);
@@ -103,8 +103,8 @@ for (const [prefix, owner] of [
   method(prefix, "__ne__.call", owner, (receiver, args) => !(receiver as { equals(value: unknown): boolean }).equals(args.other));
 }
 for (const [name, factory, argument] of [["Length", Length, "emu"], ["Emu", Emu, "emu"], ["Inches", Inches, "inches"], ["Cm", Cm, "cm"], ["Mm", Mm, "mm"], ["Pt", Pt, "points"], ["Twips", Twips, "twips"]] as const) {
-  styleModelBatchActions.set(`model.shared.${name}.call`, (_receiver, args) => factory(args[argument] as number));
-  for (const key of ["emu", "inches", "cm", "mm", "pt", "twips", "numeric_protocol"] as const) styleModelBatchActions.set(`model.shared.${name}.${key}.get`, receiver => {
+  styleActions.set(`model.shared.${name}.call`, (_receiver, args) => factory(args[argument] as number));
+  for (const key of ["emu", "inches", "cm", "mm", "pt", "twips", "numeric_protocol"] as const) styleActions.set(`model.shared.${name}.${key}.get`, receiver => {
     if (!isLength(receiver)) throw new DocxUsageError("Expected an owned length receiver.");
     return receiver[key === "numeric_protocol" ? "emu" : key];
   });
@@ -126,19 +126,25 @@ for (const [group, family, canonical] of [
     if (!found) throw new DocxUsageError("Expected a symbol from the declared enum family.");
     return found;
   };
-  for (const [name, member] of Object.entries(enumFamilies[canonical].members)) styleModelBatchActions.set(`${prefix}.${name}.get`, () => member);
-  styleModelBatchActions.set(`${prefix}.fromValue.call`, (_receiver, args) => enumFromValue(canonical, args.value as number));
-  styleModelBatchActions.set(`${prefix}.from_xml.call`, (_receiver, args) => enumFromXml(canonical, args.xmlValue as string | null));
-  styleModelBatchActions.set(`${prefix}.name.get`, receiver => symbol(receiver).name);
-  styleModelBatchActions.set(`${prefix}.value.get`, receiver => enumValue(symbol(receiver)));
-  for (const name of ["__str__", "toString"]) styleModelBatchActions.set(`${prefix}.${name}.call`, receiver => enumString(symbol(receiver)));
-  styleModelBatchActions.set(`${prefix}.xml_value.get`, receiver => symbol(receiver).xml_value ?? null);
-  styleModelBatchActions.set(`${prefix}.to_xml.call`, (receiver, args) => {
+  for (const [name, member] of Object.entries(enumFamilies[canonical].members)) styleActions.set(`${prefix}.${name}.get`, () => member);
+  styleActions.set(`${prefix}.fromValue.call`, (_receiver, args) => enumFromValue(canonical, args.value as number));
+  styleActions.set(`${prefix}.from_xml.call`, (_receiver, args) => enumFromXml(canonical, args.xmlValue as string | null));
+  styleActions.set(`${prefix}.name.get`, receiver => symbol(receiver).name);
+  styleActions.set(`${prefix}.value.get`, receiver => enumValue(symbol(receiver)));
+  for (const name of ["__str__", "toString"]) styleActions.set(`${prefix}.${name}.call`, receiver => enumString(symbol(receiver)));
+  styleActions.set(`${prefix}.xml_value.get`, receiver => symbol(receiver).xml_value ?? null);
+  styleActions.set(`${prefix}.to_xml.call`, (receiver, args) => {
     symbol(receiver); if (args.value === null) return null;
     return enumToXml(canonical, typeof args.value === "number" ? args.value : symbol(args.value));
   });
-  styleModelBatchActions.set(`${prefix}.members.get`, () => new Map(Object.entries(enumFamilies[canonical].members)));
-  styleModelBatchActions.set(`${prefix}.Symbol.iterator.call`, () => [...members]);
+  styleActions.set(`${prefix}.members.get`, () => new Map(Object.entries(enumFamilies[canonical].members)));
+  styleActions.set(`${prefix}.Symbol.iterator.call`, () => [...members]);
 }
+export const styleModelBatchActions = new Map(
+  Object.keys(docxOperationSchemas).flatMap(id => {
+    const action = styleActions.get(id);
+    return action ? [[id, action] as const] : [];
+  })
+);
 export const styleModelBatchBootstrap = "model.document.Document.styles.get";
 export const styleModelBatchOperations: readonly string[] = Object.freeze([styleModelBatchBootstrap, ...styleModelBatchActions.keys(), ...imageBatchActions.keys()].filter(id => docxOperationSchemas[id]));

@@ -62,5 +62,5 @@ it("describes immutable package URI results as strings and package feature reads
   expect(styleModelOperationResultSchema(`${prefix}.call`).properties?.value).toEqual({ type: "string" });
   const discovery = getDocxDiscovery({ operation: "schema", inputs: [], options: {} })!;
   const data = discovery.data as DocxSchemaData;
-  expect(data.operations.find(item => item.id === `${prefix}.call`)).toMatchObject({ featureIds: ["F01"], support: "read" });
+  expect(data.operations.find(item => item.id === `${prefix}.call`)).toMatchObject({ featureIds: ["F01", "F04"], support: "read" });
 });

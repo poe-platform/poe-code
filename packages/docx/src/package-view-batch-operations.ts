@@ -1,3 +1,4 @@
+import { docxOperationSchemas } from "./operation-schema.js";
 import { resolveDocumentModelContext } from "./model-transport-context.js";
 import { acquireDocumentTransportInput } from "./model-input.js";
 import { PackageView, PartView, XmlPartView, DocumentPartView, NumberingPart, _NumberingDefinitions, Relationships, RelationshipView, CoreProperties, CorePropertiesPartView, ImageParts, ImagePartView } from "./package-view.js";
@@ -7,15 +8,15 @@ import type { PackURI } from "./pack-uri.js";
 import { DocxUsageError } from "./argument-json.js";
 
 type Action = (receiver: unknown, args: Readonly<Record<string, unknown>>, context?: ImageModelContext) => unknown;
-export const packageViewBatchActions = new Map<string, Action>();
+const packageActions = new Map<string, Action>();
 function action<T>(id: string, owner: abstract new (...args: never[]) => T, apply: (receiver: T, args: Readonly<Record<string, unknown>>) => unknown): void {
-  packageViewBatchActions.set(id, (receiver, args) => {
+  packageActions.set(id, (receiver, args) => {
     if (!(receiver instanceof owner)) throw new DocxUsageError("The receiver does not support this package view operation.");
     return apply(receiver, args);
   });
 }
 for (const prefix of ["model.package.Package", "model.opc.package.OpcPackage"]) {
-  packageViewBatchActions.set(`${prefix}.open.call`, async (_receiver, args, context) => {
+  packageActions.set(`${prefix}.open.call`, async (_receiver, args, context) => {
     const transport = args.context as DocxTransportContext | undefined;
     if (transport?.template !== undefined) throw new DocxUsageError("A context template conflicts with package input.");
     const selected = await resolveDocumentModelContext(transport, context);
@@ -77,21 +78,23 @@ for (const name of ["title", "subject", "author", "keywords", "comments", "last_
   });
 }
 action("model.opc.parts.coreprops.CorePropertiesPart.core_properties.get", CorePropertiesPartView, receiver => receiver.core_properties);
+action("model.opc.coreprops.CoreProperties.part.get", CoreProperties, receiver => receiver.part);
+action("model.opc.coreprops.CoreProperties.element.get", CoreProperties, receiver => receiver.element);
 
 for (const [prefix, owner] of [["model.opc.part.Part", PartView], ["model.opc.part.XmlPart", XmlPartView], ["model.parts.document.DocumentPart", DocumentPartView], ["model.parts.numbering.NumberingPart", NumberingPart], ["model.parts.image.ImagePart", ImagePartView], ["model.opc.parts.coreprops.CorePropertiesPart", CorePropertiesPartView]] as const) {
-  packageViewBatchActions.set(`${prefix}.load.call`, async (_receiver, args, context) => {
+  packageActions.set(`${prefix}.load.call`, async (_receiver, args, context) => {
     const acquired = await acquireImageModelInput(args.blob as Uint8Array | DocxBinaryInput, context);
     return owner.load(args.partname as string, args.contentType as string, acquired.bytes, args.ownerPackage as PackageView);
   });
 }
-packageViewBatchActions.set("model.opc.parts.coreprops.CorePropertiesPart.default.call", (_receiver, args) => CorePropertiesPartView.default(args.ownerPackage as PackageView));
+packageActions.set("model.opc.parts.coreprops.CorePropertiesPart.default.call", (_receiver, args) => CorePropertiesPartView.default(args.ownerPackage as PackageView));
 for (const name of ["default_cx", "default_cy", "filename", "image", "sha1"] as const) action(`model.parts.image.ImagePart.${name}.get`, ImagePartView, receiver => receiver[name]);
 action("model.package.ImageParts.__contains__.call", ImageParts, (receiver, args) => receiver.has(args.value));
 action("model.package.ImageParts.__iter__.call", ImageParts, receiver => [...receiver]);
 action("model.package.ImageParts.__len__.get", ImageParts, receiver => receiver.length);
 action("model.package.ImageParts.append.call", ImageParts, (receiver, args) => receiver.append(args.item as ImagePartView));
 for (const [id, owner] of [["model.package.Package.get_or_add_image_part.call", PackageView], ["model.package.ImageParts.get_or_add_image_part.call", ImageParts]] as const) {
-  packageViewBatchActions.set(id, async (receiver, args, context) => {
+  packageActions.set(id, async (receiver, args, context) => {
     if (!(receiver instanceof owner)) throw new DocxUsageError("Expected an admitted image owner.");
     const descriptor = args.imageDescriptor as ImageModelInput | DocxBinaryInput;
     if (!(descriptor instanceof Uint8Array) && "path" in descriptor) return receiver.get_or_add_image_part({ path: descriptor.path, capability: descriptor.capability });
@@ -99,10 +102,17 @@ for (const [id, owner] of [["model.package.Package.get_or_add_image_part.call", 
     return receiver.get_or_add_image_part(acquired.bytes);
   });
 }
-packageViewBatchActions.set("model.parts.image.ImagePart.from_image.call", (_receiver, args) => ImagePartView.from_image(args.image as Image, args.partname as string, args.ownerPackage as PackageView));
+packageActions.set("model.parts.image.ImagePart.from_image.call", (_receiver, args) => ImagePartView.from_image(args.image as Image, args.partname as string, args.ownerPackage as PackageView));
 
 action("model.parts.document.DocumentPart.numbering_part.get", DocumentPartView, receiver => receiver.numbering_part);
 action("model.parts.numbering.NumberingPart.numbering_definitions.get", NumberingPart, receiver => receiver.numbering_definitions);
 action("model.parts.numbering._NumberingDefinitions.__len__.get", _NumberingDefinitions, receiver => receiver.length);
 action("model.NumberingDefinitionsView.length.get", _NumberingDefinitions, receiver => receiver.length);
-packageViewBatchActions.set("model.parts.numbering.NumberingPart.new.call", (_receiver, args) => NumberingPart.new(args.ownerPackage as PackageView));
+packageActions.set("model.parts.numbering.NumberingPart.new.call", (_receiver, args) => NumberingPart.new(args.ownerPackage as PackageView));
+
+export const packageViewBatchActions = new Map(
+  Object.keys(docxOperationSchemas).flatMap(id => {
+    const action = packageActions.get(id);
+    return action ? [[id, action] as const] : [];
+  })
+);

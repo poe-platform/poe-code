@@ -54,7 +54,7 @@ it("advertises bounded XML read and replacement with display serialization help"
   expect(discover("schema", "xml", "get").data).toMatchObject({ operations: [{ id: "xml.get", support: "read" }] });
   expect(discover("schema", "xml", "set").data).toMatchObject({ operations: [{ id: "xml.set", support: "edit" }] });
   expect(discover("help", "xml", "get").human).toContain("display serialization");
-  expect(discover("capabilities").data).toMatchObject({ features: expect.arrayContaining([{ id: "F07", level: "edit", subsets: expect.any(Array), detected: null }]) });
+  expect(discover("capabilities").data).toMatchObject({ features: expect.arrayContaining([{ operationIds: expect.arrayContaining(["xml.get"]), id: "F07", level: "edit", subsets: expect.any(Array), detected: null }]) });
 });
 
 it("bounds XML failure diagnostics without exposing replacement contents", async () => {

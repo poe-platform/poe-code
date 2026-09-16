@@ -29,7 +29,7 @@ it("publishes closed inert object snapshots and exact part occurrence locations"
   const capabilities = getDocxDiscovery({ operation: "capabilities", inputs: [], options: {} })!;
   expect(capabilities.data).toMatchObject({
     features: expect.arrayContaining([
-      {
+      { operationIds: expect.arrayContaining(["objects.list"]),
         id: "F40",
         level: "preserve",
         subsets: expect.arrayContaining([

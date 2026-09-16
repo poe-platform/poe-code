@@ -125,6 +125,7 @@ it("advertises only bounded native control repetition and complete binding synch
     features: expect.arrayContaining([
       {
         id: "F29",
+        operationIds: Object.entries(docxOperationSchemas).filter(([, declaration]) => declaration.featureIds.includes("F29")).map(([id]) => id),
         level: "edit",
         subsets: expect.arrayContaining([
           expect.objectContaining({ name: "native-repetition", level: "edit" }),

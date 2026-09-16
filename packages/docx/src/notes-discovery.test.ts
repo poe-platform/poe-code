@@ -30,6 +30,6 @@ it("explains note scope, shared removal and storage renumbering without layout c
   expect(remove).toContain("storage IDs");
   expect(remove).toContain("pagination");
   expect(discover("capabilities").data).toMatchObject({ features: expect.arrayContaining([
-    { id: "F24", level: "edit", subsets: expect.arrayContaining([expect.objectContaining({ name: "footnotes-endnotes", level: "edit" })]), detected: null }
+    { operationIds: expect.arrayContaining(["notes.get"]), id: "F24", level: "edit", subsets: expect.arrayContaining([expect.objectContaining({ name: "footnotes-endnotes", level: "edit" })]), detected: null }
   ]) });
 });

@@ -1,5 +1,6 @@
 import type { DocumentLimitName, DocumentLimits } from "./budget.js";
 import type { DocxOperationId } from "./operation-schema.js";
+import type { DocxLiveModelGetterId, DocxLiveModelComparisonId, DocxLiveModelReceiverMap } from "./operation-schema-data.js";
 import type { DocumentVfsCapability } from "./model-context.js";
 
 export type DocxFieldKind = "PAGE" | "NUMPAGES" | "REF" | "PAGEREF" | "SEQ" | "TOC";
@@ -66,7 +67,10 @@ type DocxRevisionDecisionSelection =
   | (Readonly<{ all: true; revision?: never; select?: never }> & Readonly<{ [K in DocxRevisionOwnerSelector]?: never }>);
 
 
-export interface DocxOperationArgumentMap {
+export interface DocxOperationArgumentMap extends MaintainedDocxOperationArgumentMap,
+  Readonly<Record<DocxLiveModelGetterId, MaintainedDocxOperationArgumentMap["model.text.paragraph.Paragraph.element.get"]>>,
+  Readonly<Record<DocxLiveModelComparisonId, MaintainedDocxOperationArgumentMap["model.styles.style.BaseStyle.__eq__.call"]>> {}
+interface MaintainedDocxOperationArgumentMap {
   "headers.remove": Omit<DocxOperationArgumentMap["headers.set"], "text" | "linkToPrevious" | "shared">;
   "footers.remove": Omit<DocxOperationArgumentMap["footers.set"], "text" | "linkToPrevious" | "shared">;
   "styles.latent.list": DocxOperationArgumentMap["styles.defaults.get"];
@@ -1626,7 +1630,9 @@ export interface DocxOperationArgumentMap {
   "styles.links.set": Readonly<{ "linkedStyle"?: string | null | undefined; "defaultForType"?: boolean | undefined }>;
 }
 export type DocxOperationArguments<Id extends DocxOperationId> = DocxOperationArgumentMap[Id];
-export interface DocxBatchArgumentMap {
+export interface DocxBatchArgumentMap extends
+  Readonly<Record<DocxLiveModelGetterId, Readonly<Record<string, never>>>>,
+  Readonly<Record<DocxLiveModelComparisonId, Readonly<{ other: unknown }>>> {
   "styles.latent.list": Readonly<Record<string, never>>;
   "styles.latent.get": Readonly<{ name: string }>;
   "styles.latent.add": Omit<DocxOperationArgumentMap["styles.latent.add"], "json" | "limit" | "output" | "inPlace" | "force" | "dryRun">;
@@ -3150,7 +3156,15 @@ export interface DocxBatchArgumentMap {
   "styles.links.set": Readonly<{ "linkedStyle"?: string | null | undefined; "defaultForType"?: boolean | undefined }>;
 }
 export type DocxBatchOperationId = keyof DocxBatchArgumentMap;
-export interface DocxBatchItemMap {
+type DocxLiveModelItemMap = {
+  readonly [Id in keyof DocxLiveModelReceiverMap]: Readonly<{
+    operation: Id;
+    receiver: DocxModelHandle<DocxLiveModelReceiverMap[Id]>;
+    arguments: DocxBatchArgumentMap[Id];
+    resultHandle?: string;
+  }>
+};
+export interface DocxBatchItemMap extends DocxLiveModelItemMap {
   "styles.latent.list": { readonly operation: "styles.latent.list"; readonly arguments: DocxBatchArgumentMap["styles.latent.list"] };
   "styles.latent.get": { readonly operation: "styles.latent.get"; readonly arguments: DocxBatchArgumentMap["styles.latent.get"] };
   "styles.latent.add": { readonly operation: "styles.latent.add"; readonly arguments: DocxBatchArgumentMap["styles.latent.add"] };

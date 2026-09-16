@@ -115,7 +115,7 @@ it("routes existing numbering reads through declared typed package batch actions
     "model.parts.numbering.NumberingPart.numbering_definitions.get"
   )!(part, {});
   expect(
-    packageViewBatchActions.get("model.parts.numbering._NumberingDefinitions.__len__.get")!(
+    packageViewBatchActions.get("model.NumberingDefinitionsView.length.get")!(
       definitions,
       {}
     )

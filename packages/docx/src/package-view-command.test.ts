@@ -103,7 +103,7 @@ it("executes image collection and owned part factories through the shared typed 
 it("reports XML/package schema feature ownership instead of style-only support", () => {
   expect(docxOperationSchemas["model.package.Package.main_document_part.get"]!.valueType).toBe("XmlPartView");
   expect(docxOperationSchemas["model.opc.package.OpcPackage.main_document_part.get"]!.resultHandle?.type).toBe("XmlPartView");
-  for (const [operation, feature] of [["model.XmlElementView.text.set", "F07"], ["model.opc.rel._Relationship.target_ref.get", "F01"], ["model.package.Package.core_properties.get", "F31"]]) {
+  for (const [operation, feature] of [["model.XmlElementView.text.set", "F07"], ["model.opc.rel._Relationship.target_ref.get", "F01"], ["model.package.Package.core_properties.get", "F30"]]) {
     const schema = getDocxDiscovery({ operation: "schema", inputs: [], options: { operation } })!;
     expect((schema.data as DocxSchemaData).operations[0]!.featureIds).toContain(feature);
   }

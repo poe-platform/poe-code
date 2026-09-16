@@ -23,7 +23,7 @@ it("declares successful inventory result schemas with exact inert resource detai
 });
 it("advertises F41 inventory and preservation without semantic editing or schema activation", () => {
   const data = getDocxDiscovery({ operation: "capabilities", inputs: [], options: {} })!.data;
-  expect(data).toMatchObject({ features: expect.arrayContaining([{ id: "F41", level: "preserve", detected: null, subsets: expect.arrayContaining([expect.objectContaining({ name: "package-resource-inventories", level: "read" }), expect.objectContaining({ name: "opaque-package-retention", level: "preserve" })]) }]) });
+  expect(data).toMatchObject({ features: expect.arrayContaining([{ operationIds: expect.arrayContaining(["custom-xml.list"]), id: "F41", level: "preserve", detected: null, subsets: expect.arrayContaining([expect.objectContaining({ name: "package-resource-inventories", level: "read" }), expect.objectContaining({ name: "opaque-package-retention", level: "preserve" })]) }]) });
 });
 it("admits preservation levels in the declared capabilities result", () => {
   const data = getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "capabilities" } })!.data as DocxSchemaData;

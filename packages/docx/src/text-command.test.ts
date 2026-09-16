@@ -31,7 +31,7 @@ it("publishes extraction support, result fields and the fixed hidden-text policy
   const discovery = (...args: string[]) => getDocxDiscovery(parseDocxArguments(args.map(x => new TextEncoder().encode(x))))!;
   expect(discovery("schema", "text").data).toMatchObject({ operations: [{ id: "text.get", support: "read", result: { oneOf: [{ properties: { data: { properties: { text: { type: "string" }, hiddenText: { const: "include" }, segments: { type: "array" } } } } }, {}] } }] });
   expect(discovery("help", "text").human).toContain("Hidden text is included");
-  expect(discovery("capabilities").data).toMatchObject({ features: expect.arrayContaining([{ id: "F08", level: "read", subsets: expect.any(Array), detected: null }]) });
+  expect(discovery("capabilities").data).toMatchObject({ features: expect.arrayContaining([{ operationIds: expect.arrayContaining(["text.get"]), id: "F08", level: "read", subsets: expect.any(Array), detected: null }]) });
 });
 
 it("reports invalid text views as JSON regardless of flag order without acquiring input", async () => {

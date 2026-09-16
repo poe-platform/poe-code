@@ -125,7 +125,7 @@ it("preserves unknown metadata owned by an unselected comment", async () => {
 
 it("declares the verified synchronization subset without advertising thread authoring", () => {
   const invocation = docx.parseDocxArguments(["capabilities"].map(s => new TextEncoder().encode(s)));
-  expect(docx.getDocxDiscovery(invocation)!.data).toMatchObject({ features: expect.arrayContaining([{
+  expect(docx.getDocxDiscovery(invocation)!.data).toMatchObject({ features: expect.arrayContaining([{ operationIds: expect.arrayContaining(["comments.get"]),
     id: "F25", level: "edit", detected: null, subsets: expect.arrayContaining([expect.objectContaining({ name: "comment-extension-synchronization", level: "edit" })])
   }]) });
 });

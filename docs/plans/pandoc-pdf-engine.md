@@ -12,3 +12,12 @@ Evaluate pdf-lib 1.17.1 (MIT, TypeScript PDF object serialization, PNG/JPEG embe
 4. Record evidence and pending README copy under docs/pandoc; do not modify READMEs without permission.
 
 QA procedure: generate representative output using supplied fonts, inspect page geometry/text/embedded font and links via independent PDF parsing in tests. Visual inspection of a rendered representative document is required for visual output claims; record any unavailable validation honestly. No external executable or host mutation in unit tests.
+
+## Status
+
+- Engine delivered in local commit 4760f1e32, with original failing public-API tests before implementation.
+- Built-in Pandoc writer added after three failing public conversion/adapter tests. All 892 Pandoc tests and six engine tests pass. Workspace build closure and scoped lint/typechecks pass (final rerun status in evidence).
+- Original in-memory PNG coverage added; no downloads or filesystem mutations in tests. Packaged font decoding gains admission hook, validated with a failing test before implementation.
+- Full test route exposed missing generated SafeJS/package-lint/root artifacts and missing root workspace registrations. Root registrations for these two packages repaired; completeness test now passes. No unrelated source changed.
+- Quick Look first-page PNG generated from representative PDF and visually inspected: heading, Latin/Greek/Cyrillic, links, tables and page margins readable. Pagination separately parsed in engine tests.
+- README copy remains pending as instructed. No push or release authorized.

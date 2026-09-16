@@ -32,6 +32,7 @@
     "jpeg-js": "^0.4.4",
     "jsonc-parser": "^3.3.1",
     "parse5": "7.3.0",
-    "saxes": "6.0.0"
+    "saxes": "6.0.0",
+    "@poe-code/pdf": "0.0.1"
   }
 }

@@ -13,3 +13,7 @@ Context: signal, yield scheduler, shared charge callback and limits. Defaults: f
 Dependencies: pdf-lib 1.17.1, @pdf-lib/fontkit 1.1.1, both MIT JavaScript/TypeScript; exact transitive dependency versions/integrities in package-lock.json. Neither is a native/WASM compiler or runtime fallback.
 
 Environment variables: none.
+
+## @poe-code/pandoc PDF writer copy
+
+`to: "pdf"` uses the built-in @poe-code/pdf engine and the packaged JetBrains Mono font. The CLI/safe-bash adapter invokes the same SDK path; there is no native fallback or external compiler. Supported AST subset: plain paragraphs, headings, code, line blocks, div containers, links, spans, standalone images with supplied resource bytes and numeric point width/height attributes, and left-aligned rectangular unspanned paragraph-cell tables without captions. Other inline/block semantics (including styled text and math) are explicitly rejected. Engine API supports supplied font/page selection independently. Pandoc currently uses the fixed A4/default font profile. Environment variables: none. Existing conversion limits (fonts, glyphs, pages, objects, images, binaryBytes, retainedBytes, layoutWork and outputBytes) also constrain PDF work; internal engine hard defaults can further restrict output.

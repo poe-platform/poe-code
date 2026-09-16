@@ -781,7 +781,9 @@
     "virtual-bash": "*",
     "vite": "6.4.3",
     "vitest": "4.1.11",
-    "@poe-code/safe-python": "*"
+    "@poe-code/safe-python": "*",
+    "@poe-code/pandoc": "0.0.1",
+    "@poe-code/pdf": "0.0.1"
   },
   "repository": {
     "type": "git",

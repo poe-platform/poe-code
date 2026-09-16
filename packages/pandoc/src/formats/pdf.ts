@@ -1,5 +1,7 @@
 import type { FormatDescriptor } from "../formats.js";
+import { pdfWriter } from "../pdf-writer.js";
 export default {
+  writer: pdfWriter,
   name: "pdf",
   read: false,
   write: true,

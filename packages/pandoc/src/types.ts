@@ -1,3 +1,4 @@
+import type { FormatSelection } from "./formats.js";
 import type { Block, Inline, MetaValue } from "./ast-types.js";
 export type Node = Block | Inline;
 export interface Resource {
@@ -115,12 +116,16 @@ export interface ResourceCapability {
 }
 export interface ReaderCapability {
   readonly format: string;
-  read(input: Input, context: AdapterContext): Promise<Document>;
+  read(input: Input, context: AdapterContext, selection?: FormatSelection): Promise<Document>;
 }
 export interface WriterCapability {
   readonly format: string;
   readonly math?: "source";
-  write(document: Document, context: AdapterContext): Promise<SerializedDocument>;
+  write(
+    document: Document,
+    context: AdapterContext,
+    selection?: FormatSelection
+  ): Promise<SerializedDocument>;
 }
 /** publish must provide atomic publication; it receives owned bytes and must honor cancellation. */
 export interface OutputCapability {

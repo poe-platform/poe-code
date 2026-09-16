@@ -1,6 +1,6 @@
 export { convert, readDocument, writeDocument, PandocError } from "./engine.js";
-export { formatCapabilities } from "./formats.js";
-export type { FormatCapability } from "./formats.js";
+export { createFormatRegistry, coreFormats, formatCapabilities } from "./formats.js";
+export type { FormatCapability, FormatDescriptor, FormatSelection, Direction } from "./formats.js";
 export type {
   AdapterContext,
   ConversionContext,
@@ -47,3 +47,6 @@ export type {
   SourcePosition,
   LossDiagnostic
 } from "./ast-types.js";
+export { inspectFormats } from "./inspection.js";
+export { createFormatInspectionCommand } from "./safe-bash.js";
+export type { FormatInspectionContext } from "./safe-bash.js";

@@ -1,6 +1,6 @@
 import { normalizeDocumentCooperatively, AstError } from "./ast.js";
 import type { MetaValue } from "./ast-types.js";
-import { formatCapabilities } from "./formats.js";
+import { createFormatRegistry } from "./formats.js";
 import { ExecutionContext } from "./execution.js";
 import { PandocError } from "./errors.js";
 export { PandocError } from "./errors.js";
@@ -23,27 +23,14 @@ class Session extends ExecutionContext {
     if (Object.keys(options).some((key) => !allowed.includes(key)))
       this.fail("E_OPTION", "Unknown or inapplicable option");
   }
-  validate(format: string, direction: "read" | "write"): string {
-    if (typeof format !== "string" || !format)
-      this.fail("E_FORMAT_REQUIRED", "Select an explicit format");
-    if (format.includes("+") || format.includes("-"))
-      this.fail("E_EXTENSION", "Dialect switches are not implemented by this seam");
-    const descriptor = formatCapabilities.find((item) => item.name === format);
-    if (!descriptor?.[direction].allowed)
-      this.fail("E_FORMAT", `Unsupported ${direction} format: ${format}`);
-    const normalized = direction === "write" && format === "html" ? "html5" : format;
-    const capability = direction === "read" ? this.context.reader : this.context.writer;
-    if (capability?.format !== normalized)
-      this.fail("E_CAPABILITY", `No ${direction} capability for ${normalized}`);
-    return normalized;
-  }
+  readonly registry = createFormatRegistry(undefined, this.context, this.operation);
   async input(input: InputSource, format: string): Promise<Input> {
-    const descriptor = formatCapabilities.find((item) => item.name === format);
+    const { descriptor } = this.registry.parse(format, "read");
     const bytes = await this.acquire(
       "bytes" in input ? [input.bytes] : input.chunks,
-      descriptor?.inputBudget
+      descriptor.inputBudget
     );
-    const text = descriptor?.inputEncoding === "utf8" ? await this.decodeUtf8([bytes]) : undefined;
+    const text = descriptor.inputEncoding === "utf8" ? await this.decodeUtf8([bytes]) : undefined;
     return {
       bytes,
       ...(input.base === undefined ? {} : { base: input.base }),
@@ -81,8 +68,8 @@ class Session extends ExecutionContext {
     return owned;
   }
 
-  async writable(document: Document): Promise<Document> {
-    if (this.context.writer?.math !== "source") {
+  async writable(document: Document, math?: "source"): Promise<Document> {
+    if (math !== "source") {
       const visit = async (value: unknown, path: string): Promise<void> => {
         await this.cooperate();
         if (value === null || typeof value !== "object" || value instanceof Uint8Array) return;
@@ -171,9 +158,11 @@ export async function readDocument(
   const session = new Session("read", context);
   try {
     session.options(options);
-    session.validate(options.from, "read");
+    const reader = session.registry.resolve(options.from, "read");
     const owned = await session.input(input, options.from);
-    return await session.document(await session.call(() => context.reader!.read(owned, session)));
+    return await session.document(
+      await session.call(() => reader.reader!.read(owned, session, reader))
+    );
   } finally {
     await session.close();
   }
@@ -186,9 +175,11 @@ export async function writeDocument(
   const session = new Session("write", context);
   try {
     session.options(options);
-    session.validate(options.to, "write");
-    const owned = await session.writable(await session.document(document));
-    return await session.finish(await session.call(() => context.writer!.write(owned, session)));
+    const writer = session.registry.resolve(options.to, "write");
+    const owned = await session.writable(await session.document(document), writer.writer!.math);
+    return await session.finish(
+      await session.call(() => writer.writer!.write(owned, session, writer))
+    );
   } finally {
     await session.close();
   }
@@ -201,8 +192,8 @@ export async function convert(
   const session = new Session("convert", context);
   try {
     session.options(options);
-    session.validate(options.from, "read");
-    session.validate(options.to, "write");
+    const reader = session.registry.resolve(options.from, "read");
+    const writer = session.registry.resolve(options.to, "write");
     // Account for every input before callbacks, retaining independent reader boundaries.
     const ownedInputs: Input[] = [];
     for (const input of inputs) {
@@ -215,7 +206,7 @@ export async function convert(
     const settings: { language?: string; direction?: "ltr" | "rtl" | "auto" } = {};
     for (const [index, input] of ownedInputs.entries()) {
       const document = await session.document(
-        await session.call(() => context.reader!.read(input, session))
+        await session.call(() => reader.reader!.read(input, session, reader))
       );
       for (const key of ["language", "direction"] as const) {
         if (Object.hasOwn(document, key)) {
@@ -261,9 +252,12 @@ export async function convert(
       }
     }
     const document = await session.writable(
-      await session.document({ blocks, metadata, resources, ...settings }, true)
+      await session.document({ blocks, metadata, resources, ...settings }, true),
+      writer.writer!.math
     );
-    return await session.finish(await session.call(() => context.writer!.write(document, session)));
+    return await session.finish(
+      await session.call(() => writer.writer!.write(document, session, writer))
+    );
   } finally {
     await session.close();
   }

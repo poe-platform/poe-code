@@ -36,7 +36,15 @@ function surface(
     register(`${prefix}.${name}.get`, owner, (receiver) => Reflect.get(receiver as object, name));
   for (const name of write)
     register(`${prefix}.${name}.set`, owner, (receiver, args) => {
-      if (!Reflect.set(receiver as object, name, args.value))
+      const type = docxOperationSchemas[`${prefix}.${name}.set`]!.batchFields!.value!.type.split(" | ")[0]!;
+      const family = enumFamilies[(docxEnumCanonicalNames[type] ?? type) as keyof typeof enumFamilies];
+      const value = args.value;
+      const assigned = family && value !== null && value !== undefined && !isEnumMember(value)
+        ? family.members[(value as { name: string }).name as keyof typeof family.members]
+        : value;
+      if (family && value !== null && value !== undefined && assigned === undefined)
+        throw new DocxUsageError("Unknown enum value.");
+      if (!Reflect.set(receiver as object, name, assigned))
         throw new DocxUsageError("The property is not writable.");
     });
   for (const name of methods) {

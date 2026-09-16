@@ -1,0 +1,71 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/model-package-owner-preservation.test.ts (2 tests | 2 failed) 151ms
+   × retains live body and paragraph owners when package relationships change 81ms
+   × invalidates model nodes only in a part replaced through its package view 69ms
+FAIL packages/docx/src/model-package-owner-preservation.test.ts > retains live body and paragraph owners when package relationships change
+StaleHandleError: The model handle is detached.
+ ❯ ModelStore.node packages/docx/src/model-store.ts:261:13
+    259|     const handle = this.handles.get(ref.id);
+    260|     if (handle?.ref !== ref || !handle.node)
+    261|       throw new StaleHandleError("The model handle is detached.");
+       |             ^
+    262|     return handle.node;
+    263|   }
+ ❯ Paragraph.get text [as text] packages/docx/src/block-model.ts:62:33
+ ❯ packages/docx/src/model-package-owner-preservation.test.ts:10:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'stale-selection' }
+FAIL packages/docx/src/model-package-owner-preservation.test.ts > invalidates model nodes only in a part replaced through its package view
+StaleHandleError: The model handle is detached.
+ ❯ ModelStore.node packages/docx/src/model-store.ts:261:13
+    259|     const handle = this.handles.get(ref.id);
+    260|     if (handle?.ref !== ref || !handle.node)
+    261|       throw new StaleHandleError("The model handle is detached.");
+       |             ^
+    262|     return handle.node;
+    263|   }
+ ❯ Paragraph.get text [as text] packages/docx/src/block-model.ts:62:33
+ ❯ packages/docx/src/model-package-owner-preservation.test.ts:24:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'stale-selection' }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/model-package-owner-preservation.test.ts > retains live body and paragraph owners when package relationships change
+StaleHandleError: The model handle is detached.
+ ❯ ModelStore.node packages/docx/src/model-store.ts:261:13
+    259|     const handle = this.handles.get(ref.id);
+    260|     if (handle?.ref !== ref || !handle.node)
+    261|       throw new StaleHandleError("The model handle is detached.");
+       |             ^
+    262|     return handle.node;
+    263|   }
+ ❯ Paragraph.get text [as text] packages/docx/src/block-model.ts:62:33
+ ❯ packages/docx/src/model-package-owner-preservation.test.ts:10:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/docx/src/model-package-owner-preservation.test.ts > invalidates model nodes only in a part replaced through its package view
+StaleHandleError: The model handle is detached.
+ ❯ ModelStore.node packages/docx/src/model-store.ts:261:13
+    259|     const handle = this.handles.get(ref.id);
+    260|     if (handle?.ref !== ref || !handle.node)
+    261|       throw new StaleHandleError("The model handle is detached.");
+       |             ^
+    262|     return handle.node;
+    263|   }
+ ❯ Paragraph.get text [as text] packages/docx/src/block-model.ts:62:33
+ ❯ packages/docx/src/model-package-owner-preservation.test.ts:24:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  22:52:30
+   Duration  1.28s (transform 897ms, setup 31ms, import 1.04s, tests 151ms, environment 0ms)
+

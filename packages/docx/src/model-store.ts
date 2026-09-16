@@ -72,9 +72,29 @@ export class ModelStore {
       version: () => this.revision,
       writable: () => this.writable(),
       stage: (candidate) => {
+        context.budget.charge(
+          "retainedBytes",
+          (this.archive.members.length + candidate.members.length) * 96
+        );
+        const current = new Map(
+          this.snapshot().members.map((member) => ["/" + member.name, member.bytes])
+        );
+        const unchanged = new Set(
+          candidate.members
+            .filter((member) => {
+              const previous = current.get("/" + member.name);
+              context.budget.charge("work", member.bytes.length + 1);
+              return (
+                previous?.length === member.bytes.length &&
+                previous.every((byte, index) => byte === member.bytes[index])
+              );
+            })
+            .map((member) => "/" + member.name)
+        );
         this.archive = candidate;
-        this.editors.clear();
-        for (const handle of this.handles.values()) handle.node = null;
+        for (const part of this.editors.keys()) if (!unchanged.has(part)) this.editors.delete(part);
+        for (const handle of this.handles.values())
+          if (!unchanged.has(handle.ref.part)) handle.node = null;
         this.revision++;
       },
       save: (sink) => this.save(sink)

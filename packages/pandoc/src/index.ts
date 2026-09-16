@@ -10,10 +10,13 @@ export type {
   DiagnosticCode,
   Document,
   Input,
+  InputSource,
+  StreamingInput,
   Limits,
   Node,
   Operation,
   OutputCapability,
+  StreamingOutputCapability,
   ReadOptions,
   ReaderCapability,
   Resource,
@@ -23,7 +26,8 @@ export type {
   WriterCapability
 } from "./types.js";
 
-export { normalizeDocument, AstError } from "./ast.js";
+export { normalizeDocument, normalizeDocumentCooperatively, AstError } from "./ast.js";
+export { createExecutionContext, ExecutionContext, defaultLimits } from "./execution.js";
 export type { AstLimits } from "./ast.js";
 export { assertNever } from "./ast-types.js";
 export type {

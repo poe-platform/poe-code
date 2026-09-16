@@ -1,8 +1,42 @@
 import { expect, it, vi } from "vitest";
-import { normalizeDocument } from "./ast.js";
+import { normalizeDocument, normalizeDocumentCooperatively } from "./ast.js";
 import { writeDocument } from "./engine.js";
 
 const empty = { blocks: [], metadata: {}, resources: [] };
+it("yields during original AST traversal so cancellation precedes cloning/writing", async () => {
+  const controller = new AbortController();
+  const write = vi.fn(async () => ({ kind: "text" as const, text: "unreachable" }));
+  const doc = {
+    ...empty,
+    blocks: Array.from({ length: 300 }, () => ({ t: "HorizontalRule" as const }))
+  };
+  const yieldWork = vi.fn(async () => {
+    controller.abort();
+  });
+  await expect(
+    writeDocument(
+      doc,
+      { to: "plain" },
+      { signal: controller.signal, yield: yieldWork, writer: { format: "plain", write } }
+    )
+  ).rejects.toMatchObject({ code: "E_CANCELLED" });
+  expect(yieldWork).toHaveBeenCalled();
+  expect(write).not.toHaveBeenCalled();
+});
+it("uses identical synchronous/cooperative normalization and budget boundaries", async () => {
+  const cooperate = vi.fn(async () => {});
+  expect(await normalizeDocumentCooperatively(empty, {}, cooperate)).toEqual(
+    normalizeDocument(empty)
+  );
+  // Root plus its three keys/arrays = seven admitted values.
+  for (const nodes of [6, 7, 8]) {
+    if (nodes < 7)
+      await expect(
+        normalizeDocumentCooperatively(empty, { nodes }, cooperate)
+      ).rejects.toMatchObject({ code: "E_LIMIT" });
+    else expect(await normalizeDocumentCooperatively(empty, { nodes }, cooperate)).toEqual(empty);
+  }
+});
 it("preserves empty documents and optional language/direction", () => {
   expect(normalizeDocument(empty)).toEqual(empty);
   expect(normalizeDocument({ ...empty, language: "", direction: "rtl" })).toEqual({
@@ -149,6 +183,29 @@ const table = (cells: unknown[], columns = 1) => ({
 it("preserves modern tables and absent versus empty short captions", () => {
   const expected = table([[["cell", [], []], "AlignDefault", 1, 1, []]]);
   expect(normalizeDocument(expected)).toEqual(expected);
+});
+it("bounds logical cells and table reference indexes before span-map growth", () => {
+  const expected = table([[["", [], []], "AlignDefault", 1, 2, []]], 2);
+  for (const tableCells of [1, 2, 3]) {
+    if (tableCells < 2) expect(() => normalizeDocument(expected, { tableCells })).toThrow();
+    else expect(normalizeDocument(expected, { tableCells })).toEqual(expected);
+  }
+  for (const references of [1, 2, 3]) {
+    if (references < 2)
+      expect(() => normalizeDocument(expected, { references })).toThrowError(/AST budget exceeded/);
+    else expect(normalizeDocument(expected, { references })).toEqual(expected);
+  }
+});
+it("checks depth and resource byte limits at their exact boundaries", () => {
+  for (const depth of [0, 1, 2]) {
+    if (depth < 1) expect(() => normalizeDocument(empty, { depth })).toThrow();
+    else expect(normalizeDocument(empty, { depth })).toEqual(empty);
+  }
+  const doc = { ...empty, resources: [{ id: "original", bytes: Uint8Array.of(1, 2) }] };
+  for (const resourceBytes of [1, 2, 3]) {
+    if (resourceBytes < 2) expect(() => normalizeDocument(doc, { resourceBytes })).toThrow();
+    else expect(normalizeDocument(doc, { resourceBytes })).toEqual(doc);
+  }
 });
 it.each([0, -1, 1.5, 2, Infinity])("rejects invalid row spans %s", (span) => {
   expect(() => normalizeDocument(table([[["", [], []], "AlignDefault", span, 1, []]]))).toThrow(

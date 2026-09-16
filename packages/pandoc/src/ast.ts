@@ -7,6 +7,7 @@ export interface AstLimits {
   readonly text: number;
   readonly attributes: number;
   readonly tableCells: number;
+  readonly references: number;
   readonly resourceBytes: number;
 }
 export class AstError extends Error {
@@ -137,16 +138,12 @@ const tableShape = tuple(
   array(tuple(attr, integer, array(row), array(row))),
   head
 );
-function assertTable(v: unknown, p: string): asserts v is Extract<Block, { t: "Table" }>["c"] {
-  tableShape(v, p);
-}
-const table: Check = (v, p) => {
-  assertTable(v, p);
+function* tableGeometry(v: Extract<Block, { t: "Table" }>["c"], p: string): Generator<void> {
   const columns = v[2].length;
-  const section = (rows: readonly Row[], path: string): void => {
+  function* section(rows: readonly Row[], path: string): Generator<void> {
     // Sparse occupancy; never allocate the row-by-column rectangular grid.
     const occupied = new Map<number, number>();
-    rows.forEach((r, i) => {
+    for (const [i, r] of rows.entries()) {
       let column = 0;
       for (const [index, cell] of r[1].entries()) {
         while ((occupied.get(column) ?? 0) > i) column++;
@@ -155,20 +152,21 @@ const table: Check = (v, p) => {
           fail(pathCell, "Span exceeds table section");
         for (let offset = 0; offset < cell[3]; offset++) {
           if ((occupied.get(column + offset) ?? 0) > i) fail(pathCell, "Overlapping spans");
+          yield;
           occupied.set(column + offset, i + cell[2]);
         }
         column += cell[3];
       }
-    });
-  };
-  section(v[3][1], `${p}[3][1]`);
-  v[4].forEach((body, i) => {
+    }
+  }
+  yield* section(v[3][1], `${p}[3][1]`);
+  for (const [i, body] of v[4].entries()) {
     if (body[1] < 0 || body[1] > columns) fail(`${p}[4][${i}][1]`, "Invalid row head columns");
-    section(body[2], `${p}[4][${i}][2]`);
-    section(body[3], `${p}[4][${i}][3]`);
-  });
-  section(v[5][1], `${p}[5][1]`);
-};
+    yield* section(body[2], `${p}[4][${i}][2]`);
+    yield* section(body[3], `${p}[4][${i}][3]`);
+  }
+  yield* section(v[5][1], `${p}[5][1]`);
+}
 const block: Check = tagged({
   Plain: inlines,
   Para: inlines,
@@ -198,7 +196,7 @@ const block: Check = tagged({
   HorizontalRule: null,
   Div: tuple(attr, blocks),
   Figure: tuple(attr, caption, blocks),
-  Table: table
+  Table: tableShape
 } satisfies Record<Block["t"], Check | null>);
 const metadata: Check = (v, p) => {
   for (const [k, x] of Object.entries(record(v, p))) meta(x, `${p}.${k}`);
@@ -233,13 +231,18 @@ function validateDocument(value: unknown): asserts value is Document {
   })(r.resources, "$.resources");
 }
 /** Identity normalization: owned data, identical constructors, order, fields and text. */
-export function normalizeDocument(value: unknown, options: Partial<AstLimits> = {}): Document {
+function* normalization(
+  value: unknown,
+  options: Partial<AstLimits>,
+  reserve: (key: keyof AstLimits, units: number) => void
+): Generator<void, Document> {
   const ceilings = {
     depth: 128,
     nodes: 100_000,
     text: 32 * 1024 * 1024,
     attributes: 100_000,
     tableCells: 100_000,
+    references: 100_000,
     resourceBytes: 64 * 1024 * 1024
   };
   const limits: AstLimits = { ...ceilings, ...options };
@@ -255,17 +258,22 @@ export function normalizeDocument(value: unknown, options: Partial<AstLimits> = 
     text = 0,
     attributes = 0,
     cells = 0,
+    references = 0,
     resourceBytes = 0;
   const active = new Set<object>();
   const bound = (n: number, ceiling: number, p: string): void => {
     if (n > ceiling) throw new AstError("E_LIMIT", p, "AST budget exceeded");
   };
-  const visit = (v: unknown, p: string, depth: number): void => {
+  function* visit(v: unknown, p: string, depth: number): Generator<void> {
     bound(depth, limits.depth, p);
     bound(++nodes, limits.nodes, p);
+    reserve("nodes", 1);
+    yield;
     if (typeof v === "string") {
       bound((text += v.length), limits.text, p);
+      reserve("text", v.length);
       for (let i = 0; i < v.length; i++) {
+        if (i % 256 === 0) yield;
         const c = v.charCodeAt(i);
         if (c >= 0xd800 && c <= 0xdbff) {
           const next = v.charCodeAt(++i);
@@ -282,6 +290,7 @@ export function normalizeDocument(value: unknown, options: Partial<AstLimits> = 
     if (typeof v !== "object" || active.has(v)) fail(p, "Non-JSON or cyclic input");
     if (v instanceof Uint8Array && p.startsWith("$.resources[") && p.endsWith(".bytes")) {
       bound((resourceBytes += v.byteLength), limits.resourceBytes, p);
+      reserve("resourceBytes", v.byteLength);
       return;
     }
     active.add(v);
@@ -291,10 +300,19 @@ export function normalizeDocument(value: unknown, options: Partial<AstLimits> = 
       for (let i = 0; i < v.length; i++) {
         const d = Object.getOwnPropertyDescriptor(v, String(i));
         if (!d || !("value" in d)) fail(`${p}[${i}]`, "Accessor or sparse array");
+        yield;
       }
       // Attribute triples and modern cell tuples have unambiguous structural arity.
-      if (v.length === 3 && typeof v[0] === "string" && Array.isArray(v[1]) && Array.isArray(v[2]))
-        bound((attributes += 1 + v[1].length + v[2].length), limits.attributes, p);
+      if (
+        v.length === 3 &&
+        typeof v[0] === "string" &&
+        Array.isArray(v[1]) &&
+        Array.isArray(v[2])
+      ) {
+        const count = 1 + v[1].length + v[2].length;
+        bound((attributes += count), limits.attributes, p);
+        reserve("attributes", count);
+      }
       if (v.length === 5 && Array.isArray(v[0]) && typeof v[1] === "string") {
         if (
           typeof v[2] !== "number" ||
@@ -306,28 +324,69 @@ export function normalizeDocument(value: unknown, options: Partial<AstLimits> = 
         )
           fail(p, "Invalid spans");
         bound((cells += v[2] * v[3]), limits.tableCells, p);
+        reserve("tableCells", v[2] * v[3]);
+        // Reserve sparse span-index capacity before geometry creates its maps.
+        bound((references += v[2] * v[3]), limits.references, p);
+        reserve("references", v[2] * v[3]);
       }
       for (let i = 0; i < v.length; i++) {
         const d = Object.getOwnPropertyDescriptor(v, String(i));
         if (!d || !("value" in d)) fail(`${p}[${i}]`);
-        visit(d.value, `${p}[${i}]`, depth + 1);
+        yield* visit(d.value, `${p}[${i}]`, depth + 1);
       }
       if (Object.keys(v).length !== v.length) fail(p);
     } else {
       // Inspect before allocating an owned result or running constructor validation.
       for (const k in v) {
-        visit(k, p, depth + 1);
+        yield* visit(k, p, depth + 1);
         if (!Object.hasOwn(v, k)) fail(p);
         const d = Object.getOwnPropertyDescriptor(v, k);
         if (!d || !("value" in d) || ["__proto__", "constructor", "prototype"].includes(k))
           fail(`${p}.${k}`);
-        visit(d.value, `${p}.${k}`, depth + 1);
+        yield* visit(d.value, `${p}.${k}`, depth + 1);
       }
       if (Object.getOwnPropertySymbols(v).length) fail(p);
     }
     active.delete(v);
-  };
-  visit(value, "$", 0);
+  }
+  yield* visit(value, "$", 0);
   validateDocument(value);
+  function* geometry(v: unknown, p: string): Generator<void> {
+    if (v === null || typeof v !== "object" || v instanceof Uint8Array) return;
+    yield;
+    if ("t" in v && v.t === "Table") {
+      const content = (v as Extract<Block, { t: "Table" }>).c;
+      yield* tableGeometry(content, `${p}.c`);
+    }
+    if (Array.isArray(v)) {
+      for (const [index, child] of v.entries()) yield* geometry(child, `${p}[${index}]`);
+    } else {
+      for (const [key, child] of Object.entries(v)) yield* geometry(child, `${p}.${key}`);
+    }
+  }
+  yield* geometry(value, "$");
   return structuredClone(value);
+}
+
+/** Identity normalization retains a bounded owned AST by design. */
+export function normalizeDocument(value: unknown, options: Partial<AstLimits> = {}): Document {
+  const steps = normalization(value, options, () => {});
+  let step = steps.next();
+  while (!step.done) step = steps.next();
+  return step.value;
+}
+
+export async function normalizeDocumentCooperatively(
+  value: unknown,
+  options: Partial<AstLimits>,
+  cooperate: (units: number) => Promise<void>,
+  reserve: (key: keyof AstLimits, units: number) => void = () => {}
+): Promise<Document> {
+  const steps = normalization(value, options, reserve);
+  let step = steps.next();
+  while (!step.done) {
+    await cooperate(1);
+    step = steps.next();
+  }
+  return step.value;
 }

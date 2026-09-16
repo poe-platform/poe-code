@@ -13,8 +13,15 @@ export interface Document {
 }
 export interface Input {
   readonly bytes: Uint8Array;
+  /** Present for UTF-8 formats after per-input BOM/newline normalization. */
+  readonly text?: string;
   readonly base?: string;
 }
+export interface StreamingInput {
+  readonly chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
+  readonly base?: string;
+}
+export type InputSource = Input | StreamingInput;
 export type SerializedDocument =
   | { readonly kind: "text"; readonly text: string }
   | { readonly kind: "binary"; readonly bytes: Uint8Array };
@@ -47,6 +54,30 @@ export interface Limits {
   readonly nodes: number;
   readonly depth: number;
   readonly work: number;
+  readonly retainedBytes: number;
+  readonly text: number;
+  readonly attributes: number;
+  readonly tableCells: number;
+  readonly resources: number;
+  readonly diagnostics: number;
+  readonly references: number;
+  readonly entities: number;
+  readonly entityBytes: number;
+  readonly compressedBytes: number;
+  readonly expandedBytes: number;
+  readonly parts: number;
+  readonly xmlDepth: number;
+  readonly xmlNodes: number;
+  readonly binaryBytes: number;
+  readonly macros: number;
+  readonly includes: number;
+  readonly directives: number;
+  readonly fonts: number;
+  readonly glyphs: number;
+  readonly pages: number;
+  readonly objects: number;
+  readonly images: number;
+  readonly layoutWork: number;
 }
 export interface ReadOptions {
   readonly from: string;
@@ -61,6 +92,19 @@ export interface AdapterContext {
   readonly limits: Limits;
   readonly resources: ResourceCapability | undefined;
   checkpoint(units?: number): void;
+  /** Reserve aggregate capacity before allocating or extending parser/writer data. */
+  charge(key: keyof Limits, units: number): void;
+  /** Check a gauge (e.g. nesting depth) without accumulating it. */
+  bound(key: keyof Limits, actual: number): void;
+  cooperate(units?: number): Promise<void>;
+  decodeUtf8(chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>): Promise<string>;
+  /** Reserve entity expansion before constructing its Unicode scalar. */
+  decodeEntity(code: number): string;
+  decodeCodepage(bytes: Uint8Array, codepage?: 1252 | 28591): Promise<string>;
+  retainBinaryBlock(bytes: Uint8Array): Uint8Array;
+  report(diagnostic: Diagnostic): void;
+  /** Strictly advancing cursor for pagination and other iterative layouts. */
+  progress(id: string, cursor: number): void;
 }
 export interface ResourceCapability {
   resolve(
@@ -82,11 +126,19 @@ export interface WriterCapability {
 export interface OutputCapability {
   publish(bytes: Uint8Array, signal: AbortSignal | undefined): Promise<void>;
 }
+/** Streaming hosts may expose partial output on failure; close must report commit failure. */
+export interface StreamingOutputCapability {
+  write(bytes: Uint8Array, signal: AbortSignal | undefined): Promise<void>;
+  close(signal: AbortSignal | undefined): Promise<void>;
+  abort(reason: unknown): Promise<void>;
+}
 export interface ConversionContext {
   readonly reader?: ReaderCapability;
   readonly writer?: WriterCapability;
   readonly resources?: ResourceCapability;
-  readonly output?: OutputCapability;
+  readonly output?: OutputCapability | StreamingOutputCapability;
   readonly limits?: Partial<Limits>;
   readonly signal?: AbortSignal;
+  /** Trusted event-loop scheduler, chiefly for deterministic host/test integration. */
+  readonly yield?: () => Promise<void>;
 }

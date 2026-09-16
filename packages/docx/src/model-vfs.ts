@@ -60,7 +60,43 @@ export function modelVfsSource(
           const source = await resolver.open(path, Object.freeze({ signal, maxBytes }));
           context.budget.check("work", 0);
           if (signal.aborted) throw new CancellationError("Virtual input admission cancelled.");
-          yield* source;
+          if (!source || typeof source[Symbol.asyncIterator] !== "function")
+            throw new InputTypeError("Expected a virtual byte source.");
+          const iterator = source[Symbol.asyncIterator]();
+          let exhausted = false,
+            failed = false;
+          let failure: unknown;
+          try {
+            if (!iterator || typeof iterator.next !== "function")
+              throw new InputTypeError("Expected a virtual byte iterator.");
+            while (true) {
+              if (signal.aborted) throw new CancellationError("Virtual input admission cancelled.");
+              const item = await iterator.next();
+              if (item === null || (typeof item !== "object" && typeof item !== "function"))
+                throw new InputTypeError("Expected a virtual byte iterator result.");
+              if (item.done) {
+                exhausted = true;
+                break;
+              }
+              yield item.value;
+            }
+          } catch (error) {
+            failed = true;
+            failure = error;
+          } finally {
+            // Delegating with yield* does not close an iterator whose next rejects.
+            if (!exhausted && iterator?.return) {
+              try {
+                await iterator.return();
+              } catch (error) {
+                if (!failed) {
+                  failed = true;
+                  failure = error;
+                }
+              }
+            }
+          }
+          if (failed) throw failure;
         }
       };
     }

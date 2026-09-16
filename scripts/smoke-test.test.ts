@@ -5,6 +5,8 @@ import { run } from "../packages/safe-js/src/run.js";
 import { dump } from "../packages/safe-js/src/dump.js";
 import { makeMcpModule } from "../packages/safe-js/src/modules/mcp.js";
 import { runCli } from "../packages/safe-js/src/cli.js";
+// Admit cold CLI dependencies with the fixture imports, before protocol timing.
+import "../packages/safe-js/src/cli-runtime.js";
 
 const originalArguments = process.argv;
 afterEach(() => {

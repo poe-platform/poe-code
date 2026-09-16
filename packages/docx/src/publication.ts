@@ -41,7 +41,7 @@ function sinkMethod<T>(sink: object, key: string): T | undefined {
     if (!descriptor) continue;
     if (!("value" in descriptor) || (descriptor.value !== undefined && typeof descriptor.value !== "function"))
       throw new InputTypeError("Expected byte sink data methods.");
-    return descriptor.value?.bind(sink) as T | undefined;
+    return descriptor.value === undefined ? undefined : Function.prototype.bind.call(descriptor.value, sink) as T;
   }
   if (owner !== null) throw new InputTypeError("Byte sink prototype depth exceeded.");
   return undefined;

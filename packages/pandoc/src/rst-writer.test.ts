@@ -62,7 +62,7 @@ it("shares conversion and atomic publication through the thin adapter using memf
   expect(await run("# Heading\n\n**strong**")).toEqual({exitCode: 0});
   expect(fs.readFileSync("/output.rst", "utf8")).toContain("Heading\n=======");
   const original = fs.readFileSync("/output.rst", "utf8");
-  expect(await run("**outer *inner***")).toEqual({exitCode: 2});
+  expect(await run("**outer *inner***")).toEqual({exitCode: 3});
   expect(fs.readFileSync("/output.rst", "utf8")).toBe(original);
   expect(stdout).toEqual([]);
   expect(new TextDecoder().decode(stderr[0])).toContain("Nested RST inline style");

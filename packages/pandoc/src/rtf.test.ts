@@ -189,7 +189,7 @@ describe("original byte-oriented RTF document reader", () => {
     expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
     expect(volume.readFileSync("/out.html", "utf8")).toBe("<p><strong>hello</strong></p>\n");
     volume.writeFileSync("/in.rtf", String.raw`{\rtf1\unknown text}`);
-    expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 2});
+    expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 3});
     expect(new TextDecoder().decode(stderr.write.mock.calls[0]?.[0])).toContain("E_CAPABILITY:");
   });
 });

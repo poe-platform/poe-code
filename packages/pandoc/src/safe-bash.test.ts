@@ -25,7 +25,7 @@ it("requires explicit lossy conversion and prints deterministic paths separately
     [[["", [], []], 0, [], [[["", [], []], [[["", [], []], {t: "AlignDefault"}, 1, 2, [{t: "Plain", c: [{t: "Str", c: "span"}]}]]]]]]], [["", [], []], []]]};
   const input = JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [table]});
   const strict = context(["--from=json", "-t", "gfm"], input);
-  expect(await createPandocCommand().execute(strict)).toEqual({exitCode: 2});
+  expect(await createPandocCommand().execute(strict)).toEqual({exitCode: 3});
   expect(text(strict.stdout)).toBe("");
   expect(text(strict.stderr)).toBe("E_CAPABILITY: $.blocks[0].c[4][0][3][0][1][0]: Flattened cell span\n");
   const lossy = context(["--from", "json", "--to", "gfm", "--lossy"], input);
@@ -118,7 +118,7 @@ it("publishes files through memfs only after warning preflight and keeps destina
   expect(fs.readFileSync("/output.txt", "utf8")).toBe("hello\n");
   writeFile.mockRejectedValue(new Error("destination denied"));
   const denied = {...context(args, "hello"), writeFile};
-  expect(await createPandocCommand().execute(denied)).toEqual({exitCode: 2});
+  expect(await createPandocCommand().execute(denied)).toEqual({exitCode: 9});
   expect(text(denied.stderr)).toContain("E_IO:");
 });
 it("joins file and explicit stdin operands in their supplied order", async () => {
@@ -140,7 +140,7 @@ it("supplies only its configured VFS for CLI resource search and extraction", as
   expect(volume.readFileSync("/work/media/p.png", "utf8")).toBe("image");
   expect(text(ctx.stdout)).toContain('src="/work/media/p.png"');
   const denied = context(["-f=commonmark", "-t=html", "--extract-media=media"], "![x](p.png)");
-  expect(await createPandocCommand().execute(denied)).toEqual({exitCode: 2});
+  expect(await createPandocCommand().execute(denied)).toEqual({exitCode: 3});
   expect(text(denied.stderr)).toContain("E_CAPABILITY:");
 });
 it("accepts iterable stdin and a configured VFS with bounded reads but no readStream", async () => {
@@ -170,7 +170,7 @@ it("does not accept resource providers through untyped command configuration", a
   const lstat = vi.fn(async () => ({type: "file"}));
   const injected = {resources: {resolve}, resourceFiles: {lstat}} as unknown as Parameters<typeof createPandocCommand>[0];
   const ctx = context(["-f=commonmark", "-t=html", "--extract-media=/media"], "![x](p.png)");
-  expect(await createPandocCommand(injected).execute(ctx)).toEqual({exitCode: 2});
+  expect(await createPandocCommand(injected).execute(ctx)).toEqual({exitCode: 3});
   expect(lstat).not.toHaveBeenCalled(); expect(resolve).not.toHaveBeenCalled();
 });
 it("injects LaTeX include resources from memfs for file and stdin conversion", async () => {
@@ -187,7 +187,7 @@ it("injects LaTeX include resources from memfs for file and stdin conversion", a
     expect(text(ctx.stdout)).toBe("Original\n");
   }
   const missing = {...context(["-f", "latex", "-t", "plain", "-o", "result.txt"], "\\input{missing}"), fs, cwd: "/book"};
-  expect(await createPandocCommand().execute(missing)).toEqual({exitCode: 2});
+  expect(await createPandocCommand().execute(missing)).toEqual({exitCode: 9});
   expect(text(missing.stdout)).toBe("");
   expect(volume.existsSync("/book/result.txt")).toBe(false);
 });

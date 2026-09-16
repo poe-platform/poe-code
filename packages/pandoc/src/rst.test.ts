@@ -217,7 +217,7 @@ it("converts RST in the thin byte adapter with memfs include and no partial outp
   expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
   expect(new TextDecoder().decode(stdout.mock.calls[0]?.[0])).toBe("<p><strong>Included</strong></p>\n");
   stdout.mockClear();
-  expect(await createPandocCommand().execute({...ctx, args: [...ctx.args, "-o", "failed.html"], stdin: [bytes(".. include:: missing.rst")]})).toEqual({exitCode: 2});
+  expect(await createPandocCommand().execute({...ctx, args: [...ctx.args, "-o", "failed.html"], stdin: [bytes(".. include:: missing.rst")]})).toEqual({exitCode: 9});
   expect(volume.existsSync("/book/failed.html")).toBe(false);
   expect(stdout).not.toHaveBeenCalled();
 });

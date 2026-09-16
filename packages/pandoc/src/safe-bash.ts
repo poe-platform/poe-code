@@ -5,6 +5,14 @@ import type { ConversionContext, ResourceFileSystem } from "./types.js";
 import { parseConversionArgs } from "./cli.js";
 import type { CommandInputs } from "./cli.js";
 
+const errorStatuses: Readonly<Record<string, number>> = {
+  E_FORMAT_REQUIRED: 2, E_FORMAT: 2, E_EXTENSION: 2, E_OPTION: 2, E_METADATA: 2,
+  E_CAPABILITY: 3, E_PARSE: 4, E_AST: 4, E_ENCODING: 4,
+  E_UNSUPPORTED_FEATURE: 5, E_RESOURCE_DENIED: 6, E_RESOURCE_MISSING: 6,
+  E_LIMIT: 7, E_LAYOUT: 8, E_IO: 9, E_CANCELLED: 130, E_INTERNAL: 1,
+  E_RESOURCE: 6, E_WARNINGS: 2
+};
+
 /** Structural subset of safe-bash CommandContext: no filesystem or ambient host access. */
 export interface FormatInspectionContext {
   readonly args: readonly string[];
@@ -58,7 +66,7 @@ export function createPandocCommand(capabilities: Omit<ConversionContext, "outpu
         const location = error.location && !error.message.startsWith(`${error.location}:`) ? `${error.location}: ` : "";
         await context.stderr.write(encoder.encode(`${error.code}: ${location}${error.message}\n`));
         context.signal.throwIfAborted();
-        return {exitCode: 2};
+        return {exitCode: errorStatuses[error.code] ?? 1};
       }
       await context.stdout.write(bytes);
       context.signal.throwIfAborted();

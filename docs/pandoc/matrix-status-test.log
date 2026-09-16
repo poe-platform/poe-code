@@ -1,0 +1,536 @@
+
+> @poe-code/pandoc@0.0.1 test
+> cd ../.. && vitest run packages/pandoc
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ✓ packages/pandoc/src/command-status.test.ts (4 tests) 8ms
+ ✓ packages/pandoc/src/pdf-integration.test.ts (15 tests) 1495ms
+   ✓ converts representable pptx content to mapped PDF text  920ms
+ ✓ packages/pandoc/src/json.test.ts (115 tests) 868ms
+ ✓ packages/pandoc/src/pptx-conversion.test.ts (21 tests) 3379ms
+   ✓ preserves original nested list structure in the conversion round trip  320ms
+   ✓ resolves presentation relationship order independently for more than nine slides  575ms
+   ✓ retains mixed list nesting, numbering starts and continuation paragraphs  306ms
+ ✓ packages/pandoc/src/pdf-writer.test.ts (10 tests) 517ms
+ ✓ packages/pandoc/src/pptx-registry.test.ts (1 test) 675ms
+   ✓ exposes verified PPTX conversion through the registry and byte command adapter  674ms
+ ✓ packages/pandoc/src/pptx-dependency.test.ts (1 test) 357ms
+   ✓ admits original presentation bytes through the public presentation engine  356ms
+ ✓ packages/pandoc/src/table-writers.test.ts (15 tests) 354ms
+ ✓ packages/pandoc/src/latex-writer.test.ts (23 tests) 299ms
+ ✓ packages/pandoc/src/epub-writer.test.ts (20 tests) 222ms
+ ✓ packages/pandoc/src/html-writer.test.ts (14 tests) 183ms
+ ✓ packages/pandoc/src/rtf-writer.test.ts (20 tests) 184ms
+ ✓ packages/pandoc/src/epub.test.ts (26 tests) 146ms
+ ❯ packages/pandoc/src/safe-bash.test.ts (17 tests | 4 failed) 153ms
+   ✓ thin command converts byte stdin using SDK format/options, with no ambient filesystem 18ms
+   ✓ requires explicit lossy conversion and prints deterministic paths separately from content 57ms
+   ✓ rejects missing, duplicate, unknown and file arguments before acquiring stdin 2ms
+   ✓ preserves inspection, honors cancellation and awaits diagnostic/content byte sinks 11ms
+   ✓ matches SDK standalone metadata options through the byte-only CLI 14ms
+   ✓ accepts -s, metadata colon syntax, and explicit CLI raw-content policy 5ms
+   ✓ rejects templates and malformed metadata/options before reading stdin 1ms
+   ✓ shares Markdown wrap none validation with the SDK 4ms
+   ✓ reads explicit JSON metadata files in order, with repeated metadata overriding files 8ms
+   ✓ rejects YAML, unsafe execution and unknown flags before any acquisition 1ms
+   × publishes files through memfs only after warning preflight and keeps destination failures distinct 8ms
+   ✓ joins file and explicit stdin operands in their supplied order 3ms
+   × supplies only its configured VFS for CLI resource search and extraction 7ms
+   ✓ accepts iterable stdin and a configured VFS with bounded reads but no readStream 7ms
+   ✓ preflights CLI media/output conflicts and malformed flags before VFS acquisition 1ms
+   × does not accept resource providers through untyped command configuration 1ms
+   × injects LaTeX include resources from memfs for file and stdin conversion 6ms
+FAIL packages/pandoc/src/safe-bash.test.ts > publishes files through memfs only after warning preflight and keeps destination failures distinct
+AssertionError: expected { exitCode: 1 } to deeply equal { exitCode: 2 }
+
+- Expected
++ Received
+
+  {
+-   "exitCode": 2,
++   "exitCode": 1,
+  }
+
+ ❯ packages/pandoc/src/safe-bash.test.ts:116:260
+
+
+FAIL packages/pandoc/src/safe-bash.test.ts > supplies only its configured VFS for CLI resource search and extraction
+AssertionError: expected { exitCode: 3 } to deeply equal { exitCode: 2 }
+
+- Expected
++ Received
+
+  {
+-   "exitCode": 2,
++   "exitCode": 3,
+  }
+
+ ❯ packages/pandoc/src/safe-bash.test.ts:143:55
+    141|   expect(text(ctx.stdout)).toContain('src="/work/media/p.png"');
+    142|   const denied = context(["-f=commonmark", "-t=html", "--extract-media…
+    143|   expect(await createPandocCommand().execute(denied)).toEqual({exitCod…
+       |                                                       ^
+    144|   expect(text(denied.stderr)).toContain("E_CAPABILITY:");
+    145| });
+
+FAIL packages/pandoc/src/safe-bash.test.ts > does not accept resource providers through untyped command configuration
+AssertionError: expected { exitCode: 3 } to deeply equal { exitCode: 2 }
+
+- Expected
++ Received
+
+  {
+-   "exitCode": 2,
++   "exitCode": 3,
+  }
+
+ ❯ packages/pandoc/src/safe-bash.test.ts:173:60
+    171|   const injected = {resources: {resolve}, resourceFiles: {lstat}} as u…
+    172|   const ctx = context(["-f=commonmark", "-t=html", "--extract-media=/m…
+    173|   expect(await createPandocCommand(injected).execute(ctx)).toEqual({ex…
+       |                                                            ^
+    174|   expect(lstat).not.toHaveBeenCalled(); expect(resolve).not.toHaveBeen…
+    175| });
+
+FAIL packages/pandoc/src/safe-bash.test.ts > injects LaTeX include resources from memfs for file and stdin conversion
+AssertionError: expected { exitCode: 9 } to deeply equal { exitCode: 2 }
+
+- Expected
++ Received
+
+  {
+-   "exitCode": 2,
++   "exitCode": 9,
+  }
+
+ ❯ packages/pandoc/src/safe-bash.test.ts:190:56
+    188|   }
+    189|   const missing = {...context(["-f", "latex", "-t", "plain", "-o", "re…
+    190|   expect(await createPandocCommand().execute(missing)).toEqual({exitCo…
+       |                                                        ^
+    191|   expect(text(missing.stdout)).toBe("");
+    192|   expect(volume.existsSync("/book/result.txt")).toBe(false);
+
+ ✓ packages/pandoc/src/gfm.test.ts (41 tests) 118ms
+ ✓ packages/pandoc/src/resources.test.ts (30 tests) 128ms
+ ✓ packages/pandoc/src/delimited.test.ts (22 tests) 145ms
+ ✓ packages/pandoc/src/publication-options.test.ts (9 tests) 140ms
+ ❯ packages/pandoc/src/rtf.test.ts (68 tests | 1 failed) 102ms
+     ✓ registers the reader and writer and restores nested run state 5ms
+     ✓ distinguishes escaped control symbols from words and hex bytes 1ms
+     ✓ ignores known noncontent destinations with nested state and binary braces 1ms
+     ✓ preserves Unicode fallback and group-local settings: {\rtf1\uc1\u945?X} 1ms
+     ✓ preserves Unicode fallback and group-local settings: {\rtf1\uc2\u945\'3f\{X} 1ms
+     ✓ preserves Unicode fallback and group-local settings: {\rtf1\uc0\u945{\uc2\u946??}\u947X} 0ms
+     ✓ preserves Unicode fallback and group-local settings: {\rtf1\u-10179?\u-8704?} 1ms
+     ✓ preserves Unicode fallback and group-local settings: {\rtf1\u945?{\b X}Y} 1ms
+     ✓ preserves Unicode fallback and group-local settings: {\rtf1\uc2\u945?{X}Y} 1ms
+     ✓ decodes raw bytes and contiguous hex escapes with scoped code pages 1ms
+     ✓ uses font charset and stylesheet definitions without emitting their names 1ms
+     ✓ reads safe hyperlink instructions and never evaluates other fields 3ms
+     ✓ preserves cell and row boundaries and following paragraphs 2ms
+     ✓ reads list definitions, overrides and starting numbering 1ms
+     ✓ reads flat font tables, default font charsets and document ANSI code pages 1ms
+     ✓ preserves Unicode pairs across group-local non-text settings 0ms
+     ✓ reads local hyperlink targets and formatting in results 1ms
+     ✓ reads numbered legacy paragraph lists and their generated labels 1ms
+     ✓ honors list start overrides and parenthesis delimiters 1ms
+     ✓ restores list levels and joins consecutive table rows 1ms
+     ✓ reads supported pictures in a shape-picture destination 1ms
+     ✓ rejects unsupported text-bearing destinations and extra field text: {\rtf1{\*\unknown visible}} 0ms
+     ✓ rejects unsupported text-bearing destinations and extra field text: {\rtf1{\*\header visible}} 0ms
+     ✓ rejects unsupported text-bearing destinations and extra field text: {\rtf1{\field hidden{\*\fldinst HYPERLINK "https://example.test"}{\fldrslt label}}} 0ms
+     ✓ preserves outline headings and scoped paragraph alignment/indents 3ms
+     ✓ preserves footnotes as typed notes with scoped formatting 1ms
+     ✓ rejects encodings outside the pinned profile: {\rtf1\ansicpg1251 x} 0ms
+     ✓ rejects encodings outside the pinned profile: {\rtf1\ansicpg932 x} 0ms
+     ✓ rejects encodings outside the pinned profile: {\rtf1\ansicpg28591 x} 0ms
+     ✓ rejects encodings outside the pinned profile: {\rtf1\mac x} 0ms
+     ✓ rejects encodings outside the pinned profile: {\rtf1{\fonttbl{\f0\fcharset204 Cyrillic;}}x} 0ms
+     ✓ retains PNG hex and JPEG binary without parsing their bytes as controls 1ms
+     ✓ fails strictly for malformed or unsupported input: {\rtf1\'z0} 0ms
+     ✓ fails strictly for malformed or unsupported input: {\rtf1\'0} 0ms
+     ✓ fails strictly for malformed or unsupported input: {\rtf1{\*\ignored\bin10 x}} 0ms
+     ✓ fails strictly for malformed or unsupported input: {\rtf1\bin-1 x} 0ms
+     ✓ fails strictly for malformed or unsupported input: {\rtf1 0ms
+     ✓ fails strictly for malformed or unsupported input: {\rtf2 text} 0ms
+     ✓ fails strictly for malformed or unsupported input: {\rtf1\ansicpg437 text} 0ms
+     ✓ fails strictly for malformed or unsupported input: {\rtf1\ansicpg99999 text} 0ms
+     ✓ fails strictly for malformed or unsupported input: {\rtf1\u-10179?} 0ms
+     ✓ fails strictly for malformed or unsupported input: {\rtf1\u-8704?} 0ms
+     ✓ fails strictly for malformed or unsupported input: {\rtf1\uc-1 x} 0ms
+     ✓ fails strictly for malformed or unsupported input: {\rtf1\unknown visible} 0ms
+     ✓ fails strictly for malformed or unsupported input: {\rtf1{\object{\objdata 00}{\result visible}}} 0ms
+     ✓ fails strictly for malformed or unsupported input: {\rtf1{\*\object hidden}} 0ms
+     ✓ fails strictly for malformed or unsupported input: {\rtf1{\pict\wmetafile8 00}} 0ms
+     ✓ fails strictly for malformed or unsupported input: {\rtf1{\pict\pngblip 0}} 0ms
+     ✓ fails strictly for malformed or unsupported input: {\rtf1\trowd\cellx1000\intbl x\row} 0ms
+     ✓ bounds nesting, parser work, picture bytes and image count 1ms
+     ✓ accepts paragraph resets within cells and preserves multiple cell paragraphs 1ms
+     ✓ preserves the default font's family as attributed run data 0ms
+     ✓ retains style inheritance including outline levels and detects cycles 1ms
+     ✓ decodes identical UTF-8 byte input at every producer chunk boundary 50ms
+     ✓ counts control words, escaped symbols and binary blocks as fallback units 0ms
+     ✓ rejects invalid parameters and trailing input: {\rtf1\u32768?} 0ms
+     ✓ rejects invalid parameters and trailing input: {\rtf1\uc2147483648 x} 0ms
+     ✓ rejects invalid parameters and trailing input: {\rtf1\u-?} 0ms
+     ✓ rejects invalid parameters and trailing input: {\rtf1\bin x} 0ms
+     ✓ rejects invalid parameters and trailing input: {\rtf1\'gg} 0ms
+     ✓ rejects invalid parameters and trailing input: {\rtf1}extra 0ms
+     ✓ rejects unsupported table merges and picture encodings without projecting text 0ms
+     ✓ rejects embedded fonts and unknown font controls: {\rtf1{\fonttbl{\f0\fnil{\*\fontemb\bin1 x}Serif;}}visible} 0ms
+     ✓ rejects embedded fonts and unknown font controls: {\rtf1{\fonttbl{\f0\unsupported Serif;}}visible} 0ms
+     ✓ rejects unknown constructs inside style and list definitions: {\rtf1{\stylesheet{\s1{\*\unknown visible}Style;}}\s1 body} 0ms
+     ✓ rejects unknown constructs inside style and list definitions: {\rtf1{\*\listtable{\list{\listlevel\levelnfc0\unknown visible}\listid7}}body} 0ms
+     ✓ rejects unknown constructs inside style and list definitions: {\rtf1{\*\listoverridetable{\listoverride\listid7\listoverridecount0\unknown visible\ls2}}body} 0ms
+     × converts memfs operands through the existing thin command and reports strict failures 10ms
+FAIL packages/pandoc/src/rtf.test.ts > original byte-oriented RTF document reader > converts memfs operands through the existing thin command and reports strict failures
+AssertionError: expected { exitCode: 3 } to deeply equal { exitCode: 2 }
+
+- Expected
++ Received
+
+  {
+-   "exitCode": 2,
++   "exitCode": 3,
+  }
+
+ ❯ packages/pandoc/src/rtf.test.ts:192:54
+    190|     expect(volume.readFileSync("/out.html", "utf8")).toBe("<p><strong>…
+    191|     volume.writeFileSync("/in.rtf", String.raw`{\rtf1\unknown text}`);
+    192|     expect(await createPandocCommand().execute(ctx)).toEqual({exitCode…
+       |                                                      ^
+    193|     expect(new TextDecoder().decode(stderr.write.mock.calls[0]?.[0])).…
+    194|   });
+
+ ❯ packages/pandoc/src/rst.test.ts (34 tests | 1 failed) 119ms
+   ✓ assigns heading levels by adornment encounter, distinguishing overlines 8ms
+   ✓ rejects conflicting/short adornments with source positions 2ms
+   ✓ accepts short title adornments and distinguishes short punctuation from transitions 1ms
+   ✓ honors paragraph blank lines and indented block quotes 4ms
+   ✓ parses nested bullet and enumerated lists with continuation paragraphs 5ms
+   ✓ uses the content column for variable list marker spacing 1ms
+   ✓ maps definition and multiline field lists without losing descriptions 4ms
+   ✓ preserves blank-line separation after an inline field value 1ms
+   ✓ preserves unsupported structural replacement bodies instead of flattening paragraphs 4ms
+   ✓ handles literal introducer removal, transitions, quoted literals and line blocks 3ms
+   ✓ parses emphasis, escapes, inline literals and prefix/suffix interpreted roles 4ms
+   ✓ resolves named, implicit, indirect and anonymous links in source order 4ms
+   ✓ retains internal targets and fails duplicate/unresolved/anonymous mismatches 1ms
+   ✓ expands forward and nested substitutions and rejects recursion/undefined names 1ms
+   ✓ resolves numbered, named auto-number and symbol notes with multiline bodies 4ms
+   ✓ maps code, image and admonition directives without executing content 4ms
+   ✓ preserves unknown directive bodies/options and roles under explicit raw policy 6ms
+   ✓ raw file/url options never acquire resources even under loss policy 4ms
+   ✓ includes only explicit memfs resources with nested base and cycle/byte limits 3ms
+   ✓ parses simple table headers and continuation cells 8ms
+   ✓ retains multiple paragraphs within a simple table continuation cell 4ms
+   ✓ parses grid table multiline cells, headers and block content 8ms
+   ✓ enforces parser depth, table and directive limits 1ms
+   ✓ expands indentation tabs and preserves blank lines inside literal bodies 0ms
+   ✓ resolves image substitutions with alt text and embedded inline targets 2ms
+   ✓ does not swallow supported directives with unsupported options or bodies 7ms
+   ✓ supports figure captions and legends as blocks 3ms
+   ✓ requires blank lines before lists and retains paragraph continuation markup 3ms
+   ✓ registers embedded named hyperlink targets and supports quoted reference labels 2ms
+   ✓ locates malformed interpreted text on its actual line and in included files 1ms
+   ✓ rejects duplicate definitions and target cycles even when not referenced 1ms
+   ✓ extracts included images relative to the included memfs source directory 6ms
+   ✓ bounds substitution expansion before AST completion 0ms
+   × converts RST in the thin byte adapter with memfs include and no partial output 9ms
+FAIL packages/pandoc/src/rst.test.ts > converts RST in the thin byte adapter with memfs include and no partial output
+AssertionError: expected { exitCode: 9 } to deeply equal { exitCode: 2 }
+
+- Expected
++ Received
+
+  {
+-   "exitCode": 2,
++   "exitCode": 9,
+  }
+
+ ❯ packages/pandoc/src/rst.test.ts:220:143
+    218|   expect(new TextDecoder().decode(stdout.mock.calls[0]?.[0])).toBe("<p…
+    219|   stdout.mockClear();
+    220|   expect(await createPandocCommand().execute({...ctx, args: [...ctx.ar…
+       |                                                                                                                                               ^
+    221|   expect(volume.existsSync("/book/failed.html")).toBe(false);
+    222|   expect(stdout).not.toHaveBeenCalled();
+
+ ✓ packages/pandoc/src/tables.test.ts (14 tests) 87ms
+ ❯ packages/pandoc/src/rst-writer.test.ts (20 tests | 1 failed) 95ms
+   ✓ uses Unicode display widths and deterministic adornments 5ms
+   ✓ separates style delimiters at word boundaries and rejects nested styles 4ms
+   ✓ keeps displayed reference text separate from colliding targets and defers notes 3ms
+   ✓ separates adjacent blocks and indents literal punctuation and list continuations 3ms
+   ✓ rejects empty structural parents instead of silently losing them 2ms
+   ✓ allocates duplicate identifiers and resolves forward internal targets 3ms
+   ✓ writes long list-table cells with block continuations 4ms
+   ✓ represents code, roles, quotes, images, lines, ordered lists and transitions 4ms
+   ✓ diagnoses every unsupported AST family rather than silently omitting it 10ms
+   ✓ measures combining marks outside the basic accent range 0ms
+   ✓ keeps adjacent list and quote containers distinct 2ms
+   ✓ rejects inline literals whose boundary backticks swallow the delimiter 0ms
+   × shares conversion and atomic publication through the thin adapter using memfs 43ms
+   ✓ avoids generated-name collisions with implicit heading targets 2ms
+   ✓ represents each deep heading adornment in the supported profile 4ms
+   ✓ rejects empty list, definition and line containers 1ms
+   ✓ fails for transitions at container boundaries 1ms
+   ✓ preserves soft breaks as spaces and rejects empty notes 0ms
+   ✓ rejects spans in tables even in lossy mode 4ms
+   ✓ does not register dropped span identifiers as resolvable targets 0ms
+FAIL packages/pandoc/src/rst-writer.test.ts > shares conversion and atomic publication through the thin adapter using memfs
+AssertionError: expected { exitCode: 3 } to deeply equal { exitCode: 2 }
+
+- Expected
++ Received
+
+  {
+-   "exitCode": 2,
++   "exitCode": 3,
+  }
+
+ ❯ packages/pandoc/src/rst-writer.test.ts:65:42
+     63|   expect(fs.readFileSync("/output.rst", "utf8")).toContain("Heading\n=…
+     64|   const original = fs.readFileSync("/output.rst", "utf8");
+     65|   expect(await run("**outer *inner***")).toEqual({exitCode: 2});
+       |                                          ^
+     66|   expect(fs.readFileSync("/output.rst", "utf8")).toBe(original);
+     67|   expect(stdout).toEqual([]);
+
+ ✓ packages/pandoc/src/markdown-writer.test.ts (17 tests) 82ms
+ ✓ packages/pandoc/src/latex.test.ts (47 tests) 77ms
+ ❯ packages/pandoc/src/plain-writer.test.ts (8 tests | 2 failed) 54ms
+   ✓ handles empty nodes, headings, paragraphs, quotes and Unicode without styling or wrapping 6ms
+   ✓ renders nested and empty list items with hanging indentation and meaningful code whitespace 3ms
+   ✓ retains link destinations, titles, empty image boundaries and inline notes 8ms
+   ✓ preserves multi-paragraph cells, captions and all physical rows 4ms
+   ✓ fails unsupported raw, math and citation meaning and diagnoses explicitly retained raw source 3ms
+   × shares CLI/SDK bytes, wrap rejection and limits for identical JSON AST/options 20ms
+   ✓ preserves line blocks, inline code, definitions, figure content and alternative captions 6ms
+   × preserves raw block source, bounds diagnostics, and rejects columns rather than accepting an unused policy 2ms
+FAIL packages/pandoc/src/plain-writer.test.ts > shares CLI/SDK bytes, wrap rejection and limits for identical JSON AST/options
+AssertionError: expected 7 to be 2 // Object.is equality
+
+- Expected
++ Received
+
+- 2
++ 7
+
+ ❯ packages/pandoc/src/plain-writer.test.ts:39:41
+
+
+FAIL packages/pandoc/src/plain-writer.test.ts > preserves raw block source, bounds diagnostics, and rejects columns rather than accepting an unused policy
+AssertionError: expected 7 to be 2 // Object.is equality
+
+- Expected
++ Received
+
+- 2
++ 7
+
+ ❯ packages/pandoc/src/plain-writer.test.ts:67:49
+
+
+ ✓ packages/pandoc/src/consumer.test.ts (21 tests) 44ms
+ ✓ packages/pandoc/src/orchestration.test.ts (13 tests) 36ms
+ ✓ packages/pandoc/src/commonmark-inlines.test.ts (76 tests) 39ms
+ ✓ packages/pandoc/src/html.test.ts (11 tests) 33ms
+ ✓ packages/pandoc/src/commonmark-blocks.test.ts (117 tests) 25ms
+ ✓ packages/pandoc/src/epub-defaults.test.ts (5 tests) 22ms
+ ✓ packages/pandoc/src/ast.test.ts (35 tests) 25ms
+ ✓ packages/pandoc/src/execution.test.ts (26 tests) 20ms
+ ✓ packages/pandoc/src/formats.test.ts (8 tests) 8ms
+ ✓ packages/pandoc/src/cli-adapter.test.ts (5 tests) 5ms
+ ✓ packages/pandoc/src/commonmark-characters.test.ts (28 tests) 5ms
+ ✓ packages/pandoc/src/inspection.test.ts (2 tests) 5ms
+ ✓ packages/pandoc/src/command-info.test.ts (1 test) 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/pandoc/src/plain-writer.test.ts > shares CLI/SDK bytes, wrap rejection and limits for identical JSON AST/options
+AssertionError: expected 7 to be 2 // Object.is equality
+
+- Expected
++ Received
+
+- 2
++ 7
+
+ ❯ packages/pandoc/src/plain-writer.test.ts:39:41
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  packages/pandoc/src/plain-writer.test.ts > preserves raw block source, bounds diagnostics, and rejects columns rather than accepting an unused policy
+AssertionError: expected 7 to be 2 // Object.is equality
+
+- Expected
++ Received
+
+- 2
++ 7
+
+ ❯ packages/pandoc/src/plain-writer.test.ts:67:49
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  packages/pandoc/src/rst-writer.test.ts > shares conversion and atomic publication through the thin adapter using memfs
+AssertionError: expected { exitCode: 3 } to deeply equal { exitCode: 2 }
+
+- Expected
++ Received
+
+  {
+-   "exitCode": 2,
++   "exitCode": 3,
+  }
+
+ ❯ packages/pandoc/src/rst-writer.test.ts:65:42
+     63|   expect(fs.readFileSync("/output.rst", "utf8")).toContain("Heading\n=…
+     64|   const original = fs.readFileSync("/output.rst", "utf8");
+     65|   expect(await run("**outer *inner***")).toEqual({exitCode: 2});
+       |                                          ^
+     66|   expect(fs.readFileSync("/output.rst", "utf8")).toBe(original);
+     67|   expect(stdout).toEqual([]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+ FAIL  packages/pandoc/src/rst.test.ts > converts RST in the thin byte adapter with memfs include and no partial output
+AssertionError: expected { exitCode: 9 } to deeply equal { exitCode: 2 }
+
+- Expected
++ Received
+
+  {
+-   "exitCode": 2,
++   "exitCode": 9,
+  }
+
+ ❯ packages/pandoc/src/rst.test.ts:220:143
+    218|   expect(new TextDecoder().decode(stdout.mock.calls[0]?.[0])).toBe("<p…
+    219|   stdout.mockClear();
+    220|   expect(await createPandocCommand().execute({...ctx, args: [...ctx.ar…
+       |                                                                                                                                               ^
+    221|   expect(volume.existsSync("/book/failed.html")).toBe(false);
+    222|   expect(stdout).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+
+ FAIL  packages/pandoc/src/rtf.test.ts > original byte-oriented RTF document reader > converts memfs operands through the existing thin command and reports strict failures
+AssertionError: expected { exitCode: 3 } to deeply equal { exitCode: 2 }
+
+- Expected
++ Received
+
+  {
+-   "exitCode": 2,
++   "exitCode": 3,
+  }
+
+ ❯ packages/pandoc/src/rtf.test.ts:192:54
+    190|     expect(volume.readFileSync("/out.html", "utf8")).toBe("<p><strong>…
+    191|     volume.writeFileSync("/in.rtf", String.raw`{\rtf1\unknown text}`);
+    192|     expect(await createPandocCommand().execute(ctx)).toEqual({exitCode…
+       |                                                      ^
+    193|     expect(new TextDecoder().decode(stderr.write.mock.calls[0]?.[0])).…
+    194|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯
+
+ FAIL  packages/pandoc/src/safe-bash.test.ts > publishes files through memfs only after warning preflight and keeps destination failures distinct
+AssertionError: expected { exitCode: 1 } to deeply equal { exitCode: 2 }
+
+- Expected
++ Received
+
+  {
+-   "exitCode": 2,
++   "exitCode": 1,
+  }
+
+ ❯ packages/pandoc/src/safe-bash.test.ts:116:260
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯
+
+ FAIL  packages/pandoc/src/safe-bash.test.ts > supplies only its configured VFS for CLI resource search and extraction
+AssertionError: expected { exitCode: 3 } to deeply equal { exitCode: 2 }
+
+- Expected
++ Received
+
+  {
+-   "exitCode": 2,
++   "exitCode": 3,
+  }
+
+ ❯ packages/pandoc/src/safe-bash.test.ts:143:55
+    141|   expect(text(ctx.stdout)).toContain('src="/work/media/p.png"');
+    142|   const denied = context(["-f=commonmark", "-t=html", "--extract-media…
+    143|   expect(await createPandocCommand().execute(denied)).toEqual({exitCod…
+       |                                                       ^
+    144|   expect(text(denied.stderr)).toContain("E_CAPABILITY:");
+    145| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯
+
+ FAIL  packages/pandoc/src/safe-bash.test.ts > does not accept resource providers through untyped command configuration
+AssertionError: expected { exitCode: 3 } to deeply equal { exitCode: 2 }
+
+- Expected
++ Received
+
+  {
+-   "exitCode": 2,
++   "exitCode": 3,
+  }
+
+ ❯ packages/pandoc/src/safe-bash.test.ts:173:60
+    171|   const injected = {resources: {resolve}, resourceFiles: {lstat}} as u…
+    172|   const ctx = context(["-f=commonmark", "-t=html", "--extract-media=/m…
+    173|   expect(await createPandocCommand(injected).execute(ctx)).toEqual({ex…
+       |                                                            ^
+    174|   expect(lstat).not.toHaveBeenCalled(); expect(resolve).not.toHaveBeen…
+    175| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯
+
+ FAIL  packages/pandoc/src/safe-bash.test.ts > injects LaTeX include resources from memfs for file and stdin conversion
+AssertionError: expected { exitCode: 9 } to deeply equal { exitCode: 2 }
+
+- Expected
++ Received
+
+  {
+-   "exitCode": 2,
++   "exitCode": 9,
+  }
+
+ ❯ packages/pandoc/src/safe-bash.test.ts:190:56
+    188|   }
+    189|   const missing = {...context(["-f", "latex", "-t", "plain", "-o", "re…
+    190|   expect(await createPandocCommand().execute(missing)).toEqual({exitCo…
+       |                                                        ^
+    191|   expect(text(missing.stdout)).toBe("");
+    192|   expect(volume.existsSync("/book/result.txt")).toBe(false);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/9]⎯
+
+
+ Test Files  5 failed | 33 passed (38)
+      Tests  9 failed | 951 passed (960)
+   Start at  18:47:45
+   Duration  15.54s (transform 2.55s, setup 449ms, import 17.17s, tests 10.26s, environment 2ms)
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /Users/kjopek/Workspace/poe-code-5/packages/pandoc
+npm error workspace @poe-code/pandoc@0.0.1
+npm error location /Users/kjopek/Workspace/poe-code-5/packages/pandoc
+npm error command failed
+npm error command sh -c cd ../.. && vitest run packages/pandoc

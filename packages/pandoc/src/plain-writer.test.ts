@@ -36,7 +36,7 @@ it("shares CLI/SDK bytes, wrap rejection and limits for identical JSON AST/optio
   for(const limits of [undefined, {outputBytes: 3}, {work: 1}, {retainedBytes: 1}, {nodes: 1}, {depth: 1}]) {
     const stdout = vi.fn(async (_bytes: Uint8Array) => {}), stderr = vi.fn(async (_bytes: Uint8Array) => {});
     const result = await createPandocCommand({...(limits ? {limits} : {})}).execute({args: ["-f", "json", "-t", "plain", "--wrap=none"], stdin: (async function* () {yield input;})(), stdout: {write: stdout}, stderr: {write: stderr}, signal: new AbortController().signal});
-    if(limits) {expect(result.exitCode).toBe(2); expect(stdout).not.toHaveBeenCalled(); await expect(writeDocument(document, {to: "plain", wrap: "none"}, {limits})).rejects.toMatchObject({code: "E_LIMIT"});}
+    if(limits) {expect(result.exitCode).toBe(7); expect(stdout).not.toHaveBeenCalled(); await expect(writeDocument(document, {to: "plain", wrap: "none"}, {limits})).rejects.toMatchObject({code: "E_LIMIT"});}
     else {const sdk = await plain(document, {wrap: "none"}); expect(sdk.kind === "text" && new TextEncoder().encode(sdk.text)).toEqual(stdout.mock.calls[0]![0]); expect(result.exitCode).toBe(0);}
   }
   for(const wrap of ["auto", "preserve"]) {
@@ -64,7 +64,7 @@ it("preserves raw block source, bounds diagnostics, and rejects columns rather t
   for(const diagnostics of [0, 1]) {
     const stdout = vi.fn(async (_bytes: Uint8Array) => {}), stderr = vi.fn(async (_bytes: Uint8Array) => {});
     const cli = await createPandocCommand({limits: {diagnostics}}).execute({args: ["-f", "json", "-t", "plain", "--raw-content=retain"], stdin: (async function* () {yield bytes;})(), stdout: {write: stdout}, stderr: {write: stderr}, signal: new AbortController().signal});
-    if(diagnostics === 0) {expect(cli.exitCode).toBe(2); expect(stdout).not.toHaveBeenCalled(); expect(new TextDecoder().decode(stderr.mock.calls[0]![0])).toContain("E_LIMIT:");}
+    if(diagnostics === 0) {expect(cli.exitCode).toBe(7); expect(stdout).not.toHaveBeenCalled(); expect(new TextDecoder().decode(stderr.mock.calls[0]![0])).toContain("E_LIMIT:");}
     else {
       const sdk = await writeDocument(document, {to: "plain", rawContent: "retain"}, {limits: {diagnostics}});
       expect(cli.exitCode).toBe(0);

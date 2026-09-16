@@ -40,7 +40,7 @@ it("rejects missing, duplicate, unknown and file arguments before acquiring stdi
     const stdin = {[Symbol.asyncIterator]: () => ({next})};
     expect(await createPandocCommand().execute({...ctx, stdin})).toEqual({exitCode: 2});
     expect(next).not.toHaveBeenCalled(); expect(text(ctx.stdout)).toBe("");
-    expect(text(ctx.stderr)).toContain("E_OPTION:");
+    expect(text(ctx.stderr)).toContain(args.length === 0 || (args.length === 2 && args[0] === "-f") ? "E_FORMAT_REQUIRED:" : "E_OPTION:");
   }
 });
 it("preserves inspection, honors cancellation and awaits diagnostic/content byte sinks", async () => {

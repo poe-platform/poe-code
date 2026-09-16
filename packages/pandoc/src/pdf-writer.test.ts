@@ -32,7 +32,8 @@ it("adapts rectangular tables and rejects spanning cells", async () => {
   await expect(writeDocument({...document, blocks: [spanning]}, {to: "pdf"}, {})).rejects.toMatchObject({code: "E_AST"});
 });
 it("advertises only applicable PDF writer options", () => {
-  expect(() => createFormatRegistry().validateOptions("pdf", "write", ["pdf"])).toThrowError(expect.objectContaining({code: "E_OPTION"}));
+  expect(() => createFormatRegistry().validateOptions("pdf", "write", ["pdf"])).not.toThrow();
+  expect(() => createFormatRegistry().validateOptions("pdf", "write", ["epub"])).toThrowError(expect.objectContaining({code: "E_OPTION"}));
 });
 it("adapts nested lists, figures and numbered notes near page boundaries", async () => {
   const result = await writeDocument({...document, blocks: [

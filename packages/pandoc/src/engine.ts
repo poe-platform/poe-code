@@ -51,15 +51,18 @@ class Session extends ExecutionContext {
   metadataFiles: WriteOptions["metadataFiles"];
   lossy = false;
   standalone = false;
+  yes = false;
   rawContent: WriteOptions["rawContent"];
   metadata: WriteOptions["metadata"];
   pdfPage: WriteOptions["pdfPage"];
+  pdf: WriteOptions["pdf"];
+  epub: WriteOptions["epub"];
   pdfFonts: readonly import("@poe-code/pdf").SuppliedFont[] | undefined;
   pdfFontInputs: WriteOptions["pdfFonts"];
   options(options: ReadOptions | WriteOptions | ConversionOptions): void {
     const allowed =
       this.operation === "read" ? ["from"] : this.operation === "write" ? ["to", "wrap", "lossy", "standalone", "metadata", "rawContent"] : ["from", "to", "wrap", "lossy", "standalone", "metadata", "rawContent"];
-    if (this.operation !== "read") allowed.push("failIfWarnings", "metadataJson", "metadataFiles", "resourcePath", "extractMedia", "pdfPage", "pdfFonts");
+    if (this.operation !== "read") allowed.push("yes", "failIfWarnings", "metadataJson", "metadataFiles", "resourcePath", "extractMedia", "pdfPage", "pdfFonts", "pdf", "epub");
     if (Object.keys(options).some((key) => !allowed.includes(key)))
       this.fail("E_OPTION", "Unknown or inapplicable option");
     if ("wrap" in options && options.wrap !== "none") this.fail("E_OPTION", "Only wrap none is supported");
@@ -67,7 +70,9 @@ class Session extends ExecutionContext {
     this.lossy = "lossy" in options && options.lossy === true;
     if ("to" in options) {
       this.media.configure(options);
-      this.registry.validateOptions(options.to, "write", Object.keys(options).filter(key => !["from", "to", "lossy", "failIfWarnings", "metadata", "metadataJson", "metadataFiles", "resourcePath", "extractMedia"].includes(key)));
+      this.registry.validateOptions(options.to, "write", Object.keys(options).filter(key => !["from", "to", "yes", "lossy", "failIfWarnings", "metadata", "metadataJson", "metadataFiles", "resourcePath", "extractMedia"].includes(key)));
+      if (options.yes !== undefined && typeof options.yes !== "boolean") this.fail("E_OPTION", "yes must be boolean");
+      this.yes = options.yes === true;
       if (options.failIfWarnings !== undefined && typeof options.failIfWarnings !== "boolean") this.fail("E_OPTION", "failIfWarnings must be boolean");
       this.failIfWarnings = options.failIfWarnings === true;
       if (options.metadataJson !== undefined && !Array.isArray(options.metadataJson)) this.fail("E_OPTION", "metadataJson must be an array");
@@ -84,6 +89,28 @@ class Session extends ExecutionContext {
       this.standalone = options.standalone === true;
       this.rawContent = options.rawContent;
       this.metadata = options.metadata;
+      if (options.pdf !== undefined) {
+        const pdf = options.pdf;
+        if (!pdf || typeof pdf !== "object" || Array.isArray(pdf) || Object.keys(pdf).some(key => !["pageSize", "orientation", "margin", "font", "fontSize", "lineHeight"].includes(key))) this.fail("E_OPTION", "Invalid PDF options");
+        if (pdf.pageSize !== undefined && !["a4", "letter"].includes(pdf.pageSize) || pdf.orientation !== undefined && !["portrait", "landscape"].includes(pdf.orientation) || pdf.font !== undefined && !["serif", "sans", "mono"].includes(pdf.font)) this.fail("E_OPTION", "Invalid PDF named option");
+        for (const [value, min, max] of [[pdf.margin, 0, 144], [pdf.fontSize, 6, 72], [pdf.lineHeight, 1, 3]] as const) if (value !== undefined && (!Number.isFinite(value) || value < min || value > max)) this.fail("E_OPTION", "Invalid PDF numeric option");
+        if (pdf.font !== undefined && pdf.font !== "mono") this.fail("E_CAPABILITY", `Bundled PDF ${pdf.font} family is unavailable; supply an explicit font resource or select mono`);
+        if (options.pdfPage !== undefined) this.fail("E_OPTION", "pdf and pdfPage geometry cannot be combined");
+        const [width, height] = pdf.pageSize === "letter" ? [612, 792] : [595.28, 841.89];
+        this.pdfPage = pdf.orientation === "landscape" ? {width: height!, height: width!, margin: pdf.margin ?? 54} : {width: width!, height: height!, margin: pdf.margin ?? 54};
+        this.pdf = {...pdf};
+      }
+      if (options.epub !== undefined) {
+        const epub = options.epub;
+        if (!epub || typeof epub !== "object" || Array.isArray(epub) || Object.keys(epub).some(key => !["title", "language", "identifier", "chapterLevel"].includes(key))) this.fail("E_OPTION", "Invalid EPUB options");
+        for (const value of [epub.title, epub.language, epub.identifier]) if (value !== undefined && (typeof value !== "string" || !value.trim() || [...value].some(char => char.charCodeAt(0) < 32))) this.fail("E_OPTION", "EPUB publication options must be nonempty text");
+        if (epub.language !== undefined) {
+          const parts = epub.language.split("-");
+          if (parts[0]!.length < 2 || parts.some((part, index) => !part || part.length > 8 || [...part].some(char => !(char.toLowerCase() >= "a" && char.toLowerCase() <= "z") && !(index > 0 && char >= "0" && char <= "9")))) this.fail("E_OPTION", "Invalid EPUB language tag");
+        }
+        if (epub.chapterLevel !== undefined && (!Number.isInteger(epub.chapterLevel) || epub.chapterLevel < 1 || epub.chapterLevel > 6)) this.fail("E_OPTION", "EPUB chapter level must be 1 through 6");
+        this.epub = {...epub};
+      }
       if (options.pdfPage !== undefined) {
         const page = options.pdfPage;
         if (!page || typeof page !== "object" || Object.keys(page).some(key => !["width", "height", "margin"].includes(key)) || ![page.width, page.height, page.margin].every(Number.isFinite) || page.margin < 0 || page.width <= 2 * page.margin || page.height <= 2 * page.margin) this.fail("E_OPTION", "Invalid PDF page geometry");

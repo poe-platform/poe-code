@@ -12,12 +12,13 @@ export interface CommandInputs {
 
 /** Parsing creates lazy inputs. Only the validated converter may acquire them. */
 export function parseConversionArgs(args: readonly string[], files: CommandInputs, signal: AbortSignal): {options: ConversionOptions; operands: readonly InputSource[] | undefined; destination?: string} {
-  const options: {from?: string; to?: string; wrap?: "none"; lossy?: boolean; standalone?: boolean; failIfWarnings?: boolean; rawContent?: "reject" | "escape" | "retain"; resourcePath?: readonly string[]; extractMedia?: string; pdfPage?: NonNullable<WriteOptions["pdfPage"]>} = {};
+  const options: {from?: string; to?: string; wrap?: "none"; lossy?: boolean; standalone?: boolean; failIfWarnings?: boolean; rawContent?: "reject" | "escape" | "retain"; resourcePath?: readonly string[]; extractMedia?: string; pdfPage?: NonNullable<WriteOptions["pdfPage"]>; pdf?: NonNullable<WriteOptions["pdf"]>; epub?: NonNullable<WriteOptions["epub"]>} = {};
   const pdfFonts: InputSource[] = [];
   const metadataJson: MetadataObject[] = [];
   const metadataFiles: InputSource[] = [];
   const operands: InputSource[] = [];
   let destination: string | undefined;
+  let outputSeen = false;
   let yes = false;
   const names = new Map([["-f", "from"], ["--from", "from"], ["-t", "to"], ["--to", "to"], ["--raw-content", "rawContent"], ["--wrap", "wrap"]] as const);
   const fail = (message: string): never => {throw new PandocError("E_OPTION", "convert", message);};
@@ -33,7 +34,7 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     const arg = args[i]!;
     if (!positional && arg === "--yes") {if (yes) fail("Repeated option: --yes"); yes = true; continue;}
     if (arg === "--" && !positional) {positional = true; continue;}
-    if (arg === "-" && !positional) {
+    if (arg === "-") {
       if (stdinUsed || !files.stdin) fail("Stdin may be supplied once");
       stdinUsed = true;
       operands.push({chunks: files.stdin!, source: "stdin"}); continue;
@@ -47,10 +48,28 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     const equals = arg.indexOf("=");
     const name = equals < 0 ? arg : arg.slice(0, equals);
     if (name === "--pdf-engine") fail("External PDF engines are forbidden; use the built-in TypeScript PDF writer");
+    const publication = new Map<string, readonly ["pdf" | "epub", string]>([
+      ["--pdf-page-size", ["pdf", "pageSize"]], ["--pdf-orientation", ["pdf", "orientation"]],
+      ["--pdf-margin", ["pdf", "margin"]], ["--pdf-font-size", ["pdf", "fontSize"]], ["--pdf-line-height", ["pdf", "lineHeight"]],
+      ["--epub-title", ["epub", "title"]], ["--epub-language", ["epub", "language"]],
+      ["--epub-identifier", ["epub", "identifier"]], ["--epub-chapter-level", ["epub", "chapterLevel"]]
+    ] as const).get(name);
+    if (publication) {
+      const value = equals < 0 ? args[++i] : arg.slice(equals + 1);
+      if (!value) fail(`Missing value: ${name}`);
+      const [kind, key] = publication;
+      const numeric = ["margin", "fontSize", "lineHeight", "chapterLevel"].includes(key);
+      const entry = numeric ? Number(value) : value;
+      options[kind] = {...options[kind], [key]: entry};
+      continue;
+    }
     if (name === "--pdf-font" || name === "--pdf-page") {
       const value = equals < 0 ? args[++i] : arg.slice(equals + 1);
       if (!value || value.startsWith("-")) fail(`Missing value: ${name}`);
-      if (name === "--pdf-font") pdfFonts.push(source(value!));
+      if (name === "--pdf-font") {
+        if (["serif", "sans", "mono"].includes(value!)) options.pdf = {...options.pdf, font: value as "serif" | "sans" | "mono"};
+        else pdfFonts.push(source(value!));
+      }
       else {
         if (options.pdfPage !== undefined) fail("Repeated pdf-page option");
         const parts = value!.split(",");
@@ -79,8 +98,9 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     }
     if (name === "-o" || name === "--output") {
       const path = equals < 0 ? args[++i] : arg.slice(equals + 1);
-      if (!path || destination !== undefined || !files.writeFile) fail("Output requires one path and an explicit writeFile capability");
-      destination = path; continue;
+      if (!path || outputSeen || (path !== "-" && !files.writeFile)) fail("Output requires one path and an explicit writeFile capability");
+      outputSeen = true;
+      destination = path === "-" ? undefined : path; continue;
     }
     if (arg === "--metadata" || arg.startsWith("--metadata=") || arg.startsWith("-M")) {
       const value = arg === "--metadata" || arg === "-M" ? args[++i] : arg.startsWith("--metadata=") ? arg.slice(11) : arg.slice(2);
@@ -109,12 +129,23 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     else if (key === "rawContent") {if (value !== "reject" && value !== "escape" && value !== "retain") fail("Invalid raw-content policy"); options.rawContent = value as "reject" | "escape" | "retain";}
     else if (key === "from" || key === "to") options[key] = value!;
   }
-  if (yes && !options.to && destination !== undefined && destination.endsWith(".pdf")) options.to = createFormatRegistry().infer(destination, "write");
-  if (!options.from || !options.to) fail("Explicit -f FORMAT and -t FORMAT are required");
+  if (yes) {
+    const registry = createFormatRegistry();
+    if (!options.from) {
+      const hints = new Set(operands.filter(input => input.source !== "stdin" && input.source !== undefined).map(input => {
+        const path = input.source!;
+        return path.lastIndexOf(".") > path.lastIndexOf("/") ? registry.infer(path, "read") : undefined;
+      }).filter((hint): hint is string => hint !== undefined));
+      if (hints.size > 1) fail("Conflicting input suffixes; select -f explicitly");
+      options.from = hints.values().next().value ?? "commonmark";
+    }
+    if (!options.to) options.to = destination !== undefined && destination.lastIndexOf(".") > destination.lastIndexOf("/") ? registry.infer(destination, "write") : "html5";
+  }
+  if (!options.from || !options.to) throw new PandocError("E_FORMAT_REQUIRED", "convert", "select both formats: pandoc -f commonmark -t html5 input.md -o output.html; use --yes to accept inference/defaults");
   if (destination !== undefined && options.extractMedia !== undefined) {
     const output = resourceDirectory(destination, files.cwd ?? "/");
     const media = resourceDirectory(options.extractMedia, files.cwd ?? "/");
     if (output === media || media === "/" || output.startsWith(`${media}/`)) fail("Output cannot be inside the extraction directory");
   }
-  return {options: {...options, from: options.from!, to: options.to!, ...(pdfFonts.length ? {pdfFonts} : {}), ...(metadataJson.length ? {metadataJson} : {}), ...(metadataFiles.length ? {metadataFiles} : {})}, operands: operands.length ? operands : undefined, ...(destination === undefined ? {} : {destination})};
+  return {options: {...options, from: options.from!, to: options.to!, ...(yes ? {yes: true} : {}), ...(pdfFonts.length ? {pdfFonts} : {}), ...(metadataJson.length ? {metadataJson} : {}), ...(metadataFiles.length ? {metadataFiles} : {})}, operands: operands.length ? operands : undefined, ...(destination === undefined ? {} : {destination})};
 }

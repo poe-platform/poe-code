@@ -26,6 +26,8 @@ export type {
   ResourceFileSystem,
   SerializedDocument,
   WriteOptions,
+  PdfOptions,
+  EpubOptions,
   WriterCapability
 } from "./types.js";
 
@@ -50,7 +52,7 @@ export type {
   SourcePosition,
   LossDiagnostic
 } from "./ast-types.js";
-export { inspectFormats } from "./inspection.js";
+export { inspectFormats, inspectCommand } from "./inspection.js";
 export { createFormatInspectionCommand, createPandocCommand } from "./safe-bash.js";
 export type { FormatInspectionContext, PandocCommandContext } from "./safe-bash.js";
 export { parseConversionArgs } from "./cli.js";

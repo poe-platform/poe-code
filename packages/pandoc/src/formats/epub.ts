@@ -14,7 +14,7 @@ export default {
   extensions: {},
   options: {
     read: [],
-    write: ["standalone"]
+    write: ["standalone", "epub"]
   },
   inputBudget: "compressedBytes"
 } satisfies FormatDescriptor;

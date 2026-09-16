@@ -37,6 +37,7 @@ export type DiagnosticCode =
   | "E_FORMAT"
   | "E_EXTENSION"
   | "E_OPTION"
+  | "E_METADATA"
   | "E_CAPABILITY"
   | "E_AST"
   | "E_ENCODING"
@@ -97,7 +98,27 @@ export interface Limits {
 export interface ReadOptions {
   readonly from: string;
 }
+export interface PdfOptions {
+  readonly pageSize?: "a4" | "letter";
+  readonly orientation?: "portrait" | "landscape";
+  readonly margin?: number;
+  /** Only mono is currently supplied; other named families fail E_CAPABILITY. */
+  readonly font?: "serif" | "sans" | "mono";
+  readonly fontSize?: number;
+  readonly lineHeight?: number;
+}
+export interface EpubOptions {
+  readonly title?: string;
+  readonly language?: string;
+  readonly identifier?: string;
+  /** Split before headings at this level or shallower; 1 through 6. */
+  readonly chapterLevel?: number;
+}
 export interface WriteOptions {
+  /** Opt into format metadata defaults; absent means strict explicit metadata. */
+  readonly yes?: boolean;
+  readonly pdf?: PdfOptions;
+  readonly epub?: EpubOptions;
   /** PDF-only geometry in points, equivalent to --pdf-page WIDTH,HEIGHT,MARGIN. */
   readonly pdfPage?: PageBox;
   /** Ordered supplied sfnt sources; replaces the packaged font. CLI: repeat --pdf-font PATH. */
@@ -124,6 +145,9 @@ export interface MetadataObject { readonly [key: string]: MetadataValue }
 export type MetadataValue = string | number | boolean | null | readonly MetadataValue[] | MetadataObject;
 /** Explicit trusted adapters; their format conformance is not established by this seam. */
 export interface AdapterContext {
+  readonly yes?: boolean | undefined;
+  readonly pdf?: PdfOptions | undefined;
+  readonly epub?: EpubOptions | undefined;
   readonly pdfPage?: PageBox | undefined;
   readonly pdfFonts?: readonly SuppliedFont[] | undefined;
   /** Parser origin sidecar; never serialized into the AST. */

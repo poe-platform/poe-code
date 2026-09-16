@@ -69,7 +69,7 @@ function xml(bytes: Uint8Array) {
   return {tags, text: texts.join("")};
 }
 async function output(doc = book(), to = "epub") {
-  const result = await writeDocument(doc, {to}, {yield: async () => {}});
+  const result = await writeDocument(doc, {to, yes: true}, {yield: async () => {}});
   expect(result.kind).toBe("binary");
   if(result.kind !== "binary") throw new Error("Expected EPUB bytes");
   return {bytes: result.bytes, parts: unzip(result.bytes)};
@@ -168,8 +168,8 @@ it.each([
 ] as const)("rejects %s", async (_name, doc) => {await expect(output(doc)).rejects.toThrow();});
 it("keeps EPUB2 writing unsupported and obeys publication limits", async () => {
   await expect(output(book(), "epub2")).rejects.toMatchObject({code: "E_FORMAT"});
-  await expect(writeDocument(book([heading("A")]), {to: "epub"}, {limits: {parts: 2}})).rejects.toMatchObject({code: "E_LIMIT"});
-  await expect(writeDocument(book(), {to: "epub"}, {limits: {outputBytes: 100}})).rejects.toMatchObject({code: "E_LIMIT"});
+  await expect(writeDocument(book([heading("A")]), {to: "epub", yes: true}, {limits: {parts: 2}})).rejects.toMatchObject({code: "E_LIMIT"});
+  await expect(writeDocument(book(), {to: "epub", yes: true}, {limits: {outputBytes: 100}})).rejects.toMatchObject({code: "E_LIMIT"});
 });
 it("rejects fractional modified timestamps outside the recorded EPUB profile", async () => {
   await expect(output({...book(), metadata: {modified: {t: "MetaString", c: "2026-09-16T00:00:00.001Z"}}})).rejects.toMatchObject({code: "E_OPTION"});
@@ -188,14 +188,14 @@ it("derives the publication identifier from content and media without ambient ti
 });
 it("publishes binary EPUB via the adapter into memfs without ambient resource reads", async () => {
   const vol = Volume.fromJSON({"/book.md": "# Original\n\nOriginal body."});
-  const result = await createPandocCommand().execute({args: ["-f", "commonmark", "-t", "epub3", "book.md", "-o", "book.epub"], cwd: "/", stdin: [], readFile: async path => new Uint8Array(vol.readFileSync("/" + path) as Buffer), writeFile: async (path, bytes) => {vol.writeFileSync("/" + path, bytes);}, stdout: {write: async () => {throw new Error("unexpected stdout");}}, stderr: {write: async () => {throw new Error("unexpected diagnostic");}}, signal: new AbortController().signal});
+  const result = await createPandocCommand().execute({args: ["--yes", "-f", "commonmark", "-t", "epub3", "book.md", "-o", "book.epub"], cwd: "/", stdin: [], readFile: async path => new Uint8Array(vol.readFileSync("/" + path) as Buffer), writeFile: async (path, bytes) => {vol.writeFileSync("/" + path, bytes);}, stdout: {write: async () => {throw new Error("unexpected stdout");}}, stderr: {write: async () => {throw new Error("unexpected diagnostic");}}, signal: new AbortController().signal});
   expect(result).toEqual({exitCode: 0});
   closure(unzip(new Uint8Array(vol.readFileSync("/book.epub") as Buffer)));
 });
 it("uses the thin safe-bash adapter for binary EPUB3 stdout", async () => {
   const chunks: Uint8Array[] = [];
-  expect(await createPandocCommand().execute({args: ["-f", "commonmark", "-t", "epub3"], stdin: [new TextEncoder().encode("# Original")], stdout: {write: async b => {chunks.push(new Uint8Array(b));}}, stderr: {write: async () => {}}, signal: new AbortController().signal})).toEqual({exitCode: 0});
+  expect(await createPandocCommand().execute({args: ["--yes", "-f", "commonmark", "-t", "epub3"], stdin: [new TextEncoder().encode("# Original")], stdout: {write: async b => {chunks.push(new Uint8Array(b));}}, stderr: {write: async () => {}}, signal: new AbortController().signal})).toEqual({exitCode: 0});
   expect(chunks.length).toBeGreaterThan(0);
   closure(unzip(Buffer.concat(chunks)));
-  expect((await convert([{bytes: new TextEncoder().encode("# Original")}], {from: "commonmark", to: "epub3"}, {})).kind).toBe("binary");
+  expect((await convert([{bytes: new TextEncoder().encode("# Original")}], {from: "commonmark", to: "epub3", yes: true}, {})).kind).toBe("binary");
 });

@@ -53,7 +53,7 @@ it("accounts for every available reader-to-PDF pair", () => {
 it.each([...Object.keys(cases), "epub"])("converts representable %s content to mapped PDF text", async from => {
   let bytes: Uint8Array;
   if (from === "epub") {
-    const epub = await writeDocument({...document, metadata: {title: {t: "MetaString", c: "Original EPUB"}}}, {to: "epub"}, {yield: async () => {}});
+    const epub = await writeDocument({...document, metadata: {title: {t: "MetaString", c: "Original EPUB"}}}, {to: "epub", yes: true}, {yield: async () => {}});
     if (epub.kind !== "binary") throw new Error("EPUB expected"); bytes = epub.bytes;
   } else bytes = encode(cases[from]!);
 

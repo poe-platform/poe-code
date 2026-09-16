@@ -16,7 +16,7 @@ export const epubWriter: WriterCapability = {
   format: "epub",
   math: "source",
   async write(document, ctx) {
-    const fail = (message: string, code: "E_RESOURCE" | "E_OPTION" | "E_CAPABILITY" | "E_LIMIT" = "E_CAPABILITY"): never => {
+    const fail = (message: string, code: "E_RESOURCE" | "E_OPTION" | "E_CAPABILITY" | "E_LIMIT" | "E_METADATA" = "E_CAPABILITY"): never => {
       throw new PandocError(code, ctx.operation ?? "write", message, "epub");
     };
     const escape = (value: string): string => {
@@ -51,10 +51,13 @@ export const epubWriter: WriterCapability = {
       const value = Reflect.get(target, key);
       return typeof value === "function" ? value.bind(target) : value;
     }});
-    const title = (await meta("title")) ?? "Untitled";
-    const lang = (await meta("lang")) ?? document.language ?? "en";
+    const suppliedTitle = ctx.epub?.title ?? await meta("title");
+    const suppliedLang = ctx.epub?.language ?? (await meta("lang")) ?? document.language;
+    const explicitIdentifier = ctx.epub?.identifier ?? await meta("identifier");
+    if (!ctx.yes && (suppliedTitle === undefined || suppliedLang === undefined || explicitIdentifier === undefined)) fail("EPUB requires title, language and identifier; supply metadata or use --yes to accept defaults", "E_METADATA");
+    const title = suppliedTitle ?? "Untitled";
+    const lang = suppliedLang ?? "en";
     const modified = (await meta("modified")) ?? "2000-01-01T00:00:00Z";
-    const explicitIdentifier = await meta("identifier");
     if(!title.trim() || !lang.trim() || explicitIdentifier !== undefined && !explicitIdentifier.trim()) fail("Publication metadata must be nonempty", "E_OPTION");
     const date = new Date(modified);
     if(modified.length !== 20 || !Number.isFinite(date.getTime()) || date.toISOString().replace(".000Z", "Z") !== modified) fail("modified must be a canonical UTC timestamp to seconds", "E_OPTION");
@@ -125,7 +128,7 @@ export const epubWriter: WriterCapability = {
     for(const node of fragment.childNodes) {
       await ctx.cooperate();
       if(tree.isTextNode(node) && !node.value.trim()) continue;
-      if(current.nodes.length && (tree.isElementNode(node) && node.tagName === "h1" || length >= 65536)) {
+      if(current.nodes.length && (tree.isElementNode(node) && ["h1", "h2", "h3", "h4", "h5", "h6"].slice(0, ctx.epub?.chapterLevel ?? 1).includes(node.tagName) || length >= 65536)) {
         chapters.push(current); current = {name: `chapter-${chapters.length + 1}.xhtml`, nodes: []}; length = 0;
       }
       current.nodes.push(node); length += text(node).length;

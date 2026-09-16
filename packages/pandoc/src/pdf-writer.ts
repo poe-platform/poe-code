@@ -11,7 +11,7 @@ export const pdfWriter: WriterCapability = {
     const fail = (message: string): never => { throw new PandocError("E_CAPABILITY", ctx.operation ?? "write", message, "pdf"); };
     if (document.direction === "rtl" || document.direction === "auto") fail("PDF profile requires explicit LTR text");
     const notes: {number: number; blocks: readonly Block[]}[] = [];
-    const runs = async (nodes: readonly Inline[], size = 12, link?: string): Promise<TextRun[]> => {
+    const runs = async (nodes: readonly Inline[], size = ctx.pdf?.fontSize ?? 12, link?: string): Promise<TextRun[]> => {
       const result: TextRun[] = [];
       for (const node of nodes) {
         await ctx.cooperate(); ctx.charge("references", 1);
@@ -124,7 +124,7 @@ export const pdfWriter: WriterCapability = {
     ctx.bound("fonts", ctx.pdfFonts?.length ?? 1);
     const fonts = ctx.pdfFonts ?? [suppliedDefaultFont(size => {ctx.bound("binaryBytes", size); ctx.charge("retainedBytes", size * 2);})];
     try {
-      const bytes = await renderPdf({blocks, fonts, metadata: metadata satisfies PdfMetadata, ...(ctx.pdfPage === undefined ? {} : {page: ctx.pdfPage})}, {signal: ctx.signal, yield: () => ctx.cooperate(256), limits: {outputBytes: ctx.limits.outputBytes}, charge: (key, amount) => {
+      const bytes = await renderPdf({blocks, fonts, metadata: metadata satisfies PdfMetadata, ...(ctx.pdf?.lineHeight === undefined ? {} : {lineHeight: ctx.pdf.lineHeight}), ...(ctx.pdfPage === undefined ? {} : {page: ctx.pdfPage})}, {signal: ctx.signal, yield: () => ctx.cooperate(256), limits: {outputBytes: ctx.limits.outputBytes}, charge: (key, amount) => {
         const mapped = budgetMap[key]; if (mapped && !(key === "fontBytes" && ctx.pdfFonts !== undefined)) ctx.charge(mapped, amount);
         if (key === "fontBytes" || key === "imageBytes") ctx.charge("retainedBytes", amount);
         if (key === "glyphs") ctx.charge("retainedBytes", amount * 96);

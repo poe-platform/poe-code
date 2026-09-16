@@ -16,9 +16,12 @@ The actual public barrel was bundled in memory for browser/worker conditions,
 with zero external imports. Its `Document` factory is absent. Paragraph, Run,
 Table, cell/row/column owners, Sections/Section, headers/footers, Comment/Comments,
 CoreProperties, Drawing and other required public owners are also absent.
-Their utility routes are not live object-model implementations. Proposed direct
-enum object protocols, such as `WD_UNDERLINE.fromValue`, are absent even where
-equivalent facts have SDK helpers and typed batch routes.
+Their utility routes are not live object-model implementations. The later
+[collection/value increment](collections-values.md) verifies direct enum object
+protocols, including `WD_UNDERLINE.fromValue`, over the existing live/value types.
+That bounded evidence supersedes the earlier enum-protocol absence finding; it
+does not close the missing-owner prerequisites. The JSON row review retains its
+audit-time observations rather than representing current enum availability.
 
 Ten model workflow rows cannot enter their required public-factory path. Their
 workflow bodies were not executed, and unavailable workflows are not passing
@@ -60,10 +63,13 @@ schema/publication requirements remain intact.
 - Standalone Image is immutable admitted metadata. Its always-async factories
   use ImageModelInput/ImageModelContext; native dimensions return Length values,
   and scaled dimensions also admit strict declarative DocxLength values.
-- Frozen enum symbols expose `{enum,name}`. Numeric/XML/string/member facts use
-  enumValue, enumFromValue, enumXml, enumFromXml, enumString and enumMembers.
-  Proposed direct enum methods are unqualified public-protocol obligations;
-  batch equivalents alone do not establish SDK object protocol coverage.
+- Frozen enum symbols preserve `{enum,name}` JSON and expose direct numeric,
+  string and XML metadata. Families now provide `fromValue`, `from_xml`,
+  `to_xml`, immutable name-keyed `.members` and canonical iteration, alongside
+  the existing helpers and typed batch routes. Original tests verify 19 families,
+  262 named values and 11 family aliases. Exact sentinel, null, alias and
+  transport-security mappings are recorded in the collection/value evidence;
+  these protocols do not establish whole-object-graph acceptance.
 - The shared capability, ownership, null/undefined, UTC date, exact unit and
   half-away rounding requirements remain authoritative. Scoped original test
   links do not qualify missing Run/Paragraph/Document owner bindings.

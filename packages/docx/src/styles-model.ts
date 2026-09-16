@@ -180,7 +180,14 @@ export class BaseStyle {
 
 export class CharacterStyle extends BaseStyle {
   protected formattingOwner(kind: "r" | "p"): FormattingXmlOwner {
-    return { part: this.part, identity: this.store.identity(this.token, kind), getXml: () => {
+    const { store, token } = this;
+    return { get part() {
+      store.node(store.editor(), token);
+      return store.part;
+    }, get identity() {
+      store.node(store.editor(), token);
+      return store.identity(token, kind);
+    }, getXml: () => {
       const xml = this.store.editor(), node = this.store.node(xml, this.token), props = child(node, kind + "Pr");
       return `<st:${kind} xmlns:st="${node.namespace}">${props ? runElementOpen(props) + xml.sourceXml(props, new Map(), true) + `</${props.name}>` : ""}</st:${kind}>`;
     }, setXml: source => {

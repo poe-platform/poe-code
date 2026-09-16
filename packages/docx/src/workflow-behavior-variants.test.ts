@@ -2756,7 +2756,7 @@ function originalPicture(): Uint8Array {
   return joinBytes(Uint8Array.of(137,80,78,71,13,10,26,10), pngChunk("IHDR",header), pngChunk("pHYs",density), pngChunk("IDAT",new Uint8Array(deflateSync(pixels))), pngChunk("IEND",new Uint8Array()));
 }
 it("workflow-014 observes explicit image insertion variant", async () => {
- const document = await Document(undefined, textContext);
+ const document = await Document(undefined, { ...textContext, timestamp: new Date("2026-09-15T00:00:00Z") });
  const image = originalPicture();
  const run = document.comments.add_comment().add_paragraph().add_run();
 const shape = await run.add_picture(image);
@@ -3411,7 +3411,7 @@ it("workflow-009 observes final SDK workflow variant", async () => {
 });
 
 it("workflow-022 observes final SDK workflow variant", async () => {
- const document = await Document(undefined,textContext);
+ const document = await Document(undefined,{ ...textContext, timestamp: new Date("2026-09-15T00:00:00Z") });
  const comment=document.comments.add_comment(); const run=comment.paragraphs[0]!.add_run(); await run.add_picture(originalPicture()); const drawing=[...run.iter_inner_content()].find(item=>item instanceof Drawing) as Drawing; expect(drawing.has_picture).toBe(true); expect(drawing.image.px_width).toBe(150); expect(drawing.image.px_height).toBe(214);
 });
 

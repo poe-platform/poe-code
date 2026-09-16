@@ -107,7 +107,7 @@ it("retains inherited paragraph/run equality and source-spelled run style owners
 });
 
 it("marks an existing comment body without creating a second body or losing run identity", async () => {
-  const document = await api.Document(undefined, textContext);
+  const document = await api.Document(undefined, { ...textContext, timestamp: new Date("2026-09-15T00:00:00Z") });
   const p = document.paragraphs[0]!;
   const first = p.add_run("First");
   const last = p.add_run(" last");

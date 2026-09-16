@@ -81,7 +81,7 @@ async function bytesFor(archive: DocumentArchive): Promise<Uint8Array> {
 async function repack(archive: DocumentArchive) {
   return readArchive(await bytesFor(archive), textContext);
 }
-async function modelFixture() {
+async function modelFixture(timestamp?: Date) {
   const bytes = await textFixture(paragraph("Original canopy"), {
     styles: {
       kind: "styles",
@@ -91,7 +91,7 @@ async function modelFixture() {
   const volume = Volume.fromJSON({ "/input.docx": Buffer.from(bytes) });
   return openDocumentStyleModel(
     new Uint8Array(volume.readFileSync("/input.docx") as Buffer),
-    textContext
+    { ...textContext, ...(timestamp === undefined ? {} : { timestamp }) }
   );
 }
 async function reopen(owner: PackageView) {
@@ -460,7 +460,7 @@ it("Package output reopens with reachable owned parts and unchanged payloads", a
 });
 
 it("Absent core properties create one owned resource with deterministic defaults", async () => {
-  const model = await modelFixture(),
+  const model = await modelFixture(new Date("1980-01-01T00:00:00Z")),
     owner = model.package;
   const first = owner.core_properties;
   expect(owner.core_properties).toBe(first);

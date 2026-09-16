@@ -1,0 +1,68 @@
+import {
+  CancellationError,
+  InputTypeError,
+  InvalidValueError,
+  ResourceLimitError
+} from "./archive.js";
+import { matchesModelVfs, type AdmittedModelContext } from "./model-context.js";
+import type { DocumentByteSource } from "./io.js";
+import { UnsupportedEditError } from "./xml-write.js";
+
+/** One canonical virtual path grammar for document, template and image reads. */
+export function modelVfsSource(
+  path: unknown,
+  capability: unknown,
+  context: AdmittedModelContext,
+  maxBytes: number
+): DocumentByteSource {
+  if (
+    typeof path !== "string" ||
+    capability === undefined ||
+    capability === null ||
+    (typeof capability !== "string" && typeof capability !== "object") ||
+    capability === ""
+  )
+    throw new InputTypeError("Expected a capability-bearing virtual path.");
+  if (path.length > context.limits.maxPathBytes)
+    throw new ResourceLimitError("Virtual path byte limit exceeded.");
+  context.budget.charge("work", path.length);
+  context.budget.charge("retainedBytes", path.length * 4);
+  if (new TextEncoder().encode(path).length > context.limits.maxPathBytes)
+    throw new ResourceLimitError("Virtual path byte limit exceeded.");
+  if (
+    !path.startsWith("/") ||
+    path.includes("\\") ||
+    [...path].some((scalar) => {
+      const point = scalar.codePointAt(0)!;
+      return point < 32 || point === 127 || (point >= 0xd800 && point <= 0xdfff);
+    }) ||
+    path
+      .slice(1)
+      .split("/")
+      .some((part) => !part || part === "." || part === "..")
+  )
+    throw new InvalidValueError("Expected a canonical virtual path.");
+  const resolver =
+    typeof capability === "string"
+      ? context.binaryResolver?.capability === capability
+        ? context.binaryResolver
+        : undefined
+      : matchesModelVfs(capability, context)
+        ? context.vfs
+        : undefined;
+  if (!resolver)
+    throw new UnsupportedEditError("Virtual paths require a matching explicit capability.");
+  return {
+    open(signal) {
+      return {
+        async *[Symbol.asyncIterator]() {
+          context.budget.check("work", 0);
+          const source = await resolver.open(path, Object.freeze({ signal, maxBytes }));
+          context.budget.check("work", 0);
+          if (signal.aborted) throw new CancellationError("Virtual input admission cancelled.");
+          yield* source;
+        }
+      };
+    }
+  };
+}

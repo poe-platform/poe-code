@@ -16,8 +16,8 @@ import { validateDocxValue } from "./operation-schema.js";
 import type { DocumentBudget } from "./budget.js";
 import { parseDocumentXml } from "./package-xml.js";
 import { Image, type ImageModelInput, type ImageModelContext } from "./image-model.js";
-import type { DocumentModelInput } from "./model-input.js";
-import type { DocumentModelContext } from "./model-context.js";
+import { acquireDocumentModelInput, type DocumentModelInput } from "./model-input.js";
+import { modelContext, type DocumentModelContext } from "./model-context.js";
 import type { Length } from "./formatting-values.js";
 
 const relNamespace = "http://schemas.openxmlformats.org/package/2006/relationships";
@@ -76,8 +76,11 @@ export class PackageView {
   readonly #images = new Map<string, Image>();
   constructor(binding: PackageViewBinding) { this.#binding = binding; }
   static async open(input: DocumentModelInput, context?: DocumentModelContext): Promise<PackageView> {
+    const settings = modelContext(context);
+    if (settings.template !== undefined) throw new InputTypeError("A context template conflicts with package input.");
+    const bytes = await acquireDocumentModelInput(input, settings);
     const { openDocumentStyleModel } = await import("./styles-model.js");
-    const model = await openDocumentStyleModel(input, context);
+    const model = await openDocumentStyleModel(bytes, settings);
     model.package.after_unmarshal();
     return model.package;
   }
@@ -207,7 +210,7 @@ export class PackageView {
       const dialect: DocumentDialect = root.namespaceURI === documentDialects.strict.w ? "strict" : "transitional";
       const created = createPropertyPart({ ...archive, package: graph, dialect }, "core", archiveSettings(this.#binding.context).budget);
       const context = this.#binding.context as DocumentModelContext;
-      const timestamp = context.timestamp ?? new Date("1980-01-01T00:00:00Z");
+      const timestamp = context.timestamp;
       if (!(timestamp instanceof Date) || !Number.isFinite(Date.prototype.getTime.call(timestamp))) throw new InputTypeError("Expected admitted core-property metadata.");
       const modified = new Date(Math.floor(Date.prototype.getTime.call(timestamp) / 1000) * 1000).toISOString();
       const metadata = new TextEncoder().encode(`<cp:coreProperties xmlns:cp="${corePropertyNamespace}" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>Document</dc:title><cp:lastModifiedBy>${xmlValue(context.author ?? "")}</cp:lastModifiedBy><cp:revision>1</cp:revision><dcterms:modified xsi:type="dcterms:W3CDTF">${modified}</dcterms:modified></cp:coreProperties>`);

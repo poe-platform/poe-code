@@ -1,20 +1,17 @@
-import type { ByteSource } from "@poe-code/office-package";
 import { InputTypeError, InvalidValueError, ResourceLimitError, type ArchiveContext } from "./archive.js";
 import { modelContext, type DocumentModelContext } from "./model-context.js";
 import { DocumentIo, type DocumentByteSource } from "./io.js";
 import type { DocxBinaryInput, DocxVfsPath } from "./operation-types.js";
-import { UnsupportedEditError } from "./xml-write.js";
+import { modelVfsSource } from "./model-vfs.js";
 
-export interface ImageModelContext extends DocumentModelContext {
-  readonly binaryResolver?: { readonly capability: string; open(path: string, options: { readonly signal: AbortSignal; readonly maxBytes: number }): ByteSource | Promise<ByteSource> };
-  readonly registerCleanup?: (cleanup: () => Promise<void>) => void;
-}
+export type ImageModelContext = Omit<DocumentModelContext, "template">;
 export type ImageModelInput = Uint8Array | DocumentByteSource | DocxVfsPath;
 export interface ImageModelAcquisition { readonly bytes: Uint8Array; readonly filename: string | null; readonly context: ArchiveContext }
 
 /** Acquires owned bytes; the image factory subsequently charges admitted media. */
 export async function acquireImageModelInput(input: ImageModelInput | DocxBinaryInput, context?: ImageModelContext): Promise<ImageModelAcquisition> {
   const settings = modelContext(context), { budget, limits, signal } = settings;
+  if (settings.template !== undefined) throw new InputTypeError("A context template applies only to document creation.");
   const maxBytes = Math.min(limits.maxEntryBytes, budget.limits.embeddedMediaBytes - budget.usage.embeddedMediaBytes); let bytes: Uint8Array, filename: string | null = null;
   if (input instanceof Uint8Array) {
     if (input.length > maxBytes) throw new ResourceLimitError("Image input exceeds the media byte limit.");
@@ -38,18 +35,10 @@ export async function acquireImageModelInput(input: ImageModelInput | DocxBinary
       let source: DocumentByteSource;
       if (typeof record.open === "function" && Object.keys(record).length === 1) source = { open: (record.open as DocumentByteSource["open"]).bind(input) };
       else {
-        if (Object.keys(record).some(key => !["kind", "path", "capability"].includes(key)) || record.kind !== undefined && record.kind !== "vfs" || typeof record.path !== "string" || typeof record.capability !== "string" || !record.capability) throw new InputTypeError("Expected a capability-bearing image path.");
-        const path = record.path;
-        if (path.length > limits.maxPathBytes) throw new ResourceLimitError("Image path exceeds the virtual path byte limit.");
-        budget.charge("work", path.length); let pathBytes = 0;
-        for (let index = 0; index < path.length; index++) { const point = path.codePointAt(index)!; pathBytes += point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4; if (point > 65535) index++; }
-        if (pathBytes > limits.maxPathBytes) throw new ResourceLimitError("Image path exceeds the virtual path byte limit.");
-        budget.charge("retainedBytes", path.length * 4);
-        if (!path.startsWith("/") || path.includes("\0") || path.slice(1).split("/").some(part => !part || part === "." || part === "..")) throw new InvalidValueError("Expected a canonical virtual image path.");
-        const resolver = settings.binaryResolver;
-        if (!resolver || resolver.capability !== record.capability) throw new UnsupportedEditError("Image paths require a matching explicit capability.");
+        if (Object.keys(record).some(key => !["kind", "path", "capability"].includes(key)) || record.kind !== undefined && record.kind !== "vfs") throw new InputTypeError("Expected a capability-bearing image path.");
+        source = modelVfsSource(record.path, record.capability, settings, maxBytes);
+        const path = record.path as string;
         filename = path.slice(path.lastIndexOf("/") + 1);
-        source = { open(inner) { return { async *[Symbol.asyncIterator]() { yield* await resolver.open(path, { signal: inner, maxBytes }); } }; } };
       }
       if (maxBytes < 1) throw new ResourceLimitError("Image input exceeds the media byte limit.");
       const io = new DocumentIo({ ...settings, limits: { ...limits, maxArchiveBytes: maxBytes }, ...(settings.registerCleanup ? { registerCleanup: settings.registerCleanup } : {}) });

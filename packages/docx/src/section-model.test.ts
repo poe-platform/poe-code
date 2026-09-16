@@ -372,7 +372,7 @@ it("captures mutable declarative batch widths before asynchronous document admis
         }
       ]
     },
-    textContext
+    { ...textContext, timestamp: new Date("2026-09-15T00:00:00Z") }
   );
   width.value = 5;
   const result = await pending;

@@ -61,7 +61,7 @@ it("keeps image factory typed transports byte-only and capability-context-only",
   const directBlob: DocxOperationArguments<"model.image.image.Image.from_blob.call"> = { blob: { kind: "vfs", path: "/Map.PNG", capability: "command" } };
   // @ts-expect-error Batch blob factories cannot acquire VFS paths.
   const batchBlob: DocxBatchArgumentMap["model.image.image.Image.from_blob.call"] = { blob: { kind: "vfs", path: "/Map.PNG", capability: "command" } };
-  // @ts-expect-error Factory contexts have no document author authority.
+  // Explicit metadata is admitted without granting document mutation authority.
   const directFile: DocxOperationArguments<"model.image.image.Image.from_file.call"> = { imageDescriptor: new Uint8Array(), context: { author: "Harbor" } };
   // @ts-expect-error Batch contexts have no template acquisition authority.
   const batchFile: DocxBatchArgumentMap["model.image.image.Image.from_file.call"] = { imageDescriptor: new Uint8Array(), context: { template: { kind: "bytes", base64: "AA==" } } };

@@ -42,6 +42,8 @@ export class Comments implements Iterable<Comment> {
     return node ? new Comment(this.store, this.store.ref(this.ref.part, node)) : null;
   }
   add_comment(value = "", author = "", initials: string | null = ""): Comment {
+    const timestamp = this.store.context.timestamp;
+    if (timestamp === undefined) throw new InputTypeError("Comment creation requires an explicit context timestamp.");
     text(value);
     text(author);
     if (initials !== null) text(initials);
@@ -51,12 +53,11 @@ export class Comments implements Iterable<Comment> {
     const used = new Set(this.nodes.map(id));
     let next = 0;
     while (used.has(next)) next++;
-    const timestamp = this.store.context.timestamp.toISOString();
     this.store.change(this.ref.part, (xml) => {
       const root = this.store.node(this.ref);
       xml.insertChildren(
         root,
-        `<cm:comment xmlns:cm="${root.namespace}" cm:id="${next}" cm:author="${xmlValue(author)}" cm:date="${timestamp}"${initials === null ? "" : ` cm:initials="${xmlValue(initials)}"`}><cm:p><cm:pPr><cm:pStyle cm:val="${xmlValue(style.style_id!)}"/></cm:pPr>${paragraphTextRun(root.namespace, value)}</cm:p></cm:comment>`
+        `<cm:comment xmlns:cm="${root.namespace}" cm:id="${next}" cm:author="${xmlValue(author)}" cm:date="${timestamp.toISOString()}"${initials === null ? "" : ` cm:initials="${xmlValue(initials)}"`}><cm:p><cm:pPr><cm:pStyle cm:val="${xmlValue(style.style_id!)}"/></cm:pPr>${paragraphTextRun(root.namespace, value)}</cm:p></cm:comment>`
       );
     });
     return this.get(next)!;

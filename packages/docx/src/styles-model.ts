@@ -1,13 +1,12 @@
+import { admitDocumentModel } from "./model-admission.js";
 import { PackageView, XmlPartView, packageAdmitImages } from "./package-view.js";
 import { bindXmlElementView, type XmlElementView } from "./xml-element-view.js";
 import { budgetSharesReservations } from "./budget.js";
-import { modelContext, type DocumentModelContext } from "./model-context.js";
-import { acquireDocumentModelInput, type DocumentModelInput } from "./model-input.js";
+import { type DocumentModelContext } from "./model-context.js";
+import { type DocumentModelInput } from "./model-input.js";
 import { MissingKeyError, StaleHandleError } from "./model-errors.js";
 import { archiveSettings, InputTypeError, InvalidValueError, type ArchiveContext, type DocumentArchive } from "./archive.js";
-import { readDocumentArchive } from "./admission.js";
 import type { ArchiveSink } from "./archive-write.js";
-import { createDocumentArchive } from "./create.js";
 import { documentDialects } from "./dialect.js";
 import { runElementOpen } from "./run-properties.js";
 import { xmlValue } from "./create-content.js";
@@ -343,8 +342,7 @@ export { LatentStyle as _LatentStyle };
 
 /** Async admission with synchronous live styles and explicit validated publication. */
 export async function openDocumentStyleModel(input?: DocumentModelInput | null, context?: DocumentModelContext) {
-  const settings = modelContext(context);
-  const admitted = input === undefined || input === null ? await createDocumentArchive({ timestamp: settings.timestamp.toISOString(), author: settings.author }, settings) : await readDocumentArchive(await acquireDocumentModelInput(input, settings), settings);
+  const { archive: admitted, settings } = await admitDocumentModel(input, context);
   const edges = admitted.package.relationships("/" + admitted.mainPart).filter(e => e.reltype === `${documentDialects[admitted.dialect].r}/styles`);
   if (edges.length > 1 || edges[0]?.is_external) throw new RangeError("Expected one internal styles part.");
   let archive: DocumentArchive = admitted;

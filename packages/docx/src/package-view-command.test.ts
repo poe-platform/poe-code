@@ -41,7 +41,7 @@ it("exposes the package/part/relationship surface and correct typed results thro
   const input = await textFixture(paragraph("Coast"));
   const volume = Volume.fromJSON({ "/input": Buffer.from(input), "/stdout": "", "/stderr": "" });
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
-    args: ["batch", "/input", "--ops-json", JSON.stringify({ version: 1, operations }), "--dry-run", "--json"].map(arg => new TextEncoder().encode(arg)),
+    args: ["batch", "/input", "--ops-json", JSON.stringify({ version: 1, operations }), "--dry-run", "--timestamp", "2026-09-15T00:00:00Z", "--json"].map(arg => new TextEncoder().encode(arg)),
     cwd: "/", signal: textContext.signal,
     filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
     stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { volume.appendFileSync("/stdout", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/stderr", bytes); } }
@@ -88,7 +88,7 @@ it("executes image collection and owned part factories through the shared typed 
     { operation: "model.opc.parts.coreprops.CorePropertiesPart.default.call", arguments: { ownerPackage: ref("package") }, resultHandle: "core" },
     { operation: "model.opc.parts.coreprops.CorePropertiesPart.core_properties.get", receiver: ref("core"), arguments: {} }
   ] };
-  const result = await applyStyleModelBatch(input, batch, textContext);
+  const result = await applyStyleModelBatch(input, batch, { ...textContext, timestamp: new Date("2026-09-15T00:00:00Z") });
   const ajv = new Ajv({ strict: false }); addFormats(ajv);
   for (const item of result.results) {
     const schema = getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: item.operation } })!;

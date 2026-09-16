@@ -16,7 +16,9 @@ it("initializes missing core properties with admitted metadata and one retained 
   expect(document.core_properties.part).toBe(properties.part);
   expect(CorePropertiesPartView.default(document.part.package)).toBe(properties.part);
 });
-it("uses the documented deterministic admission timestamp when no clock is supplied", async () => {
+it("requires admitted time and retains an explicitly supplied epoch without a host clock", async () => {
   const document = await Document(await textFixture("<w:p/>"), textContext);
-  expect(document.core_properties.modified?.toISOString()).toBe("1980-01-01T00:00:00.000Z");
+  expect(() => document.core_properties).toThrow(TypeError);
+  const dated = await Document(await textFixture("<w:p/>"), { ...textContext, timestamp: new Date("1980-01-01T00:00:00Z") });
+  expect(dated.core_properties.modified?.toISOString()).toBe("1980-01-01T00:00:00.000Z");
 });

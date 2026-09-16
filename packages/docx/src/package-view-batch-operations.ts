@@ -1,6 +1,8 @@
+import { resolveDocumentModelContext } from "./model-transport-context.js";
+import { acquireDocumentTransportInput } from "./model-input.js";
 import { PackageView, PartView, XmlPartView, DocumentPartView, NumberingPart, _NumberingDefinitions, Relationships, RelationshipView, CoreProperties, CorePropertiesPartView, ImageParts, ImagePartView } from "./package-view.js";
 import { Image, acquireImageModelInput, type ImageModelContext, type ImageModelInput } from "./image-model.js";
-import type { DocxBinaryInput } from "./operation-types.js";
+import type { DocxBinaryInput, DocxTransportContext } from "./operation-types.js";
 import type { PackURI } from "./pack-uri.js";
 import { DocxUsageError } from "./argument-json.js";
 
@@ -13,6 +15,14 @@ function action<T>(id: string, owner: abstract new (...args: never[]) => T, appl
   });
 }
 for (const prefix of ["model.package.Package", "model.opc.package.OpcPackage"]) {
+  packageViewBatchActions.set(`${prefix}.open.call`, async (_receiver, args, context) => {
+    const transport = args.context as DocxTransportContext | undefined;
+    if (transport?.template !== undefined) throw new DocxUsageError("A context template conflicts with package input.");
+    const selected = await resolveDocumentModelContext(transport, context);
+    if (selected.template !== undefined) throw new DocxUsageError("A context template conflicts with package input.");
+    const bytes = await acquireDocumentTransportInput(args.pkgFile as DocxBinaryInput, selected);
+    return PackageView.open(bytes, selected);
+  });
   for (const name of ["parts", "rels", "main_document_part", "core_properties", "image_parts"] as const) action(`${prefix}.${name}.get`, PackageView, receiver => receiver[name]);
   action(`${prefix}.iter_parts.call`, PackageView, receiver => [...receiver.iter_parts()]);
   action(`${prefix}.iter_rels.call`, PackageView, receiver => [...receiver.iter_rels()]);

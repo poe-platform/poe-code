@@ -117,7 +117,7 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
     } else {
       const args = Object.fromEntries(Object.entries(item.arguments).map(([key, value]) => [key, resolve(value)]));
       const imageAction = imageBatchActions.get(item.operation), packageAction = packageViewBatchActions.get(item.operation);
-      value = await (imageAction ? imageAction(resolve(item.receiver), args, { ...context, ...settings }) : packageAction ? packageAction(resolve(item.receiver), args, { ...context, ...settings }) : (structureModelBatchActions.get(item.operation) ?? styleModelBatchActions.get(item.operation))!(resolve(item.receiver), args));
+      value = await (imageAction ? imageAction(resolve(item.receiver), args, settings) : packageAction ? packageAction(resolve(item.receiver), args, settings) : (structureModelBatchActions.get(item.operation) ?? styleModelBatchActions.get(item.operation))!(resolve(item.receiver), args));
     }
     if (item.resultHandle) named.set(item.resultHandle, value);
     results.push({ operation: item.operation, value: encode(value) });

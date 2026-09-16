@@ -1,7 +1,6 @@
-import { readDocumentArchive } from "./admission.js";
-import { createDocumentArchive } from "./create.js";
-import { modelContext, type DocumentModelContext } from "./model-context.js";
-import { acquireDocumentModelInput, type DocumentModelInput } from "./model-input.js";
+import { admitDocumentModel } from "./model-admission.js";
+import { type DocumentModelContext } from "./model-context.js";
+import { type DocumentModelInput } from "./model-input.js";
 import { ModelStore, type ModelRef } from "./model-store.js";
 import { Sections } from "./section-model.js";
 import { Comments, bindCommentRange } from "./review-model.js";
@@ -166,14 +165,7 @@ export async function Document(
   input?: DocumentModelInput | null,
   context?: DocumentModelContext
 ): Promise<DocumentView> {
-  const settings = modelContext(context);
-  const archive =
-    input === undefined || input === null
-      ? await createDocumentArchive(
-          { timestamp: settings.timestamp.toISOString(), author: settings.author },
-          settings
-        )
-      : await readDocumentArchive(await acquireDocumentModelInput(input, settings), settings);
+  const { archive, settings } = await admitDocumentModel(input, context);
   const store = new ModelStore(archive, settings, archive.mainPart);
   await store.package[packageAdmitImages]();
   return new DocumentView(store);

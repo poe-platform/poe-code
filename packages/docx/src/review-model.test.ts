@@ -361,7 +361,7 @@ it("marks an existing rich comment body without allocating another comment", asy
     { textFixture, textContext } = await import("../tests/fixtures/text.js");
   const doc = await Document(
       await textFixture(`<w:p><w:r><w:t>word</w:t></w:r></w:p>`),
-      textContext
+      { ...textContext, timestamp: new Date("2026-09-15T00:00:00Z") }
     ),
     c = doc.comments.add_comment("existing"),
     run = doc.paragraphs[0]!.runs[0]!;

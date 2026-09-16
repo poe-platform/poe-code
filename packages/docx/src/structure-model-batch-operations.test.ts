@@ -19,7 +19,7 @@ it("exposes only declared closed model actions and rejects forged owners", () =>
 it("selects admitted document resources and returns original logical model handles", async () => {
   const bytes = await textFixture(paragraph("harbor") + "<w:sectPr/>"),
     v = Volume.fromJSON({ "/input": Buffer.from(bytes) }),
-    doc = await Document(new Uint8Array(v.readFileSync("/input") as Buffer), textContext);
+    doc = await Document(new Uint8Array(v.readFileSync("/input") as Buffer), { ...textContext, timestamp: new Date("2026-09-15T00:00:00Z") });
   const paragraphs = structureModelBatchActions.get("model.document.Document.paragraphs.get")!(
     doc,
     {}
@@ -84,7 +84,7 @@ it("retains section sequence helpers and inherited table owners", async () => {
   expect(structureModelBatchActions.get("model.table.Table.table.get")!(table, {})).toBe(table);
 });
 it("maps declarative length values into admitted physical widths", async () => {
-  const doc = await Document(),
+  const doc = await Document(undefined, { ...textContext, timestamp: new Date("2026-09-15T00:00:00Z") }),
     c = doc.comments.add_comment();
   const table = structureModelBatchActions.get("model.comments.Comment.add_table.call")!(c, {
     rows: 1,

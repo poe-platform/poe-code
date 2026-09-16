@@ -42,7 +42,7 @@ it("publishes factory wire fields that admit only byte blobs and finite image co
   });
   for (const name of ["from_blob", "from_file"]) {
     const context = getDocxOperationSchema(`${prefix}.${name}.call`, "batch").properties?.context;
-    expect(Object.keys(context?.properties ?? {})).toEqual(["vfs", "limits"]);
+    expect(Object.keys(context?.properties ?? {})).toEqual(["vfs", "limits", "timestamp", "author", "fonts"]);
     expect(context?.additionalProperties).toBe(false);
   }
   expect(() =>
@@ -66,7 +66,7 @@ it("publishes factory wire fields that admit only byte blobs and finite image co
         }
       ]
     })
-  ).toThrow();
+  ).not.toThrow();
 });
 it("enforces canonical base64 pad bits in published image blob schemas", () => {
   const encoded = getDocxOperationSchema("model.image.image.Image.from_blob.call", "batch")

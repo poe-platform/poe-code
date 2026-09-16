@@ -1,3 +1,4 @@
+import { contextData, type DocumentModelContext } from "./model-context.js";
 import { inspectDocxCapabilities } from "./discovery.js";
 import { executePackCommand } from "./pack-command.js";
 import { extractDocumentArchive, ArchiveExtractionError, type ArchiveExtractionData } from "./extract.js";
@@ -72,8 +73,16 @@ export interface DocxInspectionCommandResult {
 }
 
 /** Executes inspection, text and explicit XML operations with supplied filesystem authority. */
-export function createDocxInspectionCommandEngine(options: { readonly limits?: Partial<ArchiveLimits> | undefined; readonly documentLimits?: Partial<DocumentLimits> } = {}) {
+export function createDocxInspectionCommandEngine(options: { readonly limits?: Partial<ArchiveLimits> | undefined; readonly documentLimits?: Partial<DocumentLimits>; readonly fontResolver?: DocumentModelContext["fontResolver"] } = {}) {
+  contextData(options);
   const limits = Object.freeze(archiveSettings({ limits: options.limits ?? {}, signal: new AbortController().signal }).limits);
+  let fontResolver: DocumentModelContext["fontResolver"];
+  if (options.fontResolver !== undefined) {
+    contextData(options.fontResolver, ["capability", "fonts"]);
+    contextData(options.fontResolver.fonts, ["measure"]);
+    if (typeof options.fontResolver.capability !== "string" || !options.fontResolver.capability || typeof options.fontResolver.fonts.measure !== "function") throw new TypeError("Expected an explicit font capability adapter.");
+    fontResolver = Object.freeze({ capability: options.fontResolver.capability, fonts: Object.freeze({ measure: options.fontResolver.fonts.measure.bind(options.fontResolver.fonts) }) });
+  }
   return createDocxCommandEngine<DocxInspectionCommandRequest, DocxInspectionCommandResult>({
     async readSource(source, request, budget) {
       const io = new DocumentIo({ limits, signal: request.signal, budget, ...(request.registerCleanup ? { registerCleanup: request.registerCleanup } : {}) });
@@ -87,7 +96,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits?: P
     },
     async execute(invocation, request) {
       const budget = docxInvocationBudgets.get(invocation) ?? new DocumentBudget({}, request.signal);
-      const context = { limits, signal: request.signal, budget };
+      const context = { limits, signal: request.signal, budget, ...(fontResolver ? { fontResolver } : {}) };
       const io = new DocumentIo({ ...context, ...(request.registerCleanup ? { registerCleanup: request.registerCleanup } : {}) });
       let acquiring = false;
       let writingDiagnostics = false;

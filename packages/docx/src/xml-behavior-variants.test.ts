@@ -45,7 +45,7 @@ async function modelFixture() {
   const volume = Volume.fromJSON({ "/input.docx": Buffer.from(bytes) });
   return openDocumentStyleModel(
     new Uint8Array(volume.readFileSync("/input.docx") as Buffer),
-    textContext
+    { ...textContext, timestamp: new Date("2026-09-15T00:00:00Z") }
   );
 }
 

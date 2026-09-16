@@ -1,10 +1,54 @@
-import { InputTypeError, InvalidValueError, ResourceLimitError } from "./archive.js";
+import { InputTypeError, ResourceLimitError } from "./archive.js";
 import { DocumentIo, type DocumentByteSource } from "./io.js";
-import type { DocxVfsPath } from "./operation-types.js";
+import type { DocxBinaryInput, DocxVfsPath } from "./operation-types.js";
 import type { modelContext } from "./model-context.js";
-import { UnsupportedEditError } from "./xml-write.js";
+import { modelVfsSource } from "./model-vfs.js";
+import { contextData } from "./model-context.js";
+import { InvalidValueError } from "./archive.js";
 
 export type DocumentModelInput = Uint8Array | DocumentByteSource | DocxVfsPath;
+
+/** Bounded JSON binary transport for package/template admission, never executable data. */
+export async function acquireDocumentTransportInput(
+  input: Uint8Array | DocxBinaryInput | DocxVfsPath,
+  context: ReturnType<typeof modelContext>
+): Promise<Uint8Array> {
+  if (input instanceof Uint8Array) return acquireDocumentModelInput(input, context);
+  const record = contextData(input, ["kind", "base64", "path", "capability"]);
+  if (record.kind === "bytes") {
+    if (
+      Object.keys(record).length !== 2 ||
+      typeof record.base64 !== "string" ||
+      record.base64.length % 4 !== 0
+    )
+      throw new InputTypeError("Expected canonical document base64.");
+    const encoded = record.base64,
+      padding = encoded.endsWith("==") ? 2 : encoded.endsWith("=") ? 1 : 0,
+      size = (encoded.length / 4) * 3 - padding;
+    if (size < 0 || size > context.limits.maxArchiveBytes)
+      throw new ResourceLimitError("Document input byte limit exceeded.");
+    context.budget.charge("retainedBytes", size * 3);
+    context.budget.charge("work", encoded.length);
+    let decoded: string;
+    try {
+      decoded = atob(encoded);
+      if (btoa(decoded) !== encoded) throw new Error();
+    } catch {
+      throw new InvalidValueError("Expected canonical document base64.");
+    }
+    return Uint8Array.from(decoded, (character) => character.charCodeAt(0));
+  }
+  if (
+    Object.keys(record).some((key) => !["kind", "path", "capability"].includes(key)) ||
+    (record.kind !== undefined && record.kind !== "vfs") ||
+    typeof record.capability !== "string"
+  )
+    throw new InputTypeError("Expected a declarative virtual document path.");
+  return acquireDocumentModelInput(
+    { path: record.path, capability: record.capability } as DocxVfsPath,
+    context
+  );
+}
 
 /** Admission copies bytes/chunks before crossing a caller-controlled await. */
 export async function acquireDocumentModelInput(
@@ -40,40 +84,9 @@ export async function acquireDocumentModelInput(
   if (typeof record.open === "function" && Object.keys(record).length === 1)
     source = { open: (record.open as DocumentByteSource["open"]).bind(input) };
   else {
-    if (
-      Object.keys(record).length !== 2 ||
-      typeof record.path !== "string" ||
-      typeof record.capability !== "string" ||
-      !record.capability
-    )
+    if (Object.keys(record).length !== 2)
       throw new InputTypeError("Expected a capability-bearing document path.");
-    const path = record.path;
-    if (
-      path.length > limits.maxPathBytes ||
-      new TextEncoder().encode(path).length > limits.maxPathBytes
-    )
-      throw new ResourceLimitError("Document path byte limit exceeded.");
-    if (
-      !path.startsWith("/") ||
-      path.includes("\0") ||
-      path
-        .slice(1)
-        .split("/")
-        .some((part) => !part || part === "." || part === "..")
-    )
-      throw new InvalidValueError("Expected a canonical virtual document path.");
-    const resolver = context.binaryResolver;
-    if (!resolver || resolver.capability !== record.capability)
-      throw new UnsupportedEditError("Document paths require a matching explicit capability.");
-    source = {
-      open(inner) {
-        return {
-          async *[Symbol.asyncIterator]() {
-            yield* await resolver.open(path, { signal: inner, maxBytes: limits.maxArchiveBytes });
-          }
-        };
-      }
-    };
+    source = modelVfsSource(record.path, record.capability, context, limits.maxArchiveBytes);
   }
   const io = new DocumentIo(context);
   try {

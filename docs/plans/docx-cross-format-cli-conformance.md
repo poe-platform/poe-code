@@ -155,3 +155,10 @@ Paired alias failure-envelope assertions reproduced empty/mislabelled transport
 before correction. All eight paired spelling cases now pass with help-labelled
 JSON failures before reads; option-value and terminator boundaries are retained.
 Commit only early DOCX JSON detection, PPTX fallback label and paired assertions.
+
+### PPTX validation delivery
+
+Original semantic validation cases were red before SDK-backed command support.
+Final PPTX maintained suite passes 6,896 tests across 270 files; lint and selected
+build pass. Commit validation grammar, bounded SDK behavior, truthful schema/help
+and capability with original memfs validation regressions.

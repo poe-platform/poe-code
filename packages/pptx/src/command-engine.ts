@@ -141,6 +141,7 @@ import {
   settingsSchemas,
   createSchema,
   inspectSchema,
+  validateSchema,
   textGetSchema,
   textReplaceSchema,
   textFramesSetSchema,
@@ -193,7 +194,8 @@ import {
   type MutatePresentationSettingsOptions
 } from "./presentation-settings.js";
 import { getXmlPart, replaceXmlPart } from "./xml-parts.js";
-import type { ValidationLimits } from "./validation.js";
+import { validatePresentation, type ValidationLimits } from "./validation.js";
+import { readPackage } from "./package-reader.js";
 
 export interface PptxCommandEngineOptions {
   readonly context: Omit<SelectionContext, "signal"> & {
@@ -291,6 +293,7 @@ const help =
   "                   [--height LENGTH] [--slides-json JSON] [--author TEXT]\n" +
   "                   [--properties-json JSON] [--dialect transitional]\n" +
   "                   [--timestamp UTC] [--force] [--dry-run] [--json]\n" +
+  "       pptx validate INPUT [--json] [--limit NAME=VALUE]\n" +
   "       pptx inspect INPUT [--slide N] [--shape NAME] [--all] [--json]\n" +
   "       pptx inspect INPUT --part URI [--scope SCOPE] [--json]\n" +
   "       pptx inspect INPUT --select TOKEN [--json]\n" +
@@ -541,6 +544,7 @@ interface Arguments {
     | "text.runs.set"
     | "text.runs.get"
     | "text.runs.list"
+    | "validate"
     | "inspect"
     | "images.extract"
     | "media.list"
@@ -924,7 +928,7 @@ function parse(
             ? "version"
             : argument;
       if (command === "text") output.operation = "text.get";
-      if (["extract", "pack", "create", "inspect", "schema", "capabilities", "help", "version", "batch", "sanitize"].includes(command))
+      if (["extract", "pack", "create", "inspect", "validate", "schema", "capabilities", "help", "version", "batch", "sanitize"].includes(command))
         output.operation = command;
     } else if (index === 1 && args[0] === "template" && argument === "apply") {
       output.operation = "template.apply";
@@ -1098,6 +1102,7 @@ function parse(
       "slides.merge",
       "slides.split",
       "inspect",
+      "validate",
       "text.get",
       "text.replace",
       "text.fit",
@@ -3699,6 +3704,14 @@ function parse(
       usage("Slide mutation requires update fields; move/duplicate require --position.");
     if (result.scope !== undefined && result.scope !== "slides")
       usage("Slide mutations require slides scope.");
+  } else if (operation === "validate") {
+    if ([...seen].some((flag) => flag !== "--json" && flag !== "--limit"))
+      usage("Option does not apply to validation.");
+    if (result.limits && ["maxOutputs", "maxOutputBytes"].some((name) => Object.hasOwn(result.limits!, name)))
+      usage("Output limits do not apply to validation.");
+    if (positionals.length !== 1 || !positionals[0]) usage("Validation requires exactly one nonempty input.");
+    result.input = positionals[0];
+    return result;
   } else if (operation !== "inspect" && !xml) {
     if ([...seen].some((option) => option !== "--json" && !(operation === "capabilities" && option === "--limit")))
       usage("Selection options require inspect.");
@@ -3739,6 +3752,7 @@ function parse(
         ...Object.keys(shapeSchemas),
         "create",
         "inspect",
+        "validate",
         "slides.add",
         "slides.move",
         "slides.set",
@@ -3970,6 +3984,7 @@ const declaredOperations = {
   ...tableSchemas,
   create: createSchema,
   inspect: inspectSchema,
+  validate: validateSchema,
   "text.get": textGetSchema,
   "text.replace": textReplaceSchema,
   "text.fit": textFitSchema,
@@ -4067,9 +4082,23 @@ async function execute(
     output.json = args.json;
     output.operation = args.operation;
     const operation = args.operation;
-    if (args.operation === "help") {
+    if (args.operation === "validate") {
+      const limits = options.context.validationLimits ?? {
+        ...options.context.xmlLimits,
+        ...options.context.relationshipLimits,
+        maxEntries: options.context.archiveLimits.maxMembers
+      };
+      const bytes = await request.readInput(args.input!, Math.min(options.context.limits.maxBytes, options.context.archiveLimits.maxArchiveBytes));
+      const reader = await readPackage(bytes, { ...options.context, signal: request.signal });
+      const validation = validatePresentation(reader, limits);
+      if (!validation.valid) throw new OfficeError("invalid-opc", "Presentation semantic validation failed.", "index");
+      result = success(operation, validation);
+      human = "Presentation is semantically valid; XML schema validation not checked.\n";
+    } else if (args.operation === "help") {
       const usage =
-        args.schemaPath && Object.hasOwn(packageToolsSchemas, args.schemaPath)
+        args.schemaPath === "validate"
+          ? "Usage: pptx validate INPUT [--json] [--limit NAME=VALUE]\nBounded semantic validation; XML schema validation is not checked.\n"
+          : args.schemaPath && Object.hasOwn(packageToolsSchemas, args.schemaPath)
           ? packageToolsUsage
           : args.schemaPath === "objects.add" ? objectsAddUsage
           : args.schemaPath && Object.hasOwn(opaqueSchemas, args.schemaPath)
@@ -4344,6 +4373,7 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: declaredFeatureCapabilities({
+          validation: { level: "read", operations: ["validate"], subset: "Bounded semantic package and presentation validation. XML schema validation is not checked." },
           diff: { level: "read", operations: ["diff"], subset: "Ordered slide, text, property, geometry, hashed media, relationship and opaque changes with stable IDs and explicit raw formatting; no visual comparison." },
           effectiveFormattingDiff: { level: "reject", operations: ["diff"], subset: "Inherited effective formatting cannot yet be resolved; effective-formatting mode fails explicitly." },
           templates: { level: "edit", operations: ["template.apply"], subset: "Explicit slide-scoped literal text, fixed-grid tables and embedded image bindings. Repeat designated slides in record order with shared-media or isolated-instance policy; notes, charts and timings follow graph-aware duplication. Aggregate limits and atomic publication apply." },

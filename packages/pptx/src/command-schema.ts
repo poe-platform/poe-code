@@ -3131,3 +3131,33 @@ export const textFitSchema = {
     }
   }
 };
+
+export const validateSchema = {
+  description: "Bounded presentation semantic validation. XML schema validation is not checked.",
+  input: inspectSchema.input,
+  options: {
+    type: "object", additionalProperties: false,
+    properties: {
+      json: { type: "boolean", default: false },
+      limit: { type: "object", additionalProperties: false, properties: Object.fromEntries(["maxBytes", "maxNodes", "maxDepth"].map((name) => [name, { type: "integer", minimum: 1 }])) }
+    }
+  },
+  result: {
+    ...inspectSchema.result,
+    properties: {
+      ...inspectSchema.result.properties,
+      operation: { const: "validate" },
+      data: {
+        oneOf: [ { type: "null" }, {
+          type: "object", additionalProperties: false,
+          required: ["valid", "schema", "rules", "issues"],
+          properties: {
+            valid: { const: true }, schema: { const: "not-checked" },
+            rules: { type: "array", items: { type: "string" } },
+            issues: { type: "array", maxItems: 0 }
+          }
+        } ]
+      }
+    }
+  }
+};

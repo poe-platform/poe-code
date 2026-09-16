@@ -1,0 +1,729 @@
+{
+  "schema_version": 1,
+  "task": "retire-disposable-qa-fixtures",
+  "status": "completed-with-explicit-unresolved-dispositions",
+  "branch": "main",
+  "baselineCommit": "2e8acce6b117a3edd7f6db836b6ee85ef8bd4816",
+  "worktree": "Existing unrelated edits preserved; checks qualify the current tree, not a clean released revision.",
+  "contracts": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "39b73324f5e174ee3070f8537ff78c6cfe9222a8eb7f2a6697924903adbe07e9"
+    },
+    {
+      "path": "docs/specs/docx.md",
+      "sha256": "3c70e7b9f600f0bef7aa321405cf482559831783eb38b061a7ad60472e918136"
+    },
+    {
+      "path": "docs/specs/office-cli.md",
+      "sha256": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce"
+    },
+    {
+      "path": "docs/specs/office-sdk.md",
+      "sha256": "1b2dd9f411621ebdc6ce24974e48f6143e0d3c9fe1191200207dfd6a3ddbfe64"
+    },
+    {
+      "path": "docs/docx/upstream-api-audit.md",
+      "sha256": "09a14366c1a659e484653b0e2d8c6fe205ece28adf8748db7cb75c76af1bc269"
+    },
+    {
+      "path": "docs/docx/upstream-api-inventory.json",
+      "sha256": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac"
+    },
+    {
+      "path": "docs/docx/public-api-map.json",
+      "sha256": "58b2ffe20d1ca756911fac869d0ba5b379a8086438b67b4f9aac4da964b26c65"
+    }
+  ],
+  "retainedEvidence": [
+    "corpus-manifest.json",
+    "corpus-feature-gaps.json",
+    "corpus-audit-20260914.json",
+    "corpus-structure-qa.json",
+    "corpus-image-qa.json",
+    "corpus-image-qa-cleanup.json",
+    "independent-schema-validation.md",
+    "independent-schema-validation.json",
+    "visual-qa.json",
+    "upstream-api-reconciliation.md",
+    "upstream-api-inventory.json",
+    "public-api-map.json",
+    "test-case-map.json"
+  ],
+  "findings": [
+    {
+      "id": "S01",
+      "behavior": "Work rejection preserves input/destination and prevents publication",
+      "disposition": "covered-original-regression",
+      "tests": ["packages/docx/src/corpus-structure-regression.test.ts"]
+    },
+    {
+      "id": "S02",
+      "behavior": "Mixed structures survive round trip and title-only edit",
+      "disposition": "covered-original-regression",
+      "tests": ["packages/docx/src/corpus-structure-regression.test.ts"]
+    },
+    {
+      "id": "S03",
+      "behavior": "Bracketed auxiliary paths refuse before mutation",
+      "disposition": "covered-original-regression",
+      "tests": ["packages/docx/src/corpus-structure-regression.test.ts"]
+    },
+    {
+      "id": "S04",
+      "behavior": "Successful admission does not guarantee inspection within work ceiling",
+      "disposition": "covered-original-regression",
+      "tests": ["packages/docx/src/corpus-structure-regression.test.ts"]
+    },
+    {
+      "id": "I01",
+      "behavior": "Repeated extraction bytes and manifest hashes",
+      "disposition": "covered-original-regression",
+      "tests": ["packages/docx/src/media-graph-regression.test.ts"]
+    },
+    {
+      "id": "I02",
+      "behavior": "Inline insertion retains inert vector/bitmap/alternate media and explicit sizing",
+      "disposition": "covered-original-regression",
+      "tests": [
+        "packages/docx/src/media-graph-regression.test.ts",
+        "packages/docx/src/image-insertion.test.ts"
+      ]
+    },
+    {
+      "id": "I03",
+      "behavior": "Occurrence/shared replacement retains ownership through later crop and wrap",
+      "disposition": "covered-original-regression",
+      "tests": ["packages/docx/src/media-graph-regression.test.ts"]
+    },
+    {
+      "id": "I04",
+      "behavior": "Opaque extension carriers refuse before replacement acquisition",
+      "disposition": "covered-original-regression",
+      "tests": ["packages/docx/src/image-replacement.test.ts"]
+    },
+    {
+      "id": "I05",
+      "behavior": "Unsupported alternate/vector replacement refuses before acquisition",
+      "disposition": "covered-original-regression",
+      "tests": ["packages/docx/src/media-graph-regression.test.ts"]
+    },
+    {
+      "id": "I06",
+      "behavior": "Anchor geometry preserves media/relationships; wrap-distance conflicts refuse",
+      "disposition": "covered-original-regression",
+      "tests": [
+        "packages/docx/src/image-layout.test.ts",
+        "packages/docx/src/media-graph-regression.test.ts"
+      ]
+    },
+    {
+      "id": "I07",
+      "behavior": "Decorative metadata conflicts with nonempty retained alt text",
+      "disposition": "covered-original-regression",
+      "tests": ["packages/docx/src/image-layout.test.ts"]
+    },
+    {
+      "id": "I08",
+      "behavior": "Invalid baseline style/grid graphs block publication",
+      "disposition": "unresolved-source-specific",
+      "tests": [],
+      "reason": "Two source baselines have recorded partial-validator diagnostics; no new product defect inferred or repair authorized. Exact diagnostics remain in corpus-image-qa.json."
+    },
+    {
+      "id": "I09",
+      "behavior": "Dense insertion exceeds default cumulative XML/work ceilings",
+      "disposition": "covered-original-regression",
+      "tests": [
+        "packages/docx/src/image-insertion.test.ts",
+        "packages/docx/src/corpus-structure-regression.test.ts"
+      ]
+    },
+    {
+      "id": "I10",
+      "behavior": "Grouped extension-sensitive anchor cannot establish faithful preservation",
+      "disposition": "unresolved-unsupported-carrier",
+      "tests": [],
+      "reason": "Refusal is recorded; source-specific grouped graph not independently reduced here. General media retention tests do not establish editing support."
+    },
+    {
+      "id": "I11",
+      "behavior": "Source medallion disappears after crop plus rotation in QA renderer",
+      "disposition": "unresolved-renderer-specific",
+      "tests": ["packages/docx/src/media-graph-regression.test.ts"],
+      "reason": "Two authored complete EMF variants render successfully; no generic product failure reproduced. Exact source/output hashes and visual observations remain in image campaign evidence; source already deleted."
+    },
+    {
+      "id": "I12",
+      "behavior": "Native versus forced fallback preference, clipping, overlap and reflow",
+      "disposition": "unresolved-visual-only",
+      "tests": [],
+      "reason": "Visible fallback and selected-page reviews establish no pixel parity, complete pagination or native Word guarantee. Source clipping/overlap preexists editing."
+    },
+    {
+      "id": "N01",
+      "behavior": "Native schema absence/failure/timeout cannot become successful validation",
+      "disposition": "covered-original-regression",
+      "tests": ["packages/docx/tests/schema-consumer.test.ts"]
+    },
+    {
+      "id": "N02",
+      "behavior": "Original schema positives/negative grammar and structural controls",
+      "disposition": "separate-native-profile",
+      "tests": ["packages/docx/tests/schema-interoperability.schema-test.ts"],
+      "reason": "Retained original tests; native route is not canonical unit mode and is not rerun by this task."
+    },
+    {
+      "id": "N03",
+      "behavior": "Strict default mismatch, missing metadata imports and raw MCE diagnostics",
+      "disposition": "unresolved-schema-profile",
+      "tests": [],
+      "reason": "Pinned schema/compiler profile limitations retain exact diagnostic summaries in independent-schema-validation.md/json; no schema rewrite or full conformance claim."
+    },
+    {
+      "id": "N04",
+      "behavior": "Selected text replacement retains unrelated payloads",
+      "disposition": "covered-original-regression",
+      "tests": ["packages/docx/src/text-replace.test.ts"]
+    },
+    {
+      "id": "V01",
+      "behavior": "CJK document glyphs missing in baseline and edited renderer output; no CJK visual pass.",
+      "disposition": "unresolved-visual-campaign",
+      "tests": [],
+      "reason": "Retain the explicit limitation in visual-qa.json; no newly validated structural defect or product change. Existing separate follow-up artifacts are outside this cleanup scope."
+    },
+    {
+      "id": "V02",
+      "behavior": "Terminal Arabic/CJK boxed; logical Unicode preserved.",
+      "disposition": "unresolved-visual-campaign",
+      "tests": [],
+      "reason": "Retain the explicit limitation in visual-qa.json; no newly validated structural defect or product change. Existing separate follow-up artifacts are outside this cleanup scope."
+    },
+    {
+      "id": "V03",
+      "behavior": "Headless export does not qualify comment balloons or Word repair behavior.",
+      "disposition": "unresolved-visual-campaign",
+      "tests": [],
+      "reason": "Retain the explicit limitation in visual-qa.json; no newly validated structural defect or product change. Existing separate follow-up artifacts are outside this cleanup scope."
+    },
+    {
+      "id": "V04",
+      "behavior": "Appendix cached reference errors and equations clipped on pages 10/12 exist in baseline.",
+      "disposition": "unresolved-visual-campaign",
+      "tests": [],
+      "reason": "Retain the explicit limitation in visual-qa.json; no newly validated structural defect or product change. Existing separate follow-up artifacts are outside this cleanup scope."
+    },
+    {
+      "id": "V05",
+      "behavior": "Original QA authoring omitted boundary xml:space on some runs; baseline adjacent words lose spaces.",
+      "disposition": "unresolved-visual-campaign",
+      "tests": [],
+      "reason": "Retain the explicit limitation in visual-qa.json; no newly validated structural defect or product change. Existing separate follow-up artifacts are outside this cleanup scope."
+    },
+    {
+      "id": "V06",
+      "behavior": "Root docx registration absent; adapter transcript display is not direct root dispatch.",
+      "disposition": "unresolved-visual-campaign",
+      "tests": [],
+      "reason": "Retain the explicit limitation in visual-qa.json; no newly validated structural defect or product change. Existing separate follow-up artifacts are outside this cleanup scope."
+    },
+    {
+      "id": "V07",
+      "behavior": "RealFileSystem transaction publication unavailable; binary stdout used.",
+      "disposition": "unresolved-visual-campaign",
+      "tests": [],
+      "reason": "Retain the explicit limitation in visual-qa.json; no newly validated structural defect or product change. Existing separate follow-up artifacts are outside this cleanup scope."
+    },
+    {
+      "id": "V08",
+      "behavior": "tables.list declared unsupported in this engine.",
+      "disposition": "unresolved-visual-campaign",
+      "tests": [],
+      "reason": "Retain the explicit limitation in visual-qa.json; no newly validated structural defect or product change. Existing separate follow-up artifacts are outside this cleanup scope."
+    },
+    {
+      "id": "V09",
+      "behavior": "CLI capture drops beginning of long help and wraps midword; additional start capture inspected.",
+      "disposition": "unresolved-visual-campaign",
+      "tests": [],
+      "reason": "Retain the explicit limitation in visual-qa.json; no newly validated structural defect or product change. Existing separate follow-up artifacts are outside this cleanup scope."
+    },
+    {
+      "id": "V10",
+      "behavior": "Full API coverage is not established.",
+      "disposition": "unresolved-visual-campaign",
+      "tests": [],
+      "reason": "Retain the explicit limitation in visual-qa.json; no newly validated structural defect or product change. Existing separate follow-up artifacts are outside this cleanup scope."
+    },
+    {
+      "id": "V12",
+      "behavior": "Logical Unicode and review boundaries survive selected text replacement",
+      "disposition": "covered-original-regression",
+      "tests": [
+        "packages/docx/src/text.test.ts",
+        "packages/docx/src/text-replace.test.ts",
+        "packages/docx/src/tracked-text.test.ts"
+      ]
+    },
+    {
+      "id": "V13",
+      "behavior": "Invalid writer option preparation and protected downloaded text refusal",
+      "disposition": "unresolved-campaign-preparation-or-protected-graph",
+      "tests": [],
+      "reason": "Visual campaign records initial usage refusals followed by corrected writer options and a protected-source refusal; no product bug reproduced or repair authorized. Keep corpus action hashes and final successful actions separately."
+    }
+  ],
+  "regressionAudit": {
+    "existingCampaignCases": 13,
+    "newTests": 0,
+    "newProductDefects": 0,
+    "productChanges": 0,
+    "redGreen": "Existing historical campaign red/green receipts preserved; current passing characterization is not labeled product-red. No implementation change permitted.",
+    "assetPolicy": "Original in-memory text/XML/media and memfs only; no copied passages/images or reference binary assets.",
+    "wholeApi": "Inherited/enum/collection/helper/untested/public underscore-prefixed obligations remain visible; no inventory disposition promoted.",
+    "apiInventoryAccounting": {
+      "records": 920,
+      "nestedEnumValuesAndAliases": 262,
+      "inheritedRecords": 417,
+      "publicUnderscoreTypeRecords": 12,
+      "historicalDispositions": {
+        "planned": 410,
+        "security-mapped": 378,
+        "language-mapped": 124,
+        "documentation-error": 8
+      },
+      "drift": "D01–D23 retained in upstream-api-reconciliation.md; comment_id/timestamp documentation versus id/date source is not resolved by inventing aliases. Cleanup corrects retention wording only."
+    }
+  },
+  "sources": [
+    {
+      "id": "circular-economy",
+      "path": ".cache/docx-corpus/circular-economy.docx",
+      "sha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+      "source_url": "https://assets.pc.gov.au/2025-10/circular-economy.docx?VersionId=CcvBCGso7wYvpEVIM5qYD1fObEH.d8hY",
+      "state": "already-absent-before-task"
+    },
+    {
+      "id": "housing-supply-interim",
+      "path": ".cache/docx-corpus/housing-supply-interim.docx",
+      "sha256": "16b538367d8640c6b20eb4552aecaba036277e1ab77648eeb4c59b875d824bd1",
+      "source_url": "https://assets.pc.gov.au/2026-07/housing-supply-interim.docx?VersionId=Bq.1FPFUgj7wTFuKsdoXrkYHyX11ecb0",
+      "state": "deleted-and-absence-verified",
+      "bytes": 6360759
+    },
+    {
+      "id": "gst-reforms-interim",
+      "path": ".cache/docx-corpus/gst-reforms-interim.docx",
+      "sha256": "e76568ef85be23ddd62c6edabc392ff86d111f45cbac38b564423cbf17e84d82",
+      "source_url": "https://assets.pc.gov.au/2026-08/gst-reforms-interim.docx?VersionId=DIL.AFouuAv1gmYu1EX3nq0sWYll.V7D",
+      "state": "deleted-and-absence-verified",
+      "bytes": 6009233
+    },
+    {
+      "id": "gst-reforms-interim-appendixb",
+      "path": ".cache/docx-corpus/gst-reforms-interim-appendixb.docx",
+      "sha256": "a31019aed3f706fdbfa8a51469456f3e26e2b5e98a6a9d0623e0e2cc268912cb",
+      "source_url": "https://assets.pc.gov.au/2026-08/gst-reforms-interim-appendixb.docx?VersionId=CJlJfWzB8DPE5XACPcbnkvkqtHmNeDAm",
+      "state": "deleted-and-absence-verified",
+      "bytes": 101772
+    },
+    {
+      "id": "gst-reforms-interim-appendixc",
+      "path": ".cache/docx-corpus/gst-reforms-interim-appendixc.docx",
+      "sha256": "98ebf83292e34dfe2b83fd540bb89d6743da0dc93fc97d70e19d37f488dba50b",
+      "source_url": "https://assets.pc.gov.au/2026-08/gst-reforms-interim-appendixc.docx?VersionId=xugfDsSesvummuRxCc4bLska5itp6awl",
+      "state": "deleted-and-absence-verified",
+      "bytes": 187689
+    },
+    {
+      "id": "gst-reforms-interim-appendixd",
+      "path": ".cache/docx-corpus/gst-reforms-interim-appendixd.docx",
+      "sha256": "5bb1385579a0fd2c38aaa4cd9f364cf121b94060c5a9092cf29e78e53b1ee95f",
+      "source_url": "https://assets.pc.gov.au/2026-08/gst-reforms-interim-appendixd.docx?VersionId=po89KoF7ZCmDKKDH.UuXjeDg3PRGB0yw",
+      "state": "deleted-and-absence-verified",
+      "bytes": 273146
+    },
+    {
+      "id": "gst-reforms-interim-appendixe",
+      "path": ".cache/docx-corpus/gst-reforms-interim-appendixe.docx",
+      "sha256": "2efba437fd7d7d82ce4f170efb5260fa53274b9c45c81dc094e051a1e67fefca",
+      "source_url": "https://assets.pc.gov.au/2026-08/gst-reforms-interim-appendixe.docx?VersionId=pgFhWj0WyzH7kvJwYut_OLGTII4fRvZP",
+      "state": "deleted-and-absence-verified",
+      "bytes": 157148
+    },
+    {
+      "id": "gst-reforms-interim-sp1",
+      "path": ".cache/docx-corpus/gst-reforms-interim-sp1.docx",
+      "sha256": "b892b2cdc0d5085c1d515d7231415585b0689eefdbfe5ac83d5e98610632e964",
+      "source_url": "https://assets.pc.gov.au/2026-08/gst-reforms-interim-sp1.docx?VersionId=UBhXAIhj7UudV2T8YeLpMFTWktsDfNdD",
+      "state": "deleted-and-absence-verified",
+      "bytes": 264839
+    },
+    {
+      "id": "ministry-for-the-environment-annual-report-2024-2025",
+      "path": ".cache/docx-corpus/ministry-for-the-environment-annual-report-2024-2025.docx",
+      "sha256": "38ada5fb0c2292569f77b33147934075e6e63e3c0a09d537597dc18d921331ec",
+      "source_url": "https://environment.govt.nz/assets/publications/Corporate-publications/Ministry-for-the-Environment-Annual-Report-2024_2025.docx",
+      "state": "already-absent-before-task"
+    },
+    {
+      "id": "our-atmosphere-and-climate-2023",
+      "path": ".cache/docx-corpus/our-atmosphere-and-climate-2023.docx",
+      "sha256": "82cdd2b8c196156e93d28695baac8c588ab5eddc9d045c12703594e642046764",
+      "source_url": "https://environment.govt.nz/assets/publications/Environmental-Reporting/Our-atmosphere-and-climate-2023.docx",
+      "state": "deleted-and-absence-verified",
+      "bytes": 5425219
+    },
+    {
+      "id": "scotland-annual-progress-report-2026-template-v1",
+      "path": ".cache/docx-corpus/scotland-annual-progress-report-2026-template-v1.docx",
+      "sha256": "9820a6945569043bf7c6cd51855e88cf68e5af1a29019677051fec09a9eb07ad",
+      "source_url": "https://laqm.defra.gov.uk/wp-content/uploads/2026/02/Scotland-Annual-Progress-Report-2026-Template-v1.docx",
+      "state": "deleted-and-absence-verified",
+      "bytes": 157858
+    },
+    {
+      "id": "our-future-rm-system-developing-the-npf",
+      "path": ".cache/docx-corpus/our-future-rm-system-developing-the-npf.docx",
+      "sha256": "7e4029e0b9ffc027c2773fa4e98fab489fc8d2ad1e8e89d6e8a21e6fbdb42646",
+      "source_url": "https://environment.govt.nz/assets/publications/our-future-rm-system-developing-the-npf.docx",
+      "state": "deleted-and-absence-verified",
+      "bytes": 21125727
+    },
+    {
+      "id": "new-zealands-second-emissions-reduction-plan-discussion-document",
+      "path": ".cache/docx-corpus/new-zealands-second-emissions-reduction-plan-discussion-document.docx",
+      "sha256": "95463f5bb15f790ab3279cc89ab34fa36026041e2c4984d70d3e87ede5d32ba8",
+      "source_url": "https://environment.govt.nz/assets/publications/climate-change/New-Zealands-second-emissions-reduction-plan-Discussion-document.docx",
+      "state": "deleted-and-absence-verified",
+      "bytes": 13582467
+    },
+    {
+      "id": "national-climate-change-risk-assessment-main-report",
+      "path": ".cache/docx-corpus/national-climate-change-risk-assessment-main-report.docx",
+      "sha256": "3192775a32f659061d48dda1c81005ffbbe526ca1b6b3a026c5a5dacccfbd417",
+      "source_url": "https://environment.govt.nz/assets/Publications/Files/national-climate-change-risk-assessment-main-report.docx",
+      "state": "deleted-and-absence-verified",
+      "bytes": 7275939
+    },
+    {
+      "id": "mental-health-review",
+      "path": ".cache/docx-corpus/mental-health-review.docx",
+      "sha256": "746e8e9ed023341d41c8d8ad1506f4320e519729063b0dbb43eb9d8c604cb961",
+      "source_url": "https://assets.pc.gov.au/2025-10/mental-health-review.docx?VersionId=MmPgans.AX4algRKvlkuhB_asdXbZ6NW",
+      "state": "deleted-and-absence-verified",
+      "bytes": 9290427
+    },
+    {
+      "id": "nz-ghg-inventory-2025-vol-1",
+      "path": ".cache/docx-corpus/nz-ghg-inventory-2025-vol-1.docx",
+      "sha256": "b2470c666193fe39e2f308ed7cd63a9be15da5fd2e7cceb0d8451baf6106148e",
+      "source_url": "https://environment.govt.nz/assets/publications/GhG-Inventory/GHG-Inventory-2025/GHG-Inventory-2025-Vol-1.docx",
+      "state": "deleted-and-absence-verified",
+      "bytes": 20543015
+    },
+    {
+      "id": "nz-ghg-inventory-2025-vol-2",
+      "path": ".cache/docx-corpus/nz-ghg-inventory-2025-vol-2.docx",
+      "sha256": "21b3adeb1df3b3c03e722c7c5efd01aab5a26aafe4659305ca8ed146515d3c8e",
+      "source_url": "https://environment.govt.nz/assets/publications/GhG-Inventory/GHG-Inventory-2025/GHG-Inventory-2025-Vol-2.docx",
+      "state": "deleted-and-absence-verified",
+      "bytes": 7944279
+    },
+    {
+      "id": "wales-race-equality-response-images",
+      "path": ".cache/docx-corpus/wales-race-equality-response-images.docx",
+      "sha256": "bee94bc194b894f38c03cdf84ca4cfe5a65df580048ee2d33887171fc135b410",
+      "source_url": "https://www.gov.wales/sites/default/files/consultations/2021-03/response-form-easy-read.docx",
+      "state": "already-absent-before-task"
+    },
+    {
+      "id": "wales-citizen-voice-easy-read",
+      "path": ".cache/docx-corpus/wales-citizen-voice-easy-read.docx",
+      "sha256": "6742f9af325c2ead61f49d0152a2f7ab21f78c69fbafb01f85fcea24c7e396d5",
+      "source_url": "https://www.gov.wales/sites/default/files/consultations/2022-12/consultation-summary-and-questions-easy-read_1.docx",
+      "state": "already-absent-before-task"
+    },
+    {
+      "id": "wa-outcome-standards-tracked",
+      "path": ".cache/docx-corpus/gap-20260914/wa-tracked.docx",
+      "sha256": "870e805a921cd4f09c6ea5c29da969dd44569e81f7c30c3a8c943630287c20a6",
+      "source_url": "https://www.wa.gov.au/system/files/2025-08/track-changes_outcome-standards-compared-to-comm-doc.docx",
+      "state": "deleted-and-absence-verified",
+      "bytes": 338641
+    },
+    {
+      "id": "hk-values-story-teacher",
+      "path": ".cache/docx-corpus/gap-20260914/hk-story.docx",
+      "sha256": "a96c37ee8b824ae0f2bc8cab0ffddfd40c37f1b3a642d18a24a827db1e0121b3",
+      "source_url": "https://www.edb.gov.hk/attachment/tc/curriculum-development/kla/pshe/references-and-resources/ethics-and-religious-studies/moral-stories/T1.docx",
+      "state": "deleted-and-absence-verified",
+      "bytes": 31195
+    },
+    {
+      "id": "un-mauritius-core-ar",
+      "path": ".cache/docx-corpus/gap-20260914/un-ar-core.docx",
+      "sha256": "299029d8c5bd354f1693b96f099e92d81a97b90ce50e939a8c38e1ffff8ba476",
+      "source_url": "https://docstore.ohchr.org/SelfServices/FilesHandler.ashx?enc=9Z4eKtVBj78f3WLaPzwHPhTRZ%2BBCRxwBIDieInzKKJDhl2HVx4mUeVLqK9bKz2p9yqS96VUxX%2FILx1Upgg3Sww%3D%3D",
+      "state": "deleted-and-absence-verified",
+      "bytes": 123678
+    },
+    {
+      "id": "accessibility-review-prose",
+      "path": ".cache/docx-corpus/gap-20260914/review-comments.docx",
+      "sha256": "6357e7f4eb7fb369207d5df87765f3bcd266ecbb8a1ed23c006207df50b4c83d",
+      "source_url": "https://lists.w3.org/Archives/Public/public-cognitive-a11y-tf/2020Sep/att-0005/EOWG_input_on_COGA_Content_Usable_v5.docx",
+      "state": "deleted-and-absence-verified",
+      "bytes": 388962
+    }
+  ],
+  "priorOwnedOutputs": [
+    {
+      "manifest": "corpus-structure-qa.json#retention.cleanupManifest",
+      "listed": 48,
+      "alreadyAbsent": 48
+    },
+    {
+      "manifest": "corpus-image-qa-cleanup.json#ownedOutputs",
+      "listed": 692,
+      "alreadyAbsent": 692
+    }
+  ],
+  "cleanup": {
+    "newSourceDeletions": 19,
+    "newOutputDeletions": 0,
+    "alreadyAbsentSourceFiles": 4,
+    "parentDirectoriesDeleted": 0,
+    "unlistedFiles": "preserved",
+    "followUpRetention": "Explicit visual font/renderer follow-up retains its /tmp artifacts per visual-qa.json. No remaining downloaded corpus input needed by that completed campaign. Unmanifested older outputs/research are not adopted as owned.",
+    "preservedUnlistedCacheFiles": [
+      {
+        "path": ".cache/docx-corpus/.gitignore",
+        "bytes": 2,
+        "sha256": "cdbcae15105d6b781e620813c79c7e868740d4e9cc53ce6f5fcbbc12387adf4b"
+      },
+      {
+        "path": ".cache/docx-corpus/census.json",
+        "bytes": 183414,
+        "sha256": "21863f4c36942106f7d0b444bf3a9d5f682d19089748a97a607ee7bbe8841cfb"
+      },
+      {
+        "path": ".cache/docx-corpus/discovered-links.json",
+        "bytes": 134322,
+        "sha256": "52ac8f0c6dda70ba28f7f9678602f20aaf0f0695697133c82e4536a47859492f"
+      },
+      {
+        "path": ".cache/docx-corpus/download-results.json",
+        "bytes": 19068,
+        "sha256": "9eb3afa98983bd184ff246dc6c670be96dc832042077c638dc19141c59ec4f0e"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/authored-review-links-controls.docx",
+        "bytes": 2164,
+        "sha256": "1c8acc99390eb300bc47b5d5f7e0a00bb51ef30201f3d6e6f0be47f551abcaa3"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/authored-strict-language-note.docx",
+        "bytes": 1522,
+        "sha256": "31ba577f0af5b5a75ce35c6d95a5992f2e1248679684725b69be62551d9866ba"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/comments-landing.html",
+        "bytes": 157307,
+        "sha256": "17d4869b76d9f219824b9673e30818f6a9dca9815a8211a4a7d1c0172ba15d7d"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/comments-landing.html.headers",
+        "bytes": 978,
+        "sha256": "c40668b29cb32ac9ff7321504d85c6331c3057a200f0fb6956483e05f383c059"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/forms-landing.html.headers",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/hk-landing.html",
+        "bytes": 304921,
+        "sha256": "dbc46f2e22a3e69eb2fda3943da1fc7d5a4e1ffcfd36412e162258985c8df4c7"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/hk-landing.html.headers",
+        "bytes": 958,
+        "sha256": "6aa039698a5857225e7d0adecbc0ccb1c86eaf3d904ba0e1f86a49e518af3a91"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/hk-story.docx.headers",
+        "bytes": 1388,
+        "sha256": "80ce6749c3ed084db4de1fd0c9c08b359bc109e275a3703af8557a603ef89f98"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/hk-terms-index.html",
+        "bytes": 280010,
+        "sha256": "fc30fab657c1ad58789081d6c899c0f3765228005a2916e1f3b7730eb5cbd9fa"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/hk-terms-index.html.headers",
+        "bytes": 958,
+        "sha256": "30edeb77c4f3e0f67ec4153de184e5d28541595a20cd3dc651a863b96b7f61ae"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/hk-terms.html.headers",
+        "bytes": 963,
+        "sha256": "0ba5cfe85774791553828f65388f62d95b6f931f96ec803df53c66257f4bede2"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/hk-terms.html.partial",
+        "bytes": 4836,
+        "sha256": "1a2567e4c1ee17e7c8fc3f57d0818f1e44e8607ca7e4b3de32c4b9d0bab181b6"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/measured.json",
+        "bytes": 104205,
+        "sha256": "b29e98c51ec0a69c16ad28418a5556b79d430a5ca0c07e8189fdf28adcf948a9"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/nz-comments-landing.html.headers",
+        "bytes": 2154,
+        "sha256": "d430e984cc2873ddd219e3baf602f0ad3db1a8ade8aef6922782d8689792b6e4"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/nz-comments-landing.html.partial",
+        "bytes": 5595,
+        "sha256": "2238618e1784197782edfb56fdc877d4b8ae0fa3370db36c269a7ea364421919"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/review-comments.docx.headers",
+        "bytes": 1228,
+        "sha256": "27e052fd3b3eb9b3eca05911d2565427b6247ef39ba671a907f9f31fed1b9c76"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/review-terms.html",
+        "bytes": 28205,
+        "sha256": "4bc849ad8fc856e93478400332f409d209bdb7ab3ec0f346e88e9c23b6d2b9ae"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/review-terms.html.headers",
+        "bytes": 1035,
+        "sha256": "eabea8fe5f910b707ad75cf82c9992bcb5ad51156d8369142b11fd84fe5b045b"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/transfers.json",
+        "bytes": 10657,
+        "sha256": "06366ee754adef4b6616928161208bf65b660790153144267eb9abe71f9c7b3d"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/un-ar-core.docx.headers",
+        "bytes": 3260,
+        "sha256": "4cb47559f4abd5a1380d5e8eda373527fe19ef7dedbef2e7877f460aeb070fe0"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/un-landing.html",
+        "bytes": 45091,
+        "sha256": "e6437c6fd1d2451037ed993da974590bcb113184f902c2480ad8a5644176d62f"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/un-landing.html.headers",
+        "bytes": 3503,
+        "sha256": "90d511b284925535d2c65b303f4367474aeef5d33f86a2357a3fa4be3fded3e7"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/un-terms.html.headers",
+        "bytes": 604,
+        "sha256": "2c76b4363d9c8bf1eaa4c4270b9d67b97dddf68a40d9c8259728a67556bc2b75"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/un-terms.html.partial",
+        "bytes": 919,
+        "sha256": "f9a2fb17b3781fedfbfffdd57ba2dc7b80a1d77b9be9c252db1c113ee6effb5f"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/wa-landing.html",
+        "bytes": 95316,
+        "sha256": "c8d71071da95283a2ed4fc6a624869b7b2b753bef763dfed15ffff132106de31"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/wa-landing.html.headers",
+        "bytes": 1541,
+        "sha256": "c43cb277e582235888f5b8f1b0d725ed66b3a0496bcddfb966ca052a5c5db444"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/wa-terms.html",
+        "bytes": 97039,
+        "sha256": "36637f305647c407fb3a6f693c8a20dd55bab2a0151469945ef7502e16de74f0"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/wa-terms.html.headers",
+        "bytes": 1540,
+        "sha256": "09d2dccad03191a3450c4b21a7098e1a162fad468380ffefb4bfcb823189b3c2"
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/wa-tracked.docx.headers",
+        "bytes": 1614,
+        "sha256": "4f6280e459f7316fdf3a34bf94aa8d1d6b811689ba196b971934baa8bac4f4c2"
+      },
+      {
+        "path": ".cache/docx-corpus/inventory-link-probes.json",
+        "bytes": 701,
+        "sha256": "5983408269c7acb176ab7916fb35ff0d0aed150be1bf2e73e53f4a79b4671cea"
+      },
+      {
+        "path": ".cache/docx-corpus/large-census.json",
+        "bytes": 12096,
+        "sha256": "8e769b00331d1d1af09d4fb284023311947046ec03d9600ff51f7cfa4da02801"
+      },
+      {
+        "path": ".cache/docx-corpus/selection.json",
+        "bytes": 7283,
+        "sha256": "e2306bab90d5bbd796c6e51d45965f7b9e68c6212217e58778ca67b3e0d73f0d"
+      }
+    ],
+    "newSourceBytesDeleted": 99581993,
+    "allManifestSourcePathsAbsent": true,
+    "allHeldPathsAbsent": true,
+    "unlistedCacheFilesVerifiedUnchanged": 36
+  },
+  "checks": {
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=docx",
+      "exit": 0,
+      "closureBuilds": 5
+    },
+    "unit": {
+      "command": "npm run test:unit --workspace=docx",
+      "exit": 0,
+      "filesPassed": 178,
+      "testsPassed": 3438,
+      "skipped": 4,
+      "durationSeconds": 131.46,
+      "corpusState": "All 23 original manifest paths absent throughout; 19 individually withheld, four already deleted by image campaign.",
+      "logSha256": "dd8c9ae2dfd1114feea8a5fd444b896e4bbf6d9e88462e245ea1347de11142fd"
+    },
+    "lint": {
+      "command": "npm run lint --workspace=docx",
+      "exit": 0,
+      "warnings": 1,
+      "warning": "Existing type-only unused operation in operation-types.test.ts:20",
+      "logSha256": "84c1834281fa8da3f8c09b0303161b9df2250ed57bcf81ada9496816a62a8619"
+    },
+    "dependencyIdentityScan": {
+      "command": "rg -l -F -e .cache/docx -e corpus-manifest.json -e python-docx -e python-pptx packages/docx/src packages/docx/tests",
+      "matches": 0
+    },
+    "nativeSchemaAndVisual": "not-rerun-separate-campaign-evidence-retained",
+    "format": {
+      "command": "npx prettier --check docs/docx/corpus-manifest.json docs/docx/corpus-retirement.json docs/plans/docx-retire-disposable-qa-fixtures.md",
+      "exit": 0
+    },
+    "whitespace": {
+      "command": "git diff --check -- docs/docx/corpus-manifest.json docs/plans/docx-typescript-safe-bash.md; git diff --cached --check",
+      "exit": 0
+    }
+  },
+  "delivery": {
+    "commit": "reported-in-chat-after-commit",
+    "push": "not-run",
+    "release": "not-run"
+  }
+}

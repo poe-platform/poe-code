@@ -5002,7 +5002,7 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
+      implement: done
 steps:
   implement:
     prompt: |-

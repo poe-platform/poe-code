@@ -48,7 +48,7 @@
       "cache_path": ".cache/docx-corpus/circular-economy.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "CC BY 4.0 for agency-owned material; attribute source and adaptations, no endorsement. Coat of arms, agency logo and third-party content excluded.",
         "evidence_url": "https://www.pc.gov.au/copyright/",
@@ -709,7 +709,7 @@
       "cache_path": ".cache/docx-corpus/housing-supply-interim.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "CC BY 4.0 for agency-owned material; attribute source and adaptations, no endorsement. Coat of arms, agency logo and third-party content excluded.",
         "evidence_url": "https://www.pc.gov.au/copyright/",
@@ -1274,7 +1274,7 @@
       "cache_path": ".cache/docx-corpus/gst-reforms-interim.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "CC BY 4.0 for agency-owned material; attribute source and adaptations, no endorsement. Coat of arms, agency logo and third-party content excluded.",
         "evidence_url": "https://www.pc.gov.au/copyright/",
@@ -2000,7 +2000,7 @@
       "cache_path": ".cache/docx-corpus/gst-reforms-interim-appendixb.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "CC BY 4.0 for agency-owned material; attribute source and adaptations, no endorsement. Coat of arms, agency logo and third-party content excluded.",
         "evidence_url": "https://www.pc.gov.au/copyright/",
@@ -2356,7 +2356,7 @@
       "cache_path": ".cache/docx-corpus/gst-reforms-interim-appendixc.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "CC BY 4.0 for agency-owned material; attribute source and adaptations, no endorsement. Coat of arms, agency logo and third-party content excluded.",
         "evidence_url": "https://www.pc.gov.au/copyright/",
@@ -2711,7 +2711,7 @@
       "cache_path": ".cache/docx-corpus/gst-reforms-interim-appendixd.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "CC BY 4.0 for agency-owned material; attribute source and adaptations, no endorsement. Coat of arms, agency logo and third-party content excluded.",
         "evidence_url": "https://www.pc.gov.au/copyright/",
@@ -3136,7 +3136,7 @@
       "cache_path": ".cache/docx-corpus/gst-reforms-interim-appendixe.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "CC BY 4.0 for agency-owned material; attribute source and adaptations, no endorsement. Coat of arms, agency logo and third-party content excluded.",
         "evidence_url": "https://www.pc.gov.au/copyright/",
@@ -3575,7 +3575,7 @@
       "cache_path": ".cache/docx-corpus/gst-reforms-interim-sp1.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "CC BY 4.0 for agency-owned material; attribute source and adaptations, no endorsement. Coat of arms, agency logo and third-party content excluded.",
         "evidence_url": "https://www.pc.gov.au/copyright/",
@@ -3992,7 +3992,7 @@
       "cache_path": ".cache/docx-corpus/ministry-for-the-environment-annual-report-2024-2025.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "CC BY 4.0 unless item-specific terms differ. Logos, emblems, trademarks, design elements, photography/imagery and third-party material excluded; express permission needed for imagery reuse.",
         "evidence_url": "https://environment.govt.nz/about-this-site/copyright/",
@@ -4623,7 +4623,7 @@
       "cache_path": ".cache/docx-corpus/our-atmosphere-and-climate-2023.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "CC BY 4.0 unless item-specific terms differ. Logos, emblems, trademarks, design elements, photography/imagery and third-party material excluded; express permission needed for imagery reuse.",
         "evidence_url": "https://environment.govt.nz/about-this-site/copyright/",
@@ -5098,7 +5098,7 @@
       "cache_path": ".cache/docx-corpus/scotland-annual-progress-report-2026-template-v1.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "Landing footer says OGL v3.0 except otherwise stated. Detailed terms restrict commercial copying/modification/redistribution without rights-holder permission and require notices on reference/noncommercial downloads. Applicability conflict unresolved for this template.",
         "evidence_url": "https://laqm.defra.gov.uk/",
@@ -5448,7 +5448,7 @@
       "cache_path": ".cache/docx-corpus/our-future-rm-system-developing-the-npf.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "CC BY 4.0 unless item-specific terms differ. Logos, emblems, trademarks, design elements, photography/imagery and third-party material excluded; express permission needed for imagery reuse.",
         "evidence_url": "https://environment.govt.nz/about-this-site/copyright/",
@@ -5853,7 +5853,7 @@
       "cache_path": ".cache/docx-corpus/new-zealands-second-emissions-reduction-plan-discussion-document.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "CC BY 4.0 unless item-specific terms differ. Logos, emblems, trademarks, design elements, photography/imagery and third-party material excluded; express permission needed for imagery reuse.",
         "evidence_url": "https://environment.govt.nz/about-this-site/copyright/",
@@ -6524,7 +6524,7 @@
       "cache_path": ".cache/docx-corpus/national-climate-change-risk-assessment-main-report.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "CC BY 4.0 unless item-specific terms differ. Logos, emblems, trademarks, design elements, photography/imagery and third-party material excluded; express permission needed for imagery reuse.",
         "evidence_url": "https://environment.govt.nz/about-this-site/copyright/",
@@ -7015,7 +7015,7 @@
       "cache_path": ".cache/docx-corpus/mental-health-review.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "CC BY 4.0 for agency-owned material; attribute source and adaptations, no endorsement. Coat of arms, agency logo and third-party content excluded.",
         "evidence_url": "https://www.pc.gov.au/copyright/",
@@ -7775,7 +7775,7 @@
       "cache_path": ".cache/docx-corpus/nz-ghg-inventory-2025-vol-1.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "CC BY 4.0 unless item-specific terms differ. Logos, emblems, trademarks, design elements, photography/imagery and third-party material excluded; express permission needed for imagery reuse.",
         "evidence_url": "https://environment.govt.nz/about-this-site/copyright/",
@@ -8712,7 +8712,7 @@
       "cache_path": ".cache/docx-corpus/nz-ghg-inventory-2025-vol-2.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "CC BY 4.0 unless item-specific terms differ. Logos, emblems, trademarks, design elements, photography/imagery and third-party material excluded; express permission needed for imagery reuse.",
         "evidence_url": "https://environment.govt.nz/about-this-site/copyright/",
@@ -9424,7 +9424,7 @@
       "cache_path": ".cache/docx-corpus/wales-race-equality-response-images.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "Information under OGL; logos require formal permission. Linked OGL text returned HTTP 403; its full terms were not freshly retrieved. No blanket asset clearance inferred.",
         "evidence_url": "https://www.gov.wales/copyright-statement",
@@ -10240,7 +10240,7 @@
       "cache_path": ".cache/docx-corpus/wales-citizen-voice-easy-read.docx",
       "acquisition_status": "downloaded",
       "role": "disposable-qa-fixture",
-      "retention": "May delete after QA and original regression reduction; retain manifest and small tests. Currently retained because product QA has not run.",
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts.",
       "license": {
         "publisher_terms": "Information under OGL; logos require formal permission. Linked OGL text returned HTTP 403; its full terms were not freshly retrieved. No blanket asset clearance inferred.",
         "evidence_url": "https://www.gov.wales/copyright-statement",
@@ -11738,7 +11738,7 @@
       },
       "measurement_evidence": "corpus-feature-gaps.json",
       "product_qa_status": "not-run",
-      "retention": "Immutable disposable QA input; retain until useful findings are reduced to original tests and no active campaign needs it. Do not commit, ship or make canonical."
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts."
     },
     {
       "id": "hk-values-story-teacher",
@@ -11904,7 +11904,7 @@
       },
       "measurement_evidence": "corpus-feature-gaps.json",
       "product_qa_status": "not-run",
-      "retention": "Immutable disposable QA input; retain until useful findings are reduced to original tests and no active campaign needs it. Do not commit, ship or make canonical."
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts."
     },
     {
       "id": "un-mauritius-core-ar",
@@ -12099,7 +12099,7 @@
       },
       "measurement_evidence": "corpus-feature-gaps.json",
       "product_qa_status": "not-run",
-      "retention": "Immutable disposable QA input; retain until useful findings are reduced to original tests and no active campaign needs it. Do not commit, ship or make canonical."
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts."
     },
     {
       "id": "accessibility-review-prose",
@@ -12281,7 +12281,7 @@
       },
       "measurement_evidence": "corpus-feature-gaps.json",
       "product_qa_status": "not-run",
-      "retention": "Immutable disposable QA input; retain until useful findings are reduced to original tests and no active campaign needs it. Do not commit, ship or make canonical."
+      "retention": "Downloaded QA source absent as of 2026-09-15 retirement; source URLs, hash, license evidence and census retained. See corpus-retirement.json for original regressions, unresolved dispositions and exact cleanup counts."
     }
   ],
   "audit": {
@@ -12312,5 +12312,15 @@
     "authored_examples_count_as_real": false,
     "total_compressed_real_bytes": 143100046,
     "historical_audit_scope": "audit and audited_classification remain the earlier 19-file snapshot; new files use feature_census with explicit element/character definitions. No prior audit or census was replaced."
+  },
+  "retirement": {
+    "task": "retire-disposable-qa-fixtures",
+    "date": "2026-09-15",
+    "receipt": "corpus-retirement.json",
+    "listedSources": 23,
+    "deletedByThisTask": 19,
+    "alreadyDeletedByImageCampaign": 4,
+    "rawSourcesShip": false,
+    "historicalAcquisitionFields": "Acquisition status, product_implemented and census describe their dated preparation snapshot, not current cache presence or complete product coverage."
   }
 }

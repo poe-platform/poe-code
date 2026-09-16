@@ -1,8 +1,0 @@
-npm error code E404
-npm error 404 Not Found - GET https://registry.npmjs.org/@poe-platform/safe-js/-/safe-js-0.1.590.tgz - Not found
-npm error 404
-npm error 404  '@poe-platform/safe-js@https://registry.npmjs.org/@poe-platform/safe-js/-/safe-js-0.1.590.tgz' is not in this registry.
-npm error 404
-npm error 404 Note that you can also install from a
-npm error 404 tarball, folder, http url, or git url.
-npm error A complete log of this run can be found in: /Users/kjopek/.npm/_logs/2026-09-14T00_56_01_125Z-debug-0.log

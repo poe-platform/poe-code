@@ -1,1 +1,0 @@
-(0,eval)("let count=7;delete globalThis.f;{function f(){return ++count}}");await 0;return [globalThis.f(),globalThis.f(),globalThis.f.constructor("return typeof process")()];

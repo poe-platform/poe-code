@@ -1,1 +1,0 @@
-function f(){return 7}/x/;class C{value(){return 8}}/x/;await 0;return [f(),new C().value(),f.toString(),C.toString(),f.constructor("return typeof process+','+typeof require")()];

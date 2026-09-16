@@ -1,7 +1,0 @@
-{
-  "error": {
-    "code": "E404",
-    "summary": "Not Found - GET https://registry.npmjs.org/@poe-platform/safe-js/-/safe-js-0.1.569.tgz - Not found",
-    "detail": "'https://registry.npmjs.org/@poe-platform/safe-js/-/safe-js-0.1.569.tgz' is not in this registry.\nThis package name is not valid, because \n 1. name can only contain URL-friendly characters\n\nNote that you can also install from a\ntarball, folder, http url, or git url."
-  }
-}

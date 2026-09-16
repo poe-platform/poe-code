@@ -1,4 +1,0 @@
-@poe-platform/safe-fs 0.1.607 { node: '>=18.18' }
-@poe-platform/safe-js 0.1.607 { node: '>=18.18' }
-@poe-platform/safe-bash 0.1.607 { node: '>=22' }
-poe-code 15.0.41 { node: '>=18.18' }

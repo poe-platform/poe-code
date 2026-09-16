@@ -1,1 +1,0 @@
-const callbacks=[];for(let i=0,f=()=>i;i<3;i++)callbacks.push(f);return callbacks.map(f=>f());

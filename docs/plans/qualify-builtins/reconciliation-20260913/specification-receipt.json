@@ -1,8 +1,0 @@
-{
-  "url": "https://262.ecma-international.org/16.0/",
-  "sha256": "6a28f9423133ed7b7c59a40baf620c2740f12f0bc9c251042f2a85b9cc5ed713",
-  "bytes": 8169822,
-  "command": "curl -fsSL https://262.ecma-international.org/16.0/ -o ecma262.html",
-  "extracts": "specification-extracts.txt",
-  "note": "Full downloaded document omitted from Git; extracts retain the reviewed clauses. Initial BeautifulSoup extraction failed because bs4 is unavailable; standard-library HTMLParser extraction succeeded."
-}

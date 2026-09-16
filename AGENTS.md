@@ -143,6 +143,8 @@ Keep the readme up to date but you are not allowed to add anything to readme wit
 
 Planning docs MUST be in `docs/plans` folder, NO EXCEPTIONS even in planning. ABSOLUTELY NO OTHER PLANNING LOCATIONS!!!!!
 
+Store temporary logs, run output, and generated evidence in `/out`, purge them after use, and keep `docs/plans` limited to actual planning documents.
+
 WE ARE NOT USING CLAUDE PLANS
 
 ## CLI vs SDK

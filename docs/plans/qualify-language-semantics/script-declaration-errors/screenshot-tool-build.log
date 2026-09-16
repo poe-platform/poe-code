@@ -1,9 +1,0 @@
-
-> poe-code@0.0.0-dev build:workspaces
-> node scripts/build-workspaces.mjs --workspace=terminal-png
-
-
-> terminal-png@0.1.0 build
-> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.build.json
-
-{"workspaces":71,"builds":1,"edges":211,"layers":11,"noBuild":[],"manifestless":[]}

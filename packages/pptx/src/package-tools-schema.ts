@@ -76,7 +76,7 @@ export const packageToolsSchemas = Object.fromEntries(
         allOf: [
           {
             if: { properties: { ok: { const: true } } },
-            then: { properties: { data: { type: "object" }, errors: { maxItems: 0 } } },
+            then: { properties: { data: { type: "object" }, errors: { maxItems: 0 }, ...(operation === "extract" ? { affected: { const: 0 } } : {}) } },
             else: {
               properties: {
                 errors: { minItems: 1 },

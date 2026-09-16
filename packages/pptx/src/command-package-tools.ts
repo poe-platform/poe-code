@@ -135,7 +135,7 @@ export async function executePackageCommand(
         code: "publication-unsupported"
       });
     return {
-      result: { ...base, affected: files.length, data: { outputs: manifest, dryRun: false } },
+      result: { ...base, data: { outputs: manifest, dryRun: false } },
       human: `Extracted ${files.length} package part(s)\n`,
       manifest,
       allowPartialOutput: args.allowPartialOutput ?? false,

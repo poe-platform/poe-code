@@ -5178,7 +5178,7 @@ async function execute(
         }));
       result = {
         ...success(operation, { outputs: dryRun ? [] : imageManifest, dryRun }),
-        affected: files.length,
+        affected: 0,
         locations: imageManifest.flatMap((file) => file.occurrences.map((item) => item.location))
       };
       human = `${dryRun ? "Validated" : "Extracted"} ${files.length} image resource(s)\n${JSON.stringify(result.data, null, 2)}\n`;

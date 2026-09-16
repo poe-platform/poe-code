@@ -176,3 +176,10 @@ Two inspect schema/runtime cases were red before admitting supported lowered
 limits. An original regression retains irrelevant maxOutputs rejection before
 input. Final maintained PPTX checks pass; commit inspect declaration/parser and
 three original small cases independently of validation/discovery/extraction.
+
+### PPTX extraction-effect delivery
+
+Original image/package publication cases reproduced nonzero successful read
+effects before correction. Success reports affected zero; manifest counts and
+precise bytes retain output evidence and partial failures retain receipts. Final
+maintained PPTX checks pass; commit only extraction effects/schemas/regressions.

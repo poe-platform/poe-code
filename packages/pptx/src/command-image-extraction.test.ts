@@ -60,13 +60,28 @@ it("extracts original occurrence bytes and a schema-valid hash manifest without 
   for (const name of request.volume.readdirSync("/out"))
     expect(request.volume.readFileSync(`/out/${name}`)).toEqual(Buffer.from(pixel));
   const envelope = JSON.parse(decode(result.stdout));
-  expect(envelope.affected).toBe(2);
+  expect(envelope.affected).toBe(0);
+  expect(envelope.data.outputs).toHaveLength(2);
   expect(envelope.data.outputs.map((item: { sha256: string }) => item.sha256)).toEqual(
     Array(2).fill(createHash("sha256").update(pixel).digest("hex"))
   );
   const schemaResult = await engine.execute(invocation(["schema", "images", "extract", "--json"]));
   const schema = JSON.parse(decode(schemaResult.stdout)).data.operations["images.extract"].result;
   expect(compileJsonSchema(schema).validate(envelope).ok).toBe(true);
+  expect(compileJsonSchema(schema).validate({ ...envelope, affected: 2 }).ok).toBe(false);
+});
+it("retains the read envelope after transactional publication and dry-run validation", async () => {
+  const request = invocation(extract);
+  const publishOutputs = vi.fn(async (items: readonly PptxPublicationRequest[]) => {
+    for (const item of items) request.volume.writeFileSync(item.outputPath, item.bytes);
+  });
+  const result = await engine.execute({ ...request, publishOutputs });
+  expect(result.exitCode, decode(result.stdout)).toBe(0);
+  expect(JSON.parse(decode(result.stdout))).toMatchObject({ ok: true, affected: 0, data: { dryRun: false } });
+  expect(JSON.parse(decode(result.stdout)).data.outputs).toHaveLength(2);
+  expect(publishOutputs).toHaveBeenCalledTimes(1);
+  const dry = await engine.execute(invocation(["images", "extract", "/deck.pptx", "--dry-run", "--json"]));
+  expect(JSON.parse(decode(dry.stdout))).toMatchObject({ ok: true, affected: 0, data: { outputs: [], dryRun: true } });
 });
 it("requires explicit partial publication and admits count limits before any output", async () => {
   for (const [flags, status] of [

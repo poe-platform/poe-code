@@ -150,6 +150,10 @@ export const imageSchemas = {
     },
     result: {
       ...textGetSchema.result,
+      allOf: [
+        ...textGetSchema.result.allOf,
+        { if: { required: ["ok"], properties: { ok: { const: true } } }, then: { properties: { affected: { const: 0 } } } }
+      ],
       properties: {
         ...textGetSchema.result.properties,
         operation: { const: "images.extract" },

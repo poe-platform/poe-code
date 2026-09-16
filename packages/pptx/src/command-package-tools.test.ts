@@ -3,6 +3,7 @@ import { Volume } from "memfs";
 import { expect, it } from "vitest";
 import { createPptxCommandEngine, type PptxPublicationRequest } from "./command-engine.js";
 import { createPresentation } from "./creation.js";
+import { storedArchive } from "../tests/fixtures/archive.js";
 const context = {
   limits: { maxBytes: 262144, maxReads: 1000, chunkBytes: 4096 },
   archiveLimits: {
@@ -21,6 +22,34 @@ const context = {
 };
 const engine = createPptxCommandEngine({ context, maxArgumentBytes: 8192, maxOutputBytes: 262144 });
 const decode = (bytes: Uint8Array) => new TextDecoder().decode(bytes);
+it("extracts a small original package with zero read effects through an explicit nested-directory publisher", async () => {
+  const volume = new Volume();
+  const encode = (text: string) => new TextEncoder().encode(text);
+  const parts = [
+    { name: "[Content_Types].xml", bytes: encode('<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Override PartName="/main.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/></Types>') },
+    { name: "_rels/.rels", bytes: encode('<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="main" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="main.xml"/></Relationships>') },
+    { name: "main.xml", bytes: encode('<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:notesSz cx="6858000" cy="9144000"/></p:presentation>') }
+  ];
+  volume.writeFileSync("/deck.pptx", Buffer.from(storedArchive(parts)));
+  const output = await engine.execute({
+    ...invocation(volume, ["extract", "/deck.pptx", "--output-dir", "/new/nested", "--json"]),
+    publishOutputs: async (items) => {
+      for (const item of items) {
+        const parent = item.outputPath.slice(0, item.outputPath.lastIndexOf("/"));
+        volume.mkdirSync(parent, { recursive: true });
+        volume.writeFileSync(item.outputPath, item.bytes);
+      }
+    }
+  });
+  expect(output.exitCode, decode(output.stdout)).toBe(0);
+  const envelope = JSON.parse(decode(output.stdout));
+  expect(envelope.affected).toBe(0);
+  expect(envelope.data.outputs).toHaveLength(3);
+  for (const item of envelope.data.outputs) expect(volume.readFileSync(item.path)).toEqual(Buffer.from(parts.find((part) => `/${part.name}` === item.part)!.bytes));
+  const schema = JSON.parse(decode((await engine.execute(invocation(volume, ["schema", "extract", "--json"]))).stdout)).data.operations.extract.result;
+  expect(compileJsonSchema(schema).validate(envelope).ok).toBe(true);
+  expect(compileJsonSchema(schema).validate({ ...envelope, affected: 3 }).ok).toBe(false);
+});
 function invocation(volume: Volume, args: string[]) {
   return {
     args: args.map((x) => new TextEncoder().encode(x)),

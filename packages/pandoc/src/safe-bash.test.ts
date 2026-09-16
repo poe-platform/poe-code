@@ -2,6 +2,7 @@ import { expect, it, vi } from "vitest";
 import { createPandocCommand } from "./safe-bash.js";
 import { convert } from "./engine.js";
 import { Volume } from "memfs";
+import type { ResourceFileSystem } from "./types.js";
 
 const encode = (text: string) => new TextEncoder().encode(text);
 function context(args: readonly string[], input = "a,b\nx,y\n") {
@@ -124,4 +125,51 @@ it("joins file and explicit stdin operands in their supplied order", async () =>
   const ctx = {...context(["-f=commonmark", "-t=plain", "a.md", "-", "b.md"], "middle"), readFile: vi.fn(async (path: string) => encode(path === "a.md" ? "first" : "last"))};
   expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
   expect(text(ctx.stdout)).toBe("first\nmiddle\nlast\n");
+});
+it("supplies only its configured VFS for CLI resource search and extraction", async () => {
+  const volume = Volume.fromJSON({"/work/doc.md": "![x](p.png)", "/assets/p.png": "image"});
+  const fs: ResourceFileSystem & {readFile(path: string): Promise<Uint8Array>} = {
+    readFile: async path => new Uint8Array(volume.readFileSync(path) as Buffer),
+    readStream: async function* (path) {yield new Uint8Array(volume.readFileSync(path) as Buffer);},
+    lstat: async path => ({type: volume.lstatSync(path).isDirectory() ? "directory" : "file"}),
+    mkdir: async path => {volume.mkdirSync(path, {recursive: true});},
+    writeFile: async (path, bytes) => {volume.writeFileSync(path, bytes);}
+  };
+  const ctx = {...context(["-f=commonmark", "-t=html", "--resource-path=/none:/assets", "--extract-media=media", "doc.md"]), fs, cwd: "/work"};
+  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(volume.readFileSync("/work/media/p.png", "utf8")).toBe("image");
+  expect(text(ctx.stdout)).toContain('src="/work/media/p.png"');
+  const denied = context(["-f=commonmark", "-t=html", "--extract-media=media"], "![x](p.png)");
+  expect(await createPandocCommand().execute(denied)).toEqual({exitCode: 2});
+  expect(text(denied.stderr)).toContain("E_CAPABILITY:");
+});
+it("accepts iterable stdin and a configured VFS with bounded reads but no readStream", async () => {
+  const volume = Volume.fromJSON({"/work/p.png": "image"});
+  const readFile = vi.fn(async (path: string, _options?: {maxBytes?: number}) => new Uint8Array(volume.readFileSync(path) as Buffer));
+  const fs = {
+    readFile,
+    lstat: async (path: string) => ({type: volume.lstatSync(path).isDirectory() ? "directory" : "file"}),
+    mkdir: async (path: string) => {volume.mkdirSync(path, {recursive: true});},
+    writeFile: async (path: string, bytes: Uint8Array) => {volume.writeFileSync(path, bytes);}
+  };
+  const ctx = {...context(["-f=commonmark", "-t=html", "--extract-media=media"]), stdin: [encode("![x](p.png)")], fs, cwd: "/work"};
+  expect(await createPandocCommand({limits: {resourceBytes: 5}}).execute(ctx)).toEqual({exitCode: 0});
+  expect(readFile).toHaveBeenCalledWith("/work/p.png", expect.objectContaining({maxBytes: 5}));
+});
+it("preflights CLI media/output conflicts and malformed flags before VFS acquisition", async () => {
+  for (const extra of [["--extract-media=/media", "-o=/media/./p.png"], ["--extract-media"], ["--resource-path=/a::/b"], ["--extract-media=../outside"], ["--extract-media=/media", "--extract-media=/other"]]) {
+    const readFile = vi.fn(async () => encode("![x](p.png)"));
+    const writeFile = vi.fn(async () => {});
+    const ctx = {...context(["-f=commonmark", "-t=html", "doc.md", ...extra]), readFile, writeFile};
+    expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 2});
+    expect(readFile).not.toHaveBeenCalled(); expect(writeFile).not.toHaveBeenCalled();
+  }
+});
+it("does not accept resource providers through untyped command configuration", async () => {
+  const resolve = vi.fn(async () => encode("forbidden"));
+  const lstat = vi.fn(async () => ({type: "file"}));
+  const injected = {resources: {resolve}, resourceFiles: {lstat}} as unknown as Parameters<typeof createPandocCommand>[0];
+  const ctx = context(["-f=commonmark", "-t=html", "--extract-media=/media"], "![x](p.png)");
+  expect(await createPandocCommand(injected).execute(ctx)).toEqual({exitCode: 2});
+  expect(lstat).not.toHaveBeenCalled(); expect(resolve).not.toHaveBeenCalled();
 });

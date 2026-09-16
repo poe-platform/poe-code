@@ -2,6 +2,7 @@ import { normalizeDocumentCooperatively, AstError } from "./ast.js";
 import type { MetaValue } from "./ast-types.js";
 import { createFormatRegistry } from "./formats.js";
 import { ExecutionContext } from "./execution.js";
+import { ResourceSession } from "./resources.js";
 import { PandocError } from "./errors.js";
 import { mergeMetadata, mergeJsonMetadata, parseMetadataJson } from "./metadata.js";
 import type { FormatSelection } from "./formats.js";
@@ -21,7 +22,15 @@ import type {
 } from "./types.js";
 
 class Session extends ExecutionContext {
-  sourceLocations: readonly {source: string; line: number}[] = [];
+  readonly media = new ResourceSession(this);
+  sourceLocations: readonly {source: string; line: number; base?: string}[] = [];
+  inputBase: string | undefined;
+  resourceTarget(target: object, line: number): void {
+    let origin = this.sourceLocations[0];
+    for (const entry of this.sourceLocations) {if (entry.line > line) break; origin = entry;}
+    const base = origin ? origin.base : this.inputBase;
+    this.media.origins.set(target, {...(origin?.source === undefined ? {} : {source: origin.source}), ...(base === undefined ? {} : {base})});
+  }
   sourceLocation(location?: string): string | undefined {
     if (!this.sourceLocations.length) return location;
     const parts = location?.split(":") ?? [];
@@ -44,14 +53,15 @@ class Session extends ExecutionContext {
   options(options: ReadOptions | WriteOptions | ConversionOptions): void {
     const allowed =
       this.operation === "read" ? ["from"] : this.operation === "write" ? ["to", "wrap", "lossy", "standalone", "metadata", "rawContent"] : ["from", "to", "wrap", "lossy", "standalone", "metadata", "rawContent"];
-    if (this.operation !== "read") allowed.push("failIfWarnings", "metadataJson", "metadataFiles");
+    if (this.operation !== "read") allowed.push("failIfWarnings", "metadataJson", "metadataFiles", "resourcePath", "extractMedia");
     if (Object.keys(options).some((key) => !allowed.includes(key)))
       this.fail("E_OPTION", "Unknown or inapplicable option");
     if ("wrap" in options && options.wrap !== "none") this.fail("E_OPTION", "Only wrap none is supported");
     if ("lossy" in options && typeof options.lossy !== "boolean") this.fail("E_OPTION", "lossy must be boolean");
     this.lossy = "lossy" in options && options.lossy === true;
     if ("to" in options) {
-      this.registry.validateOptions(options.to, "write", Object.keys(options).filter(key => !["from", "to", "lossy", "failIfWarnings", "metadata", "metadataJson", "metadataFiles"].includes(key)));
+      this.media.configure(options);
+      this.registry.validateOptions(options.to, "write", Object.keys(options).filter(key => !["from", "to", "lossy", "failIfWarnings", "metadata", "metadataJson", "metadataFiles", "resourcePath", "extractMedia"].includes(key)));
       if (options.failIfWarnings !== undefined && typeof options.failIfWarnings !== "boolean") this.fail("E_OPTION", "failIfWarnings must be boolean");
       this.failIfWarnings = options.failIfWarnings === true;
       if (options.metadataJson !== undefined && !Array.isArray(options.metadataJson)) this.fail("E_OPTION", "metadataJson must be an array");
@@ -75,10 +85,23 @@ class Session extends ExecutionContext {
     if (this.metadata) this.metadata = (await this.document({blocks: [], metadata: this.metadata, resources: []})).metadata;
     for (const layer of this.metadataJson ?? []) await mergeJsonMetadata({}, layer, this);
   }
-  async readOwned(input: Input, selection: FormatSelection & {reader: ReaderCapability | undefined}, locations: readonly {source: string; line: number}[] = []): Promise<Document> {
+  async readOwned(input: Input, selection: FormatSelection & {reader: ReaderCapability | undefined}, locations: readonly {source: string; line: number; base?: string}[] = []): Promise<Document> {
     this.sourceLocations = locations;
+    this.inputBase = input.base;
     try {
-      return await this.document(await this.call(() => selection.reader!.read(input, this, selection)));
+      const document = await this.document(await this.call(() => selection.reader!.read(input, this, selection)));
+      const origins = async (value: unknown): Promise<void> => {
+        await this.cooperate();
+        if (!value || typeof value !== "object" || value instanceof Uint8Array) return;
+        if ("t" in value && value.t === "Image") {
+          const target = (value as Extract<import("./ast-types.js").Inline, {t: "Image" | "Link"}>).c[2];
+          if (!this.media.origins.has(target)) this.resourceTarget(target, 1);
+        }
+        for (const child of Object.values(value)) await origins(child);
+      };
+      await origins(document.blocks);
+      await origins(document.metadata);
+      return document;
     } catch (error) {
       if (error instanceof PandocError && locations.length && error.code !== "E_CANCELLED" && error.code !== "E_IO")
         throw new PandocError(error.code, this.operation, error.message, error.format, this.sourceLocation(error.location));
@@ -87,6 +110,7 @@ class Session extends ExecutionContext {
       throw error;
     } finally {
       this.sourceLocations = [];
+      this.inputBase = undefined;
     }
   }
   async input(input: InputSource, format: string): Promise<Input> {
@@ -131,6 +155,14 @@ class Session extends ExecutionContext {
         throw new PandocError(error.code, this.operation, error.message, undefined, error.path);
       throw error;
     }
+    const transfer = async (original: unknown, copy: unknown): Promise<void> => {
+      await this.cooperate();
+      if (!original || !copy || typeof original !== "object" || typeof copy !== "object" || original instanceof Uint8Array) return;
+      const origin = this.media.origins.get(original);
+      if (origin) this.media.origins.set(copy, origin);
+      for (const key of Object.keys(original)) await transfer((original as Record<string, unknown>)[key], (copy as Record<string, unknown>)[key]);
+    };
+    await transfer(document, owned);
     return owned;
   }
 
@@ -161,7 +193,7 @@ class Session extends ExecutionContext {
       await visit(document.blocks, "$.blocks");
       await visit(document.metadata, "$.metadata");
     }
-    return document;
+    return await this.media.prepare(document, this.lossy);
   }
   async finish(serialized: SerializedDocument): Promise<ConversionResult> {
     this.checkpoint(0);
@@ -180,6 +212,7 @@ class Session extends ExecutionContext {
         ? await this.encodeOutput(serialized.text)
         : new Uint8Array(serialized.bytes);
     this.bound("outputBytes", bytes.byteLength);
+    await this.media.publish();
     const owned =
       serialized.kind === "text"
         ? { kind: "text" as const, text: serialized.text }
@@ -239,7 +272,7 @@ export async function readDocument(
     session.options(options);
     const reader = session.registry.resolve(options.from, "read");
     const owned = await session.input(input, options.from);
-    return await session.readOwned(owned, reader, owned.source ? [{source: owned.source, line: 1}] : []);
+    return await session.readOwned(owned, reader, owned.source ? [{source: owned.source, line: 1, ...(owned.base === undefined ? {} : {base: owned.base})}] : []);
   } finally {
     await session.close();
   }
@@ -273,7 +306,6 @@ export async function convert(
     const reader = session.registry.resolve(options.from, "read");
     const writer = session.registry.resolve(options.to, "write");
     if (inputs.length > 1 && !reader.descriptor.operands) session.fail("E_OPTION", "This reader accepts only one input");
-    if (reader.descriptor.operands === "join" && new Set(inputs.map(input => input.base)).size > 1) session.fail("E_OPTION", "Joined text inputs must share a resource base");
     await session.preflightOptions();
     // Account for every operand before invoking readers or writers.
     const ownedInputs: Input[] = [];
@@ -286,13 +318,13 @@ export async function convert(
     const resources: Document["resources"][number][] = [];
     const settings: { language?: string; direction?: "ltr" | "rtl" | "auto" } = {};
     let readerInputs = ownedInputs;
-    const joinedLocations: {source: string; line: number}[] = [];
+    const joinedLocations: {source: string; line: number; base?: string}[] = [];
     if (reader.descriptor.operands === "join" && ownedInputs.length) {
       const parts: string[] = [];
       let line = 1;
       for (const input of ownedInputs) {
         const text = input.text!;
-        joinedLocations.push({source: input.source ?? `input[${parts.length}]`, line});
+        joinedLocations.push({source: input.source ?? `input[${parts.length}]`, line, ...(input.base === undefined ? {} : {base: input.base})});
         session.charge("retainedBytes", text.length * 2 + 2);
         const part = text.endsWith("\n") ? text : text + "\n";
         parts.push(part);
@@ -309,7 +341,7 @@ export async function convert(
       readerInputs = [{text, bytes, ...(ownedInputs[0]!.base === undefined ? {} : {base: ownedInputs[0]!.base})}];
     }
     for (const [index, input] of readerInputs.entries()) {
-      const locations = reader.descriptor.operands === "join" && ownedInputs.some(input => input.source !== undefined) ? joinedLocations : input.source ? [{source: input.source, line: 1}] : [];
+      const locations = reader.descriptor.operands === "join" ? joinedLocations : input.source ? [{source: input.source, line: 1, ...(input.base === undefined ? {} : {base: input.base})}] : [];
       const document = await session.readOwned(input, reader, locations);
       for (const key of ["language", "direction"] as const) {
         if (Object.hasOwn(document, key)) {

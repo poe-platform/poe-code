@@ -17,6 +17,7 @@ export interface Input {
   readonly bytes: Uint8Array;
   /** Present for UTF-8 formats after per-input BOM/newline normalization. */
   readonly text?: string;
+  /** VFS source directory for image resolution; source is the diagnostic identity. */
   readonly base?: string;
 }
 export interface StreamingInput {
@@ -42,11 +43,13 @@ export type DiagnosticCode =
   | "E_LIMIT"
   | "E_CANCELLED"
   | "E_IO"
+  | "E_RESOURCE"
   | "E_INTERNAL"
   | "E_WARNINGS"
   | "W_TABLE_LOSS"
   | "W_RAW_CONTENT"
-  | "W_METADATA_CONFLICT";
+  | "W_METADATA_CONFLICT"
+  | "W_RESOURCE_MISSING";
 export interface Diagnostic {
   readonly code: DiagnosticCode;
   readonly operation: Operation;
@@ -94,6 +97,10 @@ export interface ReadOptions {
   readonly from: string;
 }
 export interface WriteOptions {
+  /** Ordered VFS directories, replacing the source-directory search when present. */
+  readonly resourcePath?: readonly string[];
+  /** Extract image resources into this VFS directory; never download media implicitly. */
+  readonly extractMedia?: string;
   readonly failIfWarnings?: boolean;
   /** Ordered parsed JSON maps. Later values win; null deletes a key. */
   readonly metadataJson?: readonly MetadataObject[];
@@ -112,6 +119,8 @@ export interface MetadataObject { readonly [key: string]: MetadataValue }
 export type MetadataValue = string | number | boolean | null | readonly MetadataValue[] | MetadataObject;
 /** Explicit trusted adapters; their format conformance is not established by this seam. */
 export interface AdapterContext {
+  /** Parser origin sidecar; never serialized into the AST. */
+  resourceTarget?(target: object, line: number): void;
   readonly operation?: Operation;
   readonly lossy?: boolean;
   readonly standalone?: boolean;
@@ -165,6 +174,9 @@ export interface StreamingOutputCapability {
   abort(reason: unknown): Promise<void>;
 }
 export interface ConversionContext {
+  /** Only this configured filesystem may supply/extract local image resources. */
+  readonly resourceFiles?: ResourceFileSystem;
+  readonly resourceCwd?: string;
   readonly reader?: ReaderCapability;
   readonly writer?: WriterCapability;
   readonly resources?: ResourceCapability;
@@ -173,4 +185,15 @@ export interface ConversionContext {
   readonly signal?: AbortSignal;
   /** Trusted event-loop scheduler, chiefly for deterministic host/test integration. */
   readonly yield?: () => Promise<void>;
+}
+
+/** Structural VFS subset. ENOENT alone permits search continuation. Providers
+ * retain authority over their namespace; lexical checks are not a sandbox.
+ * Without provider transactions, completed writes survive later failures. */
+export interface ResourceFileSystem {
+  lstat(path: string, options?: {signal?: AbortSignal}): Promise<{readonly type: string}>;
+  readStream?(path: string, options?: {signal?: AbortSignal}): AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
+  readFile?(path: string, options?: {signal?: AbortSignal; maxBytes?: number}): Promise<Uint8Array>;
+  mkdir(path: string, options?: {recursive?: boolean; signal?: AbortSignal}): Promise<void>;
+  writeFile(path: string, bytes: Uint8Array, options?: {signal?: AbortSignal; flag?: "wx"}): Promise<void>;
 }

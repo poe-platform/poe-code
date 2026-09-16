@@ -151,6 +151,11 @@ export class ExecutionContext implements AdapterContext {
     for (const budget of keys) this.usage[budget] += units;
   }
 
+  remaining(key: keyof Limits): number {
+    this.checkpoint(0);
+    return this.limits[key] - this.usage[key];
+  }
+
   async cooperate(units = 1): Promise<void> {
     this.checkpoint(units);
     if (this.sinceYield >= 256) {
@@ -293,7 +298,7 @@ export class ExecutionContext implements AdapterContext {
     }
   }
 
-  private async consume(
+  async consume(
     chunks: Chunks,
     accept: (bytes: Uint8Array) => Promise<void>,
     budgets: readonly (keyof Limits)[] = []

@@ -342,6 +342,17 @@ export async function parseCommonMarkInlines(
       opener.node.next = null;
       tail = opener.node;
       const value: Inline = { t: opener.image ? "Image" : "Link", c: [attr(), [], [normalizeUri(decodeSyntax(target.url, context), context), decodeSyntax(target.title, context)]] };
+      if (opener.image && context.resourceTarget) {
+        let offset = 0;
+        let line = pending.lines[0]?.start.line ?? 1;
+        for (const entry of pending.lines) {
+          context.checkpoint();
+          if (offset > opener.start) break;
+          line = entry.start.line;
+          offset += entry.text.length + 1;
+        }
+        context.resourceTarget(value.c[2], line);
+      }
       append(value, first);
       removeNode(opener.node);
       if (!opener.image) deactivateLinks();

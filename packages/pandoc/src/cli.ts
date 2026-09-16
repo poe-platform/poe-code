@@ -1,15 +1,17 @@
 import { PandocError } from "./errors.js";
 import type { ConversionOptions, InputSource, MetadataObject } from "./types.js";
+import { resourceDirectory } from "./resources.js";
 
 export interface CommandInputs {
-  readonly stdin?: AsyncIterable<Uint8Array>;
+  readonly cwd?: string;
+  readonly stdin?: AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
   readFile?(path: string, signal: AbortSignal): Promise<Uint8Array>;
   writeFile?(path: string, bytes: Uint8Array, signal: AbortSignal): Promise<void>;
 }
 
 /** Parsing creates lazy inputs. Only the validated converter may acquire them. */
 export function parseConversionArgs(args: readonly string[], files: CommandInputs, signal: AbortSignal): {options: ConversionOptions; operands: readonly InputSource[] | undefined; destination?: string} {
-  const options: {from?: string; to?: string; wrap?: "none"; lossy?: boolean; standalone?: boolean; failIfWarnings?: boolean; rawContent?: "reject" | "escape" | "retain"} = {};
+  const options: {from?: string; to?: string; wrap?: "none"; lossy?: boolean; standalone?: boolean; failIfWarnings?: boolean; rawContent?: "reject" | "escape" | "retain"; resourcePath?: readonly string[]; extractMedia?: string} = {};
   const metadataJson: MetadataObject[] = [];
   const metadataFiles: InputSource[] = [];
   const operands: InputSource[] = [];
@@ -18,7 +20,9 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
   const fail = (message: string): never => {throw new PandocError("E_OPTION", "convert", message);};
   const source = (path: string, metadata = false): InputSource => {
     if (!files.readFile) fail("File operands require an explicit readFile capability");
-    return {source: path, ...(metadata ? {base: path} : {}), chunks: (async function* () {yield await files.readFile!(path, signal);})()};
+    const split = path.lastIndexOf("/");
+    const base = resourceDirectory(split < 0 ? "." : path.slice(0, split) || "/", files.cwd ?? "/");
+    return {source: path, base: metadata ? path : base, chunks: (async function* () {yield await files.readFile!(path, signal);})()};
   };
   let positional = false;
   let stdinUsed = false;
@@ -38,6 +42,19 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     }
     const equals = arg.indexOf("=");
     const name = equals < 0 ? arg : arg.slice(0, equals);
+    if (name === "--resource-path" || name === "--extract-media") {
+      const value = equals < 0 ? args[++i] : arg.slice(equals + 1);
+      if (!value || value.startsWith("-")) fail(`Missing value: ${name}`);
+      if (name === "--resource-path") {
+        const paths = value!.split(":");
+        if (paths.some(path => !path)) fail("Empty resource-path directory");
+        options.resourcePath = paths;
+      } else {
+        if (options.extractMedia !== undefined) fail("Repeated extract-media option");
+        options.extractMedia = value!;
+      }
+      continue;
+    }
     if (name === "--metadata-file") {
       const path = equals < 0 ? args[++i] : arg.slice(equals + 1);
       if (!path || !path.endsWith(".json")) fail("Metadata files must use .json; YAML is unsupported");
@@ -76,5 +93,10 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     else if (key === "from" || key === "to") options[key] = value!;
   }
   if (!options.from || !options.to) fail("Explicit -f FORMAT and -t FORMAT are required");
+  if (destination !== undefined && options.extractMedia !== undefined) {
+    const output = resourceDirectory(destination, files.cwd ?? "/");
+    const media = resourceDirectory(options.extractMedia, files.cwd ?? "/");
+    if (output === media || media === "/" || output.startsWith(`${media}/`)) fail("Output cannot be inside the extraction directory");
+  }
   return {options: {...options, from: options.from!, to: options.to!, ...(metadataJson.length ? {metadataJson} : {}), ...(metadataFiles.length ? {metadataFiles} : {})}, operands: operands.length ? operands : undefined, ...(destination === undefined ? {} : {destination})};
 }

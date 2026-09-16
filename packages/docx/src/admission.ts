@@ -1,4 +1,5 @@
 import { documentXmlCache } from "./budget.js";
+import { documentByteView } from "./byte-input.js";
 import { DocumentPackage } from "./package.js";
 import { asciiKey } from "./part-uri.js";
 import { InvalidPackageError, parseDocumentXmlAsync, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
@@ -41,6 +42,7 @@ export async function readDocumentArchive(
   input: Uint8Array,
   context: ArchiveContext
 ): Promise<AdmittedDocumentArchive> {
+  input = documentByteView(input);
   const settings = archiveSettings(context);
   if (settings[documentSession]) return settings[documentSession].read(input);
   const { limits, signal, budget } = settings;

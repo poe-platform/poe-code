@@ -1,4 +1,5 @@
 import { InputTypeError, InvalidValueError, ResourceLimitError, type ArchiveContext } from "./archive.js";
+import { documentByteView } from "./byte-input.js";
 import { modelContext, type DocumentModelContext } from "./model-context.js";
 import { DocumentIo, type DocumentByteSource } from "./io.js";
 import type { DocxBinaryInput, DocxVfsPath } from "./operation-types.js";
@@ -14,6 +15,7 @@ export async function acquireImageModelInput(input: ImageModelInput | DocxBinary
   if (settings.template !== undefined) throw new InputTypeError("A context template applies only to document creation.");
   const maxBytes = Math.min(limits.maxEntryBytes, budget.limits.embeddedMediaBytes - budget.usage.embeddedMediaBytes); let bytes: Uint8Array, filename: string | null = null;
   if (input instanceof Uint8Array) {
+    input = documentByteView(input);
     if (input.length > maxBytes) throw new ResourceLimitError("Image input exceeds the media byte limit.");
     budget.charge("retainedBytes", input.length); budget.charge("work", input.length); bytes = new Uint8Array(input);
   } else {

@@ -1,4 +1,5 @@
 import type { ByteSource } from "@poe-code/office-package";
+import { documentByteView } from "./byte-input.js";
 import {
   archiveSettings,
   InputTypeError,
@@ -204,13 +205,12 @@ export function modelContext(
   }
   let template: Uint8Array | undefined;
   if (context.template !== undefined) {
-    if (!(context.template instanceof Uint8Array))
-      throw new InputTypeError("Expected owned template bytes.");
-    if (context.template.length > settings.limits.maxArchiveBytes)
+    const bytes = documentByteView(context.template);
+    if (bytes.length > settings.limits.maxArchiveBytes)
       throw new ResourceLimitError("Template input byte limit exceeded.");
-    settings.budget.charge("retainedBytes", context.template.length);
-    settings.budget.charge("work", context.template.length);
-    template = new Uint8Array(context.template);
+    settings.budget.charge("retainedBytes", bytes.length);
+    settings.budget.charge("work", bytes.length);
+    template = new Uint8Array(bytes);
   }
   const result: AdmittedModelContext = {
     ...settings,

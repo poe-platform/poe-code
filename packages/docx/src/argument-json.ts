@@ -1,4 +1,5 @@
 import { DocumentBudget } from "./budget.js";
+import { documentByteView } from "./byte-input.js";
 
 export class DocxUsageError extends Error {
   readonly code = "usage";
@@ -8,7 +9,7 @@ export class DocxUsageError extends Error {
 export function docxByteLength(bytes: Uint8Array): number {
   if (!ArrayBuffer.isView(bytes) || !(bytes instanceof Uint8Array)) throw new DocxUsageError("Expected a byte source.");
   try {
-    return Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype), "byteLength")!.get!.call(bytes) as number;
+    return documentByteView(bytes).byteLength;
   } catch { throw new DocxUsageError("Expected a byte source."); }
 }
 

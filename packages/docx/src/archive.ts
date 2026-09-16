@@ -1,5 +1,6 @@
 import { CodecError, createZipCodec, type ZipLimits } from "@poe-code/office-package";
 import { DocumentBudget } from "./budget.js";
+import { documentByteView } from "./byte-input.js";
 
 export interface ArchiveLimits {
   readonly maxArchiveBytes: number;
@@ -115,7 +116,7 @@ export async function readArchive(
   input: Uint8Array,
   context: ArchiveContext
 ): Promise<DocumentArchive> {
-  if (!(input instanceof Uint8Array)) throw new InputTypeError("Expected archive bytes.");
+  input = documentByteView(input);
   const { limits, signal, codecLimits, budget: invocation } = archiveSettings(context);
   const budget = invocation.document();
   try {

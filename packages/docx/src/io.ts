@@ -2,6 +2,7 @@ import { archiveSettings, CancellationError, InputTypeError, ResourceLimitError,
 import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
 import { SinkError, type ArchiveSink, type ArchiveWriteOptions } from "./archive-write.js";
 import { writeDocumentArchive } from "./document-write.js";
+import { documentByteView } from "./byte-input.js";
 
 export interface DocumentByteSource {
   open(signal: AbortSignal): AsyncIterable<Uint8Array>;
@@ -86,8 +87,7 @@ export class DocumentIo {
           const item = await iterator.next();
           this.#check();
           if (item.done) { exhausted = true; break; }
-          const bytes = item.value;
-          if (!(bytes instanceof Uint8Array)) throw new InputTypeError("Expected source byte chunks.");
+          const bytes = documentByteView(item.value);
           if (bytes.length > limits.maxArchiveBytes - size)
             throw new ResourceLimitError("Document input byte limit exceeded.");
           budget.check("work", budget.usage.work + bytes.length + 1);

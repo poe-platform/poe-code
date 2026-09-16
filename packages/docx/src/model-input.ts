@@ -1,4 +1,5 @@
 import { InputTypeError, ResourceLimitError } from "./archive.js";
+import { documentByteView } from "./byte-input.js";
 import { DocumentIo, type DocumentByteSource } from "./io.js";
 import type { DocxBinaryInput, DocxVfsPath } from "./operation-types.js";
 import type { modelContext } from "./model-context.js";
@@ -57,6 +58,7 @@ export async function acquireDocumentModelInput(
 ): Promise<Uint8Array> {
   const { budget, limits } = context;
   if (input instanceof Uint8Array) {
+    input = documentByteView(input);
     if (input.length > limits.maxArchiveBytes)
       throw new ResourceLimitError("Document input byte limit exceeded.");
     budget.charge("retainedBytes", input.length);

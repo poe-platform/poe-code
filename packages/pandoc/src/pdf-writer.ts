@@ -1,6 +1,6 @@
-import { renderPdf, suppliedDefaultFont, PdfError, type LayoutBlock, type Paragraph, type TextRun, type PdfLimits } from "@poe-code/pdf";
+import { renderPdf, suppliedDefaultFont, PdfError, type LayoutBlock, type Paragraph, type TextRun, type PdfLimits, type PdfMetadata } from "@poe-code/pdf";
 import { PandocError } from "./errors.js";
-import type { Block, Inline } from "./ast-types.js";
+import type { Block, Inline, MetaValue } from "./ast-types.js";
 import type { WriterCapability, Limits } from "./types.js";
 
 /** AST adapter only: all geometry, font operations and pagination live in pdf. */
@@ -31,6 +31,20 @@ export const pdfWriter: WriterCapability = {
       }
       return result;
     };
+    const metaText = async (value: MetaValue): Promise<string> => {
+      if (value.t === "MetaString") return value.c;
+      if (value.t === "MetaInlines") return (await runs(value.c)).map(run => run.text).join("");
+      return fail("PDF descriptive metadata requires text or plain inlines");
+    };
+    const metadata: {title?: string; author?: string; subject?: string; keywords?: readonly string[]} = {};
+    for (const key of ["title", "author", "subject", "keywords"] as const) {
+      const value = document.metadata[key]; if (value === undefined) continue;
+      const values = value.t === "MetaList" ? value.c : [value]; const text: string[] = [];
+      for (const item of values) {await ctx.cooperate(); ctx.charge("references", 1); text.push(await metaText(item));}
+      const length = text.reduce((sum, part) => sum + part.length + 2, 0); ctx.charge("retainedBytes", length * 2);
+      if (key === "keywords") metadata.keywords = text;
+      else metadata[key] = text.join(key === "author" ? "; " : " ");
+    }
     const blocks: LayoutBlock[] = [];
     const visit = async (nodes: readonly Block[], indent = 0): Promise<void> => {
       for (const node of nodes) {
@@ -45,7 +59,11 @@ export const pdfWriter: WriterCapability = {
             const media = bytes![0] === 137 ? "png" : bytes![0] === 255 ? "jpeg" : fail("PDF image must be PNG or JPEG");
             blocks.push({kind: "image", bytes: bytes!, media, width, height});
           } else blocks.push({kind: "paragraph", runs: await runs(node.c), indent});
-        } else if (node.t === "Header") blocks.push({kind: "paragraph", runs: await runs(node.c[2], 24 - node.c[0] * 2), keepTogether: true, keepWithNext: true, indent});
+        } else if (node.t === "Header") {
+          const content = await runs(node.c[2], 24 - node.c[0] * 2);
+          ctx.charge("retainedBytes", content.reduce((sum, run) => sum + run.text.length * 2, 0));
+          blocks.push({kind: "paragraph", runs: content, outline: content.map(run => run.text).join(""), keepTogether: true, keepWithNext: true, indent});
+        }
         else if (node.t === "CodeBlock") blocks.push({kind: "paragraph", runs: [{text: node.c[1], size: 10}], indent});
         else if (node.t === "Div") await visit(node.c[1], indent);
         else if (node.t === "BlockQuote") await visit(node.c, indent + 18);
@@ -106,7 +124,7 @@ export const pdfWriter: WriterCapability = {
     ctx.bound("fonts", ctx.pdfFonts?.length ?? 1);
     const fonts = ctx.pdfFonts ?? [suppliedDefaultFont(size => {ctx.bound("binaryBytes", size); ctx.charge("retainedBytes", size * 2);})];
     try {
-      const bytes = await renderPdf({blocks, fonts, ...(ctx.pdfPage === undefined ? {} : {page: ctx.pdfPage})}, {signal: ctx.signal, yield: () => ctx.cooperate(256), limits: {outputBytes: ctx.limits.outputBytes}, charge: (key, amount) => {
+      const bytes = await renderPdf({blocks, fonts, metadata: metadata satisfies PdfMetadata, ...(ctx.pdfPage === undefined ? {} : {page: ctx.pdfPage})}, {signal: ctx.signal, yield: () => ctx.cooperate(256), limits: {outputBytes: ctx.limits.outputBytes}, charge: (key, amount) => {
         const mapped = budgetMap[key]; if (mapped && !(key === "fontBytes" && ctx.pdfFonts !== undefined)) ctx.charge(mapped, amount);
         if (key === "fontBytes" || key === "imageBytes") ctx.charge("retainedBytes", amount);
         if (key === "glyphs") ctx.charge("retainedBytes", amount * 96);

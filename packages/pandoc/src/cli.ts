@@ -1,5 +1,6 @@
 import { PandocError } from "./errors.js";
 import type { ConversionOptions, InputSource, MetadataObject, WriteOptions } from "./types.js";
+import {createFormatRegistry} from "./formats.js";
 import { resourceDirectory } from "./resources.js";
 
 export interface CommandInputs {
@@ -17,6 +18,7 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
   const metadataFiles: InputSource[] = [];
   const operands: InputSource[] = [];
   let destination: string | undefined;
+  let yes = false;
   const names = new Map([["-f", "from"], ["--from", "from"], ["-t", "to"], ["--to", "to"], ["--raw-content", "rawContent"], ["--wrap", "wrap"]] as const);
   const fail = (message: string): never => {throw new PandocError("E_OPTION", "convert", message);};
   const source = (path: string, metadata = false): InputSource => {
@@ -29,6 +31,7 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
   let stdinUsed = false;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
+    if (!positional && arg === "--yes") {if (yes) fail("Repeated option: --yes"); yes = true; continue;}
     if (arg === "--" && !positional) {positional = true; continue;}
     if (arg === "-" && !positional) {
       if (stdinUsed || !files.stdin) fail("Stdin may be supplied once");
@@ -43,6 +46,7 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     }
     const equals = arg.indexOf("=");
     const name = equals < 0 ? arg : arg.slice(0, equals);
+    if (name === "--pdf-engine") fail("External PDF engines are forbidden; use the built-in TypeScript PDF writer");
     if (name === "--pdf-font" || name === "--pdf-page") {
       const value = equals < 0 ? args[++i] : arg.slice(equals + 1);
       if (!value || value.startsWith("-")) fail(`Missing value: ${name}`);
@@ -105,6 +109,7 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     else if (key === "rawContent") {if (value !== "reject" && value !== "escape" && value !== "retain") fail("Invalid raw-content policy"); options.rawContent = value as "reject" | "escape" | "retain";}
     else if (key === "from" || key === "to") options[key] = value!;
   }
+  if (yes && !options.to && destination !== undefined && destination.endsWith(".pdf")) options.to = createFormatRegistry().infer(destination, "write");
   if (!options.from || !options.to) fail("Explicit -f FORMAT and -t FORMAT are required");
   if (destination !== undefined && options.extractMedia !== undefined) {
     const output = resourceDirectory(destination, files.cwd ?? "/");

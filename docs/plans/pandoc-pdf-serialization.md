@@ -41,3 +41,13 @@ invoking font shaping tables. Original hostile-layout mock and alias regressions
 pass; conflicting emitted Unicode aliases are rejected explicitly. Validate
 all budgets before font buffers/metadata admission. All 45 PDF tests, package
 lint/typecheck and selected workspace build closure pass.
+
+SDK/CLI integration: metadata and heading outlines share PDF options/sink path;
+--yes allows .pdf target inference and --pdf-engine is rejected before acquisition.
+Representable original inputs cover every available reader (10); streaming writes
+and close are awaited. All 912 Pandoc tests and package lint/typecheck pass;
+maintained selected workspace build closure passes. Independent parser and
+renderer QA also passes for the final engine (four pages, ten reader pairs).
+Repository-wide lint passes. Repository-wide npm test still running, with an
+observed failure in unrelated toolcraft-design demo test: missing
+docs/plans/archive/cli-aliasing.md. Preserve task scope and unrelated files.

@@ -55,4 +55,16 @@ passive links only. No undocumented warning downgrade.
   references. Bounded 256-unit escape chunks preserve exact entities/Unicode.
   Maintained package suite passed (887 tests), lint/typecheck and build closure
   passed. This prerequisite is its own atomic local commit.
-- EPUB3 implementation and final evidence/QA commit are pending.
+- Shared prerequisite committed locally on main as 30fc3d529.
+- EPUB3 implemented; maintained package checks passed: 888 tests across 28 files,
+  ESLint and source/test TypeScript checks, selected workspace build closure.
+- Pinned EPUBCheck 5.3.0 verified EPUB 3.3 rules on original/empty/long books with
+  zero errors. Original Unicode space filename has one retained PKG-010 warning;
+  empty and long books have no warnings.
+- Independent EPUB.js 0.3.93 archived reading application in Chrome 152.0.7977.84
+  verified cover/images, TOC/spine and actual forward/back clicks. Inspected wide
+  and narrow reflow screenshots, long prose and table pagination. The upstream
+  demo's fixed 900 px viewer was resized to 380 px for the narrow-width check.
+  QA tools were removed; original books, screenshots, pinned hashes and actual
+  results are recorded in docs/pandoc/epub3-writer-evidence.md and epub3-qa.
+- EPUB3 delivered as an atomic local commit on main. No push or release.

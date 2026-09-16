@@ -49,3 +49,89 @@ PPTX discovery-schema omissions and oversized targeted help are also recorded.
 This task remains open for complete conformance; later tasks remain pending.
 Only this plan, the new original test file and its evidence will be staged for
 one atomic test-coverage commit. No push or release.
+
+## Follow-up ownership and contract review
+
+Execute only `cross-format-cli-conformance`; later tasks remain pending. Baseline
+main is `bc3b0fef9`. The index was empty. Preserve the initial OMML evidence/plans,
+pipeline status edits, untracked discovery plan and QA outputs. None is owned by
+this task. Root owns the paired tests, DOCX command/comparison integration, this
+plan and cross-format evidence. Delegated leaves own the table reader/batch/schema
+and narrowly reproduced PPTX validation/discovery/extraction corrections. A
+separate worker reviews the final diff read-only. No safe-bash source change is
+assigned or required by the evidence below; its public adapters are exercised.
+
+The reference API/test inventories were parsed and reviewed: 920 API records,
+23 documentation decisions, 1,609 unit variants and 650 BDD cases. Historical
+status dispositions remain unchanged. The exact utility/model/security mappings
+remain those recorded in cross-format evidence and the API reconciliation;
+inherited/protocol/enum/helper and documented underscore-prefixed members remain
+visible obligations. This task does not execute a reference runtime or download,
+copy, remove or depend on QA documents/binaries.
+
+### Failing-first corrections
+
+- DOCX bare CLI diff, default SDK comparison and optional-scope schema/help failed
+  before code. Reconcile the format wording with the authoritative shared grammar:
+  parts/package defaults, text/structure body defaults, explicit incompatible
+  pairs rejected. Focused comparison checks passed; the selected DOCX build and
+  maintained lint passed. The actual built diff-help screenshot was inspected.
+- Three original SDK table-list cases failed before implementation; read-only
+  batch/schema cases also failed before registration. Share the existing logical
+  table reader, honor selected owners/stale tokens, declare exact records and
+  route public CLI/batch through that domain API. Focused table checks and package
+  lint passed.
+- DOCX acquired-input, pre-aborted, JSON-source and discovery-output cancellation
+  failed before code. Fulfilled inspect/diff stdout and inspect diagnostics also
+  reproduced status 0 instead of 130. Preserve typed image/archive extraction
+  receipt exceptions required by the format specification; ordinary command
+  cancellation resolves 130. Reconcile the older ordinary diagnostic test's
+  rejection expectation with the shared status contract.
+- PPTX validate failed before code. Use existing admitted package/semantic SDK
+  validation, declare XML schema validation not checked, reject inapplicable flags
+  before input, and expose truthful help/schema/capabilities. Focused checks/lint
+  passed. Missing discovery declarations and unsupported-path failure labels
+  were independently red before correction. Inspect limit schema/runtime drift
+  was red before enabling only supported lowered ceilings; output-count limits
+  still reject before input.
+- DOCX rejected spellings initially returned status 2 with empty JSON transport.
+  Original paired failure-envelope assertions failed before early JSON detection;
+  retain option-value and terminator boundaries rather than accepting aliases.
+- Actual image and package extraction checks exposed nonzero successful PPTX read
+  effects. Original public-engine memfs regressions were red before correction;
+  preserve precise output counts/bytes in manifests and explicit partial failures.
+
+### Extraction profile qualification
+
+Shared CLI section 6 and PPTX section 6.7 require an explicit output directory,
+safe manifest and transaction or explicit partial intent; neither promises to
+create an absent output root. Independent scoped review found no requirement to
+change ordinary parent-directory publication. The paired package extraction
+recipe therefore supplies an existing PPTX output directory; DOCX exercises its
+specified absent/new-tree destination. PPTX materializes generated flat names,
+DOCX retains the admitted member tree. The command path/flags and read envelope
+are compared; these format publication profiles are disclosed, not equated.
+The initial absent-PPTX-root status 3 and incorrect test assumption about flat
+names are QA findings, not product fixes or passes.
+
+### Final agent QA procedure
+
+1. Repeat the complete paired public-adapter suite after integration; assert all
+   common paths are declared, old spellings fail with JSON errors before reads,
+   ordinary statuses and comparison/cancellation statuses agree, and real image
+   replacement/extraction retains original bytes. Observe the actual injected
+   publication sinks for dry-run, not merely the read-only backing Volume.
+2. Run both maintained format package suites and lint after the final code/test
+   revision. Run each selected workspace build closure separately; the maintained
+   runner rejects multiple --workspace selectors in one invocation.
+3. Capture built public help/errors and actual table-list output with the maintained
+   screenshot route and inspect the PNGs. The root CLI does not register these
+   explicitly injected format adapters; no root-CLI screenshot substitutes for
+   the actual public-adapter invocation. Keep screenshots disposable and untracked.
+4. Record exact current schemas, maintained checks, red/green observations,
+   language/security mappings and remaining whole-format/API obligations under
+   docs/docx. Make no whole-format or renderer fidelity claim.
+5. Stage each atomic correction's owned hunks and relevant plan update explicitly;
+   inspect the index and make Conventional Commits on main without hook bypass.
+   Do not push, release, stage unrelated pipeline edits, edit README or clean
+   another campaign's files.

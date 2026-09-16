@@ -61,9 +61,9 @@ it("selects annotation stories and preserves logical table structure", async () 
   expect((await compare(bytes, table, "text", "comments")).equal).toBe(true);
   expect((await compare(bytes, table, "structure", "comments")).equal).toBe(false);
 });
-it("requires explicit scope, bounds differences and accounts both packages", async () => {
+it("defaults to package comparison, bounds differences and accounts both packages", async () => {
   const { bytes } = await createDocumentFixture("museum");
-  await expect(sdk.compareDocument(bytes, bytes, context, { mode: "parts" } as sdk.DocumentDiffOptions)).rejects.toMatchObject({ code: "usage" });
+  expect(await sdk.compareDocument(bytes, bytes, context, {} as sdk.DocumentDiffOptions)).toMatchObject({ equal: true, mode: "parts", differences: [] });
   const budget = new DocumentBudget({}, context.signal);
   await compare(bytes, bytes, "parts", "package", budget);
   expect(budget.usage.compressedInput).toBe(bytes.length * 2);
@@ -161,12 +161,12 @@ it("reports bounded added and removed parts with the correct source fingerprints
 it("publishes matching CLI and SDK scope constraints and typed comparison failures", () => {
   for (const transport of ["cli", "sdk"] as const) {
     const schema = sdk.getDocxOperationSchema("diff", transport);
-    expect(schema.required).toContain("scope");
+    expect(schema.required ?? []).not.toContain("scope");
     expect(schema.allOf?.[0]?.oneOf).toHaveLength(2);
   }
 });
-it("documents required comparison scope without advertising a body default", () => {
+it("documents package comparison default and explicit logical scopes", () => {
   const help = sdk.getDocxDiscovery(sdk.validateDocxInvocation({ operation: "help", inputs: [], options: { operation: "diff" } }))!;
-  expect(help.human).toContain("Required --scope");
-  expect(help.human).not.toContain("Scope defaults to");
+  expect(help.human).toContain("Scope defaults to package");
+  expect(help.human).toContain("text/structure");
 });

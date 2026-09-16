@@ -137,12 +137,12 @@ async function comparisonParts(input: Uint8Array, context: ArchiveContext, mode:
   return result;
 }
 
-/** Compare admitted packages with shared cumulative budgets and explicit scope. */
-export async function compareDocument(left: Uint8Array, right: Uint8Array, context: ArchiveContext, options: DocumentDiffOptions): Promise<DocumentDiffData> {
+/** Compare admitted packages with shared cumulative budgets and declared scope defaults. */
+export async function compareDocument(left: Uint8Array, right: Uint8Array, context: ArchiveContext, options: DocumentDiffOptions = {}): Promise<DocumentDiffData> {
   const settings = archiveSettings(context);
   const invocation = validateDocxInvocation({ operation: "diff", inputs: ["left", "right"], options }, settings.budget);
   const mode = (invocation.options.mode ?? "parts") as DocumentDiffData["mode"];
-  const scope = invocation.options.scope as DocumentDiffScope;
+  const scope = (invocation.options.scope ?? (mode === "text" || mode === "structure" ? "body" : "package")) as DocumentDiffScope;
   if (!(left instanceof Uint8Array) || !(right instanceof Uint8Array)) throw new InputTypeError("Expected two document byte inputs.");
   const budget = settings.budget.lower(Object.fromEntries((options.limit ?? []).map(item => [item.name, item.value])));
   budget.check("compressedInput", left.length);

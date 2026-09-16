@@ -14,7 +14,7 @@ export function validateDocxSelection(operation: string, options: Readonly<Recor
   if (operation.startsWith("model.")) return;
   const has = (name: string) => options[name] !== undefined;
   const reject = (message: string): never => { throw new DocxUsageError(message); };
-  if (operation === "diff" && ((options.mode === undefined || ["parts", "xml"].includes(options.mode as string)) !== (options.scope === "package"))) reject("Package comparison modes require package scope; logical modes require a story scope.");
+  if (operation === "diff" && ((options.mode === undefined || ["parts", "xml"].includes(options.mode as string)) !== ((options.scope ?? (options.mode === "text" || options.mode === "structure" ? "body" : "package")) === "package"))) reject("Package comparison modes require package scope; logical modes require a story scope.");
   const pieces = operation.split(".");
   const resource = pieces[0]!;
   const action = pieces.at(-1)!;

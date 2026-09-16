@@ -202,8 +202,8 @@ export function getDocxOperationSchema(id: string, transport: "sdk" | "cli" | "b
   const schema = fieldsSchema(applicable, definitions);
   const conditions: DocxJsonSchema[] = [];
   if (id === "diff") conditions.push({ oneOf: [
-    { properties: { mode: { enum: ["parts", "xml"] }, scope: { const: "package" } }, required: ["scope"] },
-    { properties: { mode: { enum: ["text", "structure"] }, scope: { enum: ["body", "headers", "footers", "footnotes", "endnotes", "comments", "text-boxes", "all-stories"] } }, required: ["mode", "scope"] },
+    { properties: { mode: { enum: ["parts", "xml"] }, scope: { const: "package" } } },
+    { properties: { mode: { enum: ["text", "structure"] }, scope: { enum: ["body", "headers", "footers", "footnotes", "endnotes", "comments", "text-boxes", "all-stories"] } }, required: ["mode"] },
   ] });
   if (id === "controls.repeat" && transport === "cli") conditions.push({ oneOf: [{ required: ["dataFile"] }, { required: ["dataJson"] }] });
   if (id === "controls.set") conditions.push({ oneOf: ["text", "checked", "choice", "date", "file"].map(name => ({ required: [name] })) });

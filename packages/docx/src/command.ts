@@ -488,7 +488,7 @@ export function createDocxCommandEngine<Request extends DocxCommandRequest, Resu
 }, hostLimits: Partial<DocumentLimits> = {}) {
   return {
     async execute(request: Request): Promise<DocxCommandEngineResult<Result>> {
-      request.signal.throwIfAborted();
+      if (request.signal.aborted) return { exitCode: 130 } as DocxCommandEngineResult<Result>;
       let invocation: DocxInvocation | undefined;
       let budget = new DocumentBudget(hostLimits, request.signal);
       let discoveryOutput: Uint8Array | undefined;
@@ -541,18 +541,30 @@ export function createDocxCommandEngine<Request extends DocxCommandRequest, Resu
         if (sources.some(source => source.format === "json")) invocation = validateInvocation({ ...invocation, options, sources: sources.filter(source => source.format !== "json") }, budget, true);
       }
       catch (error) {
+        if (request.signal.aborted) return { exitCode: 130 } as DocxCommandEngineResult<Result>;
         if (!(error instanceof DocxUsageError) && !(error instanceof ResourceLimitError) && !(error instanceof SourceError)) throw error;
         const context = errorContexts.get(error) ?? { operation: invocation?.operation ?? "help", json: invocation?.options.json === true, budget };
         const code = error instanceof ResourceLimitError ? "limit-exceeded" : error instanceof SourceError ? "source-failure" : "usage";
         const diagnostic = commandDiagnostic(error.message, code, context.budget.limits.diagnosticBytes);
-        if (context.json || context.operation === "schema") await request.stdout.write(new TextEncoder().encode(JSON.stringify({ version: 1, operation: context.operation, ok: false, data: null, warnings: [], errors: [{ code, message: diagnostic.message }], affected: 0, locations: [] }) + "\n"));
-        await request.stderr.write(new TextEncoder().encode(diagnostic.human));
+        try {
+          if (context.json || context.operation === "schema") await request.stdout.write(new TextEncoder().encode(JSON.stringify({ version: 1, operation: context.operation, ok: false, data: null, warnings: [], errors: [{ code, message: diagnostic.message }], affected: 0, locations: [] }) + "\n"));
+          if (request.signal.aborted) return { exitCode: 130 } as DocxCommandEngineResult<Result>;
+          await request.stderr.write(new TextEncoder().encode(diagnostic.human));
+        } catch (transportError) {
+          if (request.signal.aborted) return { exitCode: 130 } as DocxCommandEngineResult<Result>;
+          throw transportError;
+        }
+        if (request.signal.aborted) return { exitCode: 130 } as DocxCommandEngineResult<Result>;
         return { exitCode: context.operation === "diff" ? 2 : error instanceof ResourceLimitError ? 4 : error instanceof SourceError ? 3 : 2 } as DocxCommandEngineResult<Result>;
       }
       if (discoveryOutput) {
-        request.signal.throwIfAborted();
-        await request.stdout.write(discoveryOutput);
-        return { exitCode: 0 } as DocxCommandEngineResult<Result>;
+        if (request.signal.aborted) return { exitCode: 130 } as DocxCommandEngineResult<Result>;
+        try { await request.stdout.write(discoveryOutput); }
+        catch (error) {
+          if (request.signal.aborted) return { exitCode: 130 } as DocxCommandEngineResult<Result>;
+          throw error;
+        }
+        return { exitCode: request.signal.aborted ? 130 : 0 } as DocxCommandEngineResult<Result>;
       }
       return handler.execute(invocation, request);
     }

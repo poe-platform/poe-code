@@ -40,5 +40,5 @@ it("admits lowered diagnostic bytes before attempting a warning sink write", asy
 it.each(['failure','cancellation'])("keeps diagnostic %s from publishing inventory stdout", async scenario => {
   const input = await untypedItemFixture(), controller = new AbortController(), reason = new Error('Original diagnostic stop'), writes: Uint8Array[] = [];
   const pending = createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ['custom-xml','list','/input','--json'].map(value => new TextEncoder().encode(value)), cwd: '/', signal: controller.signal, filesystem: { async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { writes.push(bytes); } }, stderr: { async write() { if (scenario === 'cancellation') controller.abort(reason); throw reason; } } });
-  if (scenario === 'cancellation') await expect(pending).rejects.toBe(reason); else await expect(pending).resolves.toMatchObject({ exitCode: 3 }); expect(writes).toEqual([]);
+  if (scenario === 'cancellation') await expect(pending).resolves.toMatchObject({ exitCode: 130 }); else await expect(pending).resolves.toMatchObject({ exitCode: 3 }); expect(writes).toEqual([]);
 });

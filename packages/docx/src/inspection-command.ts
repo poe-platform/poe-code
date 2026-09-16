@@ -101,7 +101,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           if (request.signal.aborted || cause instanceof CancellationError) throw new ArchiveExtractionError(cause, extraction, true);
           return { exitCode: 3, extraction };
         }
-        if (!imageReceipt) { request.signal.throwIfAborted(); return { exitCode: invocation.operation === "diff" ? 2 : 3 }; }
+        if (!imageReceipt) return { exitCode: request.signal.aborted || cause instanceof CancellationError ? 130 : invocation.operation === "diff" ? 2 : 3 };
         const extraction = { ...imageReceipt, complete: false };
         if (request.signal.aborted || cause instanceof CancellationError) {
           const published = [...extraction.entries.filter(entry => entry.published).map(entry => ({ path: entry.path, bytes: entry.bytes })), ...(extraction.manifest.published ? [{ path: extraction.manifest.path, bytes: extraction.manifest.bytes }] : [])];
@@ -299,6 +299,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           if (diagnostic) {
             writingDiagnostics = true;
             await request.stderr.write(new TextEncoder().encode(diagnostic));
+            request.signal.throwIfAborted();
             writingDiagnostics = false;
           }
         }
@@ -316,12 +317,12 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           return { exitCode: error.code === "limit-exceeded" ? 4 : error.code === "conflict" ? 1 : 3, extraction: error.data };
         }
         if (["images.extract", "objects.extract"].includes(invocation.operation) && (error instanceof ImageExtractionCancellationError || error instanceof ObjectExtractionCancellationError)) throw error;
-        request.signal.throwIfAborted();
-        if (error instanceof CancellationError) throw error;
-        if (writingDiagnostics) return { exitCode: invocation.operation === "diff" ? 2 : 3 };
-        const code = error instanceof ResourceLimitError ? "limit-exceeded" : acquiring ? "source-failure" : error && typeof error === "object" && "code" in error ? String(error.code) : "invalid-document";
+        const cancelled = request.signal.aborted || error instanceof CancellationError;
+        if (writingDiagnostics) return { exitCode: cancelled ? 130 : invocation.operation === "diff" ? 2 : 3 };
+        const code = cancelled ? "cancelled" : error instanceof ResourceLimitError ? "limit-exceeded" : acquiring ? "source-failure" : error && typeof error === "object" && "code" in error ? String(error.code) : "invalid-document";
         exitCode = error instanceof ResourceLimitError ? 4 : code === "conflict" ? 1 : acquiring || error instanceof PublicationError || code === "source-failure" || code === "sink-failure" ? 3 : code === "usage" ? 2 : 1;
-        if (invocation.operation === "diff") exitCode = 2;
+        if (cancelled) exitCode = 130;
+        else if (invocation.operation === "diff") exitCode = 2;
         const diagnostic = commandDiagnostic(acquiring ? "Unable to read the declared document input." : error instanceof PublicationError && error.stdoutMayBePartial ? "Binary stdout may contain partial output." : error instanceof UnsupportedEmbeddedFontMutationError ? error.message : "Document operation failed: " + code, code, budget.limits.diagnosticBytes);
         const message = diagnostic.message;
         const batchFailure = invocation.operation === "batch" && error instanceof Error && "operationIndex" in error && "operationId" in error
@@ -337,6 +338,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       } finally { await io.cleanup(); }
       try { if (output.length) await request.stdout.write(output); }
       catch (cause) { return sinkFailure(cause); }
+      if (request.signal.aborted) return sinkFailure(request.signal.reason);
       return { exitCode, ...(archiveReceipt ? { extraction: archiveReceipt } : {}) };
     }
   }, { compressedInput: limits.maxArchiveBytes, expandedPackage: limits.maxTotalBytes, zipEntries: limits.maxMembers, retainedBytes: limits.maxRetainedBytes, xmlPartBytes: Math.min(limits.maxEntryBytes, documentLimitDefaults.xmlPartBytes), xmlDepth: Math.min(limits.maxDepth, documentLimitDefaults.xmlDepth), ...options.documentLimits });

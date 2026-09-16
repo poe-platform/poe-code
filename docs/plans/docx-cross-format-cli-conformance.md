@@ -141,3 +141,10 @@ names are QA findings, not product fixes or passes.
 Original reader/batch/schema cases and paired table-list cases pass. Final DOCX
 maintained suite: 4,930 tests across 218 files; scoped lint and build pass.
 Stage only table domain/SDK/batch/discovery and CLI integration for this commit.
+
+### Cancellation delivery
+
+Fulfilled usage stdout/stderr reproduced 2 instead of 130 before the last fix.
+The final ten focused cancellation cases and complete DOCX suite pass. Preserve
+typed image/archive extraction receipts; commit only ordinary cancellation paths
+and their original regression tests.

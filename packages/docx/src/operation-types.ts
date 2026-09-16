@@ -779,6 +779,7 @@ export interface DocxOperationArgumentMap {
   "model.table._Columns.__getitem__.get": Readonly<{ "index": number }>;
   "model.table._Columns.__iter__.call": Readonly<Record<string, never>>;
   "model.table._Columns.__len__.get": Readonly<Record<string, never>>;
+  "model.text.paragraph.Paragraph.element.get": Readonly<Record<string, never>>;
   "model.text.paragraph.Paragraph.part.get": Readonly<Record<string, never>>;
   "model.text.parfmt.ParagraphFormat.__eq__.call": Readonly<{ "other": unknown }>;
   "model.text.parfmt.ParagraphFormat.__ne__.call": Readonly<{ "other": unknown }>;
@@ -2302,6 +2303,7 @@ export interface DocxBatchArgumentMap {
   "model.table._Columns.__getitem__.get": Readonly<{ "index": number }>;
   "model.table._Columns.__iter__.call": Readonly<Record<string, never>>;
   "model.table._Columns.__len__.get": Readonly<Record<string, never>>;
+  "model.text.paragraph.Paragraph.element.get": Readonly<Record<string, never>>;
   "model.text.paragraph.Paragraph.part.get": Readonly<Record<string, never>>;
   "model.text.parfmt.ParagraphFormat.__eq__.call": Readonly<{ "other": unknown }>;
   "model.text.parfmt.ParagraphFormat.__ne__.call": Readonly<{ "other": unknown }>;
@@ -3807,6 +3809,7 @@ export interface DocxBatchItemMap {
   "model.table._Columns.__getitem__.get": { readonly operation: "model.table._Columns.__getitem__.get"; readonly arguments: DocxBatchArgumentMap["model.table._Columns.__getitem__.get"]; readonly receiver: DocxModelHandle<"_Columns">; readonly resultHandle?: string | undefined };
   "model.table._Columns.__iter__.call": { readonly operation: "model.table._Columns.__iter__.call"; readonly arguments: DocxBatchArgumentMap["model.table._Columns.__iter__.call"]; readonly receiver: DocxModelHandle<"_Columns">; readonly resultHandle?: string | undefined };
   "model.table._Columns.__len__.get": { readonly operation: "model.table._Columns.__len__.get"; readonly arguments: DocxBatchArgumentMap["model.table._Columns.__len__.get"]; readonly receiver: DocxModelHandle<"_Columns">; readonly resultHandle?: string | undefined };
+  "model.text.paragraph.Paragraph.element.get": { readonly operation: "model.text.paragraph.Paragraph.element.get"; readonly arguments: DocxBatchArgumentMap["model.text.paragraph.Paragraph.element.get"]; readonly receiver: DocxModelHandle<"Paragraph">; readonly resultHandle?: string | undefined };
   "model.text.paragraph.Paragraph.part.get": { readonly operation: "model.text.paragraph.Paragraph.part.get"; readonly arguments: DocxBatchArgumentMap["model.text.paragraph.Paragraph.part.get"]; readonly receiver: DocxModelHandle<"Paragraph">; readonly resultHandle?: string | undefined };
   "model.text.parfmt.ParagraphFormat.__eq__.call": { readonly operation: "model.text.parfmt.ParagraphFormat.__eq__.call"; readonly arguments: DocxBatchArgumentMap["model.text.parfmt.ParagraphFormat.__eq__.call"]; readonly receiver: DocxModelHandle<"ParagraphFormat">; readonly resultHandle?: string | undefined };
   "model.text.parfmt.ParagraphFormat.__ne__.call": { readonly operation: "model.text.parfmt.ParagraphFormat.__ne__.call"; readonly arguments: DocxBatchArgumentMap["model.text.parfmt.ParagraphFormat.__ne__.call"]; readonly receiver: DocxModelHandle<"ParagraphFormat">; readonly resultHandle?: string | undefined };

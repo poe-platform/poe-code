@@ -912,6 +912,7 @@ export type DocxOperationId =
   | "model.table._Columns.__getitem__.get"
   | "model.table._Columns.__iter__.call"
   | "model.table._Columns.__len__.get"
+  | "model.text.paragraph.Paragraph.element.get"
   | "model.text.paragraph.Paragraph.part.get"
   | "model.text.parfmt.ParagraphFormat.__eq__.call"
   | "model.text.parfmt.ParagraphFormat.__ne__.call"

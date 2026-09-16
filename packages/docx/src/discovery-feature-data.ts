@@ -235,6 +235,7 @@ export const declaredOperationFeatures: Readonly<Record<string, readonly string[
   "model.table._Columns.__getitem__.get": ["F19", "F20"],
   "model.table._Columns.__iter__.call": ["F19", "F20"],
   "model.table._Columns.__len__.get": ["F19", "F20"],
+  "model.text.paragraph.Paragraph.element.get": ["F04", "F05", "F07", "F08"],
   "model.text.paragraph.Paragraph.part.get": ["F08", "F13", "F15"],
   "model.text.hyperlink.Hyperlink.part.get": ["F21"],
   "model.text.run.Run.part.get": ["F08", "F12", "F32"],

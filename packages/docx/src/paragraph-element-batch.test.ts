@@ -1,0 +1,458 @@
+import { afterEach, expect, expectTypeOf, it, vi } from "vitest";
+import { Ajv } from "ajv";
+import { Volume } from "memfs";
+import {
+  Document,
+  Paragraph,
+  XmlElementView,
+  StaleHandleError,
+  applyStyleModelBatch,
+  createDocxInspectionCommandEngine,
+  getDocxDiscovery,
+  readArchive,
+  validateDocxBatch,
+  type DocxSchemaData,
+  type DocxBatchItemMap,
+  type DocxBatchArgumentMap,
+  type DocxOperationArguments
+} from "./index.js";
+import { DocxUsageError } from "./argument-json.js";
+import { docxOperationSchemas } from "./operation-schema.js";
+import { structureModelBatchActions } from "./structure-model-batch-operations.js";
+import { paragraph, table, textContext, textFixture, w } from "../tests/fixtures/text.js";
+
+const getter = "model.text.paragraph.Paragraph.element.get";
+const ref = (resultHandle: string, index?: number) =>
+  index === undefined ? { resultHandle } : { resultHandle, index };
+const select = [
+  {
+    operation: "model.document.Document.paragraphs.get",
+    receiver: ref("document"),
+    arguments: {},
+    resultHandle: "paragraphs"
+  },
+  { operation: getter, receiver: ref("paragraphs", 1), arguments: {}, resultHandle: "element" }
+];
+const read = [
+  ...select,
+  { operation: "model.XmlElementView.tag.get", receiver: ref("element"), arguments: {} },
+  { operation: "model.XmlElementView.serialize.call", receiver: ref("element"), arguments: {} }
+];
+const edit = [
+  ...select,
+  {
+    operation: "model.XmlElementView.set_attribute.call",
+    receiver: ref("element"),
+    arguments: { name: { namespaceURI: w, localName: "rsidR" }, value: "1234ABCD" }
+  },
+  { operation: "model.XmlElementView.attributes.get", receiver: ref("element"), arguments: {} }
+];
+
+afterEach(() => vi.restoreAllMocks());
+
+async function fixture() {
+  return textFixture(paragraph("Leave this berth") + paragraph("Inspect this buoy"));
+}
+
+async function cli(input: Uint8Array, args: string[]) {
+  const volume = Volume.fromJSON({
+    "/source.docx": Buffer.from(input),
+    "/stdout": "",
+    "/stderr": ""
+  });
+  const readFile = vi.fn(
+    async (path: string) => new Uint8Array(volume.readFileSync(path) as Buffer)
+  );
+  const stdin = vi.fn(() => {
+    throw new Error("Undeclared stdin access");
+  });
+  const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
+    args: args.map((arg) => new TextEncoder().encode(arg)),
+    cwd: "/",
+    signal: textContext.signal,
+    filesystem: { readFile },
+    stdin: { [Symbol.asyncIterator]: stdin },
+    stdout: {
+      async write(bytes) {
+        volume.appendFileSync("/stdout", bytes);
+      }
+    },
+    stderr: {
+      async write(bytes) {
+        volume.appendFileSync("/stderr", bytes);
+      }
+    }
+  });
+  expect(volume.readFileSync("/source.docx")).toEqual(Buffer.from(input));
+  expect(stdin).not.toHaveBeenCalled();
+  return { result, volume, readFile };
+}
+
+it("retains the public synchronous paragraph element and reads without creating parts or changing bytes", async () => {
+  const input = await fixture(),
+    doc = await Document(input, textContext);
+  expect(Object.getOwnPropertyDescriptor(Paragraph.prototype, "element")?.get).toBeTypeOf(
+    "function"
+  );
+  expectTypeOf<Paragraph["element"]>().toEqualTypeOf<XmlElementView>();
+  const before = doc.store.revision + doc.store.package.revision;
+  const element = doc.paragraphs[1]!.element;
+  expect(element).toBeInstanceOf(XmlElementView);
+  expect(element.tag).toEqual({ namespaceURI: w, localName: "p" });
+  expect(new TextDecoder().decode(element.serialize())).toContain("Inspect this buoy");
+  expect(element.children[0]!.tag).toEqual({ namespaceURI: w, localName: "r" });
+  expect(doc.store.revision + doc.store.package.revision).toBe(before);
+  const volume = Volume.fromJSON({ "/saved": "" });
+  await doc.save({
+    async write(bytes) {
+      volume.appendFileSync("/saved", bytes);
+    }
+  });
+  const saved = await readArchive(
+    new Uint8Array(volume.readFileSync("/saved") as Buffer),
+    textContext
+  );
+  const original = await readArchive(input, textContext);
+  expect(saved.members.map((member) => [member.name, member.bytes])).toEqual(
+    original.members.map((member) => [member.name, member.bytes])
+  );
+});
+
+it("dispatches the actual paragraph getter with existing receiver, foreign-reference and stale checks", async () => {
+  const doc = await Document(await fixture(), textContext),
+    other = await Document(await fixture(), textContext);
+  const action = structureModelBatchActions.get(getter);
+  expect(action).toBeTypeOf("function");
+  const spy = vi.spyOn(Paragraph.prototype, "element", "get");
+  expect(action!(doc.paragraphs[1], {})).toBe(doc.paragraphs[1]!.element);
+  expect(spy).toHaveBeenCalledTimes(2);
+  expect(() => action!({ element: doc.paragraphs[1]!.element }, {})).toThrow(DocxUsageError);
+  expect(() => action!(doc.paragraphs[1]!.runs[0], {})).toThrow(DocxUsageError);
+  expect(() => action!(new Paragraph(doc.store, other.paragraphs[1]!.ref), {})).toThrow(
+    StaleHandleError
+  );
+  const selected = doc.paragraphs[1]!,
+    element = selected.element;
+  element.remove();
+  expect(() => action!(selected, {})).toThrow(StaleHandleError);
+  expect(() => element.tag).toThrow(StaleHandleError);
+});
+
+it("discovers the exact read-only getter and a closed XmlElementView result handle", () => {
+  expectTypeOf<DocxBatchItemMap[typeof getter]["operation"]>().toEqualTypeOf<typeof getter>();
+  expectTypeOf<DocxBatchArgumentMap[typeof getter]>().toEqualTypeOf<
+    Readonly<Record<string, never>>
+  >();
+  expectTypeOf<DocxOperationArguments<typeof getter>>().toEqualTypeOf<
+    Readonly<Record<string, never>>
+  >();
+  const root = getDocxDiscovery({ operation: "schema", inputs: [], options: {} })!
+    .data as DocxSchemaData;
+  const declaration = root.operations.find((item) => item.id === getter);
+  expect(declaration).toMatchObject({
+    id: getter,
+    path: ["batch"],
+    support: "read",
+    featureIds: ["F04", "F05", "F07", "F08"]
+  });
+  expect(docxOperationSchemas[getter]).toMatchObject({
+    mutates: false,
+    receiver: "Paragraph",
+    valueType: "XmlElementView",
+    resultHandle: { allowed: true, type: "XmlElementView" },
+    batchFields: {}
+  });
+  const detail = getDocxDiscovery({
+    operation: "schema",
+    inputs: [],
+    options: { operation: getter }
+  })!.data as DocxSchemaData;
+  expect(detail.operations).toEqual([declaration]);
+  expect(
+    getDocxDiscovery({ operation: "help", inputs: [], options: { operation: getter } })!.human
+  ).toContain(getter);
+  const validate = new Ajv({ strict: false }).compile(declaration!.result);
+  const value = { id: "handle3", type: "XmlElementView", owner: "document", revision: 0 };
+  expect(validate({ operation: getter, value })).toBe(true);
+  for (const invalid of [
+    { ...value, type: "Paragraph" },
+    { ...value, owner: "batch" },
+    { ...value, revision: 1 },
+    { ...value, store: {} },
+    null,
+    "<w:p/>"
+  ]) {
+    expect(validate({ operation: getter, value: invalid })).toBe(false);
+  }
+  const batch = (
+    getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "batch" } })!
+      .data as DocxSchemaData
+  ).operations[0]!;
+  const variants = batch.result.oneOf![0]!.properties!.data!.properties!.results!.items!;
+  expect(
+    variants && variants.oneOf!.find((item) => item.properties?.operation?.const === getter)
+  ).toEqual(declaration!.result);
+});
+
+it.each([false, true])(
+  "executes the SDK getter and XML serialization without mutation (Strict=%s)",
+  async (strict) => {
+    const input = await textFixture(
+      paragraph("Leave this berth") + paragraph("Inspect this buoy"),
+      {},
+      strict
+    );
+    const original = input.slice();
+    const fetch = vi
+      .spyOn(globalThis, "fetch")
+      .mockRejectedValue(new Error("Ambient network forbidden"));
+    const applied = await applyStyleModelBatch(
+      input,
+      { version: 1, operations: read },
+      textContext
+    );
+    expect(applied.affected).toBe(0);
+    expect(applied.results[1]).toEqual({
+      operation: getter,
+      value: { id: "handle3", type: "XmlElementView", owner: "document", revision: 0 }
+    });
+    expect(applied.results[2]!.value).toEqual({
+      namespaceURI: strict ? "http://purl.oclc.org/ooxml/wordprocessingml/main" : w,
+      localName: "p"
+    });
+    const serialized = applied.results[3]!.value as { kind: string; base64: string };
+    expect(serialized.kind).toBe("bytes");
+    expect(Buffer.from(serialized.base64, "base64").toString()).toContain("Inspect this buoy");
+    expect(input).toEqual(original);
+    expect(fetch).not.toHaveBeenCalled();
+  }
+);
+
+it("persists an explicitly requested XML attribute edit through SDK save and reload", async () => {
+  const input = await fixture();
+  const applied = await applyStyleModelBatch(input, { version: 1, operations: edit }, textContext);
+  expect(applied.affected).toBe(1);
+  expect(applied.results.at(-1)!.value).toEqual([
+    { key: { namespaceURI: w, localName: "rsidR" }, value: "1234ABCD" }
+  ]);
+  const volume = Volume.fromJSON({ "/saved": "" });
+  await applied.save({
+    async write(bytes) {
+      volume.appendFileSync("/saved", bytes);
+    }
+  });
+  const doc = await Document(new Uint8Array(volume.readFileSync("/saved") as Buffer), textContext);
+  expect(doc.paragraphs.map((item) => item.text)).toEqual([
+    "Leave this berth",
+    "Inspect this buoy"
+  ]);
+  expect([...doc.paragraphs[0]!.element.attributes]).toEqual([]);
+  expect([...doc.paragraphs[1]!.element.attributes]).toEqual([
+    [{ namespaceURI: w, localName: "rsidR" }, "1234ABCD"]
+  ]);
+  const original = await readArchive(input, textContext),
+    saved = await readArchive(new Uint8Array(volume.readFileSync("/saved") as Buffer), textContext);
+  expect(
+    saved.members
+      .filter((item) => item.name !== "word/document.xml")
+      .map((item) => [item.name, item.bytes])
+  ).toEqual(
+    original.members
+      .filter((item) => item.name !== "word/document.xml")
+      .map((item) => [item.name, item.bytes])
+  );
+});
+
+it.each([
+  { operation: getter, receiver: ref("paragraphs", 1), arguments: {} },
+  { operation: "model.XmlElementView.tag.get", receiver: ref("element"), arguments: {} }
+])("rejects detached paragraph or XML handles in $operation", async (operation) => {
+  await expect(
+    applyStyleModelBatch(
+      await fixture(),
+      {
+        version: 1,
+        operations: [
+          ...select,
+          {
+            operation: "model.XmlElementView.remove.call",
+            receiver: ref("element"),
+            arguments: {}
+          },
+          operation
+        ]
+      },
+      textContext
+    )
+  ).rejects.toThrow(StaleHandleError);
+});
+
+it("rejects foreign batch handles even when IDs and reported owners coincide", async () => {
+  const input = await fixture();
+  const previous = await applyStyleModelBatch(input, { version: 1, operations: read }, textContext);
+  for (const operation of [
+    { operation: getter, receiver: (previous.results[0]!.value as unknown[])[1], arguments: {} },
+    {
+      operation: "model.XmlElementView.tag.get",
+      receiver: previous.results[1]!.value,
+      arguments: {}
+    }
+  ])
+    await expect(
+      applyStyleModelBatch(input, { version: 1, operations: [...select, operation] }, textContext)
+    ).rejects.toThrow(DocxUsageError);
+});
+
+it("retains required table-cell paragraph validation through the getter's XML view", async () => {
+  const operations = [
+    {
+      operation: "model.document.Document.tables.get",
+      receiver: ref("document"),
+      arguments: {},
+      resultHandle: "tables"
+    },
+    {
+      operation: "model.table.Table.cell.call",
+      receiver: ref("tables", 0),
+      arguments: { rowIdx: 0, colIdx: 0 },
+      resultHandle: "cell"
+    },
+    {
+      operation: "model.table._Cell.paragraphs.get",
+      receiver: ref("cell"),
+      arguments: {},
+      resultHandle: "paragraphs"
+    },
+    { operation: getter, receiver: ref("paragraphs", 0), arguments: {}, resultHandle: "element" },
+    { operation: "model.XmlElementView.remove.call", receiver: ref("element"), arguments: {} }
+  ];
+  const input = await textFixture(table([paragraph("Keep the required cell paragraph")]));
+  const run = await cli(input, [
+    "batch",
+    "/source.docx",
+    "--ops-json",
+    JSON.stringify({ version: 1, operations }),
+    "--output",
+    "-"
+  ]);
+  expect(run.result.exitCode).toBe(1);
+  expect(run.volume.readFileSync("/stdout").length).toBe(0);
+  expect(run.volume.readFileSync("/stderr", "utf8")).toContain("invalid-package");
+});
+
+it("executes actual CLI batch reads and operation help/schema with no undeclared I/O", async () => {
+  const input = await fixture();
+  const run = await cli(input, [
+    "batch",
+    "/source.docx",
+    "--ops-json",
+    JSON.stringify({ version: 1, operations: read }),
+    "--json"
+  ]);
+  expect(run.result.exitCode).toBe(0);
+  const envelope = JSON.parse(run.volume.readFileSync("/stdout", "utf8") as string);
+  expect(envelope).toMatchObject({ ok: true, affected: 0, data: { output: [], dryRun: false } });
+  expect(envelope.data.results).toEqual(
+    (await applyStyleModelBatch(input, { version: 1, operations: read }, textContext)).results
+  );
+  expect(run.readFile.mock.calls.map(([path]) => path)).toEqual(["/source.docx"]);
+  expect(run.volume.readFileSync("/stderr").length).toBe(0);
+  for (const command of ["help", "schema"]) {
+    const discovery = await cli(input, [command, "batch", "--operation", getter, "--json"]);
+    expect(discovery.result.exitCode).toBe(0);
+    expect(discovery.readFile).not.toHaveBeenCalled();
+    expect(discovery.volume.readFileSync("/stdout", "utf8")).toContain(getter);
+  }
+});
+
+it("requires explicit CLI publication and reloads the authorized edit while dry-run remains pure", async () => {
+  const input = await fixture(),
+    args = [
+      "batch",
+      "/source.docx",
+      "--ops-json",
+      JSON.stringify({ version: 1, operations: edit })
+    ];
+  const denied = await cli(input, [...args, "--json"]);
+  expect(denied.result.exitCode).toBe(2);
+  expect(denied.readFile).not.toHaveBeenCalled();
+  const dry = await cli(input, [...args, "--dry-run", "--json"]);
+  expect(dry.result.exitCode).toBe(0);
+  expect(JSON.parse(dry.volume.readFileSync("/stdout", "utf8") as string)).toMatchObject({
+    ok: true,
+    affected: 1,
+    data: { dryRun: true, output: [] }
+  });
+  const saved = await cli(input, [...args, "--output", "-"]);
+  expect(saved.result.exitCode).toBe(0);
+  const doc = await Document(
+    new Uint8Array(saved.volume.readFileSync("/stdout") as Buffer),
+    textContext
+  );
+  expect([...doc.paragraphs[1]!.element.attributes]).toEqual([
+    [{ namespaceURI: w, localName: "rsidR" }, "1234ABCD"]
+  ]);
+  expect(doc.paragraphs.map((item) => item.text)).toEqual([
+    "Leave this berth",
+    "Inspect this buoy"
+  ]);
+  const readPublication = await cli(input, [
+    "batch",
+    "/source.docx",
+    "--ops-json",
+    JSON.stringify({ version: 1, operations: read }),
+    "--output",
+    "-",
+    "--json"
+  ]);
+  expect(readPublication.result.exitCode).toBe(2);
+});
+
+it("rejects evaluation, dynamic property access and ambient paths before input acquisition", async () => {
+  const input = await fixture();
+  const fetch = vi
+    .spyOn(globalThis, "fetch")
+    .mockRejectedValue(new Error("Ambient network forbidden"));
+  for (const operation of [
+    { ...select[1], operation: "model.text.paragraph.Paragraph.constructor.call" },
+    { ...select[1], arguments: { evaluate: "globalThis.fetch('https://invalid.example')" } },
+    { ...select[1], arguments: { property: "store" } },
+    { ...select[1], arguments: { path: "/private/secret" } },
+    {
+      operation: "model.XmlElementView.xpath.call",
+      receiver: ref("element"),
+      arguments: { expression: "//*" }
+    }
+  ]) {
+    const operations = [...select, operation];
+    expect(() => validateDocxBatch({ version: 1, operations })).toThrow(DocxUsageError);
+    const run = await cli(input, [
+      "batch",
+      "/source.docx",
+      "--ops-json",
+      JSON.stringify({ version: 1, operations }),
+      "--json"
+    ]);
+    expect(run.result.exitCode).toBe(2);
+    expect(run.readFile).not.toHaveBeenCalled();
+    expect(JSON.parse(run.volume.readFileSync("/stdout", "utf8") as string)).toMatchObject({
+      ok: false,
+      affected: 0,
+      data: null
+    });
+  }
+  const evaluate = vi.fn(() => "ignored");
+  expect(() =>
+    validateDocxBatch({
+      version: 1,
+      operations: [
+        {
+          ...select[1],
+          arguments: Object.defineProperty({}, "value", { enumerable: true, get: evaluate })
+        }
+      ]
+    })
+  ).toThrow(DocxUsageError);
+  expect(evaluate).not.toHaveBeenCalled();
+  expect(fetch).not.toHaveBeenCalled();
+});

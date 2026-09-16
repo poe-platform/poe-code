@@ -1,14 +1,15 @@
-import { PDFDocument, rgb, PDFName, PDFString, type PDFFont, type PDFPage } from "pdf-lib";
+import { PDFDocument, rgb, PDFName, PDFDict, PDFHexString, type PDFFont, type PDFPage } from "pdf-lib";
 import fontkit, {type Font} from "@pdf-lib/fontkit";
 import {admitCharacterMaps, admitMetricTables} from "./font-admission.js";
 import {imageBox} from "./image-box.js";
 import type { LayoutDocument, Paragraph, PdfContext, PdfLimits, TextRun } from "./model.js";
 export type * from "./model.js";
 import {PdfError} from "./errors.js";
+import {pdfTextString} from "./text-string.js";
 import {serializePdf} from "./serialization.js";
 export {PdfError} from "./errors.js";
 export function pdfCapabilities() {
-  return {profile: "PDF-1.7-supplied-fonts-ltr", reference: "Adobe PDF Reference sixth edition, November 2006", scripts: ["Latin", "Greek", "Cyrillic"], images: ["png", "jpeg"], tables: "rectangular-unspanned", encryption: false, javascript: false, attachments: false} as const;
+  return {profile: "PDF-1.7-supplied-fonts-ltr", reference: "Adobe PDF Reference sixth edition, November 2006", scripts: ["Latin", "Greek", "Cyrillic"], images: ["png", "jpeg"], tables: "rectangular-unspanned", encryption: false, javascript: false, attachments: false, accessibility: {tagged: false, readingOrder: "not-guaranteed", pdfUA: false}, conformance: {pdfA: false}, text: {unicodeMapping: "supported-scalars", extraction: "not-guaranteed", searchable: "not-guaranteed"}} as const;
 }
 export const defaultPdfLimits: Readonly<PdfLimits> = Object.freeze({fontBytes: 4_000_000, fonts: 8, glyphs: 100_000, pages: 200, objects: 100_000, images: 100, imageBytes: 8_000_000, decodedImageBytes: 32_000_000, layoutWork: 500_000, outputBytes: 16_000_000});
 function unsupported(message: string): never { throw new PdfError("E_CAPABILITY", message); }
@@ -54,7 +55,21 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
     if (!tags.has(0x636d6170)) unsupported("Missing font character map");
     admitMetricTables(view, tables, unsupported, amount => charge("layoutWork", amount));
   }
-  const pdf = await PDFDocument.create(); pdf.registerFontkit(fontkit);
+  const pdf = await PDFDocument.create({updateMetadata: false}); pdf.registerFontkit(fontkit);
+  const textString = (text: string) => pdfTextString(text, limits.outputBytes, amount => charge("layoutWork", amount));
+  charge("objects", 2); // catalog and page-tree root created by pdf-lib
+  const info = pdf.context.obj({Producer: textString("poe-code PDF"), Creator: textString("poe-code PDF")});
+  for (const [key, field] of [["title", "Title"], ["author", "Author"], ["subject", "Subject"]] as const) {
+    const value = document.metadata?.[key]; if (value !== undefined) info.set(PDFName.of(field), textString(value));
+  }
+  if (document.metadata?.keywords) {
+    const length = document.metadata.keywords.reduce((sum, word) => sum + word.length + 1, 0);
+    charge("layoutWork", length);
+    if (!Number.isSafeInteger(length) || length > limits.outputBytes / 4) throw new PdfError("E_LIMIT", "PDF keywords exceed output budget");
+    info.set(PDFName.of("Keywords"), textString(document.metadata.keywords.join(" ")));
+  }
+  charge("objects", 1); pdf.context.trailerInfo.Info = pdf.context.register(info);
+  const outlines: {title: PDFHexString; page: PDFPage; y: number}[] = [];
   const fonts = new Map<string, PDFFont>();
   const parsedFonts = new Map<PDFFont, Font>();
   try {
@@ -119,7 +134,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
     for (const g of line.glyphs) {
       charge("objects", 1); charge("layoutWork", 1);
       page.drawText(g.text, {x, y: box.height - baselineTop - line.ascent, size: g.size, font: g.font});
-      if (g.link) { charge("objects", 1); const ref = pdf.context.register(pdf.context.obj({Type: "Annot", Subtype: "Link", Rect: [x, box.height - baselineTop - line.height, x + g.width, box.height - baselineTop], Border: [0, 0, 0], A: {Type: "Action", S: "URI", URI: PDFString.of(g.link)}})); page.node.addAnnot(ref); }
+      if (g.link) { charge("objects", 1); const ref = pdf.context.register(pdf.context.obj({Type: "Annot", Subtype: "Link", Rect: [x, box.height - baselineTop - line.height, x + g.width, box.height - baselineTop], Border: [0, 0, 0], A: {Type: "Action", S: "URI", URI: textString(g.link)}})); page.node.addAnnot(ref); }
       x += g.width;
     }
   };
@@ -164,6 +179,10 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
           if (count < orphans && top > box.margin) count = 0;
         }
         if (!count) { if (top > box.margin) {newPage(); continue;} room(prepared[cursor]!.height); count = 1; }
+        if (cursor === 0 && block.outline !== undefined) {
+          charge("objects", outlines.length ? 1 : 2);
+          outlines.push({title: textString(block.outline), page: page!, y: box.height - top});
+        }
         for (let i = 0; i < count; i++) {const line = prepared[cursor++]!; draw(line, box.margin + indent, top); top += line.height;}
         if (cursor < prepared.length) newPage();
         await cooperate();
@@ -243,6 +262,17 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
     await cooperate();
   }
   check();
+  if (outlines.length) {
+    const root = pdf.context.obj({Type: "Outlines", Count: outlines.length}); const rootRef = pdf.context.register(root);
+    const entries: PDFDict[] = outlines.map(entry => pdf.context.obj({Title: entry.title, Parent: rootRef, Dest: [entry.page.ref, "XYZ", null, entry.y, null]}));
+    const refs = entries.map(entry => pdf.context.register(entry));
+    for (let i = 0; i < entries.length; i++) {
+      if (i > 0) entries[i]!.set(PDFName.of("Prev"), refs[i - 1]!);
+      if (i + 1 < entries.length) entries[i]!.set(PDFName.of("Next"), refs[i + 1]!);
+    }
+    root.set(PDFName.of("First"), refs[0]!); root.set(PDFName.of("Last"), refs[refs.length - 1]!);
+    pdf.catalog.set(PDFName.of("Outlines"), rootRef);
+  }
   // Uncompressed object syntax makes the restricted profile independently inspectable.
   await pdf.flush(); check();
   const bytes = await serializePdf(pdf.context, {outputBytes: limits.outputBytes, objects: limits.objects, reserveOutput: amount => charge("outputBytes", amount), work: () => charge("layoutWork", 1), cooperate}); check();

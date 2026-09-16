@@ -19,4 +19,6 @@ Preserve unrelated changes; local atomic commits only.
 
 Status: checked serialization implemented; original expected-object and malformed
 graph tests pass (26 PDF tests). PDF package lint/typecheck and maintained
-selected workspace build pass. Metadata, outlines, integration and QA pending.
+selected workspace build pass. Deterministic Unicode metadata, flat page-linked outlines and escaped URI
+strings implemented; explicit untagged/non-conformance capabilities. All 32 PDF
+tests, lint/typecheck and selected workspace build pass. Integration and QA pending.

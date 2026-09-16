@@ -130,7 +130,7 @@ class RtfWriter {
     this.add(`\\li${state.indent}\\fi${state.marker ? -360 : 0}\\${state.direction}par`);
     if(state.cell) this.add(`\\intbl\\${alignments[state.cell]}`);
     if(attr) this.attrs(attr, true);
-    if(state.marker && state.list) this.add(`\\ls${state.list.id}\\ilvl${state.list.level}`);
+    if(state.marker && state.list) this.add(`\\tx${state.indent}\\ls${state.list.id}\\ilvl${state.list.level}`);
     this.add(" ");
     if(state.marker) {
       this.add("{\\listtext "); this.text(state.marker); this.add("\\tab}");

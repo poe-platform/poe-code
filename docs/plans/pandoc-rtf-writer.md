@@ -45,3 +45,43 @@ JPEG scan extension: independently authored progressive DC/AC scans failed on
 the baseline-only marker check, then passed after bounded multi-scan and restart
 marker traversal was implemented. All 839 package tests, lint and selected build
 passed. No native runtime converter fallback was introduced.
+
+Final local code checks: 20 original writer cases, 841 package tests, lint and
+selected build passed. Added explicit list tab stops after a failing control
+expectation and covered invalid font declarations, merged/nested table rejection
+and excess list depth. Code is implemented; external picture/table acceptance
+is still incomplete. No push or release is authorized.
+
+## External application QA procedure
+
+1. Build the selected pandoc workspace using its maintained route.
+2. Load docs/pandoc/rtf-writer-application.json in an adhoc SDK invocation,
+   reconstruct each resource byte array as Uint8Array and write the entire
+   document with to=rtf into docs/pandoc/rtf-writer-application.rtf. Do not use
+   the local RTF reader to generate expected results or to qualify output.
+3. Run `textutil -convert txt -stdout` on that file for independent text
+   inspection. Check escaped braces/backslash, café, emoji, Hebrew, labels 3)
+   and 4), bullet and continuation, cell strings and final paragraph.
+4. Run `qlmanage -t -s 1400 -o docs/pandoc` on the RTF and inspect the produced
+   image. This lane is incomplete for pictures/tables: macOS omits pict data,
+   flattens cells and shows tight list-marker spacing. Do not count those
+   behaviors as successful interoperability.
+5. Independently open the RTF in LibreOffice Writer. The attempted headless lane
+   is `soffice --headless --convert-to pdf --outdir docs/pandoc` with the RTF
+   operand. If launching succeeds, render/export the resulting PDF for visual
+   inspection; keep the PDF and screenshot under docs/pandoc.
+6. Verify heading size, nested bold/italic and normal resets, super/sub, bidi
+   ordering, red/default runs, hyperlink target, numbered and nested list
+   indentation, simultaneous two-column/two-row table layout, and both colored
+   PNG/JPEG gradient pictures. Check the final paragraph resets to plain.
+7. Exercise the SDK with invalid picture/object/font resource data and a low
+   output/expansion budget. Confirm no output publication on rejection.
+8. Fix any writer issue only after adding a failing independently authored test;
+   rerun maintained scoped checks. Update evidence and acceptance status in
+   docs/pandoc/rtf-writer.md. Do not certify the full lane until step 6 succeeds.
+
+Observed blocker: TextEdit Apple events/interactive Quick Look did not produce
+a window. LibreOffice's headless import and version requests stalled at dyld
+startup, despite spctl accepting its Developer ID. No PDF was obtained. The
+Quick Look screenshot is independent rendering evidence with explicit gaps,
+not full external application acceptance. No security controls were changed.

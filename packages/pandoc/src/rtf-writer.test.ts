@@ -37,6 +37,11 @@ it("sorts explicit font references and colors deterministically without embeddin
   expect(await rtf([p(span)], doc)).toBe(text);
   await expect(rtf([p(span)])).rejects.toMatchObject({code: "E_RESOURCE"});
 });
+it("rejects invalid font declarations and bounds explicit font references", async () => {
+  for(const name of ["", "A;B", "A\\B", "{font}", "A\nB"])
+    await expect(rtf([], {metadata: {"rtf-fonts": {t: "MetaList", c: [{t: "MetaString", c: name}]}}})).rejects.toMatchObject({code: "E_OPTION"});
+  await expect(rtf([], {metadata: {"rtf-fonts": {t: "MetaList", c: [{t: "MetaString", c: "Reference"}]}}}, {limits: {fonts: 0}})).rejects.toMatchObject({code: "E_LIMIT"});
+});
 it("writes safe hyperlink fields and rejects active field injection", async () => {
   expect(await rtf([p({t: "Link", c: [a, [s("web")], ["https://example.test/a", ""]]})]))
     .toContain('{\\field{\\*\\fldinst HYPERLINK "https://example.test/a"}{\\fldrslt web}}');
@@ -46,8 +51,8 @@ it("writes safe hyperlink fields and rejects active field injection", async () =
 it("keeps nested list numbering and continuation paragraphs at their own indentation", async () => {
   const text = await rtf([{t: "OrderedList", c: [[3, "Decimal", "OneParen"], [[p(s("outer")),
     {t: "BulletList", c: [[p(s("inner"))]]}, p(s("continued"))], [p(s("last"))]]]}]);
-  expect(text).toContain("\\li360\\fi-360\\ltrpar\\ls1\\ilvl0 {\\listtext 3)\\tab}");
-  expect(text).toContain("\\li720\\fi-360\\ltrpar\\ls2\\ilvl1 {\\listtext \\u8226 ?\\tab}");
+  expect(text).toContain("\\li360\\fi-360\\ltrpar\\tx360\\ls1\\ilvl0 {\\listtext 3)\\tab}");
+  expect(text).toContain("\\li720\\fi-360\\ltrpar\\tx720\\ls2\\ilvl1 {\\listtext \\u8226 ?\\tab}");
   expect(text).toContain("\\li360\\fi0\\ltrpar continued");
   expect(text).toContain("{\\listtext 4)\\tab}");
 });
@@ -150,6 +155,15 @@ it("validates progressive JPEG scan sequences with separately authored DC and AC
   expect(await rtf([p(image("progressive"))], {resources: [{id: "progressive", bytes}]})).toContain("\\jpegblip\\picw1\\pich1");
   const broken = bytes.slice(); broken[broken.length - 3] = 0xff;
   await expect(rtf([p(image("progressive"))], {resources: [{id: "progressive", bytes: broken}]})).rejects.toMatchObject({code: "E_RESOURCE"});
+});
+it("rejects merged/nested tables and list levels beyond the supported RTF profile", async () => {
+  const table = (blocks: readonly Block[], span = 1): Block => ({t: "Table", c: [a,[null,[]],Array.from({length: span}, () => ["AlignLeft",{t:"ColWidthDefault"}] as const),
+    [a,[]],[[a,0,[],[[a,[[a,"AlignDefault",1,span,blocks]]]]]],[a,[]]]});
+  await expect(rtf([table([p(s("x"))],2)])).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(rtf([table([table([p(s("x"))])])])).rejects.toMatchObject({code: "E_CAPABILITY"});
+  let nested: Block = p(s("x"));
+  for(let i = 0; i < 10; i++) nested = {t: "BulletList", c: [[p(s("item")),nested]]};
+  await expect(rtf([nested])).rejects.toMatchObject({code: "E_CAPABILITY"});
 });
 it("accepts the exact ASCII output-byte limit and balances syntax independently of the reader", async () => {
   const blocks = [p(s("\\{}😀"), {t: "Superscript", c: [s("1")]}, {t: "Subscript", c: [s("2")]}, image("x"))];

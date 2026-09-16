@@ -1,10 +1,10 @@
 import { readCommonMark } from "../commonmark.js";
 import type { FormatDescriptor } from "../formats.js";
-import { writeGfm } from "../table-writers.js";
+import { writeMarkdown } from "../markdown-writer.js";
 export default {
   name: "gfm",
   reader: { format: "gfm", read: readCommonMark },
-  writer: { format: "gfm", write: writeGfm },
+  writer: { format: "gfm", write: writeMarkdown },
   read: true,
   write: true,
   media: "text",
@@ -19,6 +19,6 @@ export default {
   },
   options: {
     read: [],
-    write: ["wrap", "columns"]
+    write: ["wrap"]
   }
 } satisfies FormatDescriptor;

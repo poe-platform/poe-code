@@ -194,11 +194,11 @@ describe("CommonMark 0.31.2 original block structures", () => {
   ])("bounds %s", async (_name, input, limits) => {
     await expect(parseCommonMarkBlocks(input, createExecutionContext("read", { limits, yield: async () => {} }))).rejects.toMatchObject({ code: "E_LIMIT" });
   });
-  it("checks cancellation and keeps CommonMark writing unavailable", async () => {
+  it("checks cancellation and exposes the CommonMark writer", async () => {
     const controller = new AbortController();
     const context = createExecutionContext("read", { signal: controller.signal });
     controller.abort();
     await expect(parseCommonMarkBlocks("hello", context)).rejects.toMatchObject({ code: "E_CANCELLED" });
-    expect(createFormatRegistry().list("write")).not.toContain("commonmark");
+    expect(createFormatRegistry().list("write")).toContain("commonmark");
   });
 });

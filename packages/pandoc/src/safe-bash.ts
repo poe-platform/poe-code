@@ -17,9 +17,9 @@ export interface PandocCommandContext extends FormatInspectionContext {
 }
 
 function conversionArgs(args: readonly string[]): ConversionOptions {
-  const options: { from?: string; to?: string; lossy?: boolean; standalone?: boolean; rawContent?: "reject" | "escape" | "retain" } = {};
+  const options: { from?: string; to?: string; wrap?: "none"; lossy?: boolean; standalone?: boolean; rawContent?: "reject" | "escape" | "retain" } = {};
   const metadata: Record<string, MetaValue> = Object.create(null) as Record<string, MetaValue>;
-  const names = new Map([["-f", "from"], ["--from", "from"], ["-t", "to"], ["--to", "to"], ["--raw-content", "rawContent"]] as const);
+  const names = new Map([["-f", "from"], ["--from", "from"], ["-t", "to"], ["--to", "to"], ["--raw-content", "rawContent"], ["--wrap", "wrap"]] as const);
   const fail = (): never => {throw new PandocError("E_OPTION", "convert", "Use -f FORMAT -t FORMAT [--lossy] [-s|--standalone] [-M KEY=VALUE] [--raw-content=reject|escape|retain] with byte stdin; files, templates, variables, styles and includes are unsupported");};
   for(let i = 0; i < args.length; i++) {
     const arg = args[i]!;
@@ -37,11 +37,12 @@ function conversionArgs(args: readonly string[]): ConversionOptions {
     }
     const equals = arg.indexOf("=");
     const name = equals < 0 ? arg : arg.slice(0, equals);
-    const key = names.get(name as "-f" | "--from" | "-t" | "--to" | "--raw-content");
+    const key = names.get(name as "-f" | "--from" | "-t" | "--to" | "--raw-content" | "--wrap");
     if(!key || options[key] !== undefined) return fail();
     const value = equals < 0 ? args[++i] : arg.slice(equals + 1);
     if(!value || value.startsWith("-")) return fail();
-    if(key === "rawContent") {if(value !== "reject" && value !== "escape" && value !== "retain") fail(); options.rawContent = value as "reject" | "escape" | "retain";}
+    if(key === "wrap") {if(value !== "none") fail(); options.wrap = "none";}
+    else if(key === "rawContent") {if(value !== "reject" && value !== "escape" && value !== "retain") fail(); options.rawContent = value as "reject" | "escape" | "retain";}
     else options[key] = value;
   }
   if(!options.from || !options.to) return fail();

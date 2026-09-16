@@ -1,8 +1,10 @@
 import type { FormatDescriptor } from "../formats.js";
 import { commonmarkReader } from "../commonmark.js";
+import { writeMarkdown } from "../markdown-writer.js";
 export default {
   name: "commonmark",
   reader: commonmarkReader,
+  writer: {format: "commonmark", write: writeMarkdown},
   read: true,
   write: true,
   media: "text",
@@ -11,6 +13,6 @@ export default {
   extensions: {},
   options: {
     read: [],
-    write: ["wrap", "columns"]
+    write: ["wrap"]
   }
 } satisfies FormatDescriptor;

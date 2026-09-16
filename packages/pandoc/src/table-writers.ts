@@ -4,13 +4,15 @@ import type { FormatSelection } from "./formats.js";
 import { PandocError } from "./errors.js";
 import { placeRows, type Table } from "./tables.js";
 
+type CellWriter = (nodes: readonly Inline[], path: string) => string;
+
 const delimiters: Record<Alignment, string> = {AlignLeft: ":---", AlignRight: "---:", AlignCenter: ":---:", AlignDefault: "---"};
 
 /** Every retained fragment is reserved before concatenation or array growth. */
 class Projection {
   private readonly chunks: string[] = [];
   private length = 0;
-  constructor(readonly context: AdapterContext, readonly format: string) {}
+  constructor(readonly context: AdapterContext, readonly format: string, readonly cellWriter?: CellWriter) {}
   add(text: string): void {
     this.context.checkpoint(text.length + 1);
     this.context.bound("outputBytes", this.length + text.length);
@@ -46,7 +48,7 @@ class Projection {
     if (attr[0] || attr[1].length || attr[2].length) this.loss(path, "Flattened table attributes");
   }
   textProjection(render: (text: Projection) => void, html: boolean): void {
-    const text = new Projection(this.context, this.format);
+    const text = new Projection(this.context, this.format, this.cellWriter);
     render(text);
     const value = text.finish();
     if(value.kind === "text") this.escaped(value.text, html);
@@ -91,6 +93,7 @@ function textBlocks(nodes: readonly Block[], out: Projection): void {
   }
 }
 function inline(nodes: readonly Inline[], out: Projection, path: string, html: boolean): void {
+  if(!html && out.cellWriter) {out.add(out.cellWriter(nodes, path)); return;}
   for (const [i, node] of nodes.entries()) {
     const p = `${path}[${i}]`;
     switch (node.t) {
@@ -175,7 +178,7 @@ async function gfmTable(t: Table, out: Projection, p: string): Promise<void> {
   const columns = t.c[2].length;
   if(!columns) throw new PandocError("E_CAPABILITY", out.context.operation ?? "write", "GFM requires at least one column", "gfm", p);
   out.attributeLoss(t.c[0], `${p}.c[0]`);
-  if(t.c[1][0]?.length || t.c[1][1].length) {out.loss(`${p}.c[1]`, "Flattened table caption"); const text = new Projection(out.context, out.format); textBlocks(t.c[1][1], text); if(t.c[1][0]?.length && !t.c[1][1].length) textInlines(t.c[1][0], text); const value = text.finish(); if(value.kind === "text") out.escaped(value.text, false); out.add("\n\n");}
+  if(t.c[1][0]?.length || t.c[1][1].length) {out.loss(`${p}.c[1]`, "Flattened table caption"); const text = new Projection(out.context, out.format, out.cellWriter); textBlocks(t.c[1][1], text); if(t.c[1][0]?.length && !t.c[1][1].length) textInlines(t.c[1][0], text); const value = text.finish(); if(value.kind === "text") out.escaped(value.text, false); out.add("\n\n");}
   for(const [i, col] of t.c[2].entries()) if(col[1].t !== "ColWidthDefault") out.loss(`${p}.c[2][${i}][1]`, "Flattened column width");
   out.attributeLoss(t.c[3][0], `${p}.c[3][0]`);
   if(t.c[3][1].length !== 1) out.loss(`${p}.c[3][1]`, "Flattened table header to a single row");
@@ -192,7 +195,7 @@ async function gfmTable(t: Table, out: Projection, p: string): Promise<void> {
     for(const [i, row] of rows.entries()) out.attributeLoss(row[0], `${path}[${i}][0]`);
   // Serialize the whole head first to keep rowspan coordinates valid, then insert
   // the separator after its first physical row. No rectangular array is needed.
-  const head = new Projection(out.context, out.format);
+  const head = new Projection(out.context, out.format, out.cellWriter);
   if(t.c[3][1].length) await rectangularRows(t.c[3][1], head, columns, `${p}.c[3][1]`);
   else {out.context.charge("tableCells", columns); head.add("| "); for(let i = 0; i < columns; i++) head.add(i + 1 === columns ? " |" : " | "); head.add("\n");}
   const serialized = head.finish();
@@ -229,8 +232,8 @@ function checkPlainNotes(value: unknown, path: string, out: Projection): void {
   if(Array.isArray(value)) for(const [i, child] of value.entries()) checkPlainNotes(child, `${path}[${i}]`, out);
   else for(const [key, child] of Object.entries(value)) checkPlainNotes(child, `${path}.${key}`, out);
 }
-export async function writeGfm(document: Document, context: AdapterContext, selection?: FormatSelection): Promise<SerializedDocument> {
-  const out = new Projection(context, "gfm");
+export async function writeGfm(document: Document, context: AdapterContext, selection?: FormatSelection, cellWriter?: CellWriter): Promise<SerializedDocument> {
+  const out = new Projection(context, "gfm", cellWriter);
   for(const [i, node] of document.blocks.entries()) {
     await context.cooperate();
     if(node.t === "Table") {

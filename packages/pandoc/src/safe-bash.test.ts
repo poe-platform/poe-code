@@ -44,7 +44,7 @@ it("rejects missing, duplicate, unknown and file arguments before acquiring stdi
 it("preserves inspection, honors cancellation and awaits diagnostic/content byte sinks", async () => {
   const ctx = context(["--list-output-formats"]);
   expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
-  expect(text(ctx.stdout)).toBe("gfm\nhtml\nhtml5\njson\nplain\n");
+  expect(text(ctx.stdout)).toBe("commonmark\ngfm\nhtml\nhtml5\njson\nplain\n");
   const controller = new AbortController(); controller.abort();
   await expect(createPandocCommand().execute({...context(["-f", "csv", "-t", "gfm"]), signal: controller.signal})).rejects.toThrow();
   const failing = context(["-f", "csv", "-t", "gfm"]);
@@ -75,5 +75,14 @@ it("rejects templates and malformed metadata/options before reading stdin", asyn
     const next = vi.fn(async () => ({done: true as const, value: undefined}));
     expect(await createPandocCommand().execute({...ctx, stdin: {[Symbol.asyncIterator]: () => ({next})}})).toEqual({exitCode: 2});
     expect(next).not.toHaveBeenCalled(); expect(text(ctx.stdout)).toBe(""); expect(text(ctx.stderr)).toContain("E_OPTION:");
+  }
+});
+it("shares Markdown wrap none validation with the SDK", async () => {
+  const ctx = context(["-f", "commonmark", "-t", "commonmark", "--wrap=none"], "hi\nthere\n");
+  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(text(ctx.stdout)).toBe("hi\nthere\n");
+  for(const wrap of ["auto", "preserve"]) {
+    const rejected = context(["-f", "commonmark", "-t", "gfm", `--wrap=${wrap}`], "hi");
+    expect(await createPandocCommand().execute(rejected)).toEqual({exitCode: 2}); expect(text(rejected.stdout)).toBe("");
   }
 });

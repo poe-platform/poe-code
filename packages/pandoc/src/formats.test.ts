@@ -38,7 +38,7 @@ describe("declarative format registry", () => {
       reader: { format: "docx", read }
     });
     expect(registry.list("read")).toEqual(["commonmark", "csv", "docx", "gfm", "html", "json", "tsv"]);
-    expect(registry.list("write")).toEqual(["gfm", "html", "html5", "json", "plain"]);
+    expect(registry.list("write")).toEqual(["commonmark", "gfm", "html", "html5", "json", "plain"]);
     expect(registry.infer("file.md", "read")).toBe("commonmark");
     expect(registry.infer("file.html", "write")).toBe("html5");
     expect(() => registry.infer("file.txt", "read")).toThrowError();
@@ -69,6 +69,7 @@ describe("declarative format registry", () => {
       {
         ...format,
         name: "custom",
+        writer: {format: "custom", write: async () => ({kind: "text", text: ""})},
         suffixes: ["custom"],
         reader: { format: "custom", read: async () => document }
       }

@@ -91,6 +91,7 @@ export interface ReadOptions {
   readonly from: string;
 }
 export interface WriteOptions {
+  readonly wrap?: "none";
   readonly to: string;
   readonly standalone?: boolean;
   readonly metadata?: Readonly<Record<string, MetaValue>>;

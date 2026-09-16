@@ -103,11 +103,10 @@ it("applies column alignment to default-aligned HTML cells", async () => {
   expect(elements(dom, "td").map(n => n.attrs)).toEqual([
     [{name: "style", value: "text-align:left"}], [{name: "style", value: "text-align:right"}]]);
 });
-it("rejects unsupported rich GFM inlines strictly and escapes their explicit text projection", async () => {
+it("preserves supported rich GFM inlines and their significant spaces", async () => {
   const rich: Cell = [a, "AlignDefault", 1, 1, [{t: "Plain", c: [{t: "Strong", c: [{t: "Str", c: " | bold "}]}]}]];
   const d = doc([r(rich, c("end"))]);
-  await expect(output(d, "gfm")).rejects.toMatchObject({code: "E_CAPABILITY"});
-  expect(await output(d, "gfm", true)).toMatchObject({text: "| H1 | H2 |\n| :--- | ---: |\n|  \\| bold  | end |\n"});
+  expect(await output(d, "gfm")).toMatchObject({text: "| H1 | H2 |\n| :--- | ---: |\n| **&#32;\\| bold&#32;** | end |\n", diagnostics: []});
 });
 it("bounded generated spans preserve text exactly once in HTML and lossy GFM", async () => {
   for(let seed = 1; seed <= 12; seed++) {

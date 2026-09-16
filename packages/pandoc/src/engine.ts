@@ -23,9 +23,10 @@ class Session extends ExecutionContext {
   metadata: WriteOptions["metadata"];
   options(options: ReadOptions | WriteOptions | ConversionOptions): void {
     const allowed =
-      this.operation === "read" ? ["from"] : this.operation === "write" ? ["to", "lossy", "standalone", "metadata", "rawContent"] : ["from", "to", "lossy", "standalone", "metadata", "rawContent"];
+      this.operation === "read" ? ["from"] : this.operation === "write" ? ["to", "wrap", "lossy", "standalone", "metadata", "rawContent"] : ["from", "to", "wrap", "lossy", "standalone", "metadata", "rawContent"];
     if (Object.keys(options).some((key) => !allowed.includes(key)))
       this.fail("E_OPTION", "Unknown or inapplicable option");
+    if ("wrap" in options && options.wrap !== "none") this.fail("E_OPTION", "Only wrap none is supported");
     if ("lossy" in options && typeof options.lossy !== "boolean") this.fail("E_OPTION", "lossy must be boolean");
     this.lossy = "lossy" in options && options.lossy === true;
     if ("to" in options) {

@@ -190,6 +190,12 @@ test("built owned numbering creation agrees across the public SDK and explicit s
     const loaded = await sdk.Document(output, context());
     assert.equal(loaded.part.numbering_part.numbering_definitions.length, 0);
     assert.deepEqual(loaded.part.numbering_part.blob, part.blob);
+    const reused = await shell.exec("docx batch numbered.docx --ops-file numbering.json -o - > reused.docx");
+    assert.equal(reused.exitCode, 0, reused.stderr);
+    const reusedBytes = new Uint8Array(volume.readFileSync("/work/reused.docx") as Uint8Array);
+    const reopened = await rootSdk.Document(reusedBytes, context());
+    assert.deepEqual(reopened.part.numbering_part.blob, part.blob);
+    assert.deepEqual(reusedBytes, output);
     assert.deepEqual(new Uint8Array(volume.readFileSync("/work/source.docx") as Uint8Array), input);
   } finally { await shell.dispose(); }
 });

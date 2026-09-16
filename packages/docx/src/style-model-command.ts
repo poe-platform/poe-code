@@ -28,7 +28,8 @@ export async function executeStyleModelCommand(invocation: DocxInvocation, bytes
     } }
   });
   const output = options.output === undefined ? undefined : options.output === "-" ? "-" : resolvePath(request.cwd, options.output as string);
-  if (model.affected && (options.inPlace || output !== undefined && output !== "-") && invocation.inputs[0] !== "-" && !input)
+  const publishes = model.affected > 0 || output !== undefined || options.inPlace === true;
+  if (publishes && (options.inPlace || output !== undefined && output !== "-") && invocation.inputs[0] !== "-" && !input)
     throw new PublicationError("unsupported-publication", "File publication requires admitted input identity.");
   const warnings = model.warnings.map(warning => ({ code: warning.code, message: "Style ID lookup is deprecated; use a style name." }));
   const budget = archiveSettings(context).budget;
@@ -38,8 +39,8 @@ export async function executeStyleModelCommand(invocation: DocxInvocation, bytes
   const publication: PublicationOptions = { ...(input ? { input } : {}), ...(output === undefined ? {} : { output }),
     ...(options.inPlace === undefined ? {} : { inPlace: options.inPlace as boolean }), ...(options.force === undefined ? {} : { force: options.force as boolean }),
     ...(options.dryRun === undefined ? {} : { dryRun: options.dryRun as boolean }), ...(options.json === undefined ? {} : { json: options.json as boolean }) };
-  const published = model.affected ? await model.publish(publication, { ...context, encoding: { order: "input", compression: "store" }, filesystem: request.filesystem as FileSystem, stdout: request.stdout }) : null;
-  if (model.affected && output === "-" && !options.dryRun) return new Uint8Array();
+  const published = publishes ? await model.publish(publication, { ...context, encoding: { order: "input", compression: "store" }, filesystem: request.filesystem as FileSystem, stdout: request.stdout }) : null;
+  if (publishes && output === "-" && !options.dryRun) return new Uint8Array();
   const data = { results: model.results, dryRun: options.dryRun === true, output: published?.published ?? [] };
   return new TextEncoder().encode(options.json ? JSON.stringify({ version: 1, operation: "batch", ok: true, data, warnings, errors: [], affected: model.affected, locations: [] }) + "\n"
     : `docx batch: ${options.dryRun ? "dry-run; " : ""}${model.results.length} operations; ${model.affected} changes\n`);

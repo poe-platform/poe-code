@@ -22,5 +22,14 @@ maintained package tests, lint (including source/test typechecks), and the
 selected workspace build. Original corpus/DOM/byte coverage and the upstream
 Writers.HTML mapping are recorded in docs/pandoc/html-writer.md.
 
-CLI milestone implementation is awaiting its own local commit and evidence.
-No push or release authorized.
+CLI milestone verified: two original parity/option tests first failed against
+the old byte adapter, then passed with the new argument mapping. Template and
+malformed-option tests confirm rejection before stdin acquisition. Evidence is
+in docs/pandoc/html-writer-cli.md. Both milestones are complete locally.
+
+Final checks: `npm test --workspace=@poe-code/pandoc` passed 551 tests in 16
+files; `npm run lint --workspace=@poe-code/pandoc` passed ESLint and both
+source/test typechecks; `npm run build:workspaces -- --workspace=@poe-code/pandoc`
+passed the declared selected workspace closure. DOM/byte QA was executed through
+the original canonical expectations, including standalone CLI/SDK comparison.
+No visual poe-code CLI change was made. No push or release authorized.

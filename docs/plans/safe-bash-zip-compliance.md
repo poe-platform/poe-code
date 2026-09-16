@@ -790,14 +790,3 @@ encoding preserves NUL, Unicode, quotes, slashes and final-newline bytes; a 16Ki
 input bound prevents exceeding the per-argument transport limit. Authentication,
 clean environment, native deadlines and output caps remain active. This changes
 only native qualification tooling, not product execution or a host fallback.
-
-## Native short-consumer pipe correction
-
-Remote CI's native yes short-consumer probe expected SIGPIPE after destroying a
-Node stdout socket. Socket peer closure does not qualify anonymous-pipe closure;
-Linux reported a null process signal. Replaced only this probe's transport with
-an actual Bash pipeline and one-line consumer. The wrapper checks consumer
-status zero and returns the captured producer PIPESTATUS, which must be 141;
-exact y-newline output and empty stderr remain asserted. Both system and pinned
-GNU probes keep these checks, without admitting arbitrary exit-one outcomes.
-The native oracle remains bounded and drained; no product command is changed.

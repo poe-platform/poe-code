@@ -46,6 +46,9 @@ operand) for source from stdin. File and inline-code entry leave stdin for progr
 data. Unsupported interpreter flags and missing `-c`/`-m` operands fail with
 status 2. Python exceptions and `SystemExit` use Python exit status behavior;
 stream flush failure selects status 120. This is not an interactive REPL.
+`sys.orig_argv` retains the invoked command alias and original interpreter
+arguments, independently of the execution mode's `sys.argv`. Custom worker
+start messages may supply `invocation.command`; omission uses `python`.
 
 ## Configuration and ownership
 

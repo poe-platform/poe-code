@@ -8,7 +8,7 @@ import { xmlValue } from "./create-content.js";
 import { Hyperlink, RenderedPageBreak, markCommentRange } from "./review-model.js";
 import type { DocxEnumValue } from "./operation-types.js";
 import type { ParagraphStyle, CharacterStyle } from "./styles-model.js";
-import { WD_STYLE_TYPE, WD_BREAK } from "./formatting-values.js";
+import { WD_STYLE_TYPE, WD_BREAK, isEnumMember } from "./formatting-values.js";
 import { UnsupportedEditError } from "./xml-write.js";
 
 /** Stored text only; drawings and field instructions never execute. */
@@ -299,7 +299,7 @@ export class Run {
       get identity() {
         return store.identity(ref);
       },
-      getXml: () => store.xml(ref.part).sourceXml(store.node(ref)),
+      getXml: () => new TextDecoder().decode(store.element(ref).serialize()),
       setXml: (text) => store.change(ref.part, (xml) => xml.replaceElement(store.node(ref), text))
     });
   }
@@ -343,11 +343,21 @@ export class Run {
     });
   }
   add_break(type: DocxEnumValue<"WD_BREAK_TYPE"> = WD_BREAK.LINE): void {
-    if (!type || type.enum !== "WD_BREAK_TYPE") throw new InputTypeError("Expected a break enum.");
-    const kind = type.name === "PAGE" ? "page" : type.name === "COLUMN" ? "column" : "textWrapping";
+    if (!isEnumMember(type) || type.enum !== "WD_BREAK_TYPE")
+      throw new InputTypeError("Expected a trusted break enum.");
+    const attributes: Readonly<Record<string, string>> = {
+      LINE: "",
+      PAGE: ' bm:type="page"',
+      COLUMN: ' bm:type="column"',
+      LINE_CLEAR_LEFT: ' bm:clear="left"',
+      LINE_CLEAR_RIGHT: ' bm:clear="right"',
+      LINE_CLEAR_ALL: ' bm:clear="all"'
+    };
+    const markup = attributes[type.name];
+    if (markup === undefined) throw new InputTypeError("The break cannot be inserted in a run.");
     this.store.change(this.ref.part, (xml) => {
       const r = this.store.node(this.ref);
-      xml.insertChildren(r, `<bm:br xmlns:bm="${r.namespace}" bm:type="${kind}"/>`);
+      xml.insertChildren(r, `<bm:br xmlns:bm="${r.namespace}"${markup}/>`);
     });
   }
   mark_comment_range(last_run: Run, comment_id: number): void {

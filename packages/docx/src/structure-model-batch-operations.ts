@@ -1,11 +1,11 @@
-import { docxOperationSchemas } from "./operation-schema.js";
+import { docxOperationSchemas, docxEnumCanonicalNames } from "./operation-schema.js";
 import { DocxUsageError } from "./argument-json.js";
 import { DocumentView } from "./document-model.js";
 import { Paragraph, Run } from "./block-model.js";
 import { Table, _Cell, _Row, _Column, _Rows, _Columns } from "./table-model.js";
 import { Section, Sections, _Header, _Footer } from "./section-model.js";
 import { Comment, Comments, Hyperlink, RenderedPageBreak } from "./review-model.js";
-import { Length, isLength } from "./formatting-values.js";
+import { Length, isLength, enumFamilies, isEnumMember } from "./formatting-values.js";
 import { paragraphUnits } from "./paragraph-properties.js";
 import type { DocxLength } from "./operation-types.js";
 
@@ -42,6 +42,13 @@ function surface(
       const method = Reflect.get(receiver as object, name) as (...args: unknown[]) => unknown;
       const values = fields.map((field) => {
         const value = args[field];
+        const type = docxOperationSchemas[key]!.batchFields![field]!.type;
+        const family = enumFamilies[(docxEnumCanonicalNames[type] ?? type) as keyof typeof enumFamilies];
+        if (family && value !== undefined && value !== null && !isEnumMember(value)) {
+          const member = family.members[(value as { name: string }).name as keyof typeof family.members];
+          if (!member) throw new DocxUsageError("Unknown enum value.");
+          return member;
+        }
         if (field === "width" && value !== undefined && value !== null && !isLength(value))
           return Length(paragraphUnits(value as DocxLength, 1));
         return value;

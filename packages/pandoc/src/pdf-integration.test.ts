@@ -48,13 +48,16 @@ const cases: Record<string, string> = {
   csv: "Owned,PDF\ntext,value\n", tsv: "Owned\tPDF\ntext\tvalue\n", latex: "Owned PDF text", rst: "Owned PDF text", rtf: "{\\rtf1\\ansi Owned PDF text}"
 };
 it("accounts for every available reader-to-PDF pair", () => {
-  expect([...Object.keys(cases), "epub"].sort()).toEqual(createFormatRegistry().list("read"));
+  expect([...Object.keys(cases), "epub", "pptx"].sort()).toEqual(createFormatRegistry().list("read"));
 });
-it.each([...Object.keys(cases), "epub"])("converts representable %s content to mapped PDF text", async from => {
+it.each([...Object.keys(cases), "epub", "pptx"])("converts representable %s content to mapped PDF text", async from => {
   let bytes: Uint8Array;
   if (from === "epub") {
     const epub = await writeDocument({...document, metadata: {title: {t: "MetaString", c: "Original EPUB"}}}, {to: "epub", yes: true}, {yield: async () => {}});
     if (epub.kind !== "binary") throw new Error("EPUB expected"); bytes = epub.bytes;
+  } else if (from === "pptx") {
+    const pptx = await writeDocument({...document, blocks: [document.blocks[1]!]}, {to: "pptx"}, {yield: async () => {}});
+    if (pptx.kind !== "binary") throw new Error("PPTX expected"); bytes = pptx.bytes;
   } else bytes = encode(cases[from]!);
 
     const result = await convert([{bytes}], {from, to: "pdf"}, {yield: async () => {}});

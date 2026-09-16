@@ -14,12 +14,13 @@ it("publishes the SDK and explicit plugin from the root package with their type 
   expect(manifest.files).toContain("packages/pandoc/dist/**/*.d.ts");
   expect(manifest.files).toContain("packages/pandoc/dist/public");
 });
-it("ships a complete portable public runtime graph without native or Office engine imports", async () => {
+it("ships a complete portable public runtime graph with the verified presentation engine", async () => {
   const options = bundling.resolvePandocBuild(root);
   expect(options).toMatchObject({platform: "browser", bundle: true, splitting: true, write: false, external: ["poe-code/safe-fs/core"]});
   const manifest = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
   const artifacts = new Volume();
   const visited = new Set<string>();
+  let presentationEngine = false;
   async function inspect(file: string): Promise<void> {
     if (visited.has(file)) return;
     visited.add(file);
@@ -27,7 +28,8 @@ it("ships a complete portable public runtime graph without native or Office engi
     const map = JSON.parse(await readFile(`${file}.map`, "utf8")) as {sources: string[]};
     for (const source of map.sources) {
       const original = path.resolve(path.dirname(file), source);
-      expect(original.startsWith(path.join(root, "packages/docx/src")) || original.startsWith(path.join(root, "packages/pptx/src"))).toBe(false);
+      expect(original.startsWith(path.join(root, "packages/docx/src"))).toBe(false);
+      if (original.startsWith(path.join(root, "packages/pptx/"))) presentationEngine = true;
     }
     artifacts.mkdirSync(path.dirname(file), {recursive: true});
     artifacts.writeFileSync(file, contents);
@@ -49,6 +51,7 @@ it("ships a complete portable public runtime graph without native or Office engi
   }
   for (const route of ["./pandoc", "./safe-bash/commands/pandoc"]) await inspect(path.resolve(root, manifest.exports[route].import));
   expect(artifacts.existsSync(path.resolve(root, manifest.exports["./pandoc"].import))).toBe(true);
+  expect(presentationEngine).toBe(true);
 });
 it("resolves SDK and plugin public declaration imports for a TypeScript consumer", () => {
   const source = `import {convert, type ConversionOptions} from "poe-code/pandoc";

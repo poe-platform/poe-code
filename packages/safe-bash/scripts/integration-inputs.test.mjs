@@ -2569,6 +2569,7 @@ test("published root mirrors only declared subpaths and keeps the feature isolat
     key === "." ? "./safe-bash" : `./safe-bash${key.slice(1)}`,
     mirror(conditions),
   ]));
+  expected["./safe-bash/commands/pandoc"].import = "./packages/pandoc/dist/public/command.js";
   assert.deepEqual(Object.fromEntries(Object.entries(root.exports).filter(([key]) => key === "./safe-bash" || key.startsWith("./safe-bash/"))), expected);
   assert.equal(root.exports["./safe-bash/*"], undefined);
   assert.equal(root.exports["./safe-bash/node"].browser, null);

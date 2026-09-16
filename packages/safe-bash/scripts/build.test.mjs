@@ -42,7 +42,7 @@ function fixture(extra = {}, compilerOptions = {}) {
 
 for (const defect of ["none", "pin", "name", "version", "export", "closure", "link", "source-import", "runtime-import", "unapproved-import"]) test(`build explicit Pandoc SDK declaration admission: ${defect}`, async () => {
   const exports = {".": {types: "./dist/index.d.ts", import: "./dist/index.js"}};
-  const pandoc = {name: "@poe-code/pandoc", version: "0.0.1", private: true, type: "module", exports, dependencies: {"@poe-code/office-package": "*", entities: "^6.0.1", "jpeg-js": "^0.4.4", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", "@poe-code/pdf": "0.0.1"}};
+  const pandoc = {name: "@poe-code/pandoc", version: "0.0.1", private: true, type: "module", exports, dependencies: {"@poe-code/office-package": "*", entities: "^6.0.1", "jpeg-js": "^0.4.4", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", "@poe-code/pdf": "0.0.1", pptx: "*"}};
   const pdf = {name: "@poe-code/pdf", version: "0.0.1", private: true, type: "module", exports, dependencies: {"pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1", pako: "3.0.1"}};
   const owned = fixture({
     "package.json": JSON.stringify({name: "virtual-bash", private: true, type: "module", devDependencies: {"@poe-code/pandoc": defect === "pin" ? "unapproved" : "*"}}),

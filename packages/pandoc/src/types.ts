@@ -49,6 +49,8 @@ export type DiagnosticCode =
   | "E_INTERNAL"
   | "E_WARNINGS"
   | "W_TABLE_LOSS"
+  | "W_PRESENTATION_LOSS"
+  | "W_LAYOUT_UNMEASURED"
   | "W_RAW_CONTENT"
   | "W_METADATA_CONFLICT"
   | "W_RESOURCE_MISSING";

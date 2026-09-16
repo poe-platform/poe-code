@@ -44,7 +44,7 @@ Extensions are dialect switches, not filename suffixes.
 | `epub`       | EPUB2/3 required | EPUB3 required   | Reflowable, unencrypted publication; `.epub`                                                                            |
 | `pdf`        | Rejected         | Required         | PDF 1.7 through TypeScript layout, complete document; `.pdf` output only                                                |
 | `docx`       | Gated            | Gated            | OOXML document conversion; `.docx`                                                                                      |
-| `pptx`       | Gated            | Gated            | OOXML presentation conversion; `.pptx`                                                                                  |
+| `pptx`       | Bounded          | Bounded          | Public presentation-engine byte adapters; structural extraction and single-column authoring; `.pptx`                    |
 | `xlsx`       | Gated            | Rejected         | Worksheet tables from cached values; `.xlsx`                                                                            |
 
 LaTeX, RST, RTF, EPUB and PDF are all required delivery scope, not optional
@@ -266,8 +266,8 @@ from a package directory. All are blocked for converter activation today.
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
 | DOCX read  | Existing `docx` workspace, `packages/docx/src/index.ts`: `readDocumentArchive`, `openDocumentLocations`; AST adapter unverified                  | Main story in order, headings/lists/tables/links/images/notes; other stories/objects diagnosed          |
 | DOCX write | Existing `docx`: `createDocument`, `writeDocumentArchive`; complete AST authoring adapter unverified                                             | Fresh OOXML document for supported AST; no preservation-edit promise                                    |
-| PPTX read  | Existing `pptx` workspace, `packages/pptx/src/index.ts`: `readPresentationText`, `readTables`, `readImages`, `readNotes`; AST adapter unverified | Slide order, shape document order, slide-boundary divs, tables/images and notes                         |
-| PPTX write | Existing `pptx`: `createPresentation`, `addSlide`, `addTable`, `addImage`; authoring/layout adapter unverified                                   | Level-1 headings start slides, fixed 16:9 title/body layout; overflow fails `E_LAYOUT`                  |
+| PPTX read  | Verified public `pptx` byte/model APIs through `packages/pandoc/src/pptx.ts` | Structural slide/shape order, slide Divs, basic tables, PNG/JPEG, links and separate notes; animations/charts/objects require explicit diagnosed loss |
+| PPTX write | Verified public `pptx` creation, layout and shape APIs | Explicit heading level (default 1), horizontal-rule breaks, title-only/blank slides, nested lists; default 16:9 or reference size/layout geometry; geometric overflow fails `E_CAPABILITY`, text fit remains unmeasured |
 | XLSX read  | No sibling XLSX SDK found; blocked pending a real typed, bounded workbook reader                                                                 | Workbook worksheet order, sheet heading and cell table; cached formula values only, missing caches fail |
 | XLSX write | Explicitly prohibited                                                                                                                            | `E_FORMAT`, no adapter or writer in this scope                                                          |
 

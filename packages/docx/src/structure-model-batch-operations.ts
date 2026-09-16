@@ -1,5 +1,6 @@
 import { docxOperationSchemas, docxEnumCanonicalNames } from "./operation-schema.js";
 import { DocxUsageError } from "./argument-json.js";
+import { Settings } from "./settings-model.js";
 import { DocumentView } from "./document-model.js";
 import { Paragraph, Run } from "./block-model.js";
 import { Table, _Cell, _Row, _Column, _Rows, _Columns } from "./table-model.js";
@@ -68,9 +69,16 @@ function surface(
 surface(
   "model.document.Document",
   () => DocumentView,
-  ["paragraphs", "tables", "sections", "comments", "core_properties", "styles"],
+  ["paragraphs", "tables", "sections", "comments", "core_properties", "styles", "settings"],
   [],
   ["add_comment", "add_paragraph", "add_table", "add_heading", "add_page_break", "add_section", "iter_inner_content"]
+);
+surface(
+  "model.settings.Settings",
+  () => Settings,
+  ["odd_and_even_pages_header_footer"],
+  ["odd_and_even_pages_header_footer"],
+  []
 );
 surface(
   "model.text.paragraph.Paragraph",

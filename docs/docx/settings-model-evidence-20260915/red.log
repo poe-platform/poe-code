@@ -1,0 +1,112 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/settings-model.test.ts (6 tests | 6 failed) 262ms
+   × creates and retains a single settings owner through the document getter 46ms
+   × retains unrelated settings while setting page header policy true/true 49ms
+   × retains unrelated settings while setting page header policy true/false 45ms
+   × retains unrelated settings while setting page header policy false/true 48ms
+   × retains unrelated settings while setting page header policy false/false 49ms
+   × declares and executes settings owner access through the shared typed batch 23ms
+FAIL packages/docx/src/settings-model.test.ts > creates and retains a single settings owner through the document getter
+TypeError: Cannot read properties of undefined (reading 'odd_and_even_pages_header_footer')
+ ❯ packages/docx/src/settings-model.test.ts:16:19
+     14|   expect(initial.members.some(member => member.name.endsWith("settings…
+     15|   const settings = document.settings;
+     16|   expect(settings.odd_and_even_pages_header_footer).toBe(false);
+       |                   ^
+     17|   expect(document.settings).toBe(settings);
+     18|   expect(settings.part.content_type).toBe("application/vnd.openxmlform…
+
+FAIL packages/docx/src/settings-model.test.ts > retains unrelated settings while setting page header policy true/true
+TypeError: Cannot read properties of undefined (reading 'odd_and_even_pages_header_footer')
+ ❯ packages/docx/src/settings-model.test.ts:33:23
+     31|       const document = await Document(bytes) as SettingsDocument;
+     32|       const settings = document.settings;
+     33|       expect(settings.odd_and_even_pages_header_footer).toBe(present);
+       |                       ^
+     34|       settings.odd_and_even_pages_header_footer = assigned;
+     35|       expect(settings.odd_and_even_pages_header_footer).toBe(assigned);
+
+FAIL packages/docx/src/settings-model.test.ts > retains unrelated settings while setting page header policy true/false
+TypeError: Cannot read properties of undefined (reading 'odd_and_even_pages_header_footer')
+ ❯ packages/docx/src/settings-model.test.ts:33:23
+     31|       const document = await Document(bytes) as SettingsDocument;
+     32|       const settings = document.settings;
+     33|       expect(settings.odd_and_even_pages_header_footer).toBe(present);
+       |                       ^
+     34|       settings.odd_and_even_pages_header_footer = assigned;
+     35|       expect(settings.odd_and_even_pages_header_footer).toBe(assigned);
+
+FAIL packages/docx/src/settings-model.test.ts > retains unrelated settings while setting page header policy false/true
+TypeError: Cannot read properties of undefined (reading 'odd_and_even_pages_header_footer')
+ ❯ packages/docx/src/settings-model.test.ts:33:23
+     31|       const document = await Document(bytes) as SettingsDocument;
+     32|       const settings = document.settings;
+     33|       expect(settings.odd_and_even_pages_header_footer).toBe(present);
+       |                       ^
+     34|       settings.odd_and_even_pages_header_footer = assigned;
+     35|       expect(settings.odd_and_even_pages_header_footer).toBe(assigned);
+
+FAIL packages/docx/src/settings-model.test.ts > retains unrelated settings while setting page header policy false/false
+TypeError: Cannot read properties of undefined (reading 'odd_and_even_pages_header_footer')
+ ❯ packages/docx/src/settings-model.test.ts:33:23
+     31|       const document = await Document(bytes) as SettingsDocument;
+     32|       const settings = document.settings;
+     33|       expect(settings.odd_and_even_pages_header_footer).toBe(present);
+       |                       ^
+     34|       settings.odd_and_even_pages_header_footer = assigned;
+     35|       expect(settings.odd_and_even_pages_header_footer).toBe(assigned);
+
+FAIL packages/docx/src/settings-model.test.ts > declares and executes settings owner access through the shared typed batch
+Error: This model operation is not implemented by the style batch executor.
+ ❯ applyStyleModelBatch packages/docx/src/style-model-batch.ts:28:154
+
+ ❯ packages/docx/src/settings-model.test.ts:46:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'unsupported-profile' }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/settings-model.test.ts > creates and retains a single settings owner through the document getter
+TypeError: Cannot read properties of undefined (reading 'odd_and_even_pages_header_footer')
+ ❯ packages/docx/src/settings-model.test.ts:16:19
+     14|   expect(initial.members.some(member => member.name.endsWith("settings…
+     15|   const settings = document.settings;
+     16|   expect(settings.odd_and_even_pages_header_footer).toBe(false);
+       |                   ^
+     17|   expect(document.settings).toBe(settings);
+     18|   expect(settings.part.content_type).toBe("application/vnd.openxmlform…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  packages/docx/src/settings-model.test.ts > retains unrelated settings while setting page header policy true/true
+ FAIL  packages/docx/src/settings-model.test.ts > retains unrelated settings while setting page header policy true/false
+ FAIL  packages/docx/src/settings-model.test.ts > retains unrelated settings while setting page header policy false/true
+ FAIL  packages/docx/src/settings-model.test.ts > retains unrelated settings while setting page header policy false/false
+TypeError: Cannot read properties of undefined (reading 'odd_and_even_pages_header_footer')
+ ❯ packages/docx/src/settings-model.test.ts:33:23
+     31|       const document = await Document(bytes) as SettingsDocument;
+     32|       const settings = document.settings;
+     33|       expect(settings.odd_and_even_pages_header_footer).toBe(present);
+       |                       ^
+     34|       settings.odd_and_even_pages_header_footer = assigned;
+     35|       expect(settings.odd_and_even_pages_header_footer).toBe(assigned);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  packages/docx/src/settings-model.test.ts > declares and executes settings owner access through the shared typed batch
+Error: This model operation is not implemented by the style batch executor.
+ ❯ applyStyleModelBatch packages/docx/src/style-model-batch.ts:28:154
+
+ ❯ packages/docx/src/settings-model.test.ts:46:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed (6)
+   Start at  22:44:45
+   Duration  1.31s (transform 830ms, setup 29ms, import 969ms, tests 262ms, environment 0ms)
+

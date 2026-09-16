@@ -14,8 +14,11 @@ import { mergeStyleChildren } from "./style-properties.js";
 import { sectionPropertyOrder } from "./section-properties.js";
 import { runElementOpen } from "./run-properties.js";
 
+import { Settings } from "./settings-model.js";
+
 export class DocumentView {
   readonly ref: ModelRef;
+  private boundSettings: Settings | undefined;
   constructor(readonly store: ModelStore) {
     const root = store.xml(store.mainPart).root;
     const body = root.children.find(
@@ -43,6 +46,9 @@ export class DocumentView {
   }
   get styles() {
     return this.store.styles;
+  }
+  get settings(): Settings {
+    return (this.boundSettings ??= new Settings(this.store));
   }
   add_comment(
     runs: import("./block-model.js").Run | readonly import("./block-model.js").Run[],

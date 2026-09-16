@@ -189,6 +189,7 @@ export type { DocumentModelContext, DocumentFontMetrics } from "./model-context.
 export type { DocumentModelInput } from "./model-input.js";
 
 export { Document, DocumentView } from "./document-model.js";
+export { Settings } from "./settings-model.js";
 export { Paragraph, Run } from "./block-model.js";
 export { Table, _Cell, _Row, _Column, _Rows, _Columns } from "./table-model.js";
 export { Section, Sections, _Header, _Footer } from "./section-model.js";

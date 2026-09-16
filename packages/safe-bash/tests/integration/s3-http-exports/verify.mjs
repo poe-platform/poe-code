@@ -374,7 +374,12 @@ export async function verifyCommittedExports({ repository = actualRepository, re
     const compilerOptions = { target: "ES2023", module: "NodeNext", moduleResolution: "NodeNext", strict: true,
       noUncheckedIndexedAccess: true, exactOptionalPropertyTypes: true, verbatimModuleSyntax: true, skipLibCheck: false, noEmit: true, types: ["node"] };
     for (const basename of ["consumer", "invalid"]) {
-      writeFileSync(join(consumer, `${basename}.ts`), readRegularInput(fixtureRoot, `fixtures/${basename}.ts.fixture`, 100000));
+      let source = readRegularInput(fixtureRoot, `fixtures/${basename}.ts.fixture`, 100000);
+      if (basename === "consumer" && peer) {
+        const imports = [...peerDeclarations.publicEntries.keys()].map(specifier => `import type {} from ${JSON.stringify(specifier)};\n`).join("");
+        source = Buffer.concat([Buffer.from(imports), source]);
+      }
+      writeFileSync(join(consumer, `${basename}.ts`), source);
       writeFileSync(join(consumer, `tsconfig.${basename}.json`), JSON.stringify({ compilerOptions, files: [`${basename}.ts`] }));
     }
     checkDist("before strict types", readDistInventory(installedRoot));

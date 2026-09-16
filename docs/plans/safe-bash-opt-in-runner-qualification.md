@@ -97,3 +97,19 @@ checkout/release distinction and lock/metadata checks while using the current
 name in both authority and synthetic controls. All 213 conformance/provenance
 tests passed after reproducing the failure. The maintained package typecheck
 and all 522 runner tests also passed.
+
+## Relocated shebang consumer
+
+Release `775352d05` failed Bash shard 4 because the moved shebang consumer
+copied only SafeBash's directory even though the root build rebounded codec
+imports to sibling package outputs. A full maintained root build reproduced
+the missing office-package import. Stage the root package's declared built
+files under its own namespace, import its public `poe-code/safe-bash` subpath,
+and assert exact resolution to that relocated entry. Retain bounded child
+settlement and exact shebang output.
+
+Final validation passed: maintained root build, all 17 bounded host/shebang
+tests, all 213 filesystem conformance/provenance tests, all 522 runner tests,
+maintained package typecheck including exact negative diagnostics, and guarded
+repository ESLint with zero errors and two warnings. Rebase onto current main
+before delivery; monitor the subsequent GitHub release through publication.

@@ -78,16 +78,12 @@ jobs:
           appendFileSync(process.env.GITHUB_OUTPUT, `next=${next}\n`);
           NODE
       - run: npm run build
-      - run: npx vitest run scripts/package-safe.test.ts
-          scripts/root-optional-package.test.ts
-          scripts/safe-bash-optional-build.test.ts
-          scripts/safe-bash-optional-lifecycle.test.ts
+      - run: npx vitest run scripts/package-safe.test.ts scripts/root-optional-package.test.ts scripts/safe-bash-optional-build.test.ts scripts/safe-bash-optional-lifecycle.test.ts
       - run: npm run lint:packages
       - name: Prepare scoped artifacts
         env:
           VERSION: ${{ steps.version.outputs.next }}
-        run: node scripts/package-safe.mjs --out-dir "$RUNNER_TEMP/safe-npm" --version
-          "$VERSION"
+        run: node scripts/package-safe.mjs --out-dir "$RUNNER_TEMP/safe-npm" --version "$VERSION"
       - name: Verify installed tarballs
         shell: bash
         run: |
@@ -145,7 +141,18 @@ jobs:
         run: |
           set -euo pipefail
           for PACKAGE in safe-fs safe-js safe-bash; do
-            ACTUAL=$(npm view "@poe-platform/$PACKAGE@$VERSION" version --json --registry=https://registry.npmjs.org/)
-            node --input-type=module -e 'import assert from "node:assert/strict"; assert.equal(JSON.parse(process.argv[1]), process.argv[2]);' "$ACTUAL" "$VERSION"
+            VERIFIED=false
+            for ATTEMPT in {1..12}; do
+              if ACTUAL=$(npm view "@poe-platform/$PACKAGE@$VERSION" version --json --prefer-online --registry=https://registry.npmjs.org/) &&
+                node --input-type=module -e 'import assert from "node:assert/strict"; assert.equal(JSON.parse(process.argv[1]), process.argv[2]);' "$ACTUAL" "$VERSION"; then
+                VERIFIED=true
+                break
+              fi
+              if [ "$ATTEMPT" -lt 12 ]; then sleep 10; fi
+            done
+            if [ "$VERIFIED" != true ]; then
+              echo "Registry verification failed for @poe-platform/$PACKAGE@$VERSION" >&2
+              exit 1
+            fi
           done
           printf 'Published and registry-verified safe-fs, safe-js and safe-bash (including explicit command imports) at %s\n' "$VERSION" >> "$GITHUB_STEP_SUMMARY"

@@ -1,10 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import { createExecutionContext, defaultLimits } from "./execution.js";
+import { PandocError } from "./errors.js";
 
 const encode = (text: string) => new TextEncoder().encode(text);
 const immediate = async () => {};
 
 describe("original execution-context fixtures", () => {
+  it("retains reader format and source location through capability error normalization", async () => {
+    const context = createExecutionContext("convert", { yield: immediate });
+    await expect(context.call(async () => {
+      throw new PandocError("E_AST", "read", "Original malformed input", "json", "2:4");
+    })).rejects.toMatchObject({ code: "E_AST", operation: "convert", format: "json", location: "2:4" });
+  });
   it("normalizes synchronous host throws and simultaneous cancellation", async () => {
     const ordinary = createExecutionContext("read", { yield: immediate });
     await expect(

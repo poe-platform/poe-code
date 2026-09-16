@@ -36,6 +36,7 @@ export type DiagnosticCode =
   | "E_CAPABILITY"
   | "E_AST"
   | "E_ENCODING"
+  | "E_PARSE"
   | "E_LIMIT"
   | "E_CANCELLED"
   | "E_IO"
@@ -59,6 +60,10 @@ export interface Limits {
   readonly text: number;
   readonly attributes: number;
   readonly tableCells: number;
+  /** Delimited reader ceilings: decoded UTF-16 units per field, records including header, columns. */
+  readonly tableFieldText: number;
+  readonly tableRows: number;
+  readonly tableColumns: number;
   readonly resources: number;
   readonly diagnostics: number;
   readonly references: number;

@@ -36,7 +36,7 @@ Extensions are dialect switches, not filename suffixes.
 | `html5`      | Rejected         | Required         | Escaped semantic fragment by default, fixed wrapper with standalone; `.html`, `.htm`                                    |
 | `json`       | Required         | Required         | Pandoc JSON API version exactly `[1,23,1,2]`, validated constructors; `.json`                                           |
 | `csv`        | Required         | Rejected         | Comma, double-quote quoting/escaped quotes, embedded quoted newlines; `.csv`                                            |
-| `tsv`        | Required         | Rejected         | Tab delimiter, otherwise same quoting rules as CSV; `.tsv`                                                              |
+| `tsv`        | Required         | Rejected         | Tab delimiter, quotes are literal text and never protect tabs/newlines; `.tsv`                                          |
 | `plain`      | Rejected         | Required         | Ordered readable text projection; `.txt` output only                                                                    |
 | `latex`      | Required         | Required         | Bounded document syntax described below; fragment by default; `.tex`, `.latex`                                          |
 | `rst`        | Required         | Required         | Bounded reStructuredText directives/roles below; `.rst`                                                                 |
@@ -62,10 +62,28 @@ apply left to right. No smart typography, citations, math, YAML front matter,
 footnotes or attribute extensions are implicitly enabled for CommonMark/GFM.
 
 CSV/TSV preserve strings, empty cells and row order without numeric inference or
-formula evaluation. The first row is data, not a header. Short rows are padded
+formula evaluation. The first record is the table header. Short rows are padded
 with empty cells; a wider later row expands earlier rows. Empty input yields no
 blocks; a blank record yields one empty cell. CRLF and LF record endings are
-accepted. Malformed quoting fails. Each input produces a separate AST table.
+accepted. CSV fields use whole-field double quotes and doubled quote escapes;
+quotes in unquoted fields or text after a closing quote fail with `E_PARSE` and
+one-based normalized line/Unicode scalar column. TSV has no quote syntax.
+An ending newline terminates its record; additional newlines are blank records.
+Leading/trailing spaces are significant. Embedded CSV newlines become literal
+`LineBreak` nodes, not Markdown. The shared UTF-8 decoder strips the initial BOM
+and normalizes CRLF/bare CR to LF. Each input produces a separate AST table.
+
+Delimited readers expose lowerable `ConversionContext.limits.tableFieldText`
+(1,048,576 decoded UTF-16 units per field), `tableRows` (10,000 records including
+the header) and `tableColumns` (1,024 columns per table). `tableCells` retains its
+100,000 conversion-wide ceiling, including ragged-row padding. Existing input,
+text, retained memory, node and work limits also apply. No environment variables
+are exposed. All column specs are `AlignDefault`/`ColWidthDefault`. These readers
+produce document tables without spreadsheet evaluation or an XLSX writer.
+
+Preserving blank records, spaces and wider ragged rows intentionally differs
+from native Pandoc 3.10.1. [Native captures and comparison evidence](csv-tsv-native.json)
+record exact and different outcomes; the native executable is QA-only.
 
 ## AST and loss policy
 

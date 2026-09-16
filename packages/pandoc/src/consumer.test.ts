@@ -273,7 +273,7 @@ describe("public conversion seam (original adapters, no format conformance claim
       formatCapabilities
         .filter((format) => format.read.available || format.write.available)
         .map((format) => format.name)
-    ).toEqual(["commonmark", "gfm", "html", "json"]);
+    ).toEqual(["commonmark", "csv", "gfm", "html", "json", "tsv"]);
     await expect(
       readDocument({ bytes: encode("# actual syntax") }, { from: "commonmark" }, {})
     ).resolves.toMatchObject({ blocks: [{ t: "Header", c: [1, ["", [], []], [{ t: "Str", c: "actual" }, { t: "Space" }, { t: "Str", c: "syntax" }]] }] });

@@ -19,6 +19,9 @@ export const defaultLimits: Limits = Object.freeze({
   depth: 128,
   attributes: 100_000,
   tableCells: 100_000,
+  tableFieldText: 1024 * 1024,
+  tableRows: 10_000,
+  tableColumns: 1_024,
   resources: 1_024,
   diagnostics: 1_024,
   references: 100_000,
@@ -279,7 +282,10 @@ export class ExecutionContext implements AdapterContext {
       return result;
     } catch (error) {
       if (this.signal?.aborted) this.fail("E_CANCELLED", "Conversion cancelled");
-      if (error instanceof PandocError) this.fail(error.code, error.message);
+      if (error instanceof PandocError) {
+        this.failure ??= new PandocError(error.code, this.operation, error.message, error.format, error.location);
+        throw this.failure;
+      }
       return this.fail("E_IO", "Capability failed");
     } finally {
       this.signal?.removeEventListener("abort", cancel);

@@ -5,7 +5,8 @@ import { inspectRtfPicture } from "./rtf-pictures.js";
 
 const formatting = {Emph: "i", Strong: "b", Underline: "ul", Strikeout: "strike", Superscript: "super", Subscript: "sub", SmallCaps: "scaps"};
 const alignments = {AlignDefault: "ql", AlignLeft: "ql", AlignRight: "qr", AlignCenter: "qc"};
-interface Paragraph {indent: number; direction: "ltr" | "rtl"; cell?: Alignment; marker?: string | undefined; style?: number}
+interface ListSpec {id: number; level: number; nfc: number; start: number; delim: string}
+interface Paragraph {indent: number; direction: "ltr" | "rtl"; cell?: Alignment; marker?: string | undefined; style?: number; list?: ListSpec}
 
 class RtfWriter {
   private readonly chunks: string[] = [];
@@ -14,6 +15,7 @@ class RtfWriter {
   private readonly colors: string[] = [];
   private readonly resources = new Map<string, Uint8Array>();
   private readonly imageTargets = new Set<string>();
+  private readonly lists = new Map<object, ListSpec>();
   constructor(private readonly context: AdapterContext) {}
   fail(message: string, code: "E_CAPABILITY" | "E_RESOURCE" | "E_OPTION" = "E_CAPABILITY"): never {
     throw new PandocError(code, this.context.operation ?? "write", message, "rtf");
@@ -57,16 +59,28 @@ class RtfWriter {
       else this.fail(`Unsupported RTF attribute: ${key}`);
     }
   }
-  async collect(value: unknown): Promise<void> {
+  async collect(value: unknown, listDepth = 0): Promise<void> {
     await this.context.cooperate();
     if(!value || typeof value !== "object") return;
+    if("t" in value && (value.t === "OrderedList" || value.t === "BulletList")) {
+      if(listDepth > 8) this.fail("RTF supports at most nine nested list levels");
+      const node = value as Extract<Block, {t: "OrderedList" | "BulletList"}>;
+      const ordered = node.t === "OrderedList";
+      const start = ordered ? node.c[0][0] : 1;
+      const style = ordered ? node.c[0][1] : "DefaultStyle";
+      this.marker(start, style);
+      this.context.charge("references", 1);
+      this.lists.set(value, {id: this.lists.size + 1, level: listDepth++, start,
+        nfc: ordered ? ({UpperRoman: 1, LowerRoman: 2, UpperAlpha: 3, LowerAlpha: 4} as Record<string, number>)[style] ?? 0 : 23,
+        delim: ordered ? node.c[0][2] : "Period"});
+    }
     if("t" in value && value.t === "Image") this.imageTargets.add((value as Extract<Inline, {t: "Image" | "Link"}>).c[2][0]);
     if(Array.isArray(value) && value.length === 2 && value[0] === "color") {
       const color = value[1];
       if(typeof color !== "string" || color.length !== 7 || color[0] !== "#" || [...color.slice(1)].some(c => !"0123456789abcdefABCDEF".includes(c))) this.fail("Invalid RTF RGB color");
       if(!this.colors.includes(color.toLowerCase())) {this.context.charge("references", 1); this.colors.push(color.toLowerCase());}
     }
-    for(const child of Object.values(value)) await this.collect(child);
+    for(const child of Object.values(value)) await this.collect(child, listDepth);
   }
   async inlines(nodes: readonly Inline[]): Promise<void> {
     for(const node of nodes) {
@@ -114,10 +128,10 @@ class RtfWriter {
     this.add(`{\\pard\\plain\\s${state.style ?? 0}\\li${state.indent}\\fi${state.marker ? -360 : 0}\\${state.direction}par`);
     if(state.cell) this.add(`\\intbl\\${alignments[state.cell]}`);
     if(attr) this.attrs(attr, true);
+    if(state.marker && state.list) this.add(`\\ls${state.list.id}\\ilvl${state.list.level}`);
     this.add(" ");
     if(state.marker) {
-      this.add("{\\pntext "); this.text(state.marker); this.add("\\tab}");
-      this.add("{\\*\\pn\\pnlvlbody\\pnf0\\pnindent360{\\pntxtb "); this.text(state.marker); this.add("}}\\tab ");
+      this.add("{\\listtext "); this.text(state.marker); this.add("\\tab}");
     }
     await this.inlines(nodes); this.add("\\par}\n");
   }
@@ -158,7 +172,7 @@ class RtfWriter {
           for(const [j, item] of items.entries()) {
             let marker = "•";
             if(ordered) {const [start, style, delim] = node.c[0]; marker = (delim === "TwoParens" ? "(" : "") + this.marker(start + j, style) + (["OneParen", "TwoParens"].includes(delim) ? ")" : ".");}
-            await this.blocks(item, {...current, indent: state.indent + 360, marker});
+            await this.blocks(item, {...current, indent: state.indent + 360, marker, list: this.lists.get(node)!});
           }
           break;
         }
@@ -216,6 +230,26 @@ class RtfWriter {
     this.add("}\n{\\stylesheet{\\s0\\fs24 Normal;}");
     for(let level = 1; level <= 6; level++) this.add(`{\\s${level}\\sbasedon0\\snext0\\b\\fs${40 - level * 2} Heading ${level};}`);
     this.add("}\n");
+    if(this.lists.size) {
+      this.add("{\\*\\listtable");
+      for(const list of this.lists.values()) {
+        this.add(`{\\list\\listtemplateid${list.id}`);
+        for(let level = 0; level <= list.level; level++) {
+          this.add(`{\\listlevel\\levelnfc${list.nfc}\\levelstartat${list.start}{\\leveltext`);
+          if(list.nfc === 23) this.add("\\'01\\u8226 ?;}{\\levelnumbers;}");
+          else {
+            const both = list.delim === "TwoParens";
+            this.add(both ? "\\'03(" : "\\'02");
+            this.add(`\\'${level.toString(16).padStart(2, "0")}${["OneParen", "TwoParens"].includes(list.delim) ? ")" : "."};}{\\levelnumbers\\'0${both ? 2 : 1};}`);
+          }
+          this.add(`\\fi-360\\li${(level + 1) * 360}}`);
+        }
+        this.add(`\\listid${list.id}}`);
+      }
+      this.add("}\n{\\*\\listoverridetable");
+      for(const list of this.lists.values()) this.add(`{\\listoverride\\listid${list.id}\\listoverridecount0\\ls${list.id}}`);
+      this.add("}\n");
+    }
     if(document.direction === "auto") this.fail("Automatic RTF direction unsupported; declare ltr or rtl");
     await this.blocks(document.blocks, {indent: 0, direction: document.direction ?? "ltr"});
     this.add("}\n"); this.context.charge("retainedBytes", this.length * 2);

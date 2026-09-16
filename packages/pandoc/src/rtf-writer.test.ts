@@ -46,10 +46,17 @@ it("writes safe hyperlink fields and rejects active field injection", async () =
 it("keeps nested list numbering and continuation paragraphs at their own indentation", async () => {
   const text = await rtf([{t: "OrderedList", c: [[3, "Decimal", "OneParen"], [[p(s("outer")),
     {t: "BulletList", c: [[p(s("inner"))]]}, p(s("continued"))], [p(s("last"))]]]}]);
-  expect(text).toContain("\\li360\\fi-360\\ltrpar {\\pntext 3)\\tab}");
-  expect(text).toContain("\\li720\\fi-360\\ltrpar {\\pntext \\u8226 ?\\tab}");
+  expect(text).toContain("\\li360\\fi-360\\ltrpar\\ls1\\ilvl0 {\\listtext 3)\\tab}");
+  expect(text).toContain("\\li720\\fi-360\\ltrpar\\ls2\\ilvl1 {\\listtext \\u8226 ?\\tab}");
   expect(text).toContain("\\li360\\fi0\\ltrpar continued");
-  expect(text).toContain("{\\pntext 4)\\tab}");
+  expect(text).toContain("{\\listtext 4)\\tab}");
+});
+it("defines modern list controls with genuine numbering placeholders and deterministic ids", async () => {
+  const text = await rtf([{t: "OrderedList", c: [[3, "Decimal", "OneParen"], [[p(s("three"))], [p(s("four"))]]]}]);
+  expect(text).toContain("{\\*\\listtable{\\list\\listtemplateid1");
+  expect(text).toContain("\\levelnfc0\\levelstartat3{\\leveltext\\'02\\'00);}{\\levelnumbers\\'01;}");
+  expect(text).toContain("{\\*\\listoverridetable{\\listoverride\\listid1\\listoverridecount0\\ls1}}");
+  expect(text).toContain("\\ls1\\ilvl0 {\\listtext 3)\\tab}");
 });
 it("emits independent cell and row terminators with paragraph resets inside cells", async () => {
   const row: Row = [a, [[a, "AlignDefault", 1, 1, [p(s("a")), p(s("b"))]], [a, "AlignDefault", 1, 1, [p(s("c"))]]]];

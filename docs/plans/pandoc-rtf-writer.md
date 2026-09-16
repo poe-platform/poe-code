@@ -27,3 +27,9 @@ inspection exposed missing visible legacy list markers; add original modern
 list-table tests before fixing that. TextEdit/Quick Look launch events are
 pending and screenshots currently show only desktop, so application visual QA
 is not accepted yet.
+
+Modern list fix: original control-table test failed first, then passed after
+numbering placeholders, stable list ids and nested level references were added.
+Package tests (837), lint and selected workspace build passed; independent
+macOS text extraction now retains 3), bullet and 4) markers. Full visual
+interoperability remains under investigation, especially cells and pictures.

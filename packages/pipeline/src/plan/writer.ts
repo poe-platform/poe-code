@@ -78,6 +78,13 @@ function canonicalizeDocument(document: ReturnType<typeof parseDocument>): void 
   reorderTopLevelKeys(map, ["$schema", "kind", "version"]);
 }
 
+export async function writeSetupCompleted(options: PlanWriteOptions): Promise<boolean> {
+  return updatePlanDocument(options, (document) => {
+    document.set("setupCompleted", true);
+    return true;
+  });
+}
+
 export async function readPlanFile(
   fs: Pick<PipelineFileSystem, "readFile">,
   planPath: string

@@ -8,7 +8,7 @@ import {
 } from "@poe-code/agent-harness-tools";
 import { resolveAbsolutePlanPath, resolvePlanPath } from "../plan/discovery.js";
 import { parsePlan } from "../plan/parser.js";
-import { writeFinalizationStatus, writeTaskStatus } from "../plan/writer.js";
+import { writeFinalizationStatus, writeSetupCompleted, writeTaskStatus } from "../plan/writer.js";
 import { serializePlan } from "../plan/serialize.js";
 import { buildExecutionPrompt, resolveFileIncludes, selectNextExecution } from "./runner.js";
 import { interpolatePipelineVars } from "../vars/interpolate.js";
@@ -348,7 +348,7 @@ async function runResolvedPipeline(
     };
   }
 
-  if (resolvedSetup && !initialSelectionComplete) {
+  if (resolvedSetup && !initialSelectionComplete && !initialPlan.setupCompleted) {
     const { success, cancelled } = await runPhase(
       resolvedSetup,
       "setup",
@@ -366,6 +366,7 @@ async function runResolvedPipeline(
         metrics
       };
     }
+    await writeSetupCompleted({ fs, planPath: absolutePlanPath, signal: options.signal });
   }
 
   while (true) {

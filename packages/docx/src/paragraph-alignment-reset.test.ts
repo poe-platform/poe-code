@@ -28,6 +28,17 @@ const getParagraphs = {
   resultHandle: "paragraphs"
 } satisfies DocxBatchItem;
 const centered = { enum: "WD_PARAGRAPH_ALIGNMENT", name: "CENTER" } as const;
+const alignments = [
+  ["LEFT", "left"],
+  ["CENTER", "center"],
+  ["RIGHT", "right"],
+  ["JUSTIFY", "both"],
+  ["DISTRIBUTE", "distribute"],
+  ["JUSTIFY_MED", "mediumKashida"],
+  ["JUSTIFY_HI", "highKashida"],
+  ["JUSTIFY_LOW", "lowKashida"],
+  ["THAI_JUSTIFY", "thaiDistribute"]
+] as const;
 
 function batch(value: unknown) {
   return {
@@ -118,12 +129,18 @@ it("admits null in both public transport types while retaining required enum ide
 });
 
 for (const strict of [false, true]) {
-  it.each(["model", "sdk", "sdk-direct", "cli-json", "cli-file", "cli-direct"] as const)(
-    `%s saves and resets direct alignment with inherited style retained (${strict ? "Strict" : "Transitional"})`,
-    async (route) => {
+  it.each(
+    alignments.flatMap(([name, xmlValue]) =>
+      (["model", "sdk", "sdk-direct", "cli-json", "cli-file", "cli-direct"] as const).map(
+        (route) => ({ route, name, xmlValue })
+      )
+    )
+  )(
+    `$route saves and repeatedly resets $name with inherited style retained (${strict ? "Strict" : "Transitional"})`,
+    async ({ route, name, xmlValue }) => {
       const original = await fixture(strict);
       let bytes = original;
-      for (const value of [centered, null]) {
+      for (const value of [null, WD_PARAGRAPH_ALIGNMENT[name], null, null]) {
         const volume = Volume.fromJSON({ "/saved.docx": "" });
         const sink = {
           async write(chunk: Uint8Array) {
@@ -132,7 +149,7 @@ for (const strict of [false, true]) {
         };
         if (route === "model") {
           const document = await Document(bytes, textContext);
-          document.paragraphs[0]!.alignment = value === null ? null : WD_PARAGRAPH_ALIGNMENT.CENTER;
+          document.paragraphs[0]!.alignment = value;
           expect(document.paragraphs[0]!.alignment).toEqual(value);
           await document.save(sink);
           bytes = new Uint8Array(volume.readFileSync("/saved.docx") as Uint8Array);
@@ -190,10 +207,12 @@ for (const strict of [false, true]) {
         }
         const xml = xmlStructure(actual.get("word/document.xml")!);
         const expectedXml = new TextDecoder().decode(baseline.get("word/document.xml"));
+        const lexical =
+          strict && name === "LEFT" ? "start" : strict && name === "RIGHT" ? "end" : xmlValue;
         const expected =
           value === null
             ? expectedXml
-            : expectedXml.replace("</w:pPr>", '<w:jc w:val="center"/></w:pPr>');
+            : expectedXml.replace("</w:pPr>", `<w:jc w:val="${lexical}"/></w:pPr>`);
         expect(xml).toEqual(xmlStructure(new TextEncoder().encode(expected)));
       }
     }

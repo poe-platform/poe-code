@@ -21,3 +21,5 @@ QA procedure: generate representative output using supplied fonts, inspect page 
 - Full test route exposed missing generated SafeJS/package-lint/root artifacts and missing root workspace registrations. Root registrations for these two packages repaired; completeness test now passes. No unrelated source changed.
 - Quick Look first-page PNG generated from representative PDF and visually inspected: heading, Latin/Greek/Cyrillic, links, tables and page margins readable. Pagination separately parsed in engine tests.
 - README copy remains pending as instructed. No push or release authorized.
+
+PDF option follow-up: removed the placeholder `pdf` writer option, which has no SDK/CLI implementation. Original public registry test accepted it before the fix and now rejects it with E_OPTION. Only standalone is advertised.

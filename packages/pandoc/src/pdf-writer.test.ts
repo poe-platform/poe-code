@@ -30,3 +30,6 @@ it("adapts rectangular tables and rejects spanning cells", async () => {
   const spanning = {...table, c: [...table.c.slice(0, 3), [["", [], []], [[["", [], []], [[cell[0], cell[1], 2, 1, cell[4]]]]]], table.c[4], table.c[5]]} as unknown as Document["blocks"][number];
   await expect(writeDocument({...document, blocks: [spanning]}, {to: "pdf"}, {})).rejects.toMatchObject({code: "E_AST"});
 });
+it("advertises only applicable PDF writer options", () => {
+  expect(() => createFormatRegistry().validateOptions("pdf", "write", ["pdf"])).toThrowError(expect.objectContaining({code: "E_OPTION"}));
+});

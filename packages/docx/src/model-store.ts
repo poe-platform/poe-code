@@ -446,7 +446,8 @@ export class ModelStore {
         budget: this.context.budget,
         read: () => this.xml(ref.part),
         resolve: () => this.node(ref),
-        change: (action) => this.change(ref.part, action)
+        change: (action) => this.transaction(() => this.change(ref.part, action)),
+        removeRoot: () => this.transaction(() => this.change(ref.part, xml => xml.replaceElement(this.node(ref), "")))
       });
       this.elements.set(ref.id, view);
     }

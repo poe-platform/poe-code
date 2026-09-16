@@ -135,3 +135,9 @@ names are QA findings, not product fixes or passes.
    inspect the index and make Conventional Commits on main without hook bypass.
    Do not push, release, stage unrelated pipeline edits, edit README or clean
    another campaign's files.
+
+### Table-list delivery
+
+Original reader/batch/schema cases and paired table-list cases pass. Final DOCX
+maintained suite: 4,930 tests across 218 files; scoped lint and build pass.
+Stage only table domain/SDK/batch/discovery and CLI integration for this commit.

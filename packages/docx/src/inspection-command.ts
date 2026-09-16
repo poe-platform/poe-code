@@ -19,7 +19,7 @@ import { inspectDocumentBookmarks } from "./bookmarks.js";
 import { executeLinksCommand } from "./links-command.js";
 import { inspectDocumentLinks } from "./links.js";
 import { executeTableEditCommand } from "./table-edit-command.js";
-import { inspectDocumentTable } from "./table-read.js";
+import { inspectDocumentTable, inspectDocumentTables } from "./table-read.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { executeListsCommand } from "./lists-command.js";
 import { executeSectionsCommand } from "./sections-command.js";
@@ -157,7 +157,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           output = await executeCreateCommand(invocation, request, context, io);
           budget.check("serializedOutput", output.length);
         } else {
-        if (invocation.operation !== "extract" && !shapeOperation && !packageResourceOperation && invocation.operation !== "revisions.list" && !controlOperation && !revisionEditOperation && !commentOperation && !noteOperation && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && !tableOperation && invocation.operation !== "tables.get" && !listOperation && !storyOperation && invocation.operation !== "batch" && invocation.operation !== "capabilities" && invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && !["sanitize", "text.replace", "lorem.set"].includes(invocation.operation) && invocation.operation !== "runs.set" && !["paragraphs.remove", "runs.remove", "tables.remove", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation) && !["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set"].includes(invocation.operation) && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
+        if (invocation.operation !== "extract" && !shapeOperation && !packageResourceOperation && invocation.operation !== "revisions.list" && !controlOperation && !revisionEditOperation && !commentOperation && !noteOperation && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && !tableOperation && !["tables.get", "tables.list"].includes(invocation.operation) && !listOperation && !storyOperation && invocation.operation !== "batch" && invocation.operation !== "capabilities" && invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && !["sanitize", "text.replace", "lorem.set"].includes(invocation.operation) && invocation.operation !== "runs.set" && !["paragraphs.remove", "runs.remove", "tables.remove", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation) && !["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set"].includes(invocation.operation) && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
           throw Object.assign(new Error("This document operation is not implemented."), { code: "unsupported-profile" });
         }
         if (invocation.operation !== "revisions.list" && !controlOperation && !revisionEditOperation && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && ["link", "control", "revision", "shape", "field", "bookmark"].some(key => invocation.options[key] !== undefined && !(key === "shape" && (shapeOperation || ["text.get", "text.replace"].includes(invocation.operation))))) {
@@ -243,6 +243,11 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         } else if (invocation.operation === "links.list") {
           const data = await inspectDocumentLinks(bytes, invocation.options as DocxOperationArguments<"links.list">, context);
           output = new TextEncoder().encode(invocation.options.json ? JSON.stringify({ version: 1, operation: "links.list", ok: true, data, affected: 0, locations: data.items.map(i => i.location), warnings: [], errors: [] }) + "\n" : data.items.map((item, i) => `${i + 1}. ${escapeTerminalText(item.text)} → ${escapeTerminalText(item.address || "#" + item.fragment)}`).join("\n") + (data.items.length ? "\n" : ""));
+          budget.check("serializedOutput", output.length);
+        } else if (invocation.operation === "tables.list") {
+          const data = await inspectDocumentTables(bytes, invocation.options as DocxOperationArguments<"tables.list">, context);
+          const human = data.items.map(item => `Table ${item.location.positions.table}: ${item.details.rows} rows; ${item.details.columns} columns\n`).join("");
+          output = new TextEncoder().encode(invocation.options.json ? JSON.stringify({ version: 1, operation: invocation.operation, ok: true, data, affected: 0, locations: data.items.map(item => item.location), warnings: [], errors: [] }) + "\n" : human);
           budget.check("serializedOutput", output.length);
         } else if (invocation.operation === "tables.get") {
           const data = await inspectDocumentTable(bytes, invocation.options as DocxOperationArguments<"tables.get">, context);

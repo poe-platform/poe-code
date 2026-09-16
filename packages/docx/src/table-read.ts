@@ -1,6 +1,7 @@
 import { archiveSettings, InvalidValueError, type ArchiveContext } from "./archive.js";
 import { validateDocxInvocation } from "./command.js";
-import { openDocumentLocations } from "./locations.js";
+import { openDocumentLocations, type DocumentLocations } from "./locations.js";
+import type { DocumentBudget } from "./budget.js";
 import { type Location, SelectionError } from "./location-token.js";
 import { pathContains } from "./location-index.js";
 import type { DocxOperationArguments } from "./operation-types.js";
@@ -25,6 +26,27 @@ export interface TableInspectionData {
     readonly references: readonly never[]; readonly support: "read"; readonly details: TableDetails };
 }
 
+export interface TableListData {
+  readonly items: readonly TableInspectionData["item"][];
+}
+
+/** Lists stored table records within the explicitly selected story/owner scope. */
+export async function inspectDocumentTables(input: Uint8Array, options: DocxOperationArguments<"tables.list">, context: ArchiveContext): Promise<TableListData> {
+  const settings = archiveSettings(context);
+  const invocation = validateDocxInvocation({ operation: "tables.list", inputs: ["document"], options }, settings.budget);
+  const budget = settings.budget.lower(Object.fromEntries((options.limit ?? []).map(item => [item.name, item.value])));
+  const document = await openDocumentLocations(input, { ...settings, budget });
+  const owners = new Map<string, Location>();
+  for (const selected of resolveDocxSelection(document, invocation)) {
+    const owner = tableOwner(document, selected);
+    owners.set(owner.token, owner);
+  }
+  const data: TableListData = { items: [...owners.values()].map(owner => readTable(document, owner, budget)) };
+  const size = new TextEncoder().encode(JSON.stringify(data)).length;
+  budget.check("serializedOutput", size); budget.charge("retainedBytes", size);
+  return data;
+}
+
 /** Stored logical coordinates, independent of layout or external field evaluation. */
 export async function inspectDocumentTable(input: Uint8Array, options: DocxOperationArguments<"tables.get">, context: ArchiveContext): Promise<TableInspectionData> {
   const settings = archiveSettings(context);
@@ -32,10 +54,21 @@ export async function inspectDocumentTable(input: Uint8Array, options: DocxOpera
   const budget = settings.budget.lower(Object.fromEntries((options.limit ?? []).map(item => [item.name, item.value])));
   const document = await openDocumentLocations(input, { ...settings, budget });
   const selected = resolveDocxSelection(document, invocation)[0]!;
+  const data: TableInspectionData = { item: readTable(document, tableOwner(document, selected), budget) };
+  const size = new TextEncoder().encode(JSON.stringify(data)).length;
+  budget.check("serializedOutput", size); budget.charge("retainedBytes", size);
+  return data;
+}
+
+function tableOwner(document: DocumentLocations, selected: Location): Location {
   const owner = selected.kind === "table" ? selected : document.list("table", { scope: "all-stories" })
     .filter(table => table.value.part === selected.value.part && table.value.story === selected.value.story && pathContains(table.value.path, selected.value.path))
     .sort((a, b) => b.value.path.length - a.value.path.length)[0];
   if (!owner) throw new SelectionError("missing-selection");
+  return owner;
+}
+
+function readTable(document: DocumentLocations, owner: Location, budget: DocumentBudget): TableInspectionData["item"] {
   const archive = document.snapshot();
   const root = parseDocumentXml(archive.members.find(part => "/" + part.name === owner.value.part)!.bytes, {}, budget).root; let node = root;
   for (const i of owner.value.path) node = node.children[i]!;
@@ -74,8 +107,5 @@ export async function inspectDocumentTable(input: Uint8Array, options: DocxOpera
     }
     return { row: i + 1, before, after };
   });
-  const data: TableInspectionData = { item: { kind: "tables", location: owner, properties: [], references: [], support: "read", details: { kind: "tables", rows: rows.length, columns, cells: [...cells.values()], omitted } } };
-  const size = new TextEncoder().encode(JSON.stringify(data)).length;
-  budget.check("serializedOutput", size); budget.charge("retainedBytes", size);
-  return data;
+  return { kind: "tables", location: owner, properties: [], references: [], support: "read", details: { kind: "tables", rows: rows.length, columns, cells: [...cells.values()], omitted } };
 }

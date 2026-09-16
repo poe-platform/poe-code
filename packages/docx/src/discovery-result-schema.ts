@@ -242,7 +242,8 @@ const tableEditData = object({ ...mutationData.properties, changes: array(object
 const tableDetails = object({ kind: { const: "tables" }, rows: number, columns: number,
   cells: array(object({ row: number, column: number, rowSpan: number, columnSpan: number, location, text: string })),
   omitted: array(object({ row: number, before: number, after: number })) });
-const tableReadData = object({ item: object({ kind: { const: "tables" }, location, properties: empty, references: empty, support: { const: "read" }, details: tableDetails }) });
+const tableReadRecord = object({ kind: { const: "tables" }, location, properties: empty, references: empty, support: { const: "read" }, details: tableDetails });
+const tableReadData = object({ item: tableReadRecord });
 const revisionInfo = object({ id: nullableString, author: nullableString, timestamp: nullableString, markup: string, namespace: string, name: nullableString,
   type: { enum: ["insert", "delete", "format", "move", "table", "section", "unsupported"] }, support: { enum: ["supported", "opaque"] } });
 const textFormatting = object({ bold: nullableBoolean, italic: nullableBoolean, rtl: nullableBoolean, hidden: nullableBoolean, style: nullableString,
@@ -333,6 +334,7 @@ export const inspectionOperationMetadata: Readonly<Record<string, { description:
   ["links.list", "List inert links with stored address, separate anchor, label and owner location.", ["F21"], object({ items: array(object({ location, text: string, address: string, fragment: string, url: string, history: boolean, contains_page_break: boolean })) })],
   ...["links.add", "links.set", "links.remove"].map(id => [id, id === "links.add" ? "Append a hyperlink label to a selected paragraph." : id === "links.set" ? "Change the target while preserving label runs and owner relationships." : "Remove a hyperlink: unwrap its visible label by default; --delete-content deletes it.", ["F21"], object({ ...mutationData.properties, changes: array(object({ kind: { enum: ["insert", "target", "unwrap", "remove"] }, before: location, after: location })) })]),
   ["tables.get", "Inspect one table's 1-based logical cell anchors, spans, omitted slots and exact text.", ["F19", "F20"], tableReadData],
+  ["tables.list", "List stored table records in the explicitly selected story/owner scope, including logical anchors, spans, omitted slots and exact cell text.", ["F19", "F20"], object({ items: array(tableReadRecord) })],
   ["tables.merge", "Merge a complete rectangle with an explicit content join policy.", ["F20"], tableEditData],
   ["tables.split", "Restore a merged cell's existing grid slots with explicit content distribution.", ["F20"], tableEditData],
   ["tables.set", "Replace selected cell values or edit table, row and cell formatting without growing the grid.", ["F19"], tableEditData],

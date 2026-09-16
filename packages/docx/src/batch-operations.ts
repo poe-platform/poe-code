@@ -5,7 +5,7 @@ import { editDocumentFields, inspectDocumentFields, type FieldEditRequest } from
 import { replaceDocumentText, setDocumentDummyText, type TextReplaceOptions, type DummyTextOptions } from "./text-replace.js";
 import { editDocumentParagraphs, type ParagraphEditRequest } from "./paragraph-edit.js";
 import { editDocumentTables, type TableEditRequest } from "./table-edit.js";
-import { inspectDocumentTable } from "./table-read.js";
+import { inspectDocumentTable, inspectDocumentTables } from "./table-read.js";
 import { formatDocumentRuns, type RunFormatOptions } from "./run-format.js";
 import { insertDocumentImage, type ImageInsertionContext, type ImageInsertionRequest } from "./image-insertion.js";
 import { replaceDocumentImage, type ImageReplacementRequest } from "./image-replacement.js";
@@ -34,6 +34,7 @@ for (const operation of ["properties.set", "properties.remove"])
 documentBatchActions.set("text.get", (input, item, context) => extractDocumentText(input, context, item.arguments as TextOptions));
 documentBatchActions.set("fields.list", (input, item, context) => inspectDocumentFields(input, item.arguments as DocxOperationArguments<"fields.list">, context));
 documentBatchActions.set("tables.get", (input, item, context) => inspectDocumentTable(input, item.arguments as DocxOperationArguments<"tables.get">, context));
+documentBatchActions.set("tables.list", (input, item, context) => inspectDocumentTables(input, item.arguments as DocxOperationArguments<"tables.list">, context));
 for (const operation of ["images.list", "images.get"])
   documentBatchActions.set(operation, (input, item, context) => inspectDocumentImages(input, { ...item.arguments, operation: item.operation } as ImageInspectionOptions, context));
 for (const operation of ["properties.list", "properties.get"])

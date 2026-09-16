@@ -26,10 +26,13 @@ class HtmlWriter {
     this.chunks.push(text); this.length += text.length;
   }
   escape(text: string, attribute = false): void {
+    let chunk = "";
     for(const ch of text) {
       if(ch === "\0") this.fail("NUL cannot be represented in HTML");
-      this.add(({"&": "&amp;", "<": "&lt;", ">": "&gt;", "\r": "&#13;"}[ch] ?? (attribute && ch === '"' ? "&quot;" : ch)));
+      chunk += ({"&": "&amp;", "<": "&lt;", ">": "&gt;", "\r": "&#13;"}[ch] ?? (attribute && ch === '"' ? "&quot;" : ch));
+      if(chunk.length >= 256) {this.add(chunk); chunk = "";}
     }
+    if(chunk) this.add(chunk);
   }
   attribute(key: string, value: string): void {this.add(` ${key}="`); this.escape(value, true); this.add('"');}
   attrs(attr: Attr, id = attr[0]): void {

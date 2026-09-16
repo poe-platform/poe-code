@@ -8,6 +8,12 @@ const a: Attr = ["", [], []];
 const s = (c: string): Inline => ({t: "Str", c});
 const p = (...c: Inline[]): Block => ({t: "Para", c});
 const doc = (blocks: readonly Block[]): Document => ({blocks, metadata: {}, resources: []});
+it("retains bounded escape chunks for long publication prose while preserving entities and Unicode", async () => {
+  const source = 'Original & <é> 😀\r'.repeat(600);
+  const result = await writeDocument(doc([p(s(source))]), {to: "html"}, {limits: {references: 200}});
+  expect(result.kind).toBe("text");
+  if(result.kind === "text") expect(result.text).toBe('<p>' + 'Original &amp; &lt;é&gt; 😀&#13;'.repeat(600) + '</p>\n');
+});
 async function html(blocks: readonly Block[], options: Record<string, unknown> = {}) {
   const result = await writeDocument(doc(blocks), {to: "html", ...options} as WriteOptions, {});
   if(result.kind !== "text") throw new Error("Expected text");

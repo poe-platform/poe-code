@@ -1,0 +1,50 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/numbering-model-workflow.test.ts (7 tests | 1 failed) 381ms
+   ✓ counts concrete numbering definitions independently of abstract entries 0 60ms
+   ✓ counts concrete numbering definitions independently of abstract entries 1 54ms
+   ✓ counts concrete numbering definitions independently of abstract entries 10 65ms
+   ✓ keeps the concrete-definition collection live across bounded XML edits 63ms
+   ✓ rejects unavailable numbering creation without mutating the owner package 40ms
+   ✓ rejects ambiguous internal numbering ownership without choosing a target 53ms
+   × exposes explicit unsupported creation and rejects an incompatible typed load 44ms
+FAIL packages/docx/src/numbering-model-workflow.test.ts > exposes explicit unsupported creation and rejects an incompatible typed load
+AssertionError: promise resolved "XmlPartView{}" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
+- }
++ XmlPartView {}
+
+ ❯ packages/docx/src/numbering-model-workflow.test.ts:55:202
+
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/numbering-model-workflow.test.ts > exposes explicit unsupported creation and rejects an incompatible typed load
+AssertionError: promise resolved "XmlPartView{}" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
+- }
++ XmlPartView {}
+
+ ❯ packages/docx/src/numbering-model-workflow.test.ts:55:202
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  22:57:17
+   Duration  1.54s (transform 903ms, setup 30ms, import 1.07s, tests 381ms, environment 0ms)
+

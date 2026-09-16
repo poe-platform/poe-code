@@ -1,0 +1,69 @@
+{
+  "task": "adapt-upstream-tables-bdd",
+  "profile": "existing-numbering-and-deterministic-core-defaults",
+  "source_commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+  "numbering": {
+    "source_file": "features/num-access-numbering-part.feature",
+    "expected_concrete_count": 10,
+    "original_tests": 8,
+    "direct_test_file": "../../packages/docx/src/numbering-model-workflow.test.ts",
+    "red": "red.log",
+    "typed_load_red": "typed-load-red.log",
+    "green": "final-green.log",
+    "language_security": "Public _NumberingDefinitions length maps to live .length over direct num children. Existing numbering owners and inherited XML/package APIs are supported. NumberingPart.new and missing creation remain explicit UnsupportedEditError because pinned source factory is unimplemented; this profile never claims new numbering creation."
+  },
+  "core_defaults": {
+    "source_file": "src/docx/opc/parts/coreprops.py",
+    "original_tests": 2,
+    "direct_test_file": "../../packages/docx/src/core-defaults-workflow.test.ts",
+    "red": "core-defaults-red.log",
+    "green": "core-defaults-green.log",
+    "language_security": "Clock-derived timestamps map to explicit admitted UTC metadata at second precision or documented deterministic 1980 admission fallback; original title Document and admitted author replace reference-project branding. Revision1 retains source semantics."
+  },
+  "source_hashes": {
+    "src/docx/parts/numbering.py": "b260ac704e08bbd5a161308d7f975a1c8ada958a0fae4e8abcbd3278588b88b8",
+    "src/docx/parts/document.py": "0ea6a46e07b9fdd89e1923897c603e3a93cca0b3b63ac4db73deec738dc38a14",
+    "src/docx/opc/parts/coreprops.py": "541733747f82223fad704e1b075d4bc7099990518cd801b5055ca22760369826",
+    "features/num-access-numbering-part.feature": "5a19486c4fb9415d77297d2721faec44df762f50f2b5e688805cbd95a29316fa"
+  },
+  "renderer_qa": "not-run; stored metadata and counts only",
+  "plans": [
+    "../../plans/docx-numbering-model-workflow.md",
+    "../../plans/docx-core-defaults-workflow.md"
+  ],
+  "verification": {
+    "owned_eslint": "passed",
+    "package_test_typescript": "passed",
+    "combined_focused_tests": 22,
+    "log": "core-defaults-green.log"
+  },
+  "independent_style_review": {
+    "exact_selected_inventory": 116,
+    "exact_mapped_rows": 116,
+    "missing": 0,
+    "extra": 0,
+    "passing_original_tests": 116,
+    "scope": "All sty-* and tab-* expanded BDD rows; inspected source feature values, neutral name mappings, getter/setter branches, inherited owner mutations, tab count/position/negative positions/sorting/enums/clear/lookup and latent counts/overrides. No concrete gap found in bounded review.",
+    "log": "style-independent-review-green.log",
+    "map_sha256": "369d53f25166337e1261ed9830c31dd7c323c7487df0eec336b1526ce1889e9b"
+  },
+  "typed_test_cleanup": {
+    "change": "Invented temporary structural interface casts removed; real DocumentPartView, NumberingPart, _NumberingDefinitions annotations verify SDK types. Only owned numbering/core test files reformatted.",
+    "test_passes": 10,
+    "log": "typed-original-tests-green.log",
+    "owned_eslint": "passed"
+  },
+  "maintained_expectation_reconciliation": {
+    "red_tests": 3,
+    "focused_passes": 160,
+    "red": "default-expectations-red.log",
+    "green": "default-expectations-green.log",
+    "owned_eslint": "passed",
+    "scope": [
+      "package-behavior-variants.test.ts",
+      "styles-model.test.ts",
+      "collection-value-protocols.test.ts"
+    ],
+    "preservation": "Single-owner/exact enumeration/type assertions retained; actual character default checked and explicit absent-default null lookup retained via original in-memory fixture."
+  }
+}

@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/core-defaults-workflow.test.ts (2 tests) 97ms
+ ✓ packages/docx/src/numbering-model-workflow.test.ts (8 tests) 456ms
+
+ Test Files  2 passed (2)
+      Tests  10 passed (10)
+   Start at  23:03:09
+   Duration  1.72s (transform 1.88s, setup 70ms, import 2.33s, tests 553ms, environment 0ms)
+

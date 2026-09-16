@@ -1,0 +1,1105 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/styles-model.test.ts (9 tests | 1 failed) 705ms
+   × provides live named style collections, inherited formatting interfaces and async owned-byte save 94ms
+   ✓ retains exact aliases, name lookup errors, default type fallback and deleted-handle invalidation 68ms
+   ✓ keeps base ownership, nullable visibility, next fallback and priority semantics 137ms
+   ✓ creates latent collection on access, distinguishes defaults and nullable individual entries, and invalidates deletes 68ms
+   ✓ does not acquire host resources when opening caller bytes and preserves unknown style metadata 108ms
+   ✓ reads and edits imported formatting with inherited namespace bindings 47ms
+   ✓ invalidates every latent handle after another wrapper deletes and recreates its name 59ms
+   ✓ shares bounded part identity and compares independently acquired live views 58ms
+   ✓ keeps duplicate latent entries distinct while named lookup returns the first 64ms
+FAIL packages/docx/src/styles-model.test.ts > provides live named style collections, inherited formatting interfaces and async owned-byte save
+AssertionError: expected [ 'Normal', …(4) ] to deeply equal [ 'Normal', 'Marsh base', …(1) ]
+
+- Expected
++ Received
+
+  [
+    "Normal",
++   "Default Paragraph Font",
++   "Normal Table",
+    "Marsh base",
+    "Marsh detail",
+  ]
+
+ ❯ packages/docx/src/styles-model.test.ts:18:46
+     16|   expect(model.styles.has("Marsh base")).toBe(true);
+     17|   expect((model.styles.at("Marsh base") as CharacterStyle).font.italic…
+     18|   expect([...model.styles].map(s => s.name)).toEqual(["Normal", "Marsh…
+       |                                              ^
+     19|   expect(model.styles.length).toBe(3);
+     20|   const volume = Volume.fromJSON({ "/out": "" });
+
+ ❯ packages/docx/src/collection-value-protocols.test.ts (21 tests | 1 failed) 370ms
+   ✓ provides immutable zero-based RGB numeric lookup and explicit signed at 1ms
+   ✓ exposes an immutable RGB tuple and iterator-returning reverse protocol 0ms
+   ✓ returns a real reverse iterator rather than an array snapshot 0ms
+   ✓ keeps color zero distinct from false and clamps signed half-open slices 1ms
+   ✓ keeps tab numeric lookup zero-based and supports signed at without slicing 6ms
+   ✓ snapshots tab iteration membership before sorted movement and insertion 5ms
+   ✓ rejects invalid numeric tab property -2 1ms
+   ✓ rejects invalid numeric tab property 0.5 1ms
+   ✓ rejects invalid numeric tab property NaN 1ms
+   ✓ rejects invalid numeric tab property Infinity 1ms
+   ✓ rejects numeric tab property deletion and definition 1ms
+   ✓ invalidates removed tab metadata even through the existing deletion spelling 1ms
+   ✓ retains tab handles across repeated live paragraph views of one owner 80ms
+   ✓ uses value errors for RGB search misses and invalid units 0ms
+   ✓ maps tab deletion to remove and invalidates the removed handle metadata 3ms
+   × uses typed stable bounds and key errors while nullable lookups remain null 63ms
+   ✓ preserves live keyed styles across sparse IDs and mutation without ordinal aliases 77ms
+   ✓ checks all unit helpers with zero, signed halfway conversion and safe EMU ownership 1ms
+   ✓ reduces RGB reverse iterators to typed batch arrays without cloning executable values 41ms
+   ✓ reports valid missing sequence targets through shared CLI JSON and exit status 44ms
+   ✓ reports invalid enum values as usage errors through shared CLI JSON 40ms
+FAIL packages/docx/src/collection-value-protocols.test.ts > uses typed stable bounds and key errors while nullable lookups remain null
+AssertionError: expected CharacterStyle{ …(3) } to be null
+
+- Expected:
+null
+
++ Received:
+CharacterStyle {
+  "collection": Styles {
+    "store": StyleStore {
+      "activePublications": 0,
+      "cachedEditor": DocumentXmlEditor {},
+      "context": {
+        "author": "",
+        "budget": DocumentBudget {
+          "limits": {
+            "batchOperations": 1000,
+            "compressedInput": 131072,
+            "diagnosticBytes": 65536,
+            "embeddedMediaBytes": 67108864,
+            "expandedPackage": 131072,
+            "insertedNodes": 1000000,
+            "matches": 100000,
+            "retainedBytes": 33554432,
+            "serializedOutput": 268435456,
+            "tableCells": 100000,
+            "tableColumns": 1024,
+            "tableRows": 10000,
+            "work": 536870912,
+            "xmlDepth": 256,
+            "xmlNodes": 2000000,
+            "xmlPartBytes": 33554432,
+            "zipEntries": 32,
+          },
+          "signal": AbortSignal {
+            Symbol(kEvents): Map {},
+            Symbol(events.maxEventTargetListeners): 0,
+            Symbol(events.maxEventTargetListenersWarned): false,
+            Symbol(kHandlers): Map {},
+            Symbol(kAborted): false,
+            Symbol(kReason): undefined,
+            Symbol(kComposite): false,
+            Symbol(kDependantSignals): Set {
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+            },
+          },
+        },
+        "codecLimits": {
+          "chunkSize": 1024,
+          "maxArchiveBytes": 131072,
+          "maxCommentBytes": 32,
+          "maxDepth": 32,
+          "maxEntryBytes": 65536,
+          "maxExtraBytes": 0,
+          "maxMembers": 32,
+          "maxPathBytes": 256,
+          "maxPaxBytes": 0,
+          "maxRetainedBytes": 33554432,
+          "maxTextBytes": 32,
+          "maxTotalBytes": 131072,
+        },
+        "initials": "",
+        "limits": {
+          "chunkSize": 1024,
+          "maxArchiveBytes": 131072,
+          "maxCommentBytes": 32,
+          "maxDepth": 32,
+          "maxEntryBytes": 65536,
+          "maxExtraBytes": 0,
+          "maxMembers": 32,
+          "maxPathBytes": 256,
+          "maxRetainedBytes": 33554432,
+          "maxTotalBytes": 131072,
+        },
+        "signal": AbortSignal {
+          Symbol(kEvents): Map {},
+          Symbol(events.maxEventTargetListeners): 0,
+          Symbol(events.maxEventTargetListenersWarned): false,
+          Symbol(kHandlers): Map {},
+          Symbol(kAborted): false,
+          Symbol(kReason): undefined,
+          Symbol(kComposite): false,
+          Symbol(kDependantSignals): Set {
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+          },
+        },
+        "timestamp": 1980-01-01T00:00:00.000Z,
+      },
+      "identities": Map {},
+      "latentTokens": [],
+      "nextLatentToken": 0,
+      "nextToken": 3,
+      "part": StylePartView {
+        "store": [Circular],
+      },
+      "revision": 0,
+      "source": "<w:styles xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:docDefaults xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"/><w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:type=\"paragraph\" w:default=\"1\" w:styleId=\"Normal\"><w:name w:val=\"Normal\"/></w:style><w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:type=\"character\" w:default=\"1\" w:styleId=\"DefaultParagraphFont\"><w:name w:val=\"Default Paragraph Font\"/></w:style><w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:type=\"table\" w:default=\"1\" w:styleId=\"NormalTable\"><w:name w:val=\"Normal Table\"/></w:style></w:styles>",
+      "tokens": [
+        0,
+        1,
+        2,
+      ],
+      "views": Map {
+        "style:1" => XmlElementView {},
+      },
+      "warnings": [],
+      "writable": [Function anonymous],
+    },
+  },
+  "store": StyleStore {
+    "activePublications": 0,
+    "cachedEditor": DocumentXmlEditor {},
+    "context": {
+      "author": "",
+      "budget": DocumentBudget {
+        "limits": {
+          "batchOperations": 1000,
+          "compressedInput": 131072,
+          "diagnosticBytes": 65536,
+          "embeddedMediaBytes": 67108864,
+          "expandedPackage": 131072,
+          "insertedNodes": 1000000,
+          "matches": 100000,
+          "retainedBytes": 33554432,
+          "serializedOutput": 268435456,
+          "tableCells": 100000,
+          "tableColumns": 1024,
+          "tableRows": 10000,
+          "work": 536870912,
+          "xmlDepth": 256,
+          "xmlNodes": 2000000,
+          "xmlPartBytes": 33554432,
+          "zipEntries": 32,
+        },
+        "signal": AbortSignal {
+          Symbol(kEvents): Map {},
+          Symbol(events.maxEventTargetListeners): 0,
+          Symbol(events.maxEventTargetListenersWarned): false,
+          Symbol(kHandlers): Map {},
+          Symbol(kAborted): false,
+          Symbol(kReason): undefined,
+          Symbol(kComposite): false,
+          Symbol(kDependantSignals): Set {
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+          },
+        },
+      },
+      "codecLimits": {
+        "chunkSize": 1024,
+        "maxArchiveBytes": 131072,
+        "maxCommentBytes": 32,
+        "maxDepth": 32,
+        "maxEntryBytes": 65536,
+        "maxExtraBytes": 0,
+        "maxMembers": 32,
+        "maxPathBytes": 256,
+        "maxPaxBytes": 0,
+        "maxRetainedBytes": 33554432,
+        "maxTextBytes": 32,
+        "maxTotalBytes": 131072,
+      },
+      "initials": "",
+      "limits": {
+        "chunkSize": 1024,
+        "maxArchiveBytes": 131072,
+        "maxCommentBytes": 32,
+        "maxDepth": 32,
+        "maxEntryBytes": 65536,
+        "maxExtraBytes": 0,
+        "maxMembers": 32,
+        "maxPathBytes": 256,
+        "maxRetainedBytes": 33554432,
+        "maxTotalBytes": 131072,
+      },
+      "signal": AbortSignal {
+        Symbol(kEvents): Map {},
+        Symbol(events.maxEventTargetListeners): 0,
+        Symbol(events.maxEventTargetListenersWarned): false,
+        Symbol(kHandlers): Map {},
+        Symbol(kAborted): false,
+        Symbol(kReason): undefined,
+        Symbol(kComposite): false,
+        Symbol(kDependantSignals): Set {
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+        },
+      },
+      "timestamp": 1980-01-01T00:00:00.000Z,
+    },
+    "identities": Map {},
+    "latentTokens": [],
+    "nextLatentToken": 0,
+    "nextToken": 3,
+    "part": StylePartView {
+      "store": [Circular],
+    },
+    "revision": 0,
+    "source": "<w:styles xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:docDefaults xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"/><w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:type=\"paragraph\" w:default=\"1\" w:styleId=\"Normal\"><w:name w:val=\"Normal\"/></w:style><w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:type=\"character\" w:default=\"1\" w:styleId=\"DefaultParagraphFont\"><w:name w:val=\"Default Paragraph Font\"/></w:style><w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:type=\"table\" w:default=\"1\" w:styleId=\"NormalTable\"><w:name w:val=\"Normal Table\"/></w:style></w:styles>",
+    "tokens": [
+      0,
+      1,
+      2,
+    ],
+    "views": Map {
+      "style:1" => XmlElementView {},
+    },
+    "warnings": [],
+    "writable": [Function anonymous],
+  },
+  "token": 1,
+}
+
+ ❯ packages/docx/src/collection-value-protocols.test.ts:149:69
+    147|   const model = await api.openDocumentStyleModel(undefined, textContex…
+    148|   expect(() => model.styles.at("Absent style")).toThrow(api.MissingKey…
+    149|   expect(model.styles.get_by_id(null, api.WD_STYLE_TYPE.CHARACTER)).to…
+       |                                                                     ^
+    150|   const bounds = new api.BoundsError("Index is out of range.");
+    151|   expect(bounds).toBeInstanceOf(RangeError);
+
+ ❯ packages/docx/src/package-behavior-variants.test.ts (130 tests | 1 failed) 4818ms
+   ✓ Default declarations expose extension and media type 5ms
+   ✓ Default declarations survive XML serialization 32ms
+   ✓ Override declarations expose exact owned part names 30ms
+   ✓ Override declarations survive original archive serialization 29ms
+   ✓ Relationship XML values retain their owner-local metadata 1ms
+   ✓ Relationship XML distinguishes absent internal and external target modes 84ms
+   ✓ New owner relationship collection serializes an empty root 52ms
+   ✓ Relationship additions serialize internal and external edges in insertion order 68ms
+   ✓ Empty relationship XML serializes as explicit UTF-8 bytes 49ms
+   ✓ Content type XML exposes two independent default declarations 1ms
+   ✓ Content type XML exposes three independent override declarations 0ms
+   ✓ Missing content type children return empty query lists 0ms
+   ✓ Empty content type element remains a valid XML value 0ms
+   ✓ Content declarations retain mixed default and override media types 46ms
+   ✓ Package factory asynchronously admits an explicit original byte source 41ms
+   ✓ Owner-local relationship access retains collection identity 49ms
+   ✓ Root relationship loading records explicit owned targets 48ms
+   ✓ Root relationship establishment returns a stable owner-local identifier 47ms
+   ✓ Package parts list equals the deterministic reachable traversal 47ms
+   ✓ Cyclic traversal visits owned parts once and skips external targets 50ms
+   ✓ Part allocation fills gap 1 among no occupied numbers 46ms
+   ✓ Part allocation fills gap 2 among 1 49ms
+   ✓ Part allocation fills gap 3 among 1, 2 52ms
+   ✓ Part allocation fills gap 1 among 2, 3 52ms
+   ✓ Part allocation fills gap 2 among 1, 3 54ms
+   ✓ Root relationship type lookup returns the original target owner 48ms
+   ✓ Package output reopens with reachable owned parts and unchanged payloads 96ms
+   × Absent core properties create one owned resource with deterministic defaults 53ms
+   ✓ Package finalization preserves admitted owner identity and valid traversal 98ms
+   ✓ Admission restores exact part bytes with subtype ownership 98ms
+   ✓ Admission resolves root and child relationships to their original owners 96ms
+   ✓ Part factory returns an admitted inert owner 48ms
+   ✓ Part name is an immutable validated URI value 47ms
+   ✓ Part rename updates owner identity and incoming references 100ms
+   ✓ Part content type remains the admitted declaration 48ms
+   ✓ Part package points to the original admitted owner 47ms
+   ✓ Part admission hook validates ownership without replacing handles 47ms
+   ✓ Part publication hook validates the maintained package graph 94ms
+   ✓ Loaded inert part retains exact independent bytes 47ms
+   ✓ Part relationship access retains one owner-local collection 45ms
+   ✓ Part relationship loading honors explicit IDs 48ms
+   ✓ Part relationship establishment deduplicates owner and type 49ms
+   ✓ Part external relationship establishment stores an inert target 48ms
+   ✓ Part deletion removes an unreferenced owned edge 48ms
+   ✓ Part relationship-type lookup returns the original part 48ms
+   ✓ Part related-part snapshot resolves owner-local IDs 48ms
+   ✓ Part target lookup retains exact external spelling 47ms
+   ✓ Factory subtype follows admitted image MIME 47ms
+   ✓ Factory subtype follows admitted XML MIME 47ms
+   ✓ Factory default preserves generic inert bytes 49ms
+   ✓ XML factory returns an admitted XML owner 49ms
+   ✓ XML part changes serialize through the original admitted owner 49ms
+   ✓ XML part children retain the original part owner 48ms
+   ✓ Relationship deletion checks 0 remaining XML references 50ms
+   ✓ Relationship deletion checks 1 remaining XML references 49ms
+   ✓ Relationship deletion checks 2 remaining XML references 48ms
+   ✓ Explicit tree inventory produces bounded original archive members 28ms
+   ✓ Explicit tree cleanup is idempotent and preserves unrelated memory entries 16ms
+   ✓ Explicit tree retrieves a member by its validated package URI 27ms
+   ✓ Explicit tree reads exact content declaration bytes 26ms
+   ✓ Explicit tree retrieves root relationship bytes exactly 28ms
+   ✓ Explicit tree missing part relationships remain an empty collection 27ms
+   ✓ Invalid package bytes reject without ambient path access 1ms
+   ✓ ZIP source transport produces bounded original archive members 26ms
+   ✓ Explicit archive source snapshots fragments and closes after admission 17ms
+   ✓ Archive input initialization produces bounded original archive members 26ms
+   ✓ Archive input cleanup is idempotent and preserves unrelated memory entries 16ms
+   ✓ ZIP source retrieves a member by its validated package URI 26ms
+   ✓ ZIP source reads exact content declaration bytes 28ms
+   ✓ ZIP source retrieves root relationship bytes exactly 29ms
+   ✓ ZIP source missing part relationships remain an empty collection 25ms
+   ✓ Explicit output transport produces bounded original archive members 27ms
+   ✓ Archive output initialization produces bounded original archive members 27ms
+   ✓ Archive output cleanup is idempotent and preserves unrelated memory entries 16ms
+   ✓ Archive writer preserves an original member payload exactly 25ms
+   ✓ Reader construction admits a complete owned archive 35ms
+   ✓ Reader enumerates exact serialized part records 37ms
+   ✓ Relationship reader retains root and child owner separation 0ms
+   ✓ Reader loads exact content type and serialized bytes 37ms
+   ✓ Package reader traverses cycles shared targets and external edges once 1ms
+   ✓ Relationship reader returns owner-relative targets without creating missing members 45ms
+   ✓ Content map admission distinguishes defaults and overrides 0ms
+   ✓ Override lookup preserves case-insensitive variant 1 0ms
+   ✓ Override lookup preserves case-insensitive variant 2 0ms
+   ✓ Override lookup preserves case-insensitive variant 3 0ms
+   ✓ Default lookup preserves extension case variant 1 0ms
+   ✓ Default lookup preserves extension case variant 2 0ms
+   ✓ Default lookup preserves extension case variant 3 0ms
+   ✓ Missing content type mapping fails before graph acceptance 0ms
+   ✓ Content lookup requires an explicit validated string URI 0ms
+   ✓ Serialized part metadata retain original bytes and owner-relative relationships 0ms
+   ✓ Serialized edge metadata retain ID type target and mode 0ms
+   ✓ Serialized target modes distinguish internal external and invalid values 0ms
+   ✓ Serialized internal targets resolve root nested and parent-relative owners 1ms
+   ✓ Serialized external targets cannot dereference owned parts 0ms
+   ✓ Serialized XML admission retains independent relationship rows 26ms
+   ✓ Serialized edge collection has deterministic empty iteration 28ms
+   ✓ Writer finalizes a complete original package with validated relationships 27ms
+   ✓ Writer retains exact content declaration stream bytes 28ms
+   ✓ Writer retains exact package relationship stream bytes 27ms
+   ✓ Writer emits part and nonempty relationship members without inventing empty owners 45ms
+   ✓ Content declaration serialization variant 1 retains default semantics 28ms
+   ✓ Content declaration serialization variant 2 retains default semantics 28ms
+   ✓ Content declaration serialization variant 3 retains default semantics 37ms
+   ✓ Content declaration serialization variant 4 retains default semantics 28ms
+   ✓ Content declaration serialization variant 5 retains override semantics 27ms
+   ✓ Content declaration serialization variant 6 retains override semantics 26ms
+   ✓ Content declaration serialization variant 7 retains override semantics 25ms
+   ✓ Relationship creation retains ID type and owned target 49ms
+   ✓ External relationship part access rejects without acquisition 48ms
+   ✓ External relationship reference preserves the inert target 47ms
+   ✓ Internal relationship references rebase across sibling directories 48ms
+   ✓ Relationship collection adds an explicitly owned internal edge 48ms
+   ✓ Relationship collection adds a new inert external edge 48ms
+   ✓ Relationship ID lookup returns the original owned entry 47ms
+   ✓ Internal relationship matching reuses an entry and distinguishes a new type 47ms
+   ✓ Equal external type and target reuse an existing explicit ID 49ms
+   ✓ Related-part map excludes external edges and retains target identity 47ms
+   ✓ Missing keyed relationship lookup distinguishes null from a typed failure 47ms
+   ✓ Relationship type lookup resolves the original internal target 48ms
+   ✓ Relationship XML serializes internal rebase and external target mode 49ms
+   ✓ Relationship ID allocation fills the first owner-local gap 50ms
+   ✓ Package image admission reuses equal bytes without another resource 49ms
+   ✓ Image collection discovers unreferenced admitted resources after reopening 105ms
+   ✓ Image byte equality returns the original admitted part 48ms
+   ✓ Different image bytes produce distinct owned parts 49ms
+   ✓ Image allocation fills gap 1 among 2, 3 51ms
+   ✓ Image allocation fills gap 2 among 1, 3 51ms
+   ✓ Image allocation fills gap 3 among 1, 2 50ms
+   ✓ New image admission joins the original owned collection 45ms
+FAIL packages/docx/src/package-behavior-variants.test.ts > Absent core properties create one owned resource with deterministic defaults
+AssertionError: expected 1980-01-01T00:00:00.000Z to be null
+
+- Expected:
+null
+
++ Received:
+1980-01-01T00:00:00.000Z
+
+ ❯ packages/docx/src/package-behavior-variants.test.ts:469:26
+    467|   expect(first.part.package).toBe(owner);
+    468|   expect(owner.parts.filter((part) => part === first.part)).toHaveLeng…
+    469|   expect(first.modified).toBeNull();
+       |                          ^
+    470| });
+    471|
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/collection-value-protocols.test.ts > uses typed stable bounds and key errors while nullable lookups remain null
+AssertionError: expected CharacterStyle{ …(3) } to be null
+
+- Expected:
+null
+
++ Received:
+CharacterStyle {
+  "collection": Styles {
+    "store": StyleStore {
+      "activePublications": 0,
+      "cachedEditor": DocumentXmlEditor {},
+      "context": {
+        "author": "",
+        "budget": DocumentBudget {
+          "limits": {
+            "batchOperations": 1000,
+            "compressedInput": 131072,
+            "diagnosticBytes": 65536,
+            "embeddedMediaBytes": 67108864,
+            "expandedPackage": 131072,
+            "insertedNodes": 1000000,
+            "matches": 100000,
+            "retainedBytes": 33554432,
+            "serializedOutput": 268435456,
+            "tableCells": 100000,
+            "tableColumns": 1024,
+            "tableRows": 10000,
+            "work": 536870912,
+            "xmlDepth": 256,
+            "xmlNodes": 2000000,
+            "xmlPartBytes": 33554432,
+            "zipEntries": 32,
+          },
+          "signal": AbortSignal {
+            Symbol(kEvents): Map {},
+            Symbol(events.maxEventTargetListeners): 0,
+            Symbol(events.maxEventTargetListenersWarned): false,
+            Symbol(kHandlers): Map {},
+            Symbol(kAborted): false,
+            Symbol(kReason): undefined,
+            Symbol(kComposite): false,
+            Symbol(kDependantSignals): Set {
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+              SafeWeakRef {},
+            },
+          },
+        },
+        "codecLimits": {
+          "chunkSize": 1024,
+          "maxArchiveBytes": 131072,
+          "maxCommentBytes": 32,
+          "maxDepth": 32,
+          "maxEntryBytes": 65536,
+          "maxExtraBytes": 0,
+          "maxMembers": 32,
+          "maxPathBytes": 256,
+          "maxPaxBytes": 0,
+          "maxRetainedBytes": 33554432,
+          "maxTextBytes": 32,
+          "maxTotalBytes": 131072,
+        },
+        "initials": "",
+        "limits": {
+          "chunkSize": 1024,
+          "maxArchiveBytes": 131072,
+          "maxCommentBytes": 32,
+          "maxDepth": 32,
+          "maxEntryBytes": 65536,
+          "maxExtraBytes": 0,
+          "maxMembers": 32,
+          "maxPathBytes": 256,
+          "maxRetainedBytes": 33554432,
+          "maxTotalBytes": 131072,
+        },
+        "signal": AbortSignal {
+          Symbol(kEvents): Map {},
+          Symbol(events.maxEventTargetListeners): 0,
+          Symbol(events.maxEventTargetListenersWarned): false,
+          Symbol(kHandlers): Map {},
+          Symbol(kAborted): false,
+          Symbol(kReason): undefined,
+          Symbol(kComposite): false,
+          Symbol(kDependantSignals): Set {
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+          },
+        },
+        "timestamp": 1980-01-01T00:00:00.000Z,
+      },
+      "identities": Map {},
+      "latentTokens": [],
+      "nextLatentToken": 0,
+      "nextToken": 3,
+      "part": StylePartView {
+        "store": [Circular],
+      },
+      "revision": 0,
+      "source": "<w:styles xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:docDefaults xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"/><w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:type=\"paragraph\" w:default=\"1\" w:styleId=\"Normal\"><w:name w:val=\"Normal\"/></w:style><w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:type=\"character\" w:default=\"1\" w:styleId=\"DefaultParagraphFont\"><w:name w:val=\"Default Paragraph Font\"/></w:style><w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:type=\"table\" w:default=\"1\" w:styleId=\"NormalTable\"><w:name w:val=\"Normal Table\"/></w:style></w:styles>",
+      "tokens": [
+        0,
+        1,
+        2,
+      ],
+      "views": Map {
+        "style:1" => XmlElementView {},
+      },
+      "warnings": [],
+      "writable": [Function anonymous],
+    },
+  },
+  "store": StyleStore {
+    "activePublications": 0,
+    "cachedEditor": DocumentXmlEditor {},
+    "context": {
+      "author": "",
+      "budget": DocumentBudget {
+        "limits": {
+          "batchOperations": 1000,
+          "compressedInput": 131072,
+          "diagnosticBytes": 65536,
+          "embeddedMediaBytes": 67108864,
+          "expandedPackage": 131072,
+          "insertedNodes": 1000000,
+          "matches": 100000,
+          "retainedBytes": 33554432,
+          "serializedOutput": 268435456,
+          "tableCells": 100000,
+          "tableColumns": 1024,
+          "tableRows": 10000,
+          "work": 536870912,
+          "xmlDepth": 256,
+          "xmlNodes": 2000000,
+          "xmlPartBytes": 33554432,
+          "zipEntries": 32,
+        },
+        "signal": AbortSignal {
+          Symbol(kEvents): Map {},
+          Symbol(events.maxEventTargetListeners): 0,
+          Symbol(events.maxEventTargetListenersWarned): false,
+          Symbol(kHandlers): Map {},
+          Symbol(kAborted): false,
+          Symbol(kReason): undefined,
+          Symbol(kComposite): false,
+          Symbol(kDependantSignals): Set {
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+            SafeWeakRef {},
+          },
+        },
+      },
+      "codecLimits": {
+        "chunkSize": 1024,
+        "maxArchiveBytes": 131072,
+        "maxCommentBytes": 32,
+        "maxDepth": 32,
+        "maxEntryBytes": 65536,
+        "maxExtraBytes": 0,
+        "maxMembers": 32,
+        "maxPathBytes": 256,
+        "maxPaxBytes": 0,
+        "maxRetainedBytes": 33554432,
+        "maxTextBytes": 32,
+        "maxTotalBytes": 131072,
+      },
+      "initials": "",
+      "limits": {
+        "chunkSize": 1024,
+        "maxArchiveBytes": 131072,
+        "maxCommentBytes": 32,
+        "maxDepth": 32,
+        "maxEntryBytes": 65536,
+        "maxExtraBytes": 0,
+        "maxMembers": 32,
+        "maxPathBytes": 256,
+        "maxRetainedBytes": 33554432,
+        "maxTotalBytes": 131072,
+      },
+      "signal": AbortSignal {
+        Symbol(kEvents): Map {},
+        Symbol(events.maxEventTargetListeners): 0,
+        Symbol(events.maxEventTargetListenersWarned): false,
+        Symbol(kHandlers): Map {},
+        Symbol(kAborted): false,
+        Symbol(kReason): undefined,
+        Symbol(kComposite): false,
+        Symbol(kDependantSignals): Set {
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+        },
+      },
+      "timestamp": 1980-01-01T00:00:00.000Z,
+    },
+    "identities": Map {},
+    "latentTokens": [],
+    "nextLatentToken": 0,
+    "nextToken": 3,
+    "part": StylePartView {
+      "store": [Circular],
+    },
+    "revision": 0,
+    "source": "<w:styles xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:docDefaults xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"/><w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:type=\"paragraph\" w:default=\"1\" w:styleId=\"Normal\"><w:name w:val=\"Normal\"/></w:style><w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:type=\"character\" w:default=\"1\" w:styleId=\"DefaultParagraphFont\"><w:name w:val=\"Default Paragraph Font\"/></w:style><w:style xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" w:type=\"table\" w:default=\"1\" w:styleId=\"NormalTable\"><w:name w:val=\"Normal Table\"/></w:style></w:styles>",
+    "tokens": [
+      0,
+      1,
+      2,
+    ],
+    "views": Map {
+      "style:1" => XmlElementView {},
+    },
+    "warnings": [],
+    "writable": [Function anonymous],
+  },
+  "token": 1,
+}
+
+ ❯ packages/docx/src/collection-value-protocols.test.ts:149:69
+    147|   const model = await api.openDocumentStyleModel(undefined, textContex…
+    148|   expect(() => model.styles.at("Absent style")).toThrow(api.MissingKey…
+    149|   expect(model.styles.get_by_id(null, api.WD_STYLE_TYPE.CHARACTER)).to…
+       |                                                                     ^
+    150|   const bounds = new api.BoundsError("Index is out of range.");
+    151|   expect(bounds).toBeInstanceOf(RangeError);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  packages/docx/src/package-behavior-variants.test.ts > Absent core properties create one owned resource with deterministic defaults
+AssertionError: expected 1980-01-01T00:00:00.000Z to be null
+
+- Expected:
+null
+
++ Received:
+1980-01-01T00:00:00.000Z
+
+ ❯ packages/docx/src/package-behavior-variants.test.ts:469:26
+    467|   expect(first.part.package).toBe(owner);
+    468|   expect(owner.parts.filter((part) => part === first.part)).toHaveLeng…
+    469|   expect(first.modified).toBeNull();
+       |                          ^
+    470| });
+    471|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  packages/docx/src/styles-model.test.ts > provides live named style collections, inherited formatting interfaces and async owned-byte save
+AssertionError: expected [ 'Normal', …(4) ] to deeply equal [ 'Normal', 'Marsh base', …(1) ]
+
+- Expected
++ Received
+
+  [
+    "Normal",
++   "Default Paragraph Font",
++   "Normal Table",
+    "Marsh base",
+    "Marsh detail",
+  ]
+
+ ❯ packages/docx/src/styles-model.test.ts:18:46
+     16|   expect(model.styles.has("Marsh base")).toBe(true);
+     17|   expect((model.styles.at("Marsh base") as CharacterStyle).font.italic…
+     18|   expect([...model.styles].map(s => s.name)).toEqual(["Normal", "Marsh…
+       |                                              ^
+     19|   expect(model.styles.length).toBe(3);
+     20|   const volume = Volume.fromJSON({ "/out": "" });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  3 failed (3)
+      Tests  3 failed | 157 passed (160)
+   Start at  23:03:52
+   Duration  5.82s (transform 1.35s, setup 71ms, import 1.99s, tests 5.89s, environment 0ms)
+

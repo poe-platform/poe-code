@@ -27,7 +27,7 @@ export class DocumentView {
     this.ref = store.ref(store.mainPart, body);
   }
   get part() {
-    return this.store.part(this.store.mainPart);
+    return this.store.package.main_document_part;
   }
   get element() {
     return this.store.element(

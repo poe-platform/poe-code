@@ -45,7 +45,7 @@ export {
   type XmlAttribute
 } from "./package-xml.js";
 export { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
-export { PackageView, PartView, XmlPartView, Relationships, RelationshipView, CoreProperties, CorePropertiesPartView, ImageParts, ImagePartView } from "./package-view.js";
+export { PackageView, PartView, XmlPartView, DocumentPartView, NumberingPart, _NumberingDefinitions, Relationships, RelationshipView, CoreProperties, CorePropertiesPartView, ImageParts, ImagePartView } from "./package-view.js";
 export { XmlElementView, type XmlViewName } from "./xml-element-view.js";
 export { DocumentArchiveEditor } from "./package-write.js";
 export { documentDialects, type DocumentDialect } from "./dialect.js";

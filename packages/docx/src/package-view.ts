@@ -113,6 +113,8 @@ export class PackageView {
     if (!part) {
       part = metadata.content_type.startsWith("image/") ? new ImagePartView(this, metadata.partname)
         : metadata.content_type === "application/vnd.openxmlformats-package.core-properties+xml" ? new CorePropertiesPartView(this, metadata.partname)
+        : metadata.content_type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml" ? new DocumentPartView(this, metadata.partname)
+        : metadata.content_type === "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml" ? new NumberingPart(this, metadata.partname)
         : xmlType(metadata.content_type) ? new XmlPartView(this, metadata.partname) : new PartView(this, metadata.partname);
     }
     return part;
@@ -218,10 +220,10 @@ export class PackageView {
     this.commit({ ...archive, members });
     return this[packagePart](name);
   }
-  get main_document_part(): XmlPartView {
+  get main_document_part(): DocumentPartView {
     const edges = [...this.rels.values()].filter(edge => edge.reltype.endsWith("/officeDocument") && !edge.is_external);
-    if (edges.length !== 1 || !(edges[0]!.target_part instanceof XmlPartView)) throw new InvalidValueError("Expected one XML document part.");
-    return edges[0]!.target_part as XmlPartView;
+    if (edges.length !== 1 || !(edges[0]!.target_part instanceof DocumentPartView)) throw new InvalidValueError("Expected one XML document part.");
+    return edges[0]!.target_part as DocumentPartView;
   }
   [packageRelationships](owner: string): Relationships {
     const key = owner === "/" ? "/" : asciiKey(this.current().graph.getPart(owner).partname);
@@ -414,6 +416,51 @@ export class XmlPartView extends PartView {
   }
   get element(): XmlElementView { return this.#element ??= this.package[packageBindXml](this); }
   get part(): this { return this; }
+}
+
+export class DocumentPartView extends XmlPartView {
+  static override async load(partname: string | PackURI, content_type: string, blob: Uint8Array, owner: PackageView): Promise<DocumentPartView> {
+    if (content_type !== "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml") throw new InputTypeError("Expected the document content type.");
+    return await super.load(partname, content_type, blob, owner) as DocumentPartView;
+  }
+  get numbering_part(): NumberingPart {
+    const root = this.element.tag;
+    const dialect = root.namespaceURI === documentDialects.strict.w ? documentDialects.strict : documentDialects.transitional;
+    let target: PartView;
+    try { target = this.part_related_by(`${dialect.r}/numbering`); }
+    catch (error) {
+      if (!(error instanceof MissingKeyError)) throw error;
+      throw new UnsupportedEditError("Creating a missing numbering part is not supported by this model profile.");
+    }
+    if (!(target instanceof NumberingPart)) throw new InvalidValueError("Numbering ownership has an incompatible target.");
+    return target;
+  }
+}
+
+export class NumberingPart extends XmlPartView {
+  #definitions: _NumberingDefinitions | undefined;
+  static override async load(partname: string | PackURI, content_type: string, blob: Uint8Array, owner: PackageView): Promise<NumberingPart> {
+    if (content_type !== "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml") throw new InputTypeError("Expected the numbering content type.");
+    return await super.load(partname, content_type, blob, owner) as NumberingPart;
+  }
+  static new(): NumberingPart {
+    throw new UnsupportedEditError("Creating a numbering part is not supported by this model profile.");
+  }
+  get numbering_definitions(): _NumberingDefinitions {
+    if (this.element.localName !== "numbering") throw new InvalidValueError("Expected an owned numbering root.");
+    return this.#definitions ??= new _NumberingDefinitions(this);
+  }
+}
+
+export class _NumberingDefinitions {
+  constructor(private readonly owner: NumberingPart) {}
+  get length(): number {
+    const root = this.owner.element;
+    if (root.localName !== "numbering" ||
+        (root.tag.namespaceURI !== documentDialects.transitional.w && root.tag.namespaceURI !== documentDialects.strict.w))
+      throw new InvalidValueError("Expected an owned numbering root.");
+    return root.children.filter(node => node.tag.namespaceURI === root.tag.namespaceURI && node.localName === "num").length;
+  }
 }
 
 export class CorePropertiesPartView extends XmlPartView {

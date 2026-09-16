@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/style-workflow-variants.test.ts (116 tests) 6399ms
+
+ Test Files  1 passed (1)
+      Tests  116 passed (116)
+   Start at  22:59:24
+   Duration  7.42s (transform 792ms, setup 28ms, import 928ms, tests 6.40s, environment 0ms)
+

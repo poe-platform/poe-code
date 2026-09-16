@@ -4576,3 +4576,11 @@ describe("pipeline coordination progress", () => {
     } finally { abort.abort(); release(); await Promise.allSettled([owner, operation]); }
   });
 });
+
+it("resumes saved 68/90 task progress and advances it across a second process", async () => {
+  const tasks: PipelineTask[] = Array.from({ length: 90 }, (_, i) => ({ id: `task-${i + 1}`, title: `Task ${i + 1}`, prompt: "Do work", status: i < 68 ? "done" : "open" }));
+  const first = await createPipelineSimulation({ plan: { tasks }, turns: [successTurn()], config: { maxRuns: 1 } }).run();
+  expect(first.taskCompletions[0]).toMatchObject({ taskIndex: 69, completedTasks: 68, totalTasks: 90, taskCompleted: true });
+  const second = await createPipelineSimulation({ plan: await first.readPlan(), turns: [successTurn()], config: { maxRuns: 1 } }).run();
+  expect(second.taskCompletions[0]).toMatchObject({ taskIndex: 70, completedTasks: 69, totalTasks: 90 });
+});

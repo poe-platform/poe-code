@@ -1,16 +1,17 @@
-# Optional SafeJS shell command
+# Internal SafeJS engine and JavaScript registration
 
 Source-module exports:
 
-- `safeJsCommands(options?)`: a `VirtualShellPlugin` registering **only `safejs`**.
-- `createSafeJsCommands(options?)`: independent command definitions.
+- `safeJsCommands(options)`: compatibility export of portable SafeJS-backed `nodeCommands`, registering **only `node`**.
+- `createSafeJsCommands(options)`: compatibility export of portable SafeJS-backed `createNodeCommands`.
 - `defaultSafeJsLimits`, `SafeJsCommandLimitError`, and structural runtime/options types.
 
-This subtree does not add package-root exports, manifest entries or a private
-package dependency. Root integration is a separate owner's task. There is no
-`js` alias and no Node.js CLI compatibility claim. All production imports are
-project code or Node builtins. Guest source goes only to the injected SafeJS
-interpreter: never to host `eval`, `Function`, a VM evaluator, or a subprocess.
+There is no standalone `safejs` command or `js` alias, including through the
+compatibility SDK names. Prefer `nodeCommands({ runtime })`; see the
+[supported Node subset](../node/README.md). The generic execution machinery in
+`runtime.ts` remains internal and requires an explicit dialect. Guest source goes
+only to the injected interpreter, never to a native Node executable or implicit
+host filesystem, environment, process, or network capabilities.
 
 ## Actual integration boundary
 
@@ -41,7 +42,7 @@ const shell = new Shell({ fs, cwd: "/work", env: { PROJECT: "virtual" } })
     limits: { timeoutMs: 3000, maxOutputBytes: 1024 * 1024 },
   }));
 
-const result = await shell.exec(`printf 'hello é\\n' | safejs -e '
+const result = await shell.exec(`printf 'hello é\\n' | node -e '
   import { readText, write } from "stdio";
   import { writeFile } from "fs";
   import { args, cwd, env } from "command";
@@ -63,10 +64,9 @@ written or built by this command's tests.
 safe interpreter, `createBudget` must return a fresh actual Budget for each
 invocation, and the module/declaration factories must preserve SafeJS's host
 boundary. Supplying an unsafe runner invalidates any sandbox expectation.
-`runtime` is optional solely to allow an explicit not-installed result: without
-it, execution returns **127** without reading source/stdin; help still works.
-Partial runtime objects fail configuration validation. `replace: true` permits
-replacing an existing `safejs` registry entry; default registration rejects it.
+The runtime must be configured explicitly; missing or partial runtimes fail
+configuration validation before registration. `replace: true` permits replacing
+an existing `node` registry entry; default registration rejects it.
 
 `command.env` is an own-entry data dictionary, not an Object-prototype capability.
 The command copies it into a prototype-free record so literal `__proto__`,
@@ -84,23 +84,22 @@ work around an external engine limitation.
 ## Command grammar
 
 ```text
-safejs [-p|--print] [-e SOURCE [--] ARG... | FILE ARG... | - ARG...]
-safejs [-p|--print]                 # source from stdin
-safejs -h|--help
+node [-e SOURCE | -p EXPRESSION | FILE | -] [ARG...]
+node                              # source from stdin
+node -h|--help
 ```
 
 - `-e SOURCE`, `-eSOURCE`, `--eval SOURCE`, `--eval=SOURCE` take **complete
   SafeJS source**, not an automatically wrapped expression. Top-level `return`
   is supported by the actual interpreter. Inline/file modes leave stdin for
   guest data; stdin-source mode consumes it as source and gives the guest EOF.
-- Parsing stops when source/file is selected. Remaining words are exact guest
-  arguments. Immediately after inline source, one optional `--` is removed.
-  Before a filename, `--` allows a dash-leading filename. `-` selects stdin.
+- Remaining operands are exact guest arguments. `--` ends command-option parsing
+  and allows a dash-leading filename or guest argument. `-` selects stdin.
   There is no interactive REPL and no second stdin stream for stdin-source mode.
-- `-p`/`--print` must precede source selection. A returned string is written
-  verbatim plus LF; JSON data is serialized plus LF; an undefined top-level
-  return produces nothing. Without `-p`, only guest stdio/console emits output.
-  This does not implement Node's `-p` expression evaluation.
+- `-p EXPRESSION`/`--print EXPRESSION` evaluates and prints an expression, including
+  `undefined`. Objects print as JSON rather than Node inspection output. Migrate
+  old `safejs -p -e 'return VALUE'` invocations to `node -p 'VALUE'`; statement
+  programs should use `node -e` with explicit console or stream output.
 - Source files are read only through `context.fs`, relative to the virtual cwd,
   not the source file's directory. Parent symlinks are left for the VFS to
   resolve. Streaming reads are used when advertised/available; otherwise
@@ -222,7 +221,6 @@ cover this rejection race for text, bytes and both console sinks.
 | Guest/runtime/VFS/invalid UTF-8/serialization error | 1 |
 | Usage or actual `ParseError` | 2 |
 | Command limits, deadline or SafeJS `budgetExceeded` | 124 |
-| No injected runtime | 127 |
 | Parent cancellation | Rejects with the original parent reason; not converted into a success/status |
 
 Parent signal reaches the runner, VFS bridge and byte I/O. Pending source/sink

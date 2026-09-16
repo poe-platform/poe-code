@@ -76,3 +76,15 @@ it("provides settled Unicode heading QA", async () => {
   await import("./pipeline-scenario.js");
   expect(dashboard.appendOutput.mock.calls.map(([item]) => item.text).join("\n")).toContain("Unicode heading fixture ready");
 });
+
+it.each(["resumed", "queue"])("keeps %s simulation logs consistent with saved progress", async (scenario) => {
+  vi.useFakeTimers();
+  vi.spyOn(process, "once").mockReturnValue(process);
+  vi.spyOn(process, "argv", "get").mockReturnValue(["node", "fixture", scenario]);
+  await import("./pipeline-scenario.js");
+  const stats = Object.assign({}, ...dashboard.updateStats.mock.calls.map(([value]) => value));
+  const output = dashboard.appendOutput.mock.calls.map(([item]) => item.text).join("\n");
+  expect(stats).toMatchObject({ iterations: 68, iterationsTotal: 90 });
+  expect(output).toContain("Task 69/90");
+  expect(output).not.toContain("Task 2/8");
+});

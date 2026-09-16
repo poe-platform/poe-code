@@ -3,6 +3,7 @@ export { posix as posixPath } from "node:path";
 export * from "./commands/network/index.js";
 export * from "./commands/op/index.js";
 export * from "./commands/node/index.js";
+export { createNodeCommand, createNodeCommands, nodeCommands, type NodeCommandsOptions } from "./commands/node/index.js";
 export * from "./fs/real/index.js";
 export * from "./fs/s3/index.js";
 export * from "./fs/s3/http/index.js";

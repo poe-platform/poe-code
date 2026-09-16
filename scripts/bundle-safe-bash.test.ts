@@ -49,7 +49,7 @@ async function bundlePublicConsumer(contents: string) {
     plugins: [{
       name: "public-built-shell-entries",
       setup(builder) {
-        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/commands\/(?:xml|yq|network|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|llm(?:\/providers)?))?$/ }, args => ({
+        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/commands\/(?:xml|yq|network|node|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|llm(?:\/providers)?))?$/ }, args => ({
           path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
           namespace: "built-shell",
         }));
@@ -84,6 +84,46 @@ it.each([["xml", "createXmlCommands"], ["yq", "createYqCommands"], ["network", "
   });
   const consumer = runInContext(`(function(){ const module = { exports: {} }; ${compiled}; return module.exports; })()`, sandbox);
   expect(consumer.shared).toBe(true);
+});
+
+it.each(["nodeCommands", "safeJsCommands"])("registers only sandboxed node through the portable %s API", async factory => {
+  const compiled = await bundlePublicConsumer(`
+    import { Shell, createMemoryFileSystem, ${factory} as configure, nodeCommands, createNodeCommands, createNodeCommand } from "@poe-platform/safe-bash";
+    import { nodeCommands as leafPlugin, createNodeCommands as leafCommands, createNodeCommand as leafCommand } from "@poe-platform/safe-bash/commands/node";
+    export async function run() {
+      const sources = [];
+      const runtime = {
+        createBudget: options => options,
+        makeFsModule: () => ({}),
+        declareHostOperation: operation => operation,
+        async run(source, options) { sources.push(source); options.sink.log(3); return { ok: true }; },
+      };
+      const shell = new Shell({ fs: createMemoryFileSystem() }).use(configure({ runtime }));
+      try {
+        const result = await shell.exec("node -p '1 + 2'");
+        const missing = await shell.exec("safejs --help");
+        return {
+          result, missing, sources, names: shell.commands.list().map(command => command.name),
+          shared: nodeCommands === leafPlugin && createNodeCommands === leafCommands && createNodeCommand === leafCommand,
+        };
+      } finally { await shell.dispose(); }
+    }
+  `);
+  const sandbox = createContext({
+    TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
+    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
+    require(name: string) {
+      if (name !== "@poe-platform/safe-fs/core") throw new Error(name);
+      return filesystem;
+    },
+  });
+  const consumer = runInContext(`(function(){ const module = { exports: {} }; ${compiled}; return module.exports; })()`, sandbox);
+  const result = await consumer.run();
+  expect(result.shared).toBe(true);
+  expect(result.names).toEqual(["node"]);
+  expect(result.result).toMatchObject({ exitCode: 0, stdout: "3\n", stderr: "" });
+  expect(result.missing).toMatchObject({ exitCode: 127, stdout: "" });
+  expect(result.sources).toEqual(["console.log((\n1 + 2\n));\n;__safeBashSetExitCode(process.exitCode);"]);
 });
 
 it("runs injected llm providers and binary pipelines through the browser command subpath", async () => {
@@ -262,6 +302,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "commands/xml/index.browser": path.join(root, "packages/safe-bash/src/commands/xml/index.ts"),
     "commands/yq/index.browser": path.join(root, "packages/safe-bash/src/commands/yq/index.ts"),
     "commands/network/index.browser": path.join(root, "packages/safe-bash/src/commands/network/public.ts"),
+    "commands/node/index.browser": path.join(root, "packages/safe-bash/src/commands/node/browser.ts"),
     "commands/csplit/index.browser": path.join(root, "packages/safe-bash/src/commands/csplit/index.ts"),
     "commands/pr/index.browser": path.join(root, "packages/safe-bash/src/commands/pr/index.ts"),
     "commands/tsort/index.browser": path.join(root, "packages/safe-bash/src/commands/tsort/index.ts"),

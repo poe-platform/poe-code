@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { renderStatsPane, statsToLines } from "./stats-pane.js";
+import { renderCompactStatsPane, renderStatsPane, statsToLines } from "./stats-pane.js";
 import { ScreenBuffer } from "../buffer.js";
 import { displayWidth } from "../terminal-width.js";
 import type { DashboardStats } from "../types.js";
@@ -72,4 +72,32 @@ describe("persistent task context", () => {
     expect(lines.map((line) => line.text).join(" ")).toBe(action);
     expect(lines.every((line) => displayWidth(line.prefix + line.text) <= 10)).toBe(true);
   });
+});
+
+it("shows persisted completed tasks against the plan total in both layouts", () => {
+  const progress = { ...stats, iterationsLabel: "Tasks", iterations: 68, iterationsTotal: 90 };
+  expect(statsToLines(progress, 44)[1]!.text).toBe("68/90");
+  const buffer = new ScreenBuffer(70, 2);
+  renderCompactStatsPane(buffer, { x: 0, y: 0, width: 70, height: 2 }, progress);
+  expect(Array.from({ length: 70 }, (_, x) => buffer.get(x, 0).ch).join("")).toContain("Tasks 68/90");
+});
+
+it("keeps the task fraction visible when the queue leaves only two sidebar rows", () => {
+  const buffer = new ScreenBuffer(44, 2);
+  renderStatsPane(buffer, { x: 0, y: 0, width: 44, height: 2 }, {
+    ...stats, iterationsLabel: "Tasks", iterations: 68, iterationsTotal: 90,
+    currentAction: "Review the completed implementation"
+  });
+  const rows = Array.from({ length: 2 }, (_, y) => Array.from({ length: 44 }, (_, x) => buffer.get(x, y).ch).join(""));
+  expect(rows[0]).toContain("Running");
+  expect(rows.join(" ")).toContain("68/90");
+});
+
+it("retains the task fraction in a single-row compact summary", () => {
+  const buffer = new ScreenBuffer(44, 1);
+  renderCompactStatsPane(buffer, { x: 0, y: 0, width: 44, height: 1 }, {
+    ...stats, iterationsLabel: "Tasks", iterations: 68, iterationsTotal: 90,
+    currentAction: "A very long active task description"
+  });
+  expect(Array.from({ length: 44 }, (_, x) => buffer.get(x, 0).ch).join("")).toContain("Tasks 68/90");
 });

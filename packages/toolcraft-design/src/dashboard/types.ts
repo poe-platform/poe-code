@@ -12,6 +12,8 @@ export type DashboardStats = {
   status: "idle" | "running" | "paused" | "done" | "error";
   iterations: number;
   iterationsLabel?: string;
+  iterationsTotal?: number;
+  context?: string[];
   tokensIn: number;
   tokensOut: number;
   elapsedMs: number;

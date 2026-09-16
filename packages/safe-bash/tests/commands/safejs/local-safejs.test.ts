@@ -49,7 +49,7 @@ test("real SafeJS shares shell pipeline input, virtual files, argv, cwd and env"
   const fs = new MemoryFileSystem(); await fs.mkdir("/work");
   const shell = new Shell({ fs, cwd: "/work", env: { KEY: "virtual" }, limits: { pipeHighWaterMark: 1 } }).use(standardCommands()).use(safeJsCommands({ runtime }));
   const source = 'import { readText, write } from "stdio"; import { writeFile } from "fs"; import { args, cwd, env } from "command"; const text = await readText(); await writeFile("shared", text + ":" + args[0]); await write(cwd + ":" + env.KEY + ":" + text);';
-  const actual = await shell.exec(`printf 'é😀\\n' | safejs -e ${quote(source)} 'two words' | cat; cat shared`);
+  const actual = await shell.exec(`printf 'é😀\\n' | node -e ${quote(source)} 'two words' | cat; cat shared`);
   assert.equal(actual.exitCode, 0, actual.stderr);
   assert.equal(actual.stdout, "/work:virtual:é😀\né😀\n:two words");
   assert.equal(Buffer.from(await fs.readFile("/work/shared")).toString(), "é😀\n:two words");
@@ -108,11 +108,11 @@ test("real SafeJS session effects persist only in VFS; module/env/cwd mutations 
   const fs = new MemoryFileSystem(); await fs.mkdir("/work");
   const shell = new Shell({ fs, cwd: "/work", env: { KEY: "original" } }).use(standardCommands()).use(safeJsCommands({ runtime: await localRuntime() }));
   const source = 'import { env, args } from "command"; import { writeFile } from "fs"; env.KEY = "guest"; args.push("local"); await writeFile("persist", "yes"); throw "after effect";';
-  const actual = await shell.exec(`safejs -e ${quote(source)}; printf '%s\\n' "$KEY"; pwd; cat persist`);
+  const actual = await shell.exec(`node -e ${quote(source)}; printf '%s\\n' "$KEY"; pwd; cat persist`);
   assert.equal(actual.exitCode, 0);
   assert.equal(actual.stdout, "original\n/work\nyes");
   assert.match(actual.stderr, /after effect/u);
-  const later = await shell.exec(`safejs -p -e ${quote('import { env, args } from "command"; return [env.KEY, args];')}`);
+  const later = await shell.exec(`node -e ${quote('import { env, args } from "command"; console.log([env.KEY, args]);')}`);
   assert.equal(later.stdout, '["original",[]]\n');
 });
 
@@ -206,7 +206,7 @@ test("real SafeJS repeated guest chunks compose as a binary streaming pipeline",
   const source = 'import { readBytes, writeBytes } from "stdio"; let chunk = await readBytes(4096); while (chunk !== null) { await writeBytes(chunk); chunk = await readBytes(4096); }';
   const shell = new Shell({ fs: new MemoryFileSystem(), limits: { pipeHighWaterMark: 17 } }).use(standardCommands()).use(safeJsCommands({ runtime: await localRuntime() }));
   const output: Uint8Array[] = [];
-  const result = await shell.exec(`cat | safejs -e ${quote(source)} | cat`, { stdin: input, stdout: { async write(bytes) { output.push(bytes.slice()); } } });
+  const result = await shell.exec(`cat | node -e ${quote(source)} | cat`, { stdin: input, stdout: { async write(bytes) { output.push(bytes.slice()); } } });
   assert.equal(result.exitCode, 0, result.stderr);
   assert.deepEqual(Buffer.concat(output), input);
 });
@@ -221,6 +221,6 @@ test("real SafeJS modules and environment have no ambient env or time imports", 
 
 test("real SafeJS respects enclosing shell output limits independently of its own budget", { skip: localSkip }, async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(safeJsCommands({ runtime: await localRuntime() }));
-  await assert.rejects(shell.exec(`safejs -e ${quote('import { write } from "stdio"; await write("too much output");')}`,
+  await assert.rejects(shell.exec(`node -e ${quote('import { write } from "stdio"; await write("too much output");')}`,
     { limits: { maxOutputBytes: 4 } }), error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
 });

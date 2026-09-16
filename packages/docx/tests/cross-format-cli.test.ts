@@ -3,8 +3,10 @@ import { Volume } from "memfs";
 import { Shell, MemoryFileSystem } from "virtual-bash";
 import { docxCommands } from "virtual-bash/commands/docx";
 import { pptxCommands } from "virtual-bash/commands/pptx";
-import { createPresentation, createPptxCommandEngine } from "pptx";
-import { createDocumentArchive, writeDocumentArchive, createDocxInspectionCommandEngine } from "../src/index.js";
+import { createPresentation, createPptxCommandEngine, addImage } from "pptx";
+import { createDocumentArchive, writeDocumentArchive, createDocxInspectionCommandEngine, insertDocumentImage } from "../src/index.js";
+
+import { rasterPng, rasterGif } from "./fixtures/raster.js";
 
 const encoder = new TextEncoder();
 const limits = { maxArchiveBytes: 65536, maxEntryBytes: 16384, maxTotalBytes: 65536, maxMembers: 32, maxPathBytes: 256, maxDepth: 32, maxExtraBytes: 1024, maxCommentBytes: 1024, maxRetainedBytes: 32000000, chunkSize: 1024 };
@@ -21,7 +23,7 @@ beforeAll(() => {
 });
 afterAll(() => vi.restoreAllMocks());
 
-async function fixture(format: "docx" | "pptx") {
+async function fixture(format: "docx" | "pptx", withImage = false) {
   const volume = Volume.fromJSON({});
   for (const [name, text] of [["left", "Harbor survey"], ["right", "Meadow survey"]]) {
     let bytes: Uint8Array;
@@ -31,19 +33,30 @@ async function fixture(format: "docx" | "pptx") {
       await writeDocumentArchive(archive, { async write(chunk) { chunks.push(new Uint8Array(chunk)); } }, { order: "name", compression: "store" }, { limits, signal: new AbortController().signal });
       bytes = new Uint8Array(Buffer.concat(chunks));
     } else bytes = await createPresentation({ slides: [{ shapes: [{ name: "Caption", x: 0, y: 0, width: 100, height: 100, text: text! }] }] }, context);
+    if (withImage && name === "left") {
+      if (format === "docx") {
+        const chunks: Uint8Array[] = [];
+        await insertDocumentImage(bytes, { operation: "images.add", options: { paragraph: 1, file: { kind: "bytes", base64: Buffer.from(rasterPng()).toString("base64") }, output: "-" } },
+          { limits, signal: new AbortController().signal, encoding: { order: "input", compression: "store" }, stdout: { async write(chunk) { chunks.push(new Uint8Array(chunk)); } } });
+        bytes = new Uint8Array(Buffer.concat(chunks));
+      } else bytes = await addImage(bytes, { slide: 1, bytes: rasterPng(), contentType: "image/png" }, context);
+    }
     volume.writeFileSync(`/${name}.${format}`, bytes);
   }
   volume.writeFileSync(`/bad.${format}`, "Invalid original input");
   volume.writeFileSync(`/oversize.${format}`, new Uint8Array(limits.maxArchiveBytes + 1));
+  if (withImage) volume.writeFileSync("/pixel.gif", rasterGif());
   const fs = new MemoryFileSystem();
   for (const path of volume.readdirSync("/") as string[]) await fs.writeFile(`/${path}`, new Uint8Array(volume.readFileSync(`/${path}`) as Buffer));
+  const readPublished = fs.readFile.bind(fs);
+  const publications = [vi.spyOn(fs, "writeFile"), vi.spyOn(fs, "createStagedFile"), vi.spyOn(fs, "publishStagedFile"), vi.spyOn(fs, "writeFileConditional")];
   const readFile = vi.fn(async (path: string) => new Uint8Array(volume.readFileSync(path) as Buffer));
   fs.readFile = readFile;
   fs.readStream = path => ({ async *[Symbol.asyncIterator]() { yield await readFile(path); } });
   const shell = new Shell({ fs }).use(format === "docx"
     ? docxCommands({ engine: createDocxInspectionCommandEngine({ limits }) })
     : pptxCommands({ engine: createPptxCommandEngine({ context, maxArgumentBytes: 65536, maxOutputBytes: 32000000 }) }));
-  return { shell, readFile, volume, input: `/left.${format}`, right: `/right.${format}`, bad: `/bad.${format}`,
+  return { shell, readFile, volume, publications, fs, readPublished, input: `/left.${format}`, right: `/right.${format}`, bad: `/bad.${format}`,
     run: (command: string, signal?: AbortSignal) => shell.exec(`${format} ${command}`, signal ? { signal } : {}) };
 }
 
@@ -62,7 +75,7 @@ describe.each(["docx", "pptx"] as const)("%s common public adapter", format => {
       for (const path of ["inspect", "text", "text get", "images list", "properties list", "capabilities"]) {
         const result = await f.run(`${path} ${f.input} --json`);
         expect(result.exitCode, `${path}: ${result.stderr} ${result.stdout}`).toBe(0);
-        envelope(result.stdout, path === "text" ? "text.get" : path.split(" ").join("."), true);
+        expect(envelope(result.stdout, path === "text" ? "text.get" : path.split(" ").join("."), true).affected).toBe(0);
       }
       for (const path of ["schema", "capabilities", "version", "help"]) {
         const result = await f.run(`${path} --json`);
@@ -71,7 +84,7 @@ describe.each(["docx", "pptx"] as const)("%s common public adapter", format => {
       }
     } finally { await f.shell.dispose(); }
   });
-  it.skipIf(format === "pptx")("supports common validate (PPTX path pending)", async () => {
+  it("supports common validate", async () => {
     const f = await fixture(format);
     try {
       const result = await f.run(`validate ${f.input} --json`);
@@ -79,7 +92,7 @@ describe.each(["docx", "pptx"] as const)("%s common public adapter", format => {
       envelope(result.stdout, "validate", true);
     } finally { await f.shell.dispose(); }
   });
-  it.skipIf(format === "docx")("supports common tables list (DOCX execution pending)", async () => {
+  it("supports common tables list", async () => {
     const f = await fixture(format);
     try {
       const result = await f.run(`tables list ${f.input} --json`);
@@ -97,7 +110,7 @@ describe.each(["docx", "pptx"] as const)("%s common public adapter", format => {
       }
     } finally { await f.shell.dispose(); }
   });
-  it.skipIf(format === "docx")("compares without requiring format-specific flags (DOCX explicit-scope drift pending)", async () => {
+  it("compares without requiring format-specific flags", async () => {
     const f = await fixture(format);
     try {
       for (const [right, status, equal] of [[f.input, 0, true], [f.right, 1, false], [f.bad, 2, null], [`/missing.${format}`, 2, null]] as const) {
@@ -142,7 +155,7 @@ describe.each(["docx", "pptx"] as const)("%s common public adapter", format => {
       expect(f.readFile).not.toHaveBeenCalled();
     } finally { await f.shell.dispose(); }
   });
-  it.skipIf(format === "docx")("uses public-engine comparison and ordinary cancellation status (DOCX exception mapping pending)", async () => {
+  it("uses public-engine comparison and ordinary cancellation status", async () => {
     const f = await fixture(format);
     try {
       for (const command of [`inspect ${f.input}`, `diff ${f.input} ${f.right}`]) {
@@ -189,6 +202,7 @@ describe.each(["docx", "pptx"] as const)("%s common public adapter", format => {
         expect(value.affected).toBe(1);
       }
       expect(f.volume.toJSON()).toEqual(before);
+      for (const publish of f.publications) expect(publish).not.toHaveBeenCalled();
     } finally { await f.shell.dispose(); }
   });
   it("publishes pure package stdout with both output spellings", async () => {
@@ -218,6 +232,53 @@ describe.each(["docx", "pptx"] as const)("%s common public adapter", format => {
         expect(result.exitCode, result.stderr + result.stdout).toBe(status);
         expect(envelope(result.stdout, "text.replace", status === 0).affected).toBe(0);
       }
+    } finally { await f.shell.dispose(); }
+  });
+  it("extracts packages with admitted format output directories and common flags", async () => {
+    const f = await fixture(format);
+    try {
+      if (format === "pptx") await f.fs.mkdir("/parts");
+      const extract = await f.run(`extract ${f.input} --output-dir /parts --allow-partial-output --json`);
+      expect(extract.exitCode, extract.stderr + extract.stdout).toBe(0);
+      expect(envelope(extract.stdout, "extract", true).affected).toBe(0);
+      const entries = await f.fs.readdir("/parts");
+      expect(entries.length).toBeGreaterThan(0);
+      if (format === "docx") expect(entries.map(entry => entry.name)).toContain("[Content_Types].xml");
+    } finally { await f.shell.dispose(); }
+  });
+  it("replaces and extracts original image resources with common flags and envelopes", async () => {
+    const f = await fixture(format, true);
+    try {
+      const list = await f.run(`images list ${f.input} --json`);
+      expect(list.exitCode, list.stderr).toBe(0);
+      expect(envelope(list.stdout, "images.list", true).affected).toBe(0);
+      const replace = await f.run(`images replace ${f.input} ${format === "pptx" ? "--slide 1" : ""} --image 1 --file /pixel.gif --dry-run --json`);
+      expect(replace.exitCode, replace.stderr + replace.stdout).toBe(0);
+      expect(envelope(replace.stdout, "images.replace", true).affected).toBe(1);
+      for (const publish of f.publications) expect(publish).not.toHaveBeenCalled();
+      await f.fs.mkdir("/images");
+      const extract = await f.run(`images extract ${f.input} --output-dir /images --allow-partial-output --json`);
+      expect(extract.exitCode, extract.stderr + extract.stdout).toBe(0);
+      expect(envelope(extract.stdout, "images.extract", true).affected).toBe(0);
+      const files = (await f.fs.readdir("/images")).map(entry => entry.name).filter(name => !name.endsWith(".json"));
+      expect(files).toHaveLength(1);
+      expect(await f.readPublished(`/images/${files[0]}`)).toEqual(rasterPng());
+    } finally { await f.shell.dispose(); }
+  });
+  it("declares every common operation path and excludes conflicting aliases", async () => {
+    const f = await fixture(format);
+    try {
+      const result = await f.run("schema --json");
+      expect(result.exitCode).toBe(0);
+      const data = envelope(result.stdout, "schema", true).data;
+      const operations = format === "docx" ? Object.fromEntries(data.operations.map((item: { id: string }) => [item.id, item])) : data.operations;
+      for (const id of ["create", "inspect", "validate", "text.get", "text.replace", "xml.get", "xml.set", "template.apply", "batch", "diff", "extract", "pack", "sanitize", "images.list", "images.add", "images.replace", "images.extract", "tables.list", "properties.list", "properties.get", "properties.set", "properties.remove", "schema", "capabilities", "help", "version"]) {
+        expect(Object.hasOwn(operations, id), id).toBe(true);
+      }
+      for (const id of Object.keys(operations)) {
+        expect(["image", "table", "metadata", "replace"]).not.toContain(id.split(".")[0]);
+      }
+      expect(f.readFile).not.toHaveBeenCalled();
     } finally { await f.shell.dispose(); }
   });
   it("declares common replacement options and result fields through public schema", async () => {

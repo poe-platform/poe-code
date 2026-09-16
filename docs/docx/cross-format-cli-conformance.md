@@ -1,5 +1,9 @@
 # Cross-format CLI conformance verification
 
+Historical verification. Superseded for the corrected common cases by
+[the follow-up record](cross-format-cli-conformance-followup.md). The results and
+pending statements below describe the earlier revision.
+
 Status: Partial verification on 2026-09-15. Both public adapters are available;
 full shared-contract conformance is **not** established. Only the
 `cross-format-cli-conformance` task was exercised. Later tasks remain pending.

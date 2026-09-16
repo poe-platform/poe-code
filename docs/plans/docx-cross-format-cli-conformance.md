@@ -183,3 +183,20 @@ Original image/package publication cases reproduced nonzero successful read
 effects before correction. Success reports affected zero; manifest counts and
 precise bytes retain output evidence and partial failures retain receipts. Final
 maintained PPTX checks pass; commit only extraction effects/schemas/regressions.
+
+### Final bounded verification and delivery
+
+All 58 paired public-adapter cases pass without skips; ten focused ordinary
+cancellation cases also pass. Final DOCX suite: 4,930/218 files, 176.48 seconds;
+PPTX: 6,896/270 files, 59.20 seconds. Both scoped lint routes and separate
+selected build closures pass. Built CLI screenshot inspected after final builds.
+Independent final review found no new source defect and required explicit
+extraction-directory qualification, now present in tests/evidence.
+
+Selected pipeline task verification is done; later tasks are untouched/pending.
+Whole shared-contract/API/renderer parity remains unclaimed; exact option/schema
+differences, extraction profiles and targeted-help limit are retained in
+[follow-up evidence](../docx/cross-format-cli-conformance-followup.md) and JSON.
+The earlier Execution section is historical and superseded for these finite cases.
+Eight atomic corrections are committed locally; stage only final paired tests,
+evidence, this plan and the selected-task status hunk. No push or release.

@@ -4715,8 +4715,8 @@ tasks:
   - id: cross-format-cli-conformance
     title: Verify cross-format command consistency
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
     prompt: |-
       Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
       docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.

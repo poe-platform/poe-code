@@ -1,4 +1,4 @@
-import type { AcpEvent } from "../acp/types.js";
+import type { AcpEvent, PlanEvent } from "../acp/types.js";
 import { truncate, isNonEmptyString, extractThreadId } from "./utils.js";
 
 type CodexEvent = {
@@ -33,6 +33,7 @@ type CodexItem = {
   changes?: unknown;
   query?: unknown;
   message?: unknown;
+  items?: unknown;
 };
 
 export async function* adaptCodex(
@@ -98,6 +99,16 @@ export async function* adaptCodex(
 
     const itemType = item.type;
     if (!isNonEmptyString(itemType)) continue;
+
+    if (itemType === "todo_list" && ["item.started", "item.updated", "item.completed"].includes(eventType)) {
+      if (!Array.isArray(item.items) || !item.items.every((entry: unknown) => entry !== null && typeof entry === "object"
+        && typeof (entry as { text?: unknown }).text === "string" && typeof (entry as { completed?: unknown }).completed === "boolean")) continue;
+      const entries: PlanEvent["entries"] = item.items.map((entry: { text: string; completed: boolean }) => ({
+        content: entry.text, status: entry.completed ? "completed" : "pending", priority: "medium"
+      }));
+      yield { event: "plan", ...(isNonEmptyString(item.id) ? { id: item.id } : {}), entries };
+      continue;
+    }
 
     if (isNonEmptyString(item.id) && (eventType === "item.started" || (eventType === "item.completed" && !toolKindById.has(item.id)))) {
 

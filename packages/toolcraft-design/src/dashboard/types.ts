@@ -6,7 +6,7 @@ export type OutputItem = {
   kind: OutputItemKind;
   text: string;
   ts: number;
-  role?: "agent" | "reasoning" | "action" | "user";
+  role?: "agent" | "reasoning" | "action" | "user" | "plan";
   detail?: string;
 };
 

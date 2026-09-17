@@ -163,13 +163,25 @@ describe("session-update-converter", () => {
 
     it("returns empty for unrecognized session updates", () => {
       const update: SessionUpdate = {
-        sessionUpdate: "plan",
-        entries: []
+        sessionUpdate: "current_mode_update",
+        currentModeId: "code"
       };
 
       const events = sessionUpdateToEvents(update, createToolRenderState());
 
       expect(events).toEqual([]);
+    });
+
+    it("preserves ACP plan entries and their explicit status", () => {
+      const entries = [
+        { content: "Inspect code", priority: "medium" as const, status: "completed" as const },
+        { content: "Implement fix", priority: "high" as const, status: "in_progress" as const },
+        { content: "Verify", priority: "low" as const, status: "pending" as const }
+      ];
+      expect(sessionUpdateToEvents({ sessionUpdate: "plan", entries }, createToolRenderState()))
+        .toEqual([{ event: "plan", entries }]);
+      expect(sessionUpdateToEvents({ sessionUpdate: "plan", entries: [] }, createToolRenderState()))
+        .toEqual([{ event: "plan", entries: [] }]);
     });
 
     it("deduplicates tool_call start events", () => {

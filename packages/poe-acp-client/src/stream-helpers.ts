@@ -11,6 +11,7 @@ import type {
   UsageUpdate,
   UserMessageChunk,
 } from "./types.js";
+import { isPlan } from "./jsonrpc.js";
 
 type SessionUpdateStreamItem = SessionUpdateNotification | SessionUpdate;
 
@@ -145,6 +146,10 @@ export function mapLegacyEventToSessionUpdates(
       return mapAgentMessage(event);
     case "reasoning":
       return mapReasoning(event);
+    case "plan": {
+      const update = { sessionUpdate: "plan", entries: event.entries };
+      return isPlan(update) ? [update] : [];
+    }
     case "tool_start":
       return mapToolStart(event);
     case "tool_complete":

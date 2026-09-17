@@ -80,7 +80,7 @@ Use `appearance: "conversation"` for a focused transcript with ordered plans, ta
 
 The composer queues with Enter or Tab, inserts a newline with Alt+Enter, switches between messages and plans with Ctrl+P, and selects the target plan with Alt+Up/Down. Esc opens browsing controls; `i` returns to messages, `p` adds a plan, `v` opens the scrollable task and plan list at the current work, and `d` reveals action details. In the list, `f` returns to current work and Home/End jump to either end. Shortcut labels wrap in narrow terminals. Optional `hints` and `keymap` customize harness controls while browsing. Ctrl+C remains available during submission.
 
-Output entries accept `role: "agent" | "user" | "action" | "reasoning"` and a separate `detail` field. Reuse an entry ID to update an action in place. Raw details and reasoning remain collapsed until requested; retained text and details are bounded for long runs.
+Output entries accept `role: "agent" | "user" | "action" | "reasoning" | "plan"` and a separate `detail` field. Reuse an entry ID to update an action or agent checklist in place. `acp.formatAgentPlan` produces a compact checklist and full details; `acp.renderAgentPlan` supports terminal, Markdown, and JSON output. Raw details and reasoning remain collapsed until requested; retained text and details are bounded for long runs.
 
 ### Explorer
 

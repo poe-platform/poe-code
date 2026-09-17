@@ -9,6 +9,37 @@ import { summarizeToolAction } from "../acp/tool-summary.js";
 import type { ToolStartEvent } from "../acp/types.js";
 
 describe("agent action metadata", () => {
+  it("preserves Codex checklist starts, updates, and completion without inventing an active step", async () => {
+    const events = await collect(adaptCodex(fromArray([
+      JSON.stringify({ type: "item.started", item: { id: "plan", type: "todo_list", items: [{ text: "Inspect validation", completed: false }, { text: "Run checks", completed: false }] } }),
+      JSON.stringify({ type: "item.updated", item: { id: "plan", type: "todo_list", items: [{ text: "Inspect validation", completed: true }, { text: "Run checks", completed: false }] } }),
+      JSON.stringify({ type: "item.completed", item: { id: "plan", type: "todo_list", items: [{ text: "Inspect validation", completed: true }, { text: "Run checks", completed: true }] } })
+    ])));
+    expect(events).toEqual([
+      { event: "plan", id: "plan", entries: [
+        { content: "Inspect validation", status: "pending", priority: "medium" },
+        { content: "Run checks", status: "pending", priority: "medium" }
+      ] },
+      { event: "plan", id: "plan", entries: [
+        { content: "Inspect validation", status: "completed", priority: "medium" },
+        { content: "Run checks", status: "pending", priority: "medium" }
+      ] },
+      { event: "plan", id: "plan", entries: [
+        { content: "Inspect validation", status: "completed", priority: "medium" },
+        { content: "Run checks", status: "completed", priority: "medium" }
+      ] }
+    ]);
+  });
+
+  it("ignores malformed Codex checklists but preserves an explicit empty list", async () => {
+    const events = await collect(adaptCodex(fromArray([
+      ...[null, {}, [null], [{ text: "Check", completed: "false" }], [{ text: 42, completed: false }]]
+        .map((items) => JSON.stringify({ type: "item.updated", item: { id: "plan", type: "todo_list", items } })),
+      JSON.stringify({ type: "item.updated", item: { id: "plan", type: "todo_list", items: [] } })
+    ])));
+    expect(events).toEqual([{ event: "plan", id: "plan", entries: [] }]);
+  });
+
   it("preserves the full Codex command for concise parsing and reports nonzero exits", async () => {
     const file = `src/${"long-directory/".repeat(8)}validation.ts`;
     const command = `/bin/zsh -lc 'cat ${file}'`;

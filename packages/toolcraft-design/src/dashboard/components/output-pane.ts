@@ -34,7 +34,7 @@ export function renderOutputPane(
   const { rows: visualLines, offset: actualOffset } = selectViewportTail(
     options.conversation && !options.details ? foldCompletedActions(items) : items, rect.height, scrollOffset, item => {
       if (options.conversation && item.role === "reasoning" && !options.details) return [];
-      const text = options.details && item.detail ? `${item.text}\n${item.detail}` : item.text;
+      const text = options.details && item.detail ? item.role === "plan" ? item.detail : `${item.text}\n${item.detail}` : item.text;
       const lines = computeVisualLines([text === item.text ? item : { ...item, text }], rect.width);
       if (!options.conversation) return lines;
       const prose = item.role === "agent" || item.role === "user";

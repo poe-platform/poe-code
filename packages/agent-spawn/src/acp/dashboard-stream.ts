@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { acp, dashboard } from "toolcraft-design";
-import type { AcpEvent, PermissionRejectedEvent, ToolCompleteEvent, ToolStartEvent, UsageEvent } from "./types.js";
+import type { AcpEvent, PermissionRejectedEvent, PlanEvent, ToolCompleteEvent, ToolStartEvent, UsageEvent } from "./types.js";
 import { renderAcpEvent } from "./renderer.js";
 import { summarizeToolAction } from "./tool-summary.js";
 
@@ -33,6 +33,9 @@ export async function streamAcpEventsToDashboard(options: {
         const reasoning = event.event === "reasoning";
         options.onActivity?.([...activeTools.values()].at(-1)?.label ?? (reasoning ? "Thinking" : "Writing response"));
         options.onOutput({ id, ts, kind: "info", role: reasoning ? "reasoning" : "agent", text: event.text as string });
+      } else if (event.event === "plan") {
+        const plan = event as PlanEvent;
+        options.onOutput({ id: `${streamId}:plan:${plan.id ?? "current"}`, ts, kind: "status", role: "plan", ...acp.formatAgentPlan(plan.entries) });
       } else if (event.event === "tool_start") {
         const tool = event as ToolStartEvent;
         const key = tool.id ?? `anonymous-${++toolSequence}`;

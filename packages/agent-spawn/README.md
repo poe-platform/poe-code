@@ -55,7 +55,7 @@ Pass `resumeThreadId` to continue a prior provider thread/session. Declarative a
 
 For a live conversation dashboard, `createDashboardAgentRunner({ spawn, onOutput, onActivity, onUsage })` connects your normal streaming spawn function to the design system. Tool starts and completions update one entry in place, with concise Read, Search, List files, and Edit labels. Full command details stay available separately. The runner preserves spawn settings, reconciles streamed usage with final totals, and accepts `maxTimeoutRetries` for autonomous loops.
 
-`streamAcpEventsToDashboard` also accepts an event stream directly. Structured input and failure states are retained across adapters; action summaries are presentation only and never execute shell text.
+`streamAcpEventsToDashboard` also accepts an event stream directly. Structured input and failure states are retained across adapters; action summaries are presentation only and never execute shell text. Codex todo lists and ACP plan updates appear as an agent checklist with completion markers, separate from harness tasks and queued plan files. Long checklists stay compact, with the full list available in Details and replay output.
 
 ## ACP middlewares
 

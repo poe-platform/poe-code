@@ -11,6 +11,21 @@ function rows(items: OutputItem[], details = false) {
 }
 
 describe("concise conversation transcript", () => {
+  it("expands a checklist once in details and keeps it separate from completed tool actions", () => {
+    const items: OutputItem[] = [{
+      role: "plan", kind: "status", ts: 0,
+      text: "Agent checklist · 1/8\n  ✓ Inspect code\n  ↓ 7 more steps · d Details",
+      detail: "Agent checklist · 1/8\n  ✓ Inspect code\n  ○ Implement fix\n  ○ Run checks"
+    }];
+    const collapsed = rows(items).join("\n");
+    expect(collapsed).toContain("Agent checklist · 1/8");
+    expect(collapsed).not.toContain("Implement fix");
+    const expanded = rows(items, true).join("\n");
+    expect(expanded.split("Agent checklist")).toHaveLength(2);
+    expect(expanded).toContain("○ Implement fix");
+    expect(expanded).not.toContain("7 more steps");
+  });
+
   it("folds older completed actions while retaining the latest work and agent explanation", () => {
     const items: OutputItem[] = [
       { role: "agent", kind: "info", text: "Checking the document boundaries.", ts: 0 },

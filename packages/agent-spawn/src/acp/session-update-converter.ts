@@ -73,6 +73,10 @@ export function sessionUpdateToEvents(
     return [{ event: "reasoning", text: update.content.text }];
   }
 
+  if (update.sessionUpdate === "plan") {
+    return [{ event: "plan", entries: update.entries }];
+  }
+
   if (update.sessionUpdate === "usage_update") {
     const meta = (update._meta ?? {}) as {
       inputTokens?: number;

@@ -2,6 +2,36 @@ import { describe, expect, it, vi } from "vitest";
 import { streamAcpEventsToDashboard } from "./dashboard-stream.js";
 
 describe("structured dashboard activity", () => {
+  it("updates an agent checklist in place without replacing a running action", async () => {
+    const onOutput = vi.fn();
+    const onActivity = vi.fn();
+    await streamAcpEventsToDashboard({
+      events: (async function* () {
+        yield { event: "tool_start", id: "plan", kind: "exec", title: "npm test" };
+        yield { event: "plan", id: "plan", entries: [{ content: "Run tests", status: "pending", priority: "medium" }] };
+        yield { event: "plan", id: "plan", entries: [{ content: "Run tests", status: "completed", priority: "medium" }] };
+      })(), onOutput, onActivity
+    });
+    expect(onOutput).toHaveBeenCalledTimes(3);
+    expect(onOutput.mock.calls[1]?.[0]).toMatchObject({ role: "plan", kind: "status", text: "Agent checklist · 0/1\n  ○ Run tests" });
+    expect(onOutput.mock.calls[2]?.[0]).toMatchObject({ role: "plan", kind: "status", text: "Agent checklist · 1/1\n  ✓ Run tests" });
+    expect(onOutput.mock.calls[1]?.[0].id).toBe(onOutput.mock.calls[2]?.[0].id);
+    expect(onOutput.mock.calls[1]?.[0].id).not.toBe(onOutput.mock.calls[0]?.[0].id);
+    expect(onActivity).toHaveBeenLastCalledWith("Run npm test");
+  });
+
+  it("gives each spawned agent its own checklist and displays explicit clearing", async () => {
+    const onOutput = vi.fn();
+    for (let run = 0; run < 2; run++) {
+      await streamAcpEventsToDashboard({
+        events: (async function* () { yield { event: "plan", entries: [] }; })(), onOutput
+      });
+    }
+    expect(onOutput).toHaveBeenCalledTimes(2);
+    expect(onOutput.mock.calls[0]?.[0].id).not.toBe(onOutput.mock.calls[1]?.[0].id);
+    expect(onOutput.mock.calls[1]?.[0].text).toBe("Agent checklist cleared");
+  });
+
   it("keeps a running tool visible when the agent adds a progress message", async () => {
     const onActivity = vi.fn();
     await streamAcpEventsToDashboard({

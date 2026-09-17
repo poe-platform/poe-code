@@ -121,6 +121,7 @@ export type {
   ContentChunk,
   ErrorEvent,
   KnownAcpEvent,
+  PlanEvent,
   ReasoningEvent,
   SessionStartEvent,
   SessionUpdate,

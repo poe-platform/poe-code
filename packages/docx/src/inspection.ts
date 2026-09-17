@@ -104,7 +104,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
   const annotationNames = new Set(["comment", "ins", "del", "moveFrom", "moveTo", "rPrChange", "pPrChange", "tblPrChange", "tcPrChange", "sectPrChange", "numberingChange"]);
   for (const part of [...graph.parts].sort((a, b) => compare(a.partname, b.partname))) {
     const type = part.content_type.toLowerCase();
-    if (!(type.endsWith("+xml") || type === "application/xml" || type === "text/xml")) continue;
+    if (!isXmlContentType(type)) continue;
     const root = parseDocumentXml(part.bytes, {}, budget).root;
     roots.set(part.partname, root);
     const role = documentPartRole(type, root);

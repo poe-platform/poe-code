@@ -17,6 +17,8 @@ import {
   resolvePartTarget
 } from "./part-uri.js";
 
+import { parseMediaType } from "./media-type.js";
+
 const contentTypesNamespace = "http://schemas.openxmlformats.org/package/2006/content-types";
 const relationshipsNamespace = "http://schemas.openxmlformats.org/package/2006/relationships";
 const relationshipContentType = "application/vnd.openxmlformats-package.relationships+xml";
@@ -177,6 +179,8 @@ export class DocumentPackage {
         const override = tag.localName === "Override";
         attributes(tag, [override ? "PartName" : "Extension", "ContentType"]);
         const content_type = required(tag, "ContentType");
+        budget.charge("work", content_type.length);
+        parseMediaType(content_type);
         const name = required(tag, override ? "PartName" : "Extension");
         if (override) {
           const partname = normalizePartName(name);

@@ -281,3 +281,14 @@ zero skips. Twelve built chained-setter workflows retain other stops, inactive
 branches and raw XML guards. Every historical protected-formatting action is
 retained with its contract-defined result. The failed full baseline remains
 recorded; this is a named dependency closure, not complete F01–F07 acceptance.
+
+## Current MIME and generic XML admission evidence
+
+The [media-type record](public-media-type-admission-20260917.md) binds 2,232 exact
+public grammar/parameter/character/MCE cases plus the original human inventory
+escaping case. The focused baseline passes 2,539 tests in eleven files; the
+current media/object rerun passes 2,235 tests in four files, zero skips. The full
+baseline's three failures remain recorded: the invalid MIME fixture is corrected
+with explicit rejection plus legal escaping assertions, and the selected-style
+tab dependency has its own passing receipt. No full-run pass is claimed.
+Relationship MCE, native variants and complete F01–F07 acceptance remain open.

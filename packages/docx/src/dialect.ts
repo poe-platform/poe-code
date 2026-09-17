@@ -1,5 +1,5 @@
 import { commentExtensionParts } from "./comment-extension-parts.js";
-import { InvalidPackageError, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
+import { InvalidPackageError, isXmlContentType, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
 import { MarkupCompatibility, documentCompatibilityProfile, type CompatibilityContent, type CompatibilityProfile } from "./compatibility.js";
 import type { DocumentPackage, PackageRelationship } from "./package.js";
 import { parseDocumentXml } from "./package-xml.js";
@@ -116,7 +116,16 @@ export function validatePackageDialect(graph: DocumentPackage, mainEdge: Package
     const prefix = "application/vnd.openxmlformats-officedocument.wordprocessingml.";
     const word = type.startsWith(prefix) && type.endsWith("+xml");
     const officeXml = type.startsWith("application/vnd.openxmlformats-officedocument.") && type.endsWith("+xml");
-    if (part !== main && !officeXml) continue;
+    if (part !== main && !officeXml) {
+      if (isXmlContentType(type)) {
+        const genericRoot = parsed.get(part.bytes) ?? parseDocumentXml(part.bytes, {}, budget).root;
+        const view = new MarkupCompatibility(genericRoot, documentCompatibilityProfile, budget);
+        budget.charge("work", view.branches.length);
+        if (view.branches.some(branch => branch.selected === undefined))
+          throw new UnsupportedProfileError("Active alternate content has no eligible choice or fallback.");
+      }
+      continue;
+    }
     const partRoot = part === main ? root : parsed.get(part.bytes) ?? parseDocumentXml(part.bytes, {}, budget).root;
     budget.charge("work", part.bytes.length * 8);
     const partDialect = dialectForNamespace(partRoot.namespace);

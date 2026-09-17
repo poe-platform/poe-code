@@ -4,7 +4,7 @@ import { MarkupCompatibility, documentCompatibilityProfile, type CompatibilityCo
 import { documentDialects, type DocumentDialect } from "./dialect.js";
 import { InvalidValueError, type ArchiveLimits, type DocumentArchive } from "./archive.js";
 import { DocumentPackage } from "./package.js";
-import { InvalidPackageError, parseDocumentXml, type XmlElement } from "./package-xml.js";
+import { InvalidPackageError, isXmlContentType, parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { SelectionError, type LocationKind, type LocationPositions } from "./location-token.js";
 import { tableRows } from "./table-rows.js";
 import { collectShapeCarriers, type ShapeCarrier } from "./shape-carriers.js";
@@ -86,9 +86,8 @@ export class LocationIndex {
     const contentTypes = archive.members.find(member => member.name.toLowerCase() === "[content_types].xml")!;
     const parts = [...graph.parts, { ...contentTypes, partname: "/[Content_Types].xml", content_type: "application/xml" }];
     for (const part of parts.sort((a, b) => a.partname < b.partname ? -1 : a.partname > b.partname ? 1 : 0)) {
-      const xml = part.content_type.toLowerCase();
       let root: XmlElement | undefined;
-      if (xml.endsWith("+xml") || xml === "application/xml" || xml === "text/xml") {
+      if (isXmlContentType(part.content_type)) {
         root = parseDocumentXml(part.bytes, {}, budget).root;
         roots.set(part.partname, root);
         const raw = (node: XmlElement, path: readonly number[]) => {

@@ -2,7 +2,8 @@ import { documentXmlCache } from "./budget.js";
 import { documentByteView } from "./byte-input.js";
 import { DocumentPackage } from "./package.js";
 import { asciiKey } from "./part-uri.js";
-import { InvalidPackageError, parseDocumentXmlAsync, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
+import { InvalidPackageError, isXmlContentType, parseDocumentXmlAsync, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
+import { parseMediaType } from "./media-type.js";
 import { validatePackageDialect, type DocumentDialect } from "./dialect.js";
 export { InvalidPackageError, InvalidXmlError, UnsupportedProfileError } from "./package-xml.js";
 import {
@@ -85,7 +86,7 @@ export async function admitDocumentArchive(archive: DocumentArchive, context: Ar
       budget.check("embeddedMediaBytes", part.bytes.length);
   }
   for (const declaration of [...graph.defaults, ...graph.overrides]) {
-    if (macroTypes.has(declaration.content_type.toLowerCase()))
+    if (macroTypes.has(parseMediaType(declaration.content_type)))
       throw new UnsupportedProfileError("Macro-enabled document containers are unsupported.");
   }
   const mainRelationships = graph
@@ -102,8 +103,7 @@ export async function admitDocumentArchive(archive: DocumentArchive, context: Ar
   if (!kind)
     throw new UnsupportedProfileError("The package is not a supported Word document or template.");
   for (const part of graph.parts) {
-    const type = part.content_type.toLowerCase();
-    if (!parsed.has(part.bytes) && (type.endsWith("+xml") || type === "application/xml" || type === "text/xml"))
+    if (!parsed.has(part.bytes) && isXmlContentType(part.content_type))
       parsed.set(part.bytes, (await parseDocumentXmlAsync(part.bytes, {}, budget)).root);
   }
   const dialect = validatePackageDialect(graph, mainRelationships[0]!, parsed.get(main.bytes)!, budget, parsed);

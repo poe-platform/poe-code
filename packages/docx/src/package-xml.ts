@@ -1,11 +1,12 @@
 import { parseXmlSteps, XmlLimitError, type XmlElement, type XmlLimits } from "@poe-code/safe-fs/xml";
 import { CancellationError, InputTypeError, InvalidValueError, ResourceLimitError } from "./archive.js";
 import { documentXmlCache, DocumentBudget } from "./budget.js";
+import { parseMediaType } from "./media-type.js";
 export type { XmlElement, XmlContent, XmlAttribute } from "@poe-code/safe-fs/xml";
 
 /** Internal XML part classification; MIME spelling remains in package metadata. */
 export function isXmlContentType(contentType: string): boolean {
-  const type = contentType.toLowerCase();
+  const type = parseMediaType(contentType);
   return type === "application/xml" || type === "text/xml" || type.endsWith("+xml");
 }
 

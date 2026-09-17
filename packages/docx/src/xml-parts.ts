@@ -5,7 +5,7 @@ import { embeddedFontState, UnsupportedEmbeddedFontMutationError } from "./font-
 import { assertSettingsXmlReplacement } from "./settings.js";
 import { archiveSettings, InputTypeError, type ArchiveContext, type ArchiveMember } from "./archive.js";
 import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
-import { parseDocumentXml, type XmlElement } from "./package-xml.js";
+import { isXmlContentType, parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { normalizePartName, asciiKey } from "./part-uri.js";
 import { SelectionError, closedRecord, encodeLocation, type PartLocation } from "./location-token.js";
 import { MarkupCompatibility } from "./compatibility.js";
@@ -45,7 +45,7 @@ function selected(archive: AdmittedDocumentArchive, name: string): ArchiveMember
   if (matches.length !== 1) throw new SelectionError("ambiguous-selection");
   const member = matches[0]!;
   const type = asciiKey(name) === "/[content_types].xml" ? "application/xml" : archive.package.getPart(name).content_type.toLowerCase();
-  if (type !== "application/xml" && type !== "text/xml" && !type.endsWith("+xml"))
+  if (!isXmlContentType(type))
     throw new UnsupportedEditError("The selected part is not XML.");
   return member;
 }

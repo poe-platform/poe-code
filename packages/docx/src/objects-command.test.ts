@@ -150,12 +150,13 @@ it("admits exact stdout limits and rejects one fewer byte before extraction stag
 it("escapes declared resource types in human inventory output", async () => {
   const { executeObjectsCommand } = await import("./objects-command.js");
   const { validateDocxInvocation } = await import("./command.js");
+  for (const type of ["application/x-\u202eopaque", 'application/x-opaque; audit="before\tafter"']) {
   const input = await chartFixture({
     definitions: [],
     resources: [
       {
         name: "word/embeddings/item.bin",
-        type: "application/x-\u202eopaque",
+        type,
         bytes: Uint8Array.of(1)
       }
     ],
@@ -168,7 +169,7 @@ it("escapes declared resource types in human inventory output", async () => {
       }
     ]
   });
-  const response = await executeObjectsCommand(
+  const task = executeObjectsCommand(
     validateDocxInvocation({ operation: "objects.list", inputs: ["document"], options: {} }),
     input,
     undefined,
@@ -187,5 +188,12 @@ it("escapes declared resource types in human inventory output", async () => {
     },
     chartContext
   );
-  expect(new TextDecoder().decode(response)).not.toContain("\u202e");
+  if (type.includes("\u202e")) await expect(task).rejects.toMatchObject({ code: "invalid-package" });
+  else {
+    const response = new TextDecoder().decode(await task);
+    expect(response).toContain("before\\u0009after");
+    expect(response).not.toContain("\t");
+    expect(response).not.toContain("\u202e");
+  }
+  }
 });

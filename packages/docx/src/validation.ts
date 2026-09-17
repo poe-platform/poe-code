@@ -2,7 +2,8 @@ import { macroTypes } from "./admission.js";
 import { InputTypeError, InvalidValueError, ResourceLimitError, type DocumentArchive } from "./archive.js";
 import { DocumentBudget } from "./budget.js";
 import { DocumentPackage } from "./package.js";
-import { InvalidPackageError, InvalidXmlError, parseDocumentXml, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
+import { InvalidPackageError, InvalidXmlError, isXmlContentType, parseDocumentXml, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
+import { parseMediaType } from "./media-type.js";
 import { documentDialects, validatePackageDialect } from "./dialect.js";
 import { MarkupCompatibility, documentCompatibilityProfile, type CompatibilityElement, type CompatibilityContent } from "./compatibility.js";
 import { tableRows } from "./table-rows.js";
@@ -125,10 +126,10 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     add(e instanceof InvalidPackageError ? e.diagnosticCode : "invalid-xml", e instanceof InvalidPackageError ? e.part ?? "/" : "/", e instanceof InvalidPackageError ? e.location : "/", e.message, "relationships");
     return result();
   }
-  if ([...graph.defaults, ...graph.overrides].some(declaration => macroTypes.has(declaration.content_type.toLowerCase())))
+  if ([...graph.defaults, ...graph.overrides].some(declaration => macroTypes.has(parseMediaType(declaration.content_type))))
     throw new UnsupportedProfileError("Macro-enabled document containers are unsupported.");
   for (const part of graph.parts) {
-    if (!roots.has(part.partname) && (part.content_type.toLowerCase().endsWith("+xml") || part.content_type.toLowerCase() === "application/xml" || part.content_type.toLowerCase() === "text/xml")) {
+    if (!roots.has(part.partname) && isXmlContentType(part.content_type)) {
       try { parse(part.partname, part.bytes); }
       catch (e) {
         if (!(e instanceof InvalidXmlError)) throw e;

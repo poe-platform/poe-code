@@ -52,6 +52,21 @@ describe("pipeline sequences with live follow-ups", () => {
     expect(onQueueChange.mock.calls.at(-1)?.[0].status).toBe("completed");
   });
 
+  it("points fresh follow-up agents at the completed plan after archiving", async () => {
+    const config = options();
+    const runAgent = vi.fn(async (input: AgentRunInput) => {
+      if (input.prompt.startsWith("Follow-up after")) {
+        expect(input.prompt).toContain("Follow-up after completing /repo/archive/first.md:");
+        await expect(config.fs.readFile("/repo/archive/first.md", "utf8")).resolves.toContain("status: done");
+      }
+      return { stdout: "Done", stderr: "", exitCode: 0 };
+    });
+    const result = await runPipelineSequence({ ...config, archive: true, plans: ["first.md"], afterEachPlan: ["Review the plan"], runAgent });
+    expect(result.plans[0]).toMatchObject({ planPath: "first.md", archivedPath: "/repo/archive/first.md" });
+    expect(result.messages[0]?.planPath).toBe("first.md");
+    expect(runAgent).toHaveBeenCalledTimes(2);
+  });
+
   it.each([false, true])("retains the plan MCP and log context for follow-ups when already complete=%s", async (alreadyComplete) => {
     const config = options();
     const configured = content.replace("tasks:", "mcp:\n  documents:\n    command: document-tools\ntasks:");

@@ -425,6 +425,7 @@ async function runResolvedPipeline(
       const selection = selectNextExecution(plan, options.task);
 
       if (selection.kind === "completed") {
+        let archivedPath: string | undefined;
         const fullPlanComplete = plan.tasks.every((task) => isTaskDone(task.status));
         const shouldFinalize = fullPlanComplete && (
           runsCompleted > 0 || plan.finalization === "pending" || plan.finalization === "teardown_completed"
@@ -462,7 +463,7 @@ async function runResolvedPipeline(
           }
           if (options.archive !== false) {
             const id = planIdFromArchivePath(absolutePlanPath);
-            await archivePlanShared({
+            archivedPath = await archivePlanShared({
               cwd,
               homeDir,
               planDirectory: path.dirname(absolutePlanPath),
@@ -487,6 +488,7 @@ async function runResolvedPipeline(
         return {
           stopReason: runsCompleted === 0 && !shouldFinalize ? "nothing_to_run" : "completed",
           planPath,
+          ...(archivedPath ? { archivedPath } : {}),
           runsCompleted,
           totalDurationMs: Date.now() - pipelineStartTime,
           metrics

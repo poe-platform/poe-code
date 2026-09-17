@@ -207,6 +207,7 @@ export interface PipelineRunOptions {
 export interface PipelineRunResult {
   stopReason: "completed" | "failed" | "cancelled" | "max_runs" | "nothing_to_run";
   planPath: string;
+  archivedPath?: string;
   runsCompleted: number;
   totalDurationMs: number;
   metrics: PipelineMetrics;

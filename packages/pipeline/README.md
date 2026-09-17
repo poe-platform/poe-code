@@ -249,7 +249,7 @@ const result = await runPipeline({
 });
 ```
 
-`runPipelineSequence({ plans, afterEachPlan, ...options })` runs a sequence with the same agent runner. `afterEachPlan` mirrors the repeatable `--after-plan` flag and also applies to plans added while running. Follow-ups use the selected run agent/model and the target plan's MCP servers and log directory.
+`runPipelineSequence({ plans, afterEachPlan, ...options })` runs a sequence with the same agent runner. `afterEachPlan` mirrors the repeatable `--after-plan` flag and also applies to plans added while running. Follow-ups use the selected run agent/model and the target plan's MCP servers and log directory. When a plan is archived, its result includes `archivedPath`, and follow-up prompts reference that file.
 
 For live input, supply a `queue` from `createRunQueue` in `@poe-code/agent-harness-tools` instead of `plans` and `afterEachPlan`. Call `queue.enqueueMessage(text, planId?)` or `queue.enqueuePlan(path)` while the sequence is running. `onQueueChange` receives immutable ordered snapshots; results include every completed plan, message result, and the final queue state. The root `poe-code` SDK exports both `runPipelineSequence` and `createRunQueue` with its default agent runner and optional worktree support.
 

@@ -56,6 +56,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
   let currentIterationNumber = 0;
   let stopReason: RalphRunResult["stopReason"] = "max_iterations";
   let archived = false;
+  let archivedPath: string | undefined;
   let fatalError: unknown;
   let lastStopKind: RalphWorkflowStopError["kind"] | null = null;
 
@@ -215,7 +216,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
     await updateFrontmatter(fs, absoluteDocPath, "completed", iterationsCompleted);
     if (options.archive !== false) {
       const id = path.basename(absoluteDocPath, ".md").replace(/^\d+-/, "");
-      await archivePlanShared({
+      archivedPath = await archivePlanShared({
         cwd: options.cwd,
         homeDir: options.homeDir,
         planDirectory,
@@ -228,7 +229,10 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
     await updateFrontmatter(fs, absoluteDocPath, "open", iterationsCompleted);
   }
 
-  return createRunResult(options.docPath, startTime, iterationsCompleted, stopReason);
+  return {
+    ...createRunResult(options.docPath, startTime, iterationsCompleted, stopReason),
+    ...(archivedPath ? { archivedPath } : {})
+  };
 }
 
 function createRunResult(

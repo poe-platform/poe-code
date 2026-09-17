@@ -47,6 +47,21 @@ describe("Ralph live sequence", () => {
     expect(result.messages.map((message) => message.text)).toEqual(["Review", "Verify", "Review", "Verify"]);
   });
 
+  it("gives follow-ups the archived plan path while preserving the original result identity", async () => {
+    const config = fixture();
+    const runAgent = vi.fn(async (input: AgentRunInput) => {
+      if (input.prompt.startsWith("Follow-up after")) {
+        expect(input.prompt).toContain("Follow-up after completing /repo/archive/first.md:");
+        await expect(config.fs.readFile("/repo/archive/first.md", "utf8")).resolves.toContain("First plan");
+      }
+      return { stdout: "Done", stderr: "", exitCode: 0 };
+    });
+    const result = await runRalphSequence({ ...config, archive: true, docs: ["first.md"], afterEachPlan: ["Review the plan"], runAgent });
+    expect(result.plans[0]).toMatchObject({ docPath: "first.md", archivedPath: "/repo/archive/first.md" });
+    expect(result.messages[0]?.planPath).toBe("first.md");
+    expect(runAgent).toHaveBeenCalledTimes(2);
+  });
+
   it("retains pending work after a failed message", async () => {
     const result = await runRalphSequence({
       ...fixture(), docs: ["first.md", "second.md"], afterEachPlan: ["Review", "Verify"],

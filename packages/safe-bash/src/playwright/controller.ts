@@ -58,7 +58,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         const callbacks = [...session.cleanups];
         session.cleanups.clear();
         const custom = callbacks.map(cleanup => Promise.resolve().then(cleanup));
-        const results = await Promise.allSettled([...custom, session.snapshot.invalidate(), Promise.resolve().then(() => session.lease?.release())]);
+        const results = await Promise.allSettled([...custom, session.snapshot.invalidate(true), Promise.resolve().then(() => session.lease?.release())]);
         const errors = results.flatMap(result => result.status === 'rejected' ? [result.reason] : []);
         if (errors.length === 1) throw errors[0];
         if (errors.length > 1) throw new AggregateError(errors, 'Playwright session retirement failed');
@@ -195,7 +195,9 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
                 },
               });
             }
-            await executePlaywrightAbility(ability, parsed, invocation, { signal: local.signal, maxCommandBytes, maxArtifactBytes, ...(browserSession ? { browserSession } : {}), check: () => active ? checkSession(active) : check() });
+            const executeAbility = () => executePlaywrightAbility(ability, parsed, invocation, { signal: local.signal, maxCommandBytes, maxArtifactBytes, ...(browserSession ? { browserSession } : {}), check: () => active ? checkSession(active) : check() });
+            if (active) await active.snapshot.withReferences(executeAbility);
+            else await executeAbility();
             check();
             if (active) {
               await active.snapshot.invalidate();
@@ -312,12 +314,15 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
                 await invocation.writeArtifact!(bytes, parsed.filename);
               } else await invocation.write(text);
             } else if (parsed.command === 'click' || parsed.command === 'fill') {
-              const target = await session.snapshot.resolve(parsed.ref!);
-              if (typeof target[parsed.command] !== 'function') throw new Error('Snapshot action unsupported');
-              checkSession(session);
-              retained = false;
-              if (parsed.command === 'click') await target.click({ timeout: actionTimeoutMs });
-              else await target.fill(parsed.value!, { timeout: actionTimeoutMs });
+              const command = parsed.command;
+              await session.snapshot.withReferences(async () => {
+                const target = await session.snapshot.resolve(parsed.ref!);
+                if (typeof target[command] !== 'function') throw new Error('Snapshot action unsupported');
+                checkSession(session);
+                retained = false;
+                if (command === 'click') await target.click({ timeout: actionTimeoutMs });
+                else await target.fill(parsed.value!, { timeout: actionTimeoutMs });
+              });
             } else if (parsed.command === 'press') {
               if (typeof page!.keyboard?.press !== 'function') throw new Error('Keyboard press unsupported');
               retained = false;

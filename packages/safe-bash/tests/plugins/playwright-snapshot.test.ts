@@ -79,6 +79,38 @@ function fixture() {
   return { page, nodes, actions };
 }
 
+test('invalidation rejects refs immediately but defers disposal through action settlement', async () => {
+  const current = fixture();
+  const engine = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 10 });
+  await engine.capture(current.page);
+  await engine.withReferences(async () => {
+    const handle = await engine.resolve('e1');
+    await engine.invalidate();
+    await engine.invalidate();
+    await assert.rejects(engine.resolve('e1'), /stale/);
+    assert.deepEqual(current.actions, []);
+    await handle.click();
+  });
+  assert.deepEqual(current.actions, ['click:0', 'dispose:0', 'dispose:1', 'dispose:2']);
+  await engine.invalidate();
+  assert.equal(current.actions.length, 4);
+});
+
+test('failed actions drain deferred handles and preserve action and disposal errors', async () => {
+  const current = fixture();
+  const actionError = new Error('action failed');
+  const cleanupError = new Error('disposal failed');
+  current.nodes[0]!.dispose = async () => { throw cleanupError; };
+  const engine = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 10 });
+  await engine.capture(current.page);
+  await assert.rejects(engine.withReferences(async () => {
+    await engine.invalidate();
+    throw actionError;
+  }), error => error instanceof AggregateError && error.errors[0] === actionError
+    && error.errors[1] instanceof AggregateError && error.errors[1].errors.includes(cleanupError));
+  assert.deepEqual(current.actions, ['dispose:1', 'dispose:2']);
+});
+
 test('shared snapshot binds identical elements and frames to distinct handles, without ARIA refs', async () => {
   const f = fixture();
   const engine = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 10 });

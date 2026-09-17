@@ -11,16 +11,53 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
   let sequence = 0;
   let epoch = 0;
   const retirements = new Set<Promise<void>>();
+  const work = new Set<Promise<unknown>>();
+  let actions = 0;
+  const deferredHandles = new Set<PlaywrightElementHandle>();
   const refs = new Map<string, PlaywrightElementHandle>();
-  const invalidate = async () => {
-    epoch++;
-    const handles = [...refs.values()];
-    refs.clear();
+  const withReferences = <Result>(action: () => Promise<Result>): Promise<Result> => {
+    const operation = (async () => {
+      actions++;
+      let result!: Result;
+      let failure: { error: unknown } | undefined;
+      try { result = await action(); }
+      catch (error) { failure = { error }; }
+      actions--;
+      if (actions === 0) {
+        const handles = [...deferredHandles];
+        deferredHandles.clear();
+        try { await retire(handles); }
+        catch (error) {
+          if (failure) throw new AggregateError([failure.error, error], 'Snapshot action and cleanup failed');
+          throw error;
+        }
+      }
+      if (failure) throw failure.error;
+      return result;
+    })();
+    work.add(operation);
+    void operation.then(() => work.delete(operation), () => work.delete(operation));
+    return operation;
+  };
+  const retire = async (handles: readonly PlaywrightElementHandle[]) => {
     const tasks = [...new Set(handles)].map(handle => Promise.resolve().then(() => handle.dispose()));
     for (const task of tasks) { retirements.add(task); void task.then(() => retirements.delete(task), () => {}); }
     const results = await Promise.allSettled([...retirements]);
     const errors = results.flatMap(result => result.status === 'rejected' ? [result.reason] : []);
     if (errors.length) throw new AggregateError(errors, 'Snapshot handle disposal failed');
+  };
+  const invalidate = async (drainActions = false) => {
+    epoch++;
+    const handles = [...refs.values()];
+    refs.clear();
+    if (actions) {
+      for (const handle of handles) deferredHandles.add(handle);
+      await retire([]);
+    } else await retire(handles);
+    if (drainActions) {
+      await Promise.allSettled([...work]);
+      await retire([]);
+    }
   };
   const capture = async (page: PlaywrightPage, signal?: AbortSignal): Promise<string> => {
     signal?.throwIfAborted();
@@ -111,5 +148,5 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     if (!connected || capturedEpoch !== epoch) throw new Error(`Snapshot ref stale: ${ref}; snapshot again`);
     return handle;
   };
-  return { capture, resolve, invalidate };
+  return { capture, resolve, invalidate, withReferences };
 }

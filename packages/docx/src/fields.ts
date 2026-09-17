@@ -11,6 +11,7 @@ import { closedRecord, encodeLocation, type Location } from "./location-token.js
 import { openDocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import type { XmlElement } from "./package-xml.js";
+import { DocumentPackage } from "./package.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { paragraphTextRun } from "./paragraph-content.js";
 import { resolveDocxSelection } from "./simple-selection.js";
@@ -38,6 +39,7 @@ async function openFields(input: Uint8Array, invocation: DocxInvocation, context
   });
   const selected = resolveDocxSelection(document, invocation);
   const settings = archiveSettings(context), archive = document.snapshot();
+  const graph = new DocumentPackage(archive, settings.limits, settings.budget);
   settings.budget.check("matches", selected.length);
   const editors = new Map<string, DocumentXmlEditor>();
   const parsed = new Map<string, { field: ParsedField; editor: DocumentXmlEditor }>();
@@ -47,9 +49,9 @@ async function openFields(input: Uint8Array, invocation: DocxInvocation, context
   const stories = selected.length ? document.list("story", { scope: "all-stories" }).filter(story => storyIds.has(story.value.story)) : document.list("story", { scope: (invocation.options.scope ?? "body") as DocumentScope });
   for (const story of stories) {
     await settings.budget.checkpoint();
-    const part = story.value.part;
+    const source = graph.getPart(story.value.part), part = source.name;
     let editor = editors.get(part);
-    if (!editor) { editor = new DocumentXmlEditor(archive.members.find(m => "/" + m.name === part)!.bytes, {}, undefined, settings.budget); editors.set(part, editor); }
+    if (!editor) { editor = new DocumentXmlEditor(source.bytes, {}, undefined, settings.budget); editors.set(part, editor); }
     let node = editor.root;
     for (const i of story.value.path) node = node.children[i]!;
     for (const field of parseFields(node, story.value.path, settings.budget, editor.compatibility.content)) {
@@ -62,7 +64,7 @@ async function openFields(input: Uint8Array, invocation: DocxInvocation, context
     if (!record) throw new UnsupportedEditError("The selected field has no supported story boundary.");
     return { location: location as Location<"field">, ...record };
   });
-  return { archive, editors, items, all, main: document.list("story", { scope: "body" })[0]!.value.part };
+  return { archive, graph, editors, items, all, main: graph.getPart(document.list("story", { scope: "body" })[0]!.value.part).name };
 }
 
 // Scan the admitted element's opening token, preserving quoted instruction bytes.
@@ -99,7 +101,7 @@ export async function editDocumentFields(input: Uint8Array, request: FieldEditRe
   if (request.operation.endsWith(".add")) return addDocumentFields(input, request, invocation, context);
   const options = { ...request.options, ...("text" in request.options ? { result: request.options.text } : {}) } as DocxOperationArguments<"fields.set">;
   const budget = settings.budget.lower(Object.fromEntries((options.limit ?? []).map(i => [i.name, i.value])));
-  const { archive, editors, items, all, main } = await openFields(input, invocation, { ...settings, budget });
+  const { archive, graph, editors, items, all, main } = await openFields(input, invocation, { ...settings, budget });
   assertDocumentEditable(archive, { ...settings, budget });
   for (const { field } of items) {
     if (!["MERGEFIELD", "PAGE", "NUMPAGES", "REF", "PAGEREF", "SEQ", "TOC"].includes(field.kind) || field.unsafe || options.result !== undefined && field.unsupported || !field.separated)
@@ -141,9 +143,9 @@ export async function editDocumentFields(input: Uint8Array, request: FieldEditRe
       });
     }
   }
-  const staged = { ...archive, members: archive.members.map(member => ({ ...member, bytes: editors.get("/" + member.name)?.serialize() ?? member.bytes })) };
-  const mainEditor = editors.get(main) ?? new DocumentXmlEditor(staged.members.find(m => "/" + m.name === main)!.bytes, {}, undefined, budget);
-  const index = new LocationIndex(staged, settings.limits, main.slice(1), dialectForNamespace(mainEditor.root.namespace)!, budget);
+  const staged = { ...archive, members: archive.members.map(member => ({ ...member, bytes: editors.get(member.name)?.serialize() ?? member.bytes })) };
+  const mainEditor = editors.get(main) ?? new DocumentXmlEditor(staged.members.find(m => m.name === main)!.bytes, {}, undefined, budget);
+  const index = new LocationIndex(staged, settings.limits, main, dialectForNamespace(mainEditor.root.namespace)!, budget);
   const entries = index.entries.filter(e => e.kind === "field");
   const resulting = new Map(items.map(item => {
     const story = item.location.value.story;
@@ -155,7 +157,7 @@ export async function editDocumentFields(input: Uint8Array, request: FieldEditRe
   }));
   for (const [part, editor] of editors) {
     let current = new DocumentXmlEditor(editor.serialize(), {}, undefined, budget);
-    for (const item of changed.filter(item => item.location.value.part === part)) {
+    for (const item of changed.filter(item => graph.getPart(item.location.value.part).name === part)) {
       if (options.result !== undefined && options.result !== item.field.result && options.result.trim() !== options.result) {
         const story = index.entries.find(e => e.kind === "story" && e.story === item.location.value.story)!;
         let owner = current.root;
@@ -188,6 +190,6 @@ export async function editDocumentFields(input: Uint8Array, request: FieldEditRe
   const publication = { ...(request.input ? { input: request.input } : {}), ...(options.output === undefined ? {} : { output: options.output }), ...(options.inPlace === undefined ? {} : { inPlace: options.inPlace }), ...(options.force === undefined ? {} : { force: options.force }), ...(options.dryRun === undefined ? {} : { dryRun: options.dryRun }), ...(options.json === undefined ? {} : { json: options.json }) };
   const prospective = { changed: changes.length > 0, changes, dryRun: options.dryRun ?? false, output: options.dryRun ? null : { path: options.inPlace ? request.input?.path ?? null : options.output === "-" ? null : options.output ?? null, bytes: Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER), sha256: "0".repeat(64) } };
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation: request.operation, ok: true, data: prospective, affected: changes.length, locations: changes.map(c => c.after), warnings: [], errors: [] }) + "\n").length);
-  const result = await publishDocumentArchive({ ...archive, members: archive.members.map(member => ({ ...member, bytes: editors.get("/" + member.name)?.serialize() ?? member.bytes })) }, publication, { ...context, budget });
+  const result = await publishDocumentArchive({ ...archive, members: archive.members.map(member => ({ ...member, bytes: editors.get(member.name)?.serialize() ?? member.bytes })) }, publication, { ...context, budget });
   return { changed: changes.length > 0, changes, dryRun: options.dryRun ?? false, output: result.published.length ? { path: result.published[0]!.path, bytes: result.published[0]!.bytes, sha256: result.archiveSha256! } : null };
 }

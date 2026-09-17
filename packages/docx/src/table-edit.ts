@@ -98,12 +98,12 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
   const document = await openDocumentLocations(input, { ...settings, budget });
   const selected = resolveDocxSelection(document, invocation);
   const archive = document.snapshot(); assertDocumentEditable(archive, { ...settings, budget });
-  const main = document.list("story", { scope: "body" })[0]!.value.part.slice(1);
-  const dialect = dialectForNamespace(parseDocumentXml(archive.members.find(m => m.name === main)!.bytes, {}, budget).root.namespace)!;
+  const graph = new DocumentPackage(archive, settings.limits, budget);
+  const mainPart = graph.getPart(document.list("story", { scope: "body" })[0]!.value.part), main = mainPart.name;
+  const dialect = dialectForNamespace(parseDocumentXml(mainPart.bytes, {}, budget).root.namespace)!;
   const w = documentDialects[dialect].w;
   let styleId: string | undefined;
   if (opts.style !== undefined) {
-    const graph = new DocumentPackage(archive, settings.limits, budget);
     const edge = graph.relationships("/" + main).find(e => e.reltype === documentDialects[dialect].r + "/styles");
     const styles = edge && !edge.is_external ? parseDocumentXml(edge.target_part.bytes, {}, budget).root : undefined;
     const found = styles?.children.filter(n => n.namespace === w && n.localName === "style" && attr(n, "type") === "table" && attr(one(n, "name"), "val") === opts.style) ?? [];

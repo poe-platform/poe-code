@@ -75,7 +75,8 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
   if (request.operation === "tables.add") {
     const anchor = selected[0];
     const mainRoot = parseDocumentXml(archive.members.find(m => m.name === main)!.bytes, {}, budget).root;
-    const root = anchor && anchor.value.part !== "/" + main ? parseDocumentXml(archive.members.find(m => m.name === anchor.value.part.slice(1))!.bytes, {}, budget).root : mainRoot;
+    const owner = anchor ? graph.getPart(anchor.value.part) : mainPart;
+    const root = owner.name !== main ? parseDocumentXml(owner.bytes, {}, budget).root : mainRoot;
     const rendered = renderInsertedTable(opts, anchor, root, mainRoot, styles, budget);
     tableMarkup = rendered.body;
     headingStyles = selected.length ? rendered.styles : "";

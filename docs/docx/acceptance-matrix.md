@@ -100,3 +100,11 @@ The [canonical editing record](canonical-editing-routes-20260917.md) adds exact
 F01/F02/F03/F04/F07 cross-family cases for canonical member identity, typed XML
 editor input and unchanged protection retention. Other consumers and full-family
 acceptance remain open; these named cases do not certify complete families.
+
+## Current canonical table and field evidence
+
+The [table/field record](canonical-structured-routes-20260917.md) adds exact
+F01/F02/F03/F04/F05 identity, mutation, preservation and refusal evidence through
+applicable model, SDK and actual shell routes. The 320 cases include 64 paired
+unsupported affected edits and successful unrelated edits. The whole-family
+reconciliation remains open; no bounded label or total accepts a complete family.

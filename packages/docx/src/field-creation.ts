@@ -10,6 +10,7 @@ import { addressKey, LocationIndex } from "./location-index.js";
 import { encodeLocation, type Location } from "./location-token.js";
 import { openDocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
+import { DocumentPackage } from "./package.js";
 import { paragraphTextRun } from "./paragraph-content.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext } from "./publication.js";
 import { resolveDocxSelection } from "./simple-selection.js";
@@ -25,12 +26,14 @@ export async function addDocumentFields(input: Uint8Array, request: FieldEditReq
   budget.check("matches", selected.length);
   const archive = document.snapshot();
   assertDocumentEditable(archive, { ...settings, budget });
+  const graph = new DocumentPackage(archive, settings.limits, budget);
   const editors = new Map<string, DocumentXmlEditor>();
   const updates: { before: Location; path: readonly number[]; kind: "field" | "paragraph" }[] = [];
   for (const before of selected) {
     await budget.checkpoint();
-    let editor = editors.get(before.value.part);
-    if (!editor) { editor = new DocumentXmlEditor(archive.members.find(m => "/" + m.name === before.value.part)!.bytes, {}, undefined, budget); editors.set(before.value.part, editor); }
+    const part = graph.getPart(before.value.part);
+    let editor = editors.get(part.name);
+    if (!editor) { editor = new DocumentXmlEditor(part.bytes, {}, undefined, budget); editors.set(part.name, editor); }
     let node = editor.root;
     const ancestors = [node];
     for (const i of before.value.path) { node = node.children[i]!; ancestors.push(node); }
@@ -70,8 +73,8 @@ export async function addDocumentFields(input: Uint8Array, request: FieldEditReq
     editor.insertChildren(node, prefix + field + suffix);
     updates.push({ before, path: options.static ? before.value.path : [...before.value.path, node.children.length + (prefix ? 1 : 0)], kind: options.static ? "paragraph" : "field" });
   }
-  const staged = { ...archive, members: archive.members.map(m => ({ ...m, bytes: editors.get("/" + m.name)?.serialize() ?? m.bytes })) };
-  const main = document.list("story", { scope: "body" })[0]!.value.part.slice(1);
+  const staged = { ...archive, members: archive.members.map(m => ({ ...m, bytes: editors.get(m.name)?.serialize() ?? m.bytes })) };
+  const main = graph.getPart(document.list("story", { scope: "body" })[0]!.value.part).name;
   const dialect = dialectForNamespace(new DocumentXmlEditor(staged.members.find(m => m.name === main)!.bytes, {}, undefined, budget).root.namespace)!;
   const index = new LocationIndex(staged, settings.limits, main, dialect, budget);
   const changes = updates.map(({ before, path, kind }) => {

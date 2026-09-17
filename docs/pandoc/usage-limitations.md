@@ -1,12 +1,3 @@
-# Package README draft — permission gate open
-
-Proposed contents for packages/pandoc/README.md. Do not apply without explicit
-permission. No README was changed. Package installation is not independently
-published. Links need package-relative adjustment if applied after permission.
-
-````markdown
-# @poe-code/pandoc
-
 # TypeScript converter usage and limits
 
 Original bounded TypeScript implementation, not a native Pandoc wrapper. Public
@@ -198,11 +189,3 @@ Existing conformance references: CommonMark 0.31.2, GFM 0.29, Pandoc 3.8.3
 EPUB 3.3 and Docutils 0.21.2. These references do not imply full Pandoc parity.
 Current independent applications, exact pins, findings and not-run lanes belong
 in qa-typescript/results.md. README application is still permission-gated.
-
-## Maintained checks
-
-From repository root: npm run build:workspaces -- --workspace=@poe-code/pandoc;
-npm run lint --workspace=@poe-code/pandoc;
-npm run test:unit --workspace=@poe-code/pandoc. Runtime dependencies are declared
-in package.json; this package is not dependency-free.
-````

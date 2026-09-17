@@ -1,0 +1,63 @@
+{
+  "reader": "EPUB.js 0.3.93 archived example",
+  "browser": "152.0.7977.84",
+  "spine": [
+    {
+      "href": "chapter-1.xhtml",
+      "index": 0
+    },
+    {
+      "href": "chapter-2.xhtml",
+      "index": 1
+    }
+  ],
+  "toc": [
+    {
+      "id": "chapter-1.xhtml#start",
+      "href": "chapter-1.xhtml#start",
+      "label": "Original QA document",
+      "subitems": []
+    },
+    {
+      "id": "chapter-2.xhtml#second",
+      "href": "chapter-2.xhtml#second",
+      "label": "Second chapter",
+      "subitems": []
+    }
+  ],
+  "media": [
+    [
+      {
+        "naturalWidth": 120,
+        "naturalHeight": 60,
+        "width": 120,
+        "height": 60
+      }
+    ]
+  ],
+  "second": {
+    "start": {
+      "index": 1,
+      "href": "chapter-2.xhtml",
+      "cfi": "epubcfi(/6/4!/4/2[second]/1:0)",
+      "displayed": {
+        "page": 1,
+        "total": 1
+      },
+      "location": -1,
+      "percentage": 0
+    },
+    "end": {
+      "index": 1,
+      "href": "chapter-2.xhtml",
+      "cfi": "epubcfi(/6/4!/4/4/2/1:15)",
+      "displayed": {
+        "page": 1,
+        "total": 1
+      },
+      "location": -1,
+      "percentage": 0
+    },
+    "atEnd": true
+  }
+}

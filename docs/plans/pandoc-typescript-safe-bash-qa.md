@@ -64,3 +64,9 @@ and Pandoc maintained unit/lint routes passed. Current independent visual lanes
 and explicit not-run gates are recorded in results.md; this is partial QA
 acceptance, not full converter/Office fidelity or repository-gate completion.
 Temporary pinned external QA tools were removed after evidence collection.
+
+Final cleaned root lint passed (zero errors, 14 warnings), including type-contract
+and workflow stages. The full test route was stopped after recorded out-of-scope
+failures and remains failed/incomplete. Comprehensive Pandoc and PDF README
+drafts were refreshed without changing README files; the publication gate remains
+open. CLI opt-in local commit: 85eb2cd48. No push or release.

@@ -1,19 +1,82 @@
-# Pending package README copy (not installed; permission required)
+# PDF package README draft — permission gate open
 
-## @poe-code/pdf
+Proposed copy for packages/pdf/README.md; do not apply without explicit permission.
+This private workspace is not independently published. No README was changed.
 
-Private TypeScript PDF engine. `renderPdf(layout, context)` returns owned PDF bytes; `pdfCapabilities()` describes the supported profile. `suppliedDefaultFont()` supplies packaged JetBrains Mono Regular, licensed under SIL OFL (package OFL.txt). No system fonts are discovered. Fonts can instead be supplied as explicit sfnt TrueType/OpenType byte resources with unique IDs. Compressed WOFF/WOFF2 and collections are rejected before font parsing. The helper optionally accepts an admission callback with the derived byte length before decoding.
+## Private SDK and converter usage
 
-PDF reference: Adobe PDF Reference, sixth edition, November 2006, PDF 1.7. Profile PDF-1.7-supplied-fonts-ltr prohibits encryption, JavaScript, attachments. Latin (ASCII/Latin-1), Greek and Cyrillic horizontal LTR text only; combining sequences, bidi and complex scripts rejected. Missing glyphs rejected after ordered supplied font fallback. Scalar wrapping; explicit newlines. No hyphenation, word shaping across runs or justification. Embedded complete fonts, no subsetting. PNG/JPEG images, rectangular unspanned tables with indivisible rows, HTTP/HTTPS/mailto URI links. No PDF/A or accessibility conformance claim.
+Verified repository workspace API example (not an install recommendation):
 
-Layout is separate from any document AST. PageBox width/height/margin are points (default A4 595.28 x 841.89, margin 48). Paragraph runs select font ID (fallback in supplied order), size (default 12, max 144), URI link. Paragraph spaceAfter defaults to 8. Images specify media, bytes and explicit point dimensions. Tables specify positive fractional widths summing to 1 and rows of paragraph cells. breakBefore and keepTogether constrain pagination; oversized indivisible content fails.
+```ts
+import {renderPdf, suppliedDefaultFont} from "@poe-code/pdf";
+const bytes = await renderPdf({fonts: [suppliedDefaultFont()], blocks: [
+  {kind: "paragraph", runs: [{text: "Original SDK café Ελληνικά Привет"}]}
+]});
+```
 
-Context: signal, yield scheduler, shared charge callback and limits. Defaults: fontBytes 4,000,000; fonts 8; glyphs 100,000; pages 200; objects 100,000; images 100; imageBytes 8,000,000; decodedImageBytes 32,000,000; layoutWork 500,000; outputBytes 16,000,000. PNG additionally capped at 4,000,000 pixels; decodedImageBytes reserves eight bytes per declared pixel cumulatively before decoding. Pandoc charges this allowance to retainedBytes. Each paragraph/cell measurement charges layoutWork even when empty. Output ceiling is checked after library serialization; synchronous library font parsing/serialization cannot be preempted. Object budget conservatively counts engine operations rather than every library internal allocation. These are trusted bounded primitives, not a memory-isolation boundary.
+`qa-typescript/pdf-sdk.json` records the PDF header, byte count, capabilities and
+limits for this call. Public converter/CLI examples, format/extension matrix and
+all converter options/limits: usage-limitations.md. Public `poe-code/pandoc`
+`writeDocument` or `convert` with to pdf invokes this TypeScript engine, including
+supplied fonts, page selection and publication options. Native PDF engines,
+ambient fonts and native runtime fallback are forbidden. No environment variables.
 
-Dependencies: pdf-lib 1.17.1, @pdf-lib/fontkit 1.1.1, both MIT JavaScript/TypeScript; exact transitive dependencies are @pdf-lib/standard-fonts 1.0.0, @pdf-lib/upng 1.0.1, pako 1.0.11 and tslib 2.8.1 (integrities and full graph in package-lock.json). Neither is a native/WASM compiler or runtime fallback.
+## All engine configuration
 
-Environment variables: none.
+LayoutDocument: fonts (ordered id/owned sfnt bytes), blocks, optional metadata
+(title, author, subject, keywords), page (width/height/margin in points), lineHeight
+(1..3, default 1.2). Default page A4 595.28×841.89, margin 48.
+Paragraph: runs with text/font/size/link, optional outline, spaceAfter, keepWithNext,
+indent, widows, orphans, longWord wrap/error, breakBefore and keepTogether.
+Image: bytes, png/jpeg media, explicit width/height points, fit contain/natural,
+breakBefore, keepTogether. Table: rectangular paragraph cells, positive fractional
+widths summing to one, headerRows, rowSplit error/lines, breakBefore, keepTogether.
+Leading headers repeat; explicit line splitting can continue rows on another page.
+Context: signal, limits, yield, shared charge and onPlacement (one-based page,
+kind/x/y/width/height and optional text). suppliedDefaultFont optionally accepts
+an admission callback before decoding packaged JetBrains Mono Regular (SIL OFL).
 
-## @poe-code/pandoc PDF writer copy
+## All default engine budgets
 
-`to: "pdf"` uses the built-in @poe-code/pdf engine and the packaged JetBrains Mono font. The CLI/safe-bash adapter invokes the same SDK path; there is no native fallback or external compiler. Supported AST subset: plain paragraphs, headings, code, line blocks, div containers, links, spans, standalone images with supplied resource bytes and numeric point width/height attributes, and left-aligned rectangular unspanned paragraph-cell tables without captions. Other inline/block semantics (including styled text and math) are explicitly rejected. Engine API supports supplied font/page selection independently. Pandoc currently uses the fixed A4/default font profile. Environment variables: none. Existing conversion limits (fonts, glyphs, pages, objects, images, binaryBytes, retainedBytes, layoutWork and outputBytes) also constrain PDF work; internal engine hard defaults can further restrict output.
+Defaults from the verified built SDK; converter ceilings can further restrict them.
+These are bounded trusted primitives, not process memory isolation.
+
+| Limit | Default |
+| --- | --- |
+| fontBytes | 4,000,000 |
+| fonts | 8 |
+| glyphs | 100,000 |
+| pages | 200 |
+| objects | 100,000 |
+| images | 100 |
+| imageBytes | 8,000,000 |
+| decodedImageBytes | 32,000,000 |
+| layoutWork | 500,000 |
+| outputBytes | 16,000,000 |
+
+PNG additionally caps four million pixels and reserves eight decoded bytes per
+pixel. Fonts are explicit sfnt TrueType glyf resources; WOFF/WOFF2/collections
+are rejected. Synchronous library font work is not forcibly preemptible.
+
+## Limitations and evidence
+
+Profile PDF-1.7-supplied-fonts-ltr, Adobe PDF Reference sixth edition (November
+2006); PDF reference SHA-256 in pdf-reference-pin.md. Latin, Greek and Cyrillic
+horizontal LTR only; combining/bidi/complex scripts and missing glyphs reject.
+No shaping, full-fidelity typography, encryption, JavaScript, attachments,
+tagged-PDF/PDF-UA/PDF-A, guaranteed reading order/searchability/extraction.
+Images support static noninterlaced 8-bit PNG and admitted 8-bit JPEG profiles.
+Tables must be rectangular/unspanned. URI links are admitted; fragment links
+are not document navigation support. Full fonts are embedded, not subsetted.
+No PDF reader or PDF editing operation.
+
+Dependencies are declared in packages/pdf/package.json and pinned in root lockfile:
+pdf-lib 1.17.1, @pdf-lib/fontkit 1.1.1, pako 3.0.1; transitive graph has additional
+versions. These are JavaScript libraries, not native runtime fallbacks.
+Current converter acceptance: all five supported pages independently rendered
+with PyMuPDF 1.26.4/MuPDF 1.26.7; findings, row continuation, links/image proportions
+and rejected multilingual profile are in qa-typescript/results.md.
+Office conversion/editing are separate lanes and not PDF capabilities.
+Maintained checks: npm run lint --workspace=@poe-code/pdf and
+npm run test:unit --workspace=@poe-code/pdf; selected workspace build closure
+npm run build:workspaces -- --workspace=@poe-code/pdf.

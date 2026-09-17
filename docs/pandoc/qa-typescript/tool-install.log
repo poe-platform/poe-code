@@ -1,0 +1,11 @@
+Using CPython 3.14.2
+Creating virtual environment at: docs/pandoc/qa-typescript/.venv
+Activate with: source docs/pandoc/qa-typescript/.venv/bin/activate
+Using Python 3.14.2 environment at: docs/pandoc/qa-typescript/.venv
+Resolved 2 packages in 258ms
+Downloading pymupdf (21.4MiB)
+ Downloaded pymupdf
+Prepared 2 packages in 801ms
+Installed 2 packages in 19ms
+ + docutils==0.21.2
+ + pymupdf==1.26.4

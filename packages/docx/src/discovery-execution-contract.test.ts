@@ -345,24 +345,7 @@ it.each(["document", "package"] as const)(
     ]);
     expect(readOnly.exitCode).toBe(2);
     expect(readOnly.bytes.length).toBe(0);
-    const operations = [
-      {
-        operation: "model.document.Document.styles.get",
-        receiver: { resultHandle: "document" },
-        arguments: {}
-      }
-    ];
-    const words =
-      owner === "document"
-        ? ["create", "--template", "source.docx", "--output", "-"]
-        : [
-            "batch",
-            "source.docx",
-            "--ops-json",
-            JSON.stringify({ version: 1, operations }),
-            "--output",
-            "-"
-          ];
+    const words = ["create", "--template", "source.docx", "--output", "-"];
     const cli = await execute(input, words);
     expect(cli.exitCode, cli.stderr).toBe(0);
     const sdkArchive = await readArchive(
@@ -375,5 +358,6 @@ it.each(["document", "package"] as const)(
         .map(({ name, bytes }) => ({ name, bytes }))
         .sort((left, right) => left.name.localeCompare(right.name));
     expect(payloads(cliArchive)).toEqual(payloads(sdkArchive));
+    expect(payloads(cliArchive)).toEqual(payloads(await readArchive(input, textContext)));
   }
 );

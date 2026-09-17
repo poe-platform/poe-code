@@ -21,7 +21,9 @@ it("executes typed live style, font and tab edits and publishes only to the supp
   expect(applied.results.at(-1)).toMatchObject({ value: { value: 914400, unit: "emu" } });
   const volume = Volume.fromJSON({ "/result": "" });
   await applied.save({ async write(bytes: Uint8Array) { volume.appendFileSync("/result", bytes); } });
-  expect((await inspectDocumentStyles(new Uint8Array(volume.readFileSync("/result") as Buffer), {}, textContext)).styles).toMatchObject([{ name: "Harbor", direct: { allCaps: true, tabStops: [{ position: 72 }] } }]);
+  const styles = (await inspectDocumentStyles(new Uint8Array(volume.readFileSync("/result") as Buffer), {}, textContext)).styles;
+  expect(styles.map(style => style.name).sort()).toEqual(["Default Paragraph Font", "Harbor", "Normal", "Normal Table"]);
+  expect(styles.find(style => style.name === "Harbor")).toMatchObject({ name: "Harbor", direct: { allCaps: true, tabStops: [{ position: 72 }] } });
 });
 it("rejects unowned literal receivers and unsupported methods before publication", async () => {
   const input = await textFixture(paragraph("Harbor log"));

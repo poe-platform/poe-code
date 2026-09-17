@@ -19,7 +19,7 @@ import { DocxUsageError } from "./argument-json.js";
 import { BoundsError } from "./model-errors.js";
 import { validateDocxBatch } from "./command.js";
 import { docxOperationSchemas } from "./operation-schema.js";
-import { BaseStyle, CharacterStyle, ParagraphStyle, TableStyle, Styles, LatentStyles, LatentStyle, openDocumentStyleModel, StylePartView, styleModelMutations } from "./styles-model.js";
+import { BaseStyle, CharacterStyle, ParagraphStyle, TableStyle, Styles, LatentStyles, LatentStyle, StylePartView } from "./styles-model.js";
 import { Font, ParagraphFormat, TabStops, TabStop, ColorFormat, RGBColor } from "./formatting-model.js";
 import { styleModelBatchOperations, styleModelBatchActions, styleModelBatchBootstrap } from "./style-model-batch-operations.js";
 export { styleModelBatchOperations } from "./style-model-batch-operations.js";
@@ -29,15 +29,14 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
   const settings = modelContext(context);
   const batch = validateDocxBatch(operations, settings.budget);
   for (const item of batch.operations) if (!styleModelBatchOperations.includes(item.operation) && !structureModelBatchActions.has(item.operation)) throw new UnsupportedProfileError("This model operation is not implemented by the style batch executor.");
-  const document = batch.operations.some(item => structureModelBatchActions.has(item.operation) && item.operation !== styleModelBatchBootstrap) ? await Document(input, settings) : null;
-  const model = document ? { get styles() { return document.styles; }, package: document.store.package, warnings: [] as readonly { readonly code: string }[], save: (output: import("./model-output.js").DocumentOutput, options?: import("./model-output.js").DocumentSaveOptions) => document.save(output, options), publish: (options: import("./publication.js").PublicationOptions, context: import("./publication.js").PublicationContext) => document.store.publish(options, context) } : await openDocumentStyleModel(input, settings);
+  const document = await Document(input, settings);
+  const model = { get styles() { return document.styles; }, package: document.store.package, warnings: [] as readonly { readonly code: string }[], save: (output: import("./model-output.js").DocumentOutput, options?: import("./model-output.js").DocumentSaveOptions) => document.save(output, options), publish: (options: import("./publication.js").PublicationOptions, context: import("./publication.js").PublicationContext) => document.store.publish(options, context) };
   const named = new Map<string, unknown>();
   const objectIds = new Map<object, string>();
   const results: { operation: string; value: unknown }[] = [];
   let affected = 0;
-  const currentRevision = () => document ? document.store.revision + model.package.revision : styleModelMutations.get(model.styles)!.revision + model.package.revision;
+  const currentRevision = () => document.store.revision + model.package.revision;
   let revision = currentRevision();
-  let pendingStylesCreation = revision !== 0;
 
   const isModel = (value: unknown): value is object => value instanceof Drawing || value instanceof InlineShape || value instanceof InlineShapes || value instanceof _NumberingDefinitions || value instanceof Settings || value instanceof DocumentView || value instanceof Paragraph || value instanceof Run || value instanceof Table || value instanceof _Cell || value instanceof _Row || value instanceof _Column || value instanceof _Rows || value instanceof _Columns || value instanceof Section || value instanceof Sections || value instanceof _Header || value instanceof _Footer || value instanceof Comments || value instanceof Comment || value instanceof Hyperlink || value instanceof RenderedPageBreak || value instanceof Styles || value instanceof BaseStyle || value instanceof LatentStyles || value instanceof LatentStyle || value instanceof Font || value instanceof ParagraphFormat || value instanceof TabStops || value instanceof TabStop || value instanceof ColorFormat || value instanceof RGBColor || value instanceof PartView || value instanceof PackageView || value instanceof Relationships || value instanceof RelationshipView || value instanceof XmlElementView || value instanceof CoreProperties || value instanceof ImageParts;
   const type = (value: object): string => value instanceof DocumentView ? "DocumentModel" : value instanceof _NumberingDefinitions ? "NumberingDefinitionsView" : value instanceof _Header ? "_Header" : value instanceof _Footer ? "_Footer" : value instanceof XmlElementView ? "XmlElementView" : value instanceof ImagePartView ? "ImagePart" : value instanceof CorePropertiesPartView ? "CorePropertiesPart" : value instanceof DocumentPartView ? "DocumentPart" : value instanceof NumberingPart ? "NumberingPart" : value instanceof XmlPartView ? value instanceof StylePartView ? "StylesPart" : "XmlPartView" : value instanceof PartView ? "PartView" : value instanceof PackageView ? "PackageView" : value instanceof RelationshipView ? "RelationshipView" : value instanceof TableStyle ? "_TableStyle" : value instanceof ParagraphStyle ? "ParagraphStyle" : value instanceof CharacterStyle ? "CharacterStyle" : value instanceof BaseStyle ? "BaseStyle" : value instanceof LatentStyle ? "_LatentStyle" : value.constructor.name;
@@ -74,8 +73,8 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
     if (value instanceof Uint8Array || value instanceof Date) return value;
     if (Array.isArray(value)) return value.map(resolve);
     const record = value as Record<string, unknown>;
-    if (document && (record.resultHandle === "document" && Object.keys(record).length === 1 || record.id === "document" && record.type === "DocumentModel" && record.owner === "document" && record.revision === 0)) return document;
-    if (document && Object.keys(record).length === 2 && typeof record.value === "number" && typeof record.unit === "string") {
+    if (record.resultHandle === "document" && Object.keys(record).length === 1 || record.id === "document" && record.type === "DocumentModel" && record.owner === "document" && record.revision === 0) return document;
+    if (Object.keys(record).length === 2 && typeof record.value === "number" && typeof record.unit === "string") {
       const constructors = { emu: Length, in: Inches, cm: Cm, mm: Mm, pt: Pt, twip: Twips };
       const constructor = constructors[record.unit as keyof typeof constructors];
       if (constructor) return constructor(record.value);
@@ -107,13 +106,10 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
   for (const item of batch.operations) {
     await settings.budget.checkpoint();
     let value: unknown;
-    let createdStylesPart = false;
     if (item.operation === styleModelBatchBootstrap) {
       const receiver = item.receiver;
       if (!(receiver?.resultHandle === "document" && Object.keys(receiver).length === 1) && (receiver?.id !== "document" || receiver.type !== "DocumentModel" || receiver.owner !== "document" || receiver.revision !== 0)) throw new DocxUsageError("The root receiver must be this document's initial handle.");
       value = model.styles;
-      createdStylesPart = pendingStylesCreation;
-      pendingStylesCreation = false;
     } else {
       const args = Object.fromEntries(Object.entries(item.arguments).map(([key, value]) => [key, resolve(value)]));
       const imageAction = imageBatchActions.get(item.operation), packageAction = packageViewBatchActions.get(item.operation);
@@ -122,7 +118,7 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
     if (item.resultHandle) named.set(item.resultHandle, value);
     results.push({ operation: item.operation, value: encode(value) });
     const nextRevision = currentRevision();
-    if (docxOperationSchemas[item.operation]!.mutates && (document ? nextRevision !== revision : packageViewBatchActions.has(item.operation) ? nextRevision !== revision : !item.operation.endsWith(".get") || createdStylesPart || nextRevision !== revision)) affected++;
+    if (docxOperationSchemas[item.operation]!.mutates && nextRevision !== revision) affected++;
     revision = nextRevision;
   }
   return { save: model.save, publish: model.publish, warnings: model.warnings, results: Object.freeze(results), affected };

@@ -84,10 +84,10 @@ export class PackageView {
     if (input == null) throw new InputTypeError("Expected explicit package input.");
     if (settings.template !== undefined) throw new InputTypeError("A context template conflicts with package input.");
     const admitted = await admitDocumentModel(input, settings);
-    const { bindDocumentStyleModel } = await import("./styles-model.js");
-    const model = await bindDocumentStyleModel(admitted);
-    model.package.after_unmarshal();
-    return model.package;
+    const { ModelStore } = await import("./model-store.js");
+    const store = new ModelStore(admitted.archive, admitted.settings, admitted.archive.mainPart, admitted.source);
+    store.package.after_unmarshal();
+    return store.package;
   }
   get revision(): number { return this.#revision; }
   [packageOwnerCheckpoint](): () => void {

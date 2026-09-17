@@ -138,3 +138,14 @@ header/footer variants in both dialects and macro-free kinds through applicable
 model, SDK, actual shell and typed batch routes. All 720 pass in the unfiltered
 10,672-test DOCX run with zero skips. Independent relationship-member spellings
 and the remaining full-family obligations remain open.
+
+## Current package-owner and style-getter evidence
+
+The [noncreating-owner record](noncreating-package-batches-20260917.md) and
+[style-getter record](style-bootstrap-parity-20260917.md) bind 96 and 24 exact
+model/SDK/actual-shell cases across both dialects and macro-free kinds. Package
+opening and value-only batches preserve all members, while an explicit
+Document.styles getter materializes the three original defaults consistently.
+The maintained unfiltered run passes 11,760 tests in 281 files, zero skips;
+source hashes were verified unchanged after execution. This resolves these named
+owner/side-effect assertions only. Full F01–F07 and batch-envelope parity stay open.

@@ -91,11 +91,15 @@ export function createRunQueue(options: {
   /** Keep the run open while a submitted plan path is being validated. */
   async function enqueueValidatedPlan(planPath: string, validate: (path: string) => Promise<string>): Promise<string> {
     assertAccepting();
+    const earlierSubmissions = [...pendingValidations];
     let release!: () => void;
     const pending = new Promise<void>((resolve) => { release = resolve; });
     pendingValidations.add(pending);
     try {
-      return enqueuePlan(await validate(planPath));
+      const validatedPath = await validate(planPath);
+      // Validation may finish out of order; execution must retain submission order.
+      await Promise.all(earlierSubmissions);
+      return enqueuePlan(validatedPath);
     } finally {
       pendingValidations.delete(pending);
       release();

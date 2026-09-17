@@ -2,6 +2,44 @@ import { describe, expect, it, vi } from "vitest";
 import { createRunQueue } from "./run-queue.js";
 
 describe("live harness work queue", () => {
+  it("keeps submitted plan order when later validation finishes first", async () => {
+    const queue = createRunQueue({ plans: [], afterEachPlan: ["Review"] });
+    let firstReady!: (path: string) => void;
+    let secondReady!: (path: string) => void;
+    const first = queue.enqueueValidatedPlan("first.md", () => new Promise<string>((resolve) => { firstReady = resolve; }));
+    const second = queue.enqueueValidatedPlan("second.md", () => new Promise<string>((resolve) => { secondReady = resolve; }));
+    const executed: string[] = [];
+    const running = queue.run({ async execute(item) {
+      executed.push(item.kind === "plan" ? item.path : item.text);
+      return "completed";
+    } });
+    secondReady("second.md");
+    await Promise.resolve();
+    firstReady("first.md");
+    await Promise.all([first, second]);
+    expect((await running).status).toBe("completed");
+    expect(executed).toEqual(["first.md", "Review", "second.md", "Review"]);
+  });
+
+  it("allows a later validated plan to proceed after an earlier submission is rejected", async () => {
+    const queue = createRunQueue({ plans: [] });
+    let rejectFirst!: (error: Error) => void;
+    const first = queue.enqueueValidatedPlan("missing.md", () => new Promise<string>((_resolve, reject) => { rejectFirst = reject; }))
+      .catch((error: unknown) => error);
+    const second = queue.enqueueValidatedPlan("second.md", async (path) => path);
+    const executed: string[] = [];
+    const running = queue.run({ async execute(item) {
+      if (item.kind === "plan") executed.push(item.path);
+      return "completed";
+    } });
+    await Promise.resolve();
+    rejectFirst(new Error("Missing plan"));
+    expect(await first).toEqual(new Error("Missing plan"));
+    await second;
+    expect((await running).status).toBe("completed");
+    expect(executed).toEqual(["second.md"]);
+  });
+
   it("keeps the sequence open for a plan being validated and applies inherited follow-ups", async () => {
     const queue = createRunQueue({ plans: ["one.md"], afterEachPlan: ["Review"] });
     let validate!: (value: string) => void;

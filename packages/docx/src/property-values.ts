@@ -76,7 +76,7 @@ export function readPropertyNodes(root: XmlElement, group: PropertyGroup, dialec
       if (name === null && nativeNamespace && !knownSpelling) name = node.localName;
     }
     const raw = valueNode?.content.filter(n => n.kind === "text" || n.kind === "cdata").map(n => n.text).join("") ?? "";
-    const value = type && name && valueNode ? valueNode.children.length || valueNode.content.some(n => n.kind !== "text" && n.kind !== "cdata") ? null : lexicalValue(raw, type, valueNode.localName, group) : null;
+    const value = type && name && valueNode ? valueNode.children.length ? null : lexicalValue(raw, type, valueNode.localName, group) : null;
     return { node, valueNode, name, storedType: valueNode ? { namespace: valueNode.namespace, localName: valueNode.localName } : null, id: custom ? propertyAttribute(node, "pid") : null, value: type && name ? { name, type, value, writable: !cached && value !== null, cached } : null };
   });
 }

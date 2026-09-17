@@ -6,7 +6,7 @@ import { MissingKeyError, StaleHandleError } from "./model-errors.js";
 import { PublicationError } from "./publication.js";
 import { DocumentXmlEditor, editActiveRelationshipXml, UnsupportedEditError } from "./xml-write.js";
 import { relationshipXmlRows, relationshipXmlIds, collapseRelationshipScalar } from "./relationship-xml.js";
-import { bindXmlElementView, type XmlElementView } from "./xml-element-view.js";
+import { bindXmlElementView, replaceXmlScalar, type XmlElementView } from "./xml-element-view.js";
 import { PackURI } from "./pack-uri.js";
 import { asciiKey, normalizePartName, relativePartTarget } from "./part-uri.js";
 import { xmlValue } from "./create-content.js";
@@ -662,7 +662,7 @@ export class CoreProperties {
     const view = this.#part.element;
     const matching = view.children.filter(node => node.tag.namespaceURI === declaration.namespace && node.tag.localName === declaration.localName);
     if (matching.length > 1) throw new InvalidValueError("Core property is ambiguous.");
-    if (matching.length) matching[0]!.text = text;
+    if (matching.length) matching[0]![replaceXmlScalar](text);
     else view.insert(view.children.length, { kind: "element", name: { namespaceURI: declaration.namespace, localName: declaration.localName },
       ...(declaration.type === "date" && declaration.namespace !== corePropertyNamespace ? { attributes: [{ name: { namespaceURI: "http://www.w3.org/2001/XMLSchema-instance", localName: "type" }, value: "dcterms:W3CDTF" }] } : {}),
       children: [{ kind: "text", text }] });

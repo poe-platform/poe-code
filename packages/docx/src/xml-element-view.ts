@@ -10,6 +10,9 @@ import type { DocxXmlNode } from "./operation-types.js";
 
 export interface XmlViewName { readonly namespaceURI: string; readonly localName: string }
 
+/** Internal scalar-property mutation; public text retains its leading-text semantics. */
+export const replaceXmlScalar = Symbol("replace-xml-scalar");
+
 /** Internal live binding; callbacks never come from operation input. */
 export interface XmlViewBinding {
   readonly budget: DocumentBudget;
@@ -125,6 +128,12 @@ export class XmlElementView {
     this.#store.node(this);
     const path = this.#store.paths.get(this)!;
     this.#store.change((xml, root) => xml.setLeadingText(this.resolve(root, path!), value));
+  }
+  [replaceXmlScalar](value: string): void {
+    if (typeof value !== "string") throw new InputTypeError("Expected scalar XML text.");
+    this.#store.node(this);
+    const path = this.#store.paths.get(this)!;
+    this.#store.change((xml, root) => xml.replaceScalarText(this.resolve(root, path!), value));
   }
   get tail(): string | null {
     const { xml, node } = this.#store.node(this);

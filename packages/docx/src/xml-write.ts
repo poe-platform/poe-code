@@ -395,7 +395,7 @@ export class DocumentXmlEditor {
   /** Replace only scalar text content while preserving the exact owned element shell. */
   replaceScalarText(node: XmlElement, text: string): void {
     if (typeof text !== "string") throw new InputTypeError("Expected an XML text string.");
-    if (!this.#elements.has(node) || this.#patches.has(node) || node.content.some(token => token.kind !== "text" && token.kind !== "cdata")) unsupported();
+    if (!this.#elements.has(node) || this.#patches.has(node) || node.children.length) unsupported();
     if (this.#guardCompatibility && (!this.#canEdit(node) || node.content.some(token => !this.#canEdit(token)))) unsupported();
     this.assertShapeEditAllowed(node);
     if (node.text === text) return;
@@ -404,7 +404,18 @@ export class DocumentXmlEditor {
     this.#budget.charge("retainedBytes", maximum * 8);
     this.#budget.charge("work", maximum * 4);
     this.#budget.charge("insertedNodes", text.length ? 1 : 0);
-    const patch = this.#source.slice(span.start, span.contentStart!) + (span.empty ? ">" : "") + escapeValue(text, false) + (span.empty ? `</${node.name}>` : this.#source.slice(span.contentEnd!, span.end));
+    const chunks: string[] = [];
+    let offset = span.contentStart!, replaced = false;
+    for (const token of node.content) {
+      if (token.kind !== "text" && token.kind !== "cdata") continue;
+      const scalar = this.#spans.get(token)!;
+      const start = scalar.start - (token.kind === "cdata" ? 9 : 0);
+      chunks.push(this.#source.slice(offset, start), replaced ? "" : escapeValue(text, false));
+      offset = scalar.end + (token.kind === "cdata" ? 3 : 0);
+      replaced = true;
+    }
+    chunks.push(this.#source.slice(offset, span.contentEnd!), replaced ? "" : escapeValue(text, false));
+    const patch = this.#source.slice(span.start, span.contentStart!) + (span.empty ? ">" : "") + chunks.join("") + (span.empty ? `</${node.name}>` : this.#source.slice(span.contentEnd!, span.end));
     this.#patches.set(node, patch);
     try {
       const candidate = parseDocumentXml(this.serialize(), this.#limits, this.#budget);

@@ -383,3 +383,12 @@ Part/XmlPart model/SDK/Shell cases with no product change. All corrected origina
 and the joint final run pass; initial invalid receiver failures remain recorded.
 Forty-eight built workflows include sixteen expected MustUnderstand refusals.
 This closes the named profile candidate only; complete F01–F07 remains open.
+
+## Current property scalar XML evidence
+
+The [scalar record](property-scalar-trivia-20260917.md) qualifies 593 new exact
+cases in a passing 772-test maintained run, zero skips. Comments/PIs and complete
+native core values survive with their byte form and unrelated members intact.
+Forty-eight built SDK/Shell workflows cover set/removal; sixteen model workflows
+pass. Historical failures and the zero-credit interrupted baseline remain.
+Property MCE carriers and complete F01–F07 acceptance remain open.

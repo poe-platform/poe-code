@@ -23,9 +23,11 @@ it.each(["UTF-8", "UTF-16LE", "UTF-16BE"])("replaces a scalar root text leaf fai
   const expected = input.replace("<![CDATA[Old]]>", "]]&gt;&#13;&lt;&amp;");
   expect(editor.serialize()).toEqual(encode(expected, encoding));
 });
-it("refuses mixed or foreign scalar owners without staging", () => {
+it("retains scalar comments and refuses element content or foreign owners", () => {
   for (const xml of ["<root><child/></root>", "<root>Text<!--keep--></root>"]) {
-    const editor = new DocumentXmlEditor(utf8(xml)); expect(() => editor.replaceScalarText(editor.root, "New")).toThrow(UnsupportedEditError); expect(editor.dirtyNodes).toEqual([]);
+    const editor = new DocumentXmlEditor(utf8(xml));
+    if (xml.includes("<child")) { expect(() => editor.replaceScalarText(editor.root, "New")).toThrow(UnsupportedEditError); expect(editor.dirtyNodes).toEqual([]); }
+    else { editor.replaceScalarText(editor.root, "New"); expect(editor.serialize()).toEqual(utf8("<root>New<!--keep--></root>")); }
   }
   const editor = new DocumentXmlEditor(utf8("<root/>")), foreign = new DocumentXmlEditor(utf8("<other/>"));
   expect(() => editor.replaceScalarText(foreign.root, "New")).toThrow(UnsupportedEditError);

@@ -411,3 +411,12 @@ and four encodings, including 432 paired expected refusals. Native literals and
 MCE namespace controls retain their metadata role; active opaque/generic
 dependencies remain protected. Exact dirty-part and untouched member retention
 pass. This closes the named dependency, not complete F01–F07 acceptance.
+
+## Current object MIME identity evidence
+
+The [2026-09-17 object MIME qualification](object-mime-identity-20260917.md)
+records 544 exact cases within 936 focused passes, zero skips. Sixteen built
+paired SDK/Shell workflows each cover seventeen declarations, with model and
+utility dirty-part/relationship retention. Exact media types prevent false OLE
+roles and declared macro labels. Historical QA errors remain explicit. Full
+F01–F07 and the newly reproduced font/theme carrier dependency stay open.

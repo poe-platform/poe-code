@@ -127,6 +127,19 @@ export class ObjectExtractionCancellationError extends CancellationError {
 }
 const office = "urn:schemas-microsoft-com:office:office",
   vml = "urn:schemas-microsoft-com:vml";
+const oleContentType = "application/vnd.openxmlformats-officedocument.oleobject";
+const embeddedMacroContentTypes = new Set([
+  "application/vnd.ms-excel.sheet.macroenabled.12",
+  "application/vnd.ms-excel.template.macroenabled.12",
+  "application/vnd.ms-excel.sheet.binary.macroenabled.12",
+  "application/vnd.ms-excel.addin.macroenabled.12",
+  "application/vnd.ms-powerpoint.presentation.macroenabled.12",
+  "application/vnd.ms-powerpoint.slideshow.macroenabled.12",
+  "application/vnd.ms-powerpoint.template.macroenabled.12",
+  "application/vnd.ms-powerpoint.addin.macroenabled.12",
+  "application/vnd.ms-word.document.macroenabled.12",
+  "application/vnd.ms-word.template.macroenabled.12"
+]);
 const attribute = (node: XmlElement, name: string, namespace = "") =>
   node.attributes.find((a) => a.localName === name && a.namespace === namespace)?.value;
 const role = (type: string): ObjectDetails["role"] => {
@@ -316,7 +329,7 @@ async function inventory(
       kind: "objects",
       role: edge
         ? role(edge.reltype)
-        : target && parseMediaType(target.contentType).includes("oleobject")
+        : target && parseMediaType(target.contentType) === oleContentType
           ? "ole"
           : "unknown",
       status,
@@ -325,7 +338,7 @@ async function inventory(
       owners: [],
       graphParts,
       security: {
-        macro: target && parseMediaType(target.contentType).includes("macroenabled") ? "declared" : "unknown",
+        macro: target && embeddedMacroContentTypes.has(parseMediaType(target.contentType)) ? "declared" : "unknown",
         protected: "unknown",
         content: "opaque"
       }
@@ -483,7 +496,7 @@ async function inventory(
     if (
       !inventoried.has(part.partname) &&
       part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml" &&
-      (parseMediaType(part.content_type).includes("oleobject") ||
+      (parseMediaType(part.content_type) === oleContentType ||
         part.partname.toLowerCase().startsWith("/word/embeddings/"))
     )
       await add(part.partname, [], undefined, "internal", await resource(part), []);

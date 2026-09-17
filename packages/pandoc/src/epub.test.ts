@@ -231,3 +231,32 @@ it("retains unfamiliar inline fragment targets and body language scope", async (
   if (text?.t !== "Para" || text.c[0]?.t !== "Span") throw new Error("Expected fragment span");
   expect(text.c[0].c[0][0]).toBe("Book/Text/one.xhtml#term");
 });
+
+it("prefers EPUB3 navigation over the compatibility NCX when both are declared", async () => {
+  const p = entries();
+  p["Book/package.opf"] = p["Book/package.opf"]!.replace('<spine>', '<spine toc="ncx">').replace('</manifest>', '<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/></manifest>');
+  p["Book/toc.ncx"] = '<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/"><navMap><navPoint id="old"><navLabel><text>Compatibility label</text></navLabel><content src="Text/one.xhtml"/></navPoint></navMap></ncx>';
+  const doc = await read(p);
+  expect(JSON.stringify(doc.metadata["epub-toc"])).toContain('First');
+  expect(JSON.stringify(doc.metadata["epub-toc"])).not.toContain('Compatibility label');
+});
+
+it("keeps navigation to an admitted non-spine document as a resource URI", async () => {
+  const p = entries();
+  p["Book/package.opf"] = p["Book/package.opf"]!.replace('</manifest>', '<item id="appendix" href="Text/appendix%20%C3%A9.xhtml" media-type="application/xhtml+xml"/></manifest>');
+  p["Book/Text/appendix é.xhtml"] = xhtml('<h1 id="a b">Appendix</h1>');
+  p["Book/nav.xhtml"] = xhtml('<nav epub:type="toc"><a href="Text/appendix%20%C3%A9.xhtml#a%20b">Appendix</a></nav>');
+  const doc = await read(p);
+  expect(doc.metadata["epub-toc"]).toEqual({t: "MetaList", c: [{t: "MetaMap", c: {
+    label: {t: "MetaString", c: "Appendix"},
+    target: {t: "MetaString", c: "Book/Text/appendix%20%C3%A9.xhtml#a%20b"},
+    children: {t: "MetaList", c: []}
+  }}]});
+});
+
+it("rejects navigation to missing admitted resources", async () => {
+  const p = entries();
+  p["Book/package.opf"] = p["Book/package.opf"]!.replace('</manifest>', '<item id="missing" href="missing.xhtml" media-type="application/xhtml+xml"/></manifest>');
+  p["Book/nav.xhtml"] = xhtml('<nav epub:type="toc"><a href="missing.xhtml">Missing</a></nav>');
+  await expect(read(p)).rejects.toMatchObject({code: "E_PARSE", location: "original.epub:Book/nav.xhtml"});
+});

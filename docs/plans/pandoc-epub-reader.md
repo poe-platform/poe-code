@@ -34,3 +34,17 @@ Limitations are explicit: first supported rootfile selected with a diagnostic;
 UTF-8 XML only; raster MediaBag assets retained, SVG rendering diagnosed; CSS,
 layout refinements, active content and synchronized overlays diagnosed; encryption
 and fixed layout rejected. No upstream/native conformance claim, push or release.
+
+## Navigation verification follow-up
+
+The reader already exists on main. Reproduce remaining navigation identity and
+selection gaps with original in-memory fixtures, then prefer EPUB3 nav over NCX,
+reject missing navigation resources, and retain resource URIs for targets outside
+the assembled spine. Validate maintained package tests, lint/typecheck and the
+selected workspace build before committing. Inspect the built adapter format-list
+screenshot in docs/pandoc. Preserve all unrelated changes; delivery stays local.
+
+Status: three original regression tests failed before the implementation and now
+pass. Maintained package tests passed (47 files, 1061 tests, 29 EPUB reader cases),
+as did package lint/typecheck and the selected workspace build. The built adapter
+format-list screenshot was inspected: EPUB remains visible and text is legible.

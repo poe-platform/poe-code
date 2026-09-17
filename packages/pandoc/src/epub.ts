@@ -330,10 +330,11 @@ export const epubReader: ReaderCapability = {
           if (anchor) consumed.add(anchor);
           const target = ncx ? a(children(entry, "content")[0] ?? entry, "src") : a(entry, "href");
           const ref = resolve(target, item.part, ctx);
-          if (!admitted.has(ref.part)) fail(item.part, "Navigation target is not admitted");
+          if (!admitted.has(ref.part) || !parts.has(ref.part)) fail(item.part, "Navigation target is missing or not admitted");
           const label = ncx ? children(entry, "navLabel").map(xmlText).join("") : xmlText(entry);
           const nested: MetaValue[] = [];
-          destination.push({t: "MetaMap", c: {label: {t: "MetaString", c: label}, target: {t: "MetaString", c: `#${encodeURI(identity(ref.part, ref.fragment))}`}, children: {t: "MetaList", c: nested}}});
+          const link = chapterParts.has(ref.part) ? `#${encodeURI(identity(ref.part, ref.fragment))}` : identity(ref.part, ref.fragment);
+          destination.push({t: "MetaMap", c: {label: {t: "MetaString", c: label}, target: {t: "MetaString", c: link}, children: {t: "MetaList", c: nested}}});
           nextDestination = nested;
         }
         for (const child of node.children) if (typeof child !== "string") walk(child, inside, landmarks, nextDestination);
@@ -341,13 +342,16 @@ export const epubReader: ReaderCapability = {
       walk(root, false, false, toc);
     };
     const ncxId = a(spine[0]!, "toc");
-    if (ncxId) {
+    const nav = [...manifest.values()].filter(i => i.properties.includes("nav"));
+    if (nav.length > 1) fail(packagePart, "Ambiguous EPUB navigation");
+    if (a(opf, "version") === "3.0" && nav[0]) {
+      if (nav[0].media !== "application/xhtml+xml") fail(packagePart, "Unsupported EPUB navigation media type");
+      await navigation(nav[0], false);
+    } else if (ncxId) {
       const item = manifest.get(ncxId);
       if (!item || item.media !== "application/x-dtbncx+xml") fail(packagePart, "Missing EPUB NCX item");
       await navigation(item, true);
     } else {
-      const nav = [...manifest.values()].filter(i => i.properties.includes("nav"));
-      if (nav.length > 1) fail(packagePart, "Ambiguous EPUB navigation");
       if (nav[0]) await navigation(nav[0], false);
     }
     if (toc.length) metadata["epub-toc"] = {t: "MetaList", c: toc};

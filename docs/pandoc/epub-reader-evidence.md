@@ -59,3 +59,21 @@ and encryption are rejected. No new SDK/CLI flags or environment variables were
 added. The package README was preserved under the root permission rule.
 
 Delivery is local only. No remote-main verification, push or release was requested.
+
+## Navigation verification follow-up (2026-09-16)
+
+Current main already contained the reader and its 26 original tests. Three new
+original in-memory tests first failed: compatibility NCX displaced EPUB3 nav;
+non-spine navigation generated a nonexistent assembled fragment target; and a
+missing admitted navigation resource was accepted. They now pass. EPUB3 nav takes
+precedence, external-to-spine admitted targets keep canonical resource URIs, and
+missing navigation parts fail with EPUB source/part location.
+
+Maintained verification: `npm test --workspace=@poe-code/pandoc` passed 1061 tests
+across 47 files, including 29 EPUB reader tests. Package lint/typecheck and
+`npm run build:workspaces -- --workspace=@poe-code/pandoc` passed. Existing original
+cover/unused-media hash assertions and memfs extraction tests still pass.
+
+Visual QA: [built adapter format list](epub-reader-format-verification.png), made
+with the maintained screenshot renderer and inspected; EPUB is present, readable
+and unclipped. No adapter, CLI design or native runtime fallback was added.

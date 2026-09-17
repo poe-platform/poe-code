@@ -15,6 +15,7 @@ for (const interfaceName of ['controller', 'cli']) {
     const browser = await chromium.connect(server.wsEndpoint());
     const held = Promise.withResolvers();
     const committed = Promise.withResolvers();
+    const childCommitted = Promise.withResolvers();
     const submitted = Promise.withResolvers();
     const response = Promise.withResolvers();
     let releases = 0;
@@ -23,16 +24,24 @@ for (const interfaceName of ['controller', 'cli']) {
         isConnected: () => browser.isConnected(), on: browser.on.bind(browser), off: browser.off.bind(browser),
         async newContext() {
           const context = await browser.newContext();
+          context.on('page', page => page.on('framenavigated', frame => {
+            if (frame.url() === 'https://example.test/frame') childCommitted.resolve();
+          }));
           await context.route('**/*', async route => {
             const path = new URL(route.request().url()).pathname;
             if (path === '/save') { submitted.resolve(); await response.promise; }
+            if (path === '/frame') {
+              await submitted.promise;
+              await route.fulfill({ contentType: 'text/html', body: '<p>Child frame navigated</p>' });
+              return;
+            }
             if (path === '/hold') {
               committed.resolve();
               await held.promise;
               await route.fulfill({ body: '', contentType: 'image/png' }).catch(() => {});
             } else await route.fulfill({ contentType: 'text/html', body: path === '/save'
               ? '<h1>Saved</h1><img src="/hold"><button>Continue</button>'
-              : '<form action="/save" method="post"><label>Name<input name="name"></label><button>Save</button></form>' });
+              : '<iframe id="child"></iframe><form action="/save" method="post"><label>Name<input name="name"></label><button onclick="document.getElementById(\'child\').src=\'/frame\'">Save</button></form>' });
           });
           return context;
         },
@@ -61,10 +70,12 @@ for (const interfaceName of ['controller', 'cli']) {
       const click = run(['click', 'e2']).then(() => { settled = true; }, error => { settled = true; throw error; });
       void click.catch(() => {});
       await Promise.race([submitted.promise, click]);
+      await Promise.race([childCommitted.promise, click]);
       await setTimeout(50);
       const settledBeforeCommit = settled;
       response.resolve();
       await Promise.race([committed.promise, click]);
+      await setTimeout(50);
       held.resolve();
       await click;
       assert.equal(settledBeforeCommit, false, 'click must retain normal navigation waiting');

@@ -5,15 +5,15 @@ import {
   type S3HttpRequestFactory as RootRequest,
   type S3HttpTransportOptions as RootOptions,
   type S3Transport,
-} from "virtual-bash";
+} from "@poe-platform/safe-bash";
 import {
   createS3HttpTransport as subpathFactory,
   type S3HttpCredentials as SubpathCredentials,
   type S3HttpCredentialProvider as SubpathProvider,
   type S3HttpRequestFactory as SubpathRequest,
   type S3HttpTransportOptions as SubpathOptions,
-} from "virtual-bash/fs/s3/http";
-import type { S3Transport as BackendTransport } from "virtual-bash/fs/s3";
+} from "@poe-platform/safe-bash/fs/s3/http";
+import type { S3Transport as BackendTransport } from "@poe-platform/safe-bash/fs/s3";
 import type { ClientRequest, IncomingMessage, RequestOptions } from "node:http";
 
 const rootCredentials: RootCredentials = {

@@ -10,12 +10,12 @@ or billing runtime are included.
 
 ## Execution steps
 
-1. Run the safe-playwright maintained unit and typecheck commands. Run the exact
+1. Run the Safe Bash Playwright unit and typecheck commands. Run the exact
    safe-bash Playwright plugin tests through actual Shell invocation, with fake
    injected contexts and memfs. Verify literal quoting, byte streams, middleware
    denial, PIPESTATUS, canonical VFS writes and failures, capacity, cancellation,
    dynamic DOM identity, frames, and stale refs after navigation/tabs/reopen.
-2. Build the explicitly selected safe-playwright workspace closure. Compile the
+2. Build the explicitly selected Safe Bash workspace closure. Compile the
    maintained compatibility fixture against the pinned regular and Cloudflare
    dependencies in an isolated evidence directory. Verify consumed public page,
    frame, element handle, event and byte APIs are concrete, with explicit Buffer
@@ -45,14 +45,14 @@ files after verification. Preserve other captures and source edits.
 - TDD: new command/ref tests first failed for missing actions/engine, last-tab
   management, invalid or mutable limits, cancellation and lost cleanup errors;
   implementations were added only after concrete failures.
-- `npm run test:unit --workspace=@poe-code/safe-playwright`: 33 passed.
+- `npm run test:unit --workspace=@poe-platform/safe-bash`: 33 passed.
 - Exact safe-bash Playwright CLI and adapter test files: 31 passed, including 10
   actual-shell tests. No files or LLM queries were created by these unit tests.
-- `npm run typecheck --workspace=@poe-code/safe-playwright`: passed.
-- `npm run typecheck --workspace=virtual-bash`: source/tests, 26 maintained public
+- `npm run typecheck --workspace=@poe-platform/safe-bash`: passed.
+- `npm run typecheck --workspace=@poe-platform/safe-bash`: source/tests, 26 maintained public
   consumer groups and required negative consumers passed (compile-only).
-- `npm run build:workspaces -- --workspace=virtual-bash`: passed the maintained
-  selected seven-workspace build closure; final safe-playwright rebuild passed.
+- `npm run build:workspaces -- --workspace=@poe-platform/safe-bash`: passed the maintained
+  selected seven-workspace build closure; final Playwright chunk rebuild passed.
 - Maintained integration-input runner test: 109 passed, including literal
   Playwright CLI test discovery. This is not full safe-bash unit execution.
 - Maintained compatibility fixture: concrete page, frame, element-handle and
@@ -83,9 +83,9 @@ files after verification. Preserve other captures and source edits.
 - The controller now retains copies of tab observations at every acquisition,
   inspection, creation and closure boundary. No new abstraction or provider
   branch is required; SDK and CLI share the correction.
-- Focused safe-playwright unit tests: 33 passed. Exact safe-bash Playwright CLI
+- Focused Playwright unit tests: 33 passed. Exact safe-bash Playwright CLI
   and adapter tests: 32 passed, including the new mutable-array regression.
-- Selected safe-playwright workspace build and typecheck passed.
+- Selected Safe Bash workspace build and typecheck passed.
 - Safe-bash typecheck passed source/tests, 26 maintained public consumer groups
   and required negative consumers. Integration-input runner tests: 109 passed.
 - Guarded root `npm run lint:eslint -- --format=json` completed with status 0.
@@ -106,7 +106,7 @@ files after verification. Preserve other captures and source edits.
 - Safe-playwright maintained unit tests: 33 passed. Exact safe-bash Playwright
   CLI and adapter tests: 33 passed. Both maintained package typechecks passed,
   including safe-bash's 26 current consumer groups and expected negative cases.
-- Selected safe-playwright workspace build and guarded root ESLint passed.
+- Selected Safe Bash workspace build and guarded root ESLint passed.
 - Inspected a terminal screenshot of actual Shell output: the tab-limit
   diagnostic, status 1, closed session, zero created pages and one released
   lease were clear. Temporary screenshot and lint output were purged.

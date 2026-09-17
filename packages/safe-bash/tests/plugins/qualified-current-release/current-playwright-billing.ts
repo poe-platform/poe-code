@@ -1,4 +1,4 @@
-import type { PlaywrightInjectionOptions, BrowserUsageEvent, PlaywrightBillingHooks, PlaywrightUsageAdapter } from "virtual-bash/contracts/playwright";
+import type { PlaywrightInjectionOptions, BrowserUsageEvent, PlaywrightBillingHooks, PlaywrightUsageAdapter } from "@poe-platform/safe-bash/contracts/playwright";
 
 // A host integration consumes the declarations without running browser effects.
 export async function acquireForHost(options: PlaywrightInjectionOptions, request: Parameters<typeof options.adapter.acquire>[0]) {

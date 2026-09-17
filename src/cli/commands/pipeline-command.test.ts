@@ -21,12 +21,6 @@ const { selectMock, cancelMock, resolvePipelineLoopAgentMock, runWithOptionalWor
     runWithOptionalWorktreeMock: vi.fn()
   }));
 
-const braintrustLoadIntegrationsMock = vi.hoisted(() => vi.fn());
-
-vi.mock("@poe-code/braintrust", () => ({
-  loadIntegrations: braintrustLoadIntegrationsMock
-}));
-
 vi.mock("../../sdk/pipeline.js", () => ({
   runPipelineInit: vi.fn().mockResolvedValue({
     stopReason: "done",
@@ -552,7 +546,6 @@ describe("pipeline run command", () => {
     ]);
 
     expect(resolvePipelineLoopAgentMock).not.toHaveBeenCalled();
-    expect(braintrustLoadIntegrationsMock).not.toHaveBeenCalled();
     expect(vi.mocked(sdkRunPipeline)).not.toHaveBeenCalled();
     expect(await fs.readFile("/repo/docs/plans/plan.md", "utf8")).toBe(planContent);
     expect(logs.some((message) => message.includes("Would run: docs/plans/plan.md"))).toBe(true);
@@ -650,80 +643,6 @@ describe("pipeline run command", () => {
 
     expect(await fs.readFile(`${homeDir}/.poe-code/config.json`, "utf8")).toBe("{ invalid json\n");
     expect(await fs.readdir(`${homeDir}/.poe-code`)).toEqual(["config.json"]);
-  });
-
-  it("runs integration pipeline callbacks after CLI callbacks when enabled", async () => {
-    const calls: string[] = [];
-    braintrustLoadIntegrationsMock.mockResolvedValue({
-      pipelineCallbacks: {
-        onTaskStart: () => calls.push("integration")
-      },
-      traceRun: async (_surface: string, _name: string, fn: () => Promise<unknown>) => fn(),
-      shutdown: vi.fn(async () => undefined)
-    });
-    vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
-      options.onTaskStart?.({
-        taskId: "task-1",
-        taskTitle: "Task 1",
-        taskIndex: 1,
-        totalTasks: 1
-      });
-      return {
-        stopReason: "completed",
-        planPath: "custom-plan.yaml",
-        runsCompleted: 1,
-        totalDurationMs: 1_000,
-        metrics: {
-          totalInputTokens: 0,
-          totalOutputTokens: 0,
-          totalCachedTokens: 0,
-          tasksCompleted: 1,
-          tasksFailed: 0,
-          stepsCompleted: 1
-        }
-      };
-    });
-
-    const fs = createMemFs({
-      [`${homeDir}/.poe-code/config.json`]: JSON.stringify({
-        integrations: {
-          braintrust: {
-            enabled: true,
-            apiKey: "key",
-            project: "project"
-          }
-        }
-      })
-    });
-    await fs.writeFile("/repo/custom-plan.yaml", "tasks: []\n", { encoding: "utf8" });
-    const container = createCliContainer({
-      fs,
-      prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
-      logger: (message) => {
-        if (message.startsWith("Task 1")) {
-          calls.push("cli");
-        }
-      }
-    });
-    const program = createBaseProgram();
-    registerPipelineCommand(program, container);
-
-    await program.parseAsync([
-      "node",
-      "cli",
-      "--yes",
-      "pipeline",
-      "run",
-      "--plan",
-      "custom-plan.yaml",
-      "--agent",
-      "codex"
-    ]);
-
-    expect(calls).toEqual(["cli", "integration"]);
-
-    braintrustLoadIntegrationsMock.mockReset();
   });
 
   it("reads plan.plan_directory for pipeline discovery", async () => {

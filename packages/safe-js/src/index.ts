@@ -1,5 +1,5 @@
 export { admitNativePromiseProperties } from "./interp/native-promise-properties.js";
-import { parseModule as parseModuleInternal, type Module } from "./parse/parser.js";
+import { parseModule as parseModuleInternal, parseSourceModule as parseSourceModuleInternal, type Module, type ParsedSourceModule } from "./parse/parser.js";
 import { restore as restoreInternal, type SafeJSSnapshot, type RestoreOptions } from "./restore.js";
 import {
   deepCopyFromSandbox as copyFromSandboxInternal,
@@ -9,6 +9,8 @@ import {
 
 export { parse } from "./parse.js";
 export const parseModule: (source: string, filename?: string) => Module = parseModuleInternal;
+export const parseSourceModule: (source: string, filename?: string) => ParsedSourceModule = parseSourceModuleInternal;
+export type { ParsedSourceModule, SourceImport, SourceExport } from "./parse/module-syntax.js";
 export const restore: <TSnapshot extends SafeJSSnapshot>(
   snapshot: TSnapshot,
   options: RestoreOptions
@@ -113,3 +115,6 @@ export { parseMcpConfig } from "./modules/mcp-transport.js";
 export type { McpModuleOptions, McpServerConfig } from "./modules/mcp-transport.js";
 export type { ManagedMcpClient, ManagedMcpModule, McpNamedServerHandle } from "./modules/mcp.js";
 export { makeTimeModule } from "./modules/time.js";
+
+export type {SourceResolver, SourceModule} from "./modules/source-graph.js";
+export {createRootedSourceResolver} from "./modules/source-files.js";

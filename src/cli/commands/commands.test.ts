@@ -82,7 +82,7 @@ describe("configure command", () => {
     const container = createCliContainer({
       fs,
       prompts,
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       logger,
       commandRunner,
       httpClient: overrides.httpClient
@@ -861,7 +861,7 @@ describe("logout command", () => {
     const container = createCliContainer({
       fs,
       prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       logger: (message) => {
         logs.push(message);
       }

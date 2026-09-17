@@ -4,6 +4,7 @@ import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, re
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { createRequire } from "node:module";
 import ts from "typescript";
+import { rewriteModuleSpecifiers } from "../../../scripts/package-safe.mjs";
 import { consumerGroups, currentSourceConsumerGroups, negativeGroups, ownerPath } from "../tests/plugins/qualified-current-release/consumers.mjs";
 import { validateRuntimeCoverage } from "../tests/plugins/qualified-current-release/runtime-coverage.mjs";
 import { resolvePeerProfile } from "../tests/plugins/qualified-current-release/peer.mjs";
@@ -44,7 +45,7 @@ function nodeTypeTarget(entry) {
 }
 
 function declaredTypePath(specifier, binding) {
-  const name = binding.name ?? "virtual-bash";
+  const name = binding.name ?? "@poe-platform/safe-bash";
   const key = specifier === name ? "." : `.${specifier.slice(name.length)}`;
   if (binding.exports[key]) return nodeTypeTarget(binding.exports[key].types);
   for (const [pattern, entry] of Object.entries(binding.exports)) {
@@ -166,8 +167,8 @@ function assertCandidateResolutions(stdout, installed, binding) {
     const [, specifier, target] = match;
     const physicalTarget = realpathSync(target);
     if (peerRoot) assertPeerResolution(specifier, physicalTarget, importer, peerRoot, binding.peer, packageRoot);
-    const publicImport = /^virtual-bash(?:\/|$)/u.test(specifier);
-    const localLeaf = /(?:^|\/)node_modules\/virtual-bash\//u.test(specifier);
+    const publicImport = (specifier === "@poe-platform/safe-bash" || specifier.startsWith("@poe-platform/safe-bash/"));
+    const localLeaf = (specifier.startsWith("node_modules/@poe-platform/safe-bash/") || specifier.includes("/node_modules/@poe-platform/safe-bash/"));
     const relativeDeclaration = /^\.\.?\//u.test(specifier) && importer && existsSync(importer) && within(dist, realpathSync(importer));
     if (!publicImport && !localLeaf && !relativeDeclaration && !within(dist, physicalTarget)) continue;
     assert.ok(within(dist, physicalTarget), `foreign candidate declaration/source fallback: ${specifier} -> ${target}`);
@@ -185,7 +186,7 @@ function assertCandidateResolutions(stdout, installed, binding) {
 }
 
 export function assertBuiltConsumerResolution(stdout, consumer, root, binding = createBuiltPackageBinding(root)) {
-  assertCandidateResolutions(stdout, join(consumer, "node_modules/virtual-bash"), binding);
+  assertCandidateResolutions(stdout, join(consumer, "node_modules/@poe-platform/safe-bash"), binding);
 }
 
 export function checkSourceConsumerTypes(root, temporary, compile, binding = createBuiltPackageBinding(root)) {
@@ -210,7 +211,14 @@ export function checkSourceConsumerTypes(root, temporary, compile, binding = cre
 
 export function checkCurrentConsumerTypes(root, temporary, compile, binding = createBuiltPackageBinding(root)) {
   validateRuntimeCoverage(consumerGroups);
-  const consumer = join(temporary, "consumer"), installed = join(consumer, "node_modules/virtual-bash");
+  const publicSpecifier = specifier => {
+    for (const prefix of ["", "./node_modules/"]) {
+      const legacy = prefix + "virtual-bash";
+      if (specifier === legacy || specifier.startsWith(legacy + "/")) return prefix + binding.name + specifier.slice(legacy.length);
+    }
+    return specifier;
+  };
+  const consumer = join(temporary, "consumer"), installed = join(consumer, "node_modules/@poe-platform/safe-bash");
   mkdirSync(installed, { recursive: true });
   cpSync(join(root, "package.json"), join(installed, "package.json"));
   cpSync(join(root, "dist"), join(installed, "dist"), { recursive: true });
@@ -229,15 +237,16 @@ export function checkCurrentConsumerTypes(root, temporary, compile, binding = cr
   writeFileSync(join(consumer, "package.json"), JSON.stringify({ private: true, type: "module" }));
   const groups = [], negativeTypes = [];
   for (const group of consumerGroups) {
-    const result = { name: group.name, files: group.files, status: "pending", runtime: "not executed: typecheck-only route" };
+    const result = { name: group.name, files: group.files, status: "pending", runtime: "not executed: typecheck-only route", fixtureImports: "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained" };
     groups.push(result);
     try {
       const workspace = join(consumer, group.name); mkdirSync(workspace);
-      if (group.localPackage) cpSync(installed, join(workspace, "node_modules/virtual-bash"), { recursive: true });
+      if (group.localPackage) cpSync(installed, join(workspace, "node_modules/@poe-platform/safe-bash"), { recursive: true });
       const inputs = [...group.files, ...group.companions ?? []].map((path, index) => {
         const name = index < group.files.length ? basename(path) : group.companionNames?.[index - group.files.length] ?? basename(path);
         const target = join(workspace, name); assert.equal(existsSync(target), false, "consumer basename collision");
         cpSync(join(root, path), target); assert.deepEqual(readFileSync(target), readFileSync(join(root, path)));
+        writeFileSync(target, rewriteModuleSpecifiers(target, readFileSync(target, "utf8"), publicSpecifier));
         return target;
       });
       const config = JSON.parse(readFileSync(join(root, ownerPath, "tsconfig.consumer.json")));
@@ -256,6 +265,7 @@ export function checkCurrentConsumerTypes(root, temporary, compile, binding = cr
       assert.equal(groups.find(positive => positive.name === group.positive)?.status, "pass", "positive consumer must pass first");
       const workspace = join(consumer, group.positive), input = join(workspace, basename(group.path));
       cpSync(join(root, group.path), input);
+      writeFileSync(input, rewriteModuleSpecifiers(input, readFileSync(input, "utf8"), publicSpecifier));
       const config = JSON.parse(readFileSync(join(workspace, "tsconfig.json"))); config.files = [input];
       const filename = join(workspace, "negative.json"); writeFileSync(filename, JSON.stringify(config));
       const checked = compile(`negative-${group.name}`, ["-p", filename]);

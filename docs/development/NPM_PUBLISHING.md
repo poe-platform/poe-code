@@ -2,9 +2,6 @@
 
 Releases happen in GitHub Actions. Do not run `npm publish` locally. The only
 exception is the first publish of a new package (see Initial Publish).
-That historical exception does **not** apply to the optional Safe Bash
-distribution: its bootstrap and releases must use a separately approved
-GitHub-only route, with no local publish or token fallback.
 
 ## Root Package
 
@@ -20,57 +17,30 @@ GitHub.
 
 ### Scoped Safe Libraries
 
-`@poe-platform/safe-fs`, `@poe-platform/safe-js`, `@poe-platform/safe-bash`, and
-the separately installed `@poe-platform/safe-bash-optional` use
-`release-safe.yml`. Their private workspace names remain unchanged. Run
-`npm run build`, then `node scripts/package-safe.mjs --out-dir <empty-directory> --version <version>`
-to prepare standalone artifacts. SafeFS owns its runtime and declarations;
-SafeJS and core Safe Bash depend on the matching SafeFS version. SafeJS filesystem
-subpaths remain compatibility re-exports. The private workspace manifests are
-not the publish manifests; publish only the generated artifacts.
+`@poe-platform/safe-fs`, `@poe-platform/safe-js`, and `@poe-platform/safe-bash`
+use `release-safe.yml`. Run `npm run build`, then
+`node scripts/package-safe.mjs --out-dir <empty-directory> --version <version>`
+to prepare the three standalone artifacts. The private workspace manifests are
+not publish manifests; publish only generated artifacts.
 
-The generator's default remains the original three packages. Its explicit
-`--include-optional` flag additionally prepares `safe-bash-optional`; it does
-not add optional implementations to the core/root/browser artifacts. The
-maintained workspace build discovers the private optional workspace's build
-task and orders its canonical core/filesystem dependencies first. The optional
-artifact must use the exact same release-version core and filesystem peers.
+Safe Bash includes explicit command imports such as `/yes`, `/dd`, `/install`,
+and `/yq`, plus `/devices` and shell-extension imports. These are shipped in the
+same tarball and stay outside the default entry's runtime graph. There is no
+separate optional npm package or package bootstrap. The default root package
+also exposes these through `poe-code/safe-bash/<name>`. Existing command paths
+remain unchanged. See `docs/safe-bash-command-imports.md` for usage and options.
 
-The workflow verifies four actual tarballs. Before installing the historical
-root package or YAML, it installs only core, filesystem and optional tarballs
-in a separate consumer with optional dependencies omitted and runs the
-no-YAML fixture with Node and Bun. It then installs exactly `yaml@2.9.0` and
-runs the optional runtime and strict TypeScript fixtures. A second independent
-tarball installation supplies the foreign core graph to the runtime fixture;
-a second import spelling within the first graph is not an identity test.
-Existing Node/Bun/core/types/browser, historical root coexistence and
-filesystem-only consumers remain separate checks.
+The workflow verifies actual tarballs with Node and Bun, including a consumer
+installed with optional dependencies omitted and a second consumer with exactly
+`yaml@2.9.0`. YAML is an optional peer of Safe Bash and is loaded only when using
+the explicit yq profile. The strict TypeScript fixture checks these public import
+paths. A second independent tarball installation verifies distinct core identities.
+Existing browser, historical-root coexistence and filesystem-only checks remain.
 
-The next shared version includes all four current registry versions. A real
-HTTP 404 is reported as missing external package/bootstrap setup, not as
-version zero or evidence of permission; authentication, network, malformed
-metadata and other HTTP failures are not treated as absence. The optional
-package's README must exist before the workflow proceeds. README permission,
-package ownership/bootstrap and trusted-publisher configuration remain external
-prerequisites; this workflow does not create or configure them. In particular,
-an anonymous 404 does not establish name availability or publishing rights.
-
-After publishing the existing three packages, the workflow verifies each
-exact version in the registry before publishing the optional fourth package.
-It then verifies that exact optional version, and only then writes a four-package
-publication summary. Missing optional publication is a failed workflow, not a
-successful three-package substitute. Local builds, passing installed fixtures
-and committed workflow changes do not establish a published release.
-
-For the original three packages' initial publish, use the generated directory
-with the terminal-pilot procedure below. Configure all three trusted publishers with
-workflow filename `release-safe.yml`, then dispatch that workflow to verify a
-subsequent publication with provenance. No npm token is used by that workflow.
-For the new optional package, do not use that legacy local procedure or assume
-OIDC alone can bootstrap the name. Obtain explicit approval for a supported
-GitHub-only bootstrap and configure its trusted publisher for this repository
-and `release-safe.yml` before enabling publication. No npm settings, registry
-state or credentials are changed by the implementation work.
+The next shared version is selected from the three existing registry versions.
+Registry failures stop version selection. After publishing, the workflow verifies
+each exact version before reporting successful publication. Publishing happens
+in GitHub Actions with the configured trusted publishers and provenance.
 
 ### Toolcraft Artifact Preparation
 
@@ -151,9 +121,6 @@ npm publish --provenance --access public
 ```
 
 ## Initial Publish
-
-This is the historical procedure for other packages, not authorization for
-the optional Safe Bash distribution described above.
 
 The legacy procedure used a local first publish before configuring the
 package's trusted publisher:

@@ -23,7 +23,8 @@ function createContainer(fs: FileSystem) {
     fs,
     prompts: vi.fn().mockResolvedValue({}),
     env: { cwd, homeDir },
-    logger: () => {}
+    logger: () => {},
+    commandRunner: vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }))
   });
 }
 
@@ -66,6 +67,9 @@ describe("ensureIsolatedConfigForService — provider resolution", () => {
 
   it("falls back to the single registered provider when service not in services.json", async () => {
     const container = createContainer(fs);
+    vi.spyOn(container.providerRegistry, "forAgent").mockReturnValue([
+      container.providerRegistry.get("poe")!
+    ]);
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
     vi.spyOn(container.options, "resolveModel").mockImplementation(
       async ({ defaultValue }) => defaultValue

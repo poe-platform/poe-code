@@ -92,11 +92,11 @@ export function committedPeerImports(committedFiles, compiler) {
 export function bindPackedConsumer(consumer, packedFiles, peer, declarations, ts, fileSystem, dependencies = []) {
   assertArchiveDependencyArtifacts(dependencies, fileSystem);
   const facts = Object.hasOwn(peer, "profile") ? capturePeerRuntimeFacts(peer, consumer) : undefined;
-  const binding = { files: {}, metadata: ["node_modules/virtual-bash/package.json", "node_modules/poe-code/package.json"], entries: {
-    "virtual-bash": "node_modules/virtual-bash/dist/index.js", "virtual-bash/fs/s3/http": "node_modules/virtual-bash/dist/fs/s3/http/index.js",
+  const binding = { files: {}, metadata: ["node_modules/@poe-platform/safe-bash/package.json", "node_modules/poe-code/package.json"], entries: {
+    "@poe-platform/safe-bash": "node_modules/@poe-platform/safe-bash/dist/index.js", "@poe-platform/safe-bash/fs/s3/http": "node_modules/@poe-platform/safe-bash/dist/fs/s3/http/index.js",
     ...Object.fromEntries(Object.entries(peer.entries).map(([specifier, path]) => [specifier, `node_modules/poe-code/${path}`])),
   }, edges: {}, declarations: [], declarationEntries: {} };
-  for (const path of packedFiles) binding.files[`node_modules/virtual-bash/${path}`] = digest(readRegularInput(consumer, `node_modules/virtual-bash/${path}`, 32 * 1024 * 1024, fileSystem));
+  for (const path of packedFiles) binding.files[`node_modules/@poe-platform/safe-bash/${path}`] = digest(readRegularInput(consumer, `node_modules/@poe-platform/safe-bash/${path}`, 32 * 1024 * 1024, fileSystem));
   for (const { path, sha256 } of peer.files) binding.files[`node_modules/poe-code/${path}`] = sha256;
   const dependencyEntries = {};
   for (const dependency of dependencies) {
@@ -291,7 +291,7 @@ export async function verifyCommittedExports({ repository = actualRepository, re
     }
     run("committed output guard", process.execPath, [join(snapshotRoot, "scripts/guard-package-dist.mjs")], snapshot);
     run("committed boundary owner authentication", process.execPath, ["--input-type=module", "-e", "const {loadBoundaries}=await import(process.argv[1]); loadBoundaries(process.cwd());", pathToFileURL(join(snapshot, "scripts/integration-inputs.mjs")).href], snapshot);
-    report.build = { command: manifest.scripts.build, execution: "committed output guard + committed owner authentication + committed guarded compiler entrypoint + committed codec asset copier; held filename census authenticated from Git tree metadata, never materialized" };
+    report.build = { command: manifest.scripts.build, execution: "committed output guard + committed owner authentication + committed guarded compiler entrypoint + committed codec asset copier; held filename census authenticated from Git tree metadata, never materialized", scope: "Core archive only; the declared optional postbuild hook is not executed and dist/opt-in is excluded" };
     run("isolated committed compiler build", process.execPath, ["scripts/build.mjs"], snapshot);
     if (bundleOp) {
       assert.ok(candidate.opManifest, "private op bundle requires committed source prerequisite");
@@ -326,9 +326,9 @@ export async function verifyCommittedExports({ repository = actualRepository, re
     for (const path of ["package.json", "README.md"]) writeFileSync(join(packRoot, path), candidate.files.get(`${packagePrefix}/${path}`));
     copyRegularTree(join(snapshot, "dist"), join(packRoot, "dist"));
     checkDist("copied", readDistInventory(packRoot));
-    const tarball = join(tempRoot, "virtual-bash.tgz");
+    const tarball = join(tempRoot, "safe-bash.tgz");
     run("isolated lifecycle-free package archive", process.execPath, ["-e", "require(process.argv[1])(process.argv[2], {ignoreScripts:true,offline:true}).then(bytes=>require('node:fs').writeFileSync(process.argv[3],bytes)).catch(error=>{console.error(error);process.exitCode=1});", tools.pack, packRoot, tarball], packRoot);
-    const packedHash = digest(readRegularInput(tempRoot, "virtual-bash.tgz", 128 * 1024 * 1024));
+    const packedHash = digest(readRegularInput(tempRoot, "safe-bash.tgz", 128 * 1024 * 1024));
     const expectedPackedPaths = new Set(baseline.files.map(entry => entry.path));
     const packed = await readArchive(tools.tar, tarball, packedHash, path => {
       assert.ok(path.startsWith("package/"), `package archive prefix: ${path}`);
@@ -351,7 +351,7 @@ export async function verifyCommittedExports({ repository = actualRepository, re
       peerApi.assertPeerArtifact(peer, consumer);
       report.peerInstallation = "explicit authenticated public closure after private-package install; npm peer resolution disabled, not a full root install graph qualification";
     }
-    const installedRoot = join(consumer, "node_modules/virtual-bash");
+    const installedRoot = join(consumer, "node_modules/@poe-platform/safe-bash");
     assertCanonicalRoot(installedRoot);
     assert.equal(lstatSync(installedRoot).isSymbolicLink(), false);
     assert.equal(existsSync(join(installedRoot, "src")), false);
@@ -405,7 +405,7 @@ export async function verifyCommittedExports({ repository = actualRepository, re
     assertSnapshot(peer);
     assertArchiveDependencies(dependencies, consumer);
     for (const [label, root] of [["final built", snapshot], ["final copied", packRoot], ["final installed", installedRoot]]) checkDist(label, readDistInventory(root));
-    assert.equal(digest(readRegularInput(tempRoot, "virtual-bash.tgz", 128 * 1024 * 1024)), packedHash);
+    assert.equal(digest(readRegularInput(tempRoot, "safe-bash.tgz", 128 * 1024 * 1024)), packedHash);
     report.status = "pass";
   } catch (error) {
     report.status = "fail";

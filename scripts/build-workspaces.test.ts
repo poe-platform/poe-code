@@ -677,13 +677,13 @@ describe("owned real npm lifecycle route", () => {
 function unitFixture() {
   const owned = fixture({
     alpha: { name: "alpha", scripts: { "test:unit": "node unit.cjs" } },
-    bash: { name: "virtual-bash", scripts: { build: "node build.cjs", "test:unit": "node unit.cjs" }, dependencies: { middle: "*" } },
+    bash: { name: "@poe-platform/safe-bash", scripts: { build: "node build.cjs", "test:unit": "node unit.cjs" }, dependencies: { middle: "*" } },
     middle: { name: "middle", dependencies: { beta: "*" } },
     beta: { name: "beta", scripts: { build: "node build.cjs" } },
     unused: { name: "unused" }
   });
   writeJson(path.join(owned.root, "package.json"), { name: "owned-root", private: true, workspaces: ["packages/*"], scripts: { "test:unit": "node root-unit.cjs" } });
-  writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "virtual-bash#test:unit": { dependsOn: ["build"], outputs: [], cache: false } } });
+  writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "@poe-platform/safe-bash#test:unit": { dependsOn: ["build"], outputs: [], cache: false } } });
   return owned;
 }
 
@@ -691,7 +691,7 @@ describe("finite unit task planning", () => {
   it("rejects obsolete native-tool environment configuration", () => {
     const owned = unitFixture();
     try {
-      writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "virtual-bash#test:unit": { passThroughEnv: ["SAFE_BASH_TEST_RG"] } } });
+      writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "@poe-platform/safe-bash#test:unit": { passThroughEnv: ["SAFE_BASH_TEST_RG"] } } });
       expect(() => workspaceRunner.createWorkspaceTestPlan(owned.root)).toThrow("Unsupported unit task configuration");
     } finally { owned.remove(); }
   });
@@ -699,8 +699,8 @@ describe("finite unit task planning", () => {
     const owned = unitFixture();
     try {
       const plan = workspaceRunner.createWorkspaceTestPlan(owned.root);
-      expect(plan.testStages.map(task => task.id)).toEqual(["//#test:unit", "alpha#test:unit", "virtual-bash#test:unit"]);
-      expect(plan.buildStages.map((task: { name: string }) => task.name)).toEqual(["beta", "virtual-bash"]);
+      expect(plan.testStages.map(task => task.id)).toEqual(["//#test:unit", "alpha#test:unit", "@poe-platform/safe-bash#test:unit"]);
+      expect(plan.buildStages.map((task: { name: string }) => task.name)).toEqual(["beta", "@poe-platform/safe-bash"]);
       expect(plan.noTest.map((task: { name: string }) => task.name)).toEqual(["beta", "middle", "unused"]);
       owned.write("python", { name: "python", scripts: { "test:unit": "python3 -m unittest discover -s tests -t ." } });
       expect(workspaceRunner.createWorkspaceTestPlan(owned.root).testStages.map(task => task.name)).toContain("python");
@@ -710,11 +710,11 @@ describe("finite unit task planning", () => {
   it("excludes only the named Bash unit task and retains another task's required Bash build", () => {
     const owned = unitFixture();
     try {
-      owned.write("alpha", { name: "alpha", scripts: { "test:unit": "node unit.cjs" }, dependencies: { "virtual-bash": "*" } });
-      writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "alpha#test:unit": { dependsOn: ["^build"] }, "virtual-bash#test:unit": { dependsOn: ["build"] } } });
-      const plan = workspaceRunner.createWorkspaceTestPlan(owned.root, { excludeWorkspace: "virtual-bash" });
+      owned.write("alpha", { name: "alpha", scripts: { "test:unit": "node unit.cjs" }, dependencies: { "@poe-platform/safe-bash": "*" } });
+      writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "alpha#test:unit": { dependsOn: ["^build"] }, "@poe-platform/safe-bash#test:unit": { dependsOn: ["build"] } } });
+      const plan = workspaceRunner.createWorkspaceTestPlan(owned.root, { excludeWorkspace: "@poe-platform/safe-bash" });
       expect(plan.testStages.map(task => task.name)).toEqual(["owned-root", "alpha"]);
-      expect(plan.buildStages.map((task: { name: string }) => task.name)).toEqual(["beta", "virtual-bash"]);
+      expect(plan.buildStages.map((task: { name: string }) => task.name)).toEqual(["beta", "@poe-platform/safe-bash"]);
     } finally { owned.remove(); }
   });
 
@@ -742,13 +742,13 @@ describe("finite unit task planning", () => {
     const owned = unitFixture(), mock = mockExecution();
     try {
       owned.write("unrelated", { name: "unrelated", scripts: { build: "node build.cjs" } });
-      await workspaceRunner.buildWorkspaces(owned.root, { ...mock, workspace: "virtual-bash" });
+      await workspaceRunner.buildWorkspaces(owned.root, { ...mock, workspace: "@poe-platform/safe-bash" });
       expect(mock.start.mock.calls.map(call => call[1][5])).toEqual(["--workspace=packages/beta", "--workspace=packages/bash"]);
       expect(mock.start.mock.calls.every(call => call[1][4] === "build")).toBe(true);
     } finally { owned.remove(); }
   });
 
-  for (const args of [["--workspace=*"], ["--test-unit", "--concurrency=0"], ["--test-unit", "--exclude-workspace=alpha"], ["--test-unit", "--concurrency=1", "--concurrency=4"], ["--workspace=virtual-bash", "extra"]]) {
+  for (const args of [["--workspace=*"], ["--test-unit", "--concurrency=0"], ["--test-unit", "--exclude-workspace=alpha"], ["--test-unit", "--concurrency=1", "--concurrency=4"], ["--workspace=@poe-platform/safe-bash", "extra"]]) {
     it('rejects invalid finite runner arguments ' + JSON.stringify(args), () => {
       expect(() => workspaceRunner.parseWorkspaceArguments(args)).toThrow();
     });
@@ -756,8 +756,8 @@ describe("finite unit task planning", () => {
 
   it("preserves child argument forwarding and reserves finite mode options", () => {
     expect(workspaceRunner.parseWorkspaceArguments([])).toEqual({ mode: "build" });
-    expect(workspaceRunner.parseWorkspaceArguments(["--test-unit", "--concurrency=4", "--exclude-workspace=virtual-bash", "--", "--reporter=tap", "name with spaces"]))
-      .toEqual({ mode: "test-unit", concurrency: 4, excludeWorkspace: "virtual-bash", testArguments: ["--reporter=tap", "name with spaces"] });
+    expect(workspaceRunner.parseWorkspaceArguments(["--test-unit", "--concurrency=4", "--exclude-workspace=@poe-platform/safe-bash", "--", "--reporter=tap", "name with spaces"]))
+      .toEqual({ mode: "test-unit", concurrency: 4, excludeWorkspace: "@poe-platform/safe-bash", testArguments: ["--reporter=tap", "name with spaces"] });
     const forwarded = workspaceRunner.parseWorkspaceArguments(["--test-unit", "--reporter=json"]);
     if (!("testArguments" in forwarded)) throw new Error("Expected unit argument result");
     expect(forwarded.testArguments).toEqual(["--reporter=json"]);
@@ -765,12 +765,12 @@ describe("finite unit task planning", () => {
 });
 
 describe("finite unit execution and ownership", () => {
-  it("scopes the search profile to the virtual-bash unit child with in-memory manifests", async () => {
+  it("scopes the search profile to the @poe-platform/safe-bash unit child with in-memory manifests", async () => {
     const root = path.dirname(path.dirname(runnerFilename)), mock = mockExecution();
     const fileSystem = Volume.fromJSON({
       [path.join(root, "package.json")]: JSON.stringify({ name: "owned-root", workspaces: ["packages/*"], scripts: { "test:unit": "node root-unit.cjs" } }),
-      [path.join(root, "turbo.json")]: JSON.stringify({ tasks: { build: { dependsOn: ["^build"] }, "virtual-bash#test:unit": { dependsOn: ["build"] } } }),
-      [path.join(root, "packages/bash/package.json")]: JSON.stringify({ name: "virtual-bash", scripts: { build: "node build.cjs", "test:unit": "node unit.cjs" } }),
+      [path.join(root, "turbo.json")]: JSON.stringify({ tasks: { build: { dependsOn: ["^build"] }, "@poe-platform/safe-bash#test:unit": { dependsOn: ["build"] } } }),
+      [path.join(root, "packages/bash/package.json")]: JSON.stringify({ name: "@poe-platform/safe-bash", scripts: { build: "node build.cjs", "test:unit": "node unit.cjs" } }),
       [path.join(root, "packages/other/package.json")]: JSON.stringify({ name: "other", scripts: { "test:unit": "node unit.cjs" } })
     });
     const environment = Object.freeze({ ...mock.environment, SAFE_BASH_TEST_RG: "/owned/search-profile" });
@@ -870,20 +870,20 @@ describe("finite unit execution and ownership", () => {
 describe("finite unit owned npm lifecycle", () => {
   for (const failedEvent of ["none", "prebuild", "postbuild", "pretest:unit", "posttest:unit"]) it(failedEvent, async () => {
     const step = "node ../../step.cjs", owned = fixture({
-      bash: { name: "virtual-bash", scripts: { prebuild: step, build: step, postbuild: step, "pretest:unit": step, "test:unit": step, "posttest:unit": step } }
+      bash: { name: "@poe-platform/safe-bash", scripts: { prebuild: step, build: step, postbuild: step, "pretest:unit": step, "test:unit": step, "posttest:unit": step } }
     });
     try {
       fs.mkdirSync(path.join(owned.root, "scripts")); fs.copyFileSync(runnerFilename, path.join(owned.root, "scripts/build-workspaces.mjs"));
       writeJson(path.join(owned.root, "package.json"), { name: "owned-root", private: true, workspaces: ["packages/*"], scripts: { pretest: "node step.cjs", test: "node scripts/build-workspaces.mjs --test-unit", posttest: "node step.cjs", "pretest:unit": "node step.cjs", "test:unit": "node step.cjs", "posttest:unit": "node step.cjs" } });
-      writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "virtual-bash#test:unit": { dependsOn: ["build"] } } });
-      fs.writeFileSync(path.join(owned.root, "step.cjs"), 'const fs=require("node:fs");const event=process.env.npm_lifecycle_event;fs.appendFileSync(process.env.BUILD_EVENTS,JSON.stringify({name:process.env.npm_package_name,event})+"\\n");if(process.env.npm_package_name==="virtual-bash"&&event===' + JSON.stringify(failedEvent) + ')process.exit(7);');
+      writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "@poe-platform/safe-bash#test:unit": { dependsOn: ["build"] } } });
+      fs.writeFileSync(path.join(owned.root, "step.cjs"), 'const fs=require("node:fs");const event=process.env.npm_lifecycle_event;fs.appendFileSync(process.env.BUILD_EVENTS,JSON.stringify({name:process.env.npm_package_name,event})+"\\n");if(process.env.npm_package_name==="@poe-platform/safe-bash"&&event===' + JSON.stringify(failedEvent) + ')process.exit(7);');
       const result = await ownedNpm(owned.root, "test");
       expect(fs.existsSync(path.join(owned.root, "events.jsonl")), result.output).toBe(true);
       const events = fs.readFileSync(path.join(owned.root, "events.jsonl"), "utf8").trim().split("\n").map(line => JSON.parse(line));
-      const all = ["owned-root:pretest", "virtual-bash:prebuild", "virtual-bash:build", "virtual-bash:postbuild", "owned-root:pretest:unit", "owned-root:test:unit", "owned-root:posttest:unit", "virtual-bash:pretest:unit", "virtual-bash:test:unit", "virtual-bash:posttest:unit", "owned-root:posttest"];
+      const all = ["owned-root:pretest", "@poe-platform/safe-bash:prebuild", "@poe-platform/safe-bash:build", "@poe-platform/safe-bash:postbuild", "owned-root:pretest:unit", "owned-root:test:unit", "owned-root:posttest:unit", "@poe-platform/safe-bash:pretest:unit", "@poe-platform/safe-bash:test:unit", "@poe-platform/safe-bash:posttest:unit", "owned-root:posttest"];
       expect(result.signal).toBeNull();
       expect(result.code, result.output).toBe(failedEvent === "none" ? 0 : 7);
-      const stop = failedEvent === "none" ? all.length : all.indexOf("virtual-bash:" + failedEvent) + 1;
+      const stop = failedEvent === "none" ? all.length : all.indexOf("@poe-platform/safe-bash:" + failedEvent) + 1;
       expect(events.map(event => event.name + ":" + event.event)).toEqual(all.slice(0, stop));
     } finally { owned.remove(); }
   }, 25000);
@@ -1055,7 +1055,7 @@ describe("finite unit input and environment boundaries", () => {
   it("does not give the root unit task a feature profile through a matching root name", async () => {
     const owned = unitFixture(), mock = mockExecution();
     try {
-      writeJson(path.join(owned.root, "package.json"), { name: "virtual-bash", private: true, workspaces: ["packages/*"], scripts: { "test:unit": "node owned.cjs" } });
+      writeJson(path.join(owned.root, "package.json"), { name: "@poe-platform/safe-bash", private: true, workspaces: ["packages/*"], scripts: { "test:unit": "node owned.cjs" } });
       await workspaceRunner.testWorkspaces(owned.root, { ...mock, environment: { ...mock.environment, SAFEJS_LOCAL_ROOT: "/owned/safe-js" } });
       const rootCall = mock.start.mock.calls.find(call => call[1].includes("--workspaces=false"))!;
       expect(rootCall[2].env?.SAFEJS_LOCAL_ROOT).toBeUndefined();

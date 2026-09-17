@@ -1,6 +1,6 @@
 # Injected Playwright session lifecycle
 
-Implement only the qualified lifecycle subset in `@poe-code/safe-playwright`:
+Implement only the qualified lifecycle subset in `@poe-platform/safe-bash`:
 `open [URL]`, `goto URL`, `list`, `close`, and `close-all`. Registration and byte
 output belong to `poe-code/safe-bash/commands/playwright`. Shell pipelines and
 redirects use the canonical filesystem without passing guest paths to Playwright.
@@ -12,8 +12,8 @@ interfaces remain available; no reporting timers, metering, or charging run.
 `createPlaywrightCli` returns `{ plugin, dispose }`; install the plugin explicitly
 with `shell.use(controller.plugin)`. `agentCommands` never registers it.
 `createPlaywrightController` exposes `run(invocation)` for hosts and SDK consumers.
-Public root imports are `poe-code/safe-playwright` and
-`poe-code/safe-bash/commands/playwright`; the focused workspace is private.
+Public root imports are `@poe-platform/safe-bash/playwright` and
+`poe-code/safe-bash/commands/playwright`; the controller ships in the existing Safe Bash package as an explicit chunk.
 
 - `adapter` is required. Its `browsers` map declares supported `chromium`, `firefox`,
   and `webkit` engines and their actual headed capability. The default engine is
@@ -82,8 +82,8 @@ shell, pipeline output and canonical virtual redirects. Cover unsupported inputs
 without effects, all states, capacity during acquisition/concurrent reopen,
 serialization, cancellation, late resources, generation replacement, remote loss,
 output failure, and disposal. Retain the existing borrowed-browser qualification
-cases. Build only the focused workspace and the maintained virtual-bash closure;
-run package unit tests, the maintained virtual-bash runner, source/public-consumer
+cases. Build only the focused workspace and the maintained @poe-platform/safe-bash closure;
+run package unit tests, the maintained @poe-platform/safe-bash runner, source/public-consumer
 typechecks, and the guarded root ESLint route.
 
 Execute visual QA by rendering actual shell output for open, list, goto, close-all,

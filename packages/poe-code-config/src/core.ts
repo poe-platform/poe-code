@@ -3,7 +3,6 @@ export type {
   ConfigFieldType,
   ConfigStore,
   ConfigStoreOptions,
-  BraintrustIntegrationConfig,
   InferConfig,
   IntegrationsConfig,
   MemoryCacheConfig,

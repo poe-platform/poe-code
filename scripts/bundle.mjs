@@ -10,7 +10,7 @@ import { resolveBundleGraph, resolveConsumerGraph } from "./bundle-graph.mjs";
 import { mergeRuntimeBundleOutputs, resolveCanonicalFsBuilds, resolveWorkerdRuntimeBuild } from "./bundle-fs.mjs";
 import { copyNativeAssets, nativeImportMapping, readNativeRegistry } from "../packages/safe-fs/scripts/native-assets.mjs";
 import { collectCanonicalNativeAssets, readBoundedNativeBytes } from "../packages/package-lint/dist/native-assets.js";
-import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
+import { publishRootOptionalPackage, resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import {
   canonicalFs,
   collectCanonicalDeclarations,
@@ -265,6 +265,7 @@ await publishBundleOutputs(shellBundle, {
   workingDirectory: rootDir
 });
 consumerBuilds.push(shellBundle);
+await publishRootOptionalPackage(rootDir);
 
 consumerBuilds.push(await esbuild.build({
   absWorkingDir: rootDir,
@@ -395,11 +396,15 @@ for (const pkg of ["agent-mcp-config", "agent-skill-config"]) {
   });
 }
 
-await rewriteWorkspaceDts(path.join(rootDir, "dist"), packageJsons, { rootDir, profile: "node" });
+const excludedDeclarationPaths = (packageJson.files ?? [])
+  .filter(entry => entry.startsWith("!") && !entry.includes("*"))
+  .map(entry => path.resolve(rootDir, entry.slice(1)));
+await rewriteWorkspaceDts(path.join(rootDir, "dist"), packageJsons, { rootDir, profile: "node", excludedPaths: excludedDeclarationPaths });
 for (const { dir } of packageJsons) {
   await rewriteWorkspaceDts(path.join(rootDir, "packages", dir, "dist"), packageJsons, {
     rootDir,
-    profile: "node"
+    profile: "node",
+    excludedPaths: excludedDeclarationPaths
   });
 }
 

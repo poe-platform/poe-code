@@ -2406,6 +2406,8 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/plugins/zip-commands.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-adapter.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-cli.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-abilities.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-ability-execution.test.ts"));
   assert.ok(files.includes("tests/plugins/zip-safety.test.ts"));
   assert.ok(files.includes("tests/plugins/csplit-commands.test.ts"));
   assert.ok(files.includes("tests/shell/owned-output-drain.test.ts"));
@@ -2564,7 +2566,7 @@ test("published root mirrors only declared subpaths and keeps the feature isolat
   const source = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
   const root = JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url), "utf8"));
   const build = JSON.parse(readFileSync(new URL("../tsconfig.build.json", import.meta.url), "utf8"));
-  const mirror = target => typeof target === "string" ? `./packages/safe-bash${target.slice(1)}` : target === null ? null : Object.fromEntries(Object.entries(target).map(([condition, value]) => [condition, mirror(value)]));
+  const mirror = target => typeof target === "string" ? target.startsWith("./dist/opt-in/") ? `./dist/safe-bash-opt-in/${target.slice("./dist/opt-in/".length)}` : `./packages/safe-bash${target.slice(1)}` : target === null ? null : Object.fromEntries(Object.entries(target).map(([condition, value]) => [condition, mirror(value)]));
   const expected = Object.fromEntries(Object.entries(source.exports).map(([key, conditions]) => [
     key === "." ? "./safe-bash" : `./safe-bash${key.slice(1)}`,
     mirror(conditions),
@@ -2574,7 +2576,7 @@ test("published root mirrors only declared subpaths and keeps the feature isolat
   assert.equal(root.exports["./safe-bash/node"].browser, null);
   assert.equal(root.engines.node, ">=18.18");
   assert.equal(source.engines.node, ">=22");
-  assert.equal(source.name, "virtual-bash");
+  assert.equal(source.name, "@poe-platform/safe-bash");
   assert.equal(source.private, true);
   assert.deepEqual(source.dependencies, {});
   assert.equal(source.devDependencies["@noble/hashes"], "2.4.0");
@@ -2593,12 +2595,12 @@ test("published root mirrors only declared subpaths and keeps the feature isolat
   assert.equal(root.dependencies.saxes, "6.0.0");
   assert.ok(root.files.includes("packages/pptx/dist"));
   assert.ok(root.files.includes("packages/pptx/LICENSE"));
-  assert.equal(root.dependencies["virtual-bash"], undefined);
-  assert.equal(root.devDependencies["virtual-bash"], "*");
+  assert.equal(root.dependencies["@poe-platform/safe-bash"], undefined);
+  assert.equal(root.devDependencies["@poe-platform/safe-bash"], "*");
   assert.ok(root.files.includes("packages/safe-bash/dist"));
   assert.deepEqual([...source.poeCode.packageLint.sourceExclude].sort(), build.exclude.filter(path => path.startsWith("src/")).sort());
   const entry = readFileSync(new URL("../../../src/index.ts", import.meta.url), "utf8");
-  assert.equal(entry.includes("virtual-bash"), false);
+  assert.equal(entry.includes("@poe-platform/safe-bash"), false);
   assert.equal(entry.includes("safe-bash"), false);
 });
 
@@ -2612,14 +2614,14 @@ test("Turbo admits maintained tests with a build dependency and prunes exact hel
     ...boundaries.heldEvidenceDirectories.map(path => `!${path}/**`),
     ...boundaries.fixtureDirectories.map(fixture => `!${fixture.path}/**`),
   ];
-  for (const task of ["virtual-bash#build", "virtual-bash#test:unit"]) {
+  for (const task of ["@poe-platform/safe-bash#build", "@poe-platform/safe-bash#test:unit"]) {
     for (const path of excluded) assert.ok(turbo.tasks[task].inputs.includes(path), `${task}: ${path}`);
   }
-  assert.deepEqual(turbo.tasks["virtual-bash#test:unit"].dependsOn, ["build"]);
-  assert.ok(turbo.tasks["virtual-bash#test:unit"].inputs.includes("tests/**"));
-  assert.equal(turbo.tasks["virtual-bash#test:unit"].cache, false);
-  assert.ok(turbo.tasks["virtual-bash#test:unit"].inputs.includes("integration-type-inputs.json"));
-  assert.ok(turbo.tasks["virtual-bash#build"].inputs.includes("scripts/typecheck-integration-inputs.mjs"));
+  assert.deepEqual(turbo.tasks["@poe-platform/safe-bash#test:unit"].dependsOn, ["build"]);
+  assert.ok(turbo.tasks["@poe-platform/safe-bash#test:unit"].inputs.includes("tests/**"));
+  assert.equal(turbo.tasks["@poe-platform/safe-bash#test:unit"].cache, false);
+  assert.ok(turbo.tasks["@poe-platform/safe-bash#test:unit"].inputs.includes("integration-type-inputs.json"));
+  assert.ok(turbo.tasks["@poe-platform/safe-bash#build"].inputs.includes("scripts/typecheck-integration-inputs.mjs"));
   assert.ok(turbo.globalDependencies.includes("scripts/guard-package-dist.mjs"));
   assert.ok(turbo.tasks["//#test:unit"].inputs.includes("!packages/safe-bash/**"));
   assert.equal(source.scripts.test, "node scripts/test.mjs");

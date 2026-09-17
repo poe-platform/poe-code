@@ -6,7 +6,6 @@ import { resolveConfigPath } from "@poe-code/poe-code-config/core";
 import { Readable } from "node:stream";
 import { Command } from "commander";
 import { resetOutputFormatCache } from "toolcraft-design";
-import type { AcpMiddleware } from "@poe-code/agent-spawn";
 import { createProgram } from "../program.js";
 import { registerSpawnCommand } from "./spawn.js";
 import { createCliContainer, type CliDependencies } from "../container.js";
@@ -21,11 +20,6 @@ const confirmMock = vi.hoisted(() => vi.fn());
 const selectMock = vi.hoisted(() => vi.fn());
 const isCancelMock = vi.hoisted(() => vi.fn().mockReturnValue(false));
 const resolveWorkspaceMock = vi.hoisted(() => vi.fn());
-const braintrustLoadIntegrationsMock = vi.hoisted(() => vi.fn());
-
-vi.mock("@poe-code/braintrust", () => ({
-  loadIntegrations: braintrustLoadIntegrationsMock
-}));
 
 vi.mock("../../sdk/spawn.js", () => ({
   spawn: vi.fn()
@@ -509,68 +503,6 @@ describe("spawn command", () => {
         runnerSync: "upload"
       })
     );
-  });
-
-  it("wraps spawn runs with enabled integrations without forwarding spawn middleware", async () => {
-    const calls: string[] = [];
-    const spawnMiddleware: AcpMiddleware = vi.fn(async (_ctx, next) => {
-      calls.push("middleware");
-      await next();
-    });
-    const traceRun = vi.fn(async (_surface: string, _name: string, run: () => Promise<unknown>) => {
-      calls.push("trace:start");
-      const result = await run();
-      calls.push("trace:end");
-      return result;
-    });
-    const shutdown = vi.fn(async () => {
-      calls.push("shutdown");
-    });
-
-    braintrustLoadIntegrationsMock.mockResolvedValue({
-      spawnMiddleware,
-      traceRun,
-      shutdown
-    });
-    vi.mocked(sdkSpawn).mockImplementation((_service, options) => {
-      calls.push("spawn");
-      expect(options.middlewares).toBeUndefined();
-      return {
-        events: emptyAsyncIterable(),
-        result: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
-      };
-    });
-    await fs.writeFile(
-      resolveConfigPath(homeDir),
-      `${JSON.stringify({
-        integrations: {
-          braintrust: {
-            enabled: true,
-            apiKey: "key",
-            project: "project"
-          }
-        }
-      })}\n`,
-      { encoding: "utf8" }
-    );
-
-    const { runner } = createCommandRunnerStub();
-    const program = createProgram({
-      fs,
-      prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
-      commandRunner: runner,
-      logger: () => {}
-    });
-
-    try {
-      await program.parseAsync(["node", "cli", "--yes", "spawn", "codex", "hello"]);
-
-      expect(traceRun).toHaveBeenCalledWith("spawn", "codex", expect.any(Function));
-      expect(calls).toEqual(["trace:start", "spawn", "trace:end", "shutdown"]);
-    } finally {
-      braintrustLoadIntegrationsMock.mockReset();
-    }
   });
 
   it("emits ACP NDJSON plus a final spawn_result event in json mode", async () => {
@@ -3218,9 +3150,7 @@ describe("spawn command", () => {
       });
 
       it.each([true, false])("shares resolved options and runs cleanup (dryRun: %s)", async (dryRun) => {
-        const shutdown = vi.fn().mockResolvedValue(undefined);
         const cleanup = vi.fn().mockResolvedValue(undefined);
-        braintrustLoadIntegrationsMock.mockResolvedValueOnce({ shutdown });
         vi.mocked(resolveWorkspace).mockResolvedValueOnce({
           cwd: "/repo/app",
           locator: { scheme: "local", path: "/repo/app" },
@@ -3264,7 +3194,6 @@ describe("spawn command", () => {
             expect(previewSpy).not.toHaveBeenCalled();
           }
           expect(process.exitCode).toBe(dryRun ? 130 : 7);
-          expect(shutdown).toHaveBeenCalledTimes(1);
           expect(cleanup).toHaveBeenCalledTimes(1);
           expect(sdkSpawn).not.toHaveBeenCalled();
           expect(commandCalls).toEqual([]);

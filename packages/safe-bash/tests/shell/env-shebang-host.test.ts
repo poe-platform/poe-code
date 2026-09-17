@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { spawnSync, type SpawnSyncReturns } from "node:child_process";
-import { cp, mkdir, mkdtemp, rm } from "node:fs/promises";
-import { join } from "node:path";
+import { cp, glob, mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { test } from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { ShellLimitError } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
 
@@ -186,13 +186,22 @@ if (process.argv[2]?.startsWith("guarded:")) {
     await mkdir(author, { recursive: true });
     const scratch = await mkdtemp(join(author, ".consumer-"));
     try {
-      const destination = join(scratch, "node_modules/virtual-bash");
+      const repository = join(root, "../..");
+      const manifest: { files: string[] } = JSON.parse(await readFile(join(repository, "package.json"), "utf8"));
+      const destination = join(scratch, "node_modules/poe-code");
       await mkdir(destination, { recursive: true });
-      await cp(join(root, "dist"), join(destination, "dist"), { recursive: true });
-      await cp(join(root, "package.json"), join(destination, "package.json"));
+      await cp(join(repository, "package.json"), join(destination, "package.json"));
+      for await (const path of glob(manifest.files.filter(path => !path.startsWith("!")), {
+        cwd: repository, exclude: manifest.files.filter(path => path.startsWith("!")).map(path => path.slice(1)),
+      })) {
+        const target = join(destination, path);
+        await mkdir(dirname(target), { recursive: true });
+        await cp(join(repository, path), target, { recursive: true });
+      }
       const child = spawnSync(process.execPath, ["--input-type=module", "-e", `
         import assert from 'node:assert/strict';
-        import { Shell, createMemoryFileSystem, agentCommands } from 'virtual-bash';
+        import { Shell, createMemoryFileSystem, agentCommands } from 'poe-code/safe-bash';
+        assert.equal(import.meta.resolve('poe-code/safe-bash'), ${JSON.stringify(pathToFileURL(join(destination, "packages/safe-bash/dist/index.js")).href)});
         const fs = createMemoryFileSystem();
         await fs.writeFile('/program', Buffer.from('#!/usr/bin/env -S -i V=ok bash\\nprintf "%s:%s" "$V" "$1"'), { mode: 0o755 });
         const shell = new Shell({ fs }).use(agentCommands());

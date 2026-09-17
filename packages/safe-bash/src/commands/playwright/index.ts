@@ -1,4 +1,4 @@
-import { createPlaywrightController, type PlaywrightControllerOptions } from 'poe-code/safe-playwright';
+import { createPlaywrightController, type PlaywrightControllerOptions } from '../../playwright/index.js';
 import type { VirtualShellPlugin } from '../../contracts/plugin.js';
 import { resolvePath } from '../../contracts/path.js';
 import { writeBytes } from '../../contracts/io.js';
@@ -6,7 +6,7 @@ import { writeBytes } from '../../contracts/io.js';
 export type PlaywrightCliOptions = PlaywrightControllerOptions & { readonly replace?: boolean };
 
 /** Host-owned qualified agent subset; never installed by agentCommands. */
-export function createPlaywrightCli(options: PlaywrightCliOptions): { readonly plugin: VirtualShellPlugin; dispose(): Promise<void> } {
+export function createPlaywrightCli(options: PlaywrightCliOptions = {}): { readonly plugin: VirtualShellPlugin; dispose(): Promise<void> } {
   if (options?.replace !== undefined && typeof options.replace !== 'boolean') throw new TypeError('Invalid Playwright replacement option');
   const { replace, ...controllerOptions } = options;
   const controller = createPlaywrightController(controllerOptions);
@@ -15,7 +15,7 @@ export function createPlaywrightCli(options: PlaywrightCliOptions): { readonly p
     setup(host) {
       host.commands.register({
         name: 'playwright-cli',
-        description: 'Qualified injected subset: sessions, DOM snapshot refs, click/fill/press, screenshots, tabs',
+        description: 'Playwright commands selected and implemented by injected client abilities',
         async execute(context) {
           try {
             await controller.run({
@@ -23,6 +23,13 @@ export function createPlaywrightCli(options: PlaywrightCliOptions): { readonly p
               env: context.env,
               signal: context.signal,
               registerCleanup: context.registerCleanup,
+              readArtifact: async (filename, maxBytes) => {
+                context.signal.throwIfAborted();
+                const path = resolvePath(context.cwd, filename);
+                const bytes = await context.fs.readFile(path, { signal: context.signal, maxBytes });
+                if (bytes.byteLength > maxBytes) throw new Error('Artifact byte limit exceeded');
+                return bytes;
+              },
               writeArtifact: async (bytes, filename) => {
                 context.signal.throwIfAborted();
                 if (filename === undefined) await writeBytes(context.stdout, bytes, context.signal);
@@ -43,3 +50,5 @@ export function createPlaywrightCli(options: PlaywrightCliOptions): { readonly p
   };
   return { plugin, dispose: controller.dispose };
 }
+
+export * from '../../playwright/index.js';

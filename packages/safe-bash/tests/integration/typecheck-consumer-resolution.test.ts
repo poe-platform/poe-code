@@ -27,9 +27,9 @@ const resolution = (specifier: string, target: string, importer: string): string
 
 function fixture(t: TestContext, overlapping = true) {
   const consumer = overlapping ? "/checkout" : "/consumer";
-  const candidate = overlapping ? "/checkout/packages/safe-bash" : "/consumer/node_modules/virtual-bash";
+  const candidate = overlapping ? "/checkout/packages/safe-bash" : "/consumer/node_modules/@poe-platform/safe-bash";
   const peer = overlapping ? "/checkout" : "/consumer/node_modules/poe-code";
-  const manifest = JSON.stringify({ name: "virtual-bash", exports: { ".": { types: "./dist/index.d.ts" } } });
+  const manifest = JSON.stringify({ name: "@poe-platform/safe-bash", exports: { ".": { types: "./dist/index.d.ts" } } });
   const peerManifest = JSON.stringify({ name: "poe-code" });
   const declarations = { "packages/safe-fs/dist/index.d.ts": "export interface FileSystem {}", "packages/safe-fs/dist/platform.d.ts": "export {};" };
   const memory = createFsFromVolume(Volume.fromJSON({
@@ -46,7 +46,8 @@ function fixture(t: TestContext, overlapping = true) {
     [join(consumer, "node_modules/undici-types/index.d.ts")]: "export {};",
     ["/foreign/index.d.ts"]: "export {};",
   }));
-  if (overlapping) memory.symlinkSync(candidate, join(consumer, "node_modules/virtual-bash"));
+  if (overlapping) memory.mkdirSync(join(consumer, "node_modules/@poe-platform"), { recursive: true });
+  if (overlapping) memory.symlinkSync(candidate, join(consumer, "node_modules/@poe-platform/safe-bash"));
   if (overlapping) memory.symlinkSync(peer, join(consumer, "node_modules/poe-code"));
   for (const name of ["existsSync", "lstatSync", "readFileSync", "readdirSync", "realpathSync"] as const) {
     t.mock.method(fs, name, memory[name]);
@@ -61,7 +62,7 @@ function fixture(t: TestContext, overlapping = true) {
     privateEntries: new Map([["#safe-fs-platform", "packages/safe-fs/dist/platform.d.ts"]]),
   };
   const importer = join(candidate, "tests/consumer.ts");
-  const publicTrace = resolution("virtual-bash", join(candidate, "dist/index.d.ts"), importer);
+  const publicTrace = resolution("@poe-platform/safe-bash", join(candidate, "dist/index.d.ts"), importer);
   return {
     candidate, peer, consumer, importer, memory, binding, publicTrace,
     check(trace = publicTrace) { assertBuiltConsumerResolution(trace, consumer, candidate, binding); },
@@ -122,8 +123,8 @@ for (const [label, specifier, destination, origin, message] of [
 
 test("candidate public and relative resolutions retain export and dist checks", t => {
   const f = fixture(t);
-  assert.throws(() => f.check(resolution("virtual-bash", join(f.candidate, "dist/other.d.ts"), f.importer)), /wrong candidate export/);
-  assert.throws(() => f.check(resolution("virtual-bash", join(f.candidate, "src/helper.ts"), f.importer)), /foreign candidate/);
+  assert.throws(() => f.check(resolution("@poe-platform/safe-bash", join(f.candidate, "dist/other.d.ts"), f.importer)), /wrong candidate export/);
+  assert.throws(() => f.check(resolution("@poe-platform/safe-bash", join(f.candidate, "src/helper.ts"), f.importer)), /foreign candidate/);
   assert.throws(() => f.check(resolution("../src/helper.js", join(f.candidate, "src/helper.ts"), join(f.candidate, "dist/index.d.ts"))), /foreign candidate/);
 });
 

@@ -25,16 +25,10 @@ import {
   runCommand,
   type AcpSpawnContext as InternalAcpSpawnContext
 } from "@poe-code/agent-spawn";
-import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
 import { createTraceSinkMiddleware } from "./trace.js";
 import { resolveActiveProviderForService, resolveMergedDocument } from "../cli/commands/shared.js";
 import { resolveIsolatedEnvDetails } from "../cli/isolated-env.js";
-import type {
-  AcpEvent,
-  SpawnOptions,
-  SpawnResult,
-  SpawnRetryOptions
-} from "./types.js";
+import type { AcpEvent, SpawnOptions, SpawnResult, SpawnRetryOptions } from "./types.js";
 import { resolveSpawnWorkspace } from "../workspace/resolve-spawn-workspace.js";
 import { runInWorktree } from "./worktree.js";
 
@@ -169,7 +163,6 @@ export function spawn(
 
   const result = (async (): Promise<SpawnResult> => {
     let workspace: Awaited<ReturnType<typeof resolveSpawnWorkspace>> | undefined;
-    let integrations: Integrations | null = null;
 
     try {
       workspace = await resolveSpawnWorkspace(options.cwd, {
@@ -192,9 +185,8 @@ export function spawn(
       const spawnConfig = getSpawnConfig(service);
       const registeredService = container.registry.get(service);
 
-      integrations = await loadIntegrations(await resolveMergedDocument(container));
+      await resolveMergedDocument(container);
       const consumerMiddlewares = [
-        ...(integrations?.spawnMiddleware ? [integrations.spawnMiddleware] : []),
         ...(options.middlewares ?? []),
         ...(options.traceSink ? [createTraceSinkMiddleware(options.traceSink)] : [])
       ];
@@ -310,10 +302,18 @@ export function spawn(
           stdout: final.stdout,
           stderr: final.stderr,
           exitCode: final.exitCode,
-          get threadId() { return middlewareContext.threadId ?? final.threadId; },
-          get usage() { return final.usage ?? getCapturedUsage(middlewareContext.usage); },
-          get logFile() { return middlewareContext.logFile; },
-          get logError() { return middlewareContext.logError; },
+          get threadId() {
+            return middlewareContext.threadId ?? final.threadId;
+          },
+          get usage() {
+            return final.usage ?? getCapturedUsage(middlewareContext.usage);
+          },
+          get logFile() {
+            return middlewareContext.logFile;
+          },
+          get logError() {
+            return middlewareContext.logError;
+          },
           ...(middlewareContext.sessionResult
             ? { sessionResult: middlewareContext.sessionResult }
             : {})
@@ -384,10 +384,18 @@ export function spawn(
           stderr: final.stderr,
           exitCode: final.exitCode,
           // The child may finish before a buffered event stream is consumed.
-          get threadId() { return middlewareContext.threadId ?? final.threadId; },
-          get usage() { return final.usage ?? getCapturedUsage(middlewareContext.usage); },
-          get logFile() { return middlewareContext.logFile; },
-          get logError() { return middlewareContext.logError; },
+          get threadId() {
+            return middlewareContext.threadId ?? final.threadId;
+          },
+          get usage() {
+            return final.usage ?? getCapturedUsage(middlewareContext.usage);
+          },
+          get logFile() {
+            return middlewareContext.logFile;
+          },
+          get logError() {
+            return middlewareContext.logError;
+          },
           ...(middlewareContext.sessionResult
             ? { sessionResult: middlewareContext.sessionResult }
             : {})
@@ -449,7 +457,6 @@ export function spawn(
       resolveEventsOnce(emptyEvents);
       throw error;
     } finally {
-      await integrations?.shutdown().catch(() => undefined);
       await workspace?.cleanup?.().catch(() => undefined);
     }
   })();
@@ -469,10 +476,7 @@ type SpawnHandle = {
   unstable_setSessionModel?(model: string): Promise<void>;
 };
 
-async function forwardEvents<T>(
-  events: AsyncIterable<T>,
-  emit: (event: T) => void
-): Promise<void> {
+async function forwardEvents<T>(events: AsyncIterable<T>, emit: (event: T) => void): Promise<void> {
   for await (const event of events) {
     emit(event);
   }
@@ -483,14 +487,8 @@ function isWorktreeEnabled(worktree: SpawnOptions["worktree"]): boolean {
 }
 
 function pickRuntimeOverrides(
-  options: Pick<
-    SpawnOptions,
-    "runtime" | "runtimeImage" | "detach" | "mountPoeCode" | "runnerSync"
-  >
-): Pick<
-  SpawnOptions,
-  "runtime" | "runtimeImage" | "detach" | "mountPoeCode" | "runnerSync"
-> {
+  options: Pick<SpawnOptions, "runtime" | "runtimeImage" | "detach" | "mountPoeCode" | "runnerSync">
+): Pick<SpawnOptions, "runtime" | "runtimeImage" | "detach" | "mountPoeCode" | "runnerSync"> {
   return {
     ...(options.runtime ? { runtime: options.runtime } : {}),
     ...(options.runtimeImage ? { runtimeImage: options.runtimeImage } : {}),

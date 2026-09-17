@@ -238,7 +238,7 @@ function selectBuildStages(plan, roots) {
 export function createWorkspaceTestPlan(rootDirectory, options = {}) {
   const { fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup } = options;
   assert.ok(concurrency === 1 || concurrency === 4, "Unit concurrency must be 1 or 4");
-  assert.ok(excludeWorkspace === undefined || excludeWorkspace === "virtual-bash", "Only the Node20 virtual-bash exclusion is supported");
+  assert.ok(excludeWorkspace === undefined || excludeWorkspace === "@poe-platform/safe-bash", "Only the Node20 @poe-platform/safe-bash exclusion is supported");
   assert.ok(Array.isArray(testArguments) && testArguments.every(value => typeof value === "string" && !value.includes("\0")), "Invalid test arguments");
   assert.ok(ciGroup === undefined || ciGroup === "fresh" || ciGroup === "cached", "Invalid CI unit group");
   assert.ok(ciGroup === undefined || (!excludeWorkspace && !testArguments.length), "CI unit groups do not accept exclusions or test arguments");
@@ -256,7 +256,7 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
         const command = `cd ../.. && vitest run ${config}${workspace?.path}/src`;
         return [command, `${command}/`];
       });
-      assert.ok(name !== "virtual-bash" && workspace && commands.includes(scripts["test:unit"])
+      assert.ok(name !== "@poe-platform/safe-bash" && workspace && commands.includes(scripts["test:unit"])
         && scripts["pretest:unit"] === undefined && scripts["posttest:unit"] === undefined, `Workspace is not cacheable: ${name}`);
     }
   }
@@ -291,7 +291,7 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
     const settings = { ...tasks["test:unit"], ...tasks[id] };
     if (workspace.path === null) assert.ok(!settings.dependsOn?.length, "Root test build dependencies are unsupported");
     if (workspace.name === excludeWorkspace && workspace.path !== null) continue;
-    if (ciGroup !== undefined && (workspace.name === "virtual-bash" || cacheable.has(workspace.name) !== (ciGroup === "cached"))) continue;
+    if (ciGroup !== undefined && (workspace.name === "@poe-platform/safe-bash" || cacheable.has(workspace.name) !== (ciGroup === "cached"))) continue;
     testStages.push({ id, name: workspace.name, path: workspace.path, event: "test:unit" });
     for (const dependency of settings.dependsOn ?? []) {
       if (dependency === "build") buildRoots.add(workspace.name);
@@ -304,7 +304,7 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
 
 function taskEnvironment(environment, stage, unitMode) {
   const selected = { ...environment };
-  if (unitMode && !(stage.path !== null && stage.name === "virtual-bash" && stage.event === "test:unit")) {
+  if (unitMode && !(stage.path !== null && stage.name === "@poe-platform/safe-bash" && stage.event === "test:unit")) {
     for (const name of ["SAFE_BASH_TEST_RG", "SAFEJS_LOCAL_ROOT", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT", "SAFE_BASH_TEST_SHARD", "SAFE_BASH_TEST_CONCURRENCY"]) delete selected[name];
   }
   return selected;
@@ -493,7 +493,7 @@ export function parseWorkspaceArguments(args) {
       const value = equals < 0 ? undefined : argument.slice(equals + 1);
       if (name === "--concurrency") { assert.ok(value === "1" || value === "4", "Unit concurrency must be 1 or 4"); result.concurrency = Number(value); }
       else if (name === "--ci-group") { assert.ok(value === "fresh" || value === "cached", "Invalid CI unit group"); result.ciGroup = value; }
-      else { assert.equal(value, "virtual-bash", "Only the Node20 virtual-bash exclusion is supported"); result.excludeWorkspace = value; }
+      else { assert.equal(value, "@poe-platform/safe-bash", "Only the Node20 @poe-platform/safe-bash exclusion is supported"); result.excludeWorkspace = value; }
     } else {
       assert.ok(!["--workspace", "--test-unit"].includes(name), "Unsupported unit runner option");
       result.testArguments.push(...args.slice(index)); break;

@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import * as core from "@poe-platform/safe-bash";
 import { expectedAgentCommandNames } from "./safe-packages-mixed-entry-runtime.mjs";
 import { createMemoryFileSystem, createMountFileSystem, FsError, scopeFileSystem } from "@poe-platform/safe-fs";
-import * as optional from "@poe-platform/safe-bash-optional";
+import * as optional from "./safe-packages-opt-in.mjs";
 
 const consumer = dirname(fileURLToPath(import.meta.url));
 const foreignRoot = process.argv[2];
@@ -40,12 +40,11 @@ async function installedEntry(root, name, resolvedEntry) {
 
 const installedCore = await installedEntry(consumer, "@poe-platform/safe-bash", fileURLToPath(import.meta.resolve("@poe-platform/safe-bash")));
 const installedFs = await installedEntry(consumer, "@poe-platform/safe-fs", fileURLToPath(import.meta.resolve("@poe-platform/safe-fs")));
-const installedOptional = await installedEntry(consumer, "@poe-platform/safe-bash-optional", fileURLToPath(import.meta.resolve("@poe-platform/safe-bash-optional")));
+const installedOptional = await installedEntry(consumer, "@poe-platform/safe-bash", fileURLToPath(import.meta.resolve("@poe-platform/safe-bash/yes")));
 const optionalRequire = createRequire(installedOptional.entry);
-assert.equal(installedOptional.manifest.peerDependencies["@poe-platform/safe-bash"], installedCore.manifest.version);
-assert.equal(installedOptional.manifest.peerDependencies["@poe-platform/safe-fs"], installedFs.manifest.version);
-assert.deepEqual(Object.keys(installedOptional.manifest.peerDependencies).sort(), ["@poe-platform/safe-bash", "@poe-platform/safe-fs", "yaml"]);
-assert.deepEqual(Object.keys(installedOptional.manifest.dependencies ?? {}), []);
+assert.equal(installedOptional.manifest.version, installedCore.manifest.version);
+assert.equal(installedOptional.manifest.dependencies["@poe-platform/safe-fs"], installedFs.manifest.version);
+assert.deepEqual(Object.keys(installedOptional.manifest.peerDependencies).sort(), ["yaml"]);
 assert.equal(installedOptional.manifest.peerDependencies.yaml, "2.9.0");
 assert.equal(installedOptional.manifest.peerDependenciesMeta.yaml.optional, true);
 const installedYaml = await installedEntry(consumer, "yaml", optionalRequire.resolve("yaml"));
@@ -103,16 +102,21 @@ for (const [name, , , plugin] of factories) {
 
 const foreignCoreArtifact = await installedEntry(foreignRoot, "@poe-platform/safe-bash");
 const foreignFsArtifact = await installedEntry(foreignRoot, "@poe-platform/safe-fs");
-const foreignOptionalArtifact = await installedEntry(foreignRoot, "@poe-platform/safe-bash-optional");
+const foreignOptionalArtifact = await installedEntry(foreignRoot, "@poe-platform/safe-bash", resolve(foreignRoot, "node_modules/@poe-platform/safe-bash", foreignCoreArtifact.manifest.exports["./yes"].import));
 assert.equal(foreignCoreArtifact.manifest.version, installedCore.manifest.version);
 assert.equal(foreignFsArtifact.manifest.version, installedFs.manifest.version);
 assert.equal(foreignOptionalArtifact.manifest.version, installedOptional.manifest.version);
-assert.equal(foreignOptionalArtifact.manifest.peerDependencies["@poe-platform/safe-bash"], foreignCoreArtifact.manifest.version);
-assert.equal(foreignOptionalArtifact.manifest.peerDependencies["@poe-platform/safe-fs"], foreignFsArtifact.manifest.version);
+assert.equal(foreignOptionalArtifact.manifest.dependencies["@poe-platform/safe-fs"], foreignFsArtifact.manifest.version);
 assert.notEqual(foreignCoreArtifact.entry, installedCore.entry);
 const foreignCore = await import(pathToFileURL(foreignCoreArtifact.entry).href);
 const foreignFs = await import(pathToFileURL(foreignFsArtifact.entry).href);
-const foreignOptional = await import(pathToFileURL(foreignOptionalArtifact.entry).href);
+const foreignOptional = { ...foreignCore };
+for (const entry of Object.values(foreignCoreArtifact.manifest.exports)) {
+  if (entry.import?.startsWith("./dist/safe-bash/opt-in/")) {
+    const artifact = await installedEntry(foreignRoot, "@poe-platform/safe-bash", resolve(foreignRoot, "node_modules/@poe-platform/safe-bash", entry.import));
+    Object.assign(foreignOptional, await import(pathToFileURL(artifact.entry).href));
+  }
+}
 assert.notEqual(foreignCore.commandRuntimeIdentity, core.commandRuntimeIdentity);
 assert.equal(foreignCore.FsError, foreignFs.FsError);
 assert.notEqual(foreignFs.FsError, FsError);

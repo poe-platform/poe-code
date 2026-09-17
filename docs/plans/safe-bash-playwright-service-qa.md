@@ -48,24 +48,24 @@ Concurrency billing is deferred. Do not change README, commit, push or publish.
 
 ## Maintained routes
 
-1. Run `npm run build:workspaces -- --workspace=virtual-bash`. This selects the
+1. Run `npm run build:workspaces -- --workspace=@poe-platform/safe-bash`. This selects the
    declared workspace dependency closure and guarded builds, without caching.
-2. Run `npm run test:unit --workspace=@poe-code/safe-playwright` and
-   `npm run typecheck --workspace=@poe-code/safe-playwright`.
+2. Run `npm run test:unit --workspace=@poe-platform/safe-bash` and
+   `npm run typecheck --workspace=@poe-platform/safe-bash`.
 3. Run `node --import tsx --test
    packages/safe-bash/tests/plugins/playwright-adapter.test.ts
    packages/safe-bash/tests/plugins/playwright-cli.test.ts`. These are
    service-free exact plugin tests, not the full safe-bash unit gate.
-4. Run `npm run typecheck --workspace=virtual-bash` for built source/tests and
+4. Run `npm run typecheck --workspace=@poe-platform/safe-bash` for built source/tests and
    maintained public consumer groups, including the registered billing consumer
-   and expected-error controls. Run `npm run test:runner --workspace=virtual-bash`
+   and expected-error controls. Run `npm run test:runner --workspace=@poe-platform/safe-bash`
    for guarded runner/input membership checks and `npm run lint:eslint`.
 5. Copy the maintained qualification package/tsconfig fixtures into isolated
    evidence storage, install exactly the pins with browser download disabled,
    bind `poe-code` to this built checkout, and copy
    `playwright-compatibility.ts.fixture` as `consumer.ts`. Compile with the pinned
-   compiler. The fixture must import public `poe-code/safe-playwright/adapter`,
-   `poe-code/safe-playwright` and CLI exports, not source files. Keep the concrete
+   compiler. The fixture must import public `@poe-platform/safe-bash/playwright`,
+   `@poe-platform/safe-bash/playwright` and CLI exports, not source files. Keep the concrete
    type and Buffer negative controls. `skipLibCheck` accommodates upstream
    ambient declarations; it does not waive consumed-type checking or prove
    Worker deployment compatibility.
@@ -126,7 +126,7 @@ it. No generated QA script becomes a maintained QA route.
   Host: Node v22.22.2, macOS 15.7.7. Explicit executable:
   `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`, version
   152.0.7977.84, headless. No bundled Chromium, Firefox or WebKit run.
-- Selected virtual-bash build: passed seven declared workspace builds.
+- Selected @poe-platform/safe-bash build: passed seven declared workspace builds.
   Safe-playwright maintained unit tests: 33 passed. Exact safe-bash CLI/adapter
   tests: 33 passed. Safe-playwright typecheck: passed. Safe-bash maintained
   typecheck: passed source/tests, four source-consumer groups, 26 public

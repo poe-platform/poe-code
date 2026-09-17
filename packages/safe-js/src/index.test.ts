@@ -22,6 +22,7 @@ import {
 import { makeEnvModule } from "./modules/env.js";
 import { makeFailModule } from "./modules/fail.js";
 import { makeFsModule } from "./modules/fs.js";
+import { createRootedSourceResolver } from "./modules/source-files.js";
 import { parseFsConfig, resolveFsConfig } from "./modules/fs-config.js";
 import { makeHarnessModule } from "./modules/harness.js";
 import { makeLogModule } from "./modules/log.js";
@@ -29,7 +30,7 @@ import { makeMetricModule } from "./modules/metric.js";
 import { makeMcpModule } from "./modules/mcp.js";
 import { makeTimeModule } from "./modules/time.js";
 import { parse } from "./parse.js";
-import { parseModule } from "./parse/parser.js";
+import { parseModule, parseSourceModule } from "./parse/parser.js";
 import { findExportedConstInitializer } from "./loader/find-exported.js";
 import { hashSource } from "./parse/hash.js";
 import { restore } from "./restore.js";
@@ -60,6 +61,7 @@ describe("@poe-code/safe-js public exports", () => {
     expect(api.AgentSpawnError).toBe(AgentSpawnError);
     expect(api.parse).toBe(parse);
     expect(api.parseModule).toBe(parseModule);
+    expect(api.parseSourceModule).toBe(parseSourceModule);
     expect(api.lint).toBe(lint);
     expect(lint).toBe(lintFromIndex);
     expect(api.run).toBe(run);
@@ -83,6 +85,7 @@ describe("@poe-code/safe-js public exports", () => {
     expect(api.makeEnvModule).toBe(makeEnvModule);
     expect(api.makeFailModule).toBe(makeFailModule);
     expect(api.makeFsModule).toBe(makeFsModule);
+    expect(api.createRootedSourceResolver).toBe(createRootedSourceResolver);
     expect(api.parseFsConfig).toBe(parseFsConfig);
     expect(api.resolveFsConfig).toBe(resolveFsConfig);
     expect(api.makeHarnessModule).toBe(makeHarnessModule);
@@ -103,6 +106,7 @@ describe("@poe-code/safe-js public exports", () => {
       "admitNativePromiseProperties",
       "createRealm",
       "createReplayableRandom",
+      "createRootedSourceResolver",
       "createSpawnUsageAccumulator",
       "declareHostOperation",
       "deepCopyFromSandbox",
@@ -131,6 +135,7 @@ describe("@poe-code/safe-js public exports", () => {
       "parseFsConfig",
       "parseMcpConfig",
       "parseModule",
+      "parseSourceModule",
       "registerPendingHostCallPolicy",
       "resolveFsConfig",
       "restore",

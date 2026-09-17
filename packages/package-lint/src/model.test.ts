@@ -198,3 +198,14 @@ it("does not replace an authoritative provider's omitted declarations with sourc
   );
   expect(model.packageFiles.get(".")!.files).toEqual(new Set());
 });
+
+it("does not inspect private native assets when the published bundle has no canonical runtime", async () => {
+  const fs = memLintFs({
+    "/repo/dist/metafile.json": pkgJson({ inputs: {}, outputs: {} }),
+    "/repo/packages/safe-fs/native/assets.json": "{}"
+  });
+  const lstat = vi.spyOn(fs, "lstat");
+  const build = await loadBuildView(fs, "/repo");
+  expect(build?.metafile.canonicalNativeAssets).toBeUndefined();
+  expect(lstat).not.toHaveBeenCalled();
+});

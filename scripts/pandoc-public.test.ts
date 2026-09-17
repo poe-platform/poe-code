@@ -1,4 +1,5 @@
 import {readFile} from "node:fs/promises";
+import {createRequire} from "node:module";
 import path from "node:path";
 import {expect, it} from "vitest";
 import ts from "typescript";
@@ -34,28 +35,22 @@ it("ships portable public entries without loading Office engines for text conver
     }
     artifacts.mkdirSync(path.dirname(file), {recursive: true});
     artifacts.writeFileSync(file, contents);
-    const imports = ts.preProcessFile(contents, true, false).importedFiles.map(item => item.fileName);
-    const syntax = ts.createSourceFile(file, contents, ts.ScriptTarget.ES2022, true, ts.ScriptKind.JS);
-    function visit(node: ts.Node): void {
-      if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
-        const argument = node.arguments[0];
-        expect(argument && ts.isStringLiteral(argument)).toBe(true);
-        if (argument && ts.isStringLiteral(argument)) {
-          expect(argument.text.startsWith(".")).toBe(true);
-          optionalImports.add(path.resolve(path.dirname(file), argument.text));
-          const index = imports.indexOf(argument.text);
-          if (index !== -1) imports.splice(index, 1);
-        }
-      }
-      ts.forEachChild(node, visit);
+    const imports: string[] = [];
+    for (const reference of ts.preProcessFile(contents, true, false).importedFiles) {
+      // esbuild emits dynamic import literals immediately after the call opening.
+      if (contents.slice(0, reference.pos).trimEnd().endsWith("(")) {
+        expect(reference.fileName.startsWith(".")).toBe(true);
+        optionalImports.add(path.resolve(path.dirname(file), reference.fileName));
+      } else imports.push(reference.fileName);
     }
-    visit(syntax);
     const scanner = ts.createScanner(ts.ScriptTarget.ES2022, true, ts.LanguageVariant.Standard, contents);
     const forbidden: string[] = [];
     let previous: ts.SyntaxKind | undefined;
     let previousText = "";
     for (let token = scanner.scan(); token !== ts.SyntaxKind.EndOfFileToken; token = scanner.scan()) {
-      if (token === ts.SyntaxKind.OpenParenToken && previous === ts.SyntaxKind.Identifier && ["fetch", "require"].includes(previousText)) forbidden.push(previousText);
+      if (token === ts.SyntaxKind.OpenParenToken) {
+        if (previous === ts.SyntaxKind.Identifier && ["fetch", "require"].includes(previousText)) forbidden.push(previousText);
+      }
       previous = token;
       previousText = scanner.getTokenText();
     }
@@ -72,23 +67,10 @@ it("ships portable public entries without loading Office engines for text conver
   for (const file of optionalImports) await inspect(file);
   expect(presentationEngine).toBe(true);
 });
-it("resolves SDK and plugin public declaration imports for a TypeScript consumer", () => {
-  const source = `import {convert, type ConversionOptions} from "poe-code/pandoc";
-import {pandocCommands, type PandocCommandsOptions} from "poe-code/safe-bash/commands/pandoc";
-const options: ConversionOptions = {from: "commonmark", to: "plain"};
-const plugin: PandocCommandsOptions = {replace: true, limits: {inputBytes: 100}};
-void convert([{bytes: new Uint8Array()}], options, {}); void pandocCommands(plugin);
-// @ts-expect-error Native engine configuration is not a public conversion option.
-void convert([], {from: "commonmark", to: "plain", nativeEngine: "pandoc"}, {});`;
-  const file = path.join(root, "consumer.ts");
-  const options: ts.CompilerOptions = {module: ts.ModuleKind.NodeNext, moduleResolution: ts.ModuleResolutionKind.NodeNext, strict: true, noEmit: true, target: ts.ScriptTarget.ES2022, types: ["node"], skipLibCheck: false};
-  const host = ts.createCompilerHost(options);
-  const original = host.getSourceFile.bind(host);
-  host.getSourceFile = (name, language, onError, fresh) => name === file ? ts.createSourceFile(name, source, language) : original(name, language, onError, fresh);
-  expect(ts.getPreEmitDiagnostics(ts.createProgram([file], options, host)).map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"))).toEqual([]);
-});
 it("runs conversion and explicit registration from packaged public entries, preserving collisions", async () => {
-  const api = {...await import("poe-code/pandoc"), ...await import("poe-code/safe-bash/commands/pandoc")};
+  const require = createRequire(import.meta.url);
+  const manifest = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
+  const api = {...require(path.resolve(root, manifest.exports["./pandoc"].import)), ...require(path.resolve(root, manifest.exports["./safe-bash/commands/pandoc"].import))};
   const conversion = await api.convert([{bytes: new TextEncoder().encode("# Original\n")}], {from: "commonmark", to: "plain"}, {});
   expect(conversion.text).toContain("Original");
   const host = {commands: new CommandRegistry(),

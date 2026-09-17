@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
-    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json && npm run typecheck:public",
     "lint": "eslint src conformance stress && npm run typecheck",
     "test": "cd ../.. && vitest run packages/pandoc",
     "test:unit": "cd ../.. && vitest run packages/pandoc",
@@ -25,7 +25,9 @@
     "pretest:conformance": "cd ../.. && npm run build:workspaces -- --workspace=@poe-code/pandoc",
     "test:conformance": "node conformance/commonmark.mjs",
     "pretest:conformance:rst": "cd ../.. && npm run build:workspaces -- --workspace=@poe-code/pandoc",
-    "test:conformance:rst": "node conformance/rst.mjs"
+    "test:conformance:rst": "node conformance/rst.mjs",
+    "typecheck:public": "tsc -p tsconfig.public-types.json",
+    "pretest:unit": "npm run typecheck:public"
   },
   "dependencies": {
     "@poe-code/office-package": "*",

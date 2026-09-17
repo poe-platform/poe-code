@@ -207,7 +207,7 @@ class LatexReader {
         flush();
         if (token.text === "document") out.push(...this.blocks(token.children, depth + 1));
         else if (token.text === "quote" || token.text === "quotation") out.push({t: "BlockQuote", c: this.blocks(token.children, depth + 1)});
-        else if (token.text.startsWith("verbatim")) out.push({t: "CodeBlock", c: [empty(), token.children[0]!.text]});
+        else if (token.text === "verbatim" || token.text === "verbatim*") out.push({t: "CodeBlock", c: [empty(), token.children[0]!.text]});
         else if (token.text === "itemize" || token.text === "enumerate" || token.text === "description") {
           const items: Block[][] = [];
           const terms: Inline[][] = [];

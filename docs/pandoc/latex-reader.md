@@ -23,6 +23,8 @@ runtime. No new environment variables or CLI arguments are introduced.
   Optional item labels are retained as text prefixes (or description terms).
 - Verb and verbatim/verbatim* retain literal source up to their exact terminator.
   Inline verbatim cannot cross a newline. No commands inside verbatim are evaluated.
+  Other environment names, including names beginning with verbatim, use the
+  unknown-environment loss policy and preserve all arguments when retained.
 - Href/url/includegraphics accept braced literal targets with supported escaped
   characters. Image options remain opaque latex-options attributes. Figure/table
   placement, captions, optional captions and labels are retained. Repeated captions

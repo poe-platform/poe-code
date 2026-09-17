@@ -107,6 +107,17 @@ it("preserves unknown environments whole, including command arguments and commen
   expect(result.kind === "text" && JSON.parse(result.text).blocks).toEqual([{t: "RawBlock", c: ["latex", source]}]);
   expect(result.diagnostics).toHaveLength(1);
 });
+it("does not treat unknown verbatim-prefixed environments as verbatim", async () => {
+  const source = "\\begin{verbatimcustom}one \\mystery[opt]{two} three\\end{verbatimcustom}";
+  await expect(json(source)).rejects.toMatchObject({code: "E_CAPABILITY"});
+  for (const policy of [{rawContent: "retain"}, {lossy: true}]) {
+    const result = await json(source, policy);
+    expect(result.kind === "text" && JSON.parse(result.text).blocks).toEqual([{t: "RawBlock", c: ["latex", source]}]);
+    expect(result.diagnostics.map(d => d.code)).toEqual(["W_RAW_CONTENT"]);
+    const expanded = await json("\\newcommand{\\wrap}[1]{\\begin{verbatimcustom}#1\\end{verbatimcustom}}\\wrap{payload}", policy);
+    expect(expanded.kind === "text" && JSON.parse(expanded.text).blocks).toEqual([{t: "RawBlock", c: ["latex", "\\begin{verbatimcustom}payload\\end{verbatimcustom}"]}]);
+  }
+});
 it("rejects invalid table geometry and unresolved/duplicate labels", async () => {
   for (const source of ["\\begin{tabular}{lc}a\\end{tabular}", "\\begin{tabular}{l}\\multicolumn{2}{c}{x}\\end{tabular}", "\\section{A}\\label{x}\\section{B}\\label{x}"]) {
     await expect(read(source)).rejects.toMatchObject({code: "E_PARSE"});

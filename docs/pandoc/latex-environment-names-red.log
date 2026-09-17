@@ -1,0 +1,114 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ❯ packages/pandoc/src/latex.test.ts (53 tests | 1 failed | 52 skipped) 17ms
+   ↓ parses escaped braces, comments, whitespace and nested emphasis groups
+   ↓ maps document metadata, starred sections, optional titles, labels and forward references
+   ↓ maps nested lists, quotes, links and exact verbatim terminators
+   ↓ retains typed inline and display math source and escaped dollars
+   ↓ maps figures and multicolumn tables with alignment and caption
+   ↓ expands bounded simple macros, optional defaults and Unicode commands
+     ↓ rejects malformed EOF/delimiters: {oops
+     ↓ rejects malformed EOF/delimiters: oops}
+     ↓ rejects malformed EOF/delimiters: \emph
+     ↓ rejects malformed EOF/delimiters: $oops
+     ↓ rejects malformed EOF/delimiters: $$oops$
+     ↓ rejects malformed EOF/delimiters: \(x\]
+     ↓ rejects malformed EOF/delimiters: \begin{quote}x\end{itemize}
+     ↓ rejects malformed EOF/delimiters: \begin{quote}
+     ↓ rejects malformed EOF/delimiters: \verb|oops
+     ↓ rejects malformed EOF/delimiters: \begin{verbatim}oops
+     ↓ rejects malformed EOF/delimiters: \section[short{title}
+     ↓ rejects malformed EOF/delimiters: \newcommand{\x}[1]{#2}\x{a}
+     ↓ never accepts forbidden primitive catcode, including lossy
+     ↓ never accepts forbidden primitive write, including lossy
+     ↓ never accepts forbidden primitive write18, including lossy
+     ↓ never accepts forbidden primitive directlua, including lossy
+     ↓ never accepts forbidden primitive def, including lossy
+     ↓ never accepts forbidden primitive gdef, including lossy
+     ↓ never accepts forbidden primitive csname, including lossy
+     ↓ never accepts forbidden primitive usepackage, including lossy
+     ↓ never accepts forbidden primitive openout, including lossy
+     ↓ never accepts forbidden primitive read, including lossy
+     ↓ never accepts forbidden primitive special, including lossy
+   ↓ rejects recursion, undefined macros and excessive expansion
+   ↓ preserves the complete unknown command and arguments under explicit loss policy
+   ↓ resolves nested includes only through injected memfs resources before output
+   ↓ rejects include cycles, traversal, depth and byte excess before publication
+   ↓ keeps group-local macro definitions local and supports renewal/provision
+   ↓ rejects replacing supported Unicode, accent and line-break commands under every loss policy
+   ↓ supports nested optional argument groups and escaped math dollars
+   ↓ preserves unknown environments whole, including command arguments and comments
+   × does not treat unknown verbatim-prefixed environments as verbatim 15ms
+   ↓ rejects invalid table geometry and unresolved/duplicate labels
+   ↓ bounds nested groups, expansion bytes and exact aggregate include bytes
+   ↓ preserves argument-adjacent comments and starred unknown commands whole
+   ↓ preserves significant whitespace inside nested groups
+   ↓ does not treat comment parameter markers as macro parameters
+   ↓ preserves macro parameter and comment control-word boundaries
+   ↓ does not substitute parameter markers inside macro verbatim regions
+   ↓ preserves expanded token boundaries when an unsupported environment is retained raw
+   ↓ validates interpolated math source against forbidden primitives under every policy
+   ↓ rejects repeated captions instead of deleting their arguments
+   ↓ decodes escaped characters in braced link targets
+   ↓ rejects cyclic reference titles without constructing a cyclic AST
+   ↓ rejects empty tabular and forbidden commands inside math and macro bodies
+   ↓ retains table column/rule source attributes inside a float
+   ↓ bounds include depth and propagates cancellation before publication
+FAIL packages/pandoc/src/latex.test.ts > does not treat unknown verbatim-prefixed environments as verbatim
+AssertionError: promise resolved "{ kind: 'text', …(2) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "diagnostics": [],
++   "kind": "text",
++   "text": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"CodeBlock\",\"c\":[[\"\",[],[]],\"one\"]}]}
++ ",
+  }
+
+ ❯ packages/pandoc/src/latex.test.ts:112:28
+    110| it("does not treat unknown verbatim-prefixed environments as verbatim"…
+    111|   const source = "\\begin{verbatimcustom}one \\mystery[opt]{two} three…
+    112|   await expect(json(source)).rejects.toMatchObject({code: "E_CAPABILIT…
+       |                            ^
+    113|   for (const policy of [{rawContent: "retain"}, {lossy: true}]) {
+    114|     const result = await json(source, policy);
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/pandoc/src/latex.test.ts > does not treat unknown verbatim-prefixed environments as verbatim
+AssertionError: promise resolved "{ kind: 'text', …(2) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "diagnostics": [],
++   "kind": "text",
++   "text": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"CodeBlock\",\"c\":[[\"\",[],[]],\"one\"]}]}
++ ",
+  }
+
+ ❯ packages/pandoc/src/latex.test.ts:112:28
+    110| it("does not treat unknown verbatim-prefixed environments as verbatim"…
+    111|   const source = "\\begin{verbatimcustom}one \\mystery[opt]{two} three…
+    112|   await expect(json(source)).rejects.toMatchObject({code: "E_CAPABILIT…
+       |                            ^
+    113|   for (const policy of [{rawContent: "retain"}, {lossy: true}]) {
+    114|     const result = await json(source, policy);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 52 skipped (53)
+   Start at  21:31:47
+   Duration  2.08s (transform 1.42s, setup 56ms, import 1.90s, tests 17ms, environment 0ms)
+

@@ -268,6 +268,14 @@
       "preservedRaw": "E_CAPABILITY",
       "lossy": "E_CAPABILITY",
       "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.exact-verbatim-environments",
+      "originalTest": "does not treat unknown verbatim-prefixed environments as verbatim",
+      "strict": "E_CAPABILITY",
+      "preservedRaw": "complete RawBlock + W_RAW_CONTENT; macro parameters expand",
+      "lossy": "complete RawBlock + W_RAW_CONTENT; macro parameters expand",
+      "status": "passing-original-profile"
     }
   ],
   "unsupportedProfiles": {
@@ -421,9 +429,9 @@
     }
   ],
   "verification": {
-    "packageTests": 1049,
-    "latexTests": 52,
+    "packageTests": 1050,
+    "latexTests": 53,
     "newCommandTests": 1,
-    "evidence": "docs/pandoc/latex-token-expansion-evidence.md"
+    "evidence": "docs/pandoc/latex-environment-names-evidence.md"
   }
 }

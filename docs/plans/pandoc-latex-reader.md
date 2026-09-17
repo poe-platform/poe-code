@@ -44,3 +44,11 @@ raw source with an explicit token separator and fail missing includes with empty
 stdout. Render and inspect latex-token-expansion-command.png for readable output
 and diagnostics. Full package tests (1049), package lint/typechecks and the selected
 workspace build pass. Commit this atomic correction locally; no push or release.
+
+Third atomic correction: reproduce content loss from treating unknown environment
+names beginning with verbatim as supported verbatim. An original failing test
+requires strict refusal and full diagnosed preservation under raw/lossy policy,
+including macro expansion in the unknown environment. Match only verbatim and
+verbatim* in both mapping and substitution. Re-run package tests, lint/typechecks
+and the selected build. Execute the built command under all three policies and
+inspect a rendered screenshot before committing locally.

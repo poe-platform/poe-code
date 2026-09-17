@@ -62,7 +62,7 @@ export async function expandTex(tokens: readonly TexToken[], context: AdapterCon
         if (args) for (const argument of args[Number(digit) - 1]!) await push(argument);
         const remainder = parameter.text.slice(1);
         if (remainder) await push({...parameter, text: remainder, raw: remainder});
-      } else if ("children" in token && !token.text.startsWith("verbatim")) {
+      } else if ("children" in token && token.text !== "verbatim" && token.text !== "verbatim*") {
         const children = await substitute(token.children, count, args, depth + 1);
         const opening = token.kind === "environment" ? token.opening! : token.kind === "group" ? "{" : "[";
         const closing = token.kind === "environment" ? token.closing! : token.kind === "group" ? "}" : "]";

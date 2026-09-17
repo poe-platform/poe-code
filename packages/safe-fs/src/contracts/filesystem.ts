@@ -35,6 +35,7 @@ export interface DirectoryEntry {
 
 export interface FileSystemCapabilities {
   readonly open?: boolean;
+  readonly versionedDescriptors?: boolean;
   readonly readOnly?: boolean;
   readonly read?: boolean;
   readonly stat?: boolean;

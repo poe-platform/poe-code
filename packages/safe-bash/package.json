@@ -292,6 +292,11 @@
       "browser": null,
       "import": "./dist/commands/python/node.js"
     },
+    "./commands/python/docker": {
+      "types": "./dist/commands/python/docker.d.ts",
+      "browser": null,
+      "import": "./dist/commands/python/docker.js"
+    },
     "./commands/pandoc": {
       "types": "./dist/commands/pandoc/index.d.ts",
       "import": "./dist/commands/pandoc/index.js"

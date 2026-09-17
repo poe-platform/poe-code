@@ -937,10 +937,13 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/core-sort/record-integration.test.ts"));
   assert.ok(files.includes("tests/plugins/git-removal.test.ts"));
   assert.ok(files.includes("tests/commands/python/runtime.test.ts"));
+  assert.ok(files.includes("tests/commands/python/async-executor.test.ts"));
+  assert.ok(files.includes("tests/commands/python/async-executor-review.test.ts"));
   assert.ok(files.includes("tests/commands/python/diagnostics.test.ts"));
   assert.ok(files.includes("tests/commands/python/environment.test.ts"));
   assert.ok(files.includes("tests/commands/python/environment-review.test.ts"));
   assert.ok(files.includes("tests/commands/python/tree-cleanup-review.test.ts"));
+  assert.ok(files.includes("tests/commands/python/object-publication-review.test.ts"));
   assert.ok(files.includes("tests/commands/python/admission.test.ts"));
   assert.ok(files.includes("tests/commands/python/invocation.test.ts"));
   assert.ok(files.includes("tests/commands/python/installation.test.ts"));
@@ -2422,6 +2425,8 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/plugins/zip-commands.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-adapter.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-controller.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-session-restore.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-session-restore-review.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-snapshot.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-snapshot-transport.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-frame-snapshot.test.ts"));
@@ -2591,6 +2596,63 @@ test("Python tree cleanup public acceptance remains admitted current input", () 
   const path = "tests/integration/pyodide-runtime/public-cleanup.test.mjs";
   assertAdmittedInputPath(path, boundaries);
   assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+});
+
+test("Python object publication public acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  const path = "tests/integration/pyodide-runtime/public-object-publication.test.mjs";
+  assertAdmittedInputPath(path, boundaries);
+  assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+});
+
+test("Playwright session restoration public acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/integration/playwright-session-restore.test.mjs", "tests/integration/playwright-session-restore.worker.mjs"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
+test("Python asynchronous executor public acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/integration/python-async-executor.test.mjs", "tests/integration/python-async-executor.worker.mjs"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
+test("Python shared executor admission tests remain admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/commands/python/executor-pool.test.ts", "tests/commands/python/executor-pool-review.test.ts"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
+test("Python Docker host acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/commands/python/docker.test.ts", "tests/commands/python/docker-review.test.ts",
+    "tests/commands/python/docker-runner-review.test.ts",
+    "tests/plugins/qualified-current-release/current-python-docker.ts",
+    "tests/integration/python-docker.test.mjs", "tests/integration/python-docker-runtime.mjs", "tests/integration/python-docker-runtime.Dockerfile"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
+test("S3 namespace cleanup tests remain admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/fs/s3/namespace.test.ts", "tests/fs/s3/namespace-review.test.ts", "tests/integration/python-s3-namespace.test.mjs",
+    "tests/plugins/qualified-current-release/current-s3-namespace.ts"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
 });
 
 test("UTF-8 literal workerd acceptance remains admitted current input", () => {

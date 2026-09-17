@@ -43,3 +43,28 @@ Evidence: `/tmp/poe-749-delivery-reproduction.log`.
 - Maintained source/types and all 26 public consumer groups pass; guarded
   ESLint reports zero errors. The CLI startup/output screenshot was inspected.
 - These results do not qualify generic `dir_fd` or deployed remote cleanup.
+
+## Remote authority review
+
+The existing S3 adapter lists a prefix and deletes its objects separately. Even
+conditional per-object deletion cannot atomically bind the original parent and
+target directory incarnations to whole-tree removal. The WebDAV adapter's
+authoritative directory binding supports empty directories, not this operation.
+File-publication descriptors do not add namespace-transaction authority.
+
+Six refusal regressions cover S3 and WebDAV directly, with object descriptors,
+and behind mounted policy wrappers. They verify that Python does not promote
+these weaker capabilities or issue destructive fallback requests. These are mock
+capability guards, not real-provider cleanup acceptance.
+
+A credible S3 implementation needs a bounded authoritative namespace manifest
+with incarnation identities and immutable blob references. Removal must compare
+the original identities and conditionally publish one manifest without the tree,
+with a unique generation preventing ABA. All namespace writers must participate.
+Detached blobs remain available to retained handles; collection cannot delete by
+a reused pathname or prefix. WebDAV instead needs a server-side transactional
+tree-removal extension with authoritative identity observations.
+
+Qualify the selected authority with installed real Python and independent
+concurrent clients before closing issue 749. No currently implemented remote
+adapter satisfies that acceptance requirement.

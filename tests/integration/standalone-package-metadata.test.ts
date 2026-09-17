@@ -233,6 +233,7 @@ describe("standalone package publish metadata", () => {
       "./safe-bash/commands/pptx",
       "./safe-bash/commands/pr",
       "./safe-bash/commands/python",
+      "./safe-bash/commands/python/docker",
       "./safe-bash/commands/python/node",
       "./safe-bash/commands/python/worker",
       "./safe-bash/commands/split",
@@ -416,6 +417,23 @@ describe("standalone package publish metadata", () => {
     expect(maestroPackage).toMatchObject({
       name: "@poe-code/maestro"
     });
+  });
+
+  it("keeps Python host integrations explicit and Node-only", () => {
+    const root = readPackageJson("package.json");
+    const standalone = readPackageJson("packages/safe-bash/package.json");
+    for (const host of ["node", "docker"]) {
+      expect(root.exports?.[`./safe-bash/commands/python/${host}`]).toEqual({
+        types: `./packages/safe-bash/dist/commands/python/${host}.d.ts`,
+        browser: null,
+        import: `./packages/safe-bash/dist/commands/python/${host}.js`
+      });
+      expect(standalone.exports?.[`./commands/python/${host}`]).toEqual({
+        types: `./dist/commands/python/${host}.d.ts`,
+        browser: null,
+        import: `./dist/commands/python/${host}.js`
+      });
+    }
   });
 
   it("keeps canonical and legacy SafeJS routes identical and Node-only", () => {

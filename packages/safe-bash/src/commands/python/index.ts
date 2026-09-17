@@ -24,7 +24,8 @@ export interface PythonInitializationProgress {
   readonly command: string;
 }
 export interface PythonCommandsOptions {
-  readonly createWorker: () => PythonWorkerEndpoint;
+  readonly createWorker?: () => PythonWorkerEndpoint;
+  readonly createExecutor?: () => PythonAsyncExecutor;
   /** Explicit distribution requirements; no import scanning or implicit package downloads. */
   readonly packages?: readonly string[];
   /** Requirements files in the canonical filesystem. */
@@ -54,8 +55,21 @@ export interface PythonWorkerStart {
   readonly maxTransferBytes: number;
 }
 
+export interface PythonExecutorStart extends Omit<PythonWorkerStart, 'type' | 'shared'> {
+  readonly signal: AbortSignal;
+  dispatch(request: { readonly op: string; readonly args: unknown[] }): Promise<unknown>;
+  onReady(): void;
+}
+
+export interface PythonAsyncExecutor {
+  run(start: PythonExecutorStart): Promise<number>;
+  terminate(): void | Promise<void>;
+}
+
 export function createPythonCommands(options: PythonCommandsOptions): readonly CommandDefinition[] {
-  if (typeof options?.createWorker !== 'function') throw new PythonFailure('executor-unavailable');
+  if (!options || (typeof options.createWorker === 'function') === (typeof options.createExecutor === 'function')
+    || options.createWorker !== undefined && typeof options.createWorker !== 'function'
+    || options.createExecutor !== undefined && typeof options.createExecutor !== 'function') throw new PythonFailure('executor-unavailable');
   if (options.onDiagnostic !== undefined && typeof options.onDiagnostic !== 'function') throw new TypeError('Python onDiagnostic must be a function');
   if (options.environment && options.provisioning) throw new TypeError('A borrowed Python environment cannot be combined with provisioning options');
   const maxTransferBytes = options.maxTransferBytes ?? 65536;
@@ -100,6 +114,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
     let stdoutOperation: OutputOperation | undefined;
     let stderrOperation: OutputOperation | undefined;
     let endpoint: PythonWorkerEndpoint | undefined;
+    let executor: PythonAsyncExecutor | undefined;
     let packages: PythonPackageStart | undefined;
     let unsubscribe: (() => void) | undefined;
     let admitted = false;
@@ -121,7 +136,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
       void (async () => {
         signal.removeEventListener('abort', aborted);
         const subscription = Promise.resolve().then(() => unsubscribe?.());
-        const termination = Promise.resolve().then(() => endpoint?.terminate());
+        const termination = Promise.resolve().then(() => executor ? executor.terminate() : endpoint?.terminate());
         const results = await Promise.allSettled([subscription, termination, service.close(), stdoutOperation?.close(), stderrOperation?.close(), ...pending]);
         await input.return?.(undefined);
         fragment = undefined;
@@ -149,25 +164,17 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
       const outputContext = { signal, ...(context.registerCleanup ? { registerCleanup: context.registerCleanup } : {}) };
       stdoutOperation = createOutputOperation(outputContext, context.stdout);
       stderrOperation = createOutputOperation(outputContext, context.stderr);
-      let shared: SharedArrayBuffer;
-      try { shared = new SharedArrayBuffer(8 + maxTransferBytes * 6 + 65536); }
-      catch (reason) { throw reportPythonFailure('transport-unavailable', reason, options.onDiagnostic); }
-      const control = new Int32Array(shared, 0, 2);
-      const payload = new Uint8Array(shared, 8);
-      const reply = (value: unknown, status: number): void => {
-        if (closed) return;
-        let bytes: Uint8Array;
-        try { bytes = encodePythonReply(value, payload.length); }
-        catch (error) {
-          if (typeof error !== 'object' || error === null || !('code' in error) || error.code !== 'EFBIG') throw error;
-          bytes = encodePythonReply({ code: 'EFBIG' }, payload.length); status = 2;
+      const diagnoseFilesystemFailure = async (operation: string, error: unknown): Promise<void> => {
+        if (typeof error !== 'object' || error === null || !('code' in error) || error.code !== 'ENOTSUP') return;
+        const category: PythonFailureCategory = operation === 'open' ? 'filesystem-open'
+          : operation === 'read' ? 'filesystem-read'
+            : operation === 'write' || operation === 'ftruncate' ? 'filesystem-write'
+              : operation === 'readdir' ? 'filesystem-directory' : 'filesystem-operation';
+        if (!filesystemDiagnostics.has(category)) {
+          filesystemDiagnostics.add(category);
+          const failure = reportPythonFailure(category, error, options.onDiagnostic);
+          await writeBytes(stderrOperation!.output, new TextEncoder().encode('python: ' + failure.message + '\n'), signal);
         }
-        payload.set(bytes);
-        try {
-          Atomics.store(control, 1, bytes.length);
-          Atomics.store(control, 0, status);
-          Atomics.notify(control, 0);
-        } catch (reason) { throw reportPythonFailure('transport-unavailable', reason, options.onDiagnostic); }
       };
       const dispatch = async (request: { op: string; args: unknown[] }): Promise<unknown> => {
         signal.throwIfAborted();
@@ -211,7 +218,82 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
       pending.add(preparation);
       try { await preparation; } finally { pending.delete(preparation); }
       signal.throwIfAborted();
-      try { endpoint = options.createWorker(); }
+      if (options.createExecutor) {
+        try { executor = options.createExecutor(); }
+        catch (reason) { throw reportPythonFailure(reason instanceof PythonFailure ? reason.category : 'startup', reason, options.onDiagnostic); }
+        if (!executor || typeof executor.run !== 'function' || typeof executor.terminate !== 'function') throw reportPythonFailure('executor-unavailable', undefined, options.onDiagnostic);
+        let requesting = false;
+        let running = true;
+        const start: PythonExecutorStart = {
+          invocation: { command: context.command, args: [...context.args], cwd: context.cwd, env: { ...context.env } },
+          runtimeMount, maxTransferBytes, signal, ...(packages ? { packages } : {}), installOnly: !!installation,
+          onReady() {
+            if (closed || !running || signal.aborted || ready) return;
+            ready = true;
+            try { options.onProgress?.({ phase: 'ready', command: context.command }); }
+            catch (reason) { running = false; rejectRun?.(reason); throw reason; }
+          },
+          async dispatch(request) {
+            signal.throwIfAborted();
+            if (closed || !running || requesting || !request || typeof request.op !== 'string' || !Array.isArray(request.args)) throw reportPythonFailure('transport-unavailable', undefined, options.onDiagnostic);
+            requesting = true;
+            const operation = Promise.resolve().then(() => dispatch(request)).catch(async error => {
+              signal.throwIfAborted();
+              if (error instanceof PythonInputChunkError) rejectRun?.(error);
+              if (request.op.startsWith('package-')) throw Object.assign(reportPythonFailure('runtime-assets', error, options.onDiagnostic), { code: 'EPACKAGE' });
+              await diagnoseFilesystemFailure(request.op, error);
+              throw error;
+            });
+            const tracked = operation.then(() => {}, () => {});
+            pending.add(tracked);
+            try { return await operation; }
+            finally { requesting = false; pending.delete(tracked); }
+          },
+        };
+        const execution = Promise.resolve().then(() => {
+          signal.throwIfAborted();
+          return executor!.run(start);
+        }).catch(reason => {
+          running = false;
+          if (signal.aborted) throw signal.reason;
+          throw reportPythonFailure(reason instanceof PythonFailure ? reason.category : ready ? 'runtime' : 'startup', reason, options.onDiagnostic);
+        }).then(status => {
+          running = false;
+          if (requesting) throw reportPythonFailure('transport-unavailable', undefined, options.onDiagnostic);
+          try { return validateExitCode(status); }
+          catch (reason) { throw reportPythonFailure('transport-unavailable', reason, options.onDiagnostic); }
+        });
+        const tracked = execution.then(() => {}, () => {});
+        pending.add(tracked);
+        void tracked.then(() => pending.delete(tracked));
+        result = await new Promise<number>((resolve, reject) => {
+          rejectRun = reject;
+          signal.addEventListener('abort', aborted, { once: true });
+          if (signal.aborted) aborted();
+          execution.then(resolve, reject);
+        });
+      } else {
+      let shared: SharedArrayBuffer;
+      try { shared = new SharedArrayBuffer(8 + maxTransferBytes * 6 + 65536); }
+      catch (reason) { throw reportPythonFailure('transport-unavailable', reason, options.onDiagnostic); }
+      const control = new Int32Array(shared, 0, 2);
+      const payload = new Uint8Array(shared, 8);
+      const reply = (value: unknown, status: number): void => {
+        if (closed) return;
+        let bytes: Uint8Array;
+        try { bytes = encodePythonReply(value, payload.length); }
+        catch (error) {
+          if (typeof error !== 'object' || error === null || !('code' in error) || error.code !== 'EFBIG') throw error;
+          bytes = encodePythonReply({ code: 'EFBIG' }, payload.length); status = 2;
+        }
+        payload.set(bytes);
+        try {
+          Atomics.store(control, 1, bytes.length);
+          Atomics.store(control, 0, status);
+          Atomics.notify(control, 0);
+        } catch (reason) { throw reportPythonFailure('transport-unavailable', reason, options.onDiagnostic); }
+      };
+      try { endpoint = options.createWorker!(); }
       catch (reason) { throw reportPythonFailure(reason instanceof PythonFailure ? reason.category : 'startup', reason, options.onDiagnostic); }
       signal.throwIfAborted();
       result = await new Promise<number>((resolve, reject) => {
@@ -255,17 +337,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
                 return;
               }
               if (typeof error !== 'object' || error === null || !('code' in error) || typeof error.code !== 'string') { pending.delete(work); fail(error); return; }
-              if (error.code === 'ENOTSUP') {
-                const category: PythonFailureCategory = message.op === 'open' ? 'filesystem-open'
-                  : message.op === 'read' ? 'filesystem-read'
-                    : message.op === 'write' || message.op === 'ftruncate' ? 'filesystem-write'
-                      : message.op === 'readdir' ? 'filesystem-directory' : 'filesystem-operation';
-                if (!filesystemDiagnostics.has(category)) {
-                  filesystemDiagnostics.add(category);
-                  const failure = reportPythonFailure(category, error, options.onDiagnostic);
-                  await writeBytes(stderrOperation!.output, new TextEncoder().encode('python: ' + failure.message + '\n'), signal);
-                }
-              }
+              await diagnoseFilesystemFailure(message.op as string, error);
               pending.delete(work);
               reply({ code: error.code }, 2);
             },
@@ -280,6 +352,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
         try { endpoint!.postMessage(start); }
         catch (reason) { transportFailure(reason); }
       });
+      }
     } catch (reason) {
       if (!signal.aborted && reason instanceof PythonInputChunkError) {
         try { await writeBytes(stderrOperation!.output, new TextEncoder().encode('python: ' + reason.message + '\n'), signal); }
@@ -302,11 +375,11 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
     }
     return { exitCode: result };
   };
-  return ['python', 'python3'].map(name => ({ name, description: 'Python with an explicit synchronous interpreter worker and canonical filesystem', execute }));
+  return ['python', 'python3'].map(name => ({ name, description: 'Python with an explicit interpreter executor and canonical filesystem', execute }));
 }
 
 export function pythonCommands(options: PythonCommandsOptions): VirtualShellPlugin {
-  if (typeof options?.createWorker !== 'function') throw new PythonFailure('executor-unavailable');
+  if (!options || (typeof options.createWorker === 'function') === (typeof options.createExecutor === 'function')) throw new PythonFailure('executor-unavailable');
   if (options?.environment && options.provisioning) throw new TypeError('A borrowed Python environment cannot be combined with provisioning options');
   const { provisioning, ...configuration } = options;
   const environment = options.environment ?? createPythonPackageEnvironment(provisioning);
@@ -322,5 +395,7 @@ export type { PythonPackageOptions, PythonPackageCache, PythonPackageProgress, P
 export { PythonPackageConflictError, createPythonPackageManifestStore } from './manifest.js';
 export type { PythonPackageManifest, PythonPackageManifestStore } from './manifest.js';
 export { createPythonPackageCache } from './cache.js';
+export { createPythonExecutorPool } from './executor-pool.js';
+export type { PythonExecutorPool, PythonExecutorPoolOptions } from './executor-pool.js';
 export { PythonFailure, inspectPythonCapabilities } from './diagnostics.js';
 export type { PythonFailureCategory, PythonDiagnostic, PythonDiagnosticObserver, PythonFileSystemRequirement, PythonCapabilityOptions, PythonCapabilityReport } from './diagnostics.js';

@@ -399,6 +399,11 @@
       "browser": null,
       "import": "./packages/safe-bash/dist/commands/python/node.js"
     },
+    "./safe-bash/commands/python/docker": {
+      "types": "./packages/safe-bash/dist/commands/python/docker.d.ts",
+      "browser": null,
+      "import": "./packages/safe-bash/dist/commands/python/docker.js"
+    },
     "./docx": {
       "types": "./packages/docx/dist/index.d.ts",
       "import": "./packages/docx/dist/index.js"

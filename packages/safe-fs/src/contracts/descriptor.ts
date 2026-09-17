@@ -10,6 +10,7 @@ export interface OpenFileOptions extends FsOptions {
 }
 
 export interface FileDescriptorCapabilities {
+  readonly publication?: "conditional";
   readonly position?: boolean;
   readonly readObservation?: boolean;
   readonly openTruncate?: boolean;

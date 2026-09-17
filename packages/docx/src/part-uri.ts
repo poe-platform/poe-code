@@ -1,5 +1,6 @@
 import { InputTypeError } from "./archive.js";
 import { InvalidPackageError } from "./package-xml.js";
+import { iriComponent } from "./relationship-type.js";
 
 export function invalidPackage(): never {
   throw new InvalidPackageError("Invalid document OPC container.");
@@ -35,7 +36,7 @@ function unicodeCharacter(char: string): boolean {
     (point >= 0xa0 && point <= 0xd7ff) ||
     (point >= 0xf900 && point <= 0xfdcf) ||
     (point >= 0xfdf0 && point <= 0xffef) ||
-    (point >= 0x10000 && point <= 0xefffd && (point & 0xffff) <= 0xfffd)
+    (point >= 0x10000 && point <= 0xefffd && (point & 0xffff) <= 0xfffd && !(point >= 0xe0000 && point < 0xe1000))
   );
 }
 
@@ -115,29 +116,8 @@ export function resolvePartTarget(
     (!path.startsWith("/") && path.split("/")[0]!.includes(":"))
   )
     invalidPackage();
-  if (fragment !== null) {
-    // Fragments identify content, not another package part. Retain their spelling.
-    try {
-      if (
-        [...decodeURIComponent(fragment)].some(
-          (char) => char.codePointAt(0)! < 0x20 || char === "\x7f"
-        )
-      )
-        invalidPackage();
-    } catch {
-      invalidPackage();
-    }
-    for (let index = 0; index < fragment.length; ) {
-      const char = String.fromCodePoint(fragment.codePointAt(index)!);
-      if (char === "%") {
-        index += 3;
-        continue;
-      }
-      if (!unreserved(char) && !"!$&'()*+,;=:@/?".includes(char) && !unicodeCharacter(char))
-        invalidPackage();
-      index += char.length;
-    }
-  }
+  // A fragment is retained IRI data, not a decoded path or resource name.
+  if (fragment !== null && !iriComponent(fragment, ":@/?")) invalidPackage();
   if (!path) {
     if (source === "/") invalidPackage();
     return { partname: source, fragment };

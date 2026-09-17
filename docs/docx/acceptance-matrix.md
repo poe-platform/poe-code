@@ -1,5 +1,11 @@
 # DOCX acceptance matrix
 
+The [internal Target fragment record](internal-target-fragment-20260917.md)
+qualifies 1,104 exact public cases and 84 built checks, zero skips, alongside
+2,407 existing consumer cases. Escaped fragment octets retain their spelling;
+literal IRI/noncharacter boundaries reject correctly. These are named passing
+obligations, not complete F01–F07 acceptance.
+
 The [external Target IRI record](external-target-iri-20260917.md) qualifies
 3,200 exact model/SDK/actual Shell cases, 144 built public checks and 2,407
 existing consumer cases, zero skips. Active malformed targets reject; valid

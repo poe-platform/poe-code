@@ -450,3 +450,13 @@ independent numbering assertions and exact style/relationship retention. The
 original 144 failures remain preserved. This closes this F02/F03/F04/F05 and
 F15/F18 dependency; complete F01–F07 acceptance and the current workspace gate
 remain open.
+# Public reservation/cancellation variants — 2026-09-17
+
+[Exact evidence](public-budget-cancellation-20260917.md) qualifies 304 DOCX
+model/SDK/actual Shell observations covering measured work/retained-memory
+boundaries, host/option limits, cooperative cancellation and settled stream
+cleanup, across both dialects/kinds and stored/deflated inputs. Another 24 host
+Shell cancellation observations remain distinct. Three corrected harness
+failures are preserved with zero credit. No product change was required. The
+model BatchData contract gap, current workspace gate and full F01–F07 acceptance
+remain open.

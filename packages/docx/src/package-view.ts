@@ -123,11 +123,12 @@ export class PackageView {
     const key = asciiKey(metadata.partname);
     let part = this.#parts.get(key);
     if (!part) {
-      part = metadata.content_type.startsWith("image/") ? new ImagePartView(this, metadata.partname)
-        : metadata.content_type === "application/vnd.openxmlformats-package.core-properties+xml" ? new CorePropertiesPartView(this, metadata.partname)
-        : Object.values(documentTypes).includes(asciiKey(metadata.content_type)) ? new DocumentPartView(this, metadata.partname)
-        : metadata.content_type === "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml" ? new NumberingPart(this, metadata.partname)
-        : xmlType(metadata.content_type) ? new XmlPartView(this, metadata.partname) : new PartView(this, metadata.partname);
+      const type = asciiKey(metadata.content_type);
+      part = type.startsWith("image/") ? new ImagePartView(this, metadata.partname)
+        : type === "application/vnd.openxmlformats-package.core-properties+xml" ? new CorePropertiesPartView(this, metadata.partname)
+        : Object.values(documentTypes).includes(type) ? new DocumentPartView(this, metadata.partname)
+        : type === "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml" ? new NumberingPart(this, metadata.partname)
+        : xmlType(type) ? new XmlPartView(this, metadata.partname) : new PartView(this, metadata.partname);
     }
     return part;
   }
@@ -154,7 +155,7 @@ export class PackageView {
   }
   get rels(): Relationships { return this[packageRelationships]("/"); }
   get image_parts(): ImageParts { return this.#imageParts ??= new ImageParts(this); }
-  [packageImages](): readonly ImagePartView[] { return this.current().graph.parts.filter(part => part.content_type.startsWith("image/")).map(part => this[packagePart](part.partname) as ImagePartView); }
+  [packageImages](): readonly ImagePartView[] { return this.current().graph.parts.filter(part => asciiKey(part.content_type).startsWith("image/")).map(part => this[packagePart](part.partname) as ImagePartView); }
   [packageImage](part: ImagePartView): Image {
     const image = this.#images.get(this[packageMetadata](part).partname);
     if (!image) throw new UnsupportedEditError("This image part has no admitted bounded raster characterization.");
@@ -163,17 +164,18 @@ export class PackageView {
   [packageBindImage](part: ImagePartView, image: Image): void {
     if (!(part instanceof ImagePartView) || !(image instanceof Image)) throw new InputTypeError("Expected an owned image part and characterized image.");
     const metadata = this[packageMetadata](part), bytes = image.blob;
-    if (metadata.content_type !== image.content_type || metadata.bytes.length !== bytes.length ||
+    if (asciiKey(metadata.content_type) !== image.content_type || metadata.bytes.length !== bytes.length ||
         !metadata.bytes.every((byte, i) => byte === bytes[i]))
       throw new InvalidValueError("Image characterization conflicts with the owned part bytes.");
     this.#images.set(metadata.partname, image);
   }
   async [packageAdmitImages](): Promise<void> {
     for (const part of this[packageImages]()) {
-      if (!["image/png", "image/jpeg", "image/gif", "image/bmp", "image/tiff"].includes(part.content_type)) continue;
+      const type = asciiKey(part.content_type);
+      if (!["image/png", "image/jpeg", "image/gif", "image/bmp", "image/tiff"].includes(type)) continue;
       try {
         const image = await Image.from_blob(part.blob, this.#binding.context as ImageModelContext);
-        if (image.content_type === part.content_type) this.#images.set(part.partname.toString(), image);
+        if (image.content_type === type) this.#images.set(part.partname.toString(), image);
       } catch (error) {
         if (!(error instanceof UnsupportedEditError)) throw error;
       }
@@ -184,7 +186,7 @@ export class PackageView {
     const revision = this.#revision, ownerVersion = this.#binding.version();
     const image = bytes instanceof Image ? await Image.from_blob(bytes.blob, this.#binding.context as ImageModelContext) : await Image.from_blob(bytes, this.#binding.context as ImageModelContext);
     if (revision !== this.#revision || ownerVersion !== this.#binding.version()) throw new PublicationError("conflict", "Package changed during image admission.");
-    if (image.content_type !== contentType) throw new InvalidValueError("Image part content type conflicts with its byte signature.");
+    if (typeof contentType !== "string" || image.content_type !== asciiKey(contentType)) throw new InvalidValueError("Image part content type conflicts with its byte signature.");
     const part = this[packageAdmitPart](name, contentType, image.blob) as ImagePartView;
     this.#images.set(part.partname.toString(), image);
     return part;
@@ -425,7 +427,7 @@ export class PackageView {
     for (const node of typeEditor.root.children) if (node.attributes.some(attribute => attribute.localName === "PartName" && asciiKey(attribute.value) === asciiKey(from))) { typeEditor.setAttribute(node, "PartName", to); override = true; }
     if (!override) typeEditor.insertChildren(typeEditor.root, `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="${xmlValue(to)}" ContentType="${xmlValue(metadata.content_type)}"/>`);
     replacements.set(types.name, typeEditor.serialize());
-    for (const owner of ["/", ...graph.parts.filter(part => part.content_type !== relContentType).map(part => part.partname)]) {
+    for (const owner of ["/", ...graph.parts.filter(part => asciiKey(part.content_type) !== relContentType).map(part => part.partname)]) {
       const edges = graph.relationships(owner), member = archive.members.find(member => member.name === relationshipName(owner));
       if (!member || !edges.some(edge => !edge.is_external && (owner === from || edge.target_part.partname === from))) continue;
       const xml = new DocumentXmlEditor(member.bytes, {}, undefined, settings.budget);
@@ -514,7 +516,7 @@ export class DocumentPartView extends XmlPartView {
 export class NumberingPart extends XmlPartView {
   #definitions: _NumberingDefinitions | undefined;
   static override async load(partname: string | PackURI, content_type: string, blob: Uint8Array, owner: PackageView): Promise<NumberingPart> {
-    if (content_type !== "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml") throw new InputTypeError("Expected the numbering content type.");
+    if (typeof content_type !== "string" || asciiKey(content_type) !== "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml") throw new InputTypeError("Expected the numbering content type.");
     return await super.load(partname, content_type, blob, owner) as NumberingPart;
   }
   static new(owner: PackageView): NumberingPart {
@@ -552,7 +554,7 @@ export class CorePropertiesPartView extends XmlPartView {
     return part;
   }
   static override async load(partname: string | PackURI, content_type: string, blob: Uint8Array, owner: PackageView): Promise<CorePropertiesPartView> {
-    if (content_type !== "application/vnd.openxmlformats-package.core-properties+xml") throw new InputTypeError("Expected the core-properties content type.");
+    if (typeof content_type !== "string" || asciiKey(content_type) !== "application/vnd.openxmlformats-package.core-properties+xml") throw new InputTypeError("Expected the core-properties content type.");
     return await super.load(partname, content_type, blob, owner) as CorePropertiesPartView;
   }
   #properties: CoreProperties | undefined;

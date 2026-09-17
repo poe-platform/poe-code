@@ -500,7 +500,7 @@ interface MaintainedDocxOperationArgumentMap {
   "model.table._Cell.vertical_alignment.get": Readonly<Record<string, never>>;
   "model.table._Cell.vertical_alignment.set": Readonly<{ "value": DocxEnumValue<"WD_CELL_VERTICAL_ALIGNMENT"> | null }>;
   "model.table._Cell.width.get": Readonly<Record<string, never>>;
-  "model.table._Cell.width.set": Readonly<{ "value": DocxLength }>;
+  "model.table._Cell.width.set": Readonly<{ "value": DocxLength | null }>;
   "model.table._Row.cells.get": Readonly<Record<string, never>>;
   "model.table._Row.grid_cols_after.get": Readonly<Record<string, never>>;
   "model.table._Row.grid_cols_before.get": Readonly<Record<string, never>>;
@@ -2026,7 +2026,7 @@ export interface DocxBatchArgumentMap extends
   "model.table._Cell.vertical_alignment.get": Readonly<Record<string, never>>;
   "model.table._Cell.vertical_alignment.set": Readonly<{ "value": DocxEnumValue<"WD_CELL_VERTICAL_ALIGNMENT"> | null }>;
   "model.table._Cell.width.get": Readonly<Record<string, never>>;
-  "model.table._Cell.width.set": Readonly<{ "value": DocxLength }>;
+  "model.table._Cell.width.set": Readonly<{ "value": DocxLength | null }>;
   "model.table._Row.cells.get": Readonly<Record<string, never>>;
   "model.table._Row.grid_cols_after.get": Readonly<Record<string, never>>;
   "model.table._Row.grid_cols_before.get": Readonly<Record<string, never>>;

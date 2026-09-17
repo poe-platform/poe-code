@@ -165,7 +165,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
     return { kind: entry.scope ?? "story", location: { kind: "story" as const, token, value, positions: { ...entry.positions } }, properties: [], references: relationships.filter(r => r.owner === entry.part), support: "read" as const };
   });
   const signatureReferences = relationships.filter(reference => signatureRelationshipTypes.includes(reference.type));
-  const signatureTargets = new Set<string>(); for (const owner of ["/", ...graph.parts.filter(part => !part.content_type.toLowerCase().endsWith("relationships+xml")).map(part => part.partname)]) for (const edge of graph.relationships(owner)) if (!edge.is_external && signatureRelationshipTypes.includes(edge.reltype)) signatureTargets.add(edge.target_part.partname);
+  const signatureTargets = new Set<string>(); for (const owner of ["/", ...graph.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(part => part.partname)]) for (const edge of graph.relationships(owner)) if (!edge.is_external && signatureRelationshipTypes.includes(edge.reltype)) signatureTargets.add(edge.target_part.partname);
   const signatureParts = parts.filter(part => signatureContentTypes.includes(part.contentType.toLowerCase()) || signatureTargets.has(part.name));
   const signed = signatureParts.length > 0 || signatureReferences.length > 0;
   const media = parts.filter(p => ["image/", "audio/", "video/"].some(prefix => p.contentType.toLowerCase().startsWith(prefix)));

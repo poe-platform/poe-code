@@ -29,7 +29,7 @@ const compare=(a:string,b:string)=>a<b?-1:a>b?1:0;
 export function chartDefinitionParts(graph:DocumentPackage,budget:DocumentBudget):readonly PackagePart[] {
  const names=new Set<string>();
  for(const part of graph.parts){budget.charge('work',1);if([standardMime,extendedMime].includes(part.content_type.toLowerCase()))names.add(part.partname);}
- for(const owner of ['/',...graph.parts.filter(p=>!p.content_type.toLowerCase().endsWith('relationships+xml')).map(p=>p.partname)])for(const edge of graph.relationships(owner)){budget.charge('work',1);if(!edge.is_external&&definitionRelations.includes(edge.reltype))names.add(edge.target_part.partname);}
+ for(const owner of ['/',...graph.parts.filter(p=>p.content_type.toLowerCase()!=='application/vnd.openxmlformats-package.relationships+xml').map(p=>p.partname)])for(const edge of graph.relationships(owner)){budget.charge('work',1);if(!edge.is_external&&definitionRelations.includes(edge.reltype))names.add(edge.target_part.partname);}
  budget.check('matches',names.size);budget.charge('retainedBytes',names.size*96);return [...names].sort(compare).map(name=>graph.getPart(name));
 }
 /** Read-only inventory of admitted physical chart definitions and inert graph resources. */
@@ -45,7 +45,7 @@ export async function inspectDocumentCharts(input:Uint8Array,options:DocxOperati
  const descriptor=async(part:PackagePart):Promise<ChartPart>=>{const existing=descriptors.get(part.partname);if(existing)return existing;budget.charge('retainedBytes',256+(part.partname.length+part.content_type.length)*2);const record={name:part.partname,contentType:part.content_type,bytes:part.bytes.length,sha256:await hash(part.bytes)};descriptors.set(part.partname,record);return record;};
  const root=(part:PackagePart)=>{let parsed=roots.get(part.partname);if(!parsed){parsed=parseDocumentXml(part.bytes,{},budget).root;roots.set(part.partname,parsed);}return parsed;};
  const reference=(owner:string,edge:PackageRelationship):InspectionReference=>{budget.charge('retainedBytes',128+(owner.length+edge.rId.length+edge.reltype.length+edge.target_ref.length)*2);return{owner,id:edge.rId,type:edge.reltype,target:edge.target_ref,external:edge.is_external};};
- const allEdges:{owner:string;edge:PackageRelationship}[]=[];for(const owner of ['/',...graph.parts.filter(p=>!p.content_type.toLowerCase().endsWith('relationships+xml')).map(p=>p.partname)])for(const edge of graph.relationships(owner)){budget.charge('work',1);budget.charge('retainedBytes',32);allEdges.push({owner,edge});}
+ const allEdges:{owner:string;edge:PackageRelationship}[]=[];for(const owner of ['/',...graph.parts.filter(p=>p.content_type.toLowerCase()!=='application/vnd.openxmlformats-package.relationships+xml').map(p=>p.partname)])for(const edge of graph.relationships(owner)){budget.charge('work',1);budget.charge('retainedBytes',32);allEdges.push({owner,edge});}
  for(const part of chartDefinitionParts(graph,budget)){
   await budget.checkpoint();const definition=await descriptor(part),parsed=root(part),decoded=decodeChartContent(parsed,part.partname,budget);let status=decoded.status;const issues=[...decoded.issues];
   const issue=(code:string,path:readonly number[],message:string):ChartIssue=>{budget.charge('diagnosticBytes',code.length+message.length+part.partname.length+32);budget.charge('retainedBytes',128+(code.length+message.length+part.partname.length)*2+path.length*8);return{code,part:part.partname,path,message};};

@@ -133,7 +133,7 @@ export function embeddedFontState(graph: DocumentPackage, budget: DocumentBudget
   const state: unknown[] = [];
   for (const part of graph.parts) {
     budget.charge("work", 1);
-    if (part.content_type.toLowerCase().endsWith(".fonttable+xml")) {
+    if (part.content_type.toLowerCase() === "application/vnd.openxmlformats-officedocument.wordprocessingml.fonttable+xml") {
       const root = parseDocumentXml(part.bytes, {}, budget).root;
       for (const font of root.children) if (font.namespace === root.namespace && font.localName === "font" && font.children.some(n => n.namespace === root.namespace && embeddedNames.has(n.localName))) state.push([part.partname, displayXml(font, budget, false)]);
     }

@@ -354,5 +354,5 @@ export function createDocxInspectionCommandEngine(options: { readonly limits?: P
       if (request.signal.aborted) return sinkFailure(request.signal.reason);
       return { exitCode, ...(archiveReceipt ? { extraction: archiveReceipt } : {}) };
     }
-  }, { compressedInput: limits.maxArchiveBytes, expandedPackage: limits.maxTotalBytes, zipEntries: limits.maxMembers, retainedBytes: limits.maxRetainedBytes, xmlPartBytes: Math.min(limits.maxEntryBytes, documentLimitDefaults.xmlPartBytes), xmlDepth: Math.min(limits.maxDepth, documentLimitDefaults.xmlDepth), ...options.documentLimits });
+  }, { compressedInput: limits.maxArchiveBytes, expandedPackage: limits.maxTotalBytes, zipEntries: limits.maxMembers, retainedBytes: limits.maxRetainedBytes, xmlPartBytes: Math.min(limits.maxEntryBytes, documentLimitDefaults.xmlPartBytes), ...options.documentLimits });
 }

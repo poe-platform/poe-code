@@ -2,6 +2,7 @@ import { crc32, deflateRawSync } from "node:zlib";
 
 export interface Zip64DocumentOptions {
   readonly strict: boolean;
+  readonly kind?: "docx" | "dotx";
   readonly compression: "store" | "deflate";
   readonly fields: "sizes" | "offset" | "both";
   readonly descriptor: "none" | "unsigned" | "signed";
@@ -11,9 +12,9 @@ export interface Zip64DocumentOptions {
 export function zip64Document(options: Zip64DocumentOptions) {
   const namespace = options.strict ? "http://purl.oclc.org/ooxml/wordprocessingml/main" : "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
   const rel = options.strict ? "http://purl.oclc.org/ooxml/officeDocument/relationships" : "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
-  const kind = options.strict ? "dotx" : "docx";
+  const kind = options.kind ?? (options.strict ? "dotx" : "docx");
   const parts = new Map<string, Uint8Array>(Object.entries({
-    "[Content_Types].xml": `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/reports/body.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.${options.strict ? "template" : "document"}.main+xml"/></Types>`,
+    "[Content_Types].xml": `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/reports/body.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.${kind === 'dotx' ? "template" : "document"}.main+xml"/></Types>`,
     "_rels/.rels": `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="main" Type="${rel}/officeDocument" Target="reports/body.xml"/></Relationships>`,
     "reports/body.xml": `<?xml version="1.0"?><!--original--><n:document xmlns:n="${namespace}"><n:body><n:p><n:r><n:t>Wide member</n:t></n:r></n:p></n:body></n:document>`,
     "records/retained.xml": '<record xmlns="urn:original:retained">Unrelated bytes</record>'

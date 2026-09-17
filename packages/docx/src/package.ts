@@ -284,9 +284,12 @@ export class DocumentPackage {
 
   getPart(partname: string): PackagePart {
     if (typeof partname !== "string") throw new InputTypeError("Expected a part name.");
-    if (partname.length > this.limits.maxPathBytes) throw new ResourceLimitError("Package part path limit exceeded.");
+    // A lookup may percent-encode each admitted byte and adds the OPC root slash.
+    if ((partname.length - 1) / 3 > this.limits.maxPathBytes) throw new ResourceLimitError("Package part path limit exceeded.");
     this.#budget.charge("work", partname.length);
-    const part = this.byName.get(asciiKey(normalizePartName(partname)));
+    const name = normalizePartName(partname);
+    if (new TextEncoder().encode(name.slice(1)).length > this.limits.maxPathBytes) throw new ResourceLimitError("Package part path limit exceeded.");
+    const part = this.byName.get(asciiKey(name));
     if (!part) throw new InvalidValueError("Package part was not found.");
     return part;
   }

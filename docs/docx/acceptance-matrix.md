@@ -1,5 +1,10 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 container qualification](container-variant-closure-20260917.md)
+adds independent public dialect/kind/compression/ZIP64 variants and exact path,
+archive and XML-depth boundaries. Its 2,210 named passes close those stated
+gaps only; every complete F01–F07 family remains open.
+
 The [2026-09-16 canonical OPC follow-up](opc-canonical-parts-20260916.md) adds
 exact current URI/relationship/XML evidence for F01/F02/F04/F06/F07. It does not
 close these complete families or replace the historical bounded matrix below.

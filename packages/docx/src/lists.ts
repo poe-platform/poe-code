@@ -58,7 +58,7 @@ export async function editDocumentLists(input: Uint8Array, request: ListEditRequ
     budget.charge("work", 1);
     const part = before.value.part.slice(1);
     let xml = editors.get(part);
-    if (!xml) { xml = new DocumentXmlEditor(archive.members.find(m => m.name === part)!.bytes, {}, undefined, budget); editors.set(part, xml); }
+    if (!xml) { xml = new DocumentXmlEditor(archive.members.find(m => m.name === part)!.bytes, {}, undefined, budget); editors.set(part, xml); graph.project(xml.root); }
     let node = xml.root, parent = node;
     const ancestors = [node];
     for (const position of before.value.path) { parent = node; node = node.children[position]!; ancestors.push(node); }
@@ -76,11 +76,11 @@ export async function editDocumentLists(input: Uint8Array, request: ListEditRequ
       if (!resolved.levels.has(level) || !resolved.levels.has(existing.level)) throw new UnsupportedEditError("The selected numbering level has no definition.");
       id = existing.id;
       if (options.restart) {
-        const start = options.start ?? Number(attr(child(resolved.levels.get(level), "start")) ?? 1);
+        const start = options.start ?? Number(attr(graph.child(resolved.levels.get(level), "start")) ?? 1);
         id = graph.restart(resolved, level, start);
       }
       if (id === existing.id && level === existing.level) continue;
-      const props = child(node, "pPr");
+      const props = graph.child(node, "pPr");
       const markup = listProperties(xml, props, id, level, w);
       if (props) xml.replaceElement(props, markup);
       else xml.insertChildren(node, markup, node.children[0]);
@@ -90,7 +90,7 @@ export async function editDocumentLists(input: Uint8Array, request: ListEditRequ
       if (existing && options.start === undefined) {
         const resolved = graph.resolve(existing.id);
         if (!resolved.levels.has(existing.level)) throw new UnsupportedEditError("The preceding numbering level has no definition.");
-        if (attr(child(resolved.levels.get(level), "numFmt")) === options.kind || graph.mixUnusedLevel(resolved, level, options.kind)) id = existing.id;
+        if (attr(graph.child(resolved.levels.get(level), "numFmt")) === options.kind || graph.mixUnusedLevel(resolved, level, options.kind)) id = existing.id;
       }
       if (!id) id = graph.create(options.kind, options.start ?? 1, level);
       const markup = `<nl:p xmlns:nl="${w}">${listProperties(undefined, undefined, id, level, w)}${paragraphTextRun(w, options.text ?? "")}</nl:p>`;

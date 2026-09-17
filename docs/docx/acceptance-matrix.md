@@ -88,3 +88,8 @@ Markdown/JSON format checks are recorded in the
 attributed exclusively to already committed code. No code fix, new TDD cycle,
 README modification, push or release is authorized in this task. Later product
 implementation and whole API acceptance tasks remain pending.
+## Current numbering compatibility evidence
+
+The [numbering continuation record](mce-numbering-continuation-20260916.md)
+adds exact F05/F18 read/edit/preserve/reject cases. Complete-family acceptance
+remains open; the bounded capability labels below do not certify whole families.

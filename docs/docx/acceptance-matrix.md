@@ -1,5 +1,11 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 template style-carrier correction](template-style-carriers-20260917.md)
+adds 576 exact native declaration/name/property/outline cases across six public
+routes, both dialects/kinds and active/inert carriers. Named styles and existing
+headings are reused with untouched styles/relationships retained byte-for-byte.
+Complete F01–F07 acceptance and body/section carrier qualification remain open.
+
 The [2026-09-17 template style correction](template-style-identity-20260917.md)
 qualifies 192 named F01/F02/F03/F04 cases across model, archive SDK, utility SDK
 and actual Shell. Encoded style members retain identity, relationships and custom

@@ -1,12 +1,12 @@
 import type { DocumentBudget } from "./budget.js";
-import type { CompatibilityContent } from "./compatibility.js";
+import { MarkupCompatibility, type CompatibilityContent } from "./compatibility.js";
 import type { XmlElement } from "./package-xml.js";
 import type { DocumentXmlEditor } from "./xml-write.js";
 
-const projections = new WeakMap<DocumentXmlEditor, ReadonlyMap<XmlElement, readonly XmlElement[]>>();
+const projections = new WeakMap<DocumentXmlEditor | XmlElement, ReadonlyMap<XmlElement, readonly XmlElement[]>>();
 
 /** Internal read projection retains physical nodes and their original compatibility scope. */
-export function activeXmlChildren(xml: DocumentXmlEditor, budget: DocumentBudget): (node: XmlElement) => readonly XmlElement[] {
+export function activeXmlChildren(xml: DocumentXmlEditor | XmlElement, budget: DocumentBudget): (node: XmlElement) => readonly XmlElement[] {
   let children = projections.get(xml);
   if (!children) {
     const projected = new Map<XmlElement, readonly XmlElement[]>();
@@ -17,7 +17,7 @@ export function activeXmlChildren(xml: DocumentXmlEditor, budget: DocumentBudget
         collect(item.content);
       }
     };
-    collect(xml.compatibility.content);
+    collect("kind" in xml ? new MarkupCompatibility(xml, undefined, budget).content : xml.compatibility.content);
     children = projected;
     projections.set(xml, children);
   }

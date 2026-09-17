@@ -3,6 +3,7 @@ import { InvalidValueError } from "./archive.js";
 import type { DocumentBudget } from "./budget.js";
 import type { DocxBlock, DocxContent, DocxLength, DocxRunInput, DocxThemeSettings } from "./operation-types.js";
 import type { XmlElement } from "./package-xml.js";
+import { activeXmlChildren } from "./xml-active-children.js";
 
 export function xmlValue(value: string): string {
   let result = "";
@@ -53,17 +54,18 @@ export function pageGeometry(page: DocxContent["page"], existing?: XmlElement, w
 export function renderContent(content: DocxContent, w: string, budget: DocumentBudget, stylesRoot?: XmlElement, containerWidth = 9360) {
   const styles = new Map<string, { id: string; type: string; outline?: string | undefined; builtin?: boolean }>();
   const ids = new Set<string>();
-  for (const style of stylesRoot?.children ?? []) {
+  const children = stylesRoot ? activeXmlChildren(stylesRoot, budget) : (node: XmlElement) => node.children;
+  for (const style of stylesRoot ? children(stylesRoot) : []) {
     if (style.namespace !== w || style.localName !== "style") continue;
     const attribute = (node: XmlElement, key: string) => node.attributes.find(a => a.namespace === w && a.localName === key)?.value;
     const id = attribute(style, "styleId"), type = attribute(style, "type");
-    const name = style.children.find(c => c.namespace === w && c.localName === "name");
+    const name = children(style).find(c => c.namespace === w && c.localName === "name");
     const value = name && attribute(name, "val");
     if (id) ids.add(id);
     if (value && id && type) {
       if (styles.has(value)) throw new InvalidValueError("Ambiguous style name in template.");
-      const properties = style.children.find(child => child.namespace === w && child.localName === "pPr");
-      const outline = properties?.children.find(child => child.namespace === w && child.localName === "outlineLvl");
+      const properties = children(style).find(child => child.namespace === w && child.localName === "pPr");
+      const outline = properties && children(properties).find(child => child.namespace === w && child.localName === "outlineLvl");
       styles.set(value, { id, type, outline: outline ? attribute(outline, "val") : undefined, builtin: !["1", "true", "on"].includes(attribute(style, "customStyle") ?? "") });
     }
   }

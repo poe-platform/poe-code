@@ -156,6 +156,13 @@ it.each([
           };
           if (!suffix) {
             metafile.outputs[relative].entryPoint = input;
+            if (input === "src/index.ts" && !volume.existsSync(path.join(root, "packages/pandoc/dist/public/command.js"))) {
+              metafile.outputs[relative].imports.push({
+                path: "poe-code/safe-bash/commands/pandoc",
+                external: true,
+                kind: "dynamic-import"
+              });
+            }
             if (!options.splitting)
               metafile.outputs[relative].imports.push({
                 path: external,
@@ -311,14 +318,15 @@ it.each(["workerd", "node"])("preserves the previous SafeJS bundle when %s compi
   const build = vi.fn(async (options: BuildOptions) => {
     if (options.outdir === path.join(root, "packages/safe-js/dist") && options.conditions?.includes(profile)) throw failure;
     if (options.outdir === path.join(root, "packages/pandoc/dist/public")) {
-      const entries = Object.entries(options.entryPoints as Record<string, string>);
+      const entries = Object.entries(options.entryPoints!);
       return {
-        metafile: { outputs: Object.fromEntries(entries.map(([name, entryPoint]) => [
-          path.join(options.outdir!, `${name}.js`), { entryPoint, imports: [] }
-        ])) },
-        outputFiles: entries.map(([name]) => ({
-          path: path.join(options.outdir!, `${name}.js`), contents: new TextEncoder().encode("export {};")
-        }))
+        outputFiles: entries.map(([name]) => ({ path: path.join(options.outdir!, `${name}.js`), contents: new Uint8Array() })),
+        metafile: {
+          outputs: Object.fromEntries(entries.map(([name, entryPoint]) => [
+            path.relative(root, path.join(options.outdir!, `${name}.js`)),
+            { entryPoint: path.relative(root, entryPoint), imports: [] }
+          ]))
+        }
       };
     }
     return { metafile: { outputs: {} } };

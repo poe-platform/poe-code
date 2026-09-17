@@ -276,7 +276,6 @@ await publishBundleOutputs(shellBundle, {
 consumerBuilds.push(shellBundle);
 await publishRootOptionalPackage(rootDir);
 
-
 // The opt-in converter bundles its private SDK implementation. Its public
 // declaration closure is shipped separately; no private workspace is installed
 // or loaded implicitly by a consumer.

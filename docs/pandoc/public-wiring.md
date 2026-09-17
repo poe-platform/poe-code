@@ -32,10 +32,14 @@ registration fails before replacement unless `replace: true` is supplied.
 Root bundling publishes a portable ESM graph for both converter entries. Shared
 canonical filesystem contracts stay external through `poe-code/safe-fs/core`,
 preserving runtime class identity. No private engine is loaded dynamically and no
-native Pandoc or process fallback is supplied. Text conversion does not import
-DOCX or PPTX engines. EPUB shares archive/compression codecs with Office packages;
+native Pandoc or process fallback is supplied. The current built-in PPTX adapter
+statically includes the presentation engine in ordinary text imports; the current
+public graph test explicitly requires it. DOCX remains absent. Separate text-only
+Office-bundle isolation is not delivered. EPUB shares archive/compression codecs with Office packages;
 those shared codecs are included along with the converter's existing PDF support.
-This export change does not add Office format capabilities.
+The original export change did not add Office format capabilities; the later
+PPTX adapter now supplies bounded built-in read/write support. Historical
+verification below predates it; see [the current acceptance audit](final-acceptance-audit.md).
 
 Public declarations are included separately from runtime bundles. Unbundled
 private Pandoc JavaScript is excluded from the root file inventory. Public unit
@@ -43,7 +47,7 @@ consumers inspect maintained build artifacts, copy the runtime graph into memfs,
 resolve exports and types, convert original text, and exercise collision and
 replacement through the real command registry. They do not invoke native build
 executables. Graph checks reject native/dynamic imports, ambient fetch/require
-calls and DOCX/PPTX engine sources. These checks are not a host JavaScript
+calls and DOCX engine sources, and verify PPTX engine inclusion. These checks are not a host JavaScript
 security boundary.
 
 ## Verification

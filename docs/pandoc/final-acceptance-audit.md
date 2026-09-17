@@ -146,7 +146,12 @@ not close the whole independent edge-case ledger.
 Maintained public consumer tests inspect the built portable graph, strict types,
 memfs packaged runtime, actual explicit registration/collision/replacement and
 conversion. They reject native/dynamic engine imports, ambient fetch/require and
-Office engine inclusion in text graphs. No conversion logic, native fallback,
+DOCX engine inclusion. The current graph test explicitly requires the PPTX
+engine to be bundled, and the built-in PPTX descriptor statically imports it.
+Ordinary text imports therefore include the presentation engine; the plan's
+separate text-only Office-bundle gate is unresolved. The historical public-wiring
+report predates this adapter and does not certify current text-only isolation.
+No conversion logic, native fallback,
 network fetch, external executable or LLM was added by this audit. Independent
 renderers/native oracles remain explicit historical QA lanes, not unit dependencies.
 

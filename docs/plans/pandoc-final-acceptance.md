@@ -21,6 +21,8 @@ Evidence belongs under `docs/pandoc`; this document is the agent procedure.
 5. Probe built public SDK and actual Shell/plugin directions and flags. Match
    every contract option/profile to implementation and independent evidence;
    retain rejected required behavior as unresolved, rather than changing scope.
+   Inspect current graph assertions: the current public test requires PPTX engine
+   inclusion; older text-only exclusion evidence does not qualify that graph.
 6. Check loss/errors, budgets, resources and portable graph tests, expanded
    formats and independent QA. A matrix, round trip, fixture count or gate test
    alone does not close upstream coverage or renderer requirements.

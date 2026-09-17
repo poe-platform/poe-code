@@ -1695,8 +1695,8 @@ and expanded-format implementations does not close the required profiles or QA.
 The audit reopens only tasks with concrete unresolved acceptance prerequisites:
 upstream completeness review, workspace README delivery, DOCX/XLSX dependencies,
 PPTX application QA, LaTeX/RST/EPUB reader profile reconciliation, RST loss
-behavior, PDF layout/serialization requirements, whole-contract conformance and
-visual/documentation gates.
+behavior, PDF layout/serialization requirements, text-only Office-bundle isolation,
+whole-contract conformance and visual/documentation gates.
 The final-acceptance task remains open; no unresolved work is archived.
 
 Procedure: [final acceptance audit](pandoc-final-acceptance.md). Findings and

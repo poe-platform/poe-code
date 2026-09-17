@@ -17,9 +17,9 @@ import {
 import { interpolatePipelineVars } from "./vars/interpolate.js";
 import { resolvePipelineVars } from "./vars/resolve.js";
 import { runPipeline } from "./run/pipeline.js";
-import { setPipelineTerminalName } from "./run/terminal-name.js";
+import { setTerminalTabName } from "@poe-code/terminal-name";
 
-vi.mock("./run/terminal-name.js", () => ({ setPipelineTerminalName: vi.fn().mockResolvedValue(undefined) }));
+vi.mock("@poe-code/terminal-name", () => ({ setTerminalTabName: vi.fn().mockResolvedValue(undefined) }));
 import { createPipelineSimulation, failTurn, successTurn } from "./testing/simulation.js";
 import type {
   AgentRunUsage,
@@ -106,7 +106,7 @@ function pipelinePlanYaml(lines: string[]): string {
 afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
-  vi.mocked(setPipelineTerminalName).mockClear();
+  vi.mocked(setTerminalTabName).mockClear();
 });
 
 describe("runPipeline terminal name", () => {
@@ -127,7 +127,7 @@ describe("runPipeline terminal name", () => {
       runAgent: vi.fn()
     });
     expect(result.stopReason).toBe("nothing_to_run");
-    expect(setPipelineTerminalName).toHaveBeenCalledExactlyOnceWith(title);
+    expect(setTerminalTabName).toHaveBeenCalledExactlyOnceWith(title);
   });
 });
 

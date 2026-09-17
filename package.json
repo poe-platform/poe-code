@@ -684,6 +684,7 @@
     "packages/opencode-poe-auth/dist",
     "packages/package-lint/dist",
     "packages/pipeline/dist",
+    "packages/terminal-name/dist",
     "packages/plan-browser/dist",
     "packages/poe-acp-client/dist",
     "packages/poe-agent/dist",

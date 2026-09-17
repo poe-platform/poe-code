@@ -1,7 +1,6 @@
 import { execFile } from "node:child_process";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { parsePlan } from "../plan/parser.js";
-import { setPipelineTerminalName } from "./terminal-name.js";
+import { setTerminalTabName } from "./index.js";
 
 vi.mock("node:child_process", () => ({ execFile: vi.fn() }));
 const ttyDescriptor = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
@@ -23,15 +22,28 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe("pipeline terminal naming", () => {
-  it("preserves the existing plan name metadata", () => {
-    expect(parsePlan("kind: pipeline\nversion: 1\nname: Fix login\ntasks: []").name).toBe("Fix login");
+describe("terminal tab naming", () => {
+  it("does nothing in unsupported terminals or for an empty name", async () => {
+    const write = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    await setTerminalTabName("Plan");
+    vi.stubEnv("TMUX", "tmux");
+    vi.stubEnv("TMUX_PANE", "%42");
+    await setTerminalTabName(" \u0007\n ");
+    expect(execFile).not.toHaveBeenCalled();
+    expect(write).not.toHaveBeenCalled();
+  });
+
+  it("ignores terminal write failures", async () => {
+    vi.stubEnv("TERM_PROGRAM", "iTerm.app");
+    Object.defineProperty(process.stdout, "isTTY", { configurable: true, value: true });
+    vi.spyOn(process.stdout, "write").mockImplementation(() => { throw new Error("terminal closed"); });
+    await expect(setTerminalTabName("Plan")).resolves.toBeUndefined();
   });
 
   it("renames only the tmux window containing the original pane with a bounded command", async () => {
     vi.stubEnv("TMUX", "/tmp/tmux/default,1,0");
     vi.stubEnv("TMUX_PANE", "%42");
-    await setPipelineTerminalName("Fix login");
+    await setTerminalTabName("Fix login");
     expect(execFile).toHaveBeenCalledWith("tmux", [
       "rename-window", "-t", "%42", "--", "Fix login"
     ], { timeout: 500 }, expect.any(Function));
@@ -43,14 +55,14 @@ describe("pipeline terminal naming", () => {
     vi.mocked(execFile).mockImplementation(((_file, _args, _options, callback) => {
       callback(new Error("ENOENT"), "", "");
     }) as typeof execFile);
-    await expect(setPipelineTerminalName("Plan")).resolves.toBeUndefined();
+    await expect(setTerminalTabName("Plan")).resolves.toBeUndefined();
     vi.mocked(execFile).mockImplementation(() => { throw new Error("launch failed"); });
-    await expect(setPipelineTerminalName("Plan")).resolves.toBeUndefined();
+    await expect(setTerminalTabName("Plan")).resolves.toBeUndefined();
   });
 
   it("does not rename another pane when tmux has no pane identifier", async () => {
     vi.stubEnv("TMUX", "tmux");
-    await setPipelineTerminalName("Plan");
+    await setTerminalTabName("Plan");
     expect(execFile).not.toHaveBeenCalled();
   });
 
@@ -58,7 +70,7 @@ describe("pipeline terminal naming", () => {
     vi.stubEnv("TERM_PROGRAM", "iTerm.app");
     Object.defineProperty(process.stdout, "isTTY", { configurable: true, value: true });
     const write = vi.spyOn(process.stdout, "write").mockReturnValue(true);
-    await setPipelineTerminalName("Fix\u001b\u0007\n login\u009c");
+    await setTerminalTabName("Fix\u001b\u0007\n login\u009c");
     expect(write).toHaveBeenCalledWith("\u001b]1;Fix login\u0007");
   });
 
@@ -66,7 +78,7 @@ describe("pipeline terminal naming", () => {
     vi.stubEnv("TERM_PROGRAM", "iTerm.app");
     Object.defineProperty(process.stdout, "isTTY", { configurable: true, value: false });
     const write = vi.spyOn(process.stdout, "write").mockReturnValue(true);
-    await setPipelineTerminalName("Plan");
+    await setTerminalTabName("Plan");
     expect(write).not.toHaveBeenCalled();
   });
 });

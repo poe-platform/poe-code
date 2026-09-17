@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 
-/** Optional terminal decoration must never prevent a pipeline run. */
-export async function setPipelineTerminalName(name: string): Promise<void> {
+/** Best-effort tab naming; failures must never interrupt the caller. */
+export async function setTerminalTabName(name: string): Promise<void> {
   try {
     const title = Array.from(name).filter((char) => {
       const code = char.codePointAt(0)!;

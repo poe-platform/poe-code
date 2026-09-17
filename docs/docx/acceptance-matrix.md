@@ -375,3 +375,11 @@ baseline's three failures remain recorded: the invalid MIME fixture is corrected
 with explicit rejection plus legal escaping assertions, and the selected-style
 tab dependency has its own passing receipt. No full-run pass is claimed.
 Relationship MCE, native variants and complete F01–F07 acceptance remain open.
+
+## Current generic loader profile evidence
+
+The [generic loader record](part-load-profile-20260917.md) qualifies 216 exact
+Part/XmlPart model/SDK/Shell cases with no product change. All corrected originals
+and the joint final run pass; initial invalid receiver failures remain recorded.
+Forty-eight built workflows include sixteen expected MustUnderstand refusals.
+This closes the named profile candidate only; complete F01–F07 remains open.

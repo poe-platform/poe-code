@@ -5319,3 +5319,641 @@ No visual CLI behavior changed, so no screenshot was taken. No atomic codec
 commit, push, remote-main delivery or release is claimed. This is selected-input
 dirty-candidate evidence, not an append-proof or frozen-archive inventory.
 No temporary logs or fixture files were created.
+
+## Reported-issue intake revalidation — 2026-09-17
+
+Inspected current `main`, HEAD
+`6551831fc0d7b885a9ce70ee2432a85a068b59be`, root/package AGENTS.md,
+the remaining-features plan, compatibility matrix and package ZIP documentation.
+The pre-existing edit to the plan's codec commit status was preserved.
+The supplied report repeats the final-qualification task but identifies no
+specific defective behavior, expected/actual result or failing invocation.
+Consequently no new behavioral issue can be validated from that report, and
+no product fix or new feature-completion claim is justified.
+
+Uncached existing regression invocation from the repository root:
+
+```sh
+node --import tsx --test --test-concurrency=1 --test-reporter=dot packages/safe-bash/tests/commands/zip*.test.ts packages/safe-bash/tests/commands/unzip.test.ts packages/safe-bash/tests/plugins/zip-commands.test.ts packages/safe-bash/tests/plugins/zip-safety.test.ts
+```
+
+Result: exit 0; the dot reporter displayed no failing-test markers. This runs
+the existing command/plugin suites, including the actual Shell `-j` image
+regression, recursion/standard flags, update/copy/move, comments/help, BZIP2,
+LZMA, streaming, crypto, volume and repair controls. The dot output does not
+provide a summary denominator; no exact test count or skip count is claimed.
+This is existing regression evidence, not independently enumerated proof of
+every applicable compatibility-matrix row or all five acceptance dimensions.
+
+Selected inputs after execution:
+
+| Input | SHA-256 |
+| --- | --- |
+| `src/commands/archive/zip.ts` | `13bc732f71ab5b3c098fa606acdc214ab70a80fbf130294ffde73f693b59087d` |
+| `src/commands/archive/zip-format.ts` | `77c939422c879ed35730d751f3202259997697d639907122c7cd5d5ecdf6446d` |
+| `tests/commands/zip-standard-flags.test.ts` | `3d51d009fad64c1837794953bfc618d961fc69e376f5d3294da9d18a823bf67a` |
+| `docs/ZIP.md` | `4c66d3da638925d23a4da5ccc66c022eea84eda68ebe4c333523bfe1738f806e` |
+
+Paths above are relative to packages/safe-bash. This selected-input check is
+not an append-proof inventory or a frozen committed-archive qualification.
+No source, test, SafeJS, README, runtime dependency or CLI behavior was edited.
+No full build/npm test/repository lint, new generated cross-product, upstream
+fixture adaptation, manual interoperability QA or screenshot was executed;
+those final-qualification requirements remain unverified. Historical unsupported
+profiles and exclusions retain their prior dispositions. No commit, push,
+remote-main delivery or successful release is claimed. No temporary artifacts
+were created.
+
+## Final ZIP qualification implementation — 2026-09-17
+
+Working `main` based on HEAD `6551831fc0d7b885a9ce70ee2432a85a068b59be`.
+Both existing dirty planning files were preserved. No product source, SafeJS,
+README, dependency manifest, host-process fallback, CLI/SDK argument or runtime
+contract was changed. The validated gap was qualification: prior evidence
+explicitly excluded generated cross-products, adapted upstream fixtures, full
+repository gates, manual interoperability QA and screenshots. Two ZIP documentation
+paragraphs also incorrectly described delivered streaming/ZIP64/encryption/split/SFX
+behavior as unavailable. Existing regression controls revalidated those behaviors
+before the documentation was corrected. Unsupported profiles were not broadened.
+
+### Frozen task input identity
+
+Final declared task-input inventory: **664 files**, SHA-256
+`17356b40e0edfc6617c172943cd923f891a1a670175347693e98358f901d7d8a`.
+Canonicalization: package-relative UTF-8 paths ordered by encoded pathname bytes;
+compact JSON array of `[path,SHA-256]` pairs, no trailing newline. Membership is
+all regular files recursively under `packages/safe-bash/src`, direct regular
+`packages/safe-bash/scripts` files, `package.json`, command `zip*.ts` plus
+`unzip.test.ts`, plugin `zip*.ts`, and fixture `zip*.json`. This includes runtime
+codec assets and the new offline fixture. It is a selected task inventory, not
+all repository/workspace/test/consumer inputs or a frozen committed Git archive.
+Documentation and unrelated planning edits are outside this runtime inventory.
+Final verification recomputes both membership and hashes, so additions within
+these declared domains are detected; no claim extends to excluded domains.
+
+| Edited executable input, relative to package | SHA-256 |
+| --- | --- |
+| `tests/commands/zip-qualification.test.ts` | `f81a332547e37559320ba87047bd9bcc81dcbf4dc2af0921bbf9a1075da71d7f` |
+| `tests/commands/fixtures/zip-upstream-boundaries.json` | `30c2926fecab571472b1c3aba10034cc5de15a95fc69ec71c5d948af303f454f` |
+| `scripts/integration-inputs.test.mjs` | `b47594b948778023f0e735de9518657d7eb8977fb9f400d7f7dc266988618fc2` |
+
+Host: Node v22.22.2, Darwin arm64, runtime America/Chicago, unset `TZ`,
+`LANG=en_US.UTF-8`, `LC_ALL=C.UTF-8`, Intl locale en-US. Native frozen captures
+retain their separately recorded C/UTC profiles. No Darwin result qualifies
+Linux or an unavailable native build. Package runtime `dependencies` remains
+`{}`; development dependencies are present and unchanged.
+
+### New offline controls and upstream adaptation
+
+`zip-qualification.test.ts` adds 39 top-level tests: nine upstream/profile
+vectors, two generated seed cohorts, and 28 admitted cancellation combinations.
+Seeds are `0x5a17` and `0xc0ffee`. The cross-product has **192 attempted cases**:
+STORE/DEFLATE/BZIP2/LZMA × forced/disabled ZIP64 × descriptors × CRLF conversion
+× bytewise/single-chunk/mixed partitions × two seeds. **168 round trips** verify
+expected bytes and producer-buffer ownership. **24 BZIP2 + -ll refusals** verify
+status 2, a capability/profile diagnostic and no archive publication. Refused
+profiles are counted separately from supported round trips, not skipped passes.
+
+Each supported round trip runs ten independent negative mutations: local,
+central and end signatures; local offset; local name; metadata length; directory
+offset; comment length; unsupported flags; and corrupted compressed payload.
+It also positively checks a binary archive comment containing an end signature
+without changing decoded member bytes. Cancellation crosses each admitted method,
+ZIP64, descriptor and conversion combination, preserving exact reason identity,
+closing the source and preventing archive publication. Upstream vectors additionally
+check pre-aborted admission; positive fixtures check exact archive budget/minus-one,
+truncation prefixes and Go's undersized decoded-entry behavior. Previously delivered
+phase-specific cancellation, limits and neighboring controls remain in the full
+regression cohort.
+
+Failure-only minimization preserves the failing assertion site, keeps method
+option/value atomic, deletes optional switches and payload spans, and simplifies
+partitions. Counterexamples report seed, flags, body hex and widths. This is a
+bounded deterministic reduction, not a proof of global minimality. The generated
+bodies are small ASCII (14–135 bytes); the 512-byte partition is a single-chunk
+control, not a 512-boundary claim. Larger/native-window/binary/Unicode boundaries
+are exercised by existing regression files, not invented as generated coverage.
+There is no exhaustive namespace, topology, option or work-schedule proof.
+
+Pinned source files, independently authenticated again by the reviewing agent:
+
+| Immutable source | SHA-256 |
+| --- | --- |
+| CPython `bcee1c322115c581da27600f2ae55e5439c027eb`, `Lib/test/test_zipfile/test_core.py` | `b0f623e9d85806fd18ca9ce3e1cfdba3d6479a7e360641fe92577a3140744802` |
+| Go `56ebf80e57db9f61981fc0636fc6419dc6f68eda`, `src/archive/zip/reader_test.go` | `75de0b2316deb615ad117d86e92f2bb84316d9ddc0a44471f6c48db7874c3e7c` |
+| libarchive `9525f90ca4bd14c7b335e2f8c84a4607b0af6bdf`, `libarchive/test/test_read_format_zip.c` | `3b951e483088d9a93b8a3717155118a9b311af77a36ba3cb4ca1369e3518d187` |
+
+Source URLs use `https://raw.githubusercontent.com/{repository}/{revision}/{path}`
+for `python/cpython`, `golang/go`, and `libarchive/libarchive`. Full PSF, Go BSD,
+and libarchive COPYING/source notices are retained in the fixture metadata.
+CPython bytes were extracted with AST literal parsing, without executing upstream
+imports. Go's overflow byte literal and `testdata/readme.zip` were adapted;
+libarchive's uu fixtures were decoded independently. Expected positive payloads
+were obtained with Python's standard-library `zipfile`, not product helpers.
+No upstream codec/library/test runner was copied into the product.
+
+libarchive BZIP2 uu SHA-256:
+`7baa771d86ac20a4d1ed079be94088c1628d8a513843981f353bda27ba36d359`;
+invalid-traditional-EOCD uu SHA-256:
+`e991aca929c7a08bfbac5f821486fa00808808e803c7562bed35193d27f637f9`.
+Original and adapted archive hashes are stored alongside each offline vector.
+The two positive adaptations remove Go trailing bytes and normalize libarchive's
+extraction-version field from `0x032e` to `0x002e`, respectively. Original bytes
+remain separate rejection controls. These limits are not allegations that either
+upstream positive archive is corrupt. CPython's short-extra fixture is permissively
+accepted upstream but deliberately refused by this strict TLV profile. Its two
+overlap vectors also have unusable local structure; rejection here proves structural
+admission, not uniquely the overlap rule. The original invalid libarchive EOCD
+fixture is refused by the strict profile rather than used as recovery evidence.
+All upstream suites, Go runtime execution and other proposed fixture adaptations
+remain unverified.
+
+Independent review found no oracle-logic defect and authenticated the three source
+and two uu hashes; it passed the earlier 19-test cohort. Final cancellation and
+mutation expansion followed its comments. That review is not an independent final
+whole-profile qualification or a new codec review.
+
+### Exact final regression invocation and outcomes
+
+```sh
+node --import tsx --test --test-concurrency=1 packages/safe-bash/tests/commands/zip*.test.ts packages/safe-bash/tests/commands/unzip.test.ts packages/safe-bash/tests/plugins/zip-commands.test.ts packages/safe-bash/tests/plugins/zip-safety.test.ts packages/safe-bash/tests/commands/bytes/compression/bounded-codec.test.ts packages/safe-bash/tests/commands/bytes/compression/bounded-codec-single-member.test.ts
+```
+
+Final frozen-input result: **2,196 passed**, zero failures, cancellations, skips
+or TODOs; 321,620.178750 ms measured wall duration under concurrent repository
+checks. Earlier 2,176-test cohort passed before final expansion; it does not
+qualify the later test bytes. Runtime timings under cohost load are not intrinsic
+codec latency or process-RSS guarantees. Every new fixture is static/offline and
+runtime filesystem effects use memory VFS.
+
+This executes all maintained ZIP/unzip/plugin files and bounded codec controls,
+including the actual Shell `-j` image-path regression, recursion, update/freshen,
+copy/move/filesync, comments/help, STORE/DEFLATE/BZIP2/LZMA, encryption, newline,
+streaming/ZIP64, split, SFX/recovery, publication ownership and virtual test command
+controls. The compatibility matrix addendum maps inventory families to executable
+files. It does not assert five dimensions or native equivalence for every option
+or APPNOTE subrecord. No complete pinned native/APPNOTE profile is marked complete.
+
+### Manual QA, visible CLI and restrictions
+
+[Manual QA](safe-bash-zip-final-manual-qa.md) records invocation, expected bytes,
+status, effects, capability requirements and unexecuted large-artifact follow-up.
+Executed positive controls: product encrypted STORE → CPython 3.9.6 yielded hex
+`00ff410d0a`; frozen Apple Info-ZIP regular STORE → product yielded exact 60-byte
+fixture payload. Wrong-password status is **82**, zero stdout. Newline extraction
+is hex `410a420a430d58`. Gated streaming produced its header with zero source pulls,
+then payload with one pull and EOF false. Forced ZIP64 central size/compressed-size/
+offset sentinels had ordered extra values `[5,5,0]`. Split direct read/reassembly
+preserved 150,000 `2a` bytes. SFX read/adjust/remove preserved then removed the inert
+nine-byte prefix. F/FF missing-EOCD recovery preserved input and exact newline bytes.
+Native reassembly, large real counters and no-echo interactive terminal host QA
+remain unverified; tiny forced-ZIP64 and memory-only split success are not substitutes.
+
+The native encrypted stdin oracle revealed an additional **unsupported profile**:
+Apple Zip 3.0 using a real pipe can put DOS time in the high word of a nonzero local
+CRC field. The strict product reader refuses that central/local disagreement with
+status 2. Native `-0` on pipes itself returns 16. A first Node subprocess attempt
+also exposed socket metadata because libuv stdin was a socket; Python's isolated
+subprocess wrapper supplied an actual pipe for the second attempt. Both unsuccessful
+native-stdin attempts remain exclusions, not successful password cross-read. A
+manual wrong-password assertion originally assumed status 2; correction to observed
+82 was a QA-author expectation fix, not a product change or waived failure.
+Native oracle versions: Apple Zip 3.0 (July 5th 2008); Python 3.9.6; bsdtar 3.5.3 /
+libarchive 3.7.4, zlib 1.2.12, liblzma 5.4.3, bz2lib 1.0.8.
+
+Visible command:
+
+```sh
+npm run screenshot-poe-code -- --output out/zip-qualification/cli.png bash -c 'zip --help | head -n 18; printf "A\r\nB\n" | zip -q0ll - - | wc -c'
+```
+
+Status 0. Screenshot visually inspected: legible aligned help includes compression,
+encryption and operation options; pipeline displays clean `270` without binary
+terminal garbage or secrets. SHA-256
+`8fe5db95115b0f8b5daa355100b59b4afc2e0342931c408cfcf2f414cf5c1e32`.
+Its preparation ran 75 successful uncached Turbo builds plus root bundle; this
+preparation is separate from the successful maintained final `npm run build`.
+
+Other unsupported/restricted profiles remain distinct: PPMd method 98; BZIP2+-ll;
+other LZMA encoder versions/dictionaries above 8 MiB and AES+LZMA; general regex;
+missing entropy/password/volume/prompt capabilities; non-atomic/unidentified VFS
+publication; strict trailing/TLV/version admission. Unexecuted profiles remain
+unverified: Linux/other native feature builds, exhaustive options/record subtypes,
+interactive terminal hosts, multi-gigabyte native ZIP64 and native split cross-read.
+These are not skips or successful applicability cells.
+
+### Maintained gates, failed cohorts and delivery
+
+| Gate on final declared executable inputs | Result / limit |
+| --- | --- |
+| `npm run build` | Exit 0; 75 declared workspace builds / 76 workspaces, 217 edges, ten layers; the workspace with no declared build is not counted as a pass; root suffix/codegen/bundle completed |
+| Final ZIP/unzip/plugin/bounded-codec invocation above | 2,196 passes; zero failures/skips/cancellations/TODO |
+| `npm run typecheck --workspace=virtual-bash` retry | Exit 0; source/tests and 26 maintained consumer groups; three expected negative controls exit 2; compile-only, zero runtime acceptance |
+| `node --test packages/safe-bash/scripts/integration-inputs.test.mjs` | 109 passes, zero failures/skips/cancellations/TODO; new integration-authored test registered by literal path |
+| `npm run lint` | Exit 0 across ESLint, types and workflows; ESLint complete=true, 15,511 configured/linted subjects, zero errors / four warnings; inherited ignored/unconfigured subjects are not passes |
+| `NODE_OPTIONS=--max-old-space-size=8192 npm test` | **Failed/incomplete**, exit 1 after owned SIGTERM supervision at over 30 minutes; 13 reported 5,000-ms test timeouts; no full denominator or skip total is available; later workspace/lifecycle tasks remain unverified |
+| Maintained CLI screenshot invocation above | Exit 0; visually inspected, hash recorded |
+| Final membership/content inventory and `git diff --check` | Pass; all 664 declared input paths and hashes match pre-run inventory, including additions detection within the declared domains; HEAD unchanged |
+
+The two generated seed cohorts in the final matrix measured 690.769583 ms and
+561.935583 ms, respectively. These are bounded offline unit cohorts, not a slow
+exhaustive combinatorial suite or portable latency guarantees.
+
+Final full-test failures were all reported as `Test timed out in 5000ms`:
+
+| File outside the authorized safe-bash implementation scope | Reported case |
+| --- | --- |
+| `packages/safe-python/src/runtime/iso2022-jis-revision.test.ts` | iso2022_jp_2004 designated byte matrix 81/233 |
+| `packages/safe-python/src/runtime/euc-jisx0213-codec.test.ts` | strict Unicode encoding/fault plane 3 |
+| `packages/safe-python/src/runtime/iso2022-jp-codec.test.ts` | designation `[27,40,74]`, lead 232, every second byte |
+| `scripts/build-workspaces.test.ts` | joins every occupied unit slot after falsey primary 7 |
+| `packages/docx/src/comment-extensions.test.ts` | removal of unknown paragraph metadata |
+| `packages/safe-python/src/runtime/euc-jisx0213-sequences.test.ts` | prefix 12363, BMP suffix block 7 |
+| `packages/docx/src/table-behavior-variants.test.ts` | logical alias layout 4 |
+| `packages/docx/src/control-bindings.test.ts` | same-target aliases with differing namespace prefixes |
+| `packages/docx/src/image-insertion.test.ts` | owner-local footnote image relationships |
+| `packages/docx/src/package-behavior-variants.test.ts` | admitted XML owner returned by XML factory |
+| `packages/docx/src/extract.test.ts` | empty archive directories retained in all selection |
+| `packages/docx/src/admission.test.ts` | encrypted and multi-disk ZIP header refusal |
+| `packages/safe-python/src/session-codec-handler-type-diagnostics.test.ts` | codec handler argument `iter(())` |
+
+These are unresolved observed failures, not dismissed as pre-existing issues.
+Their exact cause has not been established; concurrent build/check/cohost load
+is context, not proof of causality. No outside-package timing, test exclusion,
+quarantine, timeout increase or source repair was introduced. The final full unit
+runner retained maintained declarations/dependency closure and Git/environment
+cleanup; only Node's child heap ceiling was explicitly configured at 8 GiB. The
+parent/global/private Git configuration was unchanged. No shortened root-plus-Bash
+replacement or unavailable optional-profile pass was synthesized. SIGTERM stopped
+only this task's owned unsuccessful run; it does not turn pending tests into skips.
+A complete passing full `npm test`, including later declared workspaces and native
+lifecycle hooks, remains **unverified**.
+
+Exploratory failures are also preserved in this accounting: first new-test run
+13/17 (two mistaken positive fixture admissions and two unsupported-conversion
+expectations); second 17/19 (incorrect LZMA+-ll refusal expectation). Corrections
+preserved the original upstream bytes as explicit restricted-profile vectors and
+qualified LZMA+-ll positively. An initial package compile failed on an assertion
+API overload; its correction is included in the final input hash. The first final
+package typecheck attempt timed out in the historical-model bootstrap with
+`spawnSync ... ETIMEDOUT`, before consumer groups; the later maintained retry passed.
+An exploratory full `npm test` reported 16 timeouts before interruption for final
+input freezing. The exploratory lint was terminated before completion; it does not
+replace the later complete passing lint. None of these failed/incomplete cohorts
+is passing proof. No product defect was fixed or new codec support inferred.
+
+Passing/failed/skipped/unsupported/unverified are separate: focused skips are zero;
+full-run skip count is unknown; supported round trips and capability refusals have
+separate denominators; deliberately restricted profiles are listed above; open
+matrix/native/platform/full-gate cells remain unverified. All five acceptance
+dimensions must still bind to each individual row before a pinned profile can be
+marked complete. This task implemented bounded qualification controls and corrected
+documentation, **not completed universal ZIP/native compatibility or a clean whole
+repository gate**.
+
+Host `/out` does not exist and creation returns `Read-only file system`; owned
+scratch therefore used ignored repository `out/zip-qualification`. After recording
+hashes/results, only that task-owned directory (logs, inventory and PNG) is purged.
+No unrelated scratch or edits are removed. No local commit, push, verified
+remote-main delivery or successful release is claimed; no README or SafeJS edit
+was made. The pre-existing remaining-features plan edits remain untouched.
+
+## User edge-case review and grow fix — 2026-09-17
+
+This follow-up supersedes the earlier executable-input qualification for the
+changed ZIP writer. Work remains on dirty `main`, based on
+`6551831fc0d7b885a9ce70ee2432a85a068b59be`; it is not a frozen committed archive.
+All pre-existing edits were preserved. Owned changes are the ZIP writer,
+seven operation regressions, a narrow ZIP guide correction, and appended manual
+QA/evidence. No README, SafeJS, runtime dependencies, host fallback or public
+CLI/SDK arguments changed.
+
+### Validated defect and red/green proof
+
+A valid one-member STORE archive with matching local/central extraction version
+20 passed `unzip -tqq`. `zip -qg sample.zip b` returned 0 but rewrote the central
+version as 10 while retaining the local version 20, leaving an archive that
+failed `unzip -tqq` with `ZIP central/local metadata mismatch`. Independent review
+reproduced the same defect for admitted versions 45 and 46; version 10 was the
+passing neighbor. Before the fix, the four new version controls had **one pass,
+three failures**, zero skips. This was a product defect, not merely missing proof.
+
+The writer now derives the central extraction version from the retained local
+record. A second failing test reproduced invalid output when the low-level writer
+forced ZIP64 on classic retained grow records. Forced ZIP64 now rebuilds those
+records consistently for sizing, local emission and central version selection,
+without deleting their original retained-record ownership. The CLI already
+rebuilt records for explicit ZIP64 selection; that neighboring behavior remains.
+The low-level red test failed before this second correction.
+
+Final operation cohort: **125 passes**, zero failures/cancellations/skips/TODOs,
+709.186250 ms. Seven new tests cover versions 10/20/45/46 with unchanged local
+bytes and exact old/new extraction; unsupported versions 9/47 with status 2 and
+unchanged archive; and forced ZIP64 with exact-budget/minus-one, identical
+pre-abort reason and subsequent byte-identical classic serialization. Existing
+grow pre-abort, overlap, descriptor, forced/disabled ZIP64, staged publication,
+replacement and actual Shell controls ran in the same cohort. No new feature or
+native pinned profile is declared complete on this basis.
+
+An independent read-only reviewer passed **42** post-fix combinations of
+STORE/DEFLATE, traditional encryption, descriptors, admitted extraction versions
+and forced/unforced ZIP64. Decoded bodies matched exactly; ordinary grow preserved
+whole archive bytes. Its first comparison mismatched Buffer/Uint8Array types;
+normalizing the harness comparison corrected that expectation without a product
+change. Our first negative-control run made the same comparison mistake and
+reported two failures; corrected final controls preserve the original assertions
+about byte identity. These exploratory failures are not passing proof.
+
+### Exact follow-up inputs and matrix
+
+Using the same 664-file membership and canonicalization declared above, the
+follow-up inventory SHA-256 is
+`c704d7d656cab984d8b31afbd119bebf3af0f6f035b9db676e6da16f644a2e63`.
+The complete pathname/hash JSON is recomputed after gates, including new-entry
+detection within its declared domains. Excluded repository inputs retain their
+earlier exclusions; this inventory does not authenticate the entire repository.
+
+| Changed executable input, relative to package | SHA-256 |
+| --- | --- |
+| `src/commands/archive/zip-format.ts` | `efba1facafc10e112496086a4b1d5e2b5a98d4b686727aadfaf08bfb592b5424` |
+| `tests/commands/zip-remaining-operations.test.ts` | `906f5f91bbbed47768394618c9db2c03ebdadf91a4ccc0d8dd20a21dfd581f2e` |
+
+The exact ZIP/unzip/plugin/bounded-codec invocation in the preceding section
+was rerun after the fix: **2,203 passes**, zero failures, cancellations, skips
+or TODOs; 27,639.809083 ms. Its earlier pre-fix cohort passed 2,196 tests but
+does not qualify the later writer. The final matrix includes `-j`, recursion,
+update/copy/move, comments/help, BZIP2 and all previously delivered test families,
+the two deterministic generated seeds and all nine adapted upstream vectors.
+All three pinned CPython/Go/libarchive source URLs were fetched again with bounded
+reads and matched the fixture source SHA-256 values recorded above. Source hash
+authentication does not assert that their full upstream suites were executed.
+
+Additional manual memory probes passed 32 combinations of four compression
+methods and binary payload lengths 0/1/511/512/513/65535/65536/65537 with forced
+ZIP64, and four recursive namespace probes covering Unicode/space names, binary
+files, empty files/directories and preserved symlinks. These pre-fix explorations
+did not find another defect and do not substitute for maintained final tests.
+
+Manual QA was re-executed after the fix: product encrypted STORE to Python 3.9.6
+returned `00ff410d0a`; frozen native encrypted STORE to product matched the exact
+60-byte fixture; wrong password returned 82 with zero bytes. Newline output was
+`410a420a430d58`; ZIP64 sentinels and `[5,5,0]` fields matched; split direct/rejoined
+reads each returned 150,000 `2a` bytes; inert nine-byte SFX prefix was preserved
+then removed; F/FF missing-EOCD repairs preserved input and extraction bytes.
+Streaming yielded the header with zero pulls, payload with one pull/EOF false,
+then decoded exact `firstlast`. The appended Markdown QA records the grow
+invocations and expected bytes/status/effects. Historical capability, strict
+admission, native-stdin, large-artifact and platform exclusions remain in force.
+
+### Follow-up maintained gates and delivery
+
+Final gate outcomes will be recorded here after their owned executions settle.
+The initial follow-up build passed before the fix; the final `npm run build`
+also passed after it. Integration-input checks passed 109 tests with zero skips.
+An initial full-test attempt was deliberately interrupted with owned SIGTERM
+after discovering the defect; it is incomplete evidence, not a failing ZIP
+cohort or a passing gate. A fresh full `npm test` runs on the fixed source, using
+the maintained workspace declarations and dependency closure, no exclusions,
+default sequential workspace scheduling and an explicit 8-GiB Node heap ceiling.
+
+`/out` creation again returned `Read-only file system`. Owned temporary logs,
+input inventory and screenshots use ignored `out/zip-edge-review`, to be purged
+after outcomes and hashes are recorded. No local commit, push, remote-main
+delivery or release is claimed by this follow-up.
+
+### Follow-up preparation and artifact-interference cohort
+
+`npm run lint` completed with exit 0: guarded ESLint reported complete=true,
+15,511 configured/linted subjects, zero errors and four existing warnings;
+maintained types and workflows completed. Ignored/unconfigured subjects remain
+outside this passing denominator. Package typecheck completed with exit 0,
+source/tests and 26 current consumer groups; three expected negative controls
+returned 2. Its summary reported builds=0 and runtimeExecutions=0. This is compile
+proof, not runtime-profile acceptance.
+
+The full-test attempt initially completed its shared Vitest cohort without
+reported failures or timeouts, then reached the safe-bash package unit task.
+After 500 completed files, this agent incorrectly started maintained screenshot
+preparation while that unit task was still active. Screenshot preparation
+rebuilt all 75 declared Turbo build tasks uncached, temporarily removing
+`packages/safe-js/dist/safe-fs-core.js` / `safe-fs.js`, which active unit children
+import through package exports. **57 file-level failures** reported module-load
+errors during this overlap, beginning with xargs-parallel/xml-query controls and
+including ZIP and contract files. The unsuccessful owned full-test run was
+interrupted with SIGTERM; its full denominator, skip totals and later lifecycle
+outcomes are unavailable. This is an agent-caused build/test sequencing failure,
+not dismissed as a pre-existing product issue. No SafeJS source or test changes,
+test exclusions, dependency fallback or timeout increase were introduced.
+
+After preparation completed, both distribution files were confirmed restored
+as regular files. Three failed contract files were rerun independently:
+**111 passes**, zero failures/cancellations/skips/TODOs, 4,611.941917 ms. The full
+ZIP/unzip/plugin/bounded-codec invocation was rerun too: **2,203 passes**, zero
+failures/cancellations/skips/TODOs, 46,787.272584 ms. These later passing controls
+do not erase the failed overlap cohort. A fresh full maintained `npm test` was
+started only after screenshot preparation and package typecheck settled, with
+no concurrent build. Its final outcome is recorded below once settled.
+
+The visible CLI screenshot invocation was:
+
+```sh
+npm run screenshot-poe-code -- --output out/zip-edge-review/cli.png bash --root out/zip-edge-review/cli-root -c 'zip --help | head -n 18; printf "A\r\nB\n" | zip -q0ll - - | wc -c; zip -qg sample.zip b; printf "grow_status=%s\n" "$?"; unzip -t sample.zip'
+```
+
+Screenshot command status 0; SHA-256
+`924b0e2b6e2d8a025b55e480d09caa9d3c2e92a6588dc6adf8132cd640aa05e8`.
+Visually inspected: aligned legible help, clean numeric stdout result `270`,
+no binary garbage or secrets, explicit staging diagnostic and `grow_status=2`,
+then successful validation of the original one-member archive. The aggregate
+status 0 is successful capture/read validation, not successful grow publication.
+An isolated built CLI grow invocation returned **2**. On this Darwin build the
+real filesystem adapter lacks required atomic owned file staging; grow refused
+without replacing the archive. This unsupported publication profile is now
+disclosed in the ZIP guide and Markdown QA. The passing memory-VFS grow profile
+does not establish real-adapter file publication on this host.
+
+One optional isolated comparison control reported `status=pending` because its
+external comparator was not installed. That comparator profile is unverified,
+not counted as successful comparison or added as a runtime dependency. Full-run
+skip totals remain unknown until the maintained run settles; focused skips are
+zero. All earlier unsupported/native/large-artifact/platform limits remain.
+
+## Additional grow ZIP64 budget edge review — 2026-09-17
+
+This review supersedes the preceding follow-up's executable-input qualification
+for the changed writer and operation tests. HEAD remains dirty `main` at
+`6551831fc0d7b885a9ce70ee2432a85a068b59be`. Unrelated edits, README and SafeJS
+remain untouched; no runtime dependency, host fallback or public argument changed.
+
+An independent reviewer reproduced exact-byte-budget refusals for admitted
+archives whose ZIP64 size or offset fields appeared only in the central record.
+The product could serialize valid 225/241-byte outputs without a restrictive
+budget, but required 20/28 extra bytes when retaining classic local records.
+Six maintained tests (size/compressed-size/offset, with/without descriptor)
+failed before the wire-accounting fix. Preflight now charges the actual retained
+local record length. A ten-empty-member regression then failed with a metadata
+byte-limit diagnostic: unused synthesized local ZIP64 extras were still counted.
+Retained records now reuse their original local extras; forced ZIP64 continues
+to rebuild local records. The initial five-member authored fixture passed because
+its archive comment left enough overhead; the stronger ten-member fixture
+reproduced the refusal. That exploratory pass was not red proof.
+
+Final operation cohort after both fixes: **132 passes**, zero failures,
+cancellations, skips or TODOs; 4,989.742750 ms. Seven added tests independently
+mutate records, preserve original local bytes, verify actual `unzip` status and
+payload, admit exact budgets and refuse one byte less. The six single-member
+cases include identical pre-abort reason controls; existing forced-ZIP64,
+ownership, cancellation, publication and extraction-version neighbors run in
+the same cohort. No new pinned native profile is declared complete.
+
+Independent post-fix memory probes: **24 profiles** spanning one nonempty or
+five/ten empty members, descriptors, central-only size/offset ZIP64 and forced
+ZIP64; all outputs re-read, exact budgets succeeded, one-byte-short refused.
+No additional concrete defect was found in that bounded scope. An earlier
+local exploratory codec probe mistakenly supplied an object to the positional
+descriptor argument; it does not qualify forced-ZIP64 cross-products.
+
+The preceding fresh full repository test was interrupted with owned SIGTERM
+when this new defect was found. No full denominator, skip total or later native
+lifecycle result is claimed. An intermediate build was also interrupted before
+the metadata fix; it does not qualify final source. A final matrix attempt was
+briefly launched alongside the final build, then stopped with owned SIGTERM
+before final qualification; that incomplete cohort is not passing evidence.
+Final runtime checks must follow build/screenshot preparation with no owned
+concurrent build. Existing unsupported/native/platform/large-artifact exclusions
+and the real-adapter atomic-staging refusal remain in force.
+
+Final input hashes and maintained gate outcomes are recorded below after their
+owned executions settle. No local commit, push, verified remote-main delivery
+or successful release is claimed. Scratch remains confined to the existing
+ignored `out/zip-edge-review` directory because host `/out` is read-only.
+
+### Final budget-review inputs and completed checks
+
+The same selected pathname domain and byte ordering declared above contains
+**664 files**, canonical inventory SHA-256
+`1dd7a6101105659a0a93cf58ba5fb091a352bac25fe1e14fb64532b4f9162ee2`.
+Only these two executable inputs differ from the preceding follow-up inventory:
+
+| Package-relative input | SHA-256 |
+| --- | --- |
+| `src/commands/archive/zip-format.ts` | `66478edf7a9ee604b2d30fab5692e03461c08f95c2487377b8ea6b3488e441fc` |
+| `tests/commands/zip-remaining-operations.test.ts` | `5b7c3ed2be7cac4db6e8d14d1f449393469067f92a5d506b57d9656c083f7475` |
+
+`npm run build` completed with exit 0, including root generation and bundling.
+The full ZIP/unzip/plugin/bounded-codec invocation already recorded above was
+rerun on these inputs: **2,210 passes**, zero failures/cancellations/skips/TODOs,
+134,547.177375 ms. It includes the prior `-j` regression, recursion, updates,
+copy/move, comments/help, BZIP2/LZMA, fixed-seed option/mutation/chunk controls,
+adapted upstream inputs and the seven new budget tests. Timing was measured
+on the shared host; no portable performance claim follows.
+
+`node --test packages/safe-bash/scripts/integration-inputs.test.mjs` passed
+**109** tests, zero failures/cancellations/skips/TODOs, 96,638.490083 ms.
+`npm run typecheck --workspace=virtual-bash` exited 0 for source/tests and all
+26 current consumer groups; three expected invalid-binding controls returned 2.
+It reported builds=0/runtimeExecutions=0; compile proof is not runtime acceptance.
+
+Independent final-source manual positives matched the Markdown QA: product
+encrypted STORE to CPython 3.9.6 yielded `00ff410d0a`; frozen native STORE to
+product matched its exact 60 bytes; wrong password returned 82/zero stdout.
+Newline payload was `410a420a430d58`. ZIP64 central sentinels and ordered
+`[5,5,0]` fields matched, including end/locator records. Split volumes measured
+65,536/65,536/19,058 bytes; direct/reassembled reads each returned 150,000 `2a`
+bytes without changing volumes. SFX adjustment preserved prefix
+`4d5a20696e6572740a`; removal restored `504b0304`. Missing-EOCD F/FF preserved
+damaged input and recovered exact newline bytes. Gated streaming produced its
+header with zero pulls, first payload with one pull/EOF false, then exact
+`66697273746c617374`. These bounded positives do not replace negative,
+cancellation and neighboring controls in the final maintained matrix.
+
+The final maintained `screenshot-poe-code` command exited 0 after 75 uncached
+prerequisite builds, but its PNG contained only the command header: **failed
+visual capture**, SHA-256
+`eaa352246ad5dd5770a40e7627a05294e798d17b6f1deb12a5d9e59390d6c982`.
+A supplementary `npm run screenshot -- … node dist/bin.cjs …` capture (exact
+invocation in Markdown QA) exited 0 and passed visual inspection: legible aligned
+help, `270`, explicit staging refusal/`grow_status=2`, original archive validation.
+SHA-256 `882c1db21b50d3be8203cca4e357cadcc14420d5da29df7d885d9e1b88e6a045`.
+This is a built CLI capture, not a successful archive-file grow operation or
+proof of the PTY capture path. No screenshot/tooling source was changed.
+
+Final `npm run lint` exited 0: guarded ESLint reported complete=true,
+15,511 configured/linted subjects, zero errors and four warnings; maintained
+types and workflows also completed. Ignored/unconfigured subjects are excluded
+from that passing denominator. The full maintained
+`NODE_OPTIONS=--max-old-space-size=8192 npm test` lifecycle is active, with
+declared build dependencies, workspace membership and native lifecycle scripts;
+no exclusions, timeout increases, optional-profile synthesis or parent/global
+Git configuration changes were introduced. Earlier interrupted/failed cohorts
+are not passing evidence and are not erased by completed focused checks.
+
+### Final full-test failure and isolated revalidation
+
+The final full `npm test` settled **naturally with exit 1**, without owned
+interruption. Its completed shared Vitest cohort reported **4 failed / 2,786
+passed / 2 skipped files** (2,792), and **5 failed / 128,495 passed / 37 skipped
+tests** (128,537). Duration was 2,966.57 seconds. These denominators cover only
+that executed cohort: later workspace unit tasks and native pre/event/post
+scripts, including root posttest, remain **unverified**. They are not skips or
+passes, and no whole-repository test denominator is claimed. Configured inherited
+exclusions are not converted into applicability passes.
+
+Six initial timeout diagnostics were reported across four files; subsequent
+summary diagnostics repeat some errors and are not additional failures:
+
+| File | Reported timeout |
+| --- | --- |
+| `packages/safe-python/src/runtime/euc-jisx0213-codec.test.ts` | Strict Unicode encoding/faults, plane 5; 5,000 ms |
+| `packages/safe-python/src/runtime/euc-jis-2004-codec.test.ts` | Every split byte pair/finalization/state, strict; 5,000 ms |
+| `packages/safe-python/src/runtime/hz-codec-oracle.test.ts` | HZ byte pairs/split transitions, strict, modes 0/1/2; three 5,000-ms diagnostics |
+| `scripts/bundle-safe-bash.test.ts` | Setup hook; 10,000 ms; a hook failure is not five failed test cases |
+
+No assertion-value mismatch was reported. Read-only inspection found 65,536
+encoding attempts in the plane test and 131,072 split decoding rows in the JIS
+test, plus three sequential esbuild builds in the bundle setup. The Python
+tests do not depend on the ZIP writer; the writer is part of the bundle graph.
+No causal attribution follows from those observations. Other full-test workloads
+were observed on the shared host. A one-second native process sample during the
+run showed active JavaScript work, not an idle wait; it did not establish which
+test was executing or explain the failures. Color-environment warnings and MCP
+test output are separate from timeout failures.
+
+After the full cohort settled, these four literal files were rechecked using:
+
+```sh
+NODE_OPTIONS=--max-old-space-size=8192 npx vitest run --config vitest.config.ts --maxWorkers=1 packages/safe-python/src/runtime/euc-jisx0213-codec.test.ts packages/safe-python/src/runtime/euc-jis-2004-codec.test.ts packages/safe-python/src/runtime/hz-codec-oracle.test.ts scripts/bundle-safe-bash.test.ts
+```
+
+Result: exit 0, **4 files / 205 tests passed**, zero reported failures or skips,
+115.87 seconds. Original 5,000/10,000-ms deadlines were retained. This is an
+isolated one-worker diagnostic cohort, **not a full-test substitute or repaired
+whole-repository gate**. The first attempted recheck included `--minWorkers`,
+which installed Vitest 4.1.11 rejected before running tests; that bootstrap
+failure is preserved separately and is not a failed/passing test cohort.
+No outside-package code, timeout increase, quarantine or assertion weakening
+was introduced. Broad-run timeouts remain unresolved; a clean full gate remains
+unverified rather than dismissed as a pre-existing issue.
+
+An additional final-source manual memory boundary control independently inserted
+a well-formed unknown `0xcafe` TLV beside central-only ZIP64 size metadata.
+Input central extras of 65,519 bytes grew to exactly 65,535: `zip -qg` and
+`unzip -tqq` returned 0, old payload remained `6f6c64`. Input extras of 65,535
+would grow to 65,551: status 2/extra-field-limit diagnostic and byte-identical
+original archive. This is a **restricted rewrite profile** now disclosed in the
+ZIP guide and Markdown QA; it is not a new product defect or positive native
+interoperability control. No central-byte-preservation promise is inferred.
+
+Passing checks, failed cohorts, observed skips, restricted profiles and unverified
+later stages remain separate. No pinned whole native/APPNOTE profile is marked
+complete. Final membership/hash and HEAD verification and owned scratch cleanup
+are recorded below. No README, SafeJS source, local commit, push, remote-main
+delivery or successful release is claimed.
+
+Final post-run verification recomputed the full selected pathname membership
+(including additions detection) and all hashes: **664 files**, exact inventory
+match at `1dd7a6101105659a0a93cf58ba5fb091a352bac25fe1e14fb64532b4f9162ee2`.
+HEAD remained `6551831fc0d7b885a9ce70ee2432a85a068b59be`; `git diff --check`
+passed. After recording outcomes and screenshot hashes, the task-owned
+`out/zip-edge-review` directory was removed and absence verified. Other scratch
+and unrelated edits were preserved. No passing full repository gate is claimed.

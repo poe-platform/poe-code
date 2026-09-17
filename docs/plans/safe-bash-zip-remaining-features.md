@@ -160,7 +160,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
   - id: zip-final-qualification
     title: "Verify the complete compatibility profile and document remaining
       restrictions"
@@ -169,9 +169,9 @@ tasks:
 
       Re-run the full matrix on the exact final revision, including prior -j regression and all delivered recursion/update/copy/move/comments/help/BZIP2 behaviors. Add deterministic generated cross-products of options, archive structure mutations and chunk partitions with fixed seeds and minimized counterexamples; avoid slow combinatorial unit suites. Independently adapt useful pinned libarchive, CPython and Go boundary/malformed fixtures rather than mirroring implementation helpers. Run npm run build, npm test and maintained repository lint because streaming/format/contracts changes are broad; also run focused package tests and inspect visible CLI screenshots. Write Markdown manual QA with invocation/expected bytes/status/effects for password cross-read, newline conversion, gated stdin/stdout, ZIP64 central fields, split reassembly, SFX and damaged recovery. Update docs/ZIP.md with verified profiles, limits, interaction rules, configuration and capability requirements; do not edit README without authorization. Never claim universally fully compliant: only mark a pinned profile complete when every applicable matrix row passes and every deliberate restriction is clearly disclosed. Report fails/skips/unsupported/unverified separately.
     status:
-      reproduce: open
-      implement: open
-      test: open
+      reproduce: done
+      implement: done
+      test: done
       commit: open
   - id: zip-delivery
     title: "Deliver verified changes and monitor GitHub publication"

@@ -38,7 +38,7 @@ Unix suffix matching is case-sensitive. Defaults are `.Z`, `.zip`, `.zoo`, `.arc
 Attached and equals values such as `-n.txt` and `-n=.txt` are accepted. `-9`
 overrides the suffix list and attempts maximum compression.
 
-`-Z store` / `-Z deflate` / `-Z bzip2` and `--compression-method=METHOD` explicitly select the
+`-Z store` / `-Z deflate` / `-Z bzip2` / `-Z lzma` and `--compression-method=METHOD` explicitly select the
 method. Method names are case-insensitive and accept unique prefixes. Store mode
 remains selected through later level flags; `-Z deflate` switches it back. The
 native invalid level-zero/DEFLATE combination returns status 5 when compressing a
@@ -73,12 +73,13 @@ Stream archives use signed data descriptors; default DEFLATE is retained even
 when it expands a small or empty file. Storage mode remains available with `-0`
 or `-Z store`. `-T` is ignored with a nonquiet advisory warning on stdout archives.
 Archive update/freshen/delete actions on stdout are rejected with status 16.
-Sources are selected and compressed before stdout begins. Archive serialization
-then emits bounded records and payload chunks, waiting for each stdout write;
-it does not allocate a second complete archive buffer for stdout. Complete
-metadata admission precedes the first archive chunk. Source collection and
-compression still retain member payloads; end-to-end input streaming remains
-implementation work. Stdin members use ZIP64 records by
+Streamable creation emits local headers before acquiring member payloads,
+then reads and compresses source chunks incrementally, awaiting each output write.
+Central metadata is retained under the metadata budget. Source selection and
+metadata admission precede output; updates, raw copy, newline conversion,
+encryption, split output and explicit temporary spooling can require buffering.
+The stream API's retention counters describe owned payload/metadata, not process
+RSS or arbitrary codec/host allocations. Stdin members use ZIP64 records by
 default. `-fz` / `--force-zip64` forces ZIP64 for every member; `-fz-` /
 `--force-zip64-` disables forced/default stdin ZIP64. Repeated switches use the
 last value. Both file and stdout ZIP64 output include valid end records and
@@ -290,6 +291,31 @@ the archive plugin; registration otherwise checks collisions before mutation.
 | `maxBufferedFileBytes` | 1048576 | Fallback reads without streaming support |
 | `chunkSize` | 65536 | Work chunks; accepted range 512–1048576 |
 
+`zip.compression` configures the factory's default compression method;
+`zip.encryption` configures its default encryption profile. Command arguments
+override these defaults. `zipHost` supplies optional explicit capabilities:
+
+| Capability | Required behavior / use |
+| --- | --- |
+| `entropy(length, signal)` | Fresh cryptographically secure owned bytes for encrypted creation; no deterministic or ambient fallback |
+| `password({prompt,maxBytes,signal})` | Owned password bytes or EOF, with terminal echo suppressed; required by `-e` |
+| `volume({archive,disk,disks,signal})` | Explicit VFS input path for each requested split disk; no directory discovery |
+| `volumePrompt({path,disk,disks,signal})` | Explicit transition approval for `-sp`; false/EOF prevents publication |
+
+Both command factories and the archive plugin use these same options. The
+`runBash` SDK forwards its `archive` configuration to the preset; the visible
+`poe-code bash` route uses that SDK and supplies secure entropy. Its current
+noninteractive route supplies no password or volume-prompt capability. ZIP
+switches remain identical in shell source across CLI and SDK; host callbacks
+are SDK capabilities rather than shell flags.
+
+Archive file creation and updates require atomic owned file staging from the
+selected filesystem. Without it, publication returns status 2 and preserves the
+input archive. This also applies to the CLI's real filesystem adapter on hosts
+where that capability is unavailable. Streaming an archive to stdout and reading
+members with `unzip -p` do not require archive-file publication; SDK callers can
+explicitly supply a filesystem with the required staging contract.
+
 No new environment variables are introduced. DOS timestamps follow the runtime's
 local timezone; extended Unix timestamps preserve absolute seconds. No host
 process is invoked to implement shell-local timezone changes.
@@ -362,21 +388,96 @@ help. After the archive name and `--`, `-h` is an ordinary filename.
 `-h2` / `--more-help` prints extended selection, operation, compression,
 streaming and ZIPOPT guidance with the same immediate-exit behavior.
 
-The bounded format profile supports ordinary single-disk ZIP records with stored
-raw-DEFLATE or BZIP2 payloads, UTF-8/Unicode-extra and CP437 names, Unix timestamps and
+The bounded format profile supports ZIP records with stored,
+raw-DEFLATE, BZIP2 or bounded LZMA payloads, UTF-8/Unicode-extra and CP437 names, Unix timestamps and
 modes, archive/member comments, classic and ZIP64 data descriptors, and bounded
 single-disk ZIP64 input and output records. ZIP64 sizes and offsets must be safely representable
 and within configured limits. The classic 65,535-member maximum is admitted;
 archives with more members automatically emit ZIP64 directory/end records while
 retaining classic member headers when sizes and offsets fit. Configured
-`maxMembers` still applies. Large byte-size/offset automatic escalation remains
-unimplemented; archive and entry byte admission retains classic-width caps.
+`maxMembers` still applies. Size, compressed-size and offset fields promote
+independently at the classic `0xffffffff` sentinel. Directory counts promote at
+65,535. Automatic field promotion is tested with virtual counters; it does not
+prove multi-gigabyte native interoperability. Default byte budgets remain much
+smaller than those boundaries. Unsafe numeric counters are refused before encoding.
 Archive updates normally emit classic ZIP records and remove
-obsolete ZIP64 size tags while preserving unrelated metadata. It rejects
-encryption, unsupported compression methods, split archives, self-extracting
-prefixes, unreferenced records and trailing bytes rather than guessing their
-meaning. This is not an assertion of complete Info-ZIP compatibility or identical
+obsolete ZIP64 size tags while preserving unrelated metadata. Unsupported
+compression methods, unreferenced records and trailing bytes are refused rather
+than guessed. The low-level reader defaults to single-disk, prefix-free admission;
+command-level split and SFX support uses explicit reader profiles as described
+below. This is not an assertion of complete Info-ZIP compatibility or identical
 compressed archive bytes.
+
+## Additional bounded profiles and interactions
+
+`-P PASSWORD` encrypts newly written members; `-e` requests and confirms a
+password through `zipHost.password`. The default is traditional ZipCrypto;
+`--encryption` selects `zipcrypto` or `aes-{128,192,256}-ae{1,2}`. Encryption
+requires injected entropy. Traditional encryption is weak and its header verifier
+is not authentication; final size and CRC checks are still required. AES validates
+its authentication tag before releasing decoded payload. Encrypted/plain members
+can coexist; raw copy preserves encrypted bytes without decrypting them. `unzip -P`
+provides extraction passwords. Do not put real secrets in shell source or argv:
+diagnostic redaction cannot protect a caller's history or host process arguments.
+Apple Zip 3.0 encrypted stdin output can place a DOS-time surrogate in the local
+CRC field. The strict reader currently refuses that nonzero central/local CRC
+disagreement; the passing native password profile uses regular-member fixtures.
+
+`-ll` converts detected text from CRLF to LF under the pinned Unix input-window
+profile; it leaves binary input unchanged and handles native trailing Ctrl-Z
+semantics. `-l` inserts CR before each LF, including an LF already preceded by CR.
+Conversion can buffer source bytes. BZIP2 with `-ll` returns status 2 because its
+native read profile is unsupported; this restriction is a tested refusal.
+
+LZMA (method 14) is an extension beyond native Info-ZIP Zip 3.0. Creation uses
+extraction version 6.3, SDK 9.4 properties, a 1 MiB dictionary and EOS. Reading
+admits dictionaries up to 8 MiB under output/work budgets. Other encoder versions,
+larger dictionaries and AES+LZMA are outside the qualified profile. PPMd (98)
+remains unsupported. Extraction versions are admitted as strict numeric fields;
+the pinned libarchive BZIP2 fixture with field `0x032e` is refused despite its
+low byte being version 4.6. The positive adapted fixture normalizes that field
+to `0x002e` without changing compressed bytes. This is a disclosed compatibility
+limit, not a claim that the original fixture is corrupt.
+
+`-s SIZE` emits `.z01`, `.z02`, … and the final `.zip`, with a minimum 64 KiB
+volume size. Input needs `zipHost.volume`; `-s0 INPUT --out JOINED` recombines
+through the same resolver. Split output is buffered and multiple publications
+have no whole-operation rollback. Missing, repeated, reordered or aliased disks
+are refused. `-sp` additionally needs explicit transition approval.
+
+SFX prefixes are inert data: no embedded executable is run. `-A` validates and
+adjusts offsets while retaining a prefix; `-J` removes a validated prefix.
+`unzip` can read this bounded prefix profile. `-F` repairs using central records;
+`-FF` can recover bounded local records. Both require a separate `-O` destination
+and preserve damaged input bytes. Complete payloads must validate; partial
+recovery warns and can omit unrecoverable members. Recovery is not forensic
+completeness or permission to accept arbitrary record overlaps.
+
+`-DF` writes size/time differences to a required separate destination. `-g`
+retains validated local records, local metadata and extraction versions for pure
+additions but rebuilds replacements. Admitted central-only ZIP64 size and offset
+fields can coexist with retained classic local records under the archive-byte
+budget. Explicit ZIP64 selection rebuilds local records to
+match the selected format; both use owned staged publication. `-b` selects a VFS staging directory, including
+spooled stdout output. `-lf`, `-la` and `-li` configure bounded VFS logging,
+requiring atomic conditional writes and rejecting input aliases. `-TT` dispatches
+only a registered virtual command with literal arguments, never a host process.
+Retained ZIP64 entries normalize central size/offset fields, which can enlarge
+their extras. The 65,535-byte extra-field limit and `maxPaxBytes` apply after
+rewriting; an input already at the limit can therefore be refused without
+replacing the original archive.
+
+FIFO input (`-FI`) needs a VFS-reported FIFO and explicit streaming-read
+capability. DOS name conversion (`-k`) is limited to printable ASCII and rejects
+collisions. Unix `-RE` enables bracket-list glob matching, not a general regex
+engine. These are explicit capability/dialect limits.
+
+Qualification is revision-specific. The compatibility matrix and evidence in
+`docs/plans/safe-bash-zip-remaining-features-evidence.md` distinguish passing
+controls, failed cohorts, unsupported profiles, skips and unverified cells.
+The generated offline cohort is bounded and seeded; it is not exhaustive option
+coverage. Other platforms/builds, interactive terminal hosts and manual large
+artifacts require separate evidence before claiming their profile complete.
 
 Raw and effective names are checked before extraction. Absolute and parent
 traversal members, symlink ancestors and escaping symlink targets are refused.

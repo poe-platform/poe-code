@@ -486,3 +486,45 @@ The 77 ordinary native syntax controls pass; native `mm` has its separate
 negative operation control. Both maintained-source ZIP regression profiles
 pass 883 tests. Full feature cross-products and upstream suite execution
 remain unverified as enumerated above.
+
+## Final qualification candidate — 2026-09-17
+
+The earlier tables are historical inventories bound to their stated revisions.
+They are not current claims that delivered switches remain missing. The final
+candidate based on `6551831fc0d7b885a9ce70ee2432a85a068b59be` is qualified only
+by the new section in the evidence plan, including its dirty-input hashes and
+gate results. No native build or complete APPNOTE profile is marked complete.
+
+| Current behavior family / inventory rows | Maintained executable controls (under `tests/commands`) |
+| --- | --- |
+| Create, levels, suffixes, `-j`, `-r`, `-R`, glob/date/environment/options | `zip.test.ts`, `zip-standard-flags.test.ts`, `zip-standard-flags-native.test.ts`, `zip-archive-source-patterns.test.ts`, `zip-paths-option.test.ts` |
+| Update/freshen/delete/filesync/copy/move | `zip-filesync.test.ts`, `zip-move.test.ts`, `zip-review.test.ts`, `zip-remaining-operations.test.ts` |
+| Comments, help, informational/display switches | `zip-comments.test.ts`, `zip-entry-comments.test.ts`, `zip-help.test.ts`, `zip-text-attributes.test.ts` |
+| Streaming, ZIP64 sizes/offsets/counts/descriptors, owned publication | `zip-format.test.ts`, `zip-count-boundaries.test.ts`, `zip-atomic-ownership.test.ts`, `zip-review.test.ts` |
+| STORE/DEFLATE/BZIP2/LZMA methods, bounded framing | `zip-codec.test.ts`, `zip-bzip2.test.ts`, `zip-lzma.test.ts`, `zip-format.test.ts` |
+| Encryption, newline conversion, split, SFX/recovery, FIFO/DOS names, virtual test command | `zip-crypto.test.ts`, `zip-line-endings.test.ts`, `zip-volumes.test.ts`, `zip-repair.test.ts`, `zip-fifo-names.test.ts`, `zip-test-command-review.test.ts` |
+| Generated option × record mutation × input partition cases | `zip-qualification.test.ts`: seeds `0x5a17`, `0xc0ffee`, 192 attempted combinations, 168 passing round trips / 24 deliberate BZIP2+`-ll` refusals, with 28 admitted cancellation combinations |
+| Independently adapted pinned source inputs | `zip-qualification.test.ts` / `fixtures/zip-upstream-boundaries.json`: 2 adapted positives and 7 structural/profile rejection vectors; authenticated source hashes and full license notices retained |
+
+The new source adaptations cover CPython short-extra and structurally unusable
+overlap inputs, Go overflow/undersize inputs, and libarchive BZIP2/invalid-EOCD
+inputs. Their structural rejection does not identify which later overlap or
+arithmetic rule would have rejected an otherwise valid archive. No upstream
+suite has been executed. Original Go trailing-data and libarchive `0x032e`
+extraction-version archives remain explicit restricted-profile controls.
+
+Generated mutations cover local/central/end signatures, local-name disagreement,
+metadata length, local/directory offsets, end comment length, flags and payload
+corruption. A raw binary comment containing an end signature has a positive
+byte-preservation control. Input partitions include bytewise, single-chunk and
+fixed-seed mixed schedules. This bounded ASCII corpus does not qualify every
+option interaction, malformed archive topology, Unicode namespace or runtime.
+
+The manual QA plan binds invocation, expected bytes/status/effects and unexecuted
+large-artifact follow-up in `safe-bash-zip-final-manual-qa.md`. Method 98, other
+LZMA encoder/dictionary profiles, encrypted native stdin with a local CRC/time
+surrogate, general regex selection, unavailable platforms/builds and whole-profile
+interactive/large-artifact interoperability remain unsupported or unverified,
+as individually classified in the evidence. Passing regression files are not
+five-dimensional proof for every inventory row. Remaining open cells are not
+skips or passes, and failing repository gates preclude final qualification.

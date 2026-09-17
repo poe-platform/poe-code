@@ -1,5 +1,11 @@
 # DOCX acceptance matrix
 
+The [signature inspection variant record](signature-inspection-variants-20260917.md)
+qualifies 960 exact public model/SDK/actual Shell cases, zero skips, across both
+dialects/kinds, native MIME and active/inactive relationship carriers. Physical
+inventory, inert retention and signed publication refusal pass; the original
+176 test-expectation failures remain documented. Full F01–F07 stays open.
+
 The [active MCE XML replacement record](xml-set-mce-20260917.md) qualifies
 understood content changes while retaining carriers, inactive content and
 inherited opaque XML context. Its unchanged-source final run passed 5,850 cases

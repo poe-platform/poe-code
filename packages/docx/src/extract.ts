@@ -6,7 +6,7 @@ import { readDocumentArchive } from "./admission.js";
 import { validateDocxInvocation } from "./command.js";
 import { asciiKey } from "./part-uri.js";
 import { displayXml } from "./xml-display.js";
-import { parseDocumentXmlAsync } from "./package-xml.js";
+import { isXmlContentType, parseDocumentXmlAsync } from "./package-xml.js";
 import { PublicationError } from "./publication.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 
@@ -31,9 +31,11 @@ export async function extractDocumentArchive(
   options: DocxOperationArguments<"extract">,
   context: ArchiveContext & { readonly filesystem: FileSystem }
 ): Promise<ArchiveExtractionData> {
-  const settings = archiveSettings(context), { budget, signal } = settings;
-  const invocation = validateDocxInvocation({ operation: "extract", inputs: ["-"], options }, budget);
+  const host = archiveSettings(context);
+  const invocation = validateDocxInvocation({ operation: "extract", inputs: ["-"], options }, host.budget);
   const admitted = invocation.options as DocxOperationArguments<"extract">;
+  const settings = archiveSettings({ ...context, budget: host.budget.lower(Object.fromEntries((admitted.limit ?? []).map(limit => [limit.name, limit.value]))) });
+  const { budget, signal } = settings;
   if (!admitted.outputDir?.startsWith("/")) throw new InvalidContainerError("Extraction requires an absolute VFS destination.");
   const outputDir = resolvePath("/", admitted.outputDir), fs = context.filesystem;
   const archive = await readDocumentArchive(input, settings);
@@ -42,7 +44,7 @@ export async function extractDocumentArchive(
   for (const member of archive.members) {
     if (member.directory || admitted.selection === "media-only" && !asciiKey(member.name).startsWith("word/media/")) continue;
     let bytes = member.bytes;
-    if (admitted.pretty && (member.name.endsWith(".xml") || member.name.endsWith(".rels"))) {
+    if (admitted.pretty && (asciiKey(member.name) === "[content_types].xml" || isXmlContentType(archive.package.getPart("/" + member.name).content_type))) {
       const parsed = await parseDocumentXmlAsync(bytes, {}, budget);
       bytes = new TextEncoder().encode(displayXml(parsed.root, budget, true));
       budget.charge("retainedBytes", bytes.length);

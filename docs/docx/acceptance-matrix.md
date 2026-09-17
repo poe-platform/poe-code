@@ -1,5 +1,13 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 extraction qualification](extract-xml-admission-20260917.md)
+records 680 exact new cases within 866 focused passes, zero skips, and 48 built
+SDK/Shell workflows. MIME-based raw/pretty XML behavior, both UTF-16 byte orders,
+binary .xml preservation, manifest/repack/model retention and lowered SDK limits
+pass. Exact capacity succeeds; insufficient host/option capacity rejects before
+tree creation.
+Complete F01–F07 and remaining cross-family dependencies stay open.
+
 The [2026-09-17 packing admission qualification](pack-xml-admission-20260917.md)
 records 512 exact new metadata/boundary cases within 873 focused passes, zero
 skips, and 72 built SDK/actual Shell workflows. XML MIME parameters cannot bypass

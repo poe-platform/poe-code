@@ -20,6 +20,7 @@ import type { DocumentModelInput } from "./model-input.js";
 import { admitDocumentModel } from "./model-admission.js";
 import { modelContext, type DocumentModelContext } from "./model-context.js";
 import type { Length } from "./formatting-values.js";
+import { activeXmlChildren } from "./xml-active-children.js";
 
 const relNamespace = "http://schemas.openxmlformats.org/package/2006/relationships";
 const relContentType = "application/vnd.openxmlformats-package.relationships+xml";
@@ -31,6 +32,7 @@ const packageEdges = Symbol("edges");
 const packageRelationshipXml = Symbol("relationshipXml");
 const packageEditRelationships = Symbol("editRelationships");
 const packageBindXml = Symbol("bindXml");
+const packageReadXml = Symbol("read-xml");
 const packageRename = Symbol("rename");
 const packageValidate = Symbol("validate");
 const packageAdmitPart = Symbol("admit-part");
@@ -75,6 +77,7 @@ export class PackageView {
   #cached: { version: string; archive: DocumentArchive; graph: DocumentPackage } | undefined;
   #imageParts: ImageParts | undefined;
   readonly #images = new Map<string, Image>();
+  readonly #xmlReads = new WeakMap<PackagePart, DocumentXmlEditor>();
   constructor(binding: PackageViewBinding) { this.#binding = binding; }
   static async open(input: DocumentModelInput, context?: DocumentModelContext): Promise<PackageView> {
     const settings = modelContext(context);
@@ -379,6 +382,18 @@ export class PackageView {
       }
     });
   }
+  [packageReadXml](part: PartView): { xml: DocumentXmlEditor; budget: DocumentBudget } {
+    if (part.package !== this) throw new InputTypeError("Expected a part owned by this package.");
+    const name = partNames.get(part);
+    if (!name) throw new StaleHandleError("The part owner is detached.");
+    const metadata = this.current().graph.getPart(name), budget = archiveSettings(this.#binding.context).budget;
+    let xml = this.#xmlReads.get(metadata);
+    if (!xml) {
+      xml = new DocumentXmlEditor(metadata.bytes, {}, undefined, budget);
+      this.#xmlReads.set(metadata, xml);
+    }
+    return { xml, budget };
+  }
   private commit(archive: DocumentArchive, rename?: { from: string; to: string }): void {
     const { budget, limits } = archiveSettings(this.#binding.context);
     if (archive.members.length > limits.maxMembers) throw new ResourceLimitError("Package member count exceeds the admitted ceiling.");
@@ -507,7 +522,7 @@ export class NumberingPart extends XmlPartView {
     return owner[packageNumbering](owner.main_document_part);
   }
   get numbering_definitions(): _NumberingDefinitions {
-    if (this.element.localName !== "numbering") throw new InvalidValueError("Expected an owned numbering root.");
+    if (this.package[packageReadXml](this).xml.root.localName !== "numbering") throw new InvalidValueError("Expected an owned numbering root.");
     return this.#definitions ??= new _NumberingDefinitions(this);
   }
 }
@@ -515,11 +530,16 @@ export class NumberingPart extends XmlPartView {
 export class _NumberingDefinitions {
   constructor(private readonly owner: NumberingPart) {}
   get length(): number {
-    const root = this.owner.element;
+    const { xml, budget } = this.owner.package[packageReadXml](this.owner), root = xml.root;
     if (root.localName !== "numbering" ||
-        (root.tag.namespaceURI !== documentDialects.transitional.w && root.tag.namespaceURI !== documentDialects.strict.w))
+        (root.namespace !== documentDialects.transitional.w && root.namespace !== documentDialects.strict.w))
       throw new InvalidValueError("Expected an owned numbering root.");
-    return root.children.filter(node => node.tag.namespaceURI === root.tag.namespaceURI && node.localName === "num").length;
+    let count = 0;
+    for (const node of activeXmlChildren(xml, budget)(root)) {
+      budget.charge("work", 1);
+      if (node.namespace === root.namespace && node.localName === "num") count++;
+    }
+    return count;
   }
 }
 

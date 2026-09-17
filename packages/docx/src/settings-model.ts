@@ -1,6 +1,7 @@
 import { activeModelChildren } from "./model-active-children.js";
 import { InputTypeError } from "./archive.js";
 import { DocumentPackage } from "./package.js";
+import { findRelationshipPart } from "./relationship-part.js";
 import type { ModelRef, ModelStore } from "./model-store.js";
 import { dialectForNamespace, documentDialects } from "./dialect.js";
 import { UnsupportedEditError } from "./xml-write.js";
@@ -32,13 +33,14 @@ export class Settings {
           new TextEncoder().encode(`<ds:settings xmlns:ds="${w}"/>`),
           "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"
         );
-        const relName =
+        const relationshipPart = findRelationshipPart(graph, store.mainPart, store.context.budget);
+        const relName = relationshipPart ? "/" + relationshipPart.name :
           store.mainPart.slice(0, store.mainPart.lastIndexOf("/") + 1) +
           "_rels/" +
           store.mainPart.slice(store.mainPart.lastIndexOf("/") + 1) +
           ".rels";
         const edge = `<Relationship xmlns="http://schemas.openxmlformats.org/package/2006/relationships" Id="${graph.allocateRelationshipId(store.mainPart)}" Type="${r}/settings" Target="${xmlValue(relativePartTarget(store.mainPart, created))}"/>`;
-        if (store.snapshot().members.some((member) => "/" + member.name === relName))
+        if (relationshipPart)
           store.change(relName, (xml) => xml.insertChildren(xml.root, edge));
         else
           store.setPart(

@@ -149,3 +149,14 @@ Document.styles getter materializes the three original defaults consistently.
 The maintained unfiltered run passes 11,760 tests in 281 files, zero skips;
 source hashes were verified unchanged after execution. This resolves these named
 owner/side-effect assertions only. Full F01–F07 and batch-envelope parity stay open.
+
+## Current independently spelled relationship evidence
+
+The [relationship-member record](independent-relationship-members-20260917.md)
+binds 896 owner and 72 root cases across Strict/Transitional DOCX/DOTX, original
+Unicode encoding and ASCII case, applicable model/SDK/actual-shell routes.
+Creation/editing retains existing physical sidecars and edges while serializing
+canonical editor changes back to their stored member names. All 968 cases pass
+in the unfiltered 11,760-test run, zero skips, with verified source hashes.
+The historical original/intermediate failures remain. This closes those named
+identity assertions; full F01–F07 and the other recorded dependencies remain open.

@@ -7,6 +7,7 @@ import { closedRecord, encodeLocation, SelectionError, type Location } from "./l
 import { openDocumentLocations, type DocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentPackage } from "./package.js";
+import { findRelationshipPart } from "./relationship-part.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { paragraphTextRun, replaceParagraphContent } from "./paragraph-content.js";
 import { relativePartTarget } from "./part-uri.js";
@@ -122,7 +123,7 @@ export async function editDocumentStories(input: Uint8Array, request: StoryEditR
   const w = xml.root.namespace, r = documentDialects[current.dialect].r;
   const staged = new Map<string, Uint8Array>();
   const deleted = new Set<string>();
-  const relName = relationshipName(main);
+  const relName = findRelationshipPart(graph, "/" + main, budget)?.name ?? relationshipName(main);
   const relMember = archive.members.find(member => member.name === relName);
   const relXml = new DocumentXmlEditor(relMember?.bytes ?? new TextEncoder().encode(`<Relationships xmlns="${relNamespace}"/>`), {}, undefined, budget);
   const types = new DocumentXmlEditor(archive.members.find(member => member.name === "[Content_Types].xml")!.bytes, {}, undefined, budget);
@@ -135,7 +136,7 @@ export async function editDocumentStories(input: Uint8Array, request: StoryEditR
     const sourcePart = source ? graph.getPart(source) : undefined;
     const bytes = sourcePart?.bytes ?? new TextEncoder().encode(`<w:${name === "header" ? "hdr" : "ftr"} xmlns:w="${w}"><w:p/></w:${name === "header" ? "hdr" : "ftr"}>`);
     staged.set(part.slice(1), bytes);
-    const relationships = sourcePart && archive.members.find(member => member.name === relationshipName(sourcePart.name));
+    const relationships = sourcePart && findRelationshipPart(graph, sourcePart.partname, budget);
     if (relationships) staged.set(relationshipName(part.slice(1)), relationships.bytes);
     newTypes.push(`<Override xmlns="${typeNamespace}" PartName="${xmlValue(part)}" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.${name}+xml"/>`);
     newRelationships.push(`<Relationship xmlns="${relNamespace}" Id="${id}" Type="${r}/${name}" Target="${xmlValue(relativePartTarget("/" + main, part))}"/>`);

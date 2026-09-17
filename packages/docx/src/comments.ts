@@ -13,6 +13,7 @@ import { relativePartTarget } from "./part-uri.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { findRelationshipPart } from "./relationship-part.js";
 
 export type CommentReadRequest = { [K in "comments.list" | "comments.get"]: { readonly operation: K; readonly options: DocxOperationArguments<K> } }["comments.list" | "comments.get"];
 export type CommentEditRequest = { [K in "comments.add" | "comments.set" | "comments.remove"]: { readonly operation: K; readonly options: DocxOperationArguments<K>; readonly input?: PublicationInput } }["comments.add" | "comments.set" | "comments.remove"];
@@ -75,13 +76,14 @@ export async function editDocumentComments(input: Uint8Array, request: CommentEd
   const budget = settings.budget.lower(Object.fromEntries((options.limit ?? []).map(i => [i.name, i.value])));
   const state = await openComments(input, { ...settings, budget });
   const { archive, graph, editors, main, w, r } = state;
+  const memberNames = new Map(graph.parts.map(part => [part.partname, part.name]));
   assertDocumentEditable(archive, { ...settings, budget });
   const updates: { before: Location; id: number; kind: "insert" | "replace" | "remove" }[] = [];
   let part = state.part;
   const editPart = (name: string, initial: string) => {
     const existing = editors.get(name);
     if (existing) return existing;
-    const editor = new DocumentXmlEditor(archive.members.find(m => "/" + m.name === name)?.bytes ?? new TextEncoder().encode(initial), {}, undefined, budget);
+    const editor = new DocumentXmlEditor(archive.members.find(m => m.name === (memberNames.get(name) ?? name.slice(1)))?.bytes ?? new TextEncoder().encode(initial), {}, undefined, budget);
     editors.set(name, editor); return editor;
   };
   if (request.operation === "comments.add") {
@@ -129,7 +131,7 @@ export async function editDocumentComments(input: Uint8Array, request: CommentEd
     editor.replaceElement(p, editor.sourceXml(p, patches));
     if (!part) {
       part = graph.allocatePartName(main.slice(0, main.lastIndexOf("/") + 1) + "comments", ".xml");
-      const relName = main.slice(0, main.lastIndexOf("/") + 1) + "_rels/" + main.slice(main.lastIndexOf("/") + 1) + ".rels";
+      const relName = findRelationshipPart(graph, main, budget)?.partname ?? main.slice(0, main.lastIndexOf("/") + 1) + "_rels/" + main.slice(main.lastIndexOf("/") + 1) + ".rels";
       const ns = "http://schemas.openxmlformats.org/package/2006/relationships";
       const rels = editPart(relName, `<Relationships xmlns="${ns}"/>`);
       rels.insertChildren(rels.root, `<Relationship xmlns="${ns}" Id="${graph.allocateRelationshipId(main)}" Type="${r}/comments" Target="${xmlValue(relativePartTarget(main, part))}"/>`);
@@ -176,7 +178,7 @@ export async function editDocumentComments(input: Uint8Array, request: CommentEd
       updates.push({ before: record.location, id: record.id, kind: request.operation === "comments.set" ? "replace" : "remove" });
     }
   }
-  const staged = new Map([...editors].filter(([name, editor]) => editor.dirtyNodes.length || !archive.members.some(m => "/" + m.name === name)).map(([name, editor]) => [name.slice(1), editor.serialize()]));
+  const staged = new Map([...editors].filter(([name, editor]) => editor.dirtyNodes.length || !memberNames.has(name)).map(([name, editor]) => [memberNames.get(name) ?? name.slice(1), editor.serialize()]));
   const finalArchive: DocumentArchive = { ...archive, members: [
     ...archive.members.map(m => ({ ...m, bytes: staged.get(m.name) ?? m.bytes })),
     ...[...staged].filter(([name]) => !archive.members.some(m => m.name === name)).map(([name, bytes]) => ({ name, bytes, directory: false, modified: new Date("1980-01-01T00:00:00Z") }))

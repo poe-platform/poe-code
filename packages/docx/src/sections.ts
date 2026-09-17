@@ -7,6 +7,7 @@ import { closedRecord, decodeLocation, encodeLocation, SelectionError, type Loca
 import { openDocumentLocations, type DocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentPackage } from "./package.js";
+import { findRelationshipPart } from "./relationship-part.js";
 import { DocumentArchiveEditor } from "./package-write.js";
 import { relativePartTarget } from "./part-uri.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
@@ -203,7 +204,7 @@ export async function editDocumentSections(input: Uint8Array, request: SectionEd
       const name = current.graph.allocatePartName("/word/settings", ".xml");
       const types = new DocumentXmlEditor(archive.members.find(m => m.name === "[Content_Types].xml")!.bytes, {}, undefined, budget);
       types.insertChildren(types.root, `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="${xmlValue(name)}" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>`);
-      const split = main.lastIndexOf("/"), relName = main.slice(0, split + 1) + "_rels/" + main.slice(split + 1) + ".rels";
+      const split = main.lastIndexOf("/"), relName = findRelationshipPart(current.graph, "/" + main, budget)?.name ?? main.slice(0, split + 1) + "_rels/" + main.slice(split + 1) + ".rels";
       const rel = archive.members.find(m => m.name === relName);
       const ns = "http://schemas.openxmlformats.org/package/2006/relationships";
       const relXml = new DocumentXmlEditor(rel?.bytes ?? new TextEncoder().encode(`<Relationships xmlns="${ns}"/>`), {}, undefined, budget);

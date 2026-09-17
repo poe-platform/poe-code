@@ -5,6 +5,7 @@ import { xmlValue } from "./create-content.js";
 import { documentDialects } from "./dialect.js";
 import { relativePartTarget } from "./part-uri.js";
 import { DocumentXmlEditor } from "./xml-write.js";
+import { findRelationshipPart } from "./relationship-part.js";
 
 /** Materialize an original styles part, allocating both graph identities locally. */
 export function addDocumentStylesPart(archive: DocumentArchive, template: Pick<AdmittedDocumentArchive, "package" | "mainPart" | "dialect">, styles: string, budget: DocumentBudget): { archive: DocumentArchive; name: string } {
@@ -14,7 +15,7 @@ export function addDocumentStylesPart(archive: DocumentArchive, template: Pick<A
   const typesEditor = new DocumentXmlEditor(types.bytes, {}, undefined, budget);
   typesEditor.insertChildren(typesEditor.root, `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="${xmlValue(name)}" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>`);
   const main = template.mainPart, split = main.lastIndexOf("/");
-  const relationshipsName = main.slice(0, split + 1) + "_rels/" + main.slice(split + 1) + ".rels";
+  const relationshipsName = findRelationshipPart(template.package, "/" + main, budget)?.name ?? main.slice(0, split + 1) + "_rels/" + main.slice(split + 1) + ".rels";
   const relationships = archive.members.find(member => member.name === relationshipsName);
   const namespace = "http://schemas.openxmlformats.org/package/2006/relationships";
   const relEditor = new DocumentXmlEditor(relationships?.bytes ?? new TextEncoder().encode(`<Relationships xmlns="${namespace}"/>`), {}, undefined, budget);

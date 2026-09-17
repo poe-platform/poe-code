@@ -8,6 +8,7 @@ import { closedRecord, encodeLocation, type Location } from "./location-token.js
 import { openDocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentPackage } from "./package.js";
+import { findRelationshipPart } from "./relationship-part.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { paragraphTextRun } from "./paragraph-content.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
@@ -95,7 +96,7 @@ export async function editDocumentLinks(input: Uint8Array, request: LinkEditRequ
     const name = graph.getPart(part).name, member = members.get(name)!;
     let xml = new DocumentXmlEditor(member.bytes, {}, undefined, budget);
     const split = name.lastIndexOf("/");
-    const relName = name.slice(0, split + 1) + "_rels/" + name.slice(split + 1) + ".rels";
+    const relName = findRelationshipPart(graph, part, budget)?.name ?? name.slice(0, split + 1) + "_rels/" + name.slice(split + 1) + ".rels";
     const relMember = members.get(relName);
     let rels = new DocumentXmlEditor(relMember?.bytes ?? new TextEncoder().encode(`<Relationships xmlns="${relationshipsNamespace}"/>`), {}, undefined, budget);
     const retired = new Set<string>(), reserved = new Set<string>();

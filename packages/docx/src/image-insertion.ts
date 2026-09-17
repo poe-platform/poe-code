@@ -10,6 +10,7 @@ import { closedRecord, encodeLocation, type Location } from "./location-token.js
 import { openDocumentLocations } from "./locations.js";
 import type { DocxBinaryInput, DocxDirectLength, DocxOperationArguments } from "./operation-types.js";
 import { DocumentPackage } from "./package.js";
+import { findRelationshipPart } from "./relationship-part.js";
 import { DocumentArchiveEditor } from "./package-write.js";
 import { isXmlContentType, parseDocumentXml } from "./package-xml.js";
 import { asciiKey, relativePartTarget } from "./part-uri.js";
@@ -162,7 +163,7 @@ export async function insertDocumentImage(input: Uint8Array, request: ImageInser
     budget.charge("work", alt.length);
     const alternativeSize = xmlTextSize(alt, utf8, true);
     budget.check("xmlPartBytes", ownerMember.bytes.length + alternativeSize.bytes);
-    const owner = before.value.part, slash = ownerMember.name.lastIndexOf("/"), relname = ownerMember.name.slice(0, slash + 1) + "_rels/" + ownerMember.name.slice(slash + 1) + ".rels";
+    const owner = before.value.part, slash = ownerMember.name.lastIndexOf("/"), relname = findRelationshipPart(graph, owner, budget)?.name ?? ownerMember.name.slice(0, slash + 1) + "_rels/" + ownerMember.name.slice(slash + 1) + ".rels";
     let idOrdinal = 1; const taken = new Set(graph.relationships(owner).map(edge => edge.rId)); while (taken.has(`rId${idOrdinal}`)) idOrdinal++; const relationshipId = `rId${idOrdinal}`;
     taken.add(relationshipId);
     while (taken.has(`rId${idOrdinal}`)) idOrdinal++;

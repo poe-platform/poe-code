@@ -6,6 +6,7 @@ import type { DocxLength } from "./operation-types.js";
 import { Emu, isLength, WD_INLINE_SHAPE, type Length } from "./formatting-values.js";
 import type { ModelRef, ModelStore } from "./model-store.js";
 import { DocumentPackage } from "./package.js";
+import { findRelationshipPart } from "./relationship-part.js";
 import { dialectForNamespace, documentDialects } from "./dialect.js";
 import { relativePartTarget } from "./part-uri.js";
 import { xmlValue } from "./create-content.js";
@@ -259,13 +260,14 @@ export function insertModelImage(
     while (drawingIds.has(drawingId)) drawingId++;
     if (drawingId > 4294967295) throw new ResourceLimitError("No drawing identifier is available.");
     store.setPart(part, image.blob, image.content_type);
-    const relName =
+    const relationshipPart = findRelationshipPart(graph, ref.part, store.context.budget);
+    const relName = relationshipPart ? "/" + relationshipPart.name :
       ref.part.slice(0, ref.part.lastIndexOf("/") + 1) +
       "_rels/" +
       ref.part.slice(ref.part.lastIndexOf("/") + 1) +
       ".rels";
     const edge = `<Relationship xmlns="http://schemas.openxmlformats.org/package/2006/relationships" Id="${relationshipId}" Type="${ns.r}/image" Target="${xmlValue(relativePartTarget(ref.part, part))}"/>`;
-    if (store.snapshot().members.some((m) => "/" + m.name === relName))
+    if (relationshipPart)
       store.change(relName, (xml) => xml.insertChildren(xml.root, edge));
     else
       store.setPart(

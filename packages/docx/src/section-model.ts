@@ -3,6 +3,7 @@ import { BoundsError } from "./model-errors.js";
 import type { ModelRef, ModelStore } from "./model-store.js";
 import { numericSequence } from "./numeric-index.js";
 import { DocumentPackage } from "./package.js";
+import { findRelationshipPart } from "./relationship-part.js";
 import { documentDialects, dialectForNamespace } from "./dialect.js";
 import {
   sectionAttribute,
@@ -421,7 +422,8 @@ class HeaderFooter {
           ".xml"
         ),
         id = graph.allocateRelationshipId(store.mainPart);
-      const relationshipPart =
+      const relationshipPart = findRelationshipPart(graph, store.mainPart, store.context.budget)?.name;
+      const relationshipsName = relationshipPart ? "/" + relationshipPart :
         store.mainPart.slice(0, store.mainPart.lastIndexOf("/") + 1) +
         "_rels/" +
         store.mainPart.slice(store.mainPart.lastIndexOf("/") + 1) +
@@ -435,11 +437,11 @@ class HeaderFooter {
         ),
         contentType
       );
-      if (store.snapshot().members.some((member) => "/" + member.name === relationshipPart))
-        store.change(relationshipPart, (xml) => xml.insertChildren(xml.root, relationship));
+      if (relationshipPart)
+        store.change(relationshipsName, (xml) => xml.insertChildren(xml.root, relationship));
       else
         store.setPart(
-          relationshipPart,
+          relationshipsName,
           new TextEncoder().encode(
             `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${relationship}</Relationships>`
           )

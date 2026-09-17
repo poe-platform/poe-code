@@ -34,6 +34,7 @@ import { WD_STYLE_TYPE } from "./formatting-values.js";
 import { addDocumentStylesPart } from "./styles-part.js";
 import type { Length } from "./formatting-values.js";
 import { activeModelChildren } from "./model-active-children.js";
+import { findRelationshipPart } from "./relationship-part.js";
 
 export interface ModelRef {
   readonly part: string;
@@ -149,10 +150,10 @@ export class ModelStore {
       );
       this.archive = added.archive;
       this.editors.delete(
-        this.mainPart.slice(0, this.mainPart.lastIndexOf("/") + 1) +
+        "/" + this.memberName(this.mainPart.slice(0, this.mainPart.lastIndexOf("/") + 1) +
           "_rels/" +
           this.mainPart.slice(this.mainPart.lastIndexOf("/") + 1) +
-          ".rels"
+          ".rels")
       );
       this.editors.delete("/[Content_Types].xml");
       this.revision++;
@@ -649,12 +650,13 @@ export class ModelStore {
         new TextEncoder().encode(`<bm:comments xmlns:bm="${w}"/>`),
         "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"
       );
-      const relName =
+      const relationshipPart = findRelationshipPart(graph, this.mainPart, this.context.budget);
+      const relName = relationshipPart ? "/" + relationshipPart.name :
         this.mainPart.slice(0, this.mainPart.lastIndexOf("/") + 1) +
         "_rels/" +
         this.mainPart.slice(this.mainPart.lastIndexOf("/") + 1) +
         ".rels";
-      if (!this.archive.members.some((member) => "/" + member.name === relName))
+      if (!relationshipPart)
         this.setPart(
           relName,
           new TextEncoder().encode(

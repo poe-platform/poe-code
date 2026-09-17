@@ -12,6 +12,7 @@ import { relativePartTarget } from "./part-uri.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { resolveDocxSelection } from "./simple-selection.js";
+import { findRelationshipPart } from "./relationship-part.js";
 
 export type NoteReadRequest = { [K in "notes.list" | "notes.get"]: { readonly operation: K; readonly options: DocxOperationArguments<K> } }["notes.list" | "notes.get"];
 export type NoteEditRequest = { [K in "notes.add" | "notes.set" | "notes.remove"]: { readonly operation: K; readonly options: DocxOperationArguments<K>; readonly input?: PublicationInput } }["notes.add" | "notes.set" | "notes.remove"];
@@ -87,6 +88,8 @@ export async function editDocumentNotes(input: Uint8Array, request: NoteEditRequ
   const budget = settings.budget.lower(Object.fromEntries((request.options.limit ?? []).map(i => [i.name, i.value])));
   const state = await openNotes(input, { ...settings, budget });
   const { archive, graph, editors, main, w, r } = state;
+  const memberNames = new Map(graph.parts.map(part => [part.partname, part.name]));
+  const memberName = (part: string) => memberNames.get(part) ?? part.slice(1);
   assertDocumentEditable(archive, { ...settings, budget });
   const options = request.options as NoteOptions & DocxOperationArguments<"notes.add">;
   const staged = new Map<string, Uint8Array>();
@@ -96,7 +99,7 @@ export async function editDocumentNotes(input: Uint8Array, request: NoteEditRequ
   let added: { kind: NoteKind; id: number; part: string } | undefined;
   const editPart = (part: string, initial: string): DocumentXmlEditor => {
     const existing = editors.get(part); if (existing) return existing;
-    const editor = new DocumentXmlEditor(archive.members.find(m => "/" + m.name === part)?.bytes ?? new TextEncoder().encode(initial), {}, undefined, budget);
+    const editor = new DocumentXmlEditor(archive.members.find(m => m.name === memberName(part))?.bytes ?? new TextEncoder().encode(initial), {}, undefined, budget);
     editors.set(part, editor); return editor;
   };
   if (request.operation === "notes.add") {
@@ -119,7 +122,7 @@ export async function editDocumentNotes(input: Uint8Array, request: NoteEditRequ
     if (!part) {
       part = graph.allocatePartName(main.slice(0, main.lastIndexOf("/") + 1) + kind + "s", ".xml");
       state.parts.set(kind, part);
-      const relationshipPart = main.slice(0, main.lastIndexOf("/") + 1) + "_rels/" + main.slice(main.lastIndexOf("/") + 1) + ".rels";
+      const relationshipPart = findRelationshipPart(graph, main, budget)?.partname ?? main.slice(0, main.lastIndexOf("/") + 1) + "_rels/" + main.slice(main.lastIndexOf("/") + 1) + ".rels";
       const relNamespace = "http://schemas.openxmlformats.org/package/2006/relationships";
       const rels = editPart(relationshipPart, `<Relationships xmlns="${relNamespace}"/>`);
       rels.insertChildren(rels.root, `<Relationship xmlns="${relNamespace}" Id="${graph.allocateRelationshipId(main)}" Type="${r}/${kind}s" Target="${xmlValue(relativePartTarget(main, part))}"/>`);
@@ -186,9 +189,9 @@ export async function editDocumentNotes(input: Uint8Array, request: NoteEditRequ
       missing.push(`<nt:${kind} xmlns:nt="${w}" nt:id="${id}" nt:type="${type}"><nt:p><nt:r><nt:${type}/></nt:r></nt:p></nt:${kind}>`);
     }
     if (missing.length) editor.insertChildren(editor.root, missing.join(""), editor.root.children[0]);
-    staged.set(part.slice(1), editor.serialize());
+    staged.set(memberName(part), editor.serialize());
   }
-  for (const [part, editor] of editors) if (editor.dirtyNodes.length || !archive.members.some(m => "/" + m.name === part)) staged.set(part.slice(1), editor.serialize());
+  for (const [part, editor] of editors) if (editor.dirtyNodes.length || !memberNames.has(part)) staged.set(memberName(part), editor.serialize());
   const snapshot = (): DocumentArchive => ({ ...archive, members: [
     ...archive.members.map(m => ({ ...m, bytes: staged.get(m.name) ?? m.bytes })),
     ...[...staged].filter(([name]) => !archive.members.some(m => m.name === name)).map(([name, bytes]) => ({ name, bytes, directory: false, modified: new Date("1980-01-01T00:00:00Z") }))
@@ -198,7 +201,7 @@ export async function editDocumentNotes(input: Uint8Array, request: NoteEditRequ
     const referenceOrder = new Map<NoteKind, number[]>();
     const orderedParts = [...new Set(state.document.list("story", { scope: "all-stories" }).map(story => story.value.part))];
     for (const part of orderedParts) {
-      const editor = new DocumentXmlEditor(staged.get(part.slice(1)) ?? graph.getPart(part).bytes, {}, undefined, budget);
+      const editor = new DocumentXmlEditor(staged.get(memberName(part)) ?? graph.getPart(part).bytes, {}, undefined, budget);
       const visit = (node: typeof editor.root) => {
         budget.charge("work", 1);
         if (node.namespace === w && ["footnoteReference", "endnoteReference"].includes(node.localName)) {
@@ -214,7 +217,7 @@ export async function editDocumentNotes(input: Uint8Array, request: NoteEditRequ
     }
     for (const kind of touched) {
       if (state.references.some(ref => ref.kind === kind && !removedRefs.has(ref) && !ref.safe)) throw new UnsupportedEditError("ID renumbering requires every reference to be editable.");
-      const part = state.parts.get(kind)!, noteEditor = new DocumentXmlEditor(staged.get(part.slice(1)) ?? graph.getPart(part).bytes, {}, undefined, budget);
+      const part = state.parts.get(kind)!, noteEditor = new DocumentXmlEditor(staged.get(memberName(part)) ?? graph.getPart(part).bytes, {}, undefined, budget);
       const nodes = noteEditor.root.children.filter(n => n.namespace === w && n.localName === kind);
       const used = new Set(nodes.filter(n => (noteAttribute(n, "type") ?? "normal") !== "normal").map(n => Number(noteAttribute(n, "id"))));
       const order = referenceOrder.get(kind) ?? [];
@@ -222,10 +225,11 @@ export async function editDocumentNotes(input: Uint8Array, request: NoteEditRequ
       let next = 1;
       for (const id of order) { while (used.has(next)) next++; remapping.set(kind + ":" + id, next); used.add(next++); budget.charge("work", 1); }
       for (const n of nodes) if ((noteAttribute(n, "type") ?? "normal") === "normal") noteEditor.setAttribute(n, { namespace: w, localName: "id" }, String(remapping.get(kind + ":" + Number(noteAttribute(n, "id")))));
-      staged.set(part.slice(1), noteEditor.serialize());
+      staged.set(memberName(part), noteEditor.serialize());
     }
+    const editedMembers = new Set([...editors.keys()].map(memberName));
     for (const member of snapshot().members) {
-      if (!editors.has("/" + member.name) || member.name.endsWith(".rels") || member.name === "[Content_Types].xml") continue;
+      if (!editedMembers.has(member.name) || member.name.toLowerCase().endsWith(".rels") || member.name === "[Content_Types].xml") continue;
       const editor = new DocumentXmlEditor(member.bytes, {}, undefined, budget);
       const visit = (node: typeof editor.root) => {
         budget.charge("work", 1);

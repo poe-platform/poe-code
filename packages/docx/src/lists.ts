@@ -17,6 +17,7 @@ import { assertDocumentEditable, publishDocumentArchive, type PublicationContext
 import { runElementOpen } from "./run-properties.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { findRelationshipPart } from "./relationship-part.js";
 
 export type ListEditOperation = "lists.add" | "lists.set";
 export type ListEditRequest = { [K in ListEditOperation]: { readonly operation: K; readonly options: DocxOperationArguments<K>; readonly input?: PublicationInput } }[ListEditOperation];
@@ -117,7 +118,7 @@ export async function editDocumentLists(input: Uint8Array, request: ListEditRequ
       const typesXml = new DocumentXmlEditor(types.bytes, {}, undefined, budget);
       typesXml.insertChildren(typesXml.root, `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="${xmlValue(name)}" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>`);
       const split = main.lastIndexOf("/");
-      const relName = main.slice(0, split + 1) + "_rels/" + main.slice(split + 1) + ".rels";
+      const relName = findRelationshipPart(packageGraph, "/" + main, budget)?.name ?? main.slice(0, split + 1) + "_rels/" + main.slice(split + 1) + ".rels";
       const member = archive.members.find(m => m.name === relName);
       const ns = "http://schemas.openxmlformats.org/package/2006/relationships";
       const relXml = new DocumentXmlEditor(member?.bytes ?? new TextEncoder().encode(`<Relationships xmlns="${ns}"/>`), {}, undefined, budget);

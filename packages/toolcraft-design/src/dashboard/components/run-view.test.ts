@@ -145,6 +145,21 @@ describe("run dashboard information hierarchy", () => {
     expect(text).toContain("more queued work");
   });
 
+  it.each(["Follow-up", "Cancelling"])("shows the follow-up position for its own plan without hiding %s", (phase) => {
+    const { text } = screen(80, 24, { stats: {
+      ...stats, run: { ...stats.run, phase, queue: [
+        { kind: "plan", id: "first", path: "release.md", status: "completed" },
+        { kind: "message", id: "one", afterPlanId: "first", text: "Review", status: "completed" },
+        { kind: "message", id: "two", afterPlanId: "first", text: "Verify", status: "running" },
+        { kind: "message", id: "three", afterPlanId: "first", text: "Summarize", status: "pending" },
+        { kind: "plan", id: "second", path: "next.md", status: "pending" },
+        { kind: "message", id: "four", afterPlanId: "second", text: "Review next", status: "pending" }
+      ] }
+    } });
+    expect(text).toContain(phase === "Follow-up" ? "Follow-up 2/3" : "Cancelling");
+    expect(text).not.toContain("Follow-up 2/4");
+  });
+
   it("keeps progress visible when the active command is long", () => {
     const { rows } = screen(80, 24, { stats: {
       ...stats, run: { ...stats.run, activity: `Run npm test ${"very-long-option ".repeat(8)}` }

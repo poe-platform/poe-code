@@ -87,7 +87,13 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   const taskCount = tasks.length > 0 ? `${completed}/${tasks.length} tasks` : `${stats.iterationsLabel ?? "Iterations"} ${stats.iterations}`;
   const step = run?.activeStep ? truncateToWidth(plainTerminalText(run.activeStep), Math.max(8, Math.floor(transcriptWidth / 4))) : undefined;
   const progressLabel = [step, taskCount].filter(Boolean).join(" · ");
-  const phase = truncateToWidth(plainTerminalText(run?.phase ?? stats.currentAction ?? stats.status), Math.max(8, transcriptWidth - progressLabel.length - 7));
+  let phaseLabel = run?.phase ?? stats.currentAction ?? stats.status;
+  if (phaseLabel === "Follow-up") {
+    const messages = queue.filter((item) => item.kind === "message" && item.afterPlanId === run?.activePlanId);
+    const active = messages.findIndex((item) => item.status === "running");
+    if (active >= 0) phaseLabel += ` ${active + 1}/${messages.length}`;
+  }
+  const phase = truncateToWidth(plainTerminalText(phaseLabel), Math.max(8, transcriptWidth - progressLabel.length - 7));
   const statusMarker = { running: "●", error: "!", paused: "Ⅱ", idle: "○", done: "✓" }[stats.status];
   put(buffer, { x, y: outputY++, width: transcriptWidth, height: 1 }, 0,
     `${statusMarker} ${phase} · ${progressLabel}${run?.activity ? ` · ${run.activity}` : ""}`, stats.status === "error" ? theme.error : { bold: true });

@@ -1,0 +1,4559 @@
+{
+  "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+  "verifiedCloneHEAD": "c9a9a5eed7185783b69043e019c067370dc09615",
+  "clone": "/tmp/poe-pandoc-investigation-20260912",
+  "inventorySha256": "8bcc00a4b09f9a6be225358aa86582013ea7d46157c5cd2d3a2eebd814f34036",
+  "contractSha256": "a631760095f8fccaf6b6e8ff62727860f6c7fe844b1192ca6ef1df071422e599",
+  "rows": [
+    {
+      "path": "test/test-pandoc.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Command.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Old.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Shared.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/MediaBag.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/XML.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/ImageSize.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Readers/Markdown.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Readers/HTML.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Readers/Docx.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Readers/Pptx.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Readers/Xlsx.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Readers/LaTeX.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Readers/RST.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Readers/RTF.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Readers/EPUB.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Writers/Markdown.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Writers/HTML.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Writers/Plain.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Writers/AnnotatedTable.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Writers/Docx.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Writers/Powerpoint.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Writers/LaTeX.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Writers/RST.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Helpers.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/Tests/Writers/OOXML.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10002.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10057.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10062.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10071.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10093.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10094.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10105.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10127.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10145.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10148.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10149.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10152.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10160.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10185.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/1023.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10236.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10271.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10279.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10281.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10318.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10328.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10338-rst-multiple-header-rows.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10385.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10390.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10414.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10459.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10484.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10490.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10491.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10497.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10537.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10594.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10621.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10631.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10635.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10643.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10650.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10659.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10672.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10708.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10730.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10747.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10755.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10758.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10781.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10791.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10805.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10812.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10816.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10825.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10836.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10848.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10855.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10862.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10867.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10884.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10889.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10890.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10912.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10915.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10919.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10926.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10940.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10942.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10965.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10983.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/10984.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11006.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11013.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11014.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11017.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11046.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11047.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11048.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11090.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11101.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11113.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11124.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11128.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11140.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11150.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11162.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11188.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11210.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11211.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11253.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/1126.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11266.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11270.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11299.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11300.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11301.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11309.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11312.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11323.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11341.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11342.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11348.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11362.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11364.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11374.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11384.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11409.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11420.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11422.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11450.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11455.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11463.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11479.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11486.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11490.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11494.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11498.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11511.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11534.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11542.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11562.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11571.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11583.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11588.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11589.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11598.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11604.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11608.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11635.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/1166.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11664.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11668.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11673.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11682.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11685.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11689.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11701.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11712.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11715.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11727.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11735.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11739.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11745.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11749.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11758.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11762.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11788.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11793.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11794.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11795.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11809.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11810.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11814.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11833.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11834.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11849.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/11858.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/1279.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/1390.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/1592.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/1608.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/1629.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/168.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/1710.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/1718.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/1745.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/1762.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/1773.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/1841.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/1881.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/1905.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/2103.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/2118.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/2228.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/2337.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/2378.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/2397.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/2434.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/2465.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/2549.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/2552.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/256.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/2602.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/2606.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/262.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/2649.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/2662.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/2834.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/2874.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/2994.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3113.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3123.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3236.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3257.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3309.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3314.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3324.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3337.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3348.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3401.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3407.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3422.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3432.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3432a.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3450.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3475.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3487.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3494.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3497.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3499.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3510.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3511.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3512.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3516.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3518.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3523.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3526.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3529.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3530.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3531.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3533-rst-csv-tables.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3534.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3537.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3539.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3558.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3568.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3570.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3577.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3585.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3587.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3596.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3615.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3619.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3630.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3667.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3674.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3675.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3681.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3690.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3701.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3706.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3708.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3715.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3716.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3730.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3733.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3734.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3736.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3752.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3755.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3771.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3773.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3779.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3792.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3794.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3803.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3804.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3816.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3824.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3840.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3853.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3880.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3916.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3937.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3947.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3958.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3968.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3971.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3974.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3978.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3983.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/3989.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4007.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4012.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4016.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4019.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4038.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4054.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4056.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4061.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4062.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4063.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4068.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4091.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4102.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4113.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4119.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4125.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4134.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4156.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4159.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4162.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4164.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4171.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4172.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4183.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4186.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4193.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4199.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4208.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4235.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4240.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4253.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4254.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4280.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4281.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4284.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4306.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4320.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4374.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4382.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4420.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4424.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4442.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4454.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4465.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4470.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4499.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4513.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4527.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4528.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4529.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4545.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4550.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4553.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4564.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4576.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4578.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4579.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4589.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4594.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4598.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4624.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4635.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4637.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4639.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4653.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4667.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4669.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4677.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4690.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4715.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4722.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4742.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4743.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4746.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4748.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4768.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4781.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4794.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4805-beamer-columns-alignment.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4811.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4817.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4819.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4832.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4833.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4842.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4845.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4848.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4860.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4877.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4880.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4885.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4908.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4913.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4919.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4928.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4933.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/4960.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5010.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5014.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5039.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5050.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5053.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5071.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5072.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5079.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5080.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5081.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5099.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5107.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5116.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5119.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/512.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5121.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5128.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5177.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5178.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5182.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5195.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5233.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5241.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5271.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5285.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5304.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5321.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5340.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5360.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5367.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5368.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5369.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5407.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5410.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5416.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5420.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5439.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5446.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5474-figures.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5474-tables.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5476.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5495.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5519.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5529.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5540.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5541-localLink.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5541-nesting.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5541-urlLink.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5543.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5549.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5565.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5566.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5574.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5619.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5620.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5627.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5635.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5642.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5650.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5654.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5655.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5682.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5684.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5686.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5690.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5700.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5705.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5708.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5711.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5714.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5740.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5753.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5793.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5795.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5797.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5805.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5813.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5819.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5836.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5845.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5846.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5849-prefix.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5857.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5876.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5878.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5881.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5885.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5898.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5899.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5904.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5918.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5936.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5967.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/5986.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6009.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6021.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6026.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6030.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6033.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6034.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6043.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6062.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6107.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6114.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6119.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6133.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6137.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6194.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6265.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6285.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6288.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6296.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6308.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6324.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6348.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6350.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6360.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6367.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6384.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6385.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6388.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6424.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6441.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/645.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6466.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6481.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6541.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6549.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6588.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6620.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6658.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6675.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6699.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6709.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6719.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6723.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6739.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6740.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6741.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6752.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6755.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6765.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6768.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6774.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6783.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6791.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6792.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6796.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6802.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6821.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6836.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6837.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6844.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6855.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6858.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6869.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6873.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6890.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6925.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6948.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6951.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6958.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6959.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6970.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6992.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/6993.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7003.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7006.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7009.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7016.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7041.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7042.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7058.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7064.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7067.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7080.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7092.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7099.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7112.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7129.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7132.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7134.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7145.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7155.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7172.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7173.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7181.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7201.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7208.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7214.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7216.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7219.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7266.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7272.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7278.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7282.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7288.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7299.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7321.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7323.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7324.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7326.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7329.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7339.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7340.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7376.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7394.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7397.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7400.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7416.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7418.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7434.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7436.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7473.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7482.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7494.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7497.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7512.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7520.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7521.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7525.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7529.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7546.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7557.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7568.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7573.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7582.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7589.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7615.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7623.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7632.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7668.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7678.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7691.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7692.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7697.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7713.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7723.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7726.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7738.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7743.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7761.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7778.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7803.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7808.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7810.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7813.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7826.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7847.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7857.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7858.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7861.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7863.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7871.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7884.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7894.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7919.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7920.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7930.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7939.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7941.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7953.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/7965.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8003.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8011.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8024.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8028.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8047.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8070.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8079.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8088.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8097.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8098.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8110.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8131.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8150.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8170.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8174.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8178.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8179.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8182.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8201.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8204.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8216.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8219.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8236.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8240.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8243.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8251.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8254.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8256.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8257.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8281.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8302.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8307.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8344.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8354.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8364.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8365.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8380.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8402.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8437.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8486.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8487.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8504.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8508.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8511.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8513.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/853.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8534.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8573.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8611.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8638.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8652.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8653.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8659.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8661.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8665.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8666.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8681.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8689.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8711.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8738.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8745.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8764.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8770-block.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8770-document.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8770-section.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8777.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8783.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8789.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8852.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8853.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8863.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8867.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8869.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8872.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8880.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8948.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8956.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8957.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8966.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8981.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8984.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8992.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/8997.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9000.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9002.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9017.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9021.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9038.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9042.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9043.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9045.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9047.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9088.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9090.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9121.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9136.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9150.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9159.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9171.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9193.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9196.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9201.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9202.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9209.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9218.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9236.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9275.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9279.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9293.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/934.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9346.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9350.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9358.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9366.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9371.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9386.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9387.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9388.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9391.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9420.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9445.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9452.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9467.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9472.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9475.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9478.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9481.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9516.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9517.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9555.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9569.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9576.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9579.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9585.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9586.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9597.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9603.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9616.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9630.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9632.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9635.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9639.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9644.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9652.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9657.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9676.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9700.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9716.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9777-b.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9777.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9792.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9797.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9805.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9807.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9809.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/982.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9865.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/987.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9878.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9902.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9904.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9905.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9908.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9943.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9945.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9953.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/9987.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/adjacent_latex_blocks.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/alerts.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/ascii.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/author-in-text-move-note.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-266.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-aksin.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-almendro.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-angenendt.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-aristotle-anima.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-aristotle-physics.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-aristotle-poetics.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-aristotle-rhetoric.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-article.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-augustine.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-averroes-bland.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-averroes-hannes.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-averroes-hercz.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-baez-article.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-baez-online.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-basic.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-bertram.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-bibstring-resolution.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-book-averroes.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-book-coleridge.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-book-title-maintitle-series.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-book-vazques-de-parga.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-brandt.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-britannica.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-chiu.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-cicero.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-cms.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-coleridge.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-companion.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-cotton.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-crossref-inbook-mvbook.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-crossref-nested.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-ctan.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-dates.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-doody.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-edtf-date.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-escapedquotes.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-formatting.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-gaonkar-in.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-gaonkar.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-geer.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-gerhardt.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-gillies.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-glashow.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-gonzalez.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-hammond.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-herrmann.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-hyman.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-iliad.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-inbook-title-booktitle-maintitle-series-2.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-inbook-title-booktitle-maintitle-series.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-inbook.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-incollection-2.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-incollection.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-inproceedings.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-issue288.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-itzhaki.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-jaffe.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-jcg.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-kant-kpv.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-kant-ku.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-kastenholz.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-knuth-ct-a.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-knuth-ct-b.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-knuth-ct-c.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-knuth-ct-d.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-knuth-ct-e.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-knuth-ct-related.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-knuth-ct.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-kowalik.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-kullback-related.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-kullback-reprint.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-kullback.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-laufenberg.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-loh.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-malinowski.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-manual.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-markey.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-maron.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-massa.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-moore-related.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-moore.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-moraux.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-murray.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-nietzsche-historie.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-nietzsche-ksa.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-nietzsche-ksa1.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-online.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-options-url-false-doi-false.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-padhye.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-patent.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-periodical.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-piccato.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-pines.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-quotes.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-reese.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-report.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-salam.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-sarfraz.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-shore.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-sigfridsson.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-sorace.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-spiegelberg.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-springer.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-strings.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-test-case-conversion.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-textnormal.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-thesis.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-title-and-shorttitle.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-vangennep-related.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-vangennep-trans.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-vangennep.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-vazques-de-parga-mvbook.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-vazques-de-parga.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-video.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-vizedom-related.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-wassenberg.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-weinberg.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-westfahl-frontier.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-westfahl-space.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-wilde.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-worman.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/biblatex-yoon.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/bibtex-basic.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/bits-book-meta.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/bits-book-part-wrapper-meta.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/bits-book-part-wrapper.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/bits-book.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/bits-index-elements.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/bits-legend.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/bits-named-boook-parts.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/bits-title-display-as.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/bits-title-supress.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/bits-toc-elements.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/cite-in-inline-note.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/citeproc-17.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/citeproc-20.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/citeproc-7a.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/citeproc-7b.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/citeproc-87.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/citeproc-author-in-text-suffix.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/completion.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/csv.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/defaults-inheritance-1.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/defaults-inheritance-2.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/defaults-inheritance-3.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/docbook-bibliography.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/dokuwiki-quote.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/dots.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/duplicate_attributes.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/emoji.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/empty_paragraphs.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/figures-context.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/figures-fb2.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/figures-haddock.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/figures-html.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/figures-jats.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/figures-jira.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/figures-latex.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/figures-markdown.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/figures-mediawiki.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/figures-org.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/figures-rst.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/figures-texinfo.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/figures-textile.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/figures-xwiki.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/figures-zimwiki.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/gfm.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/grid-table-indented.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/hspace.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/html-read-figure.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/html-trim-definition-list-terms.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/html-writer-a-in-a.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/hyphenat.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/ifstrequal.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/indented-fences.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/input-with-endinput.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/jabberwocky.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/jats-figure-alt-text.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/latex-center.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/latex-color.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/latex-command-comment.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/latex-fontawesome.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/latex-math-trailing-space.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/latex-opt-arg-state.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/latex-tabular-column-specs.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/latex-tokenize-hash-positions.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/latex-url-comment-positions.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/latex3-commands.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/latex3-usrguide.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/lettrine.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/lists-inside-definition.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/lstlisting.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/macro-defs-in-preamble.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/macros.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/make-section-column-divs.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/man-defines.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/md-abbrevs.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/mdoc-An.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/mdoc-Bd-unfilled.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/mdoc-Bl-column.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/mdoc-Bl-tag.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/mediawiki_behavior_switches.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/mmd-metadata.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/multiple-metadata-blocks.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/nested-spanlike.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/nested-table-to-asciidoc-6942.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/newif.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-118.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-119.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-13.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-136.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-14.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-152.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-160.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-175.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-197.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-213.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-25.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-250.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-27.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-292.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-301.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-307.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-31.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-312.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-320.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-320a.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-322.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-325.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-327.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-338.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-351.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-356.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-360.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-361.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-365.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-371.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-38.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-386.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-392.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-399.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-401.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-408.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-416.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-437.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-47.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-51.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-53.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-57.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-58.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-61.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-64.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-65.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-68.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-7.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-70.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-75.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-76.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-77.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-82.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-87.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-chicago-author-date.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-chicago-fullnote-bibliography.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-ieee.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-locators-delimited.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-locators-integrated.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-move-period-inside-quote.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-no-author.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-number-of-volumes.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pandoc-citeproc-page-range.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/parse-raw.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pdfstandard.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/pptx-table-content-same-slide.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/refs.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/reset-citation-positions.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/rst-links.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/rst-writer-gridtable-if-rowspans.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/rst_block_subst.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/section-divs.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/setext-fenced-div.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/shift-heading-level-by.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/short-caption.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/sloppypar.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/smart.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/svg.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/table-with-cell-align.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/table-with-column-span.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/tabularx.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/tasklist.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/tex-group.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/toc.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/translations.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/typst-auto-identifiers.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/typst-hs-80.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/typst-image-alt.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/typst-images.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/typst-property-output.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/unicode-collation.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/vars-and-metadata.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/video-audio.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/wikilinks_title_after_pipe.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/wikilinks_title_before_pipe.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/write18.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/yaml-metadata-blocks.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "test/command/yaml-with-chomp.md",
+      "outcome": "pass"
+    },
+    {
+      "path": "commonmark-0.31.2.json",
+      "outcome": "pass"
+    },
+    {
+      "path": "gfm-0.29.txt",
+      "outcome": "pass"
+    },
+    {
+      "path": "src/Text/Pandoc/Writers/RTF.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "src/Text/Pandoc/Writers/EPUB.hs",
+      "outcome": "pass"
+    },
+    {
+      "path": "src/Text/Pandoc/PDF.hs",
+      "outcome": "pass"
+    }
+  ],
+  "counts": {
+    "total": 1136,
+    "pass": 1136,
+    "fail": 0
+  },
+  "execution": "Hash-only source binding; no upstream command fences executed."
+}

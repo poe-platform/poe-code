@@ -1,6 +1,8 @@
 import {createHash} from "node:crypto";
 import {expect,it} from "vitest";
 import oracle from "./__snapshots__/johab-kernel-oracle.json";
+import encodePartitions from "./__snapshots__/johab-encode-partitions-3.14.7.json";
+import incrementalOracle from "./__snapshots__/johab-incremental-partitions-3.14.7.json";
 import {CodePointString} from "./code-point-string.js";
 import {PythonDecodeError} from "./decode-error.js";
 import {PythonEncodeError} from "./encode-error.js";
@@ -56,12 +58,29 @@ function splitRow(data:Uint8Array,split:number,final:boolean,errors:"strict"|"ig
   decoder.reset(budget);row.push(state());return row;
 }
 
-it.each(["strict","ignore","replace"] as const)("matches every split byte pair with finalization and opaque state under %s",errors=>{
-  const hash=createHash("sha256");
-  for(let first=0;first<256;first++)for(let second=0;second<256;second++)for(const final of [false,true]){
-    hash.update(JSON.stringify(splitRow(Uint8Array.of(first,second),1,final,errors))+"\n");
+it("retains the complete split-pair oracle when partitioning by leading byte",()=>{
+  expect(incrementalOracle.reference.version.split(" ")[0]).toBe(oracle.reference.version.split(" ")[0]);
+  expect(incrementalOracle.reference).toMatchObject({unicode:oracle.reference.unicode,platform:oracle.reference.platform,byteorder:oracle.reference.byteorder});
+  for(const errors of ["strict","ignore","replace"] as const){
+    const reference=incrementalOracle.incremental[errors];
+    expect(reference.sha256).toBe(oracle.incremental[errors].sha256);
+    expect(reference.records).toBe(oracle.incremental[errors].records);
+    expect(reference.partitions.map(part=>part.block)).toEqual(Array.from({length:16},(_,block)=>block));
+    expect(reference.partitions.map(part=>part.records)).toEqual(new Array<number>(16).fill(8192));
   }
-  expect(hash.digest("hex")).toBe(oracle.incremental[errors].sha256);
+});
+
+it.each((["strict","ignore","replace"] as const).flatMap(errors=>
+  incrementalOracle.incremental[errors].partitions.map(part=>({errors,...part}))
+))("matches every split byte pair with finalization and opaque state under $errors in block $block",({errors,block,records,sha256})=>{
+  const hash=createHash("sha256");
+  let count=0;
+  for(let first=block*16;first<(block+1)*16;first++)for(let second=0;second<256;second++)for(const final of [false,true]){
+    hash.update(JSON.stringify(splitRow(Uint8Array.of(first,second),1,final,errors))+"\n");
+    count++;
+  }
+  expect(count).toBe(records);
+  expect(hash.digest("hex")).toBe(sha256);
 });
 
 it.each(["strict","ignore","replace"] as const)("matches all Hangul composition splits under %s",errors=>{
@@ -76,15 +95,30 @@ it.each(["strict","ignore","replace"] as const)("matches all Hangul composition 
   expect(hash.digest("hex")).toBe(oracle.hangul[errors].sha256);
 });
 
-it.each(Array.from({length:17},(_,plane)=>plane))("matches every strict Unicode encoding and fault in plane %i",plane=>{
+it("retains every strict Unicode encoding oracle across plane partitions",()=>{
+  expect(encodePartitions.reference.version.split(" ")[0]).toBe(oracle.reference.version.split(" ")[0]);
+  expect(encodePartitions.reference).toMatchObject({unicode:oracle.reference.unicode,platform:oracle.reference.platform,byteorder:oracle.reference.byteorder});
+  expect(encodePartitions.records).toBe(oracle.strictEncode.records);
+  expect(encodePartitions.sha256).toBe(oracle.strictEncode.sha256);
+  expect(encodePartitions.planes.map(row=>row.plane)).toEqual(Array.from({length:17},(_,plane)=>plane));
+  for(const row of encodePartitions.planes){
+    expect(row.sha256).toBe(oracle.strictEncode.planes[row.plane]);
+    expect(row.partitions.map(part=>part.block)).toEqual(Array.from({length:16},(_,block)=>block));
+    expect(row.partitions.map(part=>part.records)).toEqual(new Array<number>(16).fill(4096));
+  }
+});
+
+it.each(encodePartitions.planes.flatMap(row=>row.partitions.map(part=>({plane:row.plane,...part}))))("matches every strict Unicode encoding and fault in plane $plane block $block",({plane,block,records,sha256})=>{
   const hash=createHash("sha256");
-  for(let point=plane*0x10000;point<(plane+1)*0x10000;point++){
+  let count=0;
+  for(let point=plane*0x10000+block*4096;point<plane*0x10000+(block+1)*4096;point++){
     let row:unknown;
     try{row=["ok",[...johabCodec.encode(string(String.fromCodePoint(point)),"strict",meter())]];}
     catch(error){row=failure(error);}
-    hash.update(JSON.stringify(row)+"\n");
+    hash.update(JSON.stringify(row)+"\n");count++;
   }
-  expect(hash.digest("hex")).toBe(oracle.strictEncode.planes[plane]);
+  expect(count).toBe(records);
+  expect(hash.digest("hex")).toBe(sha256);
 });
 
 it.each(["ignore","replace"] as const)("matches all-point encoding with %s",errors=>{

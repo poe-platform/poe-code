@@ -1,0 +1,81 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ✓ packages/safe-python/src/runtime/iso2022-jp-escape-user.test.ts (600 tests) 16711ms
+ ✓ packages/docx/src/workflow-behavior-variants.test.ts (534 tests) 25635ms
+ ✓ packages/safe-python/src/runtime/shift-jis-2004-sequences.test.ts (1554 tests) 8642ms
+ ✓ packages/safe-python/src/runtime/euc-jp-codec.test.ts (78 tests) 17524ms
+   ✓ matches every split byte pair with finalization and opaque state under strict  1090ms
+   ✓ matches every split byte pair with finalization and opaque state under ignore  329ms
+   ✓ matches every split byte pair with finalization and opaque state under replace  334ms
+   ✓ matches JIS X 0212 triple splits under 'strict' in block 1  305ms
+   ✓ matches JIS X 0212 triple splits under 'strict' in block 2  309ms
+   ✓ matches JIS X 0212 triple splits under 'strict' in block 3  307ms
+   ✓ matches JIS X 0212 triple splits under 'strict' in block 4  305ms
+   ✓ matches JIS X 0212 triple splits under 'strict' in block 5  306ms
+   ✓ matches JIS X 0212 triple splits under 'strict' in block 6  306ms
+   ✓ matches JIS X 0212 triple splits under 'strict' in block 7  302ms
+   ✓ matches JIS X 0212 triple splits under 'strict' in block 8  303ms
+   ✓ matches JIS X 0212 triple splits under 'strict' in block 9  337ms
+   ✓ matches JIS X 0212 triple splits under 'strict' in block 10  303ms
+   ✓ matches JIS X 0212 triple splits under 'strict' in block 15  324ms
+   ✓ matches every strict Unicode encoding and fault in plane 0  580ms
+   ✓ matches every strict Unicode encoding and fault in plane 1  432ms
+   ✓ matches every strict Unicode encoding and fault in plane 2  429ms
+   ✓ matches every strict Unicode encoding and fault in plane 3  436ms
+   ✓ matches every strict Unicode encoding and fault in plane 4  428ms
+   ✓ matches every strict Unicode encoding and fault in plane 5  429ms
+   ✓ matches every strict Unicode encoding and fault in plane 6  433ms
+   ✓ matches every strict Unicode encoding and fault in plane 7  439ms
+   ✓ matches every strict Unicode encoding and fault in plane 8  428ms
+   ✓ matches every strict Unicode encoding and fault in plane 9  421ms
+   ✓ matches every strict Unicode encoding and fault in plane 10  436ms
+   ✓ matches every strict Unicode encoding and fault in plane 11  420ms
+   ✓ matches every strict Unicode encoding and fault in plane 12  446ms
+   ✓ matches every strict Unicode encoding and fault in plane 13  428ms
+   ✓ matches every strict Unicode encoding and fault in plane 14  416ms
+   ✓ matches every strict Unicode encoding and fault in plane 15  454ms
+   ✓ matches every strict Unicode encoding and fault in plane 16  439ms
+ ✓ packages/safe-python/src/runtime/euc-jisx0213-sequences.test.ts (1554 tests) 8283ms
+ ✓ packages/docx/src/dialect.test.ts (30 tests) 11106ms
+   ✓ rejects mixed strict related-part namespaces and relationships  528ms
+   ✓ rejects mixed transitional related-part namespaces and relationships  558ms
+   ✓ rejects strict active mixed elements and attributes  736ms
+   ✓ rejects transitional active mixed elements and attributes  720ms
+   ✓ rejects invalid strict document roots and body cardinality  721ms
+   ✓ rejects invalid transitional document roots and body cardinality  700ms
+   ✓ preserves strict inactive alternate content and opaque payloads  456ms
+   ✓ preserves transitional inactive alternate content and opaque payloads  443ms
+   ✓ maps every XML editing primitive in strict without prefix rewriting  420ms
+   ✓ maps every XML editing primitive in transitional without prefix rewriting  421ms
+   ✓ rejects active Strict VML while retaining Transitional VML opaquely  474ms
+   ✓ creates explicit strict packages with neutral deterministic defaults  406ms
+   ✓ creates explicit transitional packages with neutral deterministic defaults  390ms
+   ✓ checks strict active drawing namespaces and graphic-data identifiers  722ms
+   ✓ checks transitional active drawing namespaces and graphic-data identifiers  705ms
+ ✓ packages/docx/src/document-properties.test.ts (27 tests) 3579ms
+ ✓ packages/docx/src/control-bindings.test.ts (34 tests) 9066ms
+   ✓ synchronizes singleton store and differently tagged aliases for "New"  345ms
+   ✓ synchronizes singleton store and differently tagged aliases for ""  329ms
+   ✓ synchronizes singleton store and differently tagged aliases for "<&\r\n"  330ms
+   ✓ reuses an empty scalar leaf for a subsequent binding  397ms
+   ✓ preserves unrelated external custom XML properties beside an internal binding store  367ms
+   ✓ rejects missing properties ownership for the selected store  326ms
+   ✓ rejects nonsingleton scalar leaves and numeric type mismatch  436ms
+   ✓ refuses same-target or unresolvable same-store unsupported glossary declarations  327ms
+   ✓ retains a different-store unsupported glossary declaration byte-identically during binding  383ms
+ ✓ packages/safe-python/src/session-single-byte-codecs.test.ts (126 tests) 4625ms
+ ✓ packages/pptx/src/text-run-assignment.test.ts (14 tests) 771ms
+ ✓ packages/docx/tests/cross-format-cli.test.ts (58 tests) 2270ms
+     ✓ uses common paths and read envelopes  402ms
+ ✓ packages/safe-python/src/session-core-codec-aliases.test.ts (141 tests) 1586ms
+ ✓ packages/safe-python/src/runtime/gb18030-codec.test.ts (18 tests) 987ms
+   ✓ matches 96,773 native decoder records under strict  460ms
+ ✓ packages/pptx/src/shape-groups.test.ts (27 tests) 312ms
+ ✓ packages/safe-python/src/session-codec-callback-nested-service.test.ts (6 tests) 618ms
+ ✓ packages/safe-python/src/session-core-codec-imports.test.ts (8 tests) 144ms
+
+ Test Files  16 passed (16)
+      Tests  4809 passed (4809)
+   Start at  20:23:36
+   Duration  66.18s (transform 11.27s, setup 338ms, import 17.98s, tests 111.86s, environment 1ms)

@@ -1,0 +1,35 @@
+
+> poe-code@0.0.0-dev predev
+> turbo run build --output-logs=errors-only --log-prefix=none --verbosity=0 && node scripts/bundle.mjs
+
+• turbo 2.9.18
+
+   • Packages in scope: @poe-code/acp-telemetry, @poe-code/agent-child-process, @poe-code/agent-defs, @poe-code/agent-eval, @poe-code/agent-gaslight, @poe-code/agent-harness, @poe-code/agent-harness-tools, @poe-code/agent-hook-config, @poe-code/agent-human-in-loop, @poe-code/agent-mcp-config, @poe-code/agent-skill-config, @poe-code/agent-spawn, @poe-code/agent-trace-viewer, @poe-code/agent-traces, @poe-code/braintrust, @poe-code/cached-resource, @poe-code/config-extends, @poe-code/config-mutations, @poe-code/e2e-test-runner, @poe-code/experiment-loop, @poe-code/frontmatter, @poe-code/github-workflows, @poe-code/maestro, @poe-code/maestro-tui, @poe-code/markdown-reader, @poe-code/memory, @poe-code/office-package, @poe-code/package-lint, @poe-code/pandoc, @poe-code/pdf, @poe-code/pipeline, @poe-code/plan-browser, @poe-code/poe-acp-client, @poe-code/poe-agent, @poe-code/poe-code-config, @poe-code/process-launcher, @poe-code/process-runner, @poe-code/providers, @poe-code/py-poe-spawn, @poe-code/ralph, @poe-code/safe-bash-optional, @poe-code/safe-fs, @poe-code/safe-js, @poe-code/safe-python, @poe-code/superintendent, @poe-code/task-list, @poe-code/user-error, @poe-code/workspace-resolver, @poe-code/worktree, @poe-platform/op, agent-code-review, agent-stash, auth-store, docx, github-review, mcp-oauth, mcp-oauth-server, opencode-poe-auth, poe-oauth, pptx, safe-bash-playground, terminal-pilot, terminal-pilot-mcp, terminal-png, terminal-png-mcp, tiny-http-mcp-oauth-test-server, tiny-http-mcp-server, tiny-mcp-client, tiny-oauth-test-server, tiny-stdio-mcp-server, tiny-stdio-mcp-test-server, tokenfill, toolcraft, toolcraft-codemode, toolcraft-design, toolcraft-landing-page, toolcraft-openapi, toolcraft-schema, virtual-bash
+   • Running build in 79 packages
+   • Remote caching disabled
+
+
+ Tasks:    78 successful, 78 total
+Cached:    0 cached, 78 total
+  Time:    1m0.272s 
+
+Bundle complete: dist/index.js + dist/bin.cjs
+
+> poe-code@0.0.0-dev dev
+> tsx --import ./scripts/register-template-loader.mjs src/index.ts pipeline validate docs/plans/pandoc-typescript-safe-bash.md
+
+┌   Poe - pipeline validate 
+│
+◇  Plan
+│     docs/plans/pandoc-typescript-safe-bash.md
+│
+◇  Tasks
+│     39 tasks (26 done)
+│
+◇  Steps
+│     implement, refactor, test, commit, release
+│
+◆  Plan is valid.
+│
+└  Problems? https://github.com/poe-platform/poe-code/issues
+

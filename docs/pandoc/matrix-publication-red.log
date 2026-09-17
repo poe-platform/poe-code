@@ -1,0 +1,248 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ❯ packages/pandoc/src/publication-feature-matrix.test.ts (5 tests | 5 failed) 260ms
+   × uses a feature rejection rather than a capability gate for latex 22ms
+   × uses a feature rejection rather than a capability gate for rst 4ms
+   × uses a feature rejection rather than a capability gate for rtf 5ms
+   × uses a feature rejection rather than a capability gate for pptx 228ms
+   × uses a feature rejection rather than a capability gate for json 1ms
+FAIL packages/pandoc/src/publication-feature-matrix.test.ts > uses a feature rejection rather than a capability gate for latex
+AssertionError: expected PandocError: Unsupported LaTeX attributes { …(4) } to match object { code: 'E_UNSUPPORTED_FEATURE', …(1) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_UNSUPPORTED_FEATURE",
++ PandocError {
++   "code": "E_CAPABILITY",
+    "format": "latex",
+  }
+
+ ❯ packages/pandoc/src/publication-feature-matrix.test.ts:9:70
+      7|     [{t: "Para", c: [{t: "Str", c: "Matrix"}]}]]}], metadata: {}, reso…
+      8|     ...(to === "json" ? {language: "en"} : {})};
+      9|   await expect(writeDocument(document, {to}, {yield: async () => {}}))
+       |                                                                      ^
+     10|     .rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE", format: to}…
+     11| });
+
+FAIL packages/pandoc/src/publication-feature-matrix.test.ts > uses a feature rejection rather than a capability gate for rst
+AssertionError: expected PandocError: Div projected to contained b… { …(4) } to match object { code: 'E_UNSUPPORTED_FEATURE', …(1) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_UNSUPPORTED_FEATURE",
++ PandocError {
++   "code": "E_CAPABILITY",
+    "format": "rst",
+  }
+
+ ❯ packages/pandoc/src/publication-feature-matrix.test.ts:9:70
+      7|     [{t: "Para", c: [{t: "Str", c: "Matrix"}]}]]}], metadata: {}, reso…
+      8|     ...(to === "json" ? {language: "en"} : {})};
+      9|   await expect(writeDocument(document, {to}, {yield: async () => {}}))
+       |                                                                      ^
+     10|     .rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE", format: to}…
+     11| });
+
+FAIL packages/pandoc/src/publication-feature-matrix.test.ts > uses a feature rejection rather than a capability gate for rtf
+AssertionError: expected PandocError: Attributed RTF Div unsupport… { …(4) } to match object { code: 'E_UNSUPPORTED_FEATURE', …(1) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_UNSUPPORTED_FEATURE",
++ PandocError {
++   "code": "E_CAPABILITY",
+    "format": "rtf",
+  }
+
+ ❯ packages/pandoc/src/publication-feature-matrix.test.ts:9:70
+      7|     [{t: "Para", c: [{t: "Str", c: "Matrix"}]}]]}], metadata: {}, reso…
+      8|     ...(to === "json" ? {language: "en"} : {})};
+      9|   await expect(writeDocument(document, {to}, {yield: async () => {}}))
+       |                                                                      ^
+     10|     .rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE", format: to}…
+     11| });
+
+FAIL packages/pandoc/src/publication-feature-matrix.test.ts > uses a feature rejection rather than a capability gate for pptx
+AssertionError: expected PandocError: Unsupported PPTX block: Div { …(4) } to match object { code: 'E_UNSUPPORTED_FEATURE', …(1) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_UNSUPPORTED_FEATURE",
++ PandocError {
++   "code": "E_CAPABILITY",
+    "format": "pptx",
+  }
+
+ ❯ packages/pandoc/src/publication-feature-matrix.test.ts:9:70
+      7|     [{t: "Para", c: [{t: "Str", c: "Matrix"}]}]]}], metadata: {}, reso…
+      8|     ...(to === "json" ? {language: "en"} : {})};
+      9|   await expect(writeDocument(document, {to}, {yield: async () => {}}))
+       |                                                                      ^
+     10|     .rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE", format: to}…
+     11| });
+
+FAIL packages/pandoc/src/publication-feature-matrix.test.ts > uses a feature rejection rather than a capability gate for json
+AssertionError: expected PandocError: Pandoc JSON cannot represent… { …(4) } to match object { code: 'E_UNSUPPORTED_FEATURE', …(1) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_UNSUPPORTED_FEATURE",
++ PandocError {
++   "code": "E_CAPABILITY",
+    "format": "json",
+  }
+
+ ❯ packages/pandoc/src/publication-feature-matrix.test.ts:9:70
+      7|     [{t: "Para", c: [{t: "Str", c: "Matrix"}]}]]}], metadata: {}, reso…
+      8|     ...(to === "json" ? {language: "en"} : {})};
+      9|   await expect(writeDocument(document, {to}, {yield: async () => {}}))
+       |                                                                      ^
+     10|     .rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE", format: to}…
+     11| });
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/pandoc/src/publication-feature-matrix.test.ts > uses a feature rejection rather than a capability gate for latex
+AssertionError: expected PandocError: Unsupported LaTeX attributes { …(4) } to match object { code: 'E_UNSUPPORTED_FEATURE', …(1) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_UNSUPPORTED_FEATURE",
++ PandocError {
++   "code": "E_CAPABILITY",
+    "format": "latex",
+  }
+
+ ❯ packages/pandoc/src/publication-feature-matrix.test.ts:9:70
+      7|     [{t: "Para", c: [{t: "Str", c: "Matrix"}]}]]}], metadata: {}, reso…
+      8|     ...(to === "json" ? {language: "en"} : {})};
+      9|   await expect(writeDocument(document, {to}, {yield: async () => {}}))
+       |                                                                      ^
+     10|     .rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE", format: to}…
+     11| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  packages/pandoc/src/publication-feature-matrix.test.ts > uses a feature rejection rather than a capability gate for rst
+AssertionError: expected PandocError: Div projected to contained b… { …(4) } to match object { code: 'E_UNSUPPORTED_FEATURE', …(1) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_UNSUPPORTED_FEATURE",
++ PandocError {
++   "code": "E_CAPABILITY",
+    "format": "rst",
+  }
+
+ ❯ packages/pandoc/src/publication-feature-matrix.test.ts:9:70
+      7|     [{t: "Para", c: [{t: "Str", c: "Matrix"}]}]]}], metadata: {}, reso…
+      8|     ...(to === "json" ? {language: "en"} : {})};
+      9|   await expect(writeDocument(document, {to}, {yield: async () => {}}))
+       |                                                                      ^
+     10|     .rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE", format: to}…
+     11| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  packages/pandoc/src/publication-feature-matrix.test.ts > uses a feature rejection rather than a capability gate for rtf
+AssertionError: expected PandocError: Attributed RTF Div unsupport… { …(4) } to match object { code: 'E_UNSUPPORTED_FEATURE', …(1) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_UNSUPPORTED_FEATURE",
++ PandocError {
++   "code": "E_CAPABILITY",
+    "format": "rtf",
+  }
+
+ ❯ packages/pandoc/src/publication-feature-matrix.test.ts:9:70
+      7|     [{t: "Para", c: [{t: "Str", c: "Matrix"}]}]]}], metadata: {}, reso…
+      8|     ...(to === "json" ? {language: "en"} : {})};
+      9|   await expect(writeDocument(document, {to}, {yield: async () => {}}))
+       |                                                                      ^
+     10|     .rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE", format: to}…
+     11| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  packages/pandoc/src/publication-feature-matrix.test.ts > uses a feature rejection rather than a capability gate for pptx
+AssertionError: expected PandocError: Unsupported PPTX block: Div { …(4) } to match object { code: 'E_UNSUPPORTED_FEATURE', …(1) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_UNSUPPORTED_FEATURE",
++ PandocError {
++   "code": "E_CAPABILITY",
+    "format": "pptx",
+  }
+
+ ❯ packages/pandoc/src/publication-feature-matrix.test.ts:9:70
+      7|     [{t: "Para", c: [{t: "Str", c: "Matrix"}]}]]}], metadata: {}, reso…
+      8|     ...(to === "json" ? {language: "en"} : {})};
+      9|   await expect(writeDocument(document, {to}, {yield: async () => {}}))
+       |                                                                      ^
+     10|     .rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE", format: to}…
+     11| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  packages/pandoc/src/publication-feature-matrix.test.ts > uses a feature rejection rather than a capability gate for json
+AssertionError: expected PandocError: Pandoc JSON cannot represent… { …(4) } to match object { code: 'E_UNSUPPORTED_FEATURE', …(1) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_UNSUPPORTED_FEATURE",
++ PandocError {
++   "code": "E_CAPABILITY",
+    "format": "json",
+  }
+
+ ❯ packages/pandoc/src/publication-feature-matrix.test.ts:9:70
+      7|     [{t: "Para", c: [{t: "Str", c: "Matrix"}]}]]}], metadata: {}, reso…
+      8|     ...(to === "json" ? {language: "en"} : {})};
+      9|   await expect(writeDocument(document, {to}, {yield: async () => {}}))
+       |                                                                      ^
+     10|     .rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE", format: to}…
+     11| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed (5)
+   Start at  18:57:21
+   Duration  5.47s (transform 3.77s, setup 109ms, import 4.95s, tests 260ms, environment 0ms)
+

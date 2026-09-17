@@ -1,0 +1,81 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ❯ packages/pandoc/src/latex-cancellation.test.ts (2 tests | 2 failed) 11ms
+   × cancels inside a LaTeX lexer run before an invalid suffix 6ms
+   × yields during LaTeX expansion admission rather than after expanded allocation 4ms
+FAIL packages/pandoc/src/latex-cancellation.test.ts > cancels inside a LaTeX lexer run before an invalid suffix
+AssertionError: expected PandocError: Forbidden TeX primitive: dir… { …(4) } to match object { code: 'E_CANCELLED' }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_CANCELLED",
++ PandocError {
++   "code": "E_CAPABILITY",
+  }
+
+ ❯ packages/pandoc/src/latex-cancellation.test.ts:13:107
+     11|   const text = "x".repeat(1024) + String.raw`\directlua{denied}`;
+     12|   const selection = createFormatRegistry().resolve("latex", "read");
+     13|   await expect(selection.reader!.read({ text, bytes: new TextEncoder()…
+       |                                                                                                           ^
+     14|     .rejects.toMatchObject({ code: "E_CANCELLED" });
+     15|   expect(yieldTurn).toHaveBeenCalledTimes(1);
+
+FAIL packages/pandoc/src/latex-cancellation.test.ts > yields during LaTeX expansion admission rather than after expanded allocation
+AssertionError: expected 2048 to be less than 512
+ ❯ packages/pandoc/src/latex-cancellation.test.ts:33:24
+     31|   await expect(expandTex(tokens, context)).rejects.toMatchObject({ cod…
+     32|   expect(yieldedAfter).toBeGreaterThanOrEqual(0);
+     33|   expect(yieldedAfter).toBeLessThan(512);
+       |                        ^
+     34|   await context.close();
+     35| });
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/pandoc/src/latex-cancellation.test.ts > cancels inside a LaTeX lexer run before an invalid suffix
+AssertionError: expected PandocError: Forbidden TeX primitive: dir… { …(4) } to match object { code: 'E_CANCELLED' }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_CANCELLED",
++ PandocError {
++   "code": "E_CAPABILITY",
+  }
+
+ ❯ packages/pandoc/src/latex-cancellation.test.ts:13:107
+     11|   const text = "x".repeat(1024) + String.raw`\directlua{denied}`;
+     12|   const selection = createFormatRegistry().resolve("latex", "read");
+     13|   await expect(selection.reader!.read({ text, bytes: new TextEncoder()…
+       |                                                                                                           ^
+     14|     .rejects.toMatchObject({ code: "E_CANCELLED" });
+     15|   expect(yieldTurn).toHaveBeenCalledTimes(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/pandoc/src/latex-cancellation.test.ts > yields during LaTeX expansion admission rather than after expanded allocation
+AssertionError: expected 2048 to be less than 512
+ ❯ packages/pandoc/src/latex-cancellation.test.ts:33:24
+     31|   await expect(expandTex(tokens, context)).rejects.toMatchObject({ cod…
+     32|   expect(yieldedAfter).toBeGreaterThanOrEqual(0);
+     33|   expect(yieldedAfter).toBeLessThan(512);
+       |                        ^
+     34|   await context.close();
+     35| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  19:23:10
+   Duration  1.71s (transform 1.20s, setup 43ms, import 1.57s, tests 11ms, environment 0ms)
+

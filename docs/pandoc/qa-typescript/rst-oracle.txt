@@ -1,0 +1,34 @@
+Docutils 0.21.2
+<document ids="original-qa" names="original\ qa" source="<string>" title="Original QA">
+    <title>
+        Original QA
+    <paragraph>
+        café Ελληνικά Привет 日本語 العربية.
+    <literal_block xml:space="preserve">
+        const answer = 42;
+    <bullet_list bullet="*">
+        <list_item>
+            <paragraph>
+                First
+        <list_item>
+            <paragraph>
+                Second
+    <table>
+        <tgroup cols="2">
+            <colspec colwidth="50">
+            <colspec colwidth="50">
+            <tbody>
+                <row>
+                    <entry>
+                        <paragraph>
+                            A
+                    <entry>
+                        <paragraph>
+                            B
+                <row>
+                    <entry>
+                        <paragraph>
+                            one
+                    <entry>
+                        <paragraph>
+                            two

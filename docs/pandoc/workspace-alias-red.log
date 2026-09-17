@@ -1,0 +1,120 @@
+
+> @poe-code/pandoc@0.0.1 test:unit
+> cd ../.. && vitest run packages/pandoc --run packages/pandoc/src/descriptor-consumer.test.ts
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ✓ packages/pandoc/src/pdf-integration.test.ts (15 tests) 1475ms
+   ✓ converts representable pptx content to mapped PDF text  915ms
+ ✓ packages/pandoc/src/json.test.ts (115 tests) 1162ms
+ ✓ packages/pandoc/src/pptx-conversion.test.ts (21 tests) 3279ms
+   ✓ resolves presentation relationship order independently for more than nine slides  591ms
+   ✓ retains mixed list nesting, numbering starts and continuation paragraphs  306ms
+ ✓ packages/pandoc/src/pptx-registry.test.ts (1 test) 668ms
+   ✓ exposes verified PPTX conversion through the registry and byte command adapter  667ms
+ ✓ packages/pandoc/src/pdf-writer.test.ts (10 tests) 521ms
+ ✓ packages/pandoc/src/pptx-dependency.test.ts (1 test) 413ms
+   ✓ admits original presentation bytes through the public presentation engine  412ms
+ ✓ packages/pandoc/src/archive-adversarial.test.ts (25 tests) 569ms
+ ✓ packages/pandoc/src/table-writers.test.ts (15 tests) 390ms
+ ✓ packages/pandoc/src/latex-writer.test.ts (23 tests) 312ms
+ ✓ packages/pandoc/src/epub-writer.test.ts (20 tests) 232ms
+ ✓ packages/pandoc/src/rtf-writer.test.ts (20 tests) 193ms
+ ✓ packages/pandoc/src/html-writer.test.ts (14 tests) 182ms
+ ✓ packages/pandoc/src/epub.test.ts (26 tests) 139ms
+ ✓ packages/pandoc/src/publication-feature-matrix.test.ts (5 tests) 168ms
+ ✓ packages/pandoc/src/safe-bash.test.ts (17 tests) 138ms
+ ✓ packages/pandoc/src/resources.test.ts (30 tests) 123ms
+ ✓ packages/pandoc/src/rst.test.ts (34 tests) 113ms
+ ✓ packages/pandoc/src/publication-options.test.ts (9 tests) 118ms
+ ✓ packages/pandoc/src/gfm.test.ts (41 tests) 116ms
+ ✓ packages/pandoc/src/delimited.test.ts (22 tests) 112ms
+ ✓ packages/pandoc/src/tables.test.ts (14 tests) 83ms
+ ✓ packages/pandoc/src/rst-writer.test.ts (20 tests) 93ms
+ ✓ packages/pandoc/src/rtf.test.ts (68 tests) 90ms
+ ✓ packages/pandoc/src/latex.test.ts (47 tests) 74ms
+ ✓ packages/pandoc/src/markdown-writer.test.ts (17 tests) 83ms
+ ✓ packages/pandoc/src/adversarial.test.ts (35 tests) 72ms
+ ✓ packages/pandoc/src/plain-writer.test.ts (8 tests) 68ms
+ ✓ packages/pandoc/src/consumer.test.ts (21 tests) 58ms
+ ✓ packages/pandoc/src/commonmark-inlines.test.ts (76 tests) 48ms
+ ✓ packages/pandoc/src/orchestration.test.ts (13 tests) 43ms
+ ✓ packages/pandoc/src/html.test.ts (11 tests) 39ms
+ ✓ packages/pandoc/src/commonmark-blocks.test.ts (117 tests) 30ms
+ ✓ packages/pandoc/src/epub-defaults.test.ts (5 tests) 29ms
+ ✓ packages/pandoc/src/ast.test.ts (35 tests) 24ms
+ ✓ packages/pandoc/src/markdown-matrix-regression.test.ts (3 tests) 17ms
+ ✓ packages/pandoc/src/execution.test.ts (26 tests) 16ms
+ ✓ packages/pandoc/src/pdf-cancellation.test.ts (2 tests) 20ms
+ ✓ packages/pandoc/src/formats.test.ts (8 tests) 9ms
+ ✓ packages/pandoc/src/json-cancellation.test.ts (9 tests) 10ms
+ ✓ packages/pandoc/src/latex-matrix-regression.test.ts (2 tests) 6ms
+ ✓ packages/pandoc/src/latex-cancellation.test.ts (2 tests) 8ms
+ ✓ packages/pandoc/src/command-status.test.ts (4 tests) 7ms
+ ✓ packages/pandoc/src/cli-adapter.test.ts (5 tests) 5ms
+ ✓ packages/pandoc/src/inspection.test.ts (2 tests) 4ms
+ ✓ packages/pandoc/src/commonmark-characters.test.ts (28 tests) 4ms
+ ❯ packages/pandoc/src/descriptor-consumer.test.ts (1 test | 1 failed) 6ms
+   × owns and freezes aliases in public format capability descriptors 5ms
+FAIL packages/pandoc/src/descriptor-consumer.test.ts > owns and freezes aliases in public format capability descriptors
+AssertionError: expected { write: [ 'replacement' ] } to deeply equal { write: [ 'original' ] }
+
+- Expected
++ Received
+
+  {
+    "write": [
+-     "original",
++     "replacement",
+    ],
+  }
+
+ ❯ packages/pandoc/src/descriptor-consumer.test.ts:23:29
+     21|
+     22|   const published = registry.capabilities[0]!;
+     23|   expect(published.aliases).toEqual({ write: ["original"] });
+       |                             ^
+     24|   expect(Object.isFrozen(published.aliases)).toBe(true);
+     25|   expect(Object.isFrozen(published.aliases!.write)).toBe(true);
+
+ ✓ packages/pandoc/src/command-info.test.ts (1 test) 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/pandoc/src/descriptor-consumer.test.ts > owns and freezes aliases in public format capability descriptors
+AssertionError: expected { write: [ 'replacement' ] } to deeply equal { write: [ 'original' ] }
+
+- Expected
++ Received
+
+  {
+    "write": [
+-     "original",
++     "replacement",
+    ],
+  }
+
+ ❯ packages/pandoc/src/descriptor-consumer.test.ts:23:29
+     21|
+     22|   const published = registry.capabilities[0]!;
+     23|   expect(published.aliases).toEqual({ write: ["original"] });
+       |                             ^
+     24|   expect(Object.isFrozen(published.aliases)).toBe(true);
+     25|   expect(Object.isFrozen(published.aliases!.write)).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 46 passed (47)
+      Tests  1 failed | 1043 passed (1044)
+   Start at  21:22:31
+   Duration  18.23s (transform 2.61s, setup 536ms, import 20.67s, tests 11.37s, environment 3ms)
+
+npm error Lifecycle script `test:unit` failed with error:
+npm error code 1
+npm error path /Users/kjopek/Workspace/poe-code-5/packages/pandoc
+npm error workspace @poe-code/pandoc@0.0.1
+npm error location /Users/kjopek/Workspace/poe-code-5/packages/pandoc
+npm error command failed
+npm error command sh -c cd ../.. && vitest run packages/pandoc --run packages/pandoc/src/descriptor-consumer.test.ts

@@ -1,0 +1,15 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ✓ scripts/bundle.test.ts (9 tests) 1016ms
+   ✓ validates all isolated root bundle groups before saving canonical evidence ('poe-code/safe-fs')  357ms
+ ✓ tests/integration/standalone-package-metadata.test.ts (22 tests) 38ms
+ ✓ scripts/pandoc-public.test.ts (4 tests) 4799ms
+   ✓ resolves SDK and plugin public declaration imports for a TypeScript consumer  3848ms
+   ✓ runs conversion and explicit registration from packaged public entries, preserving collisions  681ms
+
+ Test Files  3 passed (3)
+      Tests  35 passed (35)
+   Start at  17:37:22
+   Duration  5.70s (transform 637ms, setup 241ms, import 1.45s, tests 5.85s, environment 0ms)
+

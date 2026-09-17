@@ -1,0 +1,44 @@
+{
+  "evaluated": [
+    "shipped-dist-deps-unresolvable",
+    "no-published-to-private-dep",
+    "published-dep-needs-version-range",
+    "public-needs-publish-wiring",
+    "release-workflow-maps-to-package",
+    "lockstep-release-group-valid",
+    "no-cross-package-relative-import",
+    "imported-workspace-dep-unresolvable",
+    "exports-subpath-resolvable",
+    "bundle-self-contained",
+    "bundled-transitive-npm-dep-unbundled",
+    "published-bin-must-be-executable",
+    "package-readme-required",
+    "runtime-file-assets-collocated",
+    "runtime-file-assets-packaged",
+    "published-license-required",
+    "no-import-attributes-in-shipped-source"
+  ],
+  "taskViolations": [
+    {
+      "rule": "package-readme-required",
+      "package": "@poe-code/pandoc",
+      "severity": "error",
+      "detail": {
+        "path": "packages/pandoc/README.md"
+      },
+      "message": "workspace package is missing packages/pandoc/README.md",
+      "fix": "Add packages/pandoc/README.md documenting exposed environment variables and config options."
+    },
+    {
+      "rule": "package-readme-required",
+      "package": "@poe-code/pdf",
+      "severity": "error",
+      "detail": {
+        "path": "packages/pdf/README.md"
+      },
+      "message": "workspace package is missing packages/pdf/README.md",
+      "fix": "Add packages/pdf/README.md documenting exposed environment variables and config options."
+    }
+  ],
+  "note": "README copy intentionally pending explicit user instruction; all other evaluated rules pass for these two packages."
+}

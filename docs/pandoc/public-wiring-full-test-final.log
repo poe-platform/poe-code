@@ -1,0 +1,223 @@
+
+> poe-code@0.0.0-dev test
+> node scripts/build-workspaces.mjs --test-unit
+
+
+> @poe-code/agent-defs@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/agent-human-in-loop@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/frontmatter@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/office-package@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/pdf@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/process-runner@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/safe-fs@0.0.0-dev build
+> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json && node scripts/native-assets.mjs
+
+{"nativeAssets":"/Users/kjopek/Workspace/poe-code-5/packages/safe-fs/dist/native/fs-seek","targets":[]}
+
+> @poe-code/user-error@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-platform/op@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json
+
+
+> auth-store@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> tiny-oauth-test-server@0.1.0 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> toolcraft-schema@0.0.1 build
+> rm -rf dist && tsc
+
+
+> @poe-code/pandoc@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/task-list@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> mcp-oauth@0.0.1 build
+> tsc
+
+
+> pptx@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> tiny-stdio-mcp-server@0.1.0 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> toolcraft-design@0.0.2 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> toolcraft-design@0.0.2 postbuild
+> node scripts/smoke-built-exports.mjs
+
+
+> @poe-code/config-mutations@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> mcp-oauth-server@0.1.0 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> tiny-mcp-client@0.1.0 build
+> node scripts/build.mjs
+
+
+> tiny-stdio-mcp-test-server@0.1.0 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> virtual-bash@0.0.0 build
+> node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs
+
+
+> @poe-code/agent-mcp-config@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> tiny-http-mcp-server@0.1.0 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> poe-code@0.0.0-dev test:unit:shared
+> node scripts/test-vitest-workspaces.mjs . packages/acp-telemetry packages/agent-child-process packages/agent-code-review packages/agent-gaslight packages/agent-harness packages/agent-harness-tools packages/agent-hook-config packages/agent-spawn packages/agent-stash packages/agent-trace-viewer packages/agent-traces packages/braintrust packages/docx packages/experiment-loop packages/frontmatter packages/github-review packages/github-workflows packages/maestro packages/maestro-tui packages/markdown-reader packages/mcp-oauth-server packages/memory packages/office-package packages/opencode-poe-auth packages/package-lint packages/pandoc packages/pdf packages/pptx packages/process-launcher packages/process-runner packages/ralph packages/safe-bash-optional packages/safe-bash-playground packages/superintendent packages/task-list packages/toolcraft packages/toolcraft-codemode packages/toolcraft-landing-page packages/toolcraft-openapi packages/toolcraft-schema packages/workspace-resolver
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+Unit workspace poe-code: running 1805 files
+Unit workspace @poe-code/acp-telemetry: running 6 files
+Unit workspace @poe-code/agent-child-process: running 1 files
+Unit workspace agent-code-review: running 12 files
+Unit workspace @poe-code/agent-gaslight: running 4 files
+Unit workspace @poe-code/agent-harness: running 13 files
+Unit workspace @poe-code/agent-harness-tools: running 17 files
+Unit workspace @poe-code/agent-hook-config: running 8 files
+Unit workspace @poe-code/agent-spawn: running 24 files
+Unit workspace agent-stash: running 13 files
+Unit workspace @poe-code/agent-trace-viewer: running 8 files
+Unit workspace @poe-code/agent-traces: running 9 files
+Unit workspace @poe-code/braintrust: running 9 files
+Unit workspace docx: running 225 files
+Unit workspace @poe-code/experiment-loop: running 3 files
+Unit workspace @poe-code/frontmatter: running 1 files
+Unit workspace github-review: running 6 files
+Unit workspace @poe-code/github-workflows: running 10 files
+Unit workspace @poe-code/maestro: running 27 files
+Unit workspace @poe-code/maestro-tui: running 3 files
+Unit workspace @poe-code/markdown-reader: running 7 files
+Unit workspace mcp-oauth-server: running 2 files
+Unit workspace @poe-code/memory: running 29 files
+Unit workspace @poe-code/office-package: running 2 files
+Unit workspace opencode-poe-auth: running 1 files
+Unit workspace @poe-code/package-lint: running 13 files
+Unit workspace @poe-code/pandoc: running 34 files
+Unit workspace @poe-code/pdf: running 6 files
+Unit workspace pptx: running 270 files
+Unit workspace @poe-code/process-launcher: running 11 files
+Unit workspace @poe-code/process-runner: running 9 files
+Unit workspace @poe-code/ralph: running 2 files
+Unit workspace @poe-code/safe-bash-optional: running 2 files
+Unit workspace safe-bash-playground: running 8 files
+Unit workspace @poe-code/superintendent: running 34 files
+Unit workspace @poe-code/task-list: running 19 files
+Unit workspace toolcraft: running 118 files
+Unit workspace toolcraft-codemode: running 12 files
+Unit workspace toolcraft-landing-page: running 3 files
+Unit workspace toolcraft-openapi: running 36 files
+Unit workspace toolcraft-schema: running 20 files
+Unit workspace @poe-code/workspace-resolver: running 2 files
+Sourcemap for "/Users/kjopek/Workspace/poe-code-5/packages/pandoc/dist/public/chunks/chunk-BJZDMRXS.js" points to missing source files
+ ❯ packages/toolcraft-design/scripts/scripts.test.ts (17 tests | 1 failed) 663ms
+     ✓ prefers INIT_CWD so workspace runs can load repo-root markdown files 1ms
+     ✓ falls back to the current working directory when INIT_CWD is absent 0ms
+     ✓ loads preset markdown showcase content 0ms
+     ✓ loads markdown files relative to INIT_CWD for workspace demo runs 1ms
+     ✓ loads markdown files from absolute paths 1ms
+     ✓ throws a clear error when markdown-file is missing its path 0ms
+     ✓ throws a clear error when the markdown file does not exist 0ms
+     ✓ parses markdown render flags alongside positional args 0ms
+     × can render frontmatter from repo markdown files when requested 3ms
+   ✓ demonstrates all shared interaction primitives 2ms
+     ✓ lists the current demo types in the no-argument usage output 0ms
+     ✓ renders markdown docs with fenced markdown output blocks 1ms
+     ✓ renders json docs with fenced json output blocks 0ms
+     ✓ keeps generated text docs aligned with the design elements list 1ms
+     ✓ includes markdown demo entries in generated markdown docs 3ms
+     ✓ includes terminal-markdown screenshot references in the terminal doc 0ms
+     ✓ captures format-aware demo output through one executable run  644ms
+FAIL packages/toolcraft-design/scripts/scripts.test.ts > design-system demo script > can render frontmatter from repo markdown files when requested
+Error: Markdown file not found: /Users/kjopek/Workspace/poe-code-5/docs/plans/archive/cli-aliasing.md
+ ❯ loadMarkdownDemoDocument packages/toolcraft-design/scripts/demo.ts:288:11
+    286|   const resolvedPath = resolveMarkdownFilePath(source.filePath, contex…
+    287|   if (!existsSync(resolvedPath)) {
+    288|     throw new Error(`Markdown file not found: ${resolvedPath}`);
+       |           ^
+    289|   }
+    290|
+ ❯ packages/toolcraft-design/scripts/scripts.test.ts:85:22
+
+(node:69287) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:69287) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:69287) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+MCP upstream: connecting
+MCP upstream: listing tools
+MCP upstream: found 1 tools
+MCP upstream: wrote /repo/.toolcraft/mcp/upstream.json
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/toolcraft-design/scripts/scripts.test.ts > design-system demo script > can render frontmatter from repo markdown files when requested
+Error: Markdown file not found: /Users/kjopek/Workspace/poe-code-5/docs/plans/archive/cli-aliasing.md
+ ❯ loadMarkdownDemoDocument packages/toolcraft-design/scripts/demo.ts:288:11
+    286|   const resolvedPath = resolveMarkdownFilePath(source.filePath, contex…
+    287|   if (!existsSync(resolvedPath)) {
+    288|     throw new Error(`Markdown file not found: ${resolvedPath}`);
+       |           ^
+    289|   }
+    290|
+ ❯ packages/toolcraft-design/scripts/scripts.test.ts:85:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 2841 passed | 2 skipped (2844)
+      Tests  1 failed | 129592 passed | 2 skipped (129595)
+   Start at  17:41:06
+   Duration  1237.15s (transform 62.67s, setup 39.15s, import 747.06s, tests 1393.53s, environment 207ms)
+
+Error: Shared unit tests failed; see failed file reports above
+    at runSharedVitest (file:///Users/kjopek/Workspace/poe-code-5/scripts/test-vitest-workspaces.mjs:93:15)
+    at file:///Users/kjopek/Workspace/poe-code-5/scripts/test-vitest-workspaces.mjs:121:5

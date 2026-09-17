@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ✓ packages/pandoc/src/rst-writer.test.ts (20 tests) 135ms
+ ✓ packages/pandoc/src/rst.test.ts (34 tests) 204ms
+ ✓ packages/pandoc/src/adversarial.test.ts (34 tests) 71ms
+
+ Test Files  3 passed (3)
+      Tests  88 passed (88)
+   Start at  19:14:50
+   Duration  4.96s (transform 5.15s, setup 168ms, import 8.09s, tests 410ms, environment 0ms)
+

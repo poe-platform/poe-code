@@ -1,0 +1,782 @@
+{
+  "capabilities": [
+    {
+      "name": "commonmark",
+      "operands": "join",
+      "reader": {
+        "format": "commonmark"
+      },
+      "writer": {
+        "format": "commonmark"
+      },
+      "read": {
+        "allowed": true,
+        "available": true
+      },
+      "write": {
+        "allowed": true,
+        "available": true
+      },
+      "media": "text",
+      "inputEncoding": "utf8",
+      "suffixes": [
+        "md",
+        "commonmark"
+      ],
+      "extensions": {},
+      "options": {
+        "read": [],
+        "write": [
+          "wrap"
+        ]
+      }
+    },
+    {
+      "name": "csv",
+      "operands": "documents",
+      "reader": {
+        "format": "csv"
+      },
+      "read": {
+        "allowed": true,
+        "available": true
+      },
+      "write": {
+        "allowed": false,
+        "available": false
+      },
+      "media": "text",
+      "inputEncoding": "utf8",
+      "suffixes": [
+        "csv"
+      ],
+      "extensions": {},
+      "options": {
+        "read": [],
+        "write": []
+      }
+    },
+    {
+      "name": "docx",
+      "read": {
+        "allowed": true,
+        "available": false
+      },
+      "write": {
+        "allowed": true,
+        "available": false
+      },
+      "media": "binary",
+      "inputEncoding": "bytes",
+      "suffixes": [
+        "docx"
+      ],
+      "extensions": {},
+      "options": {
+        "read": [],
+        "write": [
+          "standalone"
+        ]
+      }
+    },
+    {
+      "reader": {
+        "format": "epub"
+      },
+      "writer": {
+        "format": "epub",
+        "math": "source"
+      },
+      "aliases": {
+        "write": [
+          "epub3"
+        ]
+      },
+      "name": "epub",
+      "read": {
+        "allowed": true,
+        "available": true
+      },
+      "write": {
+        "allowed": true,
+        "available": true
+      },
+      "media": "binary",
+      "inputEncoding": "bytes",
+      "suffixes": [
+        "epub"
+      ],
+      "extensions": {},
+      "options": {
+        "read": [],
+        "write": [
+          "standalone",
+          "epub"
+        ]
+      },
+      "inputBudget": "compressedBytes"
+    },
+    {
+      "name": "gfm",
+      "operands": "join",
+      "reader": {
+        "format": "gfm"
+      },
+      "writer": {
+        "format": "gfm"
+      },
+      "read": {
+        "allowed": true,
+        "available": true
+      },
+      "write": {
+        "allowed": true,
+        "available": true
+      },
+      "media": "text",
+      "inputEncoding": "utf8",
+      "suffixes": [
+        "gfm"
+      ],
+      "extensions": {
+        "pipe_tables": true,
+        "raw_html": true,
+        "strikeout": true,
+        "task_lists": true,
+        "autolink_bare_uris": true
+      },
+      "options": {
+        "read": [],
+        "write": [
+          "wrap"
+        ]
+      }
+    },
+    {
+      "reader": {
+        "format": "html"
+      },
+      "name": "html",
+      "read": {
+        "allowed": true,
+        "available": true
+      },
+      "write": {
+        "allowed": true,
+        "available": true
+      },
+      "media": "text",
+      "inputEncoding": "utf8",
+      "suffixes": [
+        "html",
+        "htm"
+      ],
+      "extensions": {},
+      "options": {
+        "read": [],
+        "write": []
+      }
+    },
+    {
+      "name": "html5",
+      "writer": {
+        "format": "html5",
+        "math": "source"
+      },
+      "read": {
+        "allowed": false,
+        "available": false
+      },
+      "write": {
+        "allowed": true,
+        "available": true
+      },
+      "media": "text",
+      "inputEncoding": "utf8",
+      "suffixes": [
+        "html",
+        "htm"
+      ],
+      "extensions": {},
+      "options": {
+        "read": [],
+        "write": [
+          "standalone",
+          "metadata",
+          "rawContent"
+        ]
+      },
+      "aliases": {
+        "write": [
+          "html"
+        ]
+      }
+    },
+    {
+      "name": "json",
+      "reader": {
+        "format": "json"
+      },
+      "writer": {
+        "format": "json",
+        "math": "source"
+      },
+      "read": {
+        "allowed": true,
+        "available": true
+      },
+      "write": {
+        "allowed": true,
+        "available": true
+      },
+      "media": "text",
+      "inputEncoding": "utf8",
+      "suffixes": [
+        "json"
+      ],
+      "extensions": {},
+      "options": {
+        "read": [],
+        "write": [
+          "rawContent"
+        ]
+      }
+    },
+    {
+      "reader": {
+        "format": "latex"
+      },
+      "writer": {
+        "format": "latex",
+        "math": "source"
+      },
+      "name": "latex",
+      "read": {
+        "allowed": true,
+        "available": true
+      },
+      "write": {
+        "allowed": true,
+        "available": true
+      },
+      "media": "text",
+      "inputEncoding": "utf8",
+      "suffixes": [
+        "tex",
+        "latex"
+      ],
+      "extensions": {},
+      "options": {
+        "read": [],
+        "write": [
+          "wrap",
+          "standalone",
+          "metadata",
+          "rawContent"
+        ]
+      }
+    },
+    {
+      "writer": {
+        "format": "pdf",
+        "math": "source"
+      },
+      "name": "pdf",
+      "read": {
+        "allowed": false,
+        "available": false
+      },
+      "write": {
+        "allowed": true,
+        "available": true
+      },
+      "media": "binary",
+      "inputEncoding": "bytes",
+      "suffixes": [
+        "pdf"
+      ],
+      "extensions": {},
+      "options": {
+        "read": [],
+        "write": [
+          "standalone",
+          "pdfPage",
+          "pdfFonts",
+          "pdf"
+        ]
+      }
+    },
+    {
+      "name": "plain",
+      "writer": {
+        "format": "plain"
+      },
+      "read": {
+        "allowed": false,
+        "available": false
+      },
+      "write": {
+        "allowed": true,
+        "available": true
+      },
+      "media": "text",
+      "inputEncoding": "utf8",
+      "suffixes": [
+        "txt"
+      ],
+      "extensions": {},
+      "options": {
+        "read": [],
+        "write": [
+          "wrap",
+          "rawContent"
+        ]
+      }
+    },
+    {
+      "name": "pptx",
+      "read": {
+        "allowed": true,
+        "available": true
+      },
+      "write": {
+        "allowed": true,
+        "available": true
+      },
+      "media": "binary",
+      "inputEncoding": "bytes",
+      "reader": {
+        "format": "pptx"
+      },
+      "writer": {
+        "format": "pptx"
+      },
+      "suffixes": [
+        "pptx"
+      ],
+      "extensions": {},
+      "options": {
+        "read": [],
+        "write": [
+          "standalone"
+        ]
+      }
+    },
+    {
+      "reader": {
+        "format": "rst"
+      },
+      "writer": {
+        "format": "rst",
+        "math": "source"
+      },
+      "name": "rst",
+      "read": {
+        "allowed": true,
+        "available": true
+      },
+      "write": {
+        "allowed": true,
+        "available": true
+      },
+      "media": "text",
+      "inputEncoding": "utf8",
+      "suffixes": [
+        "rst"
+      ],
+      "extensions": {},
+      "options": {
+        "read": [],
+        "write": [
+          "wrap",
+          "columns"
+        ]
+      }
+    },
+    {
+      "reader": {
+        "format": "rtf"
+      },
+      "writer": {
+        "format": "rtf"
+      },
+      "name": "rtf",
+      "read": {
+        "allowed": true,
+        "available": true
+      },
+      "write": {
+        "allowed": true,
+        "available": true
+      },
+      "media": "text",
+      "inputEncoding": "bytes",
+      "suffixes": [
+        "rtf"
+      ],
+      "extensions": {},
+      "options": {
+        "read": [],
+        "write": [
+          "standalone"
+        ]
+      }
+    },
+    {
+      "name": "tsv",
+      "operands": "documents",
+      "reader": {
+        "format": "tsv"
+      },
+      "read": {
+        "allowed": true,
+        "available": true
+      },
+      "write": {
+        "allowed": false,
+        "available": false
+      },
+      "media": "text",
+      "inputEncoding": "utf8",
+      "suffixes": [
+        "tsv"
+      ],
+      "extensions": {},
+      "options": {
+        "read": [],
+        "write": []
+      }
+    },
+    {
+      "name": "xlsx",
+      "read": {
+        "allowed": true,
+        "available": false
+      },
+      "write": {
+        "allowed": false,
+        "available": false
+      },
+      "media": "binary",
+      "inputEncoding": "bytes",
+      "suffixes": [
+        "xlsx"
+      ],
+      "extensions": {},
+      "options": {
+        "read": [],
+        "write": []
+      }
+    }
+  ],
+  "commands": [
+    {
+      "command": "pandoc --help",
+      "stdout": "Usage: pandoc -f FORMAT -t FORMAT [OPTIONS] [FILE|- ...]\n--from/-f --to/-t --output/-o PATH (use - for stdout) --yes --standalone/-s --wrap=none\n--metadata/-M KEY=VALUE --metadata-file FILE.json --lossy --fail-if-warnings\n--resource-path DIR[:DIR] --extract-media DIR --raw-content=reject|escape|retain\n--pdf-page-size a4|letter --pdf-orientation portrait|landscape --pdf-margin POINTS\n--pdf-font FAMILY|PATH --pdf-font-size POINTS --pdf-line-height MULTIPLIER\nPDF families: mono bundled; serif/sans unavailable (E_CAPABILITY). Font paths use only the admitted VFS.\n--epub-title TEXT --epub-language TEXT --epub-identifier TEXT --epub-chapter-level 1..6\n--list-input-formats --list-output-formats --list-extensions FORMAT --help/-h --version\nUse -- before literal filenames. No external PDF engines, ambient fonts, filters or network fetching.\nCapabilities (available directions):\nInput formats:\ncommonmark\ncsv\nepub\ngfm\nhtml\njson\nlatex\npptx\nrst\nrtf\ntsv\nOutput formats:\ncommonmark\nepub\nepub3\ngfm\nhtml\nhtml5\njson\nlatex\npdf\nplain\npptx\nrst\nrtf\n",
+      "stderr": "",
+      "stdoutBytes": {
+        "length": 1040,
+        "sha256": "2901bf44a509f148b7c52aa255051443c6ab5297e7c5d20343fc2d3dff3f0ced"
+      },
+      "stderrBytes": {
+        "length": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "pandoc --list-input-formats",
+      "stdout": "commonmark\ncsv\nepub\ngfm\nhtml\njson\nlatex\npptx\nrst\nrtf\ntsv\n",
+      "stderr": "",
+      "stdoutBytes": {
+        "length": 57,
+        "sha256": "449be3fcaf9f5bf4de00a1a69fe5fc57272e1e8f59ed434b1a9da4184ce9fb0d"
+      },
+      "stderrBytes": {
+        "length": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "pandoc --list-output-formats",
+      "stdout": "commonmark\nepub\nepub3\ngfm\nhtml\nhtml5\njson\nlatex\npdf\nplain\npptx\nrst\nrtf\n",
+      "stderr": "",
+      "stdoutBytes": {
+        "length": 71,
+        "sha256": "fe9c56a51d504bab36b89d98fedfd2b6e8ab6543c0a09794218b903995c8b73c"
+      },
+      "stderrBytes": {
+        "length": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "pandoc --list-extensions=gfm",
+      "stdout": "+autolink_bare_uris\n+pipe_tables\n+raw_html\n+strikeout\n+task_lists\n",
+      "stderr": "",
+      "stdoutBytes": {
+        "length": 66,
+        "sha256": "a721953a988c5d16f13bba0d8d02bc728e3d0eb2a12aa86d74b487598e8c8455"
+      },
+      "stderrBytes": {
+        "length": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "pandoc -f commonmark -t plain",
+      "stdout": "Audit\n\nOriginal é.\n",
+      "stderr": "",
+      "stdoutBytes": {
+        "length": 20,
+        "sha256": "0967ec234899fea7fe5564d2c793bf84385089eaf554990c8a3e7784d96c950f"
+      },
+      "stderrBytes": {
+        "length": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "pandoc --read commonmark --write plain",
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --read\n",
+      "stdoutBytes": {
+        "length": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderrBytes": {
+        "length": 37,
+        "sha256": "dd50c990418b8a04cb07882636bfab783291e3c66cb0469568be8c31df092eb0"
+      },
+      "exitCode": 2
+    },
+    {
+      "command": "pandoc -f commonmark -t plain --wrap=auto",
+      "stdout": "",
+      "stderr": "E_OPTION: Only wrap none is supported\n",
+      "stdoutBytes": {
+        "length": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderrBytes": {
+        "length": 38,
+        "sha256": "0e4949f7805fb67da3e3200dac4c8fbd642f21f1320ee0dea8d0a93adaced2c9"
+      },
+      "exitCode": 2
+    },
+    {
+      "command": "pandoc -f commonmark -t plain --wrap=preserve",
+      "stdout": "",
+      "stderr": "E_OPTION: Only wrap none is supported\n",
+      "stdoutBytes": {
+        "length": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderrBytes": {
+        "length": 38,
+        "sha256": "0e4949f7805fb67da3e3200dac4c8fbd642f21f1320ee0dea8d0a93adaced2c9"
+      },
+      "exitCode": 2
+    },
+    {
+      "command": "pandoc -f commonmark -t plain --columns=80",
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --columns\n",
+      "stdoutBytes": {
+        "length": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderrBytes": {
+        "length": 40,
+        "sha256": "bf2f3fded7be2ed474c504f299b31f13ad51e2da67006a8ab198199e1d40a531"
+      },
+      "exitCode": 2
+    },
+    {
+      "command": "pandoc -f commonmark -t pdf --pdf-font=serif",
+      "stdout": "",
+      "stderr": "E_CAPABILITY: Bundled PDF serif family is unavailable; supply an explicit font resource or select mono\n",
+      "stdoutBytes": {
+        "length": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderrBytes": {
+        "length": 103,
+        "sha256": "f41abcecd78c71d43b70745851bac07ddb800b51f75bccbd785e5406ef605fba"
+      },
+      "exitCode": 3
+    },
+    {
+      "command": "pandoc -f commonmark -t pdf --pdf-font=mono",
+      "stderr": "",
+      "stdoutBytes": {
+        "length": 142344,
+        "sha256": "39ba686bc8e5a5c4c9eb5fb67063574eb52eee1c137240d66c103aafad9e6f04"
+      },
+      "stderrBytes": {
+        "length": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exitCode": 0,
+      "stdoutDecodedLength": 135074,
+      "stdoutPreview": "%PDF-1.7; binary bytes bound by stdoutBytes SHA-256"
+    },
+    {
+      "command": "pandoc -f commonmark -t pdf --pdf-engine=native",
+      "stdout": "",
+      "stderr": "E_OPTION: External PDF engines are forbidden; use the built-in TypeScript PDF writer\n",
+      "stdoutBytes": {
+        "length": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderrBytes": {
+        "length": 85,
+        "sha256": "cdd6f1abdc1d2ed18830c03b876baccfa965c921764a90d8d6353567dc8cdb56"
+      },
+      "exitCode": 2
+    },
+    {
+      "command": "pandoc -f commonmark -t docx",
+      "stdout": "",
+      "stderr": "E_CAPABILITY: No write capability for docx\n",
+      "stdoutBytes": {
+        "length": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderrBytes": {
+        "length": 43,
+        "sha256": "5fd3c9aef3862bfe9da57bf6a40518ac12b173aa3a0f8ce67acf10096c4a6ecf"
+      },
+      "exitCode": 3
+    },
+    {
+      "command": "pandoc -f xlsx -t plain",
+      "stdout": "",
+      "stderr": "E_CAPABILITY: No read capability for xlsx\n",
+      "stdoutBytes": {
+        "length": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderrBytes": {
+        "length": 42,
+        "sha256": "3b3c39dab88c1b8fe642a56eafe464e02e5f7098dc53151a45f1ee0d6103d9dc"
+      },
+      "exitCode": 3
+    },
+    {
+      "command": "pandoc -f commonmark -t html5 -M title=true",
+      "stdout": "",
+      "stderr": "E_OPTION: title metadata must be text or inlines\n",
+      "stdoutBytes": {
+        "length": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderrBytes": {
+        "length": 49,
+        "sha256": "fe306d3a4ee926058b2cb10f791b4c5fa674baf2c3916aafe4bee8a157c8b22e"
+      },
+      "exitCode": 2
+    }
+  ],
+  "sdk": [
+    {
+      "to": "commonmark",
+      "kind": "text",
+      "length": 21,
+      "diagnostics": []
+    },
+    {
+      "to": "gfm",
+      "kind": "text",
+      "length": 21,
+      "diagnostics": []
+    },
+    {
+      "to": "html5",
+      "kind": "text",
+      "length": 45,
+      "diagnostics": []
+    },
+    {
+      "to": "html",
+      "kind": "text",
+      "length": 45,
+      "diagnostics": []
+    },
+    {
+      "to": "json",
+      "kind": "text",
+      "length": 196,
+      "diagnostics": []
+    },
+    {
+      "to": "plain",
+      "kind": "text",
+      "length": 19,
+      "diagnostics": []
+    },
+    {
+      "to": "latex",
+      "kind": "text",
+      "length": 49,
+      "diagnostics": []
+    },
+    {
+      "to": "rst",
+      "kind": "text",
+      "length": 26,
+      "diagnostics": []
+    },
+    {
+      "to": "rtf",
+      "kind": "text",
+      "length": 440,
+      "diagnostics": []
+    },
+    {
+      "to": "epub",
+      "kind": "binary",
+      "length": 2044,
+      "diagnostics": []
+    },
+    {
+      "to": "epub3",
+      "kind": "binary",
+      "length": 2044,
+      "diagnostics": []
+    },
+    {
+      "to": "pdf",
+      "kind": "binary",
+      "length": 142344,
+      "diagnostics": []
+    },
+    {
+      "to": "pptx",
+      "kind": "binary",
+      "length": 5067,
+      "diagnostics": [
+        {
+          "code": "W_LAYOUT_UNMEASURED",
+          "operation": "convert",
+          "format": "pptx",
+          "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+        }
+      ]
+    },
+    {
+      "to": "docx",
+      "code": "E_CAPABILITY",
+      "message": "No write capability for docx"
+    },
+    {
+      "to": "xlsx",
+      "code": "E_FORMAT",
+      "message": "Unsupported write format: xlsx"
+    }
+  ]
+}

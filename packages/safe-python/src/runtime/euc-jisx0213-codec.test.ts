@@ -2,6 +2,7 @@ import { withoutErrorStacks } from "../../tests/helpers/without-error-stacks.js"
 import {createHash} from "node:crypto";
 import {expect,it} from "vitest";
 import oracle from "./__snapshots__/euc-jisx0213-kernel-oracle.json";
+import incrementalOracle from "./__snapshots__/euc-jisx0213-incremental-partitions-3.14.7.json";
 import {CodePointString} from "./code-point-string.js";
 import {PythonDecodeError} from "./decode-error.js";
 import {PythonEncodeError} from "./encode-error.js";
@@ -47,12 +48,29 @@ function splitRow(data:Uint8Array,split:number,final:boolean,errors:"strict"|"ig
   decoder.reset(budget);row.push(state());return row;
 }
 
-it.each(["strict","ignore","replace"] as const)("matches every split byte pair with finalization and opaque state under %s",errors=>{
-  const hash=createHash("sha256");
-  for(let first=0;first<256;first++)for(let second=0;second<256;second++)for(const final of [false,true]){
-    hash.update(JSON.stringify(splitRow(Uint8Array.of(first,second),1,final,errors))+"\n");
+it("retains the complete split-pair oracle when partitioning by leading byte",()=>{
+  expect(incrementalOracle.reference.version.split(" ")[0]).toBe(oracle.reference.version.split(" ")[0]);
+  expect(incrementalOracle.reference).toMatchObject({unicode:oracle.reference.unicode,platform:oracle.reference.platform,byteorder:oracle.reference.byteorder});
+  for(const errors of ["strict","ignore","replace"] as const){
+    const reference=incrementalOracle.incremental[errors];
+    expect(reference.sha256).toBe(oracle.incremental[errors].sha256);
+    expect(reference.records).toBe(oracle.incremental[errors].records);
+    expect(reference.partitions.map(part=>part.block)).toEqual(Array.from({length:16},(_,block)=>block));
+    expect(reference.partitions.map(part=>part.records)).toEqual(new Array<number>(16).fill(8192));
   }
-  expect(hash.digest("hex")).toBe(oracle.incremental[errors].sha256);
+});
+
+it.each((["strict","ignore","replace"] as const).flatMap(errors=>
+  incrementalOracle.incremental[errors].partitions.map(part=>({errors,...part}))
+))("matches every split byte pair with finalization and opaque state under $errors in block $block",({errors,block,records,sha256})=>{
+  const hash=createHash("sha256");
+  let count=0;
+  for(let first=block*16;first<(block+1)*16;first++)for(let second=0;second<256;second++)for(const final of [false,true]){
+    hash.update(JSON.stringify(splitRow(Uint8Array.of(first,second),1,final,errors))+"\n");
+    count++;
+  }
+  expect(count).toBe(records);
+  expect(hash.digest("hex")).toBe(sha256);
 });
 
 it.each((["strict","ignore","replace"] as const).flatMap(errors=>Array.from({length:16},(_,block)=>({errors,block}))))("matches JIS X 0213/0212 triple splits under $errors in block $block",({errors,block})=>{

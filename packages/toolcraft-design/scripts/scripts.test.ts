@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
-import { createFsFromVolume, Volume } from "memfs";
+import { memfs } from "memfs";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { getMarkdownDemo } from "../src/terminal-markdown/demo-content.js";
@@ -29,6 +29,11 @@ vi.mock("node:fs", async (importOriginal) => {
 
 const repoRoot = path.resolve(import.meta.dirname, "../../..");
 const packageRoot = path.resolve(import.meta.dirname, "..");
+
+vi.mock("node:fs", async (importOriginal) => {
+  const original = await importOriginal<typeof import("node:fs")>();
+  return { ...original, existsSync: vi.fn(original.existsSync), readFileSync: vi.fn(original.readFileSync) };
+});
 
 describe("design-system demo script", () => {
   it("prefers INIT_CWD so workspace runs can load repo-root markdown files", () => {
@@ -87,16 +92,13 @@ describe("design-system demo script", () => {
     });
   });
 
-  it("can render frontmatter from markdown files when requested", () => {
-    const fixturePath = "docs/plans/example.md";
-    const memoryFs = createFsFromVolume(Volume.fromJSON({
-      [path.join(repoRoot, fixturePath)]: "---\nstatus: draft\n---\n# Example plan\n"
-    }));
-    vi.mocked(existsSync).mockImplementationOnce(memoryFs.existsSync);
-    vi.mocked(readFileSync).mockImplementationOnce(memoryFs.readFileSync as typeof readFileSync);
+  it("can render frontmatter from an in-memory markdown file when requested", () => {
+    const { fs } = memfs({ "/demo/plan.md": "---\nstatus: open\n---\n\n# Original plan\n" });
+    vi.mocked(existsSync).mockImplementationOnce(fs.existsSync);
+    vi.mocked(readFileSync).mockImplementationOnce(fs.readFileSync as typeof readFileSync);
     const { positional, renderOptions } = parseMarkdownDemoArgs([
       "--show-frontmatter",
-      fixturePath
+      "/demo/plan.md"
     ]);
     const markdown = loadMarkdownDemoDocument(
       { kind: "file", filePath: positional.join(" ") },

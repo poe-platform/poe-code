@@ -1,0 +1,66 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{array,longtable,multirow}
+\usepackage{enumitem}
+\usepackage[normalem]{ulem}
+\usepackage{hyperref}
+\title{Owned LaTeX QA}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+\section{Owned sample}\phantomsection\label{pc-6f-77-6e-65-64}
+
+\# \$ \% \& \_ \{ \} \textasciitilde{} \textasciicircum{} \textbackslash{} \emph{adjacent}\textbf{formatting}\protect\footnotemark[1]
+
+\footnotetext[1]{Outer note\protect\footnotemark[2]
+
+}
+\footnotetext[2]{Nested note
+
+}
+\hyperref[pc-6f-77-6e-65-64]{Section reference} \href{https://example.test/a\%20b?q=1\&x=2\#owned}{Web reference}
+
+\(x_{1}+\alpha\)\[\frac{a}{b}\]
+
+\begin{flushleft}\ttfamily
+\mbox{|!+\char"7B{}\char"7D{}\char"25{}\char"5C{}end\char"7B{}verbatim\char"7D{}}\\
+\mbox{\ \ literal}\\
+\end{flushleft}
+
+\begin{enumerate}[start=4,label=(\roman*)]
+\item Fourth
+
+\item Fifth
+
+\end{enumerate}
+
+\begin{description}
+\item[{Term ] \%}] Definition
+
+\end{description}
+
+\phantomsection\label{pc-6f-77-6e-65-64-2d-74-61-62-6c-65}\begin{longtable}{>{\raggedright\arraybackslash}p{\dimexpr0.500000\linewidth-2\tabcolsep\relax}>{\raggedleft\arraybackslash}p{\dimexpr0.500000\linewidth-2\tabcolsep\relax}}
+\caption{Owned table} \\
+Left\par  & Right\par  \\
+\endfirsthead
+Left\par  & Right\par  \\
+\endhead
+\endfoot
+\endlastfoot
+\multirow{2}{=}{Two rows\par } & First\par  \\
+ & Second\par  \\
+\multicolumn{2}{>{\raggedright\arraybackslash}p{\dimexpr1.000000\linewidth-2\tabcolsep\relax}}{Two columns\par } \\
+\end{longtable}
+
+\begin{figure}[htbp]
+\includegraphics{\detokenize{latex-writer-owned.png}}
+
+\caption{Owned image caption}\phantomsection\label{pc-6f-77-6e-65-64-2d-66-69-67-75-72-65}
+\end{figure}
+
+\end{document}

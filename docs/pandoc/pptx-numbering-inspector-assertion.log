@@ -1,0 +1,93 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ❯ packages/pandoc/src/pptx-conversion.test.ts (24 tests | 1 failed) 3742ms
+   ✓ rejects table formatting and section semantics that cannot be preserved 203ms
+   ✓ keeps preamble, title-only and consecutive empty slides in order 148ms
+   ✓ treats deeper headings as content and rejects ambiguous automatic heading inference 79ms
+   ✓ preserves original nested list structure in the conversion round trip 289ms
+   ✓ writes hyperlink relationships and recovers linked text 156ms
+   ✓ separates structural extraction order from visual reading order 81ms
+   ✓ writes and reads speaker notes separately from visible content 145ms
+   ✓ retains original jpg bytes and contains the image without changing its aspect ratio 140ms
+   ✓ retains original png bytes and contains the image without changing its aspect ratio 143ms
+   ✓ resolves presentation relationship order independently for more than nine slides  602ms
+   ✓ rejects an unsupported two-column reference layout instead of silently projecting it 21ms
+   ✓ maps original reference placeholders to their declared title and body geometry 73ms
+   ✓ keeps an original rectangular table with surrounding paragraphs on the same slide 140ms
+   ✓ uses explicit reference layout names, preserves deck ratio and rejects missing layouts 77ms
+   ✓ rejects conservative geometric overflow instead of claiming measured text fit 248ms
+   ✓ rejects authored animations and diagnoses explicit lossy extraction 115ms
+   ✓ rebuilds reader slide Divs without discarding title-only and empty slides 208ms
+   ✓ retains mixed list nesting, numbering starts and continuation paragraphs  334ms
+   × retains adjacent numbered list restarts instead of merging their items 93ms
+   ✓ rejects numbered list delimiters outside the supported decimal-period profile 27ms
+   ✓ rejects unsupported source numbering and diagnoses an explicit decimal projection 161ms
+   ✓ rejects authored charts and embedded objects without native activation 106ms
+   ✓ reports unmeasured text layout and allows warning rejection 86ms
+   ✓ rejects stretched image requests and non-plaintext speaker-note links 65ms
+FAIL packages/pandoc/src/pptx-conversion.test.ts > retains adjacent numbered list restarts instead of merging their items
+AssertionError: expected [ { …(3) }, { …(3) } ] to deeply equal [ Array(2) ]
+
+- Expected
++ Received
+
+  [
+    {
++     "n": "http://schemas.openxmlformats.org/drawingml/2006/main",
+      "startAt": "3",
+      "type": "arabicPeriod",
+    },
+    {
++     "n": "http://schemas.openxmlformats.org/drawingml/2006/main",
+      "startAt": "1",
+      "type": "arabicPeriod",
+    },
+  ]
+
+ ❯ packages/pandoc/src/pptx-conversion.test.ts:286:43
+    284|   expect(texts(bytes)).toEqual([["Orchard", "Apple", "Pear"]]);
+    285|   const slideXml = inspectZip(bytes).find(p => p.name === "ppt/slides/…
+    286|   expect(elements(slideXml, "buAutoNum")).toEqual([
+       |                                           ^
+    287|     {type: "arabicPeriod", startAt: "3"}, {type: "arabicPeriod", start…
+    288|   ]);
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/pandoc/src/pptx-conversion.test.ts > retains adjacent numbered list restarts instead of merging their items
+AssertionError: expected [ { …(3) }, { …(3) } ] to deeply equal [ Array(2) ]
+
+- Expected
++ Received
+
+  [
+    {
++     "n": "http://schemas.openxmlformats.org/drawingml/2006/main",
+      "startAt": "3",
+      "type": "arabicPeriod",
+    },
+    {
++     "n": "http://schemas.openxmlformats.org/drawingml/2006/main",
+      "startAt": "1",
+      "type": "arabicPeriod",
+    },
+  ]
+
+ ❯ packages/pandoc/src/pptx-conversion.test.ts:286:43
+    284|   expect(texts(bytes)).toEqual([["Orchard", "Apple", "Pear"]]);
+    285|   const slideXml = inspectZip(bytes).find(p => p.name === "ppt/slides/…
+    286|   expect(elements(slideXml, "buAutoNum")).toEqual([
+       |                                           ^
+    287|     {type: "arabicPeriod", startAt: "3"}, {type: "arabicPeriod", start…
+    288|   ]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 23 passed (24)
+   Start at  22:52:56
+   Duration  5.67s (transform 1.36s, setup 68ms, import 1.76s, tests 3.74s, environment 0ms)
+

@@ -1,0 +1,34 @@
+
+> @poe-code/pandoc@0.0.1 pretest:conformance:rst
+> cd ../.. && npm run build:workspaces -- --workspace=@poe-code/pandoc
+
+
+> poe-code@0.0.0-dev build:workspaces
+> node scripts/build-workspaces.mjs --workspace=@poe-code/pandoc
+
+
+> @poe-code/pdf@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/office-package@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> toolcraft-schema@0.0.1 build
+> rm -rf dist && tsc
+
+
+> pptx@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/pandoc@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+{"workspaces":79,"builds":5,"edges":227,"layers":11,"noBuild":[],"manifestless":[]}
+
+> @poe-code/pandoc@0.0.1 test:conformance:rst
+> node conformance/rst.mjs
+
+docutils 0.21.2: original cases parsed without diagnostics

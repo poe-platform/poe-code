@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ✓ packages/toolcraft-design/scripts/scripts.test.ts (17 tests) 629ms
+     ✓ captures format-aware demo output through one executable run  608ms
+
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+   Start at  19:54:59
+   Duration  1.57s (transform 611ms, setup 57ms, import 792ms, tests 629ms, environment 0ms)
+

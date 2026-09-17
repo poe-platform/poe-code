@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true,
+    "skipLibCheck": false,
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "test/public-types.ts"
+  ],
+  "exclude": []
+}

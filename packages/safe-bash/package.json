@@ -292,6 +292,10 @@
       "browser": null,
       "import": "./dist/commands/python/node.js"
     },
+    "./commands/pandoc": {
+      "types": "./dist/commands/pandoc/index.d.ts",
+      "import": "./dist/commands/pandoc/index.js"
+    },
     "./commands/playwright": {
       "types": "./dist/commands/playwright/index.d.ts",
       "browser": "./dist/commands/playwright/index.js",
@@ -437,6 +441,7 @@
     "@poe-code/safe-fs": "*",
     "pptx": "*",
     "@poe-platform/op": "*",
+    "@poe-code/pandoc": "*",
     "@poe-code/safe-playwright": "*"
   },
   "poeCode": {

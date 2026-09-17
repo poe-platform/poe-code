@@ -119,6 +119,12 @@ it.each([
     volume.writeFileSync(path.join(root, "packages/docx/package.json"), JSON.stringify({
       name: "docx", exports: { ".": { import: "./dist/index.js" } }
     }));
+    for (const name of ["pandoc", "pdf"]) {
+      volume.mkdirSync(path.join(root, `packages/${name}/dist`), {recursive: true});
+      volume.writeFileSync(path.join(root, `packages/${name}/package.json`), JSON.stringify({
+        name: `@poe-code/${name}`, dependencies: {pako: "3.0.1"}
+      }));
+    }
     addNativeFixture(root, volume);
     const files = createFsFromVolume(volume).promises;
     const build = vi.fn(async (options: BuildOptions) => {
@@ -188,6 +194,9 @@ it.each([
       expect(volume.existsSync(path.join(root, "dist/metafile.json"))).toBe(false);
     } else {
       await import("./bundle.mjs");
+      for (const entry of ["sdk", "command"]) {
+        expect(volume.existsSync(path.join(root, `packages/pandoc/dist/public/${entry}.js`))).toBe(true);
+      }
       expect(volume.readFileSync(path.join(root, "packages/safe-bash/dist/opt-in/optional.d.ts"), "utf8"))
         .toContain('import("@poe-platform/safe-bash/optional-host")');
       expect(volume.readFileSync(path.join(root, "packages/safe-bash/dist/codec.js"), "utf8"))
@@ -225,6 +234,11 @@ it.each([
       options.outfile === path.join(root, "packages/docx/dist/index.js")
     )?.[0];
     expect(documentOptions).toMatchObject({ bundle: true, platform: "browser", external: ["poe-code/safe-fs/core"], alias: { "@poe-code/safe-fs/core": "poe-code/safe-fs/core", "@poe-code/safe-fs/xml": "poe-code/safe-fs/core" }, conditions: ["workerd", "worker", "browser"] });
+    const pandocOptions = build.mock.calls.find(([options]) =>
+      options.outfile === path.join(root, "packages/safe-bash/dist/commands/pandoc/index.js")
+    )?.[0];
+    expect(pandocOptions?.banner?.js).toContain("createRequire");
+    expect(pandocOptions?.banner?.js).toContain("import.meta.url");
     const mainOptions = build.mock.calls.find(([options]) =>
       Array.isArray(options.entryPoints) && options.entryPoints.includes(path.join(root, "src/index.ts"))
     )![0];

@@ -1,0 +1,2470 @@
+{
+  "rows": [
+    {
+      "id": "commonmark->commonmark:unknown",
+      "argv": [
+        "-f",
+        "commonmark",
+        "-t",
+        "commonmark",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "commonmark->epub:unknown",
+      "argv": [
+        "-f",
+        "commonmark",
+        "-t",
+        "epub",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "commonmark->epub3:unknown",
+      "argv": [
+        "-f",
+        "commonmark",
+        "-t",
+        "epub3",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "commonmark->gfm:unknown",
+      "argv": [
+        "-f",
+        "commonmark",
+        "-t",
+        "gfm",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "commonmark->html:unknown",
+      "argv": [
+        "-f",
+        "commonmark",
+        "-t",
+        "html",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "commonmark->html5:unknown",
+      "argv": [
+        "-f",
+        "commonmark",
+        "-t",
+        "html5",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "commonmark->json:unknown",
+      "argv": [
+        "-f",
+        "commonmark",
+        "-t",
+        "json",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "commonmark->latex:unknown",
+      "argv": [
+        "-f",
+        "commonmark",
+        "-t",
+        "latex",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "commonmark->pdf:unknown",
+      "argv": [
+        "-f",
+        "commonmark",
+        "-t",
+        "pdf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "commonmark->plain:unknown",
+      "argv": [
+        "-f",
+        "commonmark",
+        "-t",
+        "plain",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "commonmark->pptx:unknown",
+      "argv": [
+        "-f",
+        "commonmark",
+        "-t",
+        "pptx",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "commonmark->rst:unknown",
+      "argv": [
+        "-f",
+        "commonmark",
+        "-t",
+        "rst",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "commonmark->rtf:unknown",
+      "argv": [
+        "-f",
+        "commonmark",
+        "-t",
+        "rtf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "csv->commonmark:unknown",
+      "argv": [
+        "-f",
+        "csv",
+        "-t",
+        "commonmark",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "csv->epub:unknown",
+      "argv": [
+        "-f",
+        "csv",
+        "-t",
+        "epub",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "csv->epub3:unknown",
+      "argv": [
+        "-f",
+        "csv",
+        "-t",
+        "epub3",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "csv->gfm:unknown",
+      "argv": [
+        "-f",
+        "csv",
+        "-t",
+        "gfm",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "csv->html:unknown",
+      "argv": [
+        "-f",
+        "csv",
+        "-t",
+        "html",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "csv->html5:unknown",
+      "argv": [
+        "-f",
+        "csv",
+        "-t",
+        "html5",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "csv->json:unknown",
+      "argv": [
+        "-f",
+        "csv",
+        "-t",
+        "json",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "csv->latex:unknown",
+      "argv": [
+        "-f",
+        "csv",
+        "-t",
+        "latex",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "csv->pdf:unknown",
+      "argv": [
+        "-f",
+        "csv",
+        "-t",
+        "pdf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "csv->plain:unknown",
+      "argv": [
+        "-f",
+        "csv",
+        "-t",
+        "plain",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "csv->pptx:unknown",
+      "argv": [
+        "-f",
+        "csv",
+        "-t",
+        "pptx",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "csv->rst:unknown",
+      "argv": [
+        "-f",
+        "csv",
+        "-t",
+        "rst",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "csv->rtf:unknown",
+      "argv": [
+        "-f",
+        "csv",
+        "-t",
+        "rtf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "epub->commonmark:unknown",
+      "argv": [
+        "-f",
+        "epub",
+        "-t",
+        "commonmark",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "epub->epub:unknown",
+      "argv": [
+        "-f",
+        "epub",
+        "-t",
+        "epub",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "epub->epub3:unknown",
+      "argv": [
+        "-f",
+        "epub",
+        "-t",
+        "epub3",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "epub->gfm:unknown",
+      "argv": [
+        "-f",
+        "epub",
+        "-t",
+        "gfm",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "epub->html:unknown",
+      "argv": [
+        "-f",
+        "epub",
+        "-t",
+        "html",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "epub->html5:unknown",
+      "argv": [
+        "-f",
+        "epub",
+        "-t",
+        "html5",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "epub->json:unknown",
+      "argv": [
+        "-f",
+        "epub",
+        "-t",
+        "json",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "epub->latex:unknown",
+      "argv": [
+        "-f",
+        "epub",
+        "-t",
+        "latex",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "epub->pdf:unknown",
+      "argv": [
+        "-f",
+        "epub",
+        "-t",
+        "pdf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "epub->plain:unknown",
+      "argv": [
+        "-f",
+        "epub",
+        "-t",
+        "plain",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "epub->pptx:unknown",
+      "argv": [
+        "-f",
+        "epub",
+        "-t",
+        "pptx",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "epub->rst:unknown",
+      "argv": [
+        "-f",
+        "epub",
+        "-t",
+        "rst",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "epub->rtf:unknown",
+      "argv": [
+        "-f",
+        "epub",
+        "-t",
+        "rtf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "gfm->commonmark:unknown",
+      "argv": [
+        "-f",
+        "gfm",
+        "-t",
+        "commonmark",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "gfm->epub:unknown",
+      "argv": [
+        "-f",
+        "gfm",
+        "-t",
+        "epub",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "gfm->epub3:unknown",
+      "argv": [
+        "-f",
+        "gfm",
+        "-t",
+        "epub3",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "gfm->gfm:unknown",
+      "argv": [
+        "-f",
+        "gfm",
+        "-t",
+        "gfm",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "gfm->html:unknown",
+      "argv": [
+        "-f",
+        "gfm",
+        "-t",
+        "html",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "gfm->html5:unknown",
+      "argv": [
+        "-f",
+        "gfm",
+        "-t",
+        "html5",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "gfm->json:unknown",
+      "argv": [
+        "-f",
+        "gfm",
+        "-t",
+        "json",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "gfm->latex:unknown",
+      "argv": [
+        "-f",
+        "gfm",
+        "-t",
+        "latex",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "gfm->pdf:unknown",
+      "argv": [
+        "-f",
+        "gfm",
+        "-t",
+        "pdf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "gfm->plain:unknown",
+      "argv": [
+        "-f",
+        "gfm",
+        "-t",
+        "plain",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "gfm->pptx:unknown",
+      "argv": [
+        "-f",
+        "gfm",
+        "-t",
+        "pptx",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "gfm->rst:unknown",
+      "argv": [
+        "-f",
+        "gfm",
+        "-t",
+        "rst",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "gfm->rtf:unknown",
+      "argv": [
+        "-f",
+        "gfm",
+        "-t",
+        "rtf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "html->commonmark:unknown",
+      "argv": [
+        "-f",
+        "html",
+        "-t",
+        "commonmark",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "html->epub:unknown",
+      "argv": [
+        "-f",
+        "html",
+        "-t",
+        "epub",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "html->epub3:unknown",
+      "argv": [
+        "-f",
+        "html",
+        "-t",
+        "epub3",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "html->gfm:unknown",
+      "argv": [
+        "-f",
+        "html",
+        "-t",
+        "gfm",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "html->html:unknown",
+      "argv": [
+        "-f",
+        "html",
+        "-t",
+        "html",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "html->html5:unknown",
+      "argv": [
+        "-f",
+        "html",
+        "-t",
+        "html5",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "html->json:unknown",
+      "argv": [
+        "-f",
+        "html",
+        "-t",
+        "json",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "html->latex:unknown",
+      "argv": [
+        "-f",
+        "html",
+        "-t",
+        "latex",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "html->pdf:unknown",
+      "argv": [
+        "-f",
+        "html",
+        "-t",
+        "pdf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "html->plain:unknown",
+      "argv": [
+        "-f",
+        "html",
+        "-t",
+        "plain",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "html->pptx:unknown",
+      "argv": [
+        "-f",
+        "html",
+        "-t",
+        "pptx",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "html->rst:unknown",
+      "argv": [
+        "-f",
+        "html",
+        "-t",
+        "rst",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "html->rtf:unknown",
+      "argv": [
+        "-f",
+        "html",
+        "-t",
+        "rtf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "json->commonmark:unknown",
+      "argv": [
+        "-f",
+        "json",
+        "-t",
+        "commonmark",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "json->epub:unknown",
+      "argv": [
+        "-f",
+        "json",
+        "-t",
+        "epub",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "json->epub3:unknown",
+      "argv": [
+        "-f",
+        "json",
+        "-t",
+        "epub3",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "json->gfm:unknown",
+      "argv": [
+        "-f",
+        "json",
+        "-t",
+        "gfm",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "json->html:unknown",
+      "argv": [
+        "-f",
+        "json",
+        "-t",
+        "html",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "json->html5:unknown",
+      "argv": [
+        "-f",
+        "json",
+        "-t",
+        "html5",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "json->json:unknown",
+      "argv": [
+        "-f",
+        "json",
+        "-t",
+        "json",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "json->latex:unknown",
+      "argv": [
+        "-f",
+        "json",
+        "-t",
+        "latex",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "json->pdf:unknown",
+      "argv": [
+        "-f",
+        "json",
+        "-t",
+        "pdf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "json->plain:unknown",
+      "argv": [
+        "-f",
+        "json",
+        "-t",
+        "plain",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "json->pptx:unknown",
+      "argv": [
+        "-f",
+        "json",
+        "-t",
+        "pptx",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "json->rst:unknown",
+      "argv": [
+        "-f",
+        "json",
+        "-t",
+        "rst",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "json->rtf:unknown",
+      "argv": [
+        "-f",
+        "json",
+        "-t",
+        "rtf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "latex->commonmark:unknown",
+      "argv": [
+        "-f",
+        "latex",
+        "-t",
+        "commonmark",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "latex->epub:unknown",
+      "argv": [
+        "-f",
+        "latex",
+        "-t",
+        "epub",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "latex->epub3:unknown",
+      "argv": [
+        "-f",
+        "latex",
+        "-t",
+        "epub3",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "latex->gfm:unknown",
+      "argv": [
+        "-f",
+        "latex",
+        "-t",
+        "gfm",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "latex->html:unknown",
+      "argv": [
+        "-f",
+        "latex",
+        "-t",
+        "html",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "latex->html5:unknown",
+      "argv": [
+        "-f",
+        "latex",
+        "-t",
+        "html5",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "latex->json:unknown",
+      "argv": [
+        "-f",
+        "latex",
+        "-t",
+        "json",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "latex->latex:unknown",
+      "argv": [
+        "-f",
+        "latex",
+        "-t",
+        "latex",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "latex->pdf:unknown",
+      "argv": [
+        "-f",
+        "latex",
+        "-t",
+        "pdf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "latex->plain:unknown",
+      "argv": [
+        "-f",
+        "latex",
+        "-t",
+        "plain",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "latex->pptx:unknown",
+      "argv": [
+        "-f",
+        "latex",
+        "-t",
+        "pptx",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "latex->rst:unknown",
+      "argv": [
+        "-f",
+        "latex",
+        "-t",
+        "rst",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "latex->rtf:unknown",
+      "argv": [
+        "-f",
+        "latex",
+        "-t",
+        "rtf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "pptx->commonmark:unknown",
+      "argv": [
+        "-f",
+        "pptx",
+        "-t",
+        "commonmark",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "pptx->epub:unknown",
+      "argv": [
+        "-f",
+        "pptx",
+        "-t",
+        "epub",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "pptx->epub3:unknown",
+      "argv": [
+        "-f",
+        "pptx",
+        "-t",
+        "epub3",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "pptx->gfm:unknown",
+      "argv": [
+        "-f",
+        "pptx",
+        "-t",
+        "gfm",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "pptx->html:unknown",
+      "argv": [
+        "-f",
+        "pptx",
+        "-t",
+        "html",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "pptx->html5:unknown",
+      "argv": [
+        "-f",
+        "pptx",
+        "-t",
+        "html5",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "pptx->json:unknown",
+      "argv": [
+        "-f",
+        "pptx",
+        "-t",
+        "json",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "pptx->latex:unknown",
+      "argv": [
+        "-f",
+        "pptx",
+        "-t",
+        "latex",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "pptx->pdf:unknown",
+      "argv": [
+        "-f",
+        "pptx",
+        "-t",
+        "pdf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "pptx->plain:unknown",
+      "argv": [
+        "-f",
+        "pptx",
+        "-t",
+        "plain",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "pptx->pptx:unknown",
+      "argv": [
+        "-f",
+        "pptx",
+        "-t",
+        "pptx",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "pptx->rst:unknown",
+      "argv": [
+        "-f",
+        "pptx",
+        "-t",
+        "rst",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "pptx->rtf:unknown",
+      "argv": [
+        "-f",
+        "pptx",
+        "-t",
+        "rtf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rst->commonmark:unknown",
+      "argv": [
+        "-f",
+        "rst",
+        "-t",
+        "commonmark",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rst->epub:unknown",
+      "argv": [
+        "-f",
+        "rst",
+        "-t",
+        "epub",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rst->epub3:unknown",
+      "argv": [
+        "-f",
+        "rst",
+        "-t",
+        "epub3",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rst->gfm:unknown",
+      "argv": [
+        "-f",
+        "rst",
+        "-t",
+        "gfm",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rst->html:unknown",
+      "argv": [
+        "-f",
+        "rst",
+        "-t",
+        "html",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rst->html5:unknown",
+      "argv": [
+        "-f",
+        "rst",
+        "-t",
+        "html5",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rst->json:unknown",
+      "argv": [
+        "-f",
+        "rst",
+        "-t",
+        "json",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rst->latex:unknown",
+      "argv": [
+        "-f",
+        "rst",
+        "-t",
+        "latex",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rst->pdf:unknown",
+      "argv": [
+        "-f",
+        "rst",
+        "-t",
+        "pdf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rst->plain:unknown",
+      "argv": [
+        "-f",
+        "rst",
+        "-t",
+        "plain",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rst->pptx:unknown",
+      "argv": [
+        "-f",
+        "rst",
+        "-t",
+        "pptx",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rst->rst:unknown",
+      "argv": [
+        "-f",
+        "rst",
+        "-t",
+        "rst",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rst->rtf:unknown",
+      "argv": [
+        "-f",
+        "rst",
+        "-t",
+        "rtf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rtf->commonmark:unknown",
+      "argv": [
+        "-f",
+        "rtf",
+        "-t",
+        "commonmark",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rtf->epub:unknown",
+      "argv": [
+        "-f",
+        "rtf",
+        "-t",
+        "epub",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rtf->epub3:unknown",
+      "argv": [
+        "-f",
+        "rtf",
+        "-t",
+        "epub3",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rtf->gfm:unknown",
+      "argv": [
+        "-f",
+        "rtf",
+        "-t",
+        "gfm",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rtf->html:unknown",
+      "argv": [
+        "-f",
+        "rtf",
+        "-t",
+        "html",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rtf->html5:unknown",
+      "argv": [
+        "-f",
+        "rtf",
+        "-t",
+        "html5",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rtf->json:unknown",
+      "argv": [
+        "-f",
+        "rtf",
+        "-t",
+        "json",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rtf->latex:unknown",
+      "argv": [
+        "-f",
+        "rtf",
+        "-t",
+        "latex",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rtf->pdf:unknown",
+      "argv": [
+        "-f",
+        "rtf",
+        "-t",
+        "pdf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rtf->plain:unknown",
+      "argv": [
+        "-f",
+        "rtf",
+        "-t",
+        "plain",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rtf->pptx:unknown",
+      "argv": [
+        "-f",
+        "rtf",
+        "-t",
+        "pptx",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rtf->rst:unknown",
+      "argv": [
+        "-f",
+        "rtf",
+        "-t",
+        "rst",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "rtf->rtf:unknown",
+      "argv": [
+        "-f",
+        "rtf",
+        "-t",
+        "rtf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "tsv->commonmark:unknown",
+      "argv": [
+        "-f",
+        "tsv",
+        "-t",
+        "commonmark",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "tsv->epub:unknown",
+      "argv": [
+        "-f",
+        "tsv",
+        "-t",
+        "epub",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "tsv->epub3:unknown",
+      "argv": [
+        "-f",
+        "tsv",
+        "-t",
+        "epub3",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "tsv->gfm:unknown",
+      "argv": [
+        "-f",
+        "tsv",
+        "-t",
+        "gfm",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "tsv->html:unknown",
+      "argv": [
+        "-f",
+        "tsv",
+        "-t",
+        "html",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "tsv->html5:unknown",
+      "argv": [
+        "-f",
+        "tsv",
+        "-t",
+        "html5",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "tsv->json:unknown",
+      "argv": [
+        "-f",
+        "tsv",
+        "-t",
+        "json",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "tsv->latex:unknown",
+      "argv": [
+        "-f",
+        "tsv",
+        "-t",
+        "latex",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "tsv->pdf:unknown",
+      "argv": [
+        "-f",
+        "tsv",
+        "-t",
+        "pdf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "tsv->plain:unknown",
+      "argv": [
+        "-f",
+        "tsv",
+        "-t",
+        "plain",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "tsv->pptx:unknown",
+      "argv": [
+        "-f",
+        "tsv",
+        "-t",
+        "pptx",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "tsv->rst:unknown",
+      "argv": [
+        "-f",
+        "tsv",
+        "-t",
+        "rst",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "tsv->rtf:unknown",
+      "argv": [
+        "-f",
+        "tsv",
+        "-t",
+        "rtf",
+        "--unknown",
+        "-o",
+        "result"
+      ],
+      "outcome": "pass",
+      "status": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: --unknown\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "-f commonmark -t docx",
+      "outcome": "pass",
+      "status": 3,
+      "stderr": "E_CAPABILITY: No write capability for docx\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "-f docx -t plain",
+      "outcome": "pass",
+      "status": 3,
+      "stderr": "E_CAPABILITY: No read capability for docx\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "-f xlsx -t plain",
+      "outcome": "pass",
+      "status": 3,
+      "stderr": "E_CAPABILITY: No read capability for xlsx\n",
+      "vfs": "unchanged"
+    },
+    {
+      "id": "-f commonmark -t pdf --pdf-font=serif",
+      "outcome": "pass",
+      "status": 3,
+      "stderr": "E_CAPABILITY: Bundled PDF serif family is unavailable; supply an explicit font resource or select mono\n",
+      "vfs": "unchanged"
+    }
+  ],
+  "counts": {
+    "total": 147,
+    "pass": 147,
+    "fail": 0,
+    "unsupported": 0,
+    "notRun": 0
+  }
+}

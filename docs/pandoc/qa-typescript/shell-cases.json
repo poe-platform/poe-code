@@ -1,0 +1,98 @@
+[
+  {
+    "source": "pandoc --help",
+    "exitCode": 127,
+    "stdout": "",
+    "stderr": "shell: line 1: pandoc: command not found\n"
+  },
+  {
+    "source": "pandoc --help",
+    "exitCode": 0,
+    "stdout": "Usage: pandoc -f FORMAT -t FORMAT [OPTIONS] [FILE|- ...]\n--from/-f --to/-t --output/-o PATH (use - for stdout) --yes --standalone/-s --wrap=none\n--metadata/-M KEY=VALUE --metadata-file FILE.json --lossy --fail-if-warnings\n--resource-path DIR[:DIR] --extract-media DIR --raw-content=reject|escape|retain\n--pdf-page-size a4|letter --pdf-orientation portrait|landscape --pdf-margin POINTS\n--pdf-font FAMILY|PATH --pdf-font-size POINTS --pdf-line-height MULTIPLIER\nPDF families: mono bundled; serif/sans unavailable (E_CAPABILITY). Font paths use only the admitted VFS.\n--epub-title TEXT --epub-language TEXT --epub-identifier TEXT --epub-chapter-level 1..6\n--list-input-formats --list-output-formats --list-extensions FORMAT --help/-h --version\nUse -- before literal filenames. No external PDF engines, ambient fonts, filters or network fetching.\nCapabilities (available directions):\nInput formats:\ncommonmark\ncsv\nepub\ngfm\nhtml\njson\nlatex\npptx\nrst\nrtf\ntsv\nOutput formats:\ncommonmark\nepub\nepub3\ngfm\nhtml\nhtml5\njson\nlatex\npdf\nplain\npptx\nrst\nrtf\n",
+    "stderr": ""
+  },
+  {
+    "source": "pandoc --version",
+    "exitCode": 0,
+    "stdout": "pandoc TypeScript converter 0.0.1 (original bounded implementation)\n",
+    "stderr": ""
+  },
+  {
+    "source": "pandoc --list-input-formats --list-output-formats",
+    "exitCode": 0,
+    "stdout": "Input formats:\ncommonmark\ncsv\nepub\ngfm\nhtml\njson\nlatex\npptx\nrst\nrtf\ntsv\nOutput formats:\ncommonmark\nepub\nepub3\ngfm\nhtml\nhtml5\njson\nlatex\npdf\nplain\npptx\nrst\nrtf\n",
+    "stderr": ""
+  },
+  {
+    "source": "pandoc --list-extensions gfm",
+    "exitCode": 0,
+    "stdout": "+autolink_bare_uris\n+pipe_tables\n+raw_html\n+strikeout\n+task_lists\n",
+    "stderr": ""
+  },
+  {
+    "source": "pandoc -f nonexistent -t plain",
+    "exitCode": 2,
+    "stdout": "",
+    "stderr": "E_FORMAT: Unsupported read format: nonexistent\n"
+  },
+  {
+    "source": "pandoc -f commonmark -t plain --filter x",
+    "exitCode": 2,
+    "stdout": "",
+    "stderr": "E_OPTION: Unsupported option: --filter\n"
+  },
+  {
+    "source": "pandoc -f gfm+unknown -t plain",
+    "exitCode": 2,
+    "stdout": "",
+    "stderr": "E_EXTENSION: Unsupported extension: unknown\n"
+  },
+  {
+    "source": "pandoc -t plain",
+    "exitCode": 2,
+    "stdout": "",
+    "stderr": "E_FORMAT_REQUIRED: select both formats: pandoc -f commonmark -t html5 input.md -o output.html; use --yes to accept inference/defaults\n"
+  },
+  {
+    "source": "pandoc -f commonmark -t plain missing.md",
+    "exitCode": 9,
+    "stdout": "",
+    "stderr": "E_IO: Capability failed\n"
+  },
+  {
+    "source": "printf '# Heading\\n\\n- first\\n' | pandoc -f commonmark -t plain",
+    "exitCode": 0,
+    "stdout": "Heading\n\n- first\n",
+    "stderr": ""
+  },
+  {
+    "source": "printf '# File\\n' > input.md",
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "source": "pandoc -f commonmark -t html5 input.md -o output.html",
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "source": "cat output.html",
+    "exitCode": 0,
+    "stdout": "<h1 id=\"file\">File</h1>\n",
+    "stderr": ""
+  },
+  {
+    "source": "pandoc -f commonmark -t docx",
+    "exitCode": 3,
+    "stdout": "",
+    "stderr": "E_CAPABILITY: No write capability for docx\n"
+  },
+  {
+    "source": "pandoc -f xlsx -t plain",
+    "exitCode": 3,
+    "stdout": "",
+    "stderr": "E_CAPABILITY: No read capability for xlsx\n"
+  }
+]

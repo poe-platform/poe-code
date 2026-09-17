@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-const state = vi.hoisted(() => ({ shellOptions: undefined as unknown, execution: undefined as unknown, python: undefined as unknown, agent: undefined as unknown, disposed: false }));
+const state = vi.hoisted(() => ({ shellOptions: undefined as unknown, execution: undefined as unknown, python: undefined as unknown, agent: undefined as unknown, disposed: false, pandoc: undefined as unknown }));
 vi.mock('poe-code/safe-bash', () => ({
   Shell: class { constructor(options: unknown) { state.shellOptions = options; } use() { return this; } async exec(source: string, options: unknown) { state.execution = { source, options }; return { exitCode: 17 }; } async dispose() { state.disposed = true; } },
   RealFileSystem: class { constructor(public options: unknown) {} },
@@ -7,6 +7,7 @@ vi.mock('poe-code/safe-bash', () => ({
   pythonCommands: (options: unknown) => { state.python = options; return {}; }
 }));
 vi.mock('poe-code/safe-bash/commands/python/node', () => ({ createNodePythonWorker: vi.fn() }));
+vi.mock('poe-code/safe-bash/commands/pandoc', () => ({ pandocCommands: vi.fn(options => { state.pandoc = options; return {}; }) }));
 import { runBash } from './bash.js';
 
 describe('runBash SDK', () => {
@@ -69,4 +70,14 @@ it('forwards explicit trusted Python admission to the Node worker', async () => 
   await runBash({ source: 'python -V', fs: {} as never, python: { runtimeModuleURL: 'file:///runtime.mjs', trustedPython: true } });
   (state.python as { createWorker: () => unknown }).createWorker();
   expect(createNodePythonWorker).toHaveBeenCalledWith(expect.objectContaining({ trustedPython: true }));
+});
+
+it('registers Pandoc only on explicit opt-in and forwards lowerable limits', async () => {
+  const { pandocCommands } = await import('poe-code/safe-bash/commands/pandoc');
+  vi.mocked(pandocCommands).mockClear();
+  await runBash({ source: 'pandoc --help', fs: {} as never });
+  expect(pandocCommands).not.toHaveBeenCalled();
+  await runBash({ source: 'pandoc --help', fs: {} as never, pandoc: { limits: { inputBytes: 1024 } } });
+  expect(pandocCommands).toHaveBeenCalledWith({ limits: { inputBytes: 1024 } });
+  expect(state.disposed).toBe(true);
 });

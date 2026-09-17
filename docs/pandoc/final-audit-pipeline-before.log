@@ -1,0 +1,14 @@
+┌   Poe - pipeline validate
+│
+◇  Plan
+│     docs/plans/pandoc-typescript-safe-bash.md
+│
+◇  Tasks
+│     39 tasks (38 done)
+│
+◇  Steps
+│     implement, refactor, test, commit, release
+│
+◆  Plan is valid.
+│
+└  Problems? https://github.com/poe-platform/poe-code/issues

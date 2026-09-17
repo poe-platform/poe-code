@@ -2349,6 +2349,8 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/docx/objects.test.ts"));
   assert.ok(files.includes("tests/commands/docx-registration.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/selectors.test.ts"));
+  assert.ok(files.includes("tests/commands/pandoc.test.ts"));
+  assert.ok(files.includes("tests/commands/pandoc-safety.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/transitions.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/animation-inventory.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/animation-editing.test.ts"));
@@ -2590,6 +2592,7 @@ test("published root mirrors only declared subpaths and keeps the feature isolat
     key === "." ? "./safe-bash" : `./safe-bash${key.slice(1)}`,
     mirror(conditions),
   ]));
+  expected["./safe-bash/commands/pandoc"].import = "./packages/pandoc/dist/public/command.js";
   assert.deepEqual(Object.fromEntries(Object.entries(root.exports).filter(([key]) => key === "./safe-bash" || key.startsWith("./safe-bash/"))), expected);
   assert.equal(root.exports["./safe-bash/*"], undefined);
   assert.equal(root.exports["./safe-bash/node"].browser, null);

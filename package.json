@@ -416,6 +416,14 @@
       "browser": null,
       "import": "./packages/safe-js/dist/safe-fs-bridge.js"
     },
+    "./safe-bash/commands/pandoc": {
+      "types": "./packages/safe-bash/dist/commands/pandoc/index.d.ts",
+      "import": "./packages/pandoc/dist/public/command.js"
+    },
+    "./pandoc": {
+      "types": "./packages/pandoc/dist/index.d.ts",
+      "import": "./packages/pandoc/dist/public/sdk.js"
+    },
     "./safe-bash/yes": {
       "types": "./dist/safe-bash-opt-in/entrypoints/yes.d.ts",
       "import": "./dist/safe-bash-opt-in/entrypoints/yes.js"
@@ -665,6 +673,11 @@
     "packages/mcp-oauth/dist",
     "packages/office-package/dist",
     "packages/office-package/LICENSE",
+    "packages/pandoc/dist/**/*.d.ts",
+    "packages/pandoc/dist/public",
+    "packages/pdf/dist/**/*.d.ts",
+    "packages/pdf/LICENSE",
+    "packages/pdf/OFL.txt",
     "packages/pptx/dist",
     "packages/pptx/LICENSE",
     "packages/pptx/THIRD_PARTY_NOTICES.txt",
@@ -851,6 +864,8 @@
     "vite": "6.4.3",
     "vitest": "4.1.11",
     "@poe-code/safe-python": "*",
+    "@poe-code/pandoc": "0.0.1",
+    "@poe-code/pdf": "0.0.1",
     "@poe-code/safe-playwright": "*"
   },
   "repository": {

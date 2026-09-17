@@ -1,0 +1,22 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+Sourcemap for "/Users/kjopek/Workspace/poe-code-5/packages/pandoc/dist/public/chunks/chunk-3PKVYCA6.js" points to missing source files
+ ✓ scripts/pandoc-public.test.ts (4 tests) 5225ms
+   ✓ ships portable public entries without loading Office engines for text conversion  1512ms
+   ✓ resolves SDK and plugin public declaration imports for a TypeScript consumer  1765ms
+   ✓ runs conversion and explicit registration from packaged public entries, preserving collisions  1941ms
+ ✓ scripts/bundle-graph.test.ts (19 tests) 12ms
+ ✓ scripts/bundle-safe-bash.test.ts (35 tests) 11937ms
+   ✓ runs injected llm providers and binary pipelines through the browser command subpath  335ms
+   ✓ runs both reference llm transports without Node globals in a browser consumer  346ms
+   ✓ runs nested env/xargs, truncate, csplit, pr, tsort, factor, getopt, hexdump and hd through the public default browser entry  732ms
+   ✓ bundles the complete portable preset with one owned-argument identity  436ms
+   ✓ executes the maintained browser fixture with all top-level workflows in a Node VM  1481ms
+   ✓ enforces command and output budgets in the portable runtime  700ms
+
+ Test Files  3 passed (3)
+      Tests  58 passed (58)
+   Start at  22:00:33
+   Duration  12.55s (transform 1.89s, setup 118ms, import 941ms, tests 17.17s, environment 0ms)
+

@@ -1,0 +1,477 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ❯ src/sdk/bash.test.ts (6 tests | 1 failed) 10ms
+     ✓ forwards filesystem, execution and Python options, then disposes the shell 4ms
+     ✓ requires an explicit filesystem or host root 1ms
+   ✓ preserves borrowed streams and cancellation with an injected worker factory 0ms
+   ✓ preserves package environment and transport configuration without provisioning at SDK startup 0ms
+   ✓ forwards explicit trusted Python admission to the Node worker 1ms
+   × registers Pandoc only on explicit opt-in and forwards lowerable limits 2ms
+FAIL src/sdk/bash.test.ts > registers Pandoc only on explicit opt-in and forwards lowerable limits
+AssertionError: expected "vi.fn()" to be called with arguments: [ { limits: { inputBytes: 1024 } } ]
+
+Number of calls: 0
+
+ ❯ src/sdk/bash.test.ts:71:26
+     69|   expect(pandocCommands).not.toHaveBeenCalled();
+     70|   await runBash({ source: 'pandoc --help', fs: {} as never, pandoc: { …
+     71|   expect(pandocCommands).toHaveBeenCalledWith({ limits: { inputBytes: …
+       |                          ^
+     72|   expect(state.disposed).toBe(true);
+     73| });
+
+error: unknown option '--pandoc'
+ ❯ src/cli/commands/bash.test.ts (18 tests | 2 failed) 31ms
+   ✓ passes explicit Python configuration through the SDK 4ms
+   ✓ does not enable Python without a runtime URL 1ms
+   ✓ forwards explicit Python package pins, requirements and document profile 1ms
+   ✓ rejects package options without a Python runtime 1ms
+   ✓ forwards offline package cache configuration 1ms
+   ✓ restricts installer downloads to explicitly permitted origins 8ms
+   ✓ reports installer download progress on stderr 1ms
+   ✓ rejects Python configuration without an enabled runtime 0ms
+   ✓ refuses global dry-run before executing filesystem mutations 1ms
+   ✓ does not leak a spinner when pipeline interpreters initialize concurrently 2ms
+   ✓ contains borrowed stdout errors and retires its listeners after Python status selection 0ms
+   ✓ contains borrowed stderr errors and retires its listeners after Python status selection 0ms
+   ✓ retires output error listeners when SDK execution rejects 0ms
+   ✓ requires explicit trust admission for the Node Python runtime 0ms
+   ✓ forwards Python concurrency and input retention limits with explicit trust admission 2ms
+   ✓ forwards a package cache byte bound 0ms
+   × enables the explicit Pandoc plugin through the SDK 2ms
+   × leaves Pandoc disabled by default 5ms
+FAIL src/cli/commands/bash.test.ts > enables the explicit Pandoc plugin through the SDK
+CommanderError: error: unknown option '--pandoc'
+ ❯ Command._exit node_modules/commander/lib/command.js:519:26
+ ❯ Command.error node_modules/commander/lib/command.js:1917:10
+ ❯ Command.unknownOption node_modules/commander/lib/command.js:2096:10
+ ❯ checkForUnknownOptions node_modules/commander/lib/command.js:1574:14
+ ❯ Command._parseCommand node_modules/commander/lib/command.js:1580:7
+ ❯ node_modules/commander/lib/command.js:1349:27
+ ❯ Command._chainOrCall node_modules/commander/lib/command.js:1470:12
+ ❯ Command._dispatchSubcommand node_modules/commander/lib/command.js:1345:25
+ ❯ Command._parseCommand node_modules/commander/lib/command.js:1541:19
+ ❯ Command.parseAsync node_modules/commander/lib/command.js:1104:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'commander.unknownOption', exitCode: 1, nestedError: undefined }
+FAIL src/cli/commands/bash.test.ts > leaves Pandoc disabled by default
+AssertionError: expected "vi.fn()" to be called with arguments: [ ObjectContaining{…} ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+-   ObjectContaining {
+-     "pandoc": undefined,
++   {
++     "cwd": "/",
++     "env": {
++       "BASE_URL": "/",
++       "CODEX_CI": "1",
++       "CODEX_MANAGED_BY_NPM": "1",
++       "CODEX_MANAGED_PACKAGE_ROOT": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex",
++       "CODEX_SESSION_ID": "01a0acc3-86de-7f80-9618-fed30c711844",
++       "CODEX_THREAD_ID": "01a0acc3-86de-7f80-9618-fed30c711844",
++       "CODEX_VERSION": "0.154.0",
++       "COLOR": "0",
++       "COLORTERM": "truecolor",
++       "DEV": "1",
++       "EDITOR": "vi",
++       "FORCE_COLOR": "1",
++       "FORCE_TTY": "",
++       "GH_PAGER": "cat",
++       "GIT_PAGER": "cat",
++       "HOME": "/Users/kjopek",
++       "INIT_CWD": "/Users/kjopek/Workspace/poe-code-5",
++       "LANG": "en_US.UTF-8",
++       "LC_ALL": "C.UTF-8",
++       "LC_CTYPE": "C.UTF-8",
++       "LC_TERMINAL": "iTerm2",
++       "LC_TERMINAL_VERSION": "3.6.11",
++       "LOGNAME": "kjopek",
++       "MODE": "test",
++       "NODE": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
++       "NODE_ENV": "test",
++       "NO_COLOR": "1",
++       "NVM_BIN": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
++       "NVM_CD_FLAGS": "-q",
++       "NVM_DIR": "/Users/kjopek/.nvm",
++       "NVM_INC": "/Users/kjopek/.nvm/versions/node/v22.22.2/include/node",
++       "PAGER": "cat",
++       "PATH": "/Users/kjopek/Workspace/poe-code-5/node_modules/.bin:/Users/kjopek/Workspace/poe-code-5/node_modules/.bin:/Users/kjopek/Workspace/node_modules/.bin:/Users/kjopek/node_modules/.bin:/Users/node_modules/.bin:/node_modules/.bin:/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/node-gyp-bin:/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.local/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/homebrew/bin:/Users/kjopek/.codex/tmp/arg0/codex-arg0q7nmB4:/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.local/bin",
++       "POE_SNAPSHOT_MISS": "error",
++       "POE_SNAPSHOT_MODE": "playback",
++       "PROD": "",
++       "PWD": "/Users/kjopek/Workspace/poe-code-5",
++       "SHELL": "/bin/zsh",
++       "SHLVL": "3",
++       "SSH_CLIENT": "fe80::c08:8bd9:5c36:2f0f%en0 62716 22",
++       "SSH_CONNECTION": "fe80::435:36d1:243d:634%en0 49828 fe80::4e8:675a:3bc0:556b%en0 22",
++       "SSH_TTY": "/dev/ttys003",
++       "SSR": "1",
++       "TERM": "tmux-256color",
++       "TERM_PROGRAM": "tmux",
++       "TERM_PROGRAM_VERSION": "3.7c",
++       "TEST": "true",
++       "TMPDIR": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/",
++       "TMUX": "/private/tmp/tmux-501/default,34417,0",
++       "TMUX_PANE": "%7",
++       "USER": "kjopek",
++       "VITEST": "true",
++       "VITEST_MODE": "RUN",
++       "VITEST_POOL_ID": "1",
++       "VITEST_WORKER_ID": "0",
++       "_": "/Users/kjopek/Workspace/poe-code-5/node_modules/.bin/vitest",
++       "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
++       "npm_command": "exec",
++       "npm_config_cache": "/Users/kjopek/.npm",
++       "npm_config_global_prefix": "/Users/kjopek/.nvm/versions/node/v22.22.2",
++       "npm_config_globalconfig": "/Users/kjopek/.nvm/versions/node/v22.22.2/etc/npmrc",
++       "npm_config_init_module": "/Users/kjopek/.npm-init.js",
++       "npm_config_local_prefix": "/Users/kjopek/Workspace/poe-code-5",
++       "npm_config_node_gyp": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js",
++       "npm_config_noproxy": "",
++       "npm_config_npm_version": "10.9.7",
++       "npm_config_prefix": "/Users/kjopek/.nvm/versions/node/v22.22.2",
++       "npm_config_user_agent": "npm/10.9.7 node/v22.22.2 darwin arm64 workspaces/false",
++       "npm_config_userconfig": "/Users/kjopek/.npmrc",
++       "npm_execpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
++       "npm_lifecycle_event": "npx",
++       "npm_lifecycle_script": "vitest",
++       "npm_node_execpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
++       "npm_package_bin_poe": "dist/bin.cjs",
++       "npm_package_bin_poe-agent": "dist/bin/poe-agent.js",
++       "npm_package_bin_poe-code": "dist/bin.cjs",
++       "npm_package_bin_poe-safe-js": "packages/safe-js/dist/cli.js",
++       "npm_package_bin_poe-safejs": "packages/safe-js/dist/cli.js",
++       "npm_package_bin_poe-superintendent-mcp": "packages/superintendent/dist/mcp.js",
++       "npm_package_engines_node": ">=18.18",
++       "npm_package_json": "/Users/kjopek/Workspace/poe-code-5/package.json",
++       "npm_package_name": "poe-code",
++       "npm_package_version": "0.0.0-dev",
++     },
++     "python": undefined,
++     "root": "/Users/kjopek/Workspace/poe-code-5",
++     "source": "echo ready",
++     "stderr": {
++       "write": [Function write],
++     },
++     "stdin": ReadableWorkerStdio {
++       "_events": {
++         "close": undefined,
++         "data": undefined,
++         "end": [Function anonymous],
++         "error": undefined,
++         "readable": undefined,
++       },
++       "_eventsCount": 1,
++       "_maxListeners": undefined,
++       "_readableState": ReadableState {
++         "awaitDrainWriters": null,
++         "buffer": [],
++         "bufferIndex": 0,
++         "highWaterMark": 65536,
++         "length": 0,
++         "pipes": [],
++         Symbol(kState): 1053452,
++       },
++       Symbol(shapeMode): true,
++       Symbol(kCapture): false,
++       Symbol(kPort): MessagePort {
++         Symbol(kEvents): Map {
++           "newListener" => {
++             "next": Listener {
++               "callback": [Function anonymous],
++               "flags": 8,
++               "listener": [Function anonymous],
++               "next": undefined,
++               "previous": [Circular],
++             },
++             "resistStopPropagation": false,
++             "size": 1,
++           },
++           "removeListener" => {
++             "next": Listener {
++               "callback": [Function anonymous],
++               "flags": 8,
++               "listener": [Function anonymous],
++               "next": undefined,
++               "previous": [Circular],
++             },
++             "resistStopPropagation": false,
++             "size": 1,
++           },
++           "message" => {
++             "next": Listener {
++               "callback": [Function anonymous],
++               "flags": 8,
++               "listener": [Function anonymous],
++               "next": undefined,
++               "previous": [Circular],
++             },
++             "resistStopPropagation": false,
++             "size": 1,
++           },
++         },
++         Symbol(events.maxEventTargetListeners): 10,
++         Symbol(events.maxEventTargetListenersWarned): false,
++         Symbol(kHandlers): Map {},
++         Symbol(kNewListener): [Function anonymous],
++         Symbol(kRemoveListener): [Function anonymous],
++         Symbol(nodejs.internal.kCurrentlyReceivingPorts): undefined,
++         Symbol(kWaitingStreams): 1,
++       },
++       Symbol(kName): "stdin",
++       Symbol(kIncrementsPortRef): true,
++       Symbol(kStartedReading): false,
++     },
++     "stdout": {
++       "write": [Function write],
++     },
+    },
+  ]
+
+
+Number of calls: 1
+
+ ❯ src/cli/commands/bash.test.ts:164:19
+    162|   registerBashCommand(program);
+    163|   await program.parseAsync(['bash', '-c', 'echo ready'], { from: 'user…
+    164|   expect(runBash).toHaveBeenCalledWith(expect.objectContaining({ pando…
+       |                   ^
+    165| });
+    166|
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/sdk/bash.test.ts > registers Pandoc only on explicit opt-in and forwards lowerable limits
+AssertionError: expected "vi.fn()" to be called with arguments: [ { limits: { inputBytes: 1024 } } ]
+
+Number of calls: 0
+
+ ❯ src/sdk/bash.test.ts:71:26
+     69|   expect(pandocCommands).not.toHaveBeenCalled();
+     70|   await runBash({ source: 'pandoc --help', fs: {} as never, pandoc: { …
+     71|   expect(pandocCommands).toHaveBeenCalledWith({ limits: { inputBytes: …
+       |                          ^
+     72|   expect(state.disposed).toBe(true);
+     73| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/cli/commands/bash.test.ts > enables the explicit Pandoc plugin through the SDK
+CommanderError: error: unknown option '--pandoc'
+ ❯ Command._exit node_modules/commander/lib/command.js:519:26
+ ❯ Command.error node_modules/commander/lib/command.js:1917:10
+ ❯ Command.unknownOption node_modules/commander/lib/command.js:2096:10
+ ❯ checkForUnknownOptions node_modules/commander/lib/command.js:1574:14
+ ❯ Command._parseCommand node_modules/commander/lib/command.js:1580:7
+ ❯ node_modules/commander/lib/command.js:1349:27
+ ❯ Command._chainOrCall node_modules/commander/lib/command.js:1470:12
+ ❯ Command._dispatchSubcommand node_modules/commander/lib/command.js:1345:25
+ ❯ Command._parseCommand node_modules/commander/lib/command.js:1541:19
+ ❯ Command.parseAsync node_modules/commander/lib/command.js:1104:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/cli/commands/bash.test.ts > leaves Pandoc disabled by default
+AssertionError: expected "vi.fn()" to be called with arguments: [ ObjectContaining{…} ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+-   ObjectContaining {
+-     "pandoc": undefined,
++   {
++     "cwd": "/",
++     "env": {
++       "BASE_URL": "/",
++       "CODEX_CI": "1",
++       "CODEX_MANAGED_BY_NPM": "1",
++       "CODEX_MANAGED_PACKAGE_ROOT": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex",
++       "CODEX_SESSION_ID": "01a0acc3-86de-7f80-9618-fed30c711844",
++       "CODEX_THREAD_ID": "01a0acc3-86de-7f80-9618-fed30c711844",
++       "CODEX_VERSION": "0.154.0",
++       "COLOR": "0",
++       "COLORTERM": "truecolor",
++       "DEV": "1",
++       "EDITOR": "vi",
++       "FORCE_COLOR": "1",
++       "FORCE_TTY": "",
++       "GH_PAGER": "cat",
++       "GIT_PAGER": "cat",
++       "HOME": "/Users/kjopek",
++       "INIT_CWD": "/Users/kjopek/Workspace/poe-code-5",
++       "LANG": "en_US.UTF-8",
++       "LC_ALL": "C.UTF-8",
++       "LC_CTYPE": "C.UTF-8",
++       "LC_TERMINAL": "iTerm2",
++       "LC_TERMINAL_VERSION": "3.6.11",
++       "LOGNAME": "kjopek",
++       "MODE": "test",
++       "NODE": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
++       "NODE_ENV": "test",
++       "NO_COLOR": "1",
++       "NVM_BIN": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
++       "NVM_CD_FLAGS": "-q",
++       "NVM_DIR": "/Users/kjopek/.nvm",
++       "NVM_INC": "/Users/kjopek/.nvm/versions/node/v22.22.2/include/node",
++       "PAGER": "cat",
++       "PATH": "/Users/kjopek/Workspace/poe-code-5/node_modules/.bin:/Users/kjopek/Workspace/poe-code-5/node_modules/.bin:/Users/kjopek/Workspace/node_modules/.bin:/Users/kjopek/node_modules/.bin:/Users/node_modules/.bin:/node_modules/.bin:/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/node-gyp-bin:/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.local/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/homebrew/bin:/Users/kjopek/.codex/tmp/arg0/codex-arg0q7nmB4:/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.local/bin",
++       "POE_SNAPSHOT_MISS": "error",
++       "POE_SNAPSHOT_MODE": "playback",
++       "PROD": "",
++       "PWD": "/Users/kjopek/Workspace/poe-code-5",
++       "SHELL": "/bin/zsh",
++       "SHLVL": "3",
++       "SSH_CLIENT": "fe80::c08:8bd9:5c36:2f0f%en0 62716 22",
++       "SSH_CONNECTION": "fe80::435:36d1:243d:634%en0 49828 fe80::4e8:675a:3bc0:556b%en0 22",
++       "SSH_TTY": "/dev/ttys003",
++       "SSR": "1",
++       "TERM": "tmux-256color",
++       "TERM_PROGRAM": "tmux",
++       "TERM_PROGRAM_VERSION": "3.7c",
++       "TEST": "true",
++       "TMPDIR": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/",
++       "TMUX": "/private/tmp/tmux-501/default,34417,0",
++       "TMUX_PANE": "%7",
++       "USER": "kjopek",
++       "VITEST": "true",
++       "VITEST_MODE": "RUN",
++       "VITEST_POOL_ID": "1",
++       "VITEST_WORKER_ID": "0",
++       "_": "/Users/kjopek/Workspace/poe-code-5/node_modules/.bin/vitest",
++       "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
++       "npm_command": "exec",
++       "npm_config_cache": "/Users/kjopek/.npm",
++       "npm_config_global_prefix": "/Users/kjopek/.nvm/versions/node/v22.22.2",
++       "npm_config_globalconfig": "/Users/kjopek/.nvm/versions/node/v22.22.2/etc/npmrc",
++       "npm_config_init_module": "/Users/kjopek/.npm-init.js",
++       "npm_config_local_prefix": "/Users/kjopek/Workspace/poe-code-5",
++       "npm_config_node_gyp": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js",
++       "npm_config_noproxy": "",
++       "npm_config_npm_version": "10.9.7",
++       "npm_config_prefix": "/Users/kjopek/.nvm/versions/node/v22.22.2",
++       "npm_config_user_agent": "npm/10.9.7 node/v22.22.2 darwin arm64 workspaces/false",
++       "npm_config_userconfig": "/Users/kjopek/.npmrc",
++       "npm_execpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
++       "npm_lifecycle_event": "npx",
++       "npm_lifecycle_script": "vitest",
++       "npm_node_execpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
++       "npm_package_bin_poe": "dist/bin.cjs",
++       "npm_package_bin_poe-agent": "dist/bin/poe-agent.js",
++       "npm_package_bin_poe-code": "dist/bin.cjs",
++       "npm_package_bin_poe-safe-js": "packages/safe-js/dist/cli.js",
++       "npm_package_bin_poe-safejs": "packages/safe-js/dist/cli.js",
++       "npm_package_bin_poe-superintendent-mcp": "packages/superintendent/dist/mcp.js",
++       "npm_package_engines_node": ">=18.18",
++       "npm_package_json": "/Users/kjopek/Workspace/poe-code-5/package.json",
++       "npm_package_name": "poe-code",
++       "npm_package_version": "0.0.0-dev",
++     },
++     "python": undefined,
++     "root": "/Users/kjopek/Workspace/poe-code-5",
++     "source": "echo ready",
++     "stderr": {
++       "write": [Function write],
++     },
++     "stdin": ReadableWorkerStdio {
++       "_events": {
++         "close": undefined,
++         "data": undefined,
++         "end": [Function anonymous],
++         "error": undefined,
++         "readable": undefined,
++       },
++       "_eventsCount": 1,
++       "_maxListeners": undefined,
++       "_readableState": ReadableState {
++         "awaitDrainWriters": null,
++         "buffer": [],
++         "bufferIndex": 0,
++         "highWaterMark": 65536,
++         "length": 0,
++         "pipes": [],
++         Symbol(kState): 1053452,
++       },
++       Symbol(shapeMode): true,
++       Symbol(kCapture): false,
++       Symbol(kPort): MessagePort {
++         Symbol(kEvents): Map {
++           "newListener" => {
++             "next": Listener {
++               "callback": [Function anonymous],
++               "flags": 8,
++               "listener": [Function anonymous],
++               "next": undefined,
++               "previous": [Circular],
++             },
++             "resistStopPropagation": false,
++             "size": 1,
++           },
++           "removeListener" => {
++             "next": Listener {
++               "callback": [Function anonymous],
++               "flags": 8,
++               "listener": [Function anonymous],
++               "next": undefined,
++               "previous": [Circular],
++             },
++             "resistStopPropagation": false,
++             "size": 1,
++           },
++           "message" => {
++             "next": Listener {
++               "callback": [Function anonymous],
++               "flags": 8,
++               "listener": [Function anonymous],
++               "next": undefined,
++               "previous": [Circular],
++             },
++             "resistStopPropagation": false,
++             "size": 1,
++           },
++         },
++         Symbol(events.maxEventTargetListeners): 10,
++         Symbol(events.maxEventTargetListenersWarned): false,
++         Symbol(kHandlers): Map {},
++         Symbol(kNewListener): [Function anonymous],
++         Symbol(kRemoveListener): [Function anonymous],
++         Symbol(nodejs.internal.kCurrentlyReceivingPorts): undefined,
++         Symbol(kWaitingStreams): 1,
++       },
++       Symbol(kName): "stdin",
++       Symbol(kIncrementsPortRef): true,
++       Symbol(kStartedReading): false,
++     },
++     "stdout": {
++       "write": [Function write],
++     },
+    },
+  ]
+
+
+Number of calls: 1
+
+ ❯ src/cli/commands/bash.test.ts:164:19
+    162|   registerBashCommand(program);
+    163|   await program.parseAsync(['bash', '-c', 'echo ready'], { from: 'user…
+    164|   expect(runBash).toHaveBeenCalledWith(expect.objectContaining({ pando…
+       |                   ^
+    165| });
+    166|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  3 failed | 21 passed (24)
+   Start at  19:29:03
+   Duration  846ms (transform 607ms, setup 134ms, import 647ms, tests 40ms, environment 0ms)
+

@@ -1,0 +1,867 @@
+{
+  "normalization": "None; expected AST independently authored before native execution.",
+  "rows": [
+    {
+      "id": "commonmark-links",
+      "from": "commonmark",
+      "input": "before [label](https://example.test/?q=1&x=2 \"owned\") after",
+      "blocks": [
+        {
+          "t": "Para",
+          "c": [
+            {
+              "t": "Str",
+              "c": "before"
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Link",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  {
+                    "t": "Str",
+                    "c": "label"
+                  }
+                ],
+                [
+                  "https://example.test/?q=1&x=2",
+                  "owned"
+                ]
+              ]
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Str",
+              "c": "after"
+            }
+          ]
+        }
+      ],
+      "argv": [
+        "--sandbox",
+        "-f",
+        "commonmark",
+        "-t",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "native": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "before"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "https://example.test/?q=1&x=2",
+                    "owned"
+                  ]
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "after"
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "before"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "https://example.test/?q=1&x=2",
+                    "owned"
+                  ]
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "after"
+              }
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm-links",
+      "from": "gfm",
+      "input": "before [label](https://example.test/?q=1&x=2 \"owned\") after",
+      "blocks": [
+        {
+          "t": "Para",
+          "c": [
+            {
+              "t": "Str",
+              "c": "before"
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Link",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  {
+                    "t": "Str",
+                    "c": "label"
+                  }
+                ],
+                [
+                  "https://example.test/?q=1&x=2",
+                  "owned"
+                ]
+              ]
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Str",
+              "c": "after"
+            }
+          ]
+        }
+      ],
+      "argv": [
+        "--sandbox",
+        "-f",
+        "gfm",
+        "-t",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "native": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "before"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "https://example.test/?q=1&x=2",
+                    "owned"
+                  ]
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "after"
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "before"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "https://example.test/?q=1&x=2",
+                    "owned"
+                  ]
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "after"
+              }
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "outcome": "pass"
+    },
+    {
+      "id": "html-links",
+      "from": "html",
+      "input": "<p>before <a href=\"https://example.test/?q=1&amp;x=2\" title=\"owned\">label</a> after</p>",
+      "blocks": [
+        {
+          "t": "Para",
+          "c": [
+            {
+              "t": "Str",
+              "c": "before"
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Link",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  {
+                    "t": "Str",
+                    "c": "label"
+                  }
+                ],
+                [
+                  "https://example.test/?q=1&x=2",
+                  "owned"
+                ]
+              ]
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Str",
+              "c": "after"
+            }
+          ]
+        }
+      ],
+      "argv": [
+        "--sandbox",
+        "-f",
+        "html",
+        "-t",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "native": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "before"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "https://example.test/?q=1&x=2",
+                    "owned"
+                  ]
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "after"
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "before"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "https://example.test/?q=1&x=2",
+                    "owned"
+                  ]
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "after"
+              }
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark-unicode",
+      "from": "commonmark",
+      "input": "Café 東京",
+      "blocks": [
+        {
+          "t": "Para",
+          "c": [
+            {
+              "t": "Str",
+              "c": "Café"
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Str",
+              "c": "東京"
+            }
+          ]
+        }
+      ],
+      "argv": [
+        "--sandbox",
+        "-f",
+        "commonmark",
+        "-t",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "native": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Café"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "東京"
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Café"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "東京"
+              }
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark-list-order",
+      "from": "commonmark",
+      "input": "- first\n- second\n",
+      "blocks": [
+        {
+          "t": "BulletList",
+          "c": [
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "first"
+                  }
+                ]
+              }
+            ],
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "second"
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "argv": [
+        "--sandbox",
+        "-f",
+        "commonmark",
+        "-t",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "native": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "first"
+                    }
+                  ]
+                }
+              ],
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "second"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "first"
+                    }
+                  ]
+                }
+              ],
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "second"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "outcome": "pass"
+    },
+    {
+      "id": "html-identifiers-spans",
+      "from": "html",
+      "input": "<p><span id=\"owned\" class=\"mark\" title=\"kept\">span</span></p>",
+      "blocks": [
+        {
+          "t": "Para",
+          "c": [
+            {
+              "t": "Span",
+              "c": [
+                [
+                  "owned",
+                  [
+                    "mark"
+                  ],
+                  [
+                    [
+                      "title",
+                      "kept"
+                    ]
+                  ]
+                ],
+                [
+                  {
+                    "t": "Str",
+                    "c": "span"
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "argv": [
+        "--sandbox",
+        "-f",
+        "html",
+        "-t",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "native": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Span",
+                "c": [
+                  [
+                    "owned",
+                    [
+                      "mark"
+                    ],
+                    [
+                      [
+                        "title",
+                        "kept"
+                      ]
+                    ]
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "span"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Span",
+                "c": [
+                  [
+                    "owned",
+                    [
+                      "mark"
+                    ],
+                    [
+                      [
+                        "title",
+                        "kept"
+                      ]
+                    ]
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "span"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark-code-bytes",
+      "from": "commonmark",
+      "input": "```\na\tb  \n```\n",
+      "blocks": [
+        {
+          "t": "CodeBlock",
+          "c": [
+            [
+              "",
+              [],
+              []
+            ],
+            "a\tb  "
+          ]
+        }
+      ],
+      "argv": [
+        "--sandbox",
+        "-f",
+        "commonmark",
+        "-t",
+        "json",
+        "--wrap=none",
+        "--preserve-tabs"
+      ],
+      "status": 0,
+      "stderr": "",
+      "outcome": "fail",
+      "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    {\n      c: [\n        [\n          '',\n...\n        ],\n+       'a\\tb  \\n'\n-       'a\\tb  '\n      ],\n      t: 'CodeBlock'\n    }\n  ]\n",
+      "originalArgv": [
+        "--sandbox",
+        "-f",
+        "commonmark",
+        "-t",
+        "json",
+        "--wrap=none"
+      ],
+      "originalOracleMismatch": "Independently authored oracle AST check\n+ actual - expected\n... Skipped lines\n\n  [\n    {\n      c: [\n        [\n          '',\n...\n        ],\n+       'a   b  '\n-       'a\\tb  '\n      ],\n      t: 'CodeBlock'\n    }\n  ]\n",
+      "native": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "CodeBlock",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a\tb  "
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "CodeBlock",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a\tb  \n"
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "oracleValidated": true,
+      "difference": "Native default expands tabs; --preserve-tabs validates owned native AST. Native excludes the terminal code LF; CommonMark 0.31.2 AST here retains it. Exact comparison remains failed; no code content is normalized."
+    }
+  ],
+  "counts": {
+    "total": 7,
+    "pass": 6,
+    "fail": 1,
+    "unsupported": 0,
+    "not-run": 0
+  }
+}

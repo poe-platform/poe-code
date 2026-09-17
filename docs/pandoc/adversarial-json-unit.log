@@ -1,0 +1,59 @@
+
+> @poe-code/pandoc@0.0.1 test
+> cd ../.. && vitest run packages/pandoc
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ✓ packages/pandoc/src/orchestration.test.ts (13 tests) 34ms
+ ✓ packages/pandoc/src/pdf-integration.test.ts (15 tests) 1478ms
+   ✓ converts representable pptx content to mapped PDF text  912ms
+ ✓ packages/pandoc/src/pptx-conversion.test.ts (21 tests) 3250ms
+   ✓ resolves presentation relationship order independently for more than nine slides  600ms
+ ✓ packages/pandoc/src/json.test.ts (115 tests) 1094ms
+ ✓ packages/pandoc/src/pptx-registry.test.ts (1 test) 659ms
+   ✓ exposes verified PPTX conversion through the registry and byte command adapter  658ms
+ ✓ packages/pandoc/src/pdf-writer.test.ts (10 tests) 521ms
+ ✓ packages/pandoc/src/pptx-dependency.test.ts (1 test) 413ms
+   ✓ admits original presentation bytes through the public presentation engine  412ms
+ ✓ packages/pandoc/src/table-writers.test.ts (15 tests) 406ms
+ ✓ packages/pandoc/src/latex-writer.test.ts (23 tests) 327ms
+ ✓ packages/pandoc/src/epub-writer.test.ts (20 tests) 246ms
+ ✓ packages/pandoc/src/rtf-writer.test.ts (20 tests) 224ms
+ ✓ packages/pandoc/src/html-writer.test.ts (14 tests) 196ms
+ ✓ packages/pandoc/src/epub.test.ts (26 tests) 158ms
+ ✓ packages/pandoc/src/publication-feature-matrix.test.ts (5 tests) 192ms
+ ✓ packages/pandoc/src/resources.test.ts (30 tests) 138ms
+ ✓ packages/pandoc/src/rst.test.ts (34 tests) 119ms
+ ✓ packages/pandoc/src/safe-bash.test.ts (17 tests) 164ms
+ ✓ packages/pandoc/src/delimited.test.ts (22 tests) 118ms
+ ✓ packages/pandoc/src/publication-options.test.ts (9 tests) 136ms
+ ✓ packages/pandoc/src/gfm.test.ts (41 tests) 127ms
+ ✓ packages/pandoc/src/rst-writer.test.ts (20 tests) 84ms
+ ✓ packages/pandoc/src/rtf.test.ts (68 tests) 93ms
+ ✓ packages/pandoc/src/markdown-writer.test.ts (17 tests) 84ms
+ ✓ packages/pandoc/src/tables.test.ts (14 tests) 105ms
+ ✓ packages/pandoc/src/latex.test.ts (47 tests) 85ms
+ ✓ packages/pandoc/src/plain-writer.test.ts (8 tests) 108ms
+ ✓ packages/pandoc/src/consumer.test.ts (21 tests) 44ms
+ ✓ packages/pandoc/src/html.test.ts (11 tests) 30ms
+ ✓ packages/pandoc/src/commonmark-inlines.test.ts (76 tests) 35ms
+ ✓ packages/pandoc/src/ast.test.ts (35 tests) 26ms
+ ✓ packages/pandoc/src/epub-defaults.test.ts (5 tests) 23ms
+ ✓ packages/pandoc/src/commonmark-blocks.test.ts (117 tests) 24ms
+ ✓ packages/pandoc/src/execution.test.ts (26 tests) 17ms
+ ✓ packages/pandoc/src/markdown-matrix-regression.test.ts (3 tests) 19ms
+ ✓ packages/pandoc/src/formats.test.ts (8 tests) 9ms
+ ✓ packages/pandoc/src/cli-adapter.test.ts (5 tests) 5ms
+ ✓ packages/pandoc/src/latex-matrix-regression.test.ts (2 tests) 7ms
+ ✓ packages/pandoc/src/command-status.test.ts (4 tests) 8ms
+ ✓ packages/pandoc/src/json-cancellation.test.ts (9 tests) 9ms
+ ✓ packages/pandoc/src/commonmark-characters.test.ts (28 tests) 4ms
+ ✓ packages/pandoc/src/inspection.test.ts (2 tests) 4ms
+ ✓ packages/pandoc/src/command-info.test.ts (1 test) 6ms
+
+ Test Files  42 passed (42)
+      Tests  979 passed (979)
+   Start at  19:10:40
+   Duration  16.94s (transform 2.66s, setup 451ms, import 18.80s, tests 10.82s, environment 2ms)
+

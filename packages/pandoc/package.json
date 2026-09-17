@@ -1,0 +1,42 @@
+{
+  "name": "@poe-code/pandoc",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json && npm run typecheck:public",
+    "lint": "eslint src conformance stress && npm run typecheck",
+    "test": "cd ../.. && vitest run packages/pandoc",
+    "test:unit": "cd ../.. && vitest run packages/pandoc",
+    "test:stress": "cd ../.. && vitest run --config packages/pandoc/stress/vitest.config.mjs",
+    "pretest:conformance": "cd ../.. && npm run build:workspaces -- --workspace=@poe-code/pandoc",
+    "test:conformance": "node conformance/commonmark.mjs",
+    "pretest:conformance:rst": "cd ../.. && npm run build:workspaces -- --workspace=@poe-code/pandoc",
+    "test:conformance:rst": "node conformance/rst.mjs",
+    "typecheck:public": "tsc -p tsconfig.public-types.json",
+    "pretest:unit": "npm run typecheck:public"
+  },
+  "dependencies": {
+    "@poe-code/office-package": "*",
+    "entities": "^6.0.1",
+    "jpeg-js": "^0.4.4",
+    "jsonc-parser": "^3.3.1",
+    "parse5": "7.3.0",
+    "saxes": "6.0.0",
+    "@poe-code/pdf": "0.0.1",
+    "pptx": "*"
+  }
+}

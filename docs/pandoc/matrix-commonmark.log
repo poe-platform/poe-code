@@ -1,0 +1,145 @@
+
+> @poe-code/pandoc@0.0.1 pretest:conformance
+> cd ../.. && npm run build:workspaces -- --workspace=@poe-code/pandoc
+
+
+> poe-code@0.0.0-dev build:workspaces
+> node scripts/build-workspaces.mjs --workspace=@poe-code/pandoc
+
+
+> @poe-code/pdf@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/office-package@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> toolcraft-schema@0.0.1 build
+> rm -rf dist && tsc
+
+
+> pptx@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/pandoc@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+{"workspaces":79,"builds":5,"edges":227,"layers":11,"noBuild":[],"manifestless":[]}
+
+> @poe-code/pandoc@0.0.1 test:conformance
+> node conformance/commonmark.mjs
+
+{
+  "version": "0.31.2",
+  "total": 652,
+  "passed": 652,
+  "failed": 0,
+  "sections": {
+    "Tabs": {
+      "total": 11,
+      "failed": 0
+    },
+    "Backslash escapes": {
+      "total": 13,
+      "failed": 0
+    },
+    "Entity and numeric character references": {
+      "total": 17,
+      "failed": 0
+    },
+    "Precedence": {
+      "total": 1,
+      "failed": 0
+    },
+    "Thematic breaks": {
+      "total": 19,
+      "failed": 0
+    },
+    "ATX headings": {
+      "total": 18,
+      "failed": 0
+    },
+    "Setext headings": {
+      "total": 27,
+      "failed": 0
+    },
+    "Indented code blocks": {
+      "total": 12,
+      "failed": 0
+    },
+    "Fenced code blocks": {
+      "total": 29,
+      "failed": 0
+    },
+    "HTML blocks": {
+      "total": 44,
+      "failed": 0
+    },
+    "Link reference definitions": {
+      "total": 27,
+      "failed": 0
+    },
+    "Paragraphs": {
+      "total": 8,
+      "failed": 0
+    },
+    "Blank lines": {
+      "total": 1,
+      "failed": 0
+    },
+    "Block quotes": {
+      "total": 25,
+      "failed": 0
+    },
+    "List items": {
+      "total": 48,
+      "failed": 0
+    },
+    "Lists": {
+      "total": 26,
+      "failed": 0
+    },
+    "Inlines": {
+      "total": 1,
+      "failed": 0
+    },
+    "Code spans": {
+      "total": 22,
+      "failed": 0
+    },
+    "Emphasis and strong emphasis": {
+      "total": 132,
+      "failed": 0
+    },
+    "Links": {
+      "total": 90,
+      "failed": 0
+    },
+    "Images": {
+      "total": 22,
+      "failed": 0
+    },
+    "Autolinks": {
+      "total": 19,
+      "failed": 0
+    },
+    "Raw HTML": {
+      "total": 20,
+      "failed": 0
+    },
+    "Hard line breaks": {
+      "total": 15,
+      "failed": 0
+    },
+    "Soft line breaks": {
+      "total": 2,
+      "failed": 0
+    },
+    "Textual content": {
+      "total": 3,
+      "failed": 0
+    }
+  }
+}

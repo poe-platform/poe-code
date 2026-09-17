@@ -1,0 +1,54 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ❯ packages/toolcraft-design/scripts/scripts.test.ts (17 tests | 1 failed) 1043ms
+     ✓ prefers INIT_CWD so workspace runs can load repo-root markdown files 1ms
+     ✓ falls back to the current working directory when INIT_CWD is absent 0ms
+     ✓ loads preset markdown showcase content 0ms
+     ✓ loads markdown files relative to INIT_CWD for workspace demo runs 2ms
+     ✓ loads markdown files from absolute paths 1ms
+     ✓ throws a clear error when markdown-file is missing its path 1ms
+     ✓ throws a clear error when the markdown file does not exist 0ms
+     ✓ parses markdown render flags alongside positional args 1ms
+     × can render frontmatter from repo markdown files when requested 4ms
+   ✓ demonstrates all shared interaction primitives 4ms
+     ✓ lists the current demo types in the no-argument usage output 2ms
+     ✓ renders markdown docs with fenced markdown output blocks 1ms
+     ✓ renders json docs with fenced json output blocks 0ms
+     ✓ keeps generated text docs aligned with the design elements list 1ms
+     ✓ includes markdown demo entries in generated markdown docs 5ms
+     ✓ includes terminal-markdown screenshot references in the terminal doc 0ms
+     ✓ captures format-aware demo output through one executable run  1017ms
+FAIL packages/toolcraft-design/scripts/scripts.test.ts > design-system demo script > can render frontmatter from repo markdown files when requested
+Error: Markdown file not found: /Users/kjopek/Workspace/poe-code-5/docs/plans/archive/cli-aliasing.md
+ ❯ loadMarkdownDemoDocument packages/toolcraft-design/scripts/demo.ts:288:11
+    286|   const resolvedPath = resolveMarkdownFilePath(source.filePath, contex…
+    287|   if (!existsSync(resolvedPath)) {
+    288|     throw new Error(`Markdown file not found: ${resolvedPath}`);
+       |           ^
+    289|   }
+    290|
+ ❯ packages/toolcraft-design/scripts/scripts.test.ts:85:22
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/toolcraft-design/scripts/scripts.test.ts > design-system demo script > can render frontmatter from repo markdown files when requested
+Error: Markdown file not found: /Users/kjopek/Workspace/poe-code-5/docs/plans/archive/cli-aliasing.md
+ ❯ loadMarkdownDemoDocument packages/toolcraft-design/scripts/demo.ts:288:11
+    286|   const resolvedPath = resolveMarkdownFilePath(source.filePath, contex…
+    287|   if (!existsSync(resolvedPath)) {
+    288|     throw new Error(`Markdown file not found: ${resolvedPath}`);
+       |           ^
+    289|   }
+    290|
+ ❯ packages/toolcraft-design/scripts/scripts.test.ts:85:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 16 passed (17)
+   Start at  19:45:49
+   Duration  2.75s (transform 1.20s, setup 178ms, import 1.36s, tests 1.04s, environment 0ms)
+

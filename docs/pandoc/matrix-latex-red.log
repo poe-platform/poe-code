@@ -1,0 +1,113 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ❯ packages/pandoc/src/latex-matrix-regression.test.ts (2 tests | 2 failed) 15ms
+   × ends a LaTeX prose fragment with exactly one newline 9ms
+   × preserves internal paragraph separators and literal code newlines 5ms
+FAIL packages/pandoc/src/latex-matrix-regression.test.ts > ends a LaTeX prose fragment with exactly one newline
+AssertionError: expected { kind: 'text', …(2) } to match object { kind: 'text', text: 'Matrix\n' }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "kind": "text",
+    "text": "Matrix
++
+  ",
+  }
+
+ ❯ packages/pandoc/src/latex-matrix-regression.test.ts:6:25
+      4| it("ends a LaTeX prose fragment with exactly one newline", async () =>…
+      5|   expect(await writeDocument({blocks: [{t: "Para", c: [{t: "Str", c: "…
+      6|     {to: "latex"}, {})).toMatchObject({kind: "text", text: "Matrix\n"}…
+       |                         ^
+      7| });
+      8|
+
+FAIL packages/pandoc/src/latex-matrix-regression.test.ts > preserves internal paragraph separators and literal code newlines
+AssertionError: expected { kind: 'text', …(2) } to match object { kind: 'text', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+@@ -7,7 +7,8 @@
+  \\mbox{}\\\\
+  \\mbox{}\\\\
+  \\end{flushleft}
+
+  Last
++
+  ",
+  }
+
+ ❯ packages/pandoc/src/latex-matrix-regression.test.ts:14:56
+     12|     {t: "CodeBlock", c: [["", [], []], "one\n\n"]},
+     13|     {t: "Para", c: [{t: "Str", c: "Last"}]}
+     14|   ], metadata: {}, resources: []}, {to: "latex"}, {})).toMatchObject({…
+       |                                                        ^
+     15|     text: "First\n\n\\begin{flushleft}\\ttfamily\n\\mbox{one}\\\\\n\\m…
+     16| });
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/pandoc/src/latex-matrix-regression.test.ts > ends a LaTeX prose fragment with exactly one newline
+AssertionError: expected { kind: 'text', …(2) } to match object { kind: 'text', text: 'Matrix\n' }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "kind": "text",
+    "text": "Matrix
++
+  ",
+  }
+
+ ❯ packages/pandoc/src/latex-matrix-regression.test.ts:6:25
+      4| it("ends a LaTeX prose fragment with exactly one newline", async () =>…
+      5|   expect(await writeDocument({blocks: [{t: "Para", c: [{t: "Str", c: "…
+      6|     {to: "latex"}, {})).toMatchObject({kind: "text", text: "Matrix\n"}…
+       |                         ^
+      7| });
+      8|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/pandoc/src/latex-matrix-regression.test.ts > preserves internal paragraph separators and literal code newlines
+AssertionError: expected { kind: 'text', …(2) } to match object { kind: 'text', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+@@ -7,7 +7,8 @@
+  \\mbox{}\\\\
+  \\mbox{}\\\\
+  \\end{flushleft}
+
+  Last
++
+  ",
+  }
+
+ ❯ packages/pandoc/src/latex-matrix-regression.test.ts:14:56
+     12|     {t: "CodeBlock", c: [["", [], []], "one\n\n"]},
+     13|     {t: "Para", c: [{t: "Str", c: "Last"}]}
+     14|   ], metadata: {}, resources: []}, {to: "latex"}, {})).toMatchObject({…
+       |                                                        ^
+     15|     text: "First\n\n\\begin{flushleft}\\ttfamily\n\\mbox{one}\\\\\n\\m…
+     16| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  18:55:42
+   Duration  4.28s (transform 2.86s, setup 97ms, import 4.01s, tests 15ms, environment 0ms)
+

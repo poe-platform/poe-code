@@ -1,0 +1,109 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ❯ packages/pandoc/src/latex.test.ts (48 tests | 1 failed | 47 skipped) 12ms
+   ↓ parses escaped braces, comments, whitespace and nested emphasis groups
+   ↓ maps document metadata, starred sections, optional titles, labels and forward references
+   ↓ maps nested lists, quotes, links and exact verbatim terminators
+   ↓ retains typed inline and display math source and escaped dollars
+   ↓ maps figures and multicolumn tables with alignment and caption
+   ↓ expands bounded simple macros, optional defaults and Unicode commands
+     ↓ rejects malformed EOF/delimiters: {oops
+     ↓ rejects malformed EOF/delimiters: oops}
+     ↓ rejects malformed EOF/delimiters: \emph
+     ↓ rejects malformed EOF/delimiters: $oops
+     ↓ rejects malformed EOF/delimiters: $$oops$
+     ↓ rejects malformed EOF/delimiters: \(x\]
+     ↓ rejects malformed EOF/delimiters: \begin{quote}x\end{itemize}
+     ↓ rejects malformed EOF/delimiters: \begin{quote}
+     ↓ rejects malformed EOF/delimiters: \verb|oops
+     ↓ rejects malformed EOF/delimiters: \begin{verbatim}oops
+     ↓ rejects malformed EOF/delimiters: \section[short{title}
+     ↓ rejects malformed EOF/delimiters: \newcommand{\x}[1]{#2}\x{a}
+     ↓ never accepts forbidden primitive catcode, including lossy
+     ↓ never accepts forbidden primitive write, including lossy
+     ↓ never accepts forbidden primitive write18, including lossy
+     ↓ never accepts forbidden primitive directlua, including lossy
+     ↓ never accepts forbidden primitive def, including lossy
+     ↓ never accepts forbidden primitive gdef, including lossy
+     ↓ never accepts forbidden primitive csname, including lossy
+     ↓ never accepts forbidden primitive usepackage, including lossy
+     ↓ never accepts forbidden primitive openout, including lossy
+     ↓ never accepts forbidden primitive read, including lossy
+     ↓ never accepts forbidden primitive special, including lossy
+   ↓ rejects recursion, undefined macros and excessive expansion
+   ↓ preserves the complete unknown command and arguments under explicit loss policy
+   ↓ resolves nested includes only through injected memfs resources before output
+   ↓ rejects include cycles, traversal, depth and byte excess before publication
+   ↓ keeps group-local macro definitions local and supports renewal/provision
+   × rejects replacing supported Unicode, accent and line-break commands under every loss policy 11ms
+   ↓ supports nested optional argument groups and escaped math dollars
+   ↓ preserves unknown environments whole, including command arguments and comments
+   ↓ rejects invalid table geometry and unresolved/duplicate labels
+   ↓ bounds nested groups, expansion bytes and exact aggregate include bytes
+   ↓ preserves argument-adjacent comments and starred unknown commands whole
+   ↓ preserves significant whitespace inside nested groups
+   ↓ does not treat comment parameter markers as macro parameters
+   ↓ rejects repeated captions instead of deleting their arguments
+   ↓ decodes escaped characters in braced link targets
+   ↓ rejects cyclic reference titles without constructing a cyclic AST
+   ↓ rejects empty tabular and forbidden commands inside math and macro bodies
+   ↓ retains table column/rule source attributes inside a float
+   ↓ bounds include depth and propagates cancellation before publication
+FAIL packages/pandoc/src/latex.test.ts > rejects replacing supported Unicode, accent and line-break commands under every loss policy
+AssertionError: promise resolved "{ kind: 'text', …(2) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "diagnostics": [],
++   "kind": "text",
++   "text": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[]}
++ ",
+  }
+
+ ❯ packages/pandoc/src/latex.test.ts:94:77
+     92|     for (const definition of ["newcommand", "renewcommand", "provideco…
+     93|       for (const policy of [{}, {rawContent: "retain"}, {lossy: true}]…
+     94|         await expect(json(`\\${definition}{\\${name}}{replacement}`, p…
+       |                                                                             ^
+     95|       }
+     96|     }
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/pandoc/src/latex.test.ts > rejects replacing supported Unicode, accent and line-break commands under every loss policy
+AssertionError: promise resolved "{ kind: 'text', …(2) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "diagnostics": [],
++   "kind": "text",
++   "text": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[]}
++ ",
+  }
+
+ ❯ packages/pandoc/src/latex.test.ts:94:77
+     92|     for (const definition of ["newcommand", "renewcommand", "provideco…
+     93|       for (const policy of [{}, {rawContent: "retain"}, {lossy: true}]…
+     94|         await expect(json(`\\${definition}{\\${name}}{replacement}`, p…
+       |                                                                             ^
+     95|       }
+     96|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 47 skipped (48)
+   Start at  21:25:38
+   Duration  2.49s (transform 1.75s, setup 57ms, import 2.31s, tests 12ms, environment 0ms)
+

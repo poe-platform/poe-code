@@ -1,0 +1,13 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+Sourcemap for "/Users/kjopek/Workspace/poe-code-5/packages/pandoc/dist/public/chunks/chunk-VSIKCHWS.js" points to missing source files
+ ✓ scripts/pandoc-public.test.ts (4 tests) 4460ms
+   ✓ ships a complete portable public runtime graph with the verified presentation engine  432ms
+   ✓ resolves SDK and plugin public declaration imports for a TypeScript consumer  1790ms
+   ✓ runs conversion and explicit registration from packaged public entries, preserving collisions  2234ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  20:10:04
+   Duration  5.01s (transform 2.00s, setup 71ms, import 392ms, tests 4.46s, environment 0ms)

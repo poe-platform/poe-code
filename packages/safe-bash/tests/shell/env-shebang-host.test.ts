@@ -191,12 +191,20 @@ if (process.argv[2]?.startsWith("guarded:")) {
       const destination = join(scratch, "node_modules/poe-code");
       await mkdir(destination, { recursive: true });
       await cp(join(repository, "package.json"), join(destination, "package.json"));
-      for await (const path of glob(manifest.files.filter(path => !path.startsWith("!")), {
+      const copied: string[] = [];
+      // Move the published shell and filesystem artifacts used by this consumer.
+      const published: string[] = [];
+      for await (const path of glob(manifest.files.filter(path => !path.startsWith("!")
+        && ["packages/safe-bash/", "packages/safe-js/", "packages/safe-fs/"].some(prefix => path.startsWith(prefix))), {
         cwd: repository, exclude: manifest.files.filter(path => path.startsWith("!")).map(path => path.slice(1)),
-      })) {
+      })) published.push(path);
+      published.sort((left, right) => left.length - right.length);
+      for (const path of published) {
+        if (copied.some(parent => path === parent || path.startsWith(`${parent}/`))) continue;
         const target = join(destination, path);
         await mkdir(dirname(target), { recursive: true });
         await cp(join(repository, path), target, { recursive: true });
+        copied.push(path);
       }
       const child = spawnSync(process.execPath, ["--input-type=module", "-e", `
         import assert from 'node:assert/strict';

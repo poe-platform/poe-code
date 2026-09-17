@@ -22,6 +22,7 @@ export function registerBashCommand(program: Command): void {
     .requiredOption('-c, --command <source>', 'Shell command source (noninteractive).')
     .option('--root <directory>', 'Host directory exposed as /.', process.cwd())
     .option('--cwd <directory>', 'Virtual working directory.', '/')
+    .option('--pandoc', 'Enable the bounded TypeScript document converter plugin.')
     .option('--python-runtime <url>', 'Enable Python using an explicit Pyodide ES module URL.')
     .option('--python-trusted', 'Allow trusted Python code only; Node workers are not a security sandbox.')
     .option('--python-max-concurrent-workers <count>', 'Maximum active Python workers; excess commands fail immediately.', value => resourceLimit(value, 64))
@@ -37,7 +38,7 @@ export function registerBashCommand(program: Command): void {
     .option('--python-package-cache <path>', 'Canonical persistent Python package cache directory.')
     .option('--python-package-offline', 'Use only cached Python package artifacts.')
     .option('--python-package-allow-origin <origin>', 'Permit installer downloads from this origin (repeatable).', (value: string, values: string[]) => [...values, value], [])
-    .action(async (options: { command: string; root: string; cwd: string; pythonRuntime?: string; pythonTrusted?: boolean; pythonMaxConcurrentWorkers?: number; pythonMaxInputChunkBytes?: number; pythonIndexUrl?: string; pythonRuntimeMount?: string; pythonMaxTransferBytes?: number; pythonMaxOpenFiles?: number; pythonPackage: string[]; pythonRequirements: string[]; pythonPackageProfile?: 'documents'; pythonPackageCache?: string; pythonPackageMaxCacheBytes?: number; pythonPackageOffline?: boolean; pythonPackageAllowOrigin: string[] }, command: Command) => {
+    .action(async (options: { command: string; root: string; cwd: string; pandoc?: boolean; pythonRuntime?: string; pythonTrusted?: boolean; pythonMaxConcurrentWorkers?: number; pythonMaxInputChunkBytes?: number; pythonIndexUrl?: string; pythonRuntimeMount?: string; pythonMaxTransferBytes?: number; pythonMaxOpenFiles?: number; pythonPackage: string[]; pythonRequirements: string[]; pythonPackageProfile?: 'documents'; pythonPackageCache?: string; pythonPackageMaxCacheBytes?: number; pythonPackageOffline?: boolean; pythonPackageAllowOrigin: string[] }, command: Command) => {
       if (command.optsWithGlobals().dryRun) throw new InvalidArgumentError('bash does not support --dry-run.');
       if (options.pythonRuntime === undefined && ([options.pythonTrusted, options.pythonMaxConcurrentWorkers, options.pythonMaxInputChunkBytes, options.pythonIndexUrl, options.pythonRuntimeMount, options.pythonMaxTransferBytes, options.pythonMaxOpenFiles, options.pythonPackageProfile, options.pythonPackageCache, options.pythonPackageMaxCacheBytes, options.pythonPackageOffline].some(value => value !== undefined) || options.pythonPackage.length > 0 || options.pythonRequirements.length > 0 || options.pythonPackageAllowOrigin.length > 0)) {
         throw new InvalidArgumentError('Python configuration requires --python-runtime.');
@@ -67,6 +68,7 @@ export function registerBashCommand(program: Command): void {
         const result = await runBash({
           source: options.command, root: resolve(options.root), cwd: options.cwd, env,
           archive: { zipHost: { entropy(length, signal) { signal.throwIfAborted(); return randomBytes(length); } } },
+          pandoc: options.pandoc ? {} : undefined,
           stdin: process.stdin,
           stdout: sink(process.stdout), stderr: sink(process.stderr),
           python: options.pythonRuntime === undefined ? undefined : {

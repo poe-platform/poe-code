@@ -1,0 +1,6 @@
+PASS public poe-code/docx Document(undefined), save(sink), Document(Uint8Array), memfs only
+VERIFIED GAP zero-width insertion [6,6] usage Whole resource operations require a resource token, not a text range.
+VERIFIED GAP nonempty scalar range [0,6] usage Whole resource operations require a resource token, not a text range.
+VERIFIED GAP structured note content usage Unknown argument: content.
+PASS notes.add appends reference after all paragraph text; source unchanged
+No host document files, downloaded fixtures, LLM calls or external executables used by this probe.

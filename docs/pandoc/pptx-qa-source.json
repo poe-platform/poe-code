@@ -1,0 +1,366 @@
+{
+  "blocks": [
+    {
+      "t": "Header",
+      "c": [
+        1,
+        [
+          "",
+          [],
+          []
+        ],
+        [
+          {
+            "t": "Str",
+            "c": "Orchard seasons"
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "An original conversion QA deck."
+        }
+      ]
+    },
+    {
+      "t": "HorizontalRule"
+    },
+    {
+      "t": "Header",
+      "c": [
+        1,
+        [
+          "",
+          [],
+          []
+        ],
+        [
+          {
+            "t": "Str",
+            "c": "Survey results"
+          }
+        ]
+      ]
+    },
+    {
+      "t": "BulletList",
+      "c": [
+        [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Apple"
+              }
+            ]
+          },
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Para",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "Red"
+                    }
+                  ]
+                }
+              ],
+              [
+                {
+                  "t": "Para",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "Green"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ],
+        [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Pear"
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Table",
+      "c": [
+        [
+          "",
+          [],
+          []
+        ],
+        [
+          null,
+          []
+        ],
+        [
+          [
+            "AlignDefault",
+            {
+              "t": "ColWidthDefault"
+            }
+          ],
+          [
+            "AlignDefault",
+            {
+              "t": "ColWidthDefault"
+            }
+          ]
+        ],
+        [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  "AlignDefault",
+                  1,
+                  1,
+                  [
+                    {
+                      "t": "Para",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Tree"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  "AlignDefault",
+                  1,
+                  1,
+                  [
+                    {
+                      "t": "Para",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Count"
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              "",
+              [],
+              []
+            ],
+            0,
+            [],
+            [
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignDefault",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Pear"
+                          }
+                        ]
+                      }
+                    ]
+                  ],
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignDefault",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "7"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ],
+        [
+          [
+            "",
+            [],
+            []
+          ],
+          []
+        ]
+      ]
+    },
+    {
+      "t": "Div",
+      "c": [
+        [
+          "",
+          [
+            "notes"
+          ],
+          []
+        ],
+        [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Discuss the frost forecast before planting."
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Header",
+      "c": [
+        1,
+        [
+          "",
+          [],
+          []
+        ],
+        [
+          {
+            "t": "Str",
+            "c": "Field map"
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Image",
+          "c": [
+            [
+              "",
+              [],
+              [
+                [
+                  "width",
+                  "3in"
+                ]
+              ]
+            ],
+            [
+              {
+                "t": "Str",
+                "c": "Original two-color field diagram"
+              }
+            ],
+            [
+              "field.jpg",
+              ""
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Link",
+          "c": [
+            [
+              "",
+              [],
+              []
+            ],
+            [
+              {
+                "t": "Str",
+                "c": "Survey details"
+              }
+            ],
+            [
+              "https://example.org/orchard",
+              ""
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {},
+  "resources": [
+    {
+      "id": "field.jpg",
+      "base64": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRQBAwQEBQQFCQUFCRQNCw0UFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFP/AABEIAAwAGAMBEQACEQEDEQH/xAGiAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgsQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+gEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoLEQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2gAMAwEAAhEDEQA/APDK/Sz8KO2+G/8AzEf+2f8A7NX5Dx//AMwv/b//ALYfuXhj/wAxn/cP/wBvO1r8iP3M8Ur+uz+Gjtvhv/zEf+2f/s1fkPH/APzC/wDb/wD7YfuXhj/zGf8AcP8A9vO1r8iP3M//2Q=="
+    }
+  ]
+}

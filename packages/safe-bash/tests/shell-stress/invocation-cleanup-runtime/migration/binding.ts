@@ -298,11 +298,22 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
     const peerBinding = bindPeerArtifact({ root: repository, declarations: { peer: createPeerBinding(repository, manifest, sourceInputs) }, checkout: profile.profile === "checkout-root", ...(profile.profile === "checkout-root" ? {} : { artifact: process.env.SAFE_BASH_PEER_ARTIFACT }) });
     const rootInputs = new Map<string, Buffer>();
     const integrationRoot = resolve(repository, "../..");
-    for (const path of ["package.json", "package-lock.json", "scripts/guard-package-dist.mjs"]) {
+    const pandocMetadata = manifest.devDependencies?.["@poe-code/pandoc"] !== undefined
+      ? ["packages/pandoc/package.json", "packages/pdf/package.json"] : [];
+    for (const path of ["package.json", "package-lock.json", "scripts/guard-package-dist.mjs", ...pandocMetadata]) {
       const filename = join(integrationRoot, path), stat = await lstat(filename);
       assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.nlink === 1 && stat.size <= 1024 * 1024);
       assert.equal(await realpath(filename), filename);
       rootInputs.set(path, await readFile(filename));
+    }
+    for (const path of pandocMetadata) {
+      const declarationRoot = join(integrationRoot, dirname(path), "dist");
+      for (const [local, hash] of Object.entries(await census(declarationRoot))) {
+        if (!local.endsWith(".d.ts")) continue;
+        const bytes = await readFile(join(declarationRoot, local));
+        assert.equal(digest(bytes), hash, "Pandoc build declaration changed during capture");
+        rootInputs.set(`${dirname(path)}/dist/${local}`, bytes);
+      }
     }
     if (Object.hasOwn(assertArchiveDependencyContract(manifest), "@poe-code/office-package")) {
       for (const [path, bytes] of captureSharedArchiveSources(integrationRoot)) rootInputs.set(path, bytes);
@@ -312,6 +323,14 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
     const opInputs = await captureOpBuildInputs(opRoot);
     const opManifest = JSON.parse(opInputs.bytes.get("package.json")!.toString());
     const rootLock = JSON.parse(rootInputs.get("package-lock.json")!.toString());
+    for (const path of pandocMetadata) {
+      const metadata = JSON.parse(rootInputs.get(path)!.toString());
+      const prefix = dirname(path);
+      assert.equal(metadata.name, `@poe-code/${prefix.split("/").at(-1)}`);
+      assert.equal(metadata.private, true);
+      assert.deepEqual(rootLock.packages[prefix].dependencies, metadata.dependencies);
+      assert.deepEqual(rootLock.packages[`node_modules/${metadata.name}`], { resolved: prefix, link: true });
+    }
     assert.equal(manifest.devDependencies?.[opManifest.name], "*");
     assert.deepEqual(rootLock.packages["packages/op"].dependencies, opManifest.dependencies);
     const opDependencyInputs: { source: string; hashes: Hashes }[] = [];

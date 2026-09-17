@@ -1,0 +1,497 @@
+{
+  "note": "Additional cases never replace or close strict unsupported rows. Lossy reductions are explicit product options; comparator does not normalize content or diagnostics.",
+  "rows": [
+    {
+      "id": "csv->commonmark:lossy",
+      "strictRow": "csv->commonmark",
+      "options": {
+        "from": "csv",
+        "to": "commonmark",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "unsupported",
+      "code": "E_UNSUPPORTED_FEATURE",
+      "message": "Pipe tables are unavailable",
+      "reason": "Explicit lossy does not provide this reduction; strict row is retained."
+    },
+    {
+      "id": "tsv->commonmark:lossy",
+      "strictRow": "tsv->commonmark",
+      "options": {
+        "from": "tsv",
+        "to": "commonmark",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "unsupported",
+      "code": "E_UNSUPPORTED_FEATURE",
+      "message": "Pipe tables are unavailable",
+      "reason": "Explicit lossy does not provide this reduction; strict row is retained."
+    },
+    {
+      "id": "epub2->commonmark:lossy",
+      "strictRow": "epub2->commonmark",
+      "options": {
+        "from": "epub",
+        "to": "commonmark",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "pass",
+      "text": "Matrix\n",
+      "diagnostics": [
+        {
+          "code": "W_RAW_CONTENT",
+          "operation": "convert",
+          "format": "commonmark",
+          "location": "$.blocks[0]",
+          "message": "Projected attributes"
+        }
+      ],
+      "command": {
+        "outcome": "pass",
+        "status": 0,
+        "stdout": "",
+        "stderr": "W_RAW_CONTENT: Projected attributes\n"
+      }
+    },
+    {
+      "id": "epub2->gfm:lossy",
+      "strictRow": "epub2->gfm",
+      "options": {
+        "from": "epub",
+        "to": "gfm",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "pass",
+      "text": "Matrix\n",
+      "diagnostics": [
+        {
+          "code": "W_RAW_CONTENT",
+          "operation": "convert",
+          "format": "gfm",
+          "location": "$.blocks[0]",
+          "message": "Projected attributes"
+        }
+      ],
+      "command": {
+        "outcome": "pass",
+        "status": 0,
+        "stdout": "",
+        "stderr": "W_RAW_CONTENT: Projected attributes\n"
+      }
+    },
+    {
+      "id": "epub2->json:lossy",
+      "strictRow": "epub2->json",
+      "options": {
+        "from": "epub",
+        "to": "json",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "unsupported",
+      "code": "E_UNSUPPORTED_FEATURE",
+      "message": "Pandoc JSON cannot represent resources, language or direction document fields",
+      "reason": "Explicit lossy does not provide this reduction; strict row is retained."
+    },
+    {
+      "id": "epub2->latex:lossy",
+      "strictRow": "epub2->latex",
+      "options": {
+        "from": "epub",
+        "to": "latex",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "pass",
+      "text": "\\begin{otherlanguage}{english}\n\\phantomsection\\label{pc-42-6f-6f-6b-2f-63-68-61-70-74-65-72-2e-78-68-74-6d-6c}{\nMatrix\n\n}\n\\end{otherlanguage}\n",
+      "diagnostics": [
+        {
+          "code": "W_TABLE_LOSS",
+          "operation": "convert",
+          "format": "latex",
+          "location": "$.blocks[0].c[0]",
+          "message": "Unsupported LaTeX attributes"
+        }
+      ],
+      "command": {
+        "outcome": "pass",
+        "status": 0,
+        "stdout": "",
+        "stderr": "W_TABLE_LOSS: Unsupported LaTeX attributes\n"
+      }
+    },
+    {
+      "id": "epub2->pptx:lossy",
+      "strictRow": "epub2->pptx",
+      "options": {
+        "from": "epub",
+        "to": "pptx",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "unsupported",
+      "code": "E_UNSUPPORTED_FEATURE",
+      "message": "Unsupported PPTX block: Div",
+      "reason": "Explicit lossy does not provide this reduction; strict row is retained."
+    },
+    {
+      "id": "epub2->rst:lossy",
+      "strictRow": "epub2->rst",
+      "options": {
+        "from": "epub",
+        "to": "rst",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "pass",
+      "text": ".. _pc-id-42-6f-6f-6b-2f-63-68-61-70-74-65-72-2e-78-68-74-6d-6c:\n\nMatrix\n",
+      "diagnostics": [
+        {
+          "code": "W_TABLE_LOSS",
+          "operation": "convert",
+          "format": "rst",
+          "location": "$.blocks[0]",
+          "message": "Div projected to contained blocks"
+        },
+        {
+          "code": "W_TABLE_LOSS",
+          "operation": "convert",
+          "format": "rst",
+          "location": "$.blocks[0]",
+          "message": "Dropped unsupported RST attributes"
+        }
+      ],
+      "command": {
+        "outcome": "pass",
+        "status": 0,
+        "stdout": "",
+        "stderr": "W_TABLE_LOSS: Div projected to contained blocks\nW_TABLE_LOSS: Dropped unsupported RST attributes\n"
+      }
+    },
+    {
+      "id": "epub2->rtf:lossy",
+      "strictRow": "epub2->rtf",
+      "options": {
+        "from": "epub",
+        "to": "rtf",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "unsupported",
+      "code": "E_UNSUPPORTED_FEATURE",
+      "message": "Attributed RTF Div unsupported; use paragraph/run attributes",
+      "reason": "Explicit lossy does not provide this reduction; strict row is retained."
+    },
+    {
+      "id": "epub3->commonmark:lossy",
+      "strictRow": "epub3->commonmark",
+      "options": {
+        "from": "epub",
+        "to": "commonmark",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "pass",
+      "text": "Matrix\n",
+      "diagnostics": [
+        {
+          "code": "W_RAW_CONTENT",
+          "operation": "convert",
+          "format": "commonmark",
+          "location": "$.blocks[0]",
+          "message": "Projected attributes"
+        }
+      ],
+      "command": {
+        "outcome": "pass",
+        "status": 0,
+        "stdout": "",
+        "stderr": "W_RAW_CONTENT: Projected attributes\n"
+      }
+    },
+    {
+      "id": "epub3->gfm:lossy",
+      "strictRow": "epub3->gfm",
+      "options": {
+        "from": "epub",
+        "to": "gfm",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "pass",
+      "text": "Matrix\n",
+      "diagnostics": [
+        {
+          "code": "W_RAW_CONTENT",
+          "operation": "convert",
+          "format": "gfm",
+          "location": "$.blocks[0]",
+          "message": "Projected attributes"
+        }
+      ],
+      "command": {
+        "outcome": "pass",
+        "status": 0,
+        "stdout": "",
+        "stderr": "W_RAW_CONTENT: Projected attributes\n"
+      }
+    },
+    {
+      "id": "epub3->json:lossy",
+      "strictRow": "epub3->json",
+      "options": {
+        "from": "epub",
+        "to": "json",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "unsupported",
+      "code": "E_UNSUPPORTED_FEATURE",
+      "message": "Pandoc JSON cannot represent resources, language or direction document fields",
+      "reason": "Explicit lossy does not provide this reduction; strict row is retained."
+    },
+    {
+      "id": "epub3->latex:lossy",
+      "strictRow": "epub3->latex",
+      "options": {
+        "from": "epub",
+        "to": "latex",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "pass",
+      "text": "\\begin{otherlanguage}{english}\n\\phantomsection\\label{pc-42-6f-6f-6b-2f-63-68-61-70-74-65-72-2e-78-68-74-6d-6c}{\nMatrix\n\n}\n\\end{otherlanguage}\n",
+      "diagnostics": [
+        {
+          "code": "W_TABLE_LOSS",
+          "operation": "convert",
+          "format": "latex",
+          "location": "$.blocks[0].c[0]",
+          "message": "Unsupported LaTeX attributes"
+        }
+      ],
+      "command": {
+        "outcome": "pass",
+        "status": 0,
+        "stdout": "",
+        "stderr": "W_TABLE_LOSS: Unsupported LaTeX attributes\n"
+      }
+    },
+    {
+      "id": "epub3->pptx:lossy",
+      "strictRow": "epub3->pptx",
+      "options": {
+        "from": "epub",
+        "to": "pptx",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "unsupported",
+      "code": "E_UNSUPPORTED_FEATURE",
+      "message": "Unsupported PPTX block: Div",
+      "reason": "Explicit lossy does not provide this reduction; strict row is retained."
+    },
+    {
+      "id": "epub3->rst:lossy",
+      "strictRow": "epub3->rst",
+      "options": {
+        "from": "epub",
+        "to": "rst",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "pass",
+      "text": ".. _pc-id-42-6f-6f-6b-2f-63-68-61-70-74-65-72-2e-78-68-74-6d-6c:\n\nMatrix\n",
+      "diagnostics": [
+        {
+          "code": "W_TABLE_LOSS",
+          "operation": "convert",
+          "format": "rst",
+          "location": "$.blocks[0]",
+          "message": "Div projected to contained blocks"
+        },
+        {
+          "code": "W_TABLE_LOSS",
+          "operation": "convert",
+          "format": "rst",
+          "location": "$.blocks[0]",
+          "message": "Dropped unsupported RST attributes"
+        }
+      ],
+      "command": {
+        "outcome": "pass",
+        "status": 0,
+        "stdout": "",
+        "stderr": "W_TABLE_LOSS: Div projected to contained blocks\nW_TABLE_LOSS: Dropped unsupported RST attributes\n"
+      }
+    },
+    {
+      "id": "epub3->rtf:lossy",
+      "strictRow": "epub3->rtf",
+      "options": {
+        "from": "epub",
+        "to": "rtf",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "unsupported",
+      "code": "E_UNSUPPORTED_FEATURE",
+      "message": "Attributed RTF Div unsupported; use paragraph/run attributes",
+      "reason": "Explicit lossy does not provide this reduction; strict row is retained."
+    },
+    {
+      "id": "pptx->commonmark:lossy",
+      "strictRow": "pptx->commonmark",
+      "options": {
+        "from": "pptx",
+        "to": "commonmark",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "pass",
+      "text": "Matrix\n",
+      "diagnostics": [
+        {
+          "code": "W_RAW_CONTENT",
+          "operation": "convert",
+          "format": "commonmark",
+          "location": "$.blocks[0]",
+          "message": "Projected attributes"
+        }
+      ],
+      "command": {
+        "outcome": "pass",
+        "status": 0,
+        "stdout": "",
+        "stderr": "W_RAW_CONTENT: Projected attributes\n"
+      }
+    },
+    {
+      "id": "pptx->gfm:lossy",
+      "strictRow": "pptx->gfm",
+      "options": {
+        "from": "pptx",
+        "to": "gfm",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "pass",
+      "text": "Matrix\n",
+      "diagnostics": [
+        {
+          "code": "W_RAW_CONTENT",
+          "operation": "convert",
+          "format": "gfm",
+          "location": "$.blocks[0]",
+          "message": "Projected attributes"
+        }
+      ],
+      "command": {
+        "outcome": "pass",
+        "status": 0,
+        "stdout": "",
+        "stderr": "W_RAW_CONTENT: Projected attributes\n"
+      }
+    },
+    {
+      "id": "pptx->latex:lossy",
+      "strictRow": "pptx->latex",
+      "options": {
+        "from": "pptx",
+        "to": "latex",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "pass",
+      "text": "\\phantomsection\\label{pc-73-6c-69-64-65-2d-31}{\nMatrix\n\n}\n",
+      "diagnostics": [
+        {
+          "code": "W_TABLE_LOSS",
+          "operation": "convert",
+          "format": "latex",
+          "location": "$.blocks[0].c[0]",
+          "message": "Unsupported LaTeX attributes"
+        }
+      ],
+      "command": {
+        "outcome": "pass",
+        "status": 0,
+        "stdout": "",
+        "stderr": "W_TABLE_LOSS: Unsupported LaTeX attributes\n"
+      }
+    },
+    {
+      "id": "pptx->rst:lossy",
+      "strictRow": "pptx->rst",
+      "options": {
+        "from": "pptx",
+        "to": "rst",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "pass",
+      "text": ".. _pc-id-73-6c-69-64-65-2d-31:\n\nMatrix\n",
+      "diagnostics": [
+        {
+          "code": "W_TABLE_LOSS",
+          "operation": "convert",
+          "format": "rst",
+          "location": "$.blocks[0]",
+          "message": "Div projected to contained blocks"
+        },
+        {
+          "code": "W_TABLE_LOSS",
+          "operation": "convert",
+          "format": "rst",
+          "location": "$.blocks[0]",
+          "message": "Dropped unsupported RST attributes"
+        }
+      ],
+      "command": {
+        "outcome": "pass",
+        "status": 0,
+        "stdout": "",
+        "stderr": "W_TABLE_LOSS: Div projected to contained blocks\nW_TABLE_LOSS: Dropped unsupported RST attributes\n"
+      }
+    },
+    {
+      "id": "pptx->rtf:lossy",
+      "strictRow": "pptx->rtf",
+      "options": {
+        "from": "pptx",
+        "to": "rtf",
+        "yes": true,
+        "lossy": true
+      },
+      "outcome": "unsupported",
+      "code": "E_UNSUPPORTED_FEATURE",
+      "message": "Attributed RTF Div unsupported; use paragraph/run attributes",
+      "reason": "Explicit lossy does not provide this reduction; strict row is retained."
+    },
+    {
+      "id": "csv->commonmark:empty-representable",
+      "outcome": "pass",
+      "input": "",
+      "text": "",
+      "diagnostics": []
+    },
+    {
+      "id": "tsv->commonmark:empty-representable",
+      "outcome": "pass",
+      "input": "",
+      "text": "",
+      "diagnostics": []
+    }
+  ],
+  "counts": {
+    "total": 23,
+    "pass": 14,
+    "fail": 0,
+    "unsupported": 9,
+    "notRun": 0
+  }
+}

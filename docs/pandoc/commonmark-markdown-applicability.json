@@ -1,0 +1,2648 @@
+{
+  "schemaVersion": 1,
+  "scope": "All 153 inventoried Markdown reader cases; applicability metadata, not imported upstream tests or Pandoc dialect conformance",
+  "sourceCommit": "c9a9a5eed7185783b69043e019c067370dc09615",
+  "sourceUrl": "https://github.com/jgm/pandoc/blob/c9a9a5eed7185783b69043e019c067370dc09615/test/Tests/Readers/Markdown.hs",
+  "provenance": "Read source groups independently at the pinned commit; case locators derive from existing research inventory. GPL source/test payloads were not copied. Coverage locators refer to original repository tests or the separate CC-BY-SA normative lane, not execution of upstream Markdown cases.",
+  "dialect": "commonmark 0.31.2",
+  "counts": {
+    "commonmark-behavior-rederived": 48,
+    "commonmark-with-different-expected-tree": 10,
+    "extension-only": 92,
+    "mixed-extension-and-commonmark": 3
+  },
+  "cases": [
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 166,
+        "caseLocator": "named case: with attribute"
+      },
+      "inventoryId": "pandoc.original.9a1edd86b02f70c8",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 170,
+        "caseLocator": "named case: with attribute space"
+      },
+      "inventoryId": "pandoc.original.c5c9fbb63f232a89",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: code literals",
+        "original: unresolved full reference",
+        "normative: Backslash escapes",
+        "normative: Raw HTML",
+        "normative: HTML blocks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 216,
+        "caseLocator": "named case: two strongs in emph"
+      },
+      "inventoryId": "pandoc.original.be9593d09cd8a7fc",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: nested runs",
+        "original: intraword underscores",
+        "normative: Emphasis and strong emphasis"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 219,
+        "caseLocator": "named case: emph and strong emph alternating"
+      },
+      "inventoryId": "pandoc.original.27a2f25a84221bbb",
+      "applicability": "commonmark-with-different-expected-tree",
+      "reason": "CommonMark determines emphasis constructor nesting, inline versus block raw HTML, inner-link precedence and headings without auto-identifiers. Pandoc Markdown AST expectations are not the oracle.",
+      "coverageLocators": [
+        "original: triple run",
+        "original: nested links forbidden",
+        "original: autolink forbids outer link",
+        "normative: Emphasis and strong emphasis",
+        "normative: HTML blocks",
+        "normative: ATX headings",
+        "normative: Setext headings"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 225,
+        "caseLocator": "named case: emph with spaced strong"
+      },
+      "inventoryId": "pandoc.original.1c41723e861f91e5",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: nested runs",
+        "original: intraword underscores",
+        "normative: Emphasis and strong emphasis"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 228,
+        "caseLocator": "named case: intraword underscore with opening underscore (#1121)"
+      },
+      "inventoryId": "pandoc.original.eadd0eb3b2e1a3ec",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: nested runs",
+        "original: intraword underscores",
+        "normative: Emphasis and strong emphasis"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 232,
+        "caseLocator": "named case: in URL"
+      },
+      "inventoryId": "pandoc.original.48916fb00ecd0f7f",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: code literals",
+        "original: unresolved full reference",
+        "normative: Backslash escapes",
+        "normative: Raw HTML",
+        "normative: HTML blocks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 236,
+        "caseLocator": "named case: nesting (issue #1330)"
+      },
+      "inventoryId": "pandoc.original.0ecdfb72b2a4f829",
+      "applicability": "commonmark-with-different-expected-tree",
+      "reason": "CommonMark determines emphasis constructor nesting, inline versus block raw HTML, inner-link precedence and headings without auto-identifiers. Pandoc Markdown AST expectations are not the oracle.",
+      "coverageLocators": [
+        "original: triple run",
+        "original: nested links forbidden",
+        "original: autolink forbids outer link",
+        "normative: Emphasis and strong emphasis",
+        "normative: HTML blocks",
+        "normative: ATX headings",
+        "normative: Setext headings"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 240,
+        "caseLocator": "named case: invalid tag (issue #1820"
+      },
+      "inventoryId": "pandoc.original.6ec8979a43c8c7f3",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: code literals",
+        "original: unresolved full reference",
+        "normative: Backslash escapes",
+        "normative: Raw HTML",
+        "normative: HTML blocks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 243,
+        "caseLocator": "named case: technically invalid comment"
+      },
+      "inventoryId": "pandoc.original.e46dcd416d1d23a1",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: code literals",
+        "original: unresolved full reference",
+        "normative: Backslash escapes",
+        "normative: Raw HTML",
+        "normative: HTML blocks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 246,
+        "caseLocator": "named case: issue 2469"
+      },
+      "inventoryId": "pandoc.original.bdb5eb5794f0e1ca",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: code literals",
+        "original: unresolved full reference",
+        "normative: Backslash escapes",
+        "normative: Raw HTML",
+        "normative: HTML blocks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 251,
+        "caseLocator": "named case: issue 2940"
+      },
+      "inventoryId": "pandoc.original.9ec727a1d2d9b2d1",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: nested runs",
+        "original: intraword underscores",
+        "normative: Emphasis and strong emphasis"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 256,
+        "caseLocator": "named case: emoji symbols"
+      },
+      "inventoryId": "pandoc.original.4cd4ebf994f2ab6c",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 261,
+        "caseLocator": "named case: unbalanced brackets"
+      },
+      "inventoryId": "pandoc.original.4d47a8e627eae9fa",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: code literals",
+        "original: unresolved full reference",
+        "normative: Backslash escapes",
+        "normative: Raw HTML",
+        "normative: HTML blocks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 264,
+        "caseLocator": "named case: in URL"
+      },
+      "inventoryId": "pandoc.original.d9074bca599ab21b",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: escaped target parentheses",
+        "original: escaped title",
+        "original: entity boundaries",
+        "normative: Entity and numeric character references",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 267,
+        "caseLocator": "named case: in title"
+      },
+      "inventoryId": "pandoc.original.88495fe8be97605e",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: escaped target parentheses",
+        "original: escaped title",
+        "original: entity boundaries",
+        "normative: Entity and numeric character references",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 270,
+        "caseLocator": "named case: in reference link title"
+      },
+      "inventoryId": "pandoc.original.ab8d867413d88b95",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: escaped target parentheses",
+        "original: escaped title",
+        "original: entity boundaries",
+        "normative: Entity and numeric character references",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 273,
+        "caseLocator": "named case: in reference link URL"
+      },
+      "inventoryId": "pandoc.original.f2ca4d77f4b7b0bb",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: escaped target parentheses",
+        "original: escaped title",
+        "original: entity boundaries",
+        "normative: Entity and numeric character references",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 280,
+        "caseLocator": "named case: with unicode dash following"
+      },
+      "inventoryId": "pandoc.original.b02f66a4ff7b7b8a",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: URI autolink",
+        "original: invalid angle autolinks",
+        "normative: Autolinks",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 283,
+        "caseLocator": "named case: a partial URL (#2277)"
+      },
+      "inventoryId": "pandoc.original.7cc307fa699ec1a3",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: URI autolink",
+        "original: invalid angle autolinks",
+        "normative: Autolinks",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 286,
+        "caseLocator": "named case: with some attributes"
+      },
+      "inventoryId": "pandoc.original.5a79c2f756fdeb5c",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 289,
+        "caseLocator": "named case: with some attributes and spaces"
+      },
+      "inventoryId": "pandoc.original.b7c555857b3f175c",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: URI autolink",
+        "original: invalid angle autolinks",
+        "normative: Autolinks",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 294,
+        "caseLocator": "named case: no autolink inside link"
+      },
+      "inventoryId": "pandoc.original.59225e864213e2a1",
+      "applicability": "commonmark-with-different-expected-tree",
+      "reason": "CommonMark determines emphasis constructor nesting, inline versus block raw HTML, inner-link precedence and headings without auto-identifiers. Pandoc Markdown AST expectations are not the oracle.",
+      "coverageLocators": [
+        "original: triple run",
+        "original: nested links forbidden",
+        "original: autolink forbids outer link",
+        "normative: Emphasis and strong emphasis",
+        "normative: HTML blocks",
+        "normative: ATX headings",
+        "normative: Setext headings"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 297,
+        "caseLocator": "named case: no inline link inside link"
+      },
+      "inventoryId": "pandoc.original.68404dfc90e7a2e7",
+      "applicability": "commonmark-with-different-expected-tree",
+      "reason": "CommonMark determines emphasis constructor nesting, inline versus block raw HTML, inner-link precedence and headings without auto-identifiers. Pandoc Markdown AST expectations are not the oracle.",
+      "coverageLocators": [
+        "original: triple run",
+        "original: nested links forbidden",
+        "original: autolink forbids outer link",
+        "normative: Emphasis and strong emphasis",
+        "normative: HTML blocks",
+        "normative: ATX headings",
+        "normative: Setext headings"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 300,
+        "caseLocator": "named case: no bare URI inside link"
+      },
+      "inventoryId": "pandoc.original.2bc95ce62a54d28c",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: URI autolink",
+        "original: invalid angle autolinks",
+        "normative: Autolinks",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 305,
+        "caseLocator": "named case: autolink"
+      },
+      "inventoryId": "pandoc.original.be84a10aba2fb1b6",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 308,
+        "caseLocator": "named case: link with title"
+      },
+      "inventoryId": "pandoc.original.dafdfd2dd4739acb",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 311,
+        "caseLocator": "named case: bad link with title"
+      },
+      "inventoryId": "pandoc.original.80b4d6a93c8958e0",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 314,
+        "caseLocator": "named case: autolink not being a link"
+      },
+      "inventoryId": "pandoc.original.66a3c74eb0e870e9",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 317,
+        "caseLocator": "named case: autolink not being a link with a square bracket"
+      },
+      "inventoryId": "pandoc.original.c02d27aa2d29a7b9",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 320,
+        "caseLocator": "named case: link with inline start should be a link"
+      },
+      "inventoryId": "pandoc.original.d59a23f95df64a2d",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 325,
+        "caseLocator": "named case: blank line before header"
+      },
+      "inventoryId": "pandoc.original.e8afdb7eb67ad89a",
+      "applicability": "commonmark-with-different-expected-tree",
+      "reason": "CommonMark determines emphasis constructor nesting, inline versus block raw HTML, inner-link precedence and headings without auto-identifiers. Pandoc Markdown AST expectations are not the oracle.",
+      "coverageLocators": [
+        "original: triple run",
+        "original: nested links forbidden",
+        "original: autolink forbids outer link",
+        "normative: Emphasis and strong emphasis",
+        "normative: HTML blocks",
+        "normative: ATX headings",
+        "normative: Setext headings"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 328,
+        "caseLocator": "named case: bracketed text (#2062)"
+      },
+      "inventoryId": "pandoc.original.08544a8e019ab0b0",
+      "applicability": "commonmark-with-different-expected-tree",
+      "reason": "CommonMark determines emphasis constructor nesting, inline versus block raw HTML, inner-link precedence and headings without auto-identifiers. Pandoc Markdown AST expectations are not the oracle.",
+      "coverageLocators": [
+        "original: triple run",
+        "original: nested links forbidden",
+        "original: autolink forbids outer link",
+        "normative: Emphasis and strong emphasis",
+        "normative: HTML blocks",
+        "normative: ATX headings",
+        "normative: Setext headings"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 331,
+        "caseLocator": "named case: ATX header without trailing #s"
+      },
+      "inventoryId": "pandoc.original.82ac6e40076987e5",
+      "applicability": "commonmark-with-different-expected-tree",
+      "reason": "CommonMark determines emphasis constructor nesting, inline versus block raw HTML, inner-link precedence and headings without auto-identifiers. Pandoc Markdown AST expectations are not the oracle.",
+      "coverageLocators": [
+        "original: triple run",
+        "original: nested links forbidden",
+        "original: autolink forbids outer link",
+        "normative: Emphasis and strong emphasis",
+        "normative: HTML blocks",
+        "normative: ATX headings",
+        "normative: Setext headings"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 334,
+        "caseLocator": "named case: ATX header without trailing #s"
+      },
+      "inventoryId": "pandoc.original.973e117e045e2135",
+      "applicability": "commonmark-with-different-expected-tree",
+      "reason": "CommonMark determines emphasis constructor nesting, inline versus block raw HTML, inner-link precedence and headings without auto-identifiers. Pandoc Markdown AST expectations are not the oracle.",
+      "coverageLocators": [
+        "original: triple run",
+        "original: nested links forbidden",
+        "original: autolink forbids outer link",
+        "normative: Emphasis and strong emphasis",
+        "normative: HTML blocks",
+        "normative: ATX headings",
+        "normative: Setext headings"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 337,
+        "caseLocator": "named case: setext header"
+      },
+      "inventoryId": "pandoc.original.b286f4d1cbee13c5",
+      "applicability": "commonmark-with-different-expected-tree",
+      "reason": "CommonMark determines emphasis constructor nesting, inline versus block raw HTML, inner-link precedence and headings without auto-identifiers. Pandoc Markdown AST expectations are not the oracle.",
+      "coverageLocators": [
+        "original: triple run",
+        "original: nested links forbidden",
+        "original: autolink forbids outer link",
+        "normative: Emphasis and strong emphasis",
+        "normative: HTML blocks",
+        "normative: ATX headings",
+        "normative: Setext headings"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 343,
+        "caseLocator": "named case: ATX header without trailing #s"
+      },
+      "inventoryId": "pandoc.original.dcf69489484cf789",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 349,
+        "caseLocator": "named case: ATX header with trailing #s"
+      },
+      "inventoryId": "pandoc.original.f387dc76bb6c631f",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 355,
+        "caseLocator": "named case: setext header"
+      },
+      "inventoryId": "pandoc.original.842064cca9f1d8ef",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 363,
+        "caseLocator": "named case: quote before ellipses"
+      },
+      "inventoryId": "pandoc.original.95ebb61042d9a9c0",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 366,
+        "caseLocator": "named case: apostrophe before emph"
+      },
+      "inventoryId": "pandoc.original.3e102f2073b1a647",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 369,
+        "caseLocator": "named case: apostrophe in French"
+      },
+      "inventoryId": "pandoc.original.fab078653174c4ca",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 372,
+        "caseLocator": "named case: apostrophe after math"
+      },
+      "inventoryId": "pandoc.original.501660208b2ef3b6",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 375,
+        "caseLocator": "named case: unclosed double quote"
+      },
+      "inventoryId": "pandoc.original.6ec59feaaf5a68e5",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 378,
+        "caseLocator": "named case: single quote in inline note within single quotes"
+      },
+      "inventoryId": "pandoc.original.c40dac186e725c47",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 381,
+        "caseLocator": "named case: double quote in inline note within double quotes"
+      },
+      "inventoryId": "pandoc.original.397965ab6ca4fe48",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 387,
+        "caseLocator": "named case: normal subscript"
+      },
+      "inventoryId": "pandoc.original.e6bc80a0c18b38ae",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 390,
+        "caseLocator": "named case: normal superscript"
+      },
+      "inventoryId": "pandoc.original.aff19e6ec0d8474c",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 393,
+        "caseLocator": "named case: short subscript delimited by space"
+      },
+      "inventoryId": "pandoc.original.d401fb7df402a961",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 396,
+        "caseLocator": "named case: short subscript delimited by newline"
+      },
+      "inventoryId": "pandoc.original.c96c1a73aa876b43",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 399,
+        "caseLocator": "named case: short subscript delimited by EOF"
+      },
+      "inventoryId": "pandoc.original.a1ef3e44a53b2418",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 402,
+        "caseLocator": "named case: short subscript delimited by punctuation"
+      },
+      "inventoryId": "pandoc.original.e3582e8b7876ce87",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 405,
+        "caseLocator": "named case: short subscript delimited by emph"
+      },
+      "inventoryId": "pandoc.original.8e007980f9042ee1",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 408,
+        "caseLocator": "named case: no nesting in short subscripts"
+      },
+      "inventoryId": "pandoc.original.122308163d02f65c",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 411,
+        "caseLocator": "named case: short superscript delimited by space"
+      },
+      "inventoryId": "pandoc.original.e0502a5f903c5ca4",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 414,
+        "caseLocator": "named case: short superscript delimited by newline"
+      },
+      "inventoryId": "pandoc.original.0aed7a141b63a32a",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 417,
+        "caseLocator": "named case: short superscript delimited by ExF"
+      },
+      "inventoryId": "pandoc.original.67e8288b6ef91c17",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 420,
+        "caseLocator": "named case: short superscript delimited by punctuation"
+      },
+      "inventoryId": "pandoc.original.0b3ebb92f408f0c7",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 423,
+        "caseLocator": "named case: short superscript delimited by emph"
+      },
+      "inventoryId": "pandoc.original.d4d9436ee187fee2",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 426,
+        "caseLocator": "named case: no nesting in short superscripts"
+      },
+      "inventoryId": "pandoc.original.657108e91d9c6a74",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 431,
+        "caseLocator": "named case: indent followed by newline and flush-left text"
+      },
+      "inventoryId": "pandoc.original.f3fb1b2728fc1580",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 434,
+        "caseLocator": "named case: indent followed by newline and indented text"
+      },
+      "inventoryId": "pandoc.original.3a5fc0313e50f756",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 437,
+        "caseLocator": "named case: recursive note"
+      },
+      "inventoryId": "pandoc.original.b314bdaf8b639b62",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 444,
+        "caseLocator": "named case: inverse bird tracks and html"
+      },
+      "inventoryId": "pandoc.original.8aaf395c8fb4626e",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 457,
+        "caseLocator": "named case: no blank space"
+      },
+      "inventoryId": "pandoc.original.205f17768507f6e1",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 463,
+        "caseLocator": "named case: blank space before first def"
+      },
+      "inventoryId": "pandoc.original.5878ce8c7c59e5d7",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 469,
+        "caseLocator": "named case: blank space before second def"
+      },
+      "inventoryId": "pandoc.original.3c912a0783550b3b",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 475,
+        "caseLocator": "named case: laziness"
+      },
+      "inventoryId": "pandoc.original.693cb0419b9089e6",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 481,
+        "caseLocator": "named case: no blank space before first of two paragraphs"
+      },
+      "inventoryId": "pandoc.original.47debd53b19cfe93",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 486,
+        "caseLocator": "named case: first line not indented"
+      },
+      "inventoryId": "pandoc.original.d4e5730192653f1c",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 489,
+        "caseLocator": "named case: list in definition"
+      },
+      "inventoryId": "pandoc.original.f547ca1cf0106c30",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 492,
+        "caseLocator": "named case: in div"
+      },
+      "inventoryId": "pandoc.original.4f2bbae5c5bb9173",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 498,
+        "caseLocator": "named case: issue #1154"
+      },
+      "inventoryId": "pandoc.original.e28687b5e665fb5a",
+      "applicability": "commonmark-with-different-expected-tree",
+      "reason": "CommonMark determines emphasis constructor nesting, inline versus block raw HTML, inner-link precedence and headings without auto-identifiers. Pandoc Markdown AST expectations are not the oracle.",
+      "coverageLocators": [
+        "original: triple run",
+        "original: nested links forbidden",
+        "original: autolink forbids outer link",
+        "normative: Emphasis and strong emphasis",
+        "normative: HTML blocks",
+        "normative: ATX headings",
+        "normative: Setext headings"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 505,
+        "caseLocator": "named case: issue #1636"
+      },
+      "inventoryId": "pandoc.original.53bd0fb1219d0145",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: code literals",
+        "original: unresolved full reference",
+        "normative: Backslash escapes",
+        "normative: Raw HTML",
+        "normative: HTML blocks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 516,
+        "caseLocator": "named case: character references"
+      },
+      "inventoryId": "pandoc.original.bc7f91faa2a5e7a5",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: escaped target parentheses",
+        "original: escaped title",
+        "original: entity boundaries",
+        "normative: Entity and numeric character references",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 518,
+        "caseLocator": "named case: numeric"
+      },
+      "inventoryId": "pandoc.original.e63f7e5c6e0f7af7",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: escaped target parentheses",
+        "original: escaped title",
+        "original: entity boundaries",
+        "normative: Entity and numeric character references",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 520,
+        "caseLocator": "named case: in link title"
+      },
+      "inventoryId": "pandoc.original.97bc5d18346c0c64",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "original: escaped target parentheses",
+        "original: escaped title",
+        "original: entity boundaries",
+        "normative: Entity and numeric character references",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 525,
+        "caseLocator": "named case: simple"
+      },
+      "inventoryId": "pandoc.original.647daea3416e4b79",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 535,
+        "caseLocator": "named case: key starts with digit"
+      },
+      "inventoryId": "pandoc.original.d842a0fb2045c66d",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 548,
+        "caseLocator": "named case: footnote"
+      },
+      "inventoryId": "pandoc.original.3b4d2ce8805da99a",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 555,
+        "caseLocator": "named case: normal link"
+      },
+      "inventoryId": "pandoc.original.f9e340916aa836f0",
+      "applicability": "mixed-extension-and-commonmark",
+      "reason": "Citation prefix remains text; adjacent inline/full/shortcut reference links follow CommonMark. Do not import the citation constructor.",
+      "coverageLocators": [
+        "original: forward normalized reference",
+        "original: collapsed reference",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 560,
+        "caseLocator": "named case: reference link"
+      },
+      "inventoryId": "pandoc.original.63a52da1f0e93156",
+      "applicability": "mixed-extension-and-commonmark",
+      "reason": "Citation prefix remains text; adjacent inline/full/shortcut reference links follow CommonMark. Do not import the citation constructor.",
+      "coverageLocators": [
+        "original: forward normalized reference",
+        "original: collapsed reference",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 567,
+        "caseLocator": "named case: short reference link"
+      },
+      "inventoryId": "pandoc.original.68eafc589dd07fe2",
+      "applicability": "mixed-extension-and-commonmark",
+      "reason": "Citation prefix remains text; adjacent inline/full/shortcut reference links follow CommonMark. Do not import the citation constructor.",
+      "coverageLocators": [
+        "original: forward normalized reference",
+        "original: collapsed reference",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 574,
+        "caseLocator": "named case: implicit header link"
+      },
+      "inventoryId": "pandoc.original.48048f49a612d3cd",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 580,
+        "caseLocator": "named case: regular citation"
+      },
+      "inventoryId": "pandoc.original.fa49f1e8d5b1a908",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 588,
+        "caseLocator": "named case: latex placement"
+      },
+      "inventoryId": "pandoc.original.fee72ed1b1549857",
+      "applicability": "extension-only",
+      "reason": "Attributes, emoji, wiki links, implicit heading references, smart typography, math, superscript/subscript, notes, literate input, definition lists, citations and figure placement are outside commonmark. Preserve ordinary inline syntax; do not adopt the Pandoc extension result.",
+      "coverageLocators": [
+        "original: unresolved full reference",
+        "normative: Textual content",
+        "normative: Links"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 62,
+        "caseLocator": "bareLinkTests tuple 1"
+      },
+      "inventoryId": "pandoc.original.ccf83f8353b796d0",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 64,
+        "caseLocator": "bareLinkTests tuple 2"
+      },
+      "inventoryId": "pandoc.original.bd7b4e3a35f50a3f",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 67,
+        "caseLocator": "bareLinkTests tuple 3"
+      },
+      "inventoryId": "pandoc.original.0c1484eb5d3ddecd",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 69,
+        "caseLocator": "bareLinkTests tuple 4"
+      },
+      "inventoryId": "pandoc.original.3319edd33a94f8d0",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 71,
+        "caseLocator": "bareLinkTests tuple 5"
+      },
+      "inventoryId": "pandoc.original.a52b8e006a5ea4e7",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 73,
+        "caseLocator": "bareLinkTests tuple 6"
+      },
+      "inventoryId": "pandoc.original.187a68ffe7a5ba74",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 75,
+        "caseLocator": "bareLinkTests tuple 7"
+      },
+      "inventoryId": "pandoc.original.77508fb7d709bf7a",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 77,
+        "caseLocator": "bareLinkTests tuple 8"
+      },
+      "inventoryId": "pandoc.original.98f6670fc8946e57",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 79,
+        "caseLocator": "bareLinkTests tuple 9"
+      },
+      "inventoryId": "pandoc.original.9ac0e1b5e0c48451",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 81,
+        "caseLocator": "bareLinkTests tuple 10"
+      },
+      "inventoryId": "pandoc.original.46f13c536c5453a5",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 83,
+        "caseLocator": "bareLinkTests tuple 11"
+      },
+      "inventoryId": "pandoc.original.5c1bec4e6ebf5d13",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 85,
+        "caseLocator": "bareLinkTests tuple 12"
+      },
+      "inventoryId": "pandoc.original.befeabc1ba48cb17",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 87,
+        "caseLocator": "bareLinkTests tuple 13"
+      },
+      "inventoryId": "pandoc.original.4499d31ca7c0ab80",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 91,
+        "caseLocator": "bareLinkTests tuple 14"
+      },
+      "inventoryId": "pandoc.original.81182e52b4164c30",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 95,
+        "caseLocator": "bareLinkTests tuple 15"
+      },
+      "inventoryId": "pandoc.original.855cd6ac4b45a1a0",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 97,
+        "caseLocator": "bareLinkTests tuple 16"
+      },
+      "inventoryId": "pandoc.original.f33088d6ccf824af",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 99,
+        "caseLocator": "bareLinkTests tuple 17"
+      },
+      "inventoryId": "pandoc.original.2903c2211345b7fd",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 101,
+        "caseLocator": "bareLinkTests tuple 18"
+      },
+      "inventoryId": "pandoc.original.27072b9e556dc20a",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 103,
+        "caseLocator": "bareLinkTests tuple 19"
+      },
+      "inventoryId": "pandoc.original.7c2cce2c123c97ea",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 105,
+        "caseLocator": "bareLinkTests tuple 20"
+      },
+      "inventoryId": "pandoc.original.049fc77e81586bc2",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 107,
+        "caseLocator": "bareLinkTests tuple 21"
+      },
+      "inventoryId": "pandoc.original.4481c374dcd1cb28",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 109,
+        "caseLocator": "bareLinkTests tuple 22"
+      },
+      "inventoryId": "pandoc.original.063e1509929c840e",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 111,
+        "caseLocator": "bareLinkTests tuple 23"
+      },
+      "inventoryId": "pandoc.original.e3bf7a7529d1680f",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 113,
+        "caseLocator": "bareLinkTests tuple 24"
+      },
+      "inventoryId": "pandoc.original.36e695f6a3e6137a",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 115,
+        "caseLocator": "bareLinkTests tuple 25"
+      },
+      "inventoryId": "pandoc.original.7332e5d53f21d15f",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 117,
+        "caseLocator": "bareLinkTests tuple 26"
+      },
+      "inventoryId": "pandoc.original.fc13db20674597dd",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 119,
+        "caseLocator": "bareLinkTests tuple 27"
+      },
+      "inventoryId": "pandoc.original.893b08b659b405ae",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 121,
+        "caseLocator": "bareLinkTests tuple 28"
+      },
+      "inventoryId": "pandoc.original.b8770e6fb9fc43e6",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 123,
+        "caseLocator": "bareLinkTests tuple 29"
+      },
+      "inventoryId": "pandoc.original.702451a6180f4e8f",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 125,
+        "caseLocator": "bareLinkTests tuple 30"
+      },
+      "inventoryId": "pandoc.original.8d3a8cbfcbb8fc7f",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 127,
+        "caseLocator": "bareLinkTests tuple 31"
+      },
+      "inventoryId": "pandoc.original.c278fa67bc7371f0",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 129,
+        "caseLocator": "bareLinkTests tuple 32"
+      },
+      "inventoryId": "pandoc.original.2bfc0ecba81c6f0e",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 131,
+        "caseLocator": "bareLinkTests tuple 33"
+      },
+      "inventoryId": "pandoc.original.4513983213eaeb38",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 133,
+        "caseLocator": "bareLinkTests tuple 34"
+      },
+      "inventoryId": "pandoc.original.9011434034b66da0",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 135,
+        "caseLocator": "bareLinkTests tuple 35"
+      },
+      "inventoryId": "pandoc.original.ff7d3a336bb30a79",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 137,
+        "caseLocator": "bareLinkTests tuple 36"
+      },
+      "inventoryId": "pandoc.original.730410ecab6293a3",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 139,
+        "caseLocator": "bareLinkTests tuple 37"
+      },
+      "inventoryId": "pandoc.original.9d9b1f777df71544",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 141,
+        "caseLocator": "bareLinkTests tuple 38"
+      },
+      "inventoryId": "pandoc.original.ed361b409c360871",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 143,
+        "caseLocator": "bareLinkTests tuple 39"
+      },
+      "inventoryId": "pandoc.original.51ace348a0e276f4",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 145,
+        "caseLocator": "bareLinkTests tuple 40"
+      },
+      "inventoryId": "pandoc.original.64d36f0abfea25c6",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 147,
+        "caseLocator": "bareLinkTests tuple 41"
+      },
+      "inventoryId": "pandoc.original.b6171c6df5b3651a",
+      "applicability": "extension-only",
+      "reason": "Bare URI recognition is a Pandoc/GFM extension; CommonMark only recognizes angle autolinks. Re-derive punctuation as literal text.",
+      "coverageLocators": [
+        "original: invalid angle autolinks",
+        "normative: Autolinks"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 200,
+        "caseLocator": "comprehension lists=ordered; items=1"
+      },
+      "inventoryId": "pandoc.original.0236d5e38ea08e8d",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 200,
+        "caseLocator": "comprehension lists=ordered; items=2"
+      },
+      "inventoryId": "pandoc.original.c29f41fa44134fe6",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 200,
+        "caseLocator": "comprehension lists=ordered; items=3"
+      },
+      "inventoryId": "pandoc.original.56d0078e3edf27e9",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 200,
+        "caseLocator": "comprehension lists=ordered; items=4"
+      },
+      "inventoryId": "pandoc.original.f5590c530b9de0df",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 200,
+        "caseLocator": "comprehension lists=ordered; items=5"
+      },
+      "inventoryId": "pandoc.original.aef898217a250fa1",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 200,
+        "caseLocator": "comprehension lists=bullet; items=1"
+      },
+      "inventoryId": "pandoc.original.c921cd40f8520108",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 200,
+        "caseLocator": "comprehension lists=bullet; items=2"
+      },
+      "inventoryId": "pandoc.original.89baa3738276d4dd",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 200,
+        "caseLocator": "comprehension lists=bullet; items=3"
+      },
+      "inventoryId": "pandoc.original.5f50da60a5a22330",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 200,
+        "caseLocator": "comprehension lists=bullet; items=4"
+      },
+      "inventoryId": "pandoc.original.df977910f5f7106d",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 200,
+        "caseLocator": "comprehension lists=bullet; items=5"
+      },
+      "inventoryId": "pandoc.original.e3619f5a7b75dbb3",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 203,
+        "caseLocator": "comprehension newlines; lists=ordered,ordered,ordered"
+      },
+      "inventoryId": "pandoc.original.fd4dea9fdb52dcf7",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 208,
+        "caseLocator": "comprehension blank lines and indentation; lists=ordered,ordered,ordered"
+      },
+      "inventoryId": "pandoc.original.f8c09595157730bc",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 203,
+        "caseLocator": "comprehension newlines; lists=ordered,ordered,bullet"
+      },
+      "inventoryId": "pandoc.original.f82540d054edc9f3",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 208,
+        "caseLocator": "comprehension blank lines and indentation; lists=ordered,ordered,bullet"
+      },
+      "inventoryId": "pandoc.original.e17be3ceb19c0614",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 203,
+        "caseLocator": "comprehension newlines; lists=ordered,bullet,ordered"
+      },
+      "inventoryId": "pandoc.original.b39f32c8f8cc7184",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 208,
+        "caseLocator": "comprehension blank lines and indentation; lists=ordered,bullet,ordered"
+      },
+      "inventoryId": "pandoc.original.f389b5937c014792",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 203,
+        "caseLocator": "comprehension newlines; lists=ordered,bullet,bullet"
+      },
+      "inventoryId": "pandoc.original.72a23efd5c6e0bd8",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 208,
+        "caseLocator": "comprehension blank lines and indentation; lists=ordered,bullet,bullet"
+      },
+      "inventoryId": "pandoc.original.dd1e457c7e077d95",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 203,
+        "caseLocator": "comprehension newlines; lists=bullet,ordered,ordered"
+      },
+      "inventoryId": "pandoc.original.6275c79e4a88cdfc",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 208,
+        "caseLocator": "comprehension blank lines and indentation; lists=bullet,ordered,ordered"
+      },
+      "inventoryId": "pandoc.original.aa161f0b03cef8b6",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 203,
+        "caseLocator": "comprehension newlines; lists=bullet,ordered,bullet"
+      },
+      "inventoryId": "pandoc.original.99d36ae7b284e021",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 208,
+        "caseLocator": "comprehension blank lines and indentation; lists=bullet,ordered,bullet"
+      },
+      "inventoryId": "pandoc.original.cc0ad7e7866f9be4",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 203,
+        "caseLocator": "comprehension newlines; lists=bullet,bullet,ordered"
+      },
+      "inventoryId": "pandoc.original.c3bdb9306dcb5b74",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 208,
+        "caseLocator": "comprehension blank lines and indentation; lists=bullet,bullet,ordered"
+      },
+      "inventoryId": "pandoc.original.3653d6f11487b1bd",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 203,
+        "caseLocator": "comprehension newlines; lists=bullet,bullet,bullet"
+      },
+      "inventoryId": "pandoc.original.d0791295786232c8",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    },
+    {
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/Markdown.hs",
+        "line": 208,
+        "caseLocator": "comprehension blank lines and indentation; lists=bullet,bullet,bullet"
+      },
+      "inventoryId": "pandoc.original.73b6be64a9e3002f",
+      "applicability": "commonmark-behavior-rederived",
+      "reason": "Core code/list, emphasis, malformed HTML, mention text, escapes, entity or link behavior applies, but expectations must be derived from CommonMark 0.31.2. Literal attribute suffixes are text.",
+      "coverageLocators": [
+        "normative: Code spans",
+        "normative: List items",
+        "normative: Lists"
+      ],
+      "upstreamPayloadExecuted": false
+    }
+  ]
+}

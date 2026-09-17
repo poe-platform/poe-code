@@ -1,0 +1,135 @@
+[
+  {
+    "to": "html5",
+    "status": "converted",
+    "diagnostics": []
+  },
+  {
+    "to": "pdf",
+    "status": "rejected",
+    "code": "E_CAPABILITY",
+    "message": "PDF image requires a supplied resolved resource"
+  },
+  {
+    "to": "epub",
+    "status": "rejected",
+    "code": "E_RESOURCE",
+    "message": "Image must name an explicit declared resource"
+  },
+  {
+    "to": "rtf",
+    "status": "rejected",
+    "code": "E_CAPABILITY",
+    "message": "Unsupported RTF identifiers or classes"
+  },
+  {
+    "to": "latex",
+    "status": "converted",
+    "diagnostics": []
+  },
+  {
+    "to": "rst",
+    "status": "rejected",
+    "code": "E_CAPABILITY",
+    "message": "Incomplete or spanning table row"
+  },
+  {
+    "to": "pptx",
+    "status": "rejected",
+    "code": "E_CAPABILITY",
+    "message": "Internal document links require slide target resolution"
+  },
+  {
+    "to": "pdf-supported-font",
+    "status": "rejected",
+    "code": "E_CAPABILITY",
+    "message": "PDF image requires a supplied resolved resource"
+  },
+  {
+    "to": "pdf",
+    "profile": "declared-resources",
+    "status": "rejected",
+    "code": "E_CAPABILITY",
+    "message": "PDF images require numeric width and height in points"
+  },
+  {
+    "to": "epub",
+    "profile": "declared-resources",
+    "status": "converted",
+    "diagnostics": []
+  },
+  {
+    "to": "rst",
+    "profile": "declared-resources",
+    "status": "rejected",
+    "code": "E_UNSUPPORTED_FEATURE",
+    "message": "Incomplete or spanning table row"
+  },
+  {
+    "to": "pptx",
+    "profile": "declared-resources",
+    "status": "rejected",
+    "code": "E_UNSUPPORTED_FEATURE",
+    "message": "Unsupported PPTX block: CodeBlock"
+  },
+  {
+    "to": "rtf",
+    "profile": "simple-no-identifiers-or-media",
+    "status": "converted",
+    "diagnostics": []
+  },
+  {
+    "to": "rst",
+    "profile": "simple-no-identifiers-or-media",
+    "status": "converted",
+    "diagnostics": []
+  },
+  {
+    "to": "pdf",
+    "name": "generated.pdf",
+    "status": "rejected",
+    "code": "E_CAPABILITY",
+    "message": "PDF profile requires unspanned left-aligned cells"
+  },
+  {
+    "to": "pdf",
+    "name": "generated-supported.pdf",
+    "status": "rejected",
+    "code": "E_CAPABILITY",
+    "message": "PDF profile requires unspanned left-aligned cells"
+  },
+  {
+    "to": "pptx",
+    "name": "generated.pptx",
+    "status": "rejected",
+    "code": "E_CAPABILITY",
+    "message": "PPTX tables require rectangular unmerged rows"
+  },
+  {
+    "name": "generated.pdf",
+    "profile": "unmerged",
+    "status": "rejected",
+    "code": "E_CAPABILITY",
+    "message": "Unsupported script or combining sequence"
+  },
+  {
+    "name": "generated-supported.pdf",
+    "profile": "unmerged",
+    "status": "rejected",
+    "code": "E_CAPABILITY",
+    "message": "Invalid link"
+  },
+  {
+    "name": "generated.pptx",
+    "profile": "unmerged",
+    "status": "converted",
+    "diagnostics": [
+      {
+        "code": "W_LAYOUT_UNMEASURED",
+        "operation": "write",
+        "format": "pptx",
+        "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+      }
+    ]
+  }
+]

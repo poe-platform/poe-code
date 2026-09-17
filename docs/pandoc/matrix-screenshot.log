@@ -1,0 +1,5 @@
+
+> poe-code@0.0.0-dev screenshot
+> tsx scripts/screenshot.ts --output docs/pandoc/matrix-command.png --no-header -- node --import tsx --input-type=module -e import {fixture} from "./packages/safe-bash/tests/commands/pandoc-fixture.ts"; const {shell,volume}=fixture(); for(const command of ["pandoc -f csv -t commonmark -o out", "pandoc -f commonmark -t plain --unknown -o out", "pandoc -f commonmark -t pdf --pdf-font=serif -o out"]){console.log("$ "+command);const r=await shell.exec(command,{stdin:"Matrix"});process.stdout.write(r.stderr);console.log("status="+r.exitCode+"; destination="+volume.readFileSync("/work/out","utf8"));} await shell.dispose();
+
+docs/pandoc/matrix-command.png

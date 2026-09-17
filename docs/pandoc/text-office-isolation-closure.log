@@ -1,0 +1,38 @@
+
+> poe-code@0.0.0-dev build:workspaces
+> node scripts/build-workspaces.mjs --workspace=virtual-bash
+
+
+> @poe-code/pdf@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/office-package@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/safe-fs@0.0.0-dev build
+> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json && node scripts/native-assets.mjs
+
+
+> @poe-platform/op@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json
+
+{"nativeAssets":"/Users/kjopek/Workspace/poe-code-5/packages/safe-fs/dist/native/fs-seek","targets":[]}
+
+> toolcraft-schema@0.0.1 build
+> rm -rf dist && tsc
+
+
+> pptx@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/pandoc@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> virtual-bash@0.0.0 build
+> node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs
+
+{"workspaces":79,"builds":8,"edges":227,"layers":11,"noBuild":[],"manifestless":[]}

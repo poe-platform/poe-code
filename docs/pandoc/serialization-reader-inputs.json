@@ -1,0 +1,33 @@
+{
+  "textInputs": {
+    "commonmark": "Owned PDF text",
+    "gfm": "Owned PDF text",
+    "html": "<p>Owned PDF text</p>",
+    "json": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"Owned PDF text\"}]}]}",
+    "latex": "Owned PDF text",
+    "rst": "Owned PDF text",
+    "rtf": "{\\rtf1\\ansi Owned PDF text}",
+    "csv": "Owned,PDF\ntext,value\n",
+    "tsv": "Owned\tPDF\ntext\tvalue\n"
+  },
+  "epubDocument": {
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Owned PDF text"
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "title": {
+        "t": "MetaString",
+        "c": "Original book"
+      }
+    },
+    "resources": []
+  }
+}

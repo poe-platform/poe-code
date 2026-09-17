@@ -1,0 +1,87 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ❯ packages/pandoc/src/archive-adversarial.test.ts (26 tests | 1 failed | 25 skipped) 911ms
+   ↓ rejects original compressed EPUB amplification at compressedBytes before writing
+   ↓ rejects original compressed EPUB amplification at expandedBytes before writing
+   ↓ rejects original compressed EPUB amplification at parts before writing
+   ↓ rejects original compressed EPUB amplification at resourceBytes before writing
+   ↓ rejects EPUB entity dependency attacks without external access
+   ↓ rejects EPUB spine dependency attacks without external access
+   ↓ rejects EPUB fallback dependency attacks without external access
+   ↓ cancels the direct EPUB decompressor at a cooperative checkpoint
+   ↓ passes compressedBytes admission to the enabled Office adapter's public sibling API
+   ↓ passes expandedBytes admission to the enabled Office adapter's public sibling API
+   ↓ passes parts admission to the enabled Office adapter's public sibling API
+   × passes resourceBytes admission to the enabled Office adapter's public sibling API 605ms
+   ↓ passes binaryBytes admission to the enabled Office adapter's public sibling API
+   ↓ passes xmlDepth admission to the enabled Office adapter's public sibling API
+   ↓ passes xmlNodes admission to the enabled Office adapter's public sibling API
+   ↓ passes references admission to the enabled Office adapter's public sibling API
+   ↓ cancels between direct PPTX public sibling API acquisitions
+   ↓ refuses original malformed PDF font directory before publication
+   ↓ refuses original malformed PDF font glyph-location before publication
+   ↓ refuses original malformed PDF font glyph-index before publication
+   ↓ refuses original malformed PDF font zero-advance before publication
+   ↓ rejects nonadvancing PDF line/page geometry without publication
+   ↓ bounds PDF glyphs with tiny lines and pages without writes
+   ↓ bounds PDF pages with tiny lines and pages without writes
+   ↓ bounds PDF layoutWork with tiny lines and pages without writes
+   ↓ cancels the direct PDF writer at an engine checkpoint
+FAIL packages/pandoc/src/archive-adversarial.test.ts > passes resourceBytes admission to the enabled Office adapter's public sibling API
+AssertionError: promise resolved "{ kind: 'text', …(2) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "diagnostics": [],
++   "kind": "text",
++   "text": "Original
++ ",
+  }
+
+ ❯ packages/pandoc/src/archive-adversarial.test.ts:87:5
+     85|   await expect(convert([{ bytes: presentation }], { from: "pptx", to: …
+     86|     limits: { [key]: budget }, output: { publish }, yield: immediate
+     87|   })).rejects.toMatchObject({ code: "E_LIMIT" });
+       |     ^
+     88|   expect(publish).not.toHaveBeenCalled();
+     89| });
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/pandoc/src/archive-adversarial.test.ts > passes resourceBytes admission to the enabled Office adapter's public sibling API
+AssertionError: promise resolved "{ kind: 'text', …(2) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "diagnostics": [],
++   "kind": "text",
++   "text": "Original
++ ",
+  }
+
+ ❯ packages/pandoc/src/archive-adversarial.test.ts:87:5
+     85|   await expect(convert([{ bytes: presentation }], { from: "pptx", to: …
+     86|     limits: { [key]: budget }, output: { publish }, yield: immediate
+     87|   })).rejects.toMatchObject({ code: "E_LIMIT" });
+       |     ^
+     88|   expect(publish).not.toHaveBeenCalled();
+     89| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 25 skipped (26)
+   Start at  19:21:01
+   Duration  2.85s (transform 1.39s, setup 49ms, import 1.79s, tests 911ms, environment 0ms)
+

@@ -40,6 +40,46 @@ function fixture(extra = {}, compilerOptions = {}) {
   return { volume, memory, fileSystem, reads, metadata, listings, descriptors, writes, output: [], run(args = []) { return buildPackage({ root, tools, fileSystem, args, write: text => this.output.push(text) }); } };
 }
 
+for (const defect of ["none", "pin", "name", "version", "export", "closure", "link", "source-import", "runtime-import", "unapproved-import"]) test(`build explicit Pandoc SDK declaration admission: ${defect}`, async () => {
+  const exports = {".": {types: "./dist/index.d.ts", import: "./dist/index.js"}};
+  const pandoc = {name: "@poe-code/pandoc", version: "0.0.1", private: true, type: "module", exports, dependencies: {"@poe-code/office-package": "*", entities: "^6.0.1", "jpeg-js": "^0.4.4", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", "@poe-code/pdf": "0.0.1", pptx: "*"}};
+  const pdf = {name: "@poe-code/pdf", version: "0.0.1", private: true, type: "module", exports, dependencies: {"pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1", pako: "3.0.1"}};
+  const owned = fixture({
+    "package.json": JSON.stringify({name: "virtual-bash", private: true, type: "module", devDependencies: {"@poe-code/pandoc": defect === "pin" ? "unapproved" : "*"}}),
+    "src/index.ts": 'import type { Page } from "@poe-code/pandoc"; export const page: Page = { width: 12 };',
+    "../pandoc/package.json": JSON.stringify(pandoc),
+    "../pandoc/dist/index.d.ts": 'export type { Page } from "@poe-code/pdf";',
+    "../pdf/package.json": JSON.stringify(pdf),
+    "../pdf/dist/index.d.ts": 'export type { Page } from "./model.js";',
+    "../pdf/dist/model.d.ts": 'export interface Page { width: number; }',
+    "../pandoc/src/private.d.ts": 'export declare const hidden: number;',
+    "../pandoc/dist/runtime.js": 'export const hidden = 12;',
+    "node_modules/unapproved/index.d.ts": 'export declare const hidden: number;',
+  });
+  if (defect === "name") pandoc.name = "other";
+  if (defect === "version") pdf.version = "0.0.2";
+  if (defect === "export") pandoc.exports = {".": {types: "./src/private.d.ts", import: "./dist/index.js"}};
+  if (defect === "closure") pandoc.dependencies.extra = "1.0.0";
+  if (["name", "version", "export", "closure"].includes(defect)) {
+    owned.memory.writeFileSync(root + "/../pandoc/package.json", JSON.stringify(pandoc));
+    owned.memory.writeFileSync(root + "/../pdf/package.json", JSON.stringify(pdf));
+  }
+  if (defect === "link") {
+    owned.memory.unlinkSync(root + "/../pdf/dist/model.d.ts");
+    owned.memory.symlinkSync(root + "/../pandoc/src/private.d.ts", root + "/../pdf/dist/model.d.ts");
+  }
+  if (["source-import", "runtime-import", "unapproved-import"].includes(defect)) {
+    const target = defect === "source-import" ? "../src/private.js" : defect === "runtime-import" ? "./runtime.js" : "unapproved";
+    owned.memory.writeFileSync(root + "/../pandoc/dist/index.d.ts", `export { hidden } from "${target}";`);
+    assert.notEqual((await owned.run()).status, 0);
+    assert.equal(owned.reads.some(path => path.endsWith("/src/private.d.ts") || path.endsWith("/dist/runtime.js") || path.includes("/unapproved/")), false);
+  } else if (defect === "none") {
+    assert.equal((await owned.run()).status, 0, owned.output.join(""));
+    assert.ok(owned.reads.includes("/owned/pdf/dist/model.d.ts"));
+  } else await assert.rejects(owned.run(), defect === "link" ? /symlink/ : /Pandoc SDK/);
+  assert.equal(owned.descriptors.size, 0);
+});
+
 function noHeldReads(owned) {
   assert.equal(owned.reads.filter(path => path.toLowerCase().includes("/held/")).length, 0);
   assert.equal(owned.listings.filter(path => path.toLowerCase().includes("/held")).length, 0);

@@ -1,0 +1,41 @@
+
+> @poe-code/pandoc@0.0.1 test:stress
+> cd ../.. && vitest run --config packages/pandoc/stress/vitest.config.mjs
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+stdout | packages/pandoc/stress/growth.stress.ts > measures capped original delimiter growth
+{"name":"delimiter","from":"commonmark","measurements":[{"size":256,"work":2470,"retained":33856,"cpuMicros":6512,"outcome":"E_LIMIT"},{"size":512,"work":4774,"retained":66624,"cpuMicros":7878,"outcome":"E_LIMIT"},{"size":1024,"work":9382,"retained":132160,"cpuMicros":6390,"outcome":"E_LIMIT"},{"size":2048,"work":18598,"retained":263232,"cpuMicros":6464,"outcome":"E_LIMIT"}]}
+
+stdout | packages/pandoc/stress/growth.stress.ts > measures capped original bracket growth
+{"name":"bracket","from":"commonmark","measurements":[{"size":256,"work":4160,"retained":117536,"cpuMicros":4729,"outcome":"ok"},{"size":512,"work":8256,"retained":234272,"cpuMicros":6749,"outcome":"ok"},{"size":1024,"work":16448,"retained":467744,"cpuMicros":16647,"outcome":"ok"},{"size":2048,"work":32832,"retained":934688,"cpuMicros":13797,"outcome":"ok"}]}
+
+stdout | packages/pandoc/stress/growth.stress.ts > measures capped original dangling growth
+{"name":"dangling","from":"commonmark","measurements":[{"size":256,"work":2496,"retained":35392,"cpuMicros":2725,"outcome":"ok"},{"size":512,"work":4992,"retained":70784,"cpuMicros":3630,"outcome":"ok"},{"size":1024,"work":9984,"retained":141568,"cpuMicros":3000,"outcome":"ok"},{"size":2048,"work":19968,"retained":283136,"cpuMicros":13271,"outcome":"ok"}]}
+
+stdout | packages/pandoc/stress/growth.stress.ts > measures capped original attributes growth
+{"name":"attributes","from":"html","measurements":[{"size":256,"work":305,"retained":2516,"cpuMicros":2521,"outcome":"ok"},{"size":512,"work":561,"retained":4052,"cpuMicros":690,"outcome":"ok"},{"size":1024,"work":1073,"retained":7124,"cpuMicros":1073,"outcome":"ok"},{"size":2048,"work":2097,"retained":13268,"cpuMicros":5274,"outcome":"ok"}]}
+
+stdout | packages/pandoc/stress/growth.stress.ts > measures capped original entities growth
+{"name":"entities","from":"html","measurements":[{"size":256,"work":1312,"retained":6454,"cpuMicros":4233,"outcome":"ok"},{"size":512,"work":2592,"retained":12086,"cpuMicros":1664,"outcome":"ok"},{"size":1024,"work":5152,"retained":23350,"cpuMicros":5185,"outcome":"ok"},{"size":2048,"work":10272,"retained":45878,"cpuMicros":2092,"outcome":"ok"}]}
+
+stdout | packages/pandoc/stress/growth.stress.ts > measures capped original rst-search growth
+{"name":"rst-search","from":"rst","measurements":[{"size":256,"work":20992,"retained":3050,"cpuMicros":14234,"outcome":"E_LIMIT"},{"size":512,"work":37376,"retained":3576,"cpuMicros":13911,"outcome":"E_LIMIT"},{"size":1024,"work":70144,"retained":5402,"cpuMicros":23450,"outcome":"E_LIMIT"},{"size":2048,"work":135680,"retained":9428,"cpuMicros":53739,"outcome":"E_LIMIT"}]}
+
+stdout | packages/pandoc/stress/growth.stress.ts > measures capped original latex-expansion growth
+{"name":"latex-expansion","from":"latex","measurements":[{"size":256,"work":1048,"retained":2872,"cpuMicros":2536,"outcome":"ok"},{"size":512,"work":2072,"retained":5432,"cpuMicros":6040,"outcome":"ok"},{"size":1024,"work":4120,"retained":10552,"cpuMicros":2182,"outcome":"ok"},{"size":2048,"work":8216,"retained":20792,"cpuMicros":3567,"outcome":"ok"}]}
+
+stdout | packages/pandoc/stress/growth.stress.ts > measures capped original rtf-run growth
+{"name":"rtf-run","from":"rtf","measurements":[{"size":256,"work":778,"retained":2272,"cpuMicros":1240,"outcome":"ok"},{"size":512,"work":1546,"retained":4320,"cpuMicros":508,"outcome":"ok"},{"size":1024,"work":3082,"retained":8416,"cpuMicros":920,"outcome":"ok"},{"size":2048,"work":6154,"retained":16608,"cpuMicros":1881,"outcome":"ok"}]}
+
+stdout | packages/pandoc/stress/growth.stress.ts > measures capped original json-string growth
+{"name":"json-string","from":"json","measurements":[{"size":256,"work":377,"retained":1734,"cpuMicros":5774,"outcome":"ok"},{"size":512,"work":633,"retained":2758,"cpuMicros":842,"outcome":"ok"},{"size":1024,"work":1145,"retained":4806,"cpuMicros":772,"outcome":"ok"},{"size":2048,"work":2169,"retained":8902,"cpuMicros":12019,"outcome":"ok"}]}
+
+ ✓ packages/pandoc/stress/growth.stress.ts (9 tests) 411ms
+
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+   Start at  19:25:09
+   Duration  2.78s (transform 1.71s, setup 79ms, import 2.20s, tests 411ms, environment 0ms)
+

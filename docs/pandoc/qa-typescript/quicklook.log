@@ -1,0 +1,6 @@
+Testing Quick Look thumbnails with files:
+	docs/pandoc/qa-typescript/generated.pptx
+	docs/pandoc/qa-typescript/simple.rtf
+* /Users/kjopek/Workspace/poe-code-5/docs/pandoc/qa-typescript/simple.rtf produced one thumbnail
+* /Users/kjopek/Workspace/poe-code-5/docs/pandoc/qa-typescript/generated.pptx produced one thumbnail
+Done producing thumbnails

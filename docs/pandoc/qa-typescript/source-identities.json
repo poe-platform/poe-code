@@ -1,0 +1,39 @@
+{
+  "revisionBeforeTask": "c34f53480a0280cde328f1a91da37595bf972a33",
+  "source": "original authored inert HTML and generated 120x60 JPEG; profile reductions recorded in manifest and adjacent source HTML",
+  "files": {
+    "original.html": "930c24b2fffaaec2878f97c66526b4478dfaba838e627b19ce33aec3194c43ff",
+    "original.jpg": "602a7a3fabf8276e4f3528b747c9d353a7fa1b206d98302d9b9d545ee4ec2a9f",
+    "generated.html": "a8930e52af1432e8d3706263012f2e8239c5bc40f41f2c30bd9041b5759e6db8",
+    "generated.tex": "ac39d48bdb45cddf6e8f7395a848f8fede02967fa46a083a597a07588077c4d2",
+    "generated.epub": "20a53d5a50e0bb886eb28131d23a234968a8b0de2c483e431f3f3aa73d551786",
+    "simple.rtf": "1c152e76f417b525603c1e9e404f469c798a54a3ff500a4147a1bf886715a8dd",
+    "simple.rst": "4cac8691d6b599629008d5dd76bddb38481542f3fd0169a92c34e77f27a6aec2",
+    "generated.pptx": "0d7b03c58e0f0b20a51ff16476ca9042d27190215cc2ef82179c0ac5f120d76d",
+    "generated-supported.pdf": "276b4e7e92f3a49139588b0f783f80af2bdf4e720d04d5f9ab2e9a84b9069cf5"
+  },
+  "qaTools": {
+    "playwright-core": {
+      "version": "1.58.2",
+      "manifestSha256": "16a25dbd7368a87af8b58a45c6216b9cec5a91a72cf704533344701997ebde22"
+    },
+    "epubjs": {
+      "version": "0.3.93",
+      "manifestSha256": "00018967670a35f19505d594cf1c94e5067774e0bf434415d63d64ce99009da3"
+    },
+    "jszip": {
+      "version": "3.10.1",
+      "manifestSha256": "83569b5b130b5ec27ae281ed80420ad364baf1bf64cb82e6ac8fb891e1b4ec4c"
+    }
+  },
+  "python": "CPython 3.14.2",
+  "pdf": "PyMuPDF 1.26.4 (MuPDF 1.26.7)",
+  "rst": "Docutils 0.21.2",
+  "latexSought": "Tectonic 0.15.0; absent",
+  "LibreOfficeInstalledMetadata": {
+    "CFBundleShortVersionString": "26.8.0.3",
+    "CFBundleVersion": "26.8.0.3"
+  },
+  "LibreOfficeRuntime": "startup stalled; not independently opened successfully",
+  "quickLookOS": "ProductName:\t\tmacOS\nProductVersion:\t\t15.7.7\nBuildVersion:\t\t24G720\n"
+}

@@ -1,0 +1,52 @@
+{
+  "capabilities": {
+    "profile": "PDF-1.7-supplied-fonts-ltr",
+    "reference": "Adobe PDF Reference sixth edition, November 2006",
+    "scripts": [
+      "Latin",
+      "Greek",
+      "Cyrillic"
+    ],
+    "fonts": [
+      "sfnt-TrueType-glyf"
+    ],
+    "png": "static-noninterlaced-8bit",
+    "jpeg": "8bit-gray-rgb-adobe-cmyk",
+    "images": [
+      "png",
+      "jpeg"
+    ],
+    "tables": "rectangular-unspanned",
+    "encryption": false,
+    "javascript": false,
+    "attachments": false,
+    "accessibility": {
+      "tagged": false,
+      "readingOrder": "not-guaranteed",
+      "pdfUA": false
+    },
+    "conformance": {
+      "pdfA": false
+    },
+    "text": {
+      "unicodeMapping": "supported-scalars",
+      "extraction": "not-guaranteed",
+      "searchable": "not-guaranteed"
+    }
+  },
+  "limits": {
+    "fontBytes": 4000000,
+    "fonts": 8,
+    "glyphs": 100000,
+    "pages": 200,
+    "objects": 100000,
+    "images": 100,
+    "imageBytes": 8000000,
+    "decodedImageBytes": 32000000,
+    "layoutWork": 500000,
+    "outputBytes": 16000000
+  },
+  "bytes": 142112,
+  "header": "%PDF-1.7",
+  "scope": "private workspace SDK QA; publication availability not implied"
+}

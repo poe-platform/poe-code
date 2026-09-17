@@ -84,7 +84,7 @@ function runtimeResolution(specifier, context, nextResolve) {
     if (fromDependency) {
       const sharedCompression = fromDependency.name === "@poe-code/office-package" && parent === "node_modules/@poe-code/office-package/dist/compression.js" && dependency.name === "pako" && specifier === "pako" && target.path === dependency.entries.pako;
       if (!sharedCompression) {
-        assert.equal(fromDependency, dependency, "Dependency runtime must not escape its package");
+        assert.ok(fromDependency === dependency, "Dependency runtime must not escape its package");
         assert.ok(specifier.startsWith("./") || specifier.startsWith("../"), "Dependency runtime requires relative internal edges");
         assert.equal(target.path, posix.normalize(posix.join(posix.dirname(parent), specifier)), `Uncaptured dependency runtime edge: ${specifier}`);
       }

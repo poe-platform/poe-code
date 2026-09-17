@@ -174,6 +174,10 @@ for (const attack of ["metadata-bytes", "runtime-bytes", "missing-runtime", "pri
     assert.equal(result.status, 1);
     assert.ok((result.stdout + result.stderr).includes(configuration.expected));
     assert.ok(result.stderr.includes("TAMPER_NATIVE_WORKERS 0\n"));
+    if (attack === "redirected-shared-compression-edge" || attack === "redirected-shared-internal-edge") {
+      const refusal = JSON.parse(result.stdout) as { failure: { message: string } };
+      assert.ok(refusal.failure.message.length < 4096, "Dependency refusal must not dump runtime manifests");
+    }
     if (attack === "private-package-route") {
       const refusal = JSON.parse(result.stdout) as { passed: boolean; sourcePinned: boolean; failure: { name: string; message: string } };
       assert.equal(refusal.passed, false);

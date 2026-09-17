@@ -261,3 +261,13 @@ dialects/kinds, stored/deflated, ZIP32/ZIP64 and model/SDK/actual Shell. The fin
 focused run passes 1,623 tests, zero skips; built QA passes 96 expected-rejection
 workflows. No product defect was found in these added variants. Other ZIP/OPC
 variants and complete F01–F07 acceptance remain open.
+
+## Current native omitted style-type evidence
+
+The [native style-type record](native-style-type-defaults-20260917.md) binds
+1,504 positive/default-validation cases and 144 explicit type guards to the
+verified native paragraph default. The final focused run passes 2,832 cases,
+zero skips, with the corrected typed guard context separately rerun. Built QA
+passes 64 combined all-heading/insertion/relationship workflows. Original and
+intermediate failures remain qualified in the receipt. This closes the named
+style-type dependency; other native variants and full F01–F07 remain open.

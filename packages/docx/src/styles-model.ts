@@ -151,7 +151,7 @@ export class Styles implements Iterable<BaseStyle> {
   get length(): number { return this.store.tokens.length; }
   *[Symbol.iterator](): Iterator<BaseStyle> { for (const token of [...this.store.tokens]) yield this.wrap(token); }
   private wrap(token: number): BaseStyle {
-    const xml = this.store.editor(), kind = attr(this.store.node(xml, token), "type");
+    const xml = this.store.editor(), kind = attr(this.store.node(xml, token), "type") ?? "paragraph";
     return kind === "table" ? new TableStyle(this.store, token, this) : kind === "paragraph" ? new ParagraphStyle(this.store, token, this) : kind === "character" ? new CharacterStyle(this.store, token, this) : new BaseStyle(this.store, token, this);
   }
   has(name: string): boolean {

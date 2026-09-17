@@ -230,7 +230,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     if (!key.endsWith(":style")) continue;
     const defaults = new Set<string>();
     for (const style of entries.values()) {
-      const type = attr(style, "type") ?? "";
+      const type = attr(style, "type") ?? "paragraph";
       if (["1", "true", "on"].includes(attr(style, "default") ?? "0")) {
         if (defaults.has(type)) issue(style, "style-default", "A style type has multiple defaults.");
         defaults.add(type);
@@ -239,7 +239,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
         const reference = children(style, tag!)[0];
         const target = reference && entries.get(attr(reference, "val") ?? "");
         if (!target) continue;
-        const targetType = attr(target, "type");
+        const targetType = attr(target, "type") ?? "paragraph";
         const compatible = tag === "link" ? type === "paragraph" && targetType === "character" || type === "character" && targetType === "paragraph"
           : tag === "next" ? type === "paragraph" && targetType === "paragraph" : type === targetType;
         if (!compatible) issue(reference!, code!, "Style relationship has incompatible types.");
@@ -343,7 +343,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     const expectedStyleType: Record<string, string> = { pStyle: "paragraph", rStyle: "character", tblStyle: "table" };
     if (Object.hasOwn(expectedStyleType, name)) {
       const style = lookup("style", attr(node, "val"));
-      if (style && attr(style, "type") !== expectedStyleType[name]) issue(node, "style-type", "Style type disagrees with its usage.");
+      if (style && (attr(style, "type") ?? "paragraph") !== expectedStyleType[name]) issue(node, "style-type", "Style type disagrees with its usage.");
     }
     if (name === "num" && children(node, "abstractNumId").length !== 1) issue(node, "numbering-reference", "Numbering instances require exactly one abstract reference.");
     if (name === "abstractNum" || name === "num") {

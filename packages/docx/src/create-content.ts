@@ -59,7 +59,7 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
   for (const style of stylesRoot ? children(stylesRoot) : []) {
     if (style.namespace !== w || style.localName !== "style") continue;
     const attribute = (node: XmlElement, key: string) => node.attributes.find(a => a.namespace === w && a.localName === key)?.value;
-    const id = attribute(style, "styleId"), type = attribute(style, "type");
+    const id = attribute(style, "styleId"), type = attribute(style, "type") ?? "paragraph";
     const name = children(style).find(c => c.namespace === w && c.localName === "name");
     const stored = name && attribute(name, "val");
     const value = stored === undefined ? undefined : styleDisplayName(stored);

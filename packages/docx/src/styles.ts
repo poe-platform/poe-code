@@ -93,9 +93,9 @@ export async function inspectDocumentStyles(input: Uint8Array, options: StyleIns
   const report = validateDocumentArchive(archive, {}, budget);
   const data: StyleInspectionData = { styles: selected.map(n => {
     const source = (tag: string) => child(n, tag) ? xml!.sourceXml(child(n, tag)!) : null;
-    return { id: attr(n, "styleId") ?? "", name: styleDisplayName(attr(child(n, "name"), "val") ?? ""), type: attr(n, "type") ?? "",
+    return { id: attr(n, "styleId") ?? "", name: styleDisplayName(attr(child(n, "name"), "val") ?? ""), type: attr(n, "type") ?? "paragraph",
       builtin: !["1", "true", "on"].includes(attr(n, "customStyle") ?? "0"), base: name(attr(child(n, "basedOn"), "val")),
-      next: name(attr(child(n, "next"), "val")) ?? (attr(n, "type") === "paragraph" ? attr(child(n, "name"), "val") ?? null : null),
+      next: name(attr(child(n, "next"), "val")) ?? ((attr(n, "type") ?? "paragraph") === "paragraph" ? attr(child(n, "name"), "val") ?? null : null),
       linkedStyle: name(attr(child(n, "link"), "val")), defaultForType: ["1", "true", "on"].includes(attr(n, "default") ?? "0"),
       priority: styleInteger(attr(child(n, "uiPriority"), "val")),
       hidden: styleToggle(child(n, "semiHidden")) ?? false, locked: styleToggle(child(n, "locked")) ?? false,
@@ -189,7 +189,7 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
       changes.push({ kind: "style", id: "docDefaults" });
     }
   } else {
-    const selected = resolve(opts.name), type = attr(selected, "type");
+    const selected = resolve(opts.name), type = attr(selected, "type") ?? "paragraph";
     if (!["paragraph", "character", "table"].includes(type!)) throw new UnsupportedEditError("Editing supports paragraph, character and table styles.");
     if (type === "character" && [opts.outlineLevel, opts.keepWithNext, opts.keepTogether, opts.widowControl, opts.pageBreakBefore, opts.spaceBefore, opts.spaceAfter, opts.alignment, opts.leftIndent, opts.rightIndent, opts.firstLineIndent, opts.lineSpacing, opts.lineSpacingRule, opts.tabStops, opts.tabStopAdd, opts.tabStopDelete, opts.tabStopsClear, opts.borders, opts.shading].some(v => v !== undefined))
       throw new InvalidValueError("Character styles cannot contain paragraph properties.");
@@ -197,12 +197,12 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
       const value = opts[key]; if (value === undefined) continue;
       if (key === "next" && type !== "paragraph") throw new InvalidValueError("Next style requires a paragraph style.");
       const target = value === null ? undefined : resolve(value);
-      if (target && attr(target, "type") !== type) throw new InvalidValueError("Style relationship requires matching types.");
+      if (target && (attr(target, "type") ?? "paragraph") !== type) throw new InvalidValueError("Style relationship requires matching types.");
       setValue(selected, tag, target ? attr(target, "styleId")! : null);
     }
     if (opts.linkedStyle !== undefined) {
       const target = opts.linkedStyle === null ? undefined : resolve(opts.linkedStyle);
-      if (target && !((type === "paragraph" && attr(target, "type") === "character") || (type === "character" && attr(target, "type") === "paragraph")))
+      if (target && !((type === "paragraph" && (attr(target, "type") ?? "paragraph") === "character") || (type === "character" && (attr(target, "type") ?? "paragraph") === "paragraph")))
         throw new InvalidValueError("Linked styles require paragraph and character types.");
       const unlink = (node: XmlElement) => {
         const old = nodes.find(n => attr(n, "styleId") === attr(child(node, "link"), "val"));
@@ -214,7 +214,7 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
     }
     if (opts.defaultForType !== undefined) {
       if (opts.defaultForType !== ["1", "true", "on"].includes(attr(selected, "default") ?? "0")) attributes.set(selected, { default: opts.defaultForType ? "1" : null });
-      if (opts.defaultForType) for (const node of nodes) if (node !== selected && attr(node, "type") === type && attr(node, "default") !== undefined) attributes.set(node, { default: null });
+      if (opts.defaultForType) for (const node of nodes) if (node !== selected && (attr(node, "type") ?? "paragraph") === type && attr(node, "default") !== undefined) attributes.set(node, { default: null });
     }
     for (const [key, tag] of [["hidden", "semiHidden"], ["locked", "locked"], ["quickStyle", "qFormat"], ["unhideWhenUsed", "unhideWhenUsed"]] as const)
       if (opts[key] !== undefined) setValue(selected, tag, opts[key] ? "1" : null);

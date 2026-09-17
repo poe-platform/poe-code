@@ -12,6 +12,7 @@ import { publishBundleOutputs } from "./publish-bundle.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 // Build and rewrite once per test-file run; consumer builds and VMs stay separate.
 let portableBuild: BuildResult;
+let filesystemBuild: BuildResult;
 const artifacts = new Volume();
 
 it("publishes the op entry and live compression chunks in one browser output graph", async () => {
@@ -383,24 +384,36 @@ let browser: BrowserShell;
 let filesystem: CoreFs;
 
 beforeAll(async () => {
-  const producer = await build({
+  filesystemBuild = await build({
     absWorkingDir: root,
     entryPoints: [path.join(root, "packages/safe-fs/src/core.ts")],
     bundle: true, write: false, platform: "browser", conditions: ["workerd", "worker", "browser"],
     format: "cjs", target: "es2022",
   });
-  portableBuild = await build(resolveBrowserShellBuild(root));
+});
+
+beforeAll(async () => {
+  portableBuild = await build({...resolveBrowserShellBuild(root), sourcemap: false});
+});
+
+beforeAll(async () => {
   for (const output of portableBuild.outputFiles!.filter(output => output.path.endsWith(".js"))) {
     artifacts.mkdirSync(path.dirname(output.path), { recursive: true });
-    artifacts.writeFileSync(output.path, rewriteModuleSpecifiers(output.path, output.text, specifier =>
-      specifier === "poe-code/safe-fs/core" ? "@poe-platform/safe-fs/core" : specifier));
+    const metadata = portableBuild.metafile!.outputs[path.relative(root, output.path).split(path.sep).join("/")]!;
+    const contents = metadata.imports.some(item => item.path === "poe-code/safe-fs/core")
+      ? rewriteModuleSpecifiers(output.path, output.text, specifier => specifier === "poe-code/safe-fs/core" ? "@poe-platform/safe-fs/core" : specifier)
+      : output.text;
+    artifacts.writeFileSync(output.path, contents);
   }
+});
+
+beforeAll(async () => {
   const compiled = await bundlePublicConsumer('export * from "@poe-platform/safe-bash";');
   const sandbox = createContext({
     TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
   });
-  filesystem = runInContext(`(function(){ const module = { exports: {} }; ${producer.outputFiles![0]!.text}; return module.exports; })()`, sandbox) as CoreFs;
+  filesystem = runInContext(`(function(){ const module = { exports: {} }; ${filesystemBuild.outputFiles![0]!.text}; return module.exports; })()`, sandbox) as CoreFs;
   sandbox.canonical = filesystem;
   browser = runInContext(`(function(){ const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${compiled}; return module.exports; })()`, sandbox) as BrowserShell;
   expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof setImmediate", sandbox)).toBe("undefined:undefined:undefined");

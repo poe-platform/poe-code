@@ -18,6 +18,15 @@ const OwnedCodeDOMException = vi.hoisted(() => {
 });
 import { coerceThrownValue } from "./exceptions.js";
 import { Budget } from "./budget.js";
+import { run } from "../run.js";
+
+it("preserves host data diagnostics without intrinsic DOMException accessors", async () => {
+  const failure = new OwnedCodeDOMException("invalid clone", "DataCloneError");
+  const result = await run("try { fail(); } catch (e) { return [e.name, e.message]; }", {
+    bindings: { fail() { throw failure; } }
+  });
+  expect(result).toMatchObject({ ok: true, returnValue: ["DataCloneError", "invalid clone"] });
+});
 
 it("omits unverified DOMException codes when the runtime has no intrinsic code getter", () => {
   const failure = new OwnedCodeDOMException("invalid clone", "DataCloneError");

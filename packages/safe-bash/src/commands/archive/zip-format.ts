@@ -1,3 +1,4 @@
+import { zipGrowRecords } from "./zip/grow.js";
 import { zip64Directory, zip64Fields, stripZip64, zip64Extra, zip64Member, zipEnd, zipDescriptor } from "./zip/zip64.js";
 import { crcTable } from "./zip/crc.js";
 import { encryptZipPayload, decryptZipPayload, type ZipEncryption } from "./zip/crypto.js";
@@ -186,7 +187,7 @@ async function copyBytes(source: Uint8Array, destination: Uint8Array, start: num
   }
 }
 
-export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, signal: AbortSignal): Promise<ZipArchive> {
+export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, signal: AbortSignal, profile: Readonly<{ grow?: boolean; prefix?: boolean }> = {}): Promise<ZipArchive> {
   const chunkSize = admit(limits, signal);
   number(bytes.length, limits.maxArchiveBytes, "archive byte");
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -208,6 +209,7 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
   number(bytes.length - end - 22, limits.maxTextBytes, "archive comment");
   const entries: ZipEntry[] = [];
   const spans: Array<{ start: number; end: number }> = [];
+  const growSpans = new Map<ZipEntry, { start: number; end: number }>();
   let offset = centralStart;
   let total = 0;
   for (let index = 0; index < members; index++) {
@@ -296,19 +298,29 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
     if (timestamp !== undefined) modified.setTime(timestamp);
     const entry: ZipEntry = { name, data: bytes.subarray(payloadStart, payloadStart + compressedSize), size, method, crc32: checksum, modified, mode, directory, symlink, rawName, localName, comment, localExtra, centralExtra, flags, versionMadeBy, internalAttributes, externalAttributes, dosTime, dosDate };
     entryBounds(entry, limits);
+    if (profile.grow) {
+      if (centralMetadata.zip64 || localMetadata.zip64) entry.zip64 = true;
+      growSpans.set(entry, { start: local, end: payloadEnd });
+    }
     entries.push(entry);
     spans.push({ start: local, end: payloadEnd });
     offset = next;
   }
   if (offset !== centralEnd) fail("ZIP central directory size or member count mismatch");
   spans.sort((first, second) => first.start - second.start);
-  let covered = 0;
+  let covered = profile.prefix ? spans[0]?.start ?? centralStart : 0;
   for (const span of spans) {
     if (span.start !== covered) fail("ZIP overlapping spans, gaps or self-extracting prefix are unsupported");
     covered = span.end;
   }
   if (covered !== centralStart) fail("ZIP unreferenced local data is unsupported");
   for (const entry of entries) {
+    const span = growSpans.get(entry);
+    if (span) {
+      const record = new Uint8Array(span.end - span.start);
+      await copyBytes(bytes.subarray(span.start, span.end), record, 0, chunkSize, signal);
+      zipGrowRecords.set(entry, record);
+    }
     const data = new Uint8Array(entry.data.length);
     await copyBytes(entry.data, data, 0, chunkSize, signal);
     entry.data = data;
@@ -536,7 +548,7 @@ export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimi
     number(total, limits.maxTotalBytes, "total byte");
     const rawName = entry.rawName ?? pathBytes(entry.name, limits);
     // Retained ciphertext binds its verifier to the original descriptor flag.
-    const descriptor = entry.flags! & 1 ? Boolean(entry.flags! & 8) : (entry.source !== undefined || descriptors || entry.descriptors === true) && !entry.directory;
+    const descriptor = entry.flags! & 1 || zipGrowRecords.has(entry) ? Boolean(entry.flags! & 8) : (entry.source !== undefined || descriptors || entry.descriptors === true) && !entry.directory;
     const flags = ((entry.flags ?? 0x800) & ~8) | (descriptor ? 8 : 0) | (entry.encryption && !entry.directory ? 1 : 0);
     const comment = entry.comment ?? new Uint8Array();
     number(comment.length, Math.min(limits.maxTextBytes, 65535), "entry comment");
@@ -580,7 +592,9 @@ export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimi
     }
     metadataBytes += 76 + 2 * rawName.length + localExtra.length + centralExtra.length + comment.length;
     number(metadataBytes, limits.maxArchiveBytes, "metadata byte");
-    length += 76 + 2 * rawName.length + localExtra.length + centralExtra.length + comment.length + entry.data.length + (descriptor ? wide ? 24 : 16 : 0);
+    const record = zipGrowRecords.get(entry);
+    const localSize = record?.length ?? 30 + rawName.length + localExtra.length + entry.data.length + (descriptor ? wide ? 24 : 16 : 0);
+    length += localSize + 46 + rawName.length + centralExtra.length + comment.length;
     number(length, limits.maxArchiveBytes, "archive byte");
     const metadata = { ...entry, data: new Uint8Array() };
     delete metadata.source;
@@ -588,7 +602,7 @@ export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimi
     const item: EncodedEntry = { entry: metadata, rawName, wide, flags, localExtra, centralExtra, comment, date, time, offset: localLength, compressedSize: entry.data.length };
     encoded.push(item);
     archive.onRetention?.({ metadataBytes, payloadBytes: 0 });
-    localLength += 30 + rawName.length + localExtra.length + entry.data.length + (descriptor ? wide ? 24 : 16 : 0);
+    localLength += localSize;
   }
   const plannedCentralSize = length - (22 + archive.comment.length + (wideArchive ? 76 : 0)) - localLength;
   if (!wideArchive && (localLength >= 0xffffffff || plannedCentralSize >= 0xffffffff)) {
@@ -618,6 +632,12 @@ export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimi
     item.offset = localLength;
     refreshCentral(item, entry.size, entry.data.length, localLength);
     await yieldTurn(signal);
+    const record = zipGrowRecords.get(entry);
+    if (record) {
+      yield* wireChunks(record, chunkSize, signal);
+      localLength += record.length;
+      continue;
+    }
     const offset = 0;
     const bytes = new Uint8Array(30 + rawName.length + localExtra.length);
     const view = new DataView(bytes.buffer);
@@ -628,9 +648,12 @@ export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimi
     view.setUint16(offset + 8, entry.method, true);
     view.setUint16(offset + 10, time, true);
     view.setUint16(offset + 12, date, true);
-    view.setUint32(offset + 14, flags & 8 ? 0 : entry.crc32, true);
-    view.setUint32(offset + 18, wide && (descriptor || forceZip64 || entry.zip64 === true || entry.data.length >= 0xffffffff) ? 0xffffffff : flags & 8 ? 0 : entry.data.length, true);
-    view.setUint32(offset + 22, wide && (descriptor || forceZip64 || entry.zip64 === true || entry.size >= 0xffffffff) ? 0xffffffff : flags & 8 ? 0 : entry.size, true);
+    // Buffered BZIP2 has a known compressed span. Retain it even with a
+    // descriptor so streaming native readers can locate the member boundary.
+    const knownBzipSpan = entry.method === 12 && !entry.source && !wide;
+    view.setUint32(offset + 14, flags & 8 && !knownBzipSpan ? 0 : entry.crc32, true);
+    view.setUint32(offset + 18, wide && (descriptor || forceZip64 || entry.zip64 === true || entry.data.length >= 0xffffffff) ? 0xffffffff : flags & 8 && !knownBzipSpan ? 0 : entry.data.length, true);
+    view.setUint32(offset + 22, wide && (descriptor || forceZip64 || entry.zip64 === true || entry.size >= 0xffffffff) ? 0xffffffff : flags & 8 && !knownBzipSpan ? 0 : entry.size, true);
     view.setUint16(offset + 26, rawName.length, true);
     view.setUint16(offset + 28, localExtra.length, true);
     bytes.set(rawName, offset + 30);

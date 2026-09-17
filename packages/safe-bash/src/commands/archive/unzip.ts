@@ -86,17 +86,17 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       archiveStat = await extraction.operation(() => context.fs.stat(archivePath, { signal: context.signal }));
       if (archiveStat.type !== "file") fail("input archive is not a regular file");
       const bytes = await collectBytes(bounded(extraction.input(archivePath), limits.maxArchiveBytes, context.signal, limits.chunkSize), { signal: context.signal, maxBytes: limits.maxArchiveBytes });
-      if (!parsed.pipe) await budget.output(`Archive:  ${filtered(archive)}\n`);
+      if (!parsed.pipe && !parsed.quiet) await budget.output(`Archive:  ${filtered(archive)}\n`);
       const zip = await readZipArchive(bytes, limits, context.signal);
-      if (!parsed.pipe) await comment(zip.comment, budget);
+      if (!parsed.pipe && !parsed.quiet) await comment(zip.comment, budget);
       if (!zip.entries.length) {
         await budget.output(`warning [${filtered(archive)}]:  zipfile is empty\n`, true);
         return { exitCode: 1 };
       }
       if (parsed.list) await budget.output("  Length      Date    Time    Name\n---------  ---------- -----   ----\n");
       const rootRaw = parsed.destination === undefined ? context.cwd : vfsPath(context.cwd, parsed.destination);
-      const root = parsed.list || parsed.pipe ? resolvePath(rootRaw) : await extraction.directory(rootRaw, true);
-      if (!parsed.list && !parsed.pipe) answers = new Answers(extraction.source(context.stdin), limits, context.signal);
+      const root = parsed.list || parsed.pipe || parsed.test ? resolvePath(rootRaw) : await extraction.directory(rootRaw, true);
+      if (!parsed.list && !parsed.pipe && !parsed.test) answers = new Answers(extraction.source(context.stdin), limits, context.signal);
       let overwrite: "ask" | "all" | "none" = parsed.overwrite ? "all" : "ask";
       let exitCode = 0;
       let selected = 0;
@@ -139,6 +139,11 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         if (!await selection.matches(entry.name, parsed.pipe)) continue;
         selected++; total += entry.size;
         try {
+          if (parsed.test) {
+            for await (const chunk of payload(entry)) { if (chunk.length) context.signal.throwIfAborted(); }
+            if (!parsed.quiet) await budget.output(`    testing: ${padded(filtered(entry.name))} OK\n`);
+            continue;
+          }
           if (parsed.pipe) {
             for await (const chunk of payload(entry)) await output!.output.write(chunk);
             continue;
@@ -249,6 +254,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           exitCode = 11;
         }
       }
+      if (parsed.test && parsed.quiet < 2 && selected && !badPasswords && !exitCode) await budget.output(`No errors detected in compressed data of ${filtered(archive)}.\n`);
       return { exitCode: badPasswords ? badPasswords === selected ? 82 : 1 : selected ? exitCode : 11 };
     } catch (error) {
       original.signal.throwIfAborted();

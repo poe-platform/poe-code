@@ -102,13 +102,28 @@ export interface ZipPublication {
   readonly bytes?: Uint8Array;
   readonly source?: ByteSource;
   readonly mtimeMs?: number;
+  readonly stagingName?: string;
+  readonly stagingParent?: string;
+  readonly stagingParentStat?: FileStat;
+  readonly validate?: (path: string) => Promise<void>;
 }
 
-export async function publishZip(scope: ZipScope, prepared: ZipPublication): Promise<void> {
+export interface ZipStaging {
+  readonly reservedPath?: string;
+  readonly parent: string;
+  readonly parentStat: FileStat;
+  readonly existing?: FileStat | undefined;
+  readonly bytes?: Uint8Array;
+  readonly source?: ByteSource;
+  readonly mtimeMs?: number;
+}
+
+/** Own a temporary archive through acquisition, writing, consumption and cleanup. */
+export async function stageZip(scope: ZipScope, prepared: ZipStaging, consume: (staging: FileStaging) => Promise<void>): Promise<void> {
   const { fs, signal } = scope.context;
-  const capabilities = await scope.operation(() => fs.capabilitiesFor?.(prepared.output, { signal, create: true }) ?? fs.capabilities);
-  if (capabilities.atomicFileStaging !== true || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) fail("ZIP publication requires atomic owned file staging");
-  if (prepared.source && (capabilities.atomicFileMutation !== true || !fs.writeFileConditional)) fail("ZIP streaming publication requires atomic conditional writes");
+  const capabilities = await scope.operation(() => fs.capabilitiesFor?.(prepared.parent, { signal, create: true }) ?? fs.capabilities);
+  if (capabilities.atomicFileStaging !== true || !fs.createStagedFile || !fs.removeStagedFile) fail("ZIP temporary path requires atomic owned file staging");
+  if (prepared.source && (capabilities.atomicFileMutation !== true || !fs.writeFileConditional)) fail("ZIP temporary path requires atomic conditional writes");
   let staging: FileStaging | undefined;
   let failure: { reason: unknown } | undefined;
   const close = retainFileSystemCleanup(fs, async cleanup => {
@@ -122,7 +137,7 @@ export async function publishZip(scope: ZipScope, prepared: ZipPublication): Pro
       const path = `${prepared.parent === "/" ? "" : prepared.parent}/.zip-${attempt + 1}`;
       checkPath(path, scope.limits);
       checkPath(`${path}/archive.zip`, scope.limits);
-      if (path === prepared.output) continue;
+      if (path === prepared.reservedPath) continue;
       try {
         await scope.operation(async () => {
           staging = await fs.createStagedFile!(path, "archive.zip", { type: "file", data: prepared.bytes ?? new Uint8Array() }, {
@@ -151,11 +166,7 @@ export async function publishZip(scope: ZipScope, prepared: ZipPublication): Pro
       }
     }
     if (prepared.mtimeMs !== undefined && (staging.file.stat.mtimeMs !== prepared.mtimeMs || staging.file.stat.atimeMs !== prepared.mtimeMs)) fail("ZIP staging did not retain archive modification time");
-    const parent = await scope.operation(() => fs.realpath(prepared.parentName, { signal }));
-    if (parent !== prepared.parent) fail("archive parent changed before publication");
-    await scope.operation(() => fs.publishStagedFile!(staging!, prepared.output, {
-      signal, parent: prepared.parentStat, destination: prepared.existing ?? null,
-    }));
+    await consume(staging);
   } catch (error) { failure = { reason: error }; }
   try { await close(); }
   catch (error) {
@@ -163,4 +174,24 @@ export async function publishZip(scope: ZipScope, prepared: ZipPublication): Pro
     throw error;
   }
   if (failure) throw failure.reason;
+}
+
+export async function publishZip(scope: ZipScope, prepared: ZipPublication): Promise<void> {
+  const { fs, signal } = scope.context;
+  const capabilities = await scope.operation(() => fs.capabilitiesFor?.(prepared.output, { signal, create: true }) ?? fs.capabilities);
+  if (capabilities.atomicFileStaging !== true || !fs.publishStagedFile) fail("ZIP publication requires atomic owned file staging");
+  await stageZip(scope, {
+    ...prepared, reservedPath: prepared.output, parent: prepared.stagingParent ?? prepared.parent, parentStat: prepared.stagingParentStat ?? prepared.parentStat,
+  }, async staging => {
+    if (prepared.validate) await prepared.validate(staging.file.path);
+    if (prepared.stagingName !== undefined) {
+      const current = await scope.operation(() => fs.realpath(prepared.stagingName!, { signal }));
+      if (current !== prepared.stagingParent) fail("ZIP temporary path changed before publication");
+    }
+    const parent = await scope.operation(() => fs.realpath(prepared.parentName, { signal }));
+    if (parent !== prepared.parent) fail("archive parent changed before publication");
+    await scope.operation(() => fs.publishStagedFile!(staging, prepared.output, {
+      signal, parent: prepared.parentStat, destination: prepared.existing ?? null,
+    }));
+  });
 }

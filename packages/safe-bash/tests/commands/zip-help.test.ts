@@ -45,7 +45,7 @@ test("zip treats help-looking arguments after literal terminator as filenames", 
   assert.equal(archive.entries[0]!.name, "-h");
 });
 
-for (const option of ["lf", "TT", "mm"]) {
+for (const option of ["mm"]) {
   for (const prefix of ["", "q"]) {
     test(`zip refuses reserved -${prefix}${option} without touching archive, sources or stdin`, async () => {
       const fs = await fixture();
@@ -65,7 +65,7 @@ for (const option of ["lf", "TT", "mm"]) {
   }
 }
 
-for (const option of ["lf", "TT", "mm"]) {
+for (const option of ["mm"]) {
   test(`zip reserved -${option} honors option boundaries, environment defaults and help order`, async () => {
     for (const args of [
       [`-${option}-`, "sample.zip", "binary"],

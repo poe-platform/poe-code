@@ -69,10 +69,27 @@ Archive operations
   -O output.zip preserves the input archive and publishes a separate output.
   -m removes sources only after successful publication or stdout completion.
   Removal needs atomic filesystem support; excluded/nonempty directories remain.
-  -T checks integrity before replacement. With stdout output it is ignored.
+  -DF writes size/time differences and new members to required separate -O output.
+  -g grows by retaining validated local records when only adding members;
+  replacements/deletions rebuild. Publication always uses owned atomic staging.
+  -b directory selects the VFS staging directory, also spooling stdout archives.
+  Cross-provider publication must be supported by the filesystem; no host copy.
+  -J removes a prefix only after validating the complete embedded ZIP and CRCs.
+  -T checks integrity with registered virtual unzip before replacement.
+  -TT "command args {}" selects a registered virtual test command; {} is the
+  staged path, or the path is appended. Quotes/escapes form literal arguments;
+  shell operators and substitutions are refused. No host process is spawned.
+  With stdout output -T is ignored.
   -z reads an archive comment; -c reads selected member comments in archive order.
   -X strips optional metadata; -X- preserves available metadata.
   -o sets the archive timestamp to the newest resulting member timestamp.
+
+Logging
+  -lf path writes a VFS log (a missing extension becomes .log).
+  -la appends; -li includes progress in addition to warnings/errors.
+  Logs require atomic conditional byte writes and cannot alias selected inputs.
+  Logs are bounded by maxTextBytes; supplied password bytes are redacted.
+  Completed log/publication effects remain if a later write fails.
 
 Compression and format
   -Z selects store, deflate, or bzip2; method names accept unique prefixes.

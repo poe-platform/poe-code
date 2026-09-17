@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createHash } from "node:crypto";
 import { zipCrypto, decryptZipPayload, ZipHostFailure } from "../../src/commands/archive/zip/crypto.js";
-import { collectBytes, toByteSource, createCommandArguments, type CommandContext } from "../../src/contracts/index.js";
+import { collectBytes, CommandRegistry, toByteSource, createCommandArguments, type CommandContext } from "../../src/contracts/index.js";
 import { shellValueFromBytes } from "../../src/contracts/value.js";
 import { makeZipEntry, writeZipArchive, readZipArchive, decodeZipEntry, streamZipArchive } from "../../src/commands/archive/zip-format.js";
 import { settings, type ArchiveCommandsOptions } from "../../src/commands/archive/internal.js";
@@ -172,7 +172,14 @@ async function command(command: "zip" | "unzip", args: readonly string[], option
   const fs = overrides.fs ?? createMemoryFileSystem();
   const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
   const context: CommandContext = { command, args, cwd: "/", env: {}, fs, signal: new AbortController().signal, stdin: toByteSource(new Uint8Array()), stdout: { async write(bytes) { stdout.push(new Uint8Array(bytes)); } }, stderr: { async write(bytes) { stderr.push(new Uint8Array(bytes)); } }, ...overrides };
-  const result = await (command === "zip" ? createZipCommand(options) : createUnzipCommand(options)).execute(context);
+  const registry = new CommandRegistry([createUnzipCommand(options)]);
+  const registered: CommandContext = { ...context, invoke: context.invoke ?? (async (name, args, invocation = {}) => {
+    const definition = registry.get(name);
+    if (!definition) return { exitCode: 127 };
+    const { argumentValues: ignoredValues, ...base } = context;
+    return definition.execute({ ...base, ...invocation, signal: invocation.signal ?? context.signal, command: name, args });
+  }) };
+  const result = await (command === "zip" ? createZipCommand(options) : createUnzipCommand(options)).execute(registered);
   return { ...result, fs, stdout: Buffer.concat(stdout), stderr: Buffer.concat(stderr) };
 }
 

@@ -2708,3 +2708,289 @@ terminal no-echo parity, commit, push or release proof is claimed. The existing
 CLI no-echo capability failure and all preceding exclusions remain applicable.
 Only these tests and this evidence section were authored in this pass; SafeJS,
 README and runtime dependencies were untouched.
+
+
+## Remaining operation, logging and virtual testing qualification — 2026-09-16
+
+Base: main `84678cd61a25c33e338a6a146e7c2ce17e2b2b37`. These are live,
+uncommitted source/test controls, bound to the hashes below; not a frozen Git
+revision, delivered commit or release. The unrelated edit in
+`safe-bash-zip-remaining-features.md` was preserved. SafeJS, README, root CLI/SDK
+code and runtime dependencies were not edited. Shell argv uses the existing
+shared CLI/SDK command implementation without new configuration or dependencies.
+
+### Validated defects and failing controls
+
+The initial memory-only suite failed **8/8** positive probes at parser rejection
+for short/long difference and grow, temporary path, junk-SFX, logging and custom
+testing. Subsequent independent native Zip 3.0 probes established difference
+size/time selection, delete/copy refusal, unchanged empty output, filesync's
+current/no-output rule, grow replacement/deletion rebuild, and difference move
+eligibility. A failing move control reproduced removal of an unchanged source
+absent from the difference output. That source now remains.
+
+Other failed-before-fixed controls: unchanged `-DF -u/-f` returned 12 instead of
+publishing empty output; default `-T` did not dispatch a virtual command; virtual
+unzip rejected `-tqq`; grow with ZIP64 changes produced central/local mismatch;
+malformed overlapping grow input retained **86 bytes** before rejection;
+registered stdout-spool cleanup settled before delayed owned scratch retirement;
+quiet log info/warnings were missing; recursive selection archived its own log.
+Native log opening failure returned 16, now retained; write/limit failures return
+11 with bounded diagnostics rather than failing again through the failed sink.
+
+The first independent cross-read attempt accidentally reused the grown base for
+difference generation and thus expected a member from a correctly empty delta:
+that was an oracle-fixture error. The corrected separate-fixture cohort passed
+Python **36/36**, but BSD tar failed **4/36**, all buffered BZIP2 with descriptors.
+The local known compressed span was zero, reproduced by a fast field-level test.
+Buffered classic BZIP2 descriptor records now retain their known CRC/size spans;
+unknown live source records remain unchanged. Retention of grow records now runs
+only after full nonoverlap/coverage proof. These initial cohorts are failures,
+not passes or a claim of an external-tool defect.
+
+### Implemented behavior and controls
+
+- Difference requires a named base and separate output, selects new members and
+  size/DOS-time differences, applies update/freshen freshness, rejects delete/copy,
+  and preserves comments/base bytes. Filesync-current publishes nothing. Empty
+  differences are valid archives. Move removes only represented sources.
+- Grow additions retain owned validated local bytes, including descriptors and
+  ZIP64. Replacement/deletion/explicit format changes rebuild. Both paths use
+  conditional owned staged replacement; no in-place append, host fallback or
+  damaged-existing-archive success is introduced. Duplicate untouched archive
+  members remain; conflicting flattened source names fail.
+- Temporary paths are authorized VFS directories with known identity and truthful
+  per-path staging/mutation capabilities. Named create/update/freshen/copy/delete/
+  filesync/separate output use them. Stdout is spooled there and owned scratch is
+  cleaned after emission or failure. Registered cleanup waits through delayed
+  retirement. No provider-specific branching or host copy was added.
+- Junk-SFX accepts a complete adjusted/unadjusted embedded archive only after
+  local/central/span/decoded-size/CRC validation, then rewrites without the prefix.
+  It never executes bytes. Invalid CRC, fake signatures, trailing bytes, archive
+  limits and aliasing refuse publication. Ordinary parsing remains strict.
+- Logs use VFS conditional byte writes. Overwrite/append/info, quiet screen output
+  with retained eligible log messages, extension handling, aliases/recursive source
+  conflicts, raw password redaction, exact/one-byte-short append budgets and
+  cooperative write cancellation are controlled. Persistent completed log bytes
+  are intentional effects; a late log failure cannot undo prior publication.
+- Default test dispatch is registered virtual `unzip -tqq`; custom test dispatch
+  uses literal argv, explicit quote/escape grammar and `{}` substitution (or an
+  appended staged path). No host unzip process is spawned. Default raw password
+  argv identity is preserved. Status, exception, child-output limits, preallocation
+  argv limits and cancellation prevent publication and source removal. Standalone
+  unchanged tests avoid rewriting; filesync-current/stdout preserve skip rules.
+
+Final focused controls: **111/111**, including positive, negative, exact/neighbor
+byte boundaries, pre-abort identity, active cancellation, publication refusal,
+owned retirement, comments, aliases, duplicate names, separate output, registered
+Shell dispatch and neighboring move/encryption/filesync controls. Full selected
+ZIP/unzip command and plugin controls: **1,654/1,654**, zero failures, cancellations,
+skips or TODOs. Discovery/ownership runner: **109/109**. Final scoped ESLint and
+`git diff --check` pass. Selected maintained workspace build
+`npm run build:workspaces -- --workspace=virtual-bash` passes its declaration-derived
+six-workspace closure. `npm run typecheck --workspace=virtual-bash` passed source/
+tests, 26 current consumer groups and expected negative consumers; the final local
+cleanup change and new tests additionally receive the maintained source/tests
+compiler check. These are scoped checks, not a full repository npm test/lint gate.
+
+Final-source independent reads: **36/36 Python**, **36/36 BSD tar**, four operations
+(grow, difference, temporary stdout, junk-SFX) × three methods × classic/forced
+ZIP64/descriptor controls. Exact `NEW payload` bytes were compared. Archives and
+oracle streams stayed in memory. Oracles: Python **3.9.6**, BSD tar **3.5.3** /
+libarchive **3.7.4**, zlib **1.2.12**, liblzma **5.4.3**, bz2lib **1.0.8**. The local
+Darwin Info-ZIP Zip 3.0 cannot write BZIP2 (status 19); that unavailable native
+writer cell is not a pass. Native operation/log fixture directories were isolated
+and immediately removed; no native tool entered product command paths.
+
+Visible QA: ran `npm run screenshot-poe-code -- -o /dev/stdout -- bash -c 'zip -h2'`.
+Its uncached predev workspace build succeeded, but PNG publication failed because
+the renderer requires an adjacent atomic temporary file under `/dev`. Absolute
+`/out` is read-only on this host. Consequently the same terminal renderer consumed
+actual built CLI output in memory; the operations/logging section was rasterized
+and visually inspected without persisting generated evidence. Text alignment,
+option labels and complete virtual-command diagnostics are legible. This is
+in-memory visual proof; there is no saved screenshot artifact or successful
+screenshot-file publication claim.
+
+### Explicit exclusions and ownership limits
+
+This pass qualifies the stated operation/message profile, not every Unix ZIP
+feature or deployed backend. It does not implement `-A`, `-F/-FF`, split-volume
+features, authenticated encryption or platform metadata expansion. Prefix scans
+are bounded by work/archive budgets and `min(64,maxMembers)` candidates. Grow
+updates and temporary stdout retain the existing buffered source profiles and
+can hold separately bounded input, member payload and original local-record
+copies; no constant-payload-retention/RSS claim is made. Cross-provider publication
+requires the actual filesystem's owned staging support; otherwise it fails and
+cleans owned scratch. No real/S3/WebDAV deployment is certified by memory fixtures.
+
+Native wall-clock log banners, argv dumps and log-summary byte formatting are
+excluded; logs contain bounded redacted command messages. Virtual child output
+is bounded and discarded to prevent raw child-error secret disclosure. Supported
+custom syntax is literal argv, not a host shell. No new no-echo/terminal capability
+or arbitrary process command support is inferred.
+
+Trusted registered commands must read staged data without mutating it. An
+external stage mutation invalidates publication and cleanup identity: existing
+archives remain intact, but changed scratch bytes are preserved and cleanup
+failure is reported, rather than deleting someone else's changes. The negative
+control verifies this explicitly. Cancellation cannot undo completed effects or
+preempt uncooperative host callbacks. Product contracts are updated in
+`packages/safe-bash/src/contracts/zip.md`; README remains untouched.
+
+No local commit, push, remote-main verification, issue closure or release was
+performed or claimed. This task had no Git delivery assignment.
+
+### Final live input SHA-256 identities
+
+Paths are relative to `packages/safe-bash`.
+
+| Input | SHA-256 |
+| --- | --- |
+| `src/commands/archive/zip.ts` | `ee9100bf77d4136deeb1c45515146ac46b2909d7248aa0968c4034c3e1a1fb47` |
+| `src/commands/archive/zip-format.ts` | `838e6df4af899d1aa032716df1c9ee16f131c67648735c1109500fea91fde1f6` |
+| `src/commands/archive/unzip.ts` | `17205538f2565ec4fdcdf77dc2eea46c694031d25985cece4b8b5b6a858d7fa6` |
+| `src/commands/archive/unzip/arguments.ts` | `81c19d239c9404b1a47d2d5e9bdc25f9f8966d320c2315798155b0021190bfa0` |
+| `src/commands/archive/zip/grow.ts` | `ec9d17075f71eddb0003871b2008c0c7d19ae35ea0a46a3cfe18164bd114c402` |
+| `src/commands/archive/zip/log.ts` | `1a9dd5a8b17e4581148ced7a215309768b29f1823202297c9e11fcad346358c9` |
+| `src/commands/archive/zip/sfx.ts` | `3bfd4acc929de4deff156749034a42ff1d0f256738da75645b1a80798a148920` |
+| `src/commands/archive/zip/test-command.ts` | `9cf0b91d95e0009d36547387841daa304ea51582bdd47e9a81ccac1377a6dd31` |
+| `src/commands/archive/zip/safety.ts` | `2de2f7cfb690b116e76ef4e9c4f8c5ce78c88f7fc09e835d318c5e70344e8789` |
+| `src/commands/archive/zip/options.ts` | `b9a53928e46ec9c5ae052339d8e4a187ab2686ba9a833403b49463071fc98fb7` |
+| `src/commands/archive/zip/help.ts` | `67cebd83b7a2b9e6ff3d8adedc228d3a1a6b46955e3a40e8c2da79e0f3062d35` |
+| `src/contracts/zip.md` | `c8b09774cee6118113ac6169e99fe81162437bf43ed422ad149eee8461e27ef8` |
+| `tests/commands/zip-remaining-operations.test.ts` | `c66c969520893131ad7e963a303eb1b0690ced369f0eb0e49c6b950d744a6f5f` |
+| `tests/commands/zip-standard-flags.helpers.ts` | `051afb50af88417243b6ff20d637c1f6f8f8e25dadbf4695b50332027cc1f118` |
+| `tests/commands/zip-crypto.test.ts` | `5b0d10c2998e4a32ad8e68dbd60142882b2bde4624a02de5a585630e273a0035` |
+| `tests/commands/zip-help.test.ts` | `437f88092de9bb7b4743cba344fd57aaf4d20738c672beb347631b84c429611b` |
+| `scripts/integration-inputs.test.mjs` | `b0c8cebb056bfbdb2aaabf8919e5f31992f851f55cea543011e30bb239a4aa03` |
+
+### Repeat-request revalidation — 2026-09-16
+
+The implementation above was already present as uncommitted edits when this
+request was revalidated on main `84678cd61a25c33e338a6a146e7c2ce17e2b2b37`.
+All **17/17** listed SHA-256 identities match the current files. The stated
+missing-feature gap therefore does not reproduce against this working tree;
+no additional product changes or duplicate tests were justified. Existing edits,
+including the separate plan edit, were preserved.
+
+Fresh execution of `zip-remaining-operations.test.ts`, `zip-move.test.ts`,
+`zip-filesync.test.ts` and `zip-atomic-ownership.test.ts` passed **158/158**
+controls, with zero failures, cancellations, skips or TODOs. Separately,
+`zip-crypto.test.ts`, `zip-help.test.ts`, `zip-comments.test.ts` and
+`zip-entry-comments.test.ts` passed, as did the integration-input ownership
+runner. Scoped ESLint covering zip.ts, grow/log/SFX/test-command modules and
+the remaining-operation tests passed; `git diff --check` passed.
+
+This repeat check adds no new native-oracle, screenshot, build, typecheck,
+deployed-provider or full-repository gate claim. The prior qualification and
+explicit exclusions remain applicable to the authenticated live inputs.
+No README, SafeJS, runtime dependency, product source or test was edited in this
+repeat pass. No commit, push or release was performed.
+
+### Additional current-tree revalidation — 2026-09-16
+
+Revalidated on `main` at `84678cd61a25c33e338a6a146e7c2ce17e2b2b37`.
+All 17 final live input SHA-256 identities above still match. The requested
+implementation and its controls were already present at task entry; the stated
+missing-feature gap was not reproduced, so no product correction or refactor
+was made. All preexisting edits were preserved.
+
+Fresh concurrency-1 memory controls passed **158/158** across remaining
+operations, move, filesync and atomic ownership. Neighboring crypto, help,
+archive/entry comments and integration-input discovery controls passed
+**364/364**. Both runs reported zero failures, cancellations, skips or TODOs.
+An initial invocation used the unavailable Node reporter `summary` and failed
+before test execution; it is excluded from passing evidence. The subsequent
+runs used the default TAP reporter. `git diff --check` passed.
+
+Only this evidence addition was authored. No new native-oracle, visual, build,
+typecheck, lint, deployed-provider or repository-wide qualification is claimed;
+the earlier revision-matching qualification and all explicit exclusions remain
+applicable. README, SafeJS, runtime dependencies, product source and tests were
+untouched. No commit, push, remote-main delivery or release was performed.
+
+### User edge-case QA and source-log preservation — 2026-09-16
+
+Working tree on main `84678cd61a25c33e338a6a146e7c2ce17e2b2b37`, with the
+previous remaining-feature implementation already present as uncommitted edits.
+The feature absence did not reproduce, but two memory-only source-preservation
+controls failed before correction:
+
+- An existing `run.log` selected by `zip -lf run -R sample.zip '*.log'`
+  was overwritten with its own alias-refusal diagnostic despite status 16.
+- With `maxMembers: 2`, recursive selection failed before visiting `run.log`;
+  its original contents were overwritten with the directory-limit diagnostic.
+
+Log opening now validates and reserves a new destination without truncating an
+existing file. Bounded, redacted messages retain owned bytes until source
+selection completes. Only successful disjoint selection permits overwrite or
+append. Alias refusal or incomplete selection reports to the screen, preserving
+existing log/source bytes. Deferred opening failure retains status 16 and
+prevents archive publication and move-source removal; subsequent log writes keep
+status 11. The package contract records this safety behavior. Completed log writes
+and archive publication remain intentional effects under the preceding contract.
+
+New controls cover overwrite, append, quiet, debug and info alias refusals,
+selection-budget refusal, an explicitly excluded log, and deferred opening
+failure. Existing exact/short byte boundaries, active cancellation, pre-abort,
+publication failures, redaction and owned cleanup controls also pass. A separate
+review added 17 memory-only virtual test-command controls for quoting, empty
+arguments, tabs, embedded/repeated placeholders, rejected syntax and combined
+stdout/stderr byte boundaries; it found no new test-command product defect.
+Its exact test path is registered in integration-input discovery.
+
+Final direct Node/tsx concurrency-1 execution of all `zip*.test.ts` and
+`unzip.test.ts` passed **1665/1665**. A separate actual Shell/registry workflow
+returned status 16, emitted the alias diagnostic on stderr and preserved the
+existing log bytes. The maintained selected build route
+`npm run build:workspaces -- --workspace=virtual-bash` passed (six declared
+dependency-closure builds). `git diff --check` passed. The maintained
+`npm run typecheck --workspace=virtual-bash` passed source/tests and all 26
+current consumer groups; expected negative type controls returned 2. This is
+compile-only evidence, not runtime/service certification. Maintained guarded
+`npm run lint:eslint` completed with exit 0, zero errors and four warnings
+(docx operation-types, docx table-model and two zip-review unused-argument
+warnings). It reported complete traversal of 15,499 configured subjects. This
+live lint invocation began before the final small source corrections and does
+not provide a per-subject final-source hash manifest. An earlier redundant
+reviewer lint run was intentionally canceled (143) and is excluded from passing
+evidence; no guard failure or lint errors were observed in the completed run.
+
+This QA authored only the log preservation fix in zip.ts/log.ts, focused tests,
+the exact discovery entry, the ZIP contract and this evidence addition. All
+preexisting edits, including the separate plan document, were preserved. No
+README, SafeJS or runtime dependency was changed. No new native-oracle,
+screenshot, deployed-provider or whole-repository test certification is claimed.
+The preceding interoperability evidence applies to its stated inputs; the
+current log changes are qualified by the fresh controls above. No commit, push,
+remote-main delivery or release was performed.
+
+Final live SHA-256 identities (paths relative to `packages/safe-bash`):
+
+| Input | SHA-256 |
+| --- | --- |
+| `src/commands/archive/zip.ts` | `193d42f8c8bc293f9090fbf02c53cf160b95e7c0193aab4c938ab3bf02a22a6e` |
+| `src/commands/archive/zip/log.ts` | `173d7412f4cbbe2baf129397a28e2c6a90d4f7530b1ce50e1f45da42b2731838` |
+| `src/contracts/zip.md` | `9139f1f36a168a1d695c1837ffa195b513bd3336e04cfac23f7781044b0a9d24` |
+| `tests/commands/zip-remaining-operations.test.ts` | `c9bc84d1fb5019a9c366059aa11d5f0f335bf32117edcb7c1e325b35ba49ffef` |
+| `tests/commands/zip-test-command-review.test.ts` | `1b80d156c6104cacc8c24164c66f8ae27e1f2cca5a2d512169c47df6a003d414` |
+| `scripts/integration-inputs.test.mjs` | `9b94571a9bcc70b8f64076a7c54f9361a385cced8225207d9246bfec798a6218` |
+
+### Commit qualification — 2026-09-16
+
+Fresh checks of the combined ZIP archive-operation changes passed:
+
+- All ZIP/unzip command tests: 1,665 passed, zero failures, skips or cancellations.
+- Maintained test-runner checks: 522 passed, zero failures, skips or cancellations.
+- Selected workspace build with its six declared dependency builds.
+- Maintained package typecheck, including source/tests, consumers and expected
+  negative controls.
+- Maintained repository ESLint: complete traversal, zero errors, four warnings.
+- Short and extended ZIP help screenshots were inspected; `git diff --check` passed.
+
+The broader 1,174-file package runtime suite was intentionally stopped after
+the focused ZIP checks passed; it is not claimed as passing qualification.
+No repository-wide test, remote-main delivery or release is claimed. Temporary
+check logs and screenshots were kept in the ignored worktree `out` directory
+because the host `/out` root is read-only, and removed after inspection.

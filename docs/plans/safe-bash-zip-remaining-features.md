@@ -76,7 +76,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
   - id: zip-archive-operations
     title: "Complete remaining archive operation switches"
     prompt: |
@@ -84,11 +84,11 @@ tasks:
 
       From the complete matrix implement validated -DF/difference-archive, -g/grow, -b/temp-path and -J/junk-sfx semantics in zip.ts and focused zip modules. Cover create/update/freshen/copy/delete/filesync combinations, empty selections, comments, duplicate names, aliases, separate output, cancellation and publication failures. Grow must have native-visible semantics without bypassing validated staged replacement or leaving damaged existing archives. Temp paths stay inside authorized VFS and require truthful provider capabilities. Junk-SFX removes a validated prefix; it must not blindly strip arbitrary bytes. Implement log file path/append/info with VFS byte I/O, sink limits, ownership, failure/status and secret redaction. Implement -T/-TT test-command behavior only through registered virtual commands and explicit supported command parsing; never spawn the host unzip command. Preserve already delivered -m conditional source removal.
     status:
-      reproduce: open
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      reproduce: done
+      implement: done
+      refactor: done
+      test: done
+      commit: done
   - id: zip-fifo-and-names
     title: "Complete source and filename compatibility switches"
     prompt: |

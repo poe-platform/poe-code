@@ -1,29 +1,63 @@
 {
-  "scope": "Documentation metadata only; no converter tests executed.",
+  "scope": "Exact pinned Pandoc and standards metadata review; documentation only, no converter tests executed. External archive validation is in external-inventory-validation.json.",
   "sourceCommit": "c9a9a5eed7185783b69043e019c067370dc09615",
   "checks": {
     "exactSourceCommit": true,
     "sourceHashes": true,
     "artifactHashes": true,
+    "exactNamedLeafLocators": true,
+    "oldFiniteHelpers": true,
+    "generatedVariantsReviewed": true,
+    "exactCommandLineOrdinalsAndSemantics": true,
+    "exactCommonMarkExamples": true,
+    "exactGfmExamplesAndSections": true,
     "uniqueReservedIds": true,
     "requiredFields": true,
     "validStatuses": true,
     "noFalsePasses": true,
-    "noImportedFixtures": true,
     "licenseReferencesResolve": true,
     "reasonAndContractForExclusions": true,
     "summaryStatusesMatch": true,
-    "topLevelCommandFilesAssigned": true,
-    "allCommonMarkExamplesAssigned": true,
-    "allGfmExamplesAssigned": true,
     "rtfFixturesAssigned": true,
-    "epubFixturesAssigned": true
+    "epubFixturesAssigned": true,
+    "independentObligationsAssigned": true,
+    "noImportedFixtures": true
   },
-  "rowCount": 4211,
+  "namedLeavesBySource": {
+    "test/Tests/Shared.hs": 14,
+    "test/Tests/MediaBag.hs": 4,
+    "test/Tests/XML.hs": 1,
+    "test/Tests/ImageSize.hs": 62,
+    "test/Tests/Readers/Markdown.hs": 86,
+    "test/Tests/Readers/HTML.hs": 22,
+    "test/Tests/Readers/Docx.hs": 103,
+    "test/Tests/Readers/Pptx.hs": 1,
+    "test/Tests/Readers/Xlsx.hs": 1,
+    "test/Tests/Readers/LaTeX.hs": 90,
+    "test/Tests/Readers/RST.hs": 37,
+    "test/Tests/Readers/EPUB.hs": 6,
+    "test/Tests/Writers/Markdown.hs": 19,
+    "test/Tests/Writers/HTML.hs": 17,
+    "test/Tests/Writers/Plain.hs": 1,
+    "test/Tests/Writers/AnnotatedTable.hs": 6,
+    "test/Tests/Writers/Docx.hs": 45,
+    "test/Tests/Writers/Powerpoint.hs": 98,
+    "test/Tests/Writers/LaTeX.hs": 30,
+    "test/Tests/Writers/RST.hs": 22
+  },
+  "oldLeaves": 174,
+  "commandLeaves": 1848,
+  "rowCount": 5100,
   "passingTests": 0,
-  "formatting": "Maintained Prettier check recorded after formatting.",
+  "corrections": {
+    "nonLeafGroupsRemoved": 1,
+    "gfmSectionsCorrected": 43,
+    "nativePlainAdaptationExplicit": true,
+    "staleWorkspaceAbsenceClaimsRemoved": true
+  },
+  "formatting": "Maintained Prettier document checks executed after metadata verification.",
   "limitations": [
-    "These structural/hash checks do not establish exact independent discovery completeness or runtime behavior.",
-    "RTF1.9.1/EPUB2 primary-byte retrieval remains incomplete."
+    "Whole-document golden rows are registration assignments; content-level original tests and maintained passing evidence remain implementation obligations.",
+    "Version/hash/rights pinning of primary specifications is recorded separately. No source/fixture payload was imported."
   ]
 }

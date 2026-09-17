@@ -39,12 +39,27 @@ converter implementation and runtime QA are separate tasks.
    task open until completeness/specification gaps close; never stage unrelated
    edits, push, or release for this assignment.
 
-Current outcome: initial inventory written; structural/hash validation and
-formatting recorded in docs/pandoc/inventory-validation.json. Exact independent
-completeness review and missing primary-document retrieval remain pending.
+Current outcome: exact selected-suite/command/dependency registration review
+completed; structural/hash validation is recorded in
+docs/pandoc/inventory-validation.json. Primary-source verification is recorded
+separately; no original converter tests are inferred from metadata checks.
 
 External dependency review: all published suite registrations in commonmark 0.3
 and commonmark-extensions 0.2.7.1 are assigned. commonmark-pandoc 0.3 declares no
 test suite. Archive hashes and source hashes bind research only; zero passing
 converter tests are inferred. Exact Pandoc completeness and primary-document
 retrieval are handled separately.
+
+Selected Pandoc review: compare named leaf label/line pairs after excluding helper
+signatures and group labels. Review givesTOC, EPUB testCase wrapping, the 18
+collapse map elements, 174 expanded Old registrations and 98 PowerPoint leaves.
+Match every command opening line and ordinal with fence length/indentation rules;
+check all body terminators and continuation/stderr/status semantics. Keep all
+native-only negative/adaptation cases planned and retain contract justifications
+for exclusions. Inventory completion is separate from runtime acceptance.
+
+Standards section review: ignore headings while inside an example body. Match
+all CommonMark JSON example ordinals/sections/lines and GFM text example
+ordinals/sections/lines exactly, including extension/disabled opening annotations.
+Correct reserved locators without importing example text or claiming additional
+passing evidence.

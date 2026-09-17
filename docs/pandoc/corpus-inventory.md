@@ -1,11 +1,11 @@
 # Pinned Pandoc corpus inventory
 
-This is the `map-upstream-corpus` task only. Conversion code and the safe-bash
-adapter belong to subsequent tasks. The research checkout is detached at
+This is the `map-upstream-corpus` task only. Conversion code and the thin safe-bash
+adapter are separate implementation tasks; this inventory does not modify them. The research checkout is detached at
 `c9a9a5eed7185783b69043e019c067370dc09615` outside the worktree.
 
 [upstream-cases.json](upstream-cases.json) assigns reserved original test IDs to
-5,101 rows: 5,088 planned and 13 not-applicable. There are **zero passing tests**.
+5,100 rows: 5,087 planned and 13 not-applicable. There are **zero passing tests**.
 These IDs identify future original cases, not existing test functions. Native
 expectations are research targets; locally admitted semantics, typed rejection,
 and strict/lossy behavior are governed by [contract.md](contract.md).
@@ -96,10 +96,17 @@ and legacy EPUB2 URLs returned 403; their primary bytes remain unverified.
 ## Acceptance status
 
 The metadata assignment is a broad initial inventory, not whole-corpus runtime
-acceptance. Completeness requires a second declaration/discovery review,
-particularly generated helper registrations and command parsing; that review is
-still pending. RTF and EPUB2 primary-document retrieval remains incomplete.
-The plan task stays open. Only implemented original tests with maintained run
+acceptance. The second declaration/discovery review now matches every selected
+leaf registration, finite helper expansion and exact command opening-line/ordinal.
+It removed one falsely discovered Markdown writer group label; the group’s twelve
+children remain assigned. It also corrected 43 GFM section labels that had
+incorrectly treated headings inside fixture bodies as specification sections.
+Extension/disabled example annotations are now explicit. These corrections
+change reserved IDs only; no implemented tests were remapped. Native plain uppercase behavior is explicitly adapted to
+the contract’s literal-content projection. Unmapped cases remain planned even
+though the converter workspace now exists. RTF and EPUB2 primary-document retrieval remains incomplete.
+Primary-source verification is recorded separately; runtime contract acceptance
+remains open. Only implemented original tests with maintained run
 evidence may transition rows to passing. Planned rejections must identify the
 specific contract behavior in the eventual test; native-only expectations must
 not be converted to passes merely by skipping them.

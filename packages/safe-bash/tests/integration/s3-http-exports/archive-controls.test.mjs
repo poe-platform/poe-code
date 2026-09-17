@@ -19,6 +19,15 @@ import * as verifier from "./verify.mjs";
 const authority = fileURLToPath(new URL("../../../", import.meta.url));
 const boundaries = loadBoundaries(authority);
 
+test("committed Pandoc build metadata is authenticated with the source archive", () => {
+  const candidate = inspectCommittedCandidate(resolve(authority, "../.."), "HEAD", resolve(authority, "../../out"));
+  for (const name of ["pandoc", "pdf"]) {
+    const path = `packages/${name}/package.json`;
+    assert.ok(candidate.blobReads.includes(path), `missing committed build metadata: ${path}`);
+    assert.equal(JSON.parse(candidate.files.get(path)).name, `@poe-code/${name}`);
+  }
+});
+
 function batchFixture(contents = [Buffer.from("first"), Buffer.from("later")], algorithm = "sha1") {
   const entries = contents.map((bytes, index) => ({ path: `src/tab\tλ-${index}.ts`, oid: createHash(algorithm).update(`blob ${bytes.length}\0`).update(bytes).digest("hex"), maximum: 16 * 1024 * 1024 }));
   const objects = new Map(entries.map((entry, index) => [entry.oid, contents[index]]));
@@ -1247,6 +1256,8 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     manifest.exports = Object.fromEntries(Object.entries(manifest.exports).filter(([path]) => [".", "./fs/s3", "./fs/s3/http"].includes(path)));
     // This synthetic S3 fixture has no Playwright sources or public peer entries.
     delete manifest.devDependencies["@poe-code/safe-playwright"];
+    // This synthetic S3 fixture has no Pandoc sources or declaration dependency.
+    delete manifest.devDependencies["@poe-code/pandoc"];
     const root = { name: "poe-code", version: "0.0.0-synthetic", type: "module", private: true, workspaces: ["packages/*"], devDependencies: { "@poe-platform/safe-bash": "*", "poe-code": "file:." }, exports: Object.fromEntries(Object.entries(manifest.exports).map(([path, conditions]) => [path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`, distChecks.mirrorArchiveExportTargets(conditions)])) };
     root.exports["./safe-fs"] = { types: "./packages/safe-fs/dist/index.d.ts", import: "./packages/safe-js/dist/safe-fs.js" };
     const marker = join(directory, "unexpected-lifecycle");

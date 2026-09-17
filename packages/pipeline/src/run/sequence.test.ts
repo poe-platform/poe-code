@@ -2,6 +2,7 @@ import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
 import { createRunQueue } from "@poe-code/agent-harness-tools";
 import { runPipelineSequence } from "./sequence.js";
+import { runPipeline } from "./pipeline.js";
 import type { AgentRunInput, PipelineFileSystem } from "../types.js";
 
 const content = "---\nkind: pipeline\nversion: 1\nsetup: null\nteardown: null\ntasks:\n  - id: task\n    title: Implement plan\n    prompt: Implement this plan\n    status: open\n---\n";
@@ -15,6 +16,18 @@ function options() {
 }
 
 describe("pipeline sequences with live follow-ups", () => {
+  it("references the executed plan path when the host maps it into a worktree", async () => {
+    const runAgent = vi.fn(async () => ({ stdout: "Done", stderr: "", exitCode: 0 }));
+    const result = await runPipelineSequence({
+      ...options(), plans: ["/source/first.md"], afterEachPlan: ["Review"], runAgent,
+      runPlan: (input) => runPipeline({ ...input, plan: "/repo/first.md" })
+    });
+    expect(runAgent).toHaveBeenLastCalledWith(expect.objectContaining({
+      prompt: "Follow-up after completing /repo/first.md:\n\nReview"
+    }));
+    expect(result.messages[0]?.planPath).toBe("/source/first.md");
+  });
+
   it("executes queued messages through the same agent and model before advancing plans", async () => {
     const queue = createRunQueue({ plans: ["first.md", "second.md"], cwd: "/repo" });
     queue.enqueueMessage("Review first plan");

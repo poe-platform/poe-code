@@ -65,6 +65,8 @@ describe("SDK pipeline sequences", () => {
     expect(result.plans.map((item) => item.planPath)).toEqual(["/worktree/one.md", "/worktree/two.md"]);
     expect(calls).toHaveLength(4);
     expect(calls.every((input) => input.cwd === "/worktree" && input.signal === controller.signal && input.model === "chosen-model")).toBe(true);
+    expect(calls[1]?.prompt).toBe("Follow-up after completing /worktree/one.md:\n\nReview");
+    expect(calls[3]?.prompt).toBe("Follow-up after completing /worktree/two.md:\n\nReview");
     expect(await options.fs.readFile("/worktree/two.md", "utf8")).toContain("status: done");
   });
 

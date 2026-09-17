@@ -81,7 +81,7 @@ export async function runExperimentSequence(options: ExperimentSequenceOptions):
         if (!lastInput) throw new Error("The experiment plan did not resolve an agent for its queued follow-up.");
         const result = await runAgent({
           ...lastInput,
-          prompt: `Follow-up after completing ${plan.path}:\n\n${item.text}`,
+          prompt: `Follow-up after completing ${plans.at(-1)?.docPath ?? plan.path}:\n\n${item.text}`,
           logFileName: makeRunLogFileName(`${lastInput.agent}-${item.id}`)
         });
         messages.push({ text: item.text, planPath: plan.path, result });

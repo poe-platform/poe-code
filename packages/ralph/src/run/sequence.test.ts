@@ -2,6 +2,7 @@ import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
 import { createRunQueue } from "@poe-code/agent-harness-tools";
 import { runRalphSequence } from "./sequence.js";
+import { runRalph } from "./ralph.js";
 import type { AgentRunInput, RalphFileSystem } from "../types.js";
 
 function fixture() {
@@ -13,6 +14,18 @@ function fixture() {
 }
 
 describe("Ralph live sequence", () => {
+  it("references the executed plan path when the host maps it into a worktree", async () => {
+    const runAgent = vi.fn(async () => ({ stdout: "Done", stderr: "", exitCode: 0 }));
+    const result = await runRalphSequence({
+      ...fixture(), docs: ["/source/first.md"], afterEachPlan: ["Review"], runAgent,
+      runPlan: (input) => runRalph({ ...input, docPath: "/repo/first.md" })
+    });
+    expect(runAgent).toHaveBeenLastCalledWith(expect.objectContaining({
+      prompt: "Follow-up after completing /repo/first.md:\n\nReview"
+    }));
+    expect(result.messages[0]?.planPath).toBe("/source/first.md");
+  });
+
   it("runs live messages after their plan, then appended plans, preserving the last agent settings", async () => {
     const queue = createRunQueue({ plans: ["first.md"] });
     const calls: AgentRunInput[] = [];

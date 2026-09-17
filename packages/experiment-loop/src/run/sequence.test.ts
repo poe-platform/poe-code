@@ -14,6 +14,18 @@ function fixture() {
 }
 
 describe("experiment live sequence", () => {
+  it("references the executed plan path when the host maps it into a worktree", async () => {
+    const runAgent = vi.fn(async () => ({ stdout: "Done", stderr: "", exitCode: 0 }));
+    const result = await runExperimentSequence({
+      ...fixture(), docs: ["/source/first.md"], maxExperiments: 0, afterEachPlan: ["Review"], runAgent,
+      runPlan: (input) => runExperimentLoop({ ...input, docPath: "/repo/first.md" })
+    });
+    expect(runAgent).toHaveBeenLastCalledWith(expect.objectContaining({
+      prompt: "Follow-up after completing /repo/first.md:\n\nReview"
+    }));
+    expect(result.messages[0]?.planPath).toBe("/source/first.md");
+  });
+
   it("keeps earlier plan journals outside later plans' clean-tree and reset scope", async () => {
     const options = fixture();
     const scopes: string[] = [];

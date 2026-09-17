@@ -62,9 +62,10 @@ export async function runPipelineSequence(options: PipelineSequenceOptions): Pro
         }
         const plan = queue.getSnapshot().items.find((entry) => entry.id === item.afterPlanId);
         if (!plan || plan.kind !== "plan") throw new Error("Queued message has no target plan.");
+        const completedPlan = plans.at(-1);
         const result = await options.runAgent!({
           agent: options.agent,
-          prompt: `Follow-up after completing ${plans.at(-1)?.archivedPath ?? plan.path}:\n\n${item.text}`,
+          prompt: `Follow-up after completing ${completedPlan?.archivedPath ?? completedPlan?.planPath ?? plan.path}:\n\n${item.text}`,
           cwd: options.cwd,
           ...(options.model ? { model: options.model } : {}),
           ...context,

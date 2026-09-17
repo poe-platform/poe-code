@@ -62,9 +62,10 @@ export async function runRalphSequence(options: RalphSequenceOptions): Promise<R
         const plan = queue.getSnapshot().items.find((entry) => entry.id === item.afterPlanId);
         if (!plan || plan.kind !== "plan") throw new Error("Queued message has no target plan.");
         if (!lastInput) throw new Error("The plan did not run an agent for its queued follow-up.");
+        const completedPlan = plans.at(-1);
         const result = await runAgent({
           ...lastInput,
-          prompt: `Follow-up after completing ${plans.at(-1)?.archivedPath ?? plan.path}:\n\n${item.text}`,
+          prompt: `Follow-up after completing ${completedPlan?.archivedPath ?? completedPlan?.docPath ?? plan.path}:\n\n${item.text}`,
           logFileName: makeRunLogFileName(`${lastInput.agent}-${item.id}`)
         });
         messages.push({ text: item.text, planPath: plan.path, result });

@@ -41,5 +41,7 @@ describe("SDK Ralph sequences", () => {
     expect(worktree).toHaveBeenCalledTimes(1);
     expect(autonomous).toHaveBeenCalledTimes(4);
     for (const [, input] of autonomous.mock.calls) expect(input).toMatchObject({ cwd: "/worktree", signal });
+    expect(autonomous.mock.calls[1]?.[1].prompt).toBe("Follow-up after completing /worktree/one.md:\n\nReview");
+    expect(autonomous.mock.calls[3]?.[1].prompt).toBe("Follow-up after completing /worktree/two.md:\n\nReview");
   });
 });

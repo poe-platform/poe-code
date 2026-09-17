@@ -1,5 +1,13 @@
 # DOCX acceptance matrix
 
+The [active MCE XML replacement record](xml-set-mce-20260917.md) qualifies
+understood content changes while retaining carriers, inactive content and
+inherited opaque XML context. Its unchanged-source final run passed 5,850 cases
+in 27 files, zero skips; 400 built SDK/actual CLI workflows and an inspected
+screenshot also passed. Root/document/generic relationship owners retain exact
+bytes and role authority. Full F01–F07 and generic XML-view content acceptance
+remain open.
+
 The [OPC Type and public boundary record](opc-public-boundaries-20260917.md)
 records 6,688 distinct passing cases across eighteen latest per-file receipts,
 zero skips, forty built public workflows and an inspected CLI screenshot.

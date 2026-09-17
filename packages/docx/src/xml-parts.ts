@@ -8,7 +8,7 @@ import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.j
 import { isXmlContentType, parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { normalizePartName, asciiKey } from "./part-uri.js";
 import { SelectionError, closedRecord, encodeLocation, type PartLocation } from "./location-token.js";
-import { MarkupCompatibility, compatibilityProfileForPart } from "./compatibility.js";
+import { MarkupCompatibility, compatibilityContainers, compatibilityProfileForPart, type CompatibilityElement } from "./compatibility.js";
 import { UnsupportedEditError } from "./xml-write.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationOptions, type PublicationContext } from "./publication.js";
 import { DocumentBudget } from "./budget.js";
@@ -84,19 +84,52 @@ export async function getDocumentXml(input: Uint8Array, context: ArchiveContext,
 }
 
 function opaqueContent(root: XmlElement, budget: DocumentBudget, partname: string): string {
-  const view = new MarkupCompatibility(root, compatibilityProfileForPart(partname), budget);
-  const records: unknown[] = [];
-  const visit = (node: XmlElement, path: number[]) => {
+  const profile = compatibilityProfileForPart(partname);
+  const view = new MarkupCompatibility(root, profile, budget);
+  const containers = new Set(view[compatibilityContainers]);
+  const active = new Map<XmlElement, CompatibilityElement>();
+  const pending = [...view.content];
+  while (pending.length) {
     budget.charge("work", 1);
-    if (!view.canEdit(node)) {
-      records.push([path, [...node.namespaces], displayXml(node, budget, false)]);
+    const item = pending.pop()!;
+    if (!("source" in item) || item.disposition !== "understood") continue;
+    const node = item.source;
+    if (node.localName === "blip" && Object.values(documentDialects).some(dialect => dialect.a === node.namespace)
+      && node.children.some(child => child.namespace === node.namespace && child.localName === "extLst")) continue;
+    active.set(node, item);
+    budget.charge("retainedBytes", 64 + item.content.length * 8);
+    for (const child of item.content) pending.push(child);
+  }
+  const records: unknown[] = [];
+  const visit = (node: XmlElement, path: number[], inherited: ReadonlyMap<string, readonly string[]>) => {
+    budget.charge("work", 1 + node.attributes.length + inherited.size);
+    budget.charge("retainedBytes", (inherited.size + 1) * 48);
+    const context = new Map(inherited);
+    for (const attribute of node.attributes) {
+      if (attribute.namespace !== "http://www.w3.org/XML/1998/namespace" || !["lang", "space", "base"].includes(attribute.localName)) continue;
+      budget.charge("retainedBytes", attribute.localName === "base" ? ((context.get("base")?.length ?? 0) + 1) * 8 : 8);
+      context.set(attribute.localName, attribute.localName === "base" ? [...context.get("base") ?? [], attribute.value] : [attribute.value]);
+    }
+    const projected = active.get(node);
+    if (containers.has(node)) {
+      records.push([path, node.namespace, node.localName, [...node.namespaces], [...context], node.attributes, node.content.filter(item => item.kind !== "element")]);
+      node.children.forEach((child, index) => visit(child, [...path, index], context));
       return;
     }
-    const attributes = node.attributes.filter(a => a.namespace !== "http://www.w3.org/2000/xmlns/" && !view.canEdit(a));
-    if (attributes.length) records.push([path, [...node.namespaces], attributes]);
-    node.children.forEach((child, index) => visit(child, [...path, index]));
+    if (!projected) {
+      records.push([path, [...node.namespaces], [...context], displayXml(node, budget, false)]);
+      return;
+    }
+    const exact = profile.understoodElements?.find(item => item.namespace === node.namespace && item.localName === node.localName);
+    const attributes = node.attributes.filter(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" &&
+      !(projected.attributes.includes(attribute) && (exact
+        ? attribute.namespace === "http://www.w3.org/XML/1998/namespace" && ["lang", "space"].includes(attribute.localName)
+          || exact.attributes.some(name => name.namespace === attribute.namespace && name.localName === attribute.localName)
+        : !attribute.namespace || profile.understoodNamespaces.includes(attribute.namespace))));
+    if (attributes.length) records.push([path, [...node.namespaces], [...context], attributes]);
+    node.children.forEach((child, index) => visit(child, [...path, index], context));
   };
-  visit(root, []);
+  visit(root, [], new Map());
   return JSON.stringify(records);
 }
 

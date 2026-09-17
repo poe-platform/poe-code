@@ -101,6 +101,9 @@ export interface CompatibilityBranch {
 }
 interface Scope { ignorable: Set<string>; process: ExpandedXmlName[]; }
 
+/** Internal projection metadata; not exported from the public package barrel. */
+export const compatibilityContainers = Symbol("compatibilityContainers");
+
 function invalid(): never { throw new InvalidXmlError("Malformed markup compatibility declaration or structure."); }
 function tokens(value: string): string[] {
   const result: string[] = [];
@@ -150,12 +153,14 @@ function matches(name: ExpandedXmlName, pair: ExpandedXmlName): boolean {
 export class MarkupCompatibility {
   readonly content: readonly CompatibilityContent[];
   readonly branches: readonly CompatibilityBranch[];
+  readonly [compatibilityContainers]: readonly XmlElement[];
   readonly #editable = new Set<XmlContent | XmlAttribute>();
 
   constructor(root: XmlElement, profile: CompatibilityProfile = compatibilityProfileForRoot(root), budget = new DocumentBudget()) {
     const settings = compatibilitySettings(profile);
     const understood = new Set(settings.understoodNamespaces);
     const branches: CompatibilityBranch[] = [];
+    const containers: XmlElement[] = [];
     const attribute = (element: XmlElement, name: string) => element.attributes.find(a => a.namespace === mc && a.localName === name)?.value;
     const scopeFor = (element: XmlElement, parent: Scope): Scope => {
       budget.charge("work", 1 + parent.ignorable.size + parent.process.length * (element.attributes.length + 1) +
@@ -207,6 +212,7 @@ export class MarkupCompatibility {
         if (!scope.process.some(pair => matches(element, pair))) return [];
         if (element.attributes.some(a => a.namespace === xml && ["base", "lang", "space"].includes(a.localName))) invalid();
         mustUnderstand(element);
+        containers.push(element);
         return visitContent(element, scope, true);
       }
       if (element.namespace === mc) {
@@ -250,6 +256,7 @@ export class MarkupCompatibility {
         branches.push(Object.freeze({ alternateContent: element, selected }));
         if (!selected) return [];
         mustUnderstand(selected);
+        containers.push(element, selected);
         return visitContent(selected, selectedScope, true);
       }
       mustUnderstand(element);
@@ -268,6 +275,7 @@ export class MarkupCompatibility {
     };
     this.content = Object.freeze(visit(root, { ignorable: new Set(), process: [] }, false));
     this.branches = Object.freeze(branches);
+    this[compatibilityContainers] = Object.freeze(containers);
   }
 
   canEdit(node: XmlContent | XmlAttribute): boolean { return this.#editable.has(node); }

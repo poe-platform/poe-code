@@ -221,7 +221,7 @@ class LatexReader {
               const label = inner.optional();
               const term = label && "children" in label ? this.inlines(label.children, depth + 1) : [];
               terms.push(term);
-              if (term.length && token.text !== "description") item.push(...parseTex(label!.raw, this.context));
+              if (term.length && token.text !== "description") item.push(label!);
             } else if (item) item.push(t);
             else if (t.kind !== "space" && t.kind !== "comment") texError(this.context, "Content before first list item");
           }
@@ -272,7 +272,7 @@ class LatexReader {
 export const latexReader: ReaderCapability = {
   format: "latex",
   async read(input, context) {
-    const tokens = parseTex(input.text ?? await context.decodeUtf8([input.bytes]), context);
+    const tokens = await parseTex(input.text ?? await context.decodeUtf8([input.bytes]), context);
     const expanded = await expandTex(tokens, context, input.base);
     const reader = new LatexReader(context);
     const blocks = reader.blocks(expanded);

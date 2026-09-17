@@ -65,3 +65,11 @@ oversized mapped glyph IDs, zero advance and impossible page geometry.
 PPTX cancellation is injected at an acquisition boundary and verified through
 the signal passed to the next sibling API call. No Office native fallback exists.
 See `adversarial-office-resource-before.log` and `adversarial-archive-focused.log`.
+
+LaTeX reproduction: a 1024-character lexical run reached a forbidden suffix
+without yielding; macro expansion admitted 2048 replacement bytes before its
+first yield. Lexical runs/math/verbatim/comments and definition/expansion scans
+now cooperate while advancing. Token nodes, slots and source/raw ownership are
+reserved before growth. Reuse the already parsed optional list-label token.
+Both new regressions and all 47 existing reader units pass; the final maintained
+unit/lint/build evidence above includes this change. See `adversarial-latex-*`.

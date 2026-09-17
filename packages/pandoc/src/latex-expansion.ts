@@ -43,7 +43,8 @@ export async function expandTex(tokens: readonly TexToken[], context: AdapterCon
         if (fallbackToken && !count) texError(context, "Optional macro default requires an argument");
         const body = texSource(cursor.group().children);
         for (let i = 0; i < body.length; i++) {
-          if (body[i] === "%") {while (i < body.length && body[i] !== "\n") i++; continue;}
+          await context.cooperate();
+          if (body[i] === "%") {while (i < body.length && body[i] !== "\n") {await context.cooperate(); i++;} continue;}
           if (body[i] === "\\") {i++; continue;}
           if (body[i] === "#") {
             const n = body[++i];
@@ -67,15 +68,15 @@ export async function expandTex(tokens: readonly TexToken[], context: AdapterCon
         while (args.length < macro.count) args.push(texSource(cursor.group().children));
         let source = "";
         for (let i = 0; i < macro.body.length; i++) {
-          context.checkpoint();
-          if (macro.body[i] === "%") {while (i < macro.body.length && macro.body[i] !== "\n") i++; continue;}
+          await context.cooperate();
+          if (macro.body[i] === "%") {while (i < macro.body.length && macro.body[i] !== "\n") {await context.cooperate(); i++;} continue;}
           const c = macro.body[i]!;
           if (!c) break;
           const piece = c === "#" ? args[Number(macro.body[++i]) - 1]! : c === "\\" ? c + (macro.body[++i] ?? "") : c;
           context.charge("expandedBytes", piece.length * 2);
           source += piece;
         }
-        for (const t of await expand(parseTex(source, context), macros, [...stack, token.text], includes, base, depth + 1)) out.push(t);
+        for (const t of await expand(await parseTex(source, context), macros, [...stack, token.text], includes, base, depth + 1)) out.push(t);
       } else if (token.kind === "command" && (token.text === "input" || token.text === "include")) {
         const name = texSource(cursor.group().children).trim();
         const {id, identity} = includePath(name, base, context);
@@ -88,7 +89,7 @@ export async function expandTex(tokens: readonly TexToken[], context: AdapterCon
         catch (error) {context.checkpoint(0); if (error instanceof PandocError) throw error; return texError(context, `Cannot resolve include: ${identity}`, "E_RESOURCE");}
         context.checkpoint(0);
         const text = await context.decodeUtf8([bytes]);
-        for (const t of await expand(parseTex(text, context), macros, stack, [...includes, identity], identity.slice(0, identity.lastIndexOf("/")), depth + 1)) out.push(t);
+        for (const t of await expand(await parseTex(text, context), macros, stack, [...includes, identity], identity.slice(0, identity.lastIndexOf("/")), depth + 1)) out.push(t);
       } else if ("children" in token) {
         // Macro definitions are local to groups/environments. Document scope is shared.
         const scope = token.kind === "environment" && token.text === "document" ? macros : new Map(macros);

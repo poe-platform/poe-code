@@ -6,11 +6,7 @@ import type { XmlElement } from "./package-xml.js";
 import { UnsupportedEditError } from "./xml-write.js";
 import { mergedTableGrid, editMergedTable } from "./table-merge.js";
 import { tableRows } from "./table-rows.js";
-import {
-  MarkupCompatibility,
-  documentCompatibilityProfile,
-  type CompatibilityContent
-} from "./compatibility.js";
+import { activeModelChildren } from "./model-active-children.js";
 import {
   styleChild as child,
   styleAttribute as attr,
@@ -83,9 +79,10 @@ function properties(
   values: Record<string, string> | null
 ): void {
   store.change(ref.part, (xml) => {
+    const children = activeModelChildren(store, ref.part);
     const owner = store.node(ref),
-      props = child(owner, container),
-      old = child(props, tag);
+      props = child(owner, container, children),
+      old = child(props, tag, children);
     if (!values && !old) return;
     if (old && values) {
       const prefix = [...old.namespaces].find(([p, namespace]) => p && namespace === owner.namespace)?.[0] ?? "tm";
@@ -131,41 +128,39 @@ function storedLength(node: XmlElement | undefined, key = "w"): LengthValue | nu
   return n === null ? null : Length(n * 635);
 }
 type TableGrid = ReturnType<typeof mergedTableGrid> & { original(node: XmlElement): XmlElement };
+const tableGrids = new WeakMap<ModelStore, WeakMap<XmlElement, TableGrid>>();
+function readProperty(store: ModelStore, ref: ModelRef, container: string, name: string): XmlElement | undefined {
+  const children = activeModelChildren(store, ref.part);
+  return child(child(store.node(ref), container, children), name, children);
+}
 function activeGrid(store: ModelStore, ref: ModelRef): TableGrid {
-  const table = store.node(ref),
-    active = new Map<XmlElement, XmlElement[]>();
-  const collect = (content: readonly CompatibilityContent[]) => {
-    for (const item of content)
-      if ("source" in item) {
-        active.set(
-          item.source,
-          item.content.filter((i) => "source" in i).map((i) => i.source)
-        );
-        collect(item.content);
-      }
-  };
-  collect(
-    new MarkupCompatibility(
-      store.xml(ref.part).root,
-      documentCompatibilityProfile,
-      store.context.budget
-    ).content
-  );
+  const table = store.node(ref), budget = store.context.budget;
+  budget.charge("work", 1);
+  let cache = tableGrids.get(store);
+  const existing = cache?.get(table);
+  if (existing) return existing;
+  if (!cache) { cache = new WeakMap(); tableGrids.set(store, cache); }
+  const children = activeModelChildren(store, ref.part);
   const rows = tableRows(
     table,
     (n) => n,
-    (n) => active.get(n) ?? [],
+    children,
     store.context.budget
   );
   if (!rows.length) {
-    const columns = child(table, "tblGrid")?.children.filter(n => n.namespace === table.namespace && n.localName === "gridCol") ?? [];
+    const grid = child(table, "tblGrid", children);
+    const columns = grid ? children(grid).filter(n => n.namespace === table.namespace && n.localName === "gridCol") : [];
     store.context.budget.check("tableColumns", columns.length);
-    return { rows: [], columns, owners: [], physical: [], slots: [], original: n => n };
+    const value: TableGrid = { rows: [], columns, owners: [], physical: [], slots: [], original: n => n };
+    budget.charge("retainedBytes", 128 + columns.length * 8);
+    cache.set(table, value);
+    return value;
   }
-  const copy = (n: XmlElement): XmlElement => ({
-    ...n,
-    children: (active.get(n) ?? n.children).map(copy)
-  });
+  const copy = (n: XmlElement): XmlElement => {
+    const nodes = children(n);
+    budget.charge("retainedBytes", 128 + nodes.length * 8);
+    return { ...n, children: nodes.map(copy) };
+  };
   const copied = copy(table),
     view = {
       ...copied,
@@ -178,19 +173,22 @@ function activeGrid(store: ModelStore, ref: ModelRef): TableGrid {
   const originals = new Map<XmlElement, XmlElement>();
   const match = (a: XmlElement, b: XmlElement) => {
     originals.set(b, a);
-    const kids = active.get(a) ?? a.children;
+    const kids = children(a);
     kids.forEach((n, i) => {
       const c = b.children[i];
       if (c) match(n, c);
     });
   };
   // Match rows independently because native repeat wrappers are flattened above.
-  const gridSource = (active.get(table) ?? table.children).find(
+  const gridSource = children(table).find(
     (n) => n.namespace === table.namespace && n.localName === "tblGrid"
   );
   if (gridSource) match(gridSource, child(view, "tblGrid")!);
   rows.forEach((row, i) => match(row, grid.rows[i]!));
-  return { ...grid, original: (n: XmlElement) => originals.get(n) ?? n };
+  const value = { ...grid, original: (n: XmlElement) => originals.get(n) ?? n };
+  budget.charge("retainedBytes", 128 + originals.size * 32);
+  cache.set(table, value);
+  return value;
 }
 
 export class Table {
@@ -251,7 +249,7 @@ export class Table {
   }
   get alignment(): DocxEnumValue<"WD_TABLE_ALIGNMENT"> | null {
     return readEnum(
-      attr(child(child(this.store.node(this.ref), "tblPr"), "jc"), "val"),
+      attr(readProperty(this.store, this.ref, "tblPr", "jc"), "val"),
       WD_TABLE_ALIGNMENT,
       { LEFT: "left", CENTER: "center", RIGHT: "right" }
     );
@@ -265,14 +263,14 @@ export class Table {
     properties(this.store, this.ref, "tblPr", "jc", name === null ? null : { val: name });
   }
   get autofit(): boolean {
-    return attr(child(child(this.store.node(this.ref), "tblPr"), "tblLayout"), "type") !== "fixed";
+    return attr(readProperty(this.store, this.ref, "tblPr", "tblLayout"), "type") !== "fixed";
   }
   set autofit(value: boolean) {
     if (typeof value !== "boolean") throw new TypeError("Expected a boolean.");
     properties(this.store, this.ref, "tblPr", "tblLayout", { type: value ? "autofit" : "fixed" });
   }
   get table_direction(): DocxEnumValue<"WD_TABLE_DIRECTION"> | null {
-    const value = styleToggle(child(child(this.store.node(this.ref), "tblPr"), "bidiVisual"));
+    const value = styleToggle(readProperty(this.store, this.ref, "tblPr", "bidiVisual"));
     return value === null ? null : value ? WD_TABLE_DIRECTION.RTL : WD_TABLE_DIRECTION.LTR;
   }
   set table_direction(value: DocxEnumValue<"WD_TABLE_DIRECTION"> | null) {
@@ -281,7 +279,7 @@ export class Table {
   }
   get style(): TableStyle | null {
     return this.store.tableStyle(
-      attr(child(child(this.store.node(this.ref), "tblPr"), "tblStyle"), "val") ?? null
+      attr(readProperty(this.store, this.ref, "tblPr", "tblStyle"), "val") ?? null
     );
   }
   set style(value: string | TableStyle | null) {
@@ -365,7 +363,7 @@ export class _Cell {
     return this.store.element(this.ref);
   }
   get grid_span(): number {
-    return Number(attr(child(child(this.store.node(this.ref), "tcPr"), "gridSpan"), "val") ?? 1);
+    return Number(attr(readProperty(this.store, this.ref, "tcPr", "gridSpan"), "val") ?? 1);
   }
   *iter_inner_content(): Iterable<Paragraph | Table> {
     yield* this.store.blocks(this.ref);
@@ -391,7 +389,7 @@ export class _Cell {
   }
   get vertical_alignment(): DocxEnumValue<"WD_CELL_VERTICAL_ALIGNMENT"> | null {
     return readEnum(
-      attr(child(child(this.store.node(this.ref), "tcPr"), "vAlign"), "val"),
+      attr(readProperty(this.store, this.ref, "tcPr", "vAlign"), "val"),
       WD_CELL_VERTICAL_ALIGNMENT,
       { TOP: "top", CENTER: "center", BOTTOM: "bottom", BOTH: "both" }
     );
@@ -406,7 +404,7 @@ export class _Cell {
     properties(this.store, this.ref, "tcPr", "vAlign", name === null ? null : { val: name });
   }
   get width(): LengthValue | null {
-    const node = child(child(this.store.node(this.ref), "tcPr"), "tcW");
+    const node = readProperty(this.store, this.ref, "tcPr", "tcW");
     return attr(node, "type") === "dxa" ? storedLength(node) : null;
   }
   set width(value: DocxLength | null) {
@@ -485,16 +483,16 @@ export class _Row {
   }
   get grid_cols_before(): number {
     return Number(
-      attr(child(child(this.table.store.node(this.ref), "trPr"), "gridBefore"), "val") ?? 0
+      attr(readProperty(this.table.store, this.ref, "trPr", "gridBefore"), "val") ?? 0
     );
   }
   get grid_cols_after(): number {
     return Number(
-      attr(child(child(this.table.store.node(this.ref), "trPr"), "gridAfter"), "val") ?? 0
+      attr(readProperty(this.table.store, this.ref, "trPr", "gridAfter"), "val") ?? 0
     );
   }
   get height(): LengthValue | null {
-    return storedLength(child(child(this.table.store.node(this.ref), "trPr"), "trHeight"), "val");
+    return storedLength(readProperty(this.table.store, this.ref, "trPr", "trHeight"), "val");
   }
   set height(value: DocxLength | null) {
     if (value === null) this.clearHeightAttribute("val");
@@ -504,7 +502,7 @@ export class _Row {
       });
   }
   get height_rule(): DocxEnumValue<"WD_ROW_HEIGHT_RULE"> | null {
-    const n = child(child(this.table.store.node(this.ref), "trPr"), "trHeight");
+    const n = readProperty(this.table.store, this.ref, "trPr", "trHeight");
     return n
       ? readEnum(attr(n, "hRule") ?? "atLeast", WD_ROW_HEIGHT_RULE, {
           AUTO: "auto",
@@ -524,7 +522,7 @@ export class _Row {
   }
   private clearHeightAttribute(name: string): void {
     this.table.store.change(this.ref.part, (xml) => {
-      const node = child(child(this.table.store.node(this.ref), "trPr"), "trHeight");
+      const node = readProperty(this.table.store, this.ref, "trPr", "trHeight");
       if (node)
         if (!node.attributes.some(a => a.namespace === node.namespace && a.localName !== name) &&
             !node.content.some(c => c.kind !== "text" || c.text.trim())) xml.replaceElement(node, "");

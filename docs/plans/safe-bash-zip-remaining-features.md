@@ -132,11 +132,11 @@ tasks:
 
       Audit and repair validated metadata/name/platform gaps in zip-format.ts, zip/safety.ts, zip/dates.ts, zip/comments.ts and unzip.ts. Adapt pinned public test cases for UTF-8 flag versus Unicode path/comment extras, CP437, invalid encodings, embedded NUL, duplicate names, local/central mismatches, DOS timestamps, odd seconds, timezone/DST, Unix permissions/types and unknown extras. Test untouched-member preservation versus rewritten extras, timestamps/comments at field length boundaries, -X/-X-, directories, symlinks, aliases and unknown identity. Keep absolute paths, parent traversal and symlink escapes refused; do not weaken these deliberately constrained VFS behaviors for apparent parity. Document intentional differences and capability requirements with exact observable consequences. Add host-platform oracle cells only where available, reporting unavailable platforms separately.
     status:
-      reproduce: open
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      reproduce: done
+      implement: done
+      refactor: done
+      test: done
+      commit: done
   - id: zip-aes-extension
     title: "Add authenticated AES ZIP interoperability"
     prompt: |

@@ -167,6 +167,14 @@ function dosModified(date: number, time: number): Date {
   return new Date(year, month, day, hours, minutes, seconds);
 }
 
+function attributeMode(versionMadeBy: number, externalAttributes: number, directory: boolean): number {
+  const host = versionMadeBy >>> 8;
+  const unixMode = host === 3 || host === 19 ? externalAttributes >>> 16 : 0;
+  if (unixMode) return unixMode;
+  const mode = directory ? 0o040755 : 0o100644;
+  return externalAttributes & 1 ? mode & ~0o222 : mode;
+}
+
 function entryBounds(entry: ZipEntry, limits: ArchiveLimits): void {
   pathBytes(entry.name, limits);
   number(entry.size, Math.min(limits.maxEntryBytes, limits.maxTotalBytes), "entry byte");
@@ -320,11 +328,9 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
       zipDiskRecord(profile.disks, payloadEnd, matches[0]!);
       payloadEnd = matches[0]!;
     }
-    const host = versionMadeBy >>> 8;
-    const unixMode = host === 3 || host === 19 ? externalAttributes >>> 16 : 0;
     const directory = name.endsWith("/");
     if (Boolean(externalAttributes & 16) && !directory) fail("ZIP conflicting directory attributes");
-    const mode = unixMode || (directory ? 0o040755 : 0o100644);
+    const mode = attributeMode(versionMadeBy, externalAttributes, directory);
     const symlink = (mode & 0o170000) === 0o120000;
     const modified = dosModified(dosDate, dosTime);
     const timestamp = centralMetadata.modified ?? localMetadata.modified;
@@ -617,15 +623,19 @@ export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimi
     const time = entry.dosTime ?? ((rounded.getHours() << 11) | (rounded.getMinutes() << 5) | (rounded.getSeconds() >>> 1));
     number(date, 65535, "DOS date");
     number(time, 65535, "DOS time");
-    const dosTimestamp = dosModified(date, time).getTime();
+    const dosTimestamp = dosModified(date, time);
     const extendedTimestamp = centralMetadata.modified ?? localMetadata.modified;
-    if (extendedTimestamp === undefined ? dosTimestamp !== rounded.getTime() : Math.floor(extendedTimestamp / 1000) !== Math.floor(entry.modified.getTime() / 1000)) fail("ZIP retained or unrepresentable timestamp metadata mismatch");
+    // DOS stores local calendar fields, so it cannot distinguish the two
+    // occurrences of a repeated DST hour. UT still binds the absolute instant.
+    const timestampMatches = extendedTimestamp === undefined
+      ? (["getFullYear", "getMonth", "getDate", "getHours", "getMinutes", "getSeconds"] as const)
+        .every(field => dosTimestamp[field]() === rounded[field]())
+      : Math.floor(extendedTimestamp / 1000) === Math.floor(entry.modified.getTime() / 1000);
+    if (!timestampMatches) fail("ZIP retained or unrepresentable timestamp metadata mismatch");
     for (const [value, maximum, label] of [[entry.versionMadeBy ?? 0x31e, 65535, "creator version"], [entry.internalAttributes ?? 0, 65535, "internal attributes"], [entry.externalAttributes ?? 0, 0xffffffff, "external attributes"]] as const) number(value, maximum, label);
     if ((entry.internalAttributes ?? 0) & ~1) fail("ZIP unsupported internal attributes");
     if (entry.externalAttributes !== undefined) {
-      const host = (entry.versionMadeBy ?? 0x31e) >>> 8;
-      const unixMode = host === 3 || host === 19 ? entry.externalAttributes >>> 16 : 0;
-      const mode = unixMode || (entry.directory ? 0o040755 : 0o100644);
+      const mode = attributeMode(entry.versionMadeBy ?? 0x31e, entry.externalAttributes, entry.directory);
       if (mode !== entry.mode || Boolean(entry.externalAttributes & 16) && !entry.directory) fail("ZIP retained file attributes mismatch");
     }
     metadataBytes += 76 + 2 * rawName.length + localExtra.length + centralExtra.length + comment.length;

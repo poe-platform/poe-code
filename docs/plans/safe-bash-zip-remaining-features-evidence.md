@@ -4059,3 +4059,449 @@ Commit delivery is local only; no push, remote-main verification or release
 was requested for this validation. Task-owned temporary logs used the existing
 ignored workspace `out/` fallback because absolute `/out` is read-only, and
 were purged after inspection.
+
+## Metadata/name/platform audit — 2026-09-17
+
+Baseline: current local `main`, commit
+`39eb9cef7d9b76a6ceb3d34b1fa2daf8aba18b87`. This section qualifies the
+working-tree revision by file hashes below; it is not remote-main or release
+proof. Inspected `zip-format.ts`, `zip/safety.ts`, `zip/dates.ts`,
+`zip/comments.ts`, `unzip.ts` and the extraction identity/publication contract.
+Only a reproduced permission defect required product changes.
+
+### Validated defect and repair
+
+A FAT-created central entry with DOS external attribute bit 0 set was decoded
+as `0100644` instead of `0100444`; a read-only directory was decoded as
+`0040755` instead of `0040555`. Native Darwin UnZip restored `0444` and `0555`.
+The writer also rejected correct retained read-only metadata as a file-attribute
+mismatch. After correcting initial fixture mistakes (unsupported extraction
+quiet flag and the empty-directory checksum), the six targeted tests produced
+three failures and three passing controls before implementation: both read-only
+cases and the retained writer failed; writable file/directory and explicit Unix
+modes passed. No production assertion or diagnostic was relaxed.
+
+`attributeMode` now shares DOS/Unix mode decoding between reader and writer.
+DOS read-only clears write bits from the existing default permissions. Explicit
+nonzero Unix/macOS modes remain authoritative, including permissionless regular
+files and symbolic links. FAT upper attribute bits cannot manufacture a Unix
+symlink. Original creator/external fields, payload, comments and extras remain
+retained. Extraction uses the existing conditional staging and directory
+metadata operations; there is no new API, CLI option, dependency or host fallback.
+CLI and SDK continue to share the same archive commands.
+
+### Revision-specific controls
+
+Added 19 memory-only cases to the already registered `zip-format.test.ts`.
+Its compact wire fixture now accepts entry comments and derives ordinary
+checksums from its payload; malformed-input controls remain enabled.
+
+| Area | Positive, negative and boundary controls | Cancellation and neighbors |
+| --- | --- | --- |
+| DOS/Unix attributes | Read-only/writable files and directories; FAT upper bits ignored; creator 3/19 modes `0100000`, `0100640`, `0120777`; contradictory retained mode fails before first output | Abort during staged acquisition preserves old member/archive and leaves no temporary entry; pre-aborted reader/writer; existing device/socket, directory and symlink cases |
+| Names/encodings | Korean, emoji, accented and leading-BOM UTF-8; matching/conflicting Unicode paths; CP437 existing case; invalid UTF-8 comments/extras; leading/interior/trailing name NUL refused | Existing decoder/source cancellation and local/central filename/Unicode/flag mismatch cases |
+| Comment fields | Archive and member lengths 0, 1, 65,534, 65,535 accepted; 65,536 refused before output; configured text cap enforced; raw legacy comment retained with CRC-bound Unicode extra | Existing comment cursor cancellation, producer reuse, byte/work caps and NUL input grammar |
+| Unicode/opaque extras | Unicode-comment TLV lengths 65,534/65,535 accepted; 65,536 refused by writer; configured extra cap; invalid UTF-8 and CRC refused; copy retains raw bytes/opaque field; comment replacement removes stale Unicode CRC field | Existing streaming metadata cancellation, duplicate/malformed extras and timestamp mismatch cases |
+| Dates/platform | DOS minimum/maximum valid dates and zero sentinel; invalid date, second, minute and hour refused; signed UT endpoints; odd seconds immediately around Chicago spring/fall DST transitions retain their absolute instant | Existing DOS midnight/year carry, date filters, latest-time cancellation and publication regressions |
+| Namespaces/identity | Duplicate names retain two payloads/order; `-p` concatenates, `-o` publishes the last regular member; unknown archive/destination identity refuses overwrite and preserves bytes, while `-p` remains usable | Existing hardlink archive aliases, parent/root symlinks, escaping link targets, identity races and cleanup controls |
+| Rewrite policy | Existing six `-X`/`-X-` spelling/order cells preserve untouched opaque extras and rewrite selected members; copied Unicode comment/payload retained, changed comment drops stale CRC extra | Existing update/copy, compression, directories, symlinks and cancellation controls remain in the broad run |
+
+### Public source adaptations and host oracle cells
+
+Re-fetched pinned public sources; their digests exactly match the earlier pins:
+Go `writer_test.go` (`2016a65e…4881`), CPython `test_core.py`
+(`b0f623e9…4802`) and libarchive `test_read_format_zip.c`
+(`3b951e48…187`). New tests independently adapt requirements from Go
+`TestWriterComment`, `TestWriterUTF8`, `TestWriterTime`, `TestWriterCopy`,
+`TestWriterDirAttributes`; CPython Unicode-path/invalid-extra/NUL cases; and
+libarchive `test_symlink`. They use our compact memory fixture and constrained
+VFS expectations, not upstream disk fixtures or a copied upstream test body.
+Prior Go BSD, CPython PSF and libarchive BSD/per-file provenance and license
+references remain applicable. These are adaptations, not upstream-suite execution.
+
+| Platform/tool | Executed observation | Availability/limits |
+| --- | --- | --- |
+| Darwin 24.6.0 arm64; Apple UnZip 6.00, LLVM 17.0.0 build dated Jul 20 2025 | DOS file/directory `0444`/`0555`; writable file `0644`; explicit Unix `0640`; UTF-8 Korean filename created with correct bytes; symlink targets `unix-mode`; non-symlink UT mtime exactly `1710057601` (odd second after Chicago DST jump) | Available; explicit `TZ=America/Chicago`, `LC_ALL=en_US.UTF-8`; Unicode display output contains replacement glyphs, despite correct created name |
+| Same native UnZip, Unicode comment probe | A valid `0x6375` extra spelling `café 🐯` with raw comment `legacy` lists `legacy` | Available; proposed display gap not validated against this oracle, so behavior unchanged |
+| Linux host tools | No new execution | Unavailable in this session; not a pass |
+| Windows host tools/filesystem | No new execution | Unavailable in this session; no Windows permissions, code-page or DST qualification |
+| Other native builds/backends | No new execution | Unverified; earlier captures do not certify this revision |
+
+Native extraction was confined to task-owned scratch paths, with a normal
+`022` creation mask. Python 3.9.6 only inspected `lstat`/`readlink` observations;
+it is not execution of the pinned CPython 3.13.7 suite. Symlink mode was `0777`;
+its host mtime was creation time, not the archived UT time, and is excluded from
+timestamp parity. No native utility is part of product execution or unit setup.
+
+Oracle input SHA-256: permission reproduction `883f80672e736ef29c417cd54ceaa54fd693b2f1d52e0ba1236f80451c1c44ea`;
+Unicode-comment probe `473ef72996dfb73ff7f937594e6cef052135057699978ff4536115f234c965bf`;
+six-member platform probe `9453fa83616deb2be5b308ff9b32696eca0fae96add1b739805a1fb09e8d5e78`.
+The platform probe uses DOS read-only file/directory, writable DOS file, Unix
+mode file, Korean file and relative symlink, all at `2024-03-10T08:00:01Z`.
+
+### Intentional constraints and exact consequences
+
+- Absolute paths, parent traversal, empty/dot path components and embedded name
+  NUL are refused rather than normalized/truncated. Extraction returns status 2
+  and does not publish the refused member. CPython's NUL truncation is deliberately
+  not adopted. Earlier successfully published members need not be rolled back.
+- UTF-8 flag/path extra conflicts, bad CRC, unsupported Unicode-extra versions,
+  invalid UTF-8, duplicate extras and local/central conflicts remain strict errors.
+  Native builds that ignore some malformed extras do not relax this policy.
+- Raw comment bytes are preserved, not translated to a universal display encoding.
+  Unicode-comment extras are validated/retained but do not override displayed raw
+  comments; terminal comment display stops at NUL. Edited input follows existing
+  fgets/NUL grammar and field limits. This is not every native encoding profile.
+- DOS fields express local wall time at two-second resolution; new odd-second DOS
+  values round upward, while UT retains whole absolute seconds and discards
+  milliseconds. UT is signed 32-bit; timestamps fail when no supported field can
+  represent the requested retained time. DOS range is 1980–2107.
+- Nonzero Unix/macOS upper modes are authoritative; otherwise defaults and DOS
+  read-only/directory hints apply. Device/socket modes remain refused; archived
+  FIFO payloads become regular VFS files, not host FIFOs. Set-id/sticky bits are
+  not restored by extraction (`mode & 0777`). Symlink mode/time restoration is
+  not promised. Unknown creator fields are retained, not interpreted as Unix.
+- File extraction/publication requires explicit atomic owned staging and
+  publication/cleanup methods; directories require conditional directory creation
+  and metadata methods. Missing capabilities fail with status 2. Permission/time
+  restoration follows the target provider's capability flags: with
+  `permissions:false`, read-only metadata is advisory and provides no privacy or
+  write-protection guarantee. With `timestamps:false`, archived times are not
+  restored. No implicit host implementation substitutes for missing capabilities.
+- Existing regular destinations with unknown backing identity cannot be
+  overwritten; archive aliases are refused. Existing symlink destinations and
+  escaping ancestor/target chains remain refused. Listing/byte inspection can
+  succeed without granting destructive extraction capability.
+
+### Verification and exclusions
+
+- Focused final metadata file: 204/204 under America/Chicago and UTF-8, no failures,
+  cancellations, skips or TODOs. The broad run below preceded fixture typing-only
+  corrections; the corrected final file was rerun.
+- `TZ=UTC LC_ALL=C node --import tsx --test --test-concurrency=1
+  packages/safe-bash/tests/commands/zip*.test.ts
+  packages/safe-bash/tests/commands/unzip.test.ts
+  packages/safe-bash/tests/plugins/zip*.test.ts`: 1,936/1,936, no failures,
+  cancellations, skips or TODOs, 25,924.806208 ms.
+- America/Chicago UTF-8 run of format, entry-comments, latest-time and unzip:
+  314/314, no failures, cancellations, skips or TODOs.
+- Selected maintained workspace build: all six declared build tasks passed.
+- Visual QA used `npm run screenshot` on actual memory-VFS `unzip -l` and `-o`
+  dispatch, then inspected restored modes. The full image is legible; Korean
+  characters lack font glyphs, without filename byte loss. PNG digest
+  `cce9fd3733b2afa5814d43517668755abe0747e4e1068287898dd793bcca95f0`.
+
+Compile/lint final results and final source hashes are recorded below. No full
+repository unit gate, deployed VFS backend, unavailable
+platform or universal metadata/native parity is claimed. SafeJS and unrelated
+edits, README, dependencies and public APIs were preserved. Delivery is
+working-tree only: no commit, push, remote-main verification or release requested.
+Absolute `/out` was read-only; task-owned ignored `out/zip-metadata-audit/` is
+the temporary fallback and is purged after inspection.
+
+Final stable package typecheck passed source/tests and all 26 maintained consumer
+groups, with three expected exit-2 negative validators. Earlier attempts failed
+on fixture-only typing: explicit undefined in an exact optional property, an
+untyped reflective stat result, and `device/inode` instead of actual `dev/ino`
+fields. These were corrected; no compiler policy or production type was weakened.
+The final 204-case run after all corrections passed, including the control that
+removes actual stat identity fields rather than irrelevant properties.
+
+Built normal-import SDK `Shell` with `agentCommands` and memory VFS separately
+verified the six-member platform probe: DOS/Unix modes, archived odd-second
+mtime, Korean filename/payload bytes and relative symlink target. Its first
+payload assertion compared Buffer with Uint8Array prototypes despite equal
+bytes; correcting the expected byte-array type passed without product changes.
+This is an SDK runtime spot check, not a packed-consumer or deployed-backend gate.
+
+Final stable guarded `npm run lint:eslint` passed with a complete receipt:
+15,505 configured subjects linted, exit 0, zero errors and four warnings in
+untouched docx operation/table and ZIP review test files. No lint policy,
+exclusions, held evidence or warning threshold changed. The stable run kept
+product/test bytes unchanged throughout; `git diff --check` also passed.
+
+Final SHA-256, relative to `packages/safe-bash`:
+
+| File | SHA-256 |
+| --- | --- |
+| src/commands/archive/zip-format.ts | `2d3fc7d4570e7619c7d536ed412c72d05f8f2648d078f0febf11c7ff5fa7e9bb` |
+| tests/commands/zip-format.test.ts | `637e4f3a540b64930fd39a2195b7a480e900af8016f75f8136fda3cab3c723e8` |
+| src/commands/archive/zip/safety.ts (unchanged) | `cca749587878acb89eeb7cf9e0ccb5c597feca535b8acae122401c8c34ee6a71` |
+| src/commands/archive/zip/dates.ts (unchanged) | `3ff74ac883e576faf089e187d3af8e409961ccf35975966d80cd5533078393d4` |
+| src/commands/archive/zip/comments.ts (unchanged) | `c82a1f6596377523b06eafbee81c4143c209cebb3b9f79ca5256199949509de2` |
+| src/commands/archive/unzip.ts (unchanged) | `968a4191b6542f4660ae05a8337aa1d635fb6b90d4e87b1bb45cb31c81d40c8e` |
+
+### Independent working-tree revalidation and duplicate directories — 2026-09-17
+
+Re-read root/package AGENTS.md and all five requested implementation areas on
+local `main` at `39eb9cef7d9b76a6ceb3d34b1fa2daf8aba18b87`. The permission
+repair, metadata cases and preceding evidence were already present as unrelated
+working-tree edits at task admission. Preserved them, the separate plan edits
+and SafeJS. All five implementation hashes above still match exactly. The initial
+Chicago/UTF-8 format run passed 204/204 in 1,746.972958 ms. No additional
+metadata/name/platform defect was validated that required another product change.
+
+An additional fast failing probe expected duplicate directory members to restore
+the last member's permissions. Actual extraction succeeded but restored `0700`
+from the first member instead of the expected `0750` from the second. A native
+Apple UnZip probe also restored the first member's permissions and timestamp:
+the proposed last-member behavior is **not** a validated compatibility repair.
+Corrected the expectation to native-observed first-member behavior and added
+four memory-only tests to the existing registered `zip-format.test.ts`; no
+production code, public API, dependency or host fallback was added in this
+follow-up. Pinned public source adaptations and strict safety exclusions in the
+preceding audit remain applicable; this follow-up is not another execution of
+those upstream suites.
+
+| Duplicate-directory control | Exact observable result |
+| --- | --- |
+| Positive/neighbor | Two empty `same/` members followed by `same/child`; exit 0, first member's `0700` and UT mtime retained, child payload and input archive byte-identical |
+| Boundary | Empty directory payloads with CRC 0 and adjacent duplicate names remain accepted; both archive members remain visible in `unzip -l`; regular duplicate last-member publication remains covered separately |
+| Negative identity | Replace the destination immediately before conditional metadata restoration; exit 2 with `EAGAIN: resource temporarily unavailable`, foreign child bytes retained and archive unchanged |
+| Negative capability | Explicitly hide `prepareDirectory` for an existing destination; exit 2 with `extraction metadata requires atomic entry conditions`, no metadata call or fallback |
+| Cancellation | Abort on the first deferred metadata call; original abort reason escapes, only one restoration attempt, archive unchanged and no `.unzip-` staging entry |
+
+Initial fixture-control attempts failed because `prepareDirectory` also handles
+directory creation, deleting an own property did not hide an inherited method,
+and the expected identity diagnostic was imprecise. The corrected fixtures
+precreate the destination, hide the method through an explicit proxy, and assert
+the actual `EAGAIN` diagnostic. Production validation/safety was unchanged. One
+UTC broad run loaded those earlier fixtures and failed the two controls; it is
+excluded from passing proof. An attempted workspace `npm test` with positional
+paths still appended full maintained discovery; stopped only its owned process
+tree after recognizing the unfiltered scope. That interrupted run is not a full
+workspace/repository gate or a pass.
+
+| Host-platform oracle cell | Observation / availability |
+| --- | --- |
+| Darwin 24.6.0 arm64, Apple UnZip 6.00, LLVM 17 build Jul 20 2025 | Explicit `TZ=UTC`, `LC_ALL=C`; duplicate Unix directory modes `0700` then `0750`, DOS mtimes 01:02:04 then 01:02:08 on 2026-09-10, followed by child; exit 0, directory `0700`, mtime `1789002124`, child `child` |
+| Linux native platform | Unavailable; no new execution or pass |
+| Windows native platform | Unavailable; no permissions/code-page/time qualification |
+| Other UnZip builds and deployed VFS backends | Unverified for this follow-up |
+
+The UTC input archive SHA-256 is
+`98cd104f1a2f52b6826e762c9cc09d50c542cd0c4093dff44bb24f1c2c67d2c8`;
+native UnZip SHA-256 is
+`2246c1d0fee8aeda25a3b99c35b8f65f9b8f1d224971c92095072c2092ec70de`.
+Python 3.9.6 constructed this isolated native-oracle input, not a unit fixture.
+The first exploratory native probe inherited the host timezone and used a
+current-time child header (input hash
+`cd9d6a7ffa7b26bf9e8324fe194ec0fb4bc8923a6f1325d303f688412378971a`);
+it restored `0700` with mtime `1789020124`. The explicit UTC deterministic probe
+above supersedes it for timezone-qualified evidence.
+
+Final follow-up verification:
+
+- Focused duplicate-directory controls: 4/4, no failures/skips/cancellations/TODOs.
+- UTC/C direct Node ZIP/unzip/plugin scope: 1,940/1,940, no failures, skips,
+  cancellations or TODOs, 55,125.388750 ms; same command and file patterns as
+  the preceding broad audit, with `--test-reporter=spec`. This is focused runtime
+  proof, not a substitute for full maintained repository/workspace discovery.
+- Chicago/UTF-8 format, entry-comments, latest-time and unzip scope: 318/318,
+  no failures/skips/cancellations/TODOs, 3,655.792875 ms. Final format membership
+  is 208 tests, including all four added controls.
+- `npm run typecheck --workspace=virtual-bash`: source/tests and all 26 current
+  consumer groups passed, three expected exit-2 negative validators; zero builds,
+  using existing declarations. Product bytes and public types were unchanged.
+- Actual source SDK `Shell` with `archiveCommands` and memory VFS ran `unzip -l`
+  and `unzip -o` on the three-member probe; both exit 0, first-member directory
+  metadata verified. `npm run screenshot` captured these command results;
+  inspected screenshot is legible and lists both directory records and child.
+  PNG SHA-256 `5ff5c9874745fbeb53f0a33ffcae1dca0ab4c9d125f84f00b24821246d760a53`.
+  This is command/SDK visual QA, not packed-consumer or host backend proof.
+- Final test SHA-256:
+  `d60ac5ed326b80e6e886e4136d038d7ed4b14794c6dbc119c1f847f07fa637b2`.
+  Implementation hashes remain the five implementation values in the preceding table.
+- Guarded `npm run lint:eslint`: complete receipt, exit 0, all 15,505 configured
+  subjects linted, zero errors and the same four untouched docx/ZIP-review
+  warnings. No lint exclusions or policy were changed. `git diff --check` passed.
+
+Absolute `/out` remains read-only. Used task-owned ignored
+`out/zip-metadata-followup/` for the isolated oracle and screenshot; purged after
+inspection. README, dependencies, SafeJS and unrelated edits remain preserved.
+No commit, push, remote-main delivery or release was performed. Earlier completed
+member/directory creation can remain after a later metadata failure or abort;
+these controls do not imply whole-archive transactional extraction. All prior
+absolute-path/traversal/symlink-escape refusals remain unchanged.
+
+## Repeated-hour DOS timestamp repair — 2026-09-17
+
+Revalidated current `main` HEAD
+`39eb9cef7d9b76a6ceb3d34b1fa2daf8aba18b87` with the four pre-existing dirty
+paths recorded by `git status`: this evidence, the remaining-features plan,
+`zip-format.ts` and `zip-format.test.ts`. Preserved those edits, including the
+preceding metadata/name/platform audit and duplicate-directory controls. This
+is live-worktree qualification, not an immutable committed-archive gate.
+Read root/package AGENTS.md. No README, SafeJS, dependencies, public options,
+host fallback, or unrelated files changed. Existing registered format tests
+contain the three additional memory-only tests; no discovery change was needed.
+
+### Validated failure and repair
+
+The fast positive test failed before the repair, in 8.233208 ms, with
+`ZIP retained or unrepresentable timestamp metadata mismatch`. Chicago instant
+`2024-11-03T07:30:01Z` is the second occurrence of local 01:30:01. `-X` removes
+UT; the DOS decoder selects the earlier occurrence when reconstructing a Date,
+so comparing absolute instants incorrectly refused the valid wall-clock fields.
+The writer now compares local year/month/day/hour/minute/second for DOS-only
+metadata. UT still compares absolute whole seconds. DOS calendar validation,
+local/central agreement, timestamp range refusal and all path/identity checks
+remain active. No codec, filesystem, signal, budget or cleanup contract changed.
+
+| Control | Observable consequence |
+| --- | --- |
+| Positive | Both `06:30:01Z` and `07:30:01Z` write DOS 01:30:02 without extras; payload and read/write archive bytes preserved |
+| Negative | Contradictory retained DOS time/date and changed timestamp fail before the first archive output |
+| Boundary | `06:59:59Z`, `07:00:00Z`, `07:59:59Z`, `08:00:00Z` round across the backward transition and repeated-hour endpoints with correct local fields |
+| Cancellation | Abort after the first wire chunk rejects the next pull with the original reason; aborted archive reading rejects with that reason |
+| Neighbor | Actual `zip -X` and `zip -X-` update commands preserve the complete untouched member, including opaque extra bytes; `-X-` retains exact odd-second UT time |
+
+The existing pinned public-test adaptations for Unicode path/comment extras,
+CP437, malformed encodings, NUL, duplicate names, Unix modes/types, unknown extras
+and field limits were rerun in the broad ZIP scope. Their preceding source pins
+and safety exclusions remain applicable; no upstream suite was downloaded or
+executed again in this follow-up. No new defect requiring changes to
+`zip/safety.ts`, `zip/dates.ts`, `zip/comments.ts` or `unzip.ts` was validated
+outside the fold-selection exclusion below.
+
+### Host oracle and intentional ambiguity
+
+| Platform cell | Result |
+| --- | --- |
+| Darwin arm64, Apple Zip 3.0, explicit `TZ=America/Chicago`, `LC_ALL=C` | Native `zip -X -o sample.zip file`, four-byte payload `fold`, both instants above: exit 0 and identical ZIP SHA-256 `d2a54abb93b1b15f6bda399749118e28585dc2fa78f6dbd60af19564ac8b946f`; archive mtime `1730619002` |
+| Linux native platform | Unavailable; not a pass |
+| Windows native platform | Unavailable; not a pass |
+| Other native builds, timezone databases and deployed VFS backends | Not qualified by these probes |
+
+Native Zip binding SHA-256:
+`493a7f270b2cb3ea4f5cf153f735939bdce8b1bad48dce56d6ba89b495064271`.
+Python 3.9.6 set isolated native fixture mtimes; native subprocesses are test
+oracles only. The task-owned temporary oracle directory was removed.
+
+**DOS has no timezone or fold bit.** Both occurrences deliberately collapse to
+identical DOS fields. Product Date reconstruction uses JavaScript's earlier
+occurrence: this Chicago archive reads as `2024-11-03T06:30:02Z`. With UT retained
+by `-X-`, it reads as the original `2024-11-03T07:30:01Z`. The native `-o` probe
+chose the later occurrence (`07:30:02Z`); existing product latest-time selection
+uses the earlier occurrence. Native fold selection is an explicit platform
+compatibility exclusion, not repaired by a guessed platform conversion or host
+fallback. Exact absolute timestamp preservation requires UT metadata. These
+controls qualify DOS wall-clock acceptance, not universal native timestamp parity.
+Atomic staging, publication, identity and directory metadata capability
+requirements, permissions/timestamps opt-outs, and all absolute-path, parent
+traversal and symlink-escape refusals have the same consequences documented above.
+
+### Revision-specific verification
+
+- Three focused controls: 3/3 passed, no failures/skips/cancellations/TODOs.
+- UTC/C broad direct Node ZIP/unzip/plugin scope: exit 0 using
+  `node --import tsx --test --test-concurrency=1 --test-reporter=dot` on
+  `packages/safe-bash/tests/commands/zip*.test.ts`, `commands/unzip.test.ts` and
+  `tests/plugins/zip*.test.ts`. This is scoped runtime proof, not full maintained
+  workspace/repository discovery.
+- Chicago/UTF-8 format, entry-comments, latest-time and unzip scope: 321/321,
+  zero failures/skips/cancellations/TODOs, 3,096.122084 ms. A subsequent test-only
+  optional-property type correction was verified by rerunning all three new controls.
+- Maintained selected build: `npm run build:workspaces -- --workspace=virtual-bash`
+  passed; six builds derived from workspace declarations and dependency closure.
+- `npm run typecheck --workspace=virtual-bash`: final source/tests and all 26
+  current consumer groups passed, with three expected exit-2 negative validators,
+  zero builds using the freshly rebuilt declarations. The initial run failed on
+  explicitly assigning optional fixture properties without non-null assertions;
+  corrected the fixture types and reran the complete maintained route successfully.
+- Guarded `npm run lint:eslint`: complete receipt, exit 0, all 15,505 configured
+  subjects linted, zero errors and the four untouched docx/ZIP-review warnings.
+  No lint policies or exclusions changed. Final `git diff --check` passed.
+- Real source SDK `Shell` executed `zip -X`, `zip -X-` and `unzip -l` on both
+  outputs, all status 0, with assertions for the decoded times and extra lengths.
+  `npm run screenshot` captured this workflow; inspected PNG is legible and
+  displays local 01:30 for both listings. PNG SHA-256:
+  `8300446303921109d189fd33f0878e5c47a2cfde0351e8216c4a4eefac860fa2`.
+  An earlier capture failed because the ad hoc probe registered the second
+  command as registration options; corrected the probe, not product code.
+
+| Final live file | SHA-256 |
+| --- | --- |
+| `src/commands/archive/zip-format.ts` | `92e4b159395d5d590325d5fb182808525544b3647ccd2fbbb5215fd3200b64c9` |
+| `src/commands/archive/zip/safety.ts` | `cca749587878acb89eeb7cf9e0ccb5c597feca535b8acae122401c8c34ee6a71` |
+| `src/commands/archive/zip/dates.ts` | `3ff74ac883e576faf089e187d3af8e409961ccf35975966d80cd5533078393d4` |
+| `src/commands/archive/zip/comments.ts` | `c82a1f6596377523b06eafbee81c4143c209cebb3b9f79ca5256199949509de2` |
+| `src/commands/archive/unzip.ts` | `968a4191b6542f4660ae05a8337aa1d635fb6b90d4e87b1bb45cb31c81d40c8e` |
+| `tests/commands/zip-format.test.ts` | `fc0929e2f4d2c868e5f2d5dd6b3a5a5cd6e494379c440c16432c70d40455d4d5` |
+
+`/out` creation failed with `Read-only file system`; the task-owned ignored
+`out/zip-fold-*` probe, log and screenshot were purged after inspection.
+No commit, push, verified remote-main delivery or release was performed.
+
+## User edge-case follow-up — 2026-09-17
+
+Revalidated the live dirty `main` at
+`39eb9cef7d9b76a6ceb3d34b1fa2daf8aba18b87`, preserving all incoming edits.
+This follow-up adds one memory-only test in the already registered
+`tests/commands/zip-format.test.ts`; no product code, SafeJS, README, dependency,
+CLI/SDK option or native fallback was changed. No additional product defect was
+validated.
+
+The new test admits DOS February 29, 2000 and February 28, 2100, and refuses
+February 29 in 2001 and 2100 even with a valid UT timestamp. Positive rewrites
+retain DOS date, exact odd-second UT, local/central extra bytes and decoded
+payload. Pre-aborted read and write preserve the original cancellation reason.
+Existing malformed timestamp, local/central mismatch, field boundary, duplicate
+name, directory/symlink, identity, extraction escape and `-X`/`-X-` tests provide
+neighboring controls in the broader runs.
+
+The initial new test failed because it expected the complete synthetic STORE
+archive to retain extraction version 20. Serialization recalculates the required
+version as 10 in both headers. The test was corrected to assert preservation of
+the relevant member metadata and payload; product code was not changed to retain
+an unnecessarily high version. Whole-wire byte identity is therefore explicitly
+excluded for this fixture, despite preserved timestamps, extras and payload.
+
+Executed checks on Darwin arm64:
+
+- UTC/C broad direct Node scope, `commands/zip*.test.ts`, `commands/unzip.test.ts`
+  and `plugins/zip*.test.ts`: exit 0. This run preceded the new leap-century test.
+- Final Chicago/C and Pacific/Apia/C direct Node scopes, format, latest-time,
+  archive comments, entry comments and unzip: each 351/351 passed, no failures,
+  cancellations, skips or TODOs (4438.968416 and 4431.323458 ms respectively).
+- Focused new test under Chicago: 1/1 passed, 7.817916 ms.
+- Guarded `npm run lint:eslint`: complete receipt, exit 0; all 15,505 configured
+  subjects linted, zero errors and four untouched docx/ZIP-review warnings.
+  Final `git diff --check` passed.
+- `npm run typecheck --workspace=virtual-bash`: exit 0, source/tests and all 26
+  current consumer groups; three expected exit-2 negative controls, zero builds.
+  Product inputs were unchanged, so this used existing built declarations.
+
+Direct Node runs are scoped runtime checks, not a full maintained repository
+gate. Timezone profiles on Darwin do not establish native Linux or Windows
+platform parity. No new native oracle was executed: Linux and Windows remain
+unavailable, and earlier pinned public adaptations and native observations remain
+historical evidence with their stated exclusions. No visual CLI change was made;
+the preceding screenshot evidence was not recaptured. Existing VFS capability
+requirements and absolute-path, traversal and symlink-escape refusals remain.
+
+Final source `zip-format.ts` SHA-256:
+`92e4b159395d5d590325d5fb182808525544b3647ccd2fbbb5215fd3200b64c9`.
+Final `tests/commands/zip-format.test.ts` SHA-256:
+`9c7c205a784096c2913a947c7f82c09d9147be77bd13a897c83de463ad533f89`.
+No temporary logs or fixtures were written. No commit, push, verified remote-main
+delivery or release was performed in this follow-up.
+
+## Commit verification — 2026-09-17
+
+For the user's request to run tests and commit all current changes, rechecked
+the four changed files on local `main` without reverting incoming edits:
+
+- Chicago/C direct Node ZIP scope (`tests/commands/zip*.test.ts`,
+  `tests/commands/unzip.test.ts`, `tests/plugins/zip*.test.ts`), serial execution:
+  1,944/1,944 passed, zero failures, cancellations, skips or TODOs;
+  68,794.8625 ms. This is scoped runtime validation, not full `npm test`.
+- `npm run build:workspaces -- --workspace=virtual-bash`: exit 0, six builds
+  derived from maintained workspace declarations and dependency closure.
+- `npm run typecheck --workspace=virtual-bash`: exit 0, source/tests and all
+  26 current consumer groups; three expected exit-2 negative controls.
+- `npm run lint:eslint`: complete receipt, exit 0, all 15,505 configured files
+  linted, zero errors and four warnings in unchanged files.
+
+The metadata milestone is included in the local commit with its plan and
+historical evidence. No push, remote-main verification or release is claimed.

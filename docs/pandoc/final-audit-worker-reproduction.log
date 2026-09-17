@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ✓ packages/toolcraft/src/cli-dynamic-default-isolation.test.ts (208 tests) 159ms
+
+ Test Files  1 passed (1)
+      Tests  208 passed (208)
+   Start at  20:27:08
+   Duration  1.56s (transform 1.05s, setup 63ms, import 1.23s, tests 159ms, environment 0ms)

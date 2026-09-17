@@ -3,7 +3,13 @@
 ## Status and ownership
 
 This is the normative delivery contract, not an implemented-capability claim.
-As inspected on 2026-09-16, `packages/pandoc` is absent. Every required reader,
+The original absence investigation is historical: `packages/pandoc` and the
+public `poe-code/pandoc` SDK now exist. The built public SDK exports
+`readDocument`, `writeDocument` and `convert`; the explicit plugin is available
+through `poe-code/safe-bash/commands/pandoc` and CLI `bash --pandoc`.
+Implementation availability is not acceptance of every requirement below; see
+[the final audit](final-acceptance-audit.md) for unresolved contract and QA gates.
+Every required reader,
 writer and option below must be implemented and independently verified before it
 is advertised as available. A missing implementation returns `E_CAPABILITY`;
 it does not delegate to native Pandoc. Contract completion does not complete the
@@ -11,8 +17,8 @@ remaining tasks in [the implementation plan](../plans/pandoc-typescript-safe-bas
 
 Conversion logic belongs in private `packages/pandoc`. The safe-bash `pandoc`
 command is a thin adapter over the same SDK validation and conversion path;
-there is no new root CLI subcommand. Proposed SDK operations are `readDocument`,
-`writeDocument` and `convert`; these names are not delivered exports yet. PDF
+there is no new root pandoc CLI subcommand. SDK operations are `readDocument`,
+`writeDocument` and `convert`. PDF
 layout/font metrics/serialization belong in a TypeScript PDF package, with an
 AST adapter in pandoc. ZIP codecs belong to their shared codec owner.
 
@@ -232,7 +238,8 @@ includes only referenced admitted images, with stable names and rewritten links.
 ### PDF
 
 Required output is PDF 1.7, text searchable, deterministic, produced by a
-TypeScript font/layout/object engine; the dependency is not delivered yet.
+TypeScript font/layout/object engine. `packages/pdf` supplies an implemented
+bounded engine; its availability does not establish the full font/layout profile.
 Default A4 portrait, 54pt margins, serif 12pt, 1.2 line height, left alignment,
 no hyphenation or header/footer. Paragraphs, level-1–6 headings, lists, quotes,
 code, links, PNG/JPEG images, captions, notes as endnotes and rectangular tables
@@ -260,7 +267,8 @@ headings generate bookmarks. No creation/modification timestamps are invented.
 ## Office capability gate
 
 These are separate reader/writer gates, never inferred from a suffix or merely
-from a package directory. All are blocked for converter activation today.
+from a package directory. DOCX and XLSX remain unavailable; the bounded PPTX
+adapter is active but independent presentation-application acceptance is pending.
 
 | Capability | Real dependency or blocked gate                                                                                                                  | Required conversion behavior after verification                                                         |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |

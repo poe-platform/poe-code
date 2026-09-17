@@ -1,0 +1,2034 @@
+{
+  "inputs": "Existing original matrix-owned evidence; explicit QA filesystem reads, never unit dependencies",
+  "rows": [
+    {
+      "profile": "commonmark",
+      "from": "commonmark",
+      "to": "commonmark",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "commonmark",
+      "from": "commonmark",
+      "to": "gfm",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "commonmark",
+      "from": "commonmark",
+      "to": "html5",
+      "sdk": {
+        "kind": "text",
+        "length": 14,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 14,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "commonmark",
+      "from": "commonmark",
+      "to": "json",
+      "sdk": {
+        "kind": "text",
+        "length": 99,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 99,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "commonmark",
+      "from": "commonmark",
+      "to": "plain",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "commonmark",
+      "from": "commonmark",
+      "to": "latex",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "commonmark",
+      "from": "commonmark",
+      "to": "rst",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "commonmark",
+      "from": "commonmark",
+      "to": "rtf",
+      "sdk": {
+        "kind": "text",
+        "length": 380,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 380,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "commonmark",
+      "from": "commonmark",
+      "to": "epub",
+      "sdk": {
+        "kind": "binary",
+        "length": 2017,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 1952,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "commonmark",
+      "from": "commonmark",
+      "to": "pdf",
+      "sdk": {
+        "kind": "binary",
+        "length": 142063,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 134830,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "commonmark",
+      "from": "commonmark",
+      "to": "pptx",
+      "sdk": {
+        "kind": "binary",
+        "length": 4996,
+        "diagnostics": [
+          {
+            "code": "W_LAYOUT_UNMEASURED",
+            "operation": "convert",
+            "format": "pptx",
+            "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+          }
+        ]
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 4832,
+        "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n"
+      }
+    },
+    {
+      "profile": "gfm",
+      "from": "gfm",
+      "to": "commonmark",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "gfm",
+      "from": "gfm",
+      "to": "gfm",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "gfm",
+      "from": "gfm",
+      "to": "html5",
+      "sdk": {
+        "kind": "text",
+        "length": 14,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 14,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "gfm",
+      "from": "gfm",
+      "to": "json",
+      "sdk": {
+        "kind": "text",
+        "length": 99,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 99,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "gfm",
+      "from": "gfm",
+      "to": "plain",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "gfm",
+      "from": "gfm",
+      "to": "latex",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "gfm",
+      "from": "gfm",
+      "to": "rst",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "gfm",
+      "from": "gfm",
+      "to": "rtf",
+      "sdk": {
+        "kind": "text",
+        "length": 380,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 380,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "gfm",
+      "from": "gfm",
+      "to": "epub",
+      "sdk": {
+        "kind": "binary",
+        "length": 2017,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 1952,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "gfm",
+      "from": "gfm",
+      "to": "pdf",
+      "sdk": {
+        "kind": "binary",
+        "length": 142063,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 134830,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "gfm",
+      "from": "gfm",
+      "to": "pptx",
+      "sdk": {
+        "kind": "binary",
+        "length": 4996,
+        "diagnostics": [
+          {
+            "code": "W_LAYOUT_UNMEASURED",
+            "operation": "convert",
+            "format": "pptx",
+            "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+          }
+        ]
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 4832,
+        "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n"
+      }
+    },
+    {
+      "profile": "html",
+      "from": "html",
+      "to": "commonmark",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "html",
+      "from": "html",
+      "to": "gfm",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "html",
+      "from": "html",
+      "to": "html5",
+      "sdk": {
+        "kind": "text",
+        "length": 14,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 14,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "html",
+      "from": "html",
+      "to": "json",
+      "sdk": {
+        "kind": "text",
+        "length": 99,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 99,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "html",
+      "from": "html",
+      "to": "plain",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "html",
+      "from": "html",
+      "to": "latex",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "html",
+      "from": "html",
+      "to": "rst",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "html",
+      "from": "html",
+      "to": "rtf",
+      "sdk": {
+        "kind": "text",
+        "length": 380,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 380,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "html",
+      "from": "html",
+      "to": "epub",
+      "sdk": {
+        "kind": "binary",
+        "length": 2017,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 1952,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "html",
+      "from": "html",
+      "to": "pdf",
+      "sdk": {
+        "kind": "binary",
+        "length": 142063,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 134830,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "html",
+      "from": "html",
+      "to": "pptx",
+      "sdk": {
+        "kind": "binary",
+        "length": 4996,
+        "diagnostics": [
+          {
+            "code": "W_LAYOUT_UNMEASURED",
+            "operation": "convert",
+            "format": "pptx",
+            "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+          }
+        ]
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 4832,
+        "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n"
+      }
+    },
+    {
+      "profile": "json",
+      "from": "json",
+      "to": "commonmark",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "json",
+      "from": "json",
+      "to": "gfm",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "json",
+      "from": "json",
+      "to": "html5",
+      "sdk": {
+        "kind": "text",
+        "length": 14,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 14,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "json",
+      "from": "json",
+      "to": "json",
+      "sdk": {
+        "kind": "text",
+        "length": 99,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 99,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "json",
+      "from": "json",
+      "to": "plain",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "json",
+      "from": "json",
+      "to": "latex",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "json",
+      "from": "json",
+      "to": "rst",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "json",
+      "from": "json",
+      "to": "rtf",
+      "sdk": {
+        "kind": "text",
+        "length": 380,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 380,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "json",
+      "from": "json",
+      "to": "epub",
+      "sdk": {
+        "kind": "binary",
+        "length": 2017,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 1952,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "json",
+      "from": "json",
+      "to": "pdf",
+      "sdk": {
+        "kind": "binary",
+        "length": 142063,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 134830,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "json",
+      "from": "json",
+      "to": "pptx",
+      "sdk": {
+        "kind": "binary",
+        "length": 4996,
+        "diagnostics": [
+          {
+            "code": "W_LAYOUT_UNMEASURED",
+            "operation": "convert",
+            "format": "pptx",
+            "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+          }
+        ]
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 4832,
+        "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n"
+      }
+    },
+    {
+      "profile": "csv",
+      "from": "csv",
+      "to": "commonmark",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Pipe tables are unavailable"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Pipe tables are unavailable\n"
+      }
+    },
+    {
+      "profile": "csv",
+      "from": "csv",
+      "to": "gfm",
+      "sdk": {
+        "kind": "text",
+        "length": 19,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 19,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "csv",
+      "from": "csv",
+      "to": "html5",
+      "sdk": {
+        "kind": "text",
+        "length": 115,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 115,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "csv",
+      "from": "csv",
+      "to": "json",
+      "sdk": {
+        "kind": "text",
+        "length": 299,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 299,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "csv",
+      "from": "csv",
+      "to": "plain",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "csv",
+      "from": "csv",
+      "to": "latex",
+      "sdk": {
+        "kind": "text",
+        "length": 188,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 188,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "csv",
+      "from": "csv",
+      "to": "rst",
+      "sdk": {
+        "kind": "text",
+        "length": 50,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 50,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "csv",
+      "from": "csv",
+      "to": "rtf",
+      "sdk": {
+        "kind": "text",
+        "length": 425,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 425,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "csv",
+      "from": "csv",
+      "to": "epub",
+      "sdk": {
+        "kind": "binary",
+        "length": 2059,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 2001,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "csv",
+      "from": "csv",
+      "to": "pdf",
+      "sdk": {
+        "kind": "binary",
+        "length": 142123,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 134890,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "csv",
+      "from": "csv",
+      "to": "pptx",
+      "sdk": {
+        "kind": "binary",
+        "length": 4992,
+        "diagnostics": [
+          {
+            "code": "W_LAYOUT_UNMEASURED",
+            "operation": "convert",
+            "format": "pptx",
+            "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+          }
+        ]
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 4826,
+        "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n"
+      }
+    },
+    {
+      "profile": "tsv",
+      "from": "tsv",
+      "to": "commonmark",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Pipe tables are unavailable"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Pipe tables are unavailable\n"
+      }
+    },
+    {
+      "profile": "tsv",
+      "from": "tsv",
+      "to": "gfm",
+      "sdk": {
+        "kind": "text",
+        "length": 19,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 19,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "tsv",
+      "from": "tsv",
+      "to": "html5",
+      "sdk": {
+        "kind": "text",
+        "length": 115,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 115,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "tsv",
+      "from": "tsv",
+      "to": "json",
+      "sdk": {
+        "kind": "text",
+        "length": 299,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 299,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "tsv",
+      "from": "tsv",
+      "to": "plain",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "tsv",
+      "from": "tsv",
+      "to": "latex",
+      "sdk": {
+        "kind": "text",
+        "length": 188,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 188,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "tsv",
+      "from": "tsv",
+      "to": "rst",
+      "sdk": {
+        "kind": "text",
+        "length": 50,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 50,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "tsv",
+      "from": "tsv",
+      "to": "rtf",
+      "sdk": {
+        "kind": "text",
+        "length": 425,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 425,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "tsv",
+      "from": "tsv",
+      "to": "epub",
+      "sdk": {
+        "kind": "binary",
+        "length": 2059,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 2001,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "tsv",
+      "from": "tsv",
+      "to": "pdf",
+      "sdk": {
+        "kind": "binary",
+        "length": 142123,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 134890,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "tsv",
+      "from": "tsv",
+      "to": "pptx",
+      "sdk": {
+        "kind": "binary",
+        "length": 4992,
+        "diagnostics": [
+          {
+            "code": "W_LAYOUT_UNMEASURED",
+            "operation": "convert",
+            "format": "pptx",
+            "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+          }
+        ]
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 4826,
+        "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n"
+      }
+    },
+    {
+      "profile": "latex",
+      "from": "latex",
+      "to": "commonmark",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "latex",
+      "from": "latex",
+      "to": "gfm",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "latex",
+      "from": "latex",
+      "to": "html5",
+      "sdk": {
+        "kind": "text",
+        "length": 14,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 14,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "latex",
+      "from": "latex",
+      "to": "json",
+      "sdk": {
+        "kind": "text",
+        "length": 99,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 99,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "latex",
+      "from": "latex",
+      "to": "plain",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "latex",
+      "from": "latex",
+      "to": "latex",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "latex",
+      "from": "latex",
+      "to": "rst",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "latex",
+      "from": "latex",
+      "to": "rtf",
+      "sdk": {
+        "kind": "text",
+        "length": 380,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 380,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "latex",
+      "from": "latex",
+      "to": "epub",
+      "sdk": {
+        "kind": "binary",
+        "length": 2017,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 1952,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "latex",
+      "from": "latex",
+      "to": "pdf",
+      "sdk": {
+        "kind": "binary",
+        "length": 142063,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 134830,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "latex",
+      "from": "latex",
+      "to": "pptx",
+      "sdk": {
+        "kind": "binary",
+        "length": 4996,
+        "diagnostics": [
+          {
+            "code": "W_LAYOUT_UNMEASURED",
+            "operation": "convert",
+            "format": "pptx",
+            "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+          }
+        ]
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 4832,
+        "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n"
+      }
+    },
+    {
+      "profile": "rst",
+      "from": "rst",
+      "to": "commonmark",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rst",
+      "from": "rst",
+      "to": "gfm",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rst",
+      "from": "rst",
+      "to": "html5",
+      "sdk": {
+        "kind": "text",
+        "length": 14,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 14,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rst",
+      "from": "rst",
+      "to": "json",
+      "sdk": {
+        "kind": "text",
+        "length": 99,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 99,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rst",
+      "from": "rst",
+      "to": "plain",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rst",
+      "from": "rst",
+      "to": "latex",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rst",
+      "from": "rst",
+      "to": "rst",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rst",
+      "from": "rst",
+      "to": "rtf",
+      "sdk": {
+        "kind": "text",
+        "length": 380,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 380,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rst",
+      "from": "rst",
+      "to": "epub",
+      "sdk": {
+        "kind": "binary",
+        "length": 2017,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 1952,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rst",
+      "from": "rst",
+      "to": "pdf",
+      "sdk": {
+        "kind": "binary",
+        "length": 142063,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 134830,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rst",
+      "from": "rst",
+      "to": "pptx",
+      "sdk": {
+        "kind": "binary",
+        "length": 4996,
+        "diagnostics": [
+          {
+            "code": "W_LAYOUT_UNMEASURED",
+            "operation": "convert",
+            "format": "pptx",
+            "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+          }
+        ]
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 4832,
+        "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n"
+      }
+    },
+    {
+      "profile": "rtf",
+      "from": "rtf",
+      "to": "commonmark",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rtf",
+      "from": "rtf",
+      "to": "gfm",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rtf",
+      "from": "rtf",
+      "to": "html5",
+      "sdk": {
+        "kind": "text",
+        "length": 14,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 14,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rtf",
+      "from": "rtf",
+      "to": "json",
+      "sdk": {
+        "kind": "text",
+        "length": 99,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 99,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rtf",
+      "from": "rtf",
+      "to": "plain",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rtf",
+      "from": "rtf",
+      "to": "latex",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rtf",
+      "from": "rtf",
+      "to": "rst",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rtf",
+      "from": "rtf",
+      "to": "rtf",
+      "sdk": {
+        "kind": "text",
+        "length": 380,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 380,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rtf",
+      "from": "rtf",
+      "to": "epub",
+      "sdk": {
+        "kind": "binary",
+        "length": 2017,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 1952,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rtf",
+      "from": "rtf",
+      "to": "pdf",
+      "sdk": {
+        "kind": "binary",
+        "length": 142063,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 134830,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "rtf",
+      "from": "rtf",
+      "to": "pptx",
+      "sdk": {
+        "kind": "binary",
+        "length": 4996,
+        "diagnostics": [
+          {
+            "code": "W_LAYOUT_UNMEASURED",
+            "operation": "convert",
+            "format": "pptx",
+            "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+          }
+        ]
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 4832,
+        "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n"
+      }
+    },
+    {
+      "profile": "epub2",
+      "from": "epub",
+      "to": "commonmark",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Markdown cannot represent attributes"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Markdown cannot represent attributes\n"
+      }
+    },
+    {
+      "profile": "epub2",
+      "from": "epub",
+      "to": "gfm",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Markdown cannot represent attributes"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Markdown cannot represent attributes\n"
+      }
+    },
+    {
+      "profile": "epub2",
+      "from": "epub",
+      "to": "html5",
+      "sdk": {
+        "kind": "text",
+        "length": 170,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 170,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "epub2",
+      "from": "epub",
+      "to": "json",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Pandoc JSON cannot represent resources, language or direction document fields"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Pandoc JSON cannot represent resources, language or direction document fields\n"
+      }
+    },
+    {
+      "profile": "epub2",
+      "from": "epub",
+      "to": "plain",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "epub2",
+      "from": "epub",
+      "to": "latex",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Unsupported LaTeX attributes"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Unsupported LaTeX attributes\n"
+      }
+    },
+    {
+      "profile": "epub2",
+      "from": "epub",
+      "to": "rst",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Div projected to contained blocks"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Div projected to contained blocks\n"
+      }
+    },
+    {
+      "profile": "epub2",
+      "from": "epub",
+      "to": "rtf",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Attributed RTF Div unsupported; use paragraph/run attributes"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Attributed RTF Div unsupported; use paragraph/run attributes\n"
+      }
+    },
+    {
+      "profile": "epub2",
+      "from": "epub",
+      "to": "epub",
+      "sdk": {
+        "kind": "binary",
+        "length": 2041,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 1967,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "epub2",
+      "from": "epub",
+      "to": "pdf",
+      "sdk": {
+        "kind": "binary",
+        "length": 142121,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 134888,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "epub2",
+      "from": "epub",
+      "to": "pptx",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Unsupported PPTX block: Div"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Unsupported PPTX block: Div\n"
+      }
+    },
+    {
+      "profile": "epub3",
+      "from": "epub",
+      "to": "commonmark",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Markdown cannot represent attributes"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Markdown cannot represent attributes\n"
+      }
+    },
+    {
+      "profile": "epub3",
+      "from": "epub",
+      "to": "gfm",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Markdown cannot represent attributes"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Markdown cannot represent attributes\n"
+      }
+    },
+    {
+      "profile": "epub3",
+      "from": "epub",
+      "to": "html5",
+      "sdk": {
+        "kind": "text",
+        "length": 170,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 170,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "epub3",
+      "from": "epub",
+      "to": "json",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Pandoc JSON cannot represent resources, language or direction document fields"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Pandoc JSON cannot represent resources, language or direction document fields\n"
+      }
+    },
+    {
+      "profile": "epub3",
+      "from": "epub",
+      "to": "plain",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "epub3",
+      "from": "epub",
+      "to": "latex",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Unsupported LaTeX attributes"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Unsupported LaTeX attributes\n"
+      }
+    },
+    {
+      "profile": "epub3",
+      "from": "epub",
+      "to": "rst",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Div projected to contained blocks"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Div projected to contained blocks\n"
+      }
+    },
+    {
+      "profile": "epub3",
+      "from": "epub",
+      "to": "rtf",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Attributed RTF Div unsupported; use paragraph/run attributes"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Attributed RTF Div unsupported; use paragraph/run attributes\n"
+      }
+    },
+    {
+      "profile": "epub3",
+      "from": "epub",
+      "to": "epub",
+      "sdk": {
+        "kind": "binary",
+        "length": 2041,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 1967,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "epub3",
+      "from": "epub",
+      "to": "pdf",
+      "sdk": {
+        "kind": "binary",
+        "length": 142121,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 134888,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "epub3",
+      "from": "epub",
+      "to": "pptx",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Unsupported PPTX block: Div"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Unsupported PPTX block: Div\n"
+      }
+    },
+    {
+      "profile": "pptx",
+      "from": "pptx",
+      "to": "commonmark",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Markdown cannot represent attributes"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Markdown cannot represent attributes\n"
+      }
+    },
+    {
+      "profile": "pptx",
+      "from": "pptx",
+      "to": "gfm",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Markdown cannot represent attributes"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Markdown cannot represent attributes\n"
+      }
+    },
+    {
+      "profile": "pptx",
+      "from": "pptx",
+      "to": "html5",
+      "sdk": {
+        "kind": "text",
+        "length": 82,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 82,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "pptx",
+      "from": "pptx",
+      "to": "json",
+      "sdk": {
+        "kind": "text",
+        "length": 176,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 176,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "pptx",
+      "from": "pptx",
+      "to": "plain",
+      "sdk": {
+        "kind": "text",
+        "length": 7,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 7,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "pptx",
+      "from": "pptx",
+      "to": "latex",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Unsupported LaTeX attributes"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Unsupported LaTeX attributes\n"
+      }
+    },
+    {
+      "profile": "pptx",
+      "from": "pptx",
+      "to": "rst",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Div projected to contained blocks"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Div projected to contained blocks\n"
+      }
+    },
+    {
+      "profile": "pptx",
+      "from": "pptx",
+      "to": "rtf",
+      "sdk": {
+        "code": "E_UNSUPPORTED_FEATURE",
+        "message": "Attributed RTF Div unsupported; use paragraph/run attributes"
+      },
+      "command": {
+        "exitCode": 5,
+        "stdoutLength": 0,
+        "stderr": "E_UNSUPPORTED_FEATURE: Attributed RTF Div unsupported; use paragraph/run attributes\n"
+      }
+    },
+    {
+      "profile": "pptx",
+      "from": "pptx",
+      "to": "epub",
+      "sdk": {
+        "kind": "binary",
+        "length": 2054,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 1993,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "pptx",
+      "from": "pptx",
+      "to": "pdf",
+      "sdk": {
+        "kind": "binary",
+        "length": 142063,
+        "diagnostics": []
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 134830,
+        "stderr": ""
+      }
+    },
+    {
+      "profile": "pptx",
+      "from": "pptx",
+      "to": "pptx",
+      "sdk": {
+        "kind": "binary",
+        "length": 4996,
+        "diagnostics": [
+          {
+            "code": "W_LAYOUT_UNMEASURED",
+            "operation": "convert",
+            "format": "pptx",
+            "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+          }
+        ]
+      },
+      "command": {
+        "exitCode": 0,
+        "stdoutLength": 4832,
+        "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n"
+      }
+    }
+  ]
+}

@@ -1686,3 +1686,21 @@ checks and resource limits. Byte-identical PDF output to a different layout
 engine is not a meaningful acceptance criterion; independently inspected page
 content, geometry, font mappings and rendered appearance are. New format work
 keeps the same per-task TDD and atomic local commit requirements.
+
+
+## Final acceptance audit, 2026-09-16
+
+The pipeline remains draft with finalization pending. Availability of the text
+and expanded-format implementations does not close the required profiles or QA.
+The audit reopens only tasks with concrete unresolved acceptance prerequisites:
+upstream completeness review, workspace README delivery, DOCX/XLSX dependencies,
+PPTX application QA, LaTeX/RST/EPUB reader profile reconciliation, RST loss
+behavior, PDF layout/serialization requirements, whole-contract conformance and
+visual/documentation gates.
+The final-acceptance task remains open; no unresolved work is archived.
+
+Procedure: [final acceptance audit](pandoc-final-acceptance.md). Findings and
+maintained check outcomes: [audit evidence](../pandoc/final-acceptance-audit.md).
+Existing pending task-status edits and public-wiring captures are separate work;
+only the audit's own plan annotation belongs to its local commit. No push,
+remote-main verification or publication is performed.

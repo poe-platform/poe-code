@@ -1,0 +1,31 @@
+{
+  "harnessNotes": [
+    "Initial probe passed a string to MemoryFileSystem.writeFile; byte-only API rejected it before invocation. Corrected with Uint8Array; not a converter defect."
+  ],
+  "rows": [
+    {
+      "command": "pandoc -fcommonmark -tplain",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Unsupported option: -fcommonmark\n"
+    },
+    {
+      "command": "pandoc -f commonmark -f gfm -t plain",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Repeated option: -f\n"
+    },
+    {
+      "command": "pandoc --yes -t plain /input.unknown",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "E_FORMAT: Unknown or ambiguous suffix: /input.unknown\n"
+    },
+    {
+      "command": "pandoc --help --yes",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "E_OPTION: Use help flags alone\n"
+    }
+  ]
+}

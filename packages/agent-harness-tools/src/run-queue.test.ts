@@ -1,0 +1,130 @@
+import { describe, expect, it, vi } from "vitest";
+import { createRunQueue } from "./run-queue.js";
+
+describe("live harness work queue", () => {
+  it("runs messages after their plan and before the next plan, including additions during execution", async () => {
+    const queue = createRunQueue({ plans: ["first.md", "second.md"] });
+    const [first, second] = queue.getSnapshot().items;
+    queue.enqueueMessage("Review the implementation", first!.id);
+    queue.enqueueMessage("Check accessibility", first!.id);
+    queue.enqueueMessage("Summarize changes", second!.id);
+    const executed: string[] = [];
+    const result = await queue.run({
+      async execute(item) {
+        executed.push(item.kind === "plan" ? item.path : item.text);
+        if (item.id === first!.id) {
+          queue.enqueuePlan("third.md");
+          queue.enqueueMessage("Verify the tests", first!.id);
+        }
+        return "completed";
+      }
+    });
+    expect(executed).toEqual([
+      "first.md", "Review the implementation", "Check accessibility", "Verify the tests",
+      "second.md", "Summarize changes", "third.md"
+    ]);
+    expect(result.status).toBe("completed");
+    expect(result.items.every((item) => item.status === "completed")).toBe(true);
+  });
+
+  it("applies CLI/SDK after-each-plan messages to both initial and newly queued plans", async () => {
+    const queue = createRunQueue({ plans: ["first.md"], afterEachPlan: ["Review", "Summarize"] });
+    queue.enqueuePlan("second.md");
+    const execute = vi.fn(async () => "completed" as const);
+    await queue.run({ execute });
+    expect(execute.mock.calls).toHaveLength(6);
+    expect(queue.getSnapshot().items.map((item) => item.kind === "plan" ? item.path : item.text))
+      .toEqual(["first.md", "Review", "Summarize", "second.md", "Review", "Summarize"]);
+  });
+
+  it("keeps pending work when a plan or message fails", async () => {
+    for (const failingKind of ["plan", "message"]) {
+      const queue = createRunQueue({ plans: ["first.md", "second.md"], afterEachPlan: ["Review"] });
+      const result = await queue.run({ execute: async (item) => item.kind === failingKind ? "failed" : "completed" });
+      expect(result.status).toBe("failed");
+      expect(result.items.at(-2)?.status).toBe("pending");
+      expect(result.items.at(-1)?.status).toBe("pending");
+      expect(result.items.filter((item) => item.status === "failed")).toHaveLength(1);
+    }
+  });
+
+  it("does not advance or accept new work after cancellation", async () => {
+    const queue = createRunQueue({ plans: ["first.md", "second.md"] });
+    const abort = new AbortController();
+    const result = await queue.run({
+      signal: abort.signal,
+      execute: async () => { abort.abort(); return "completed"; }
+    });
+    expect(result.status).toBe("cancelled");
+    expect(result.items.map((item) => item.status)).toEqual(["cancelled", "pending"]);
+    expect(() => queue.enqueuePlan("third.md")).toThrow("finished");
+  });
+
+  it("stops at a partial plan without sending its follow-ups", async () => {
+    const queue = createRunQueue({ plans: ["first.md", "second.md"], afterEachPlan: ["Review"] });
+    const result = await queue.run({ execute: async () => "paused" });
+    expect(result.status).toBe("paused");
+    expect(result.items.map((item) => item.status)).toEqual(["paused", "pending", "pending", "pending"]);
+  });
+
+  it("preserves the original exception and marks failed work", async () => {
+    const queue = createRunQueue({ plans: ["first.md", "second.md"] });
+    const error = new Error("Agent connection failed");
+    await expect(queue.run({ execute: async () => { throw error; } })).rejects.toBe(error);
+    expect(queue.getSnapshot().status).toBe("failed");
+    expect(queue.getSnapshot().items.map((item) => item.status)).toEqual(["failed", "pending"]);
+  });
+
+  it("rejects empty messages, duplicate plans, and targets that have already passed", async () => {
+    const queue = createRunQueue({ plans: ["first.md", "second.md"] });
+    const first = queue.getSnapshot().items[0]!;
+    expect(() => queue.enqueueMessage(" \n ", first.id)).toThrow("empty");
+    expect(() => queue.enqueuePlan(" first.md ")).toThrow("already queued");
+    expect(() => queue.enqueueMessage("Review", "missing")).toThrow("plan");
+    await queue.run({ execute: async (item) => {
+      if (item.kind === "plan" && item.path === "second.md") {
+        expect(() => queue.enqueueMessage("Too late", first.id)).toThrow("already finished");
+      }
+      return "completed";
+    } });
+  });
+
+  it("defaults new messages to the active plan, including while its follow-up is running", async () => {
+    const queue = createRunQueue({ plans: ["first.md", "second.md"] });
+    const seen: string[] = [];
+    await queue.run({ execute: async (item) => {
+      seen.push(item.kind === "plan" ? item.path : item.text);
+      if (item.kind === "plan" && item.path === "first.md") queue.enqueueMessage("First follow-up");
+      if (item.kind === "message" && item.text === "First follow-up") queue.enqueueMessage("Second follow-up");
+      return "completed";
+    } });
+    expect(seen).toEqual(["first.md", "First follow-up", "Second follow-up", "second.md"]);
+  });
+
+  it("publishes immutable snapshots and unsubscribes observers", async () => {
+    const queue = createRunQueue({ plans: ["first.md"] });
+    const before = queue.getSnapshot();
+    const listener = vi.fn();
+    const unsubscribe = queue.onChange(listener);
+    queue.enqueueMessage("Review");
+    expect(listener).toHaveBeenCalledOnce();
+    expect(before.items).toHaveLength(1);
+    expect(before.items[0]?.status).toBe("pending");
+    unsubscribe();
+    await queue.run({ execute: async () => "completed" });
+    expect(listener).toHaveBeenCalledOnce();
+    expect(before.items[0]?.status).toBe("pending");
+  });
+
+  it("rejects overlapping drains and finishes an empty queue without executing", async () => {
+    const empty = createRunQueue({ plans: [] });
+    const execute = vi.fn(async () => "completed" as const);
+    expect((await empty.run({ execute })).status).toBe("completed");
+    expect(execute).not.toHaveBeenCalled();
+    const queue = createRunQueue({ plans: ["first.md"] });
+    await queue.run({ execute: async () => {
+      await expect(queue.run({ execute })).rejects.toThrow("already running");
+      return "completed";
+    } });
+  });
+});

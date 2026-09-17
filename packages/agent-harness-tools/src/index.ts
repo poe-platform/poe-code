@@ -33,6 +33,14 @@ export {
 } from "./runner.js";
 export { runDocumentWorkflowSequence, type DocumentWorkflowSequenceOptions } from "./sequence.js";
 export {
+  createRunQueue,
+  type RunQueue,
+  type RunQueueItem,
+  type RunQueueItemStatus,
+  type RunQueueOutcome,
+  type RunQueueSnapshot
+} from "./run-queue.js";
+export {
   ensureSafeRunLogDir,
   makeRunLogFileName,
   resolveRunLogDir,
@@ -64,5 +72,7 @@ export {
   type RuntimeOverrideOptions
 } from "./poe-command-execution.js";
 export { skillPlanConfigSection } from "./skill-config.js";
+export { createHarnessDashboard, type HarnessDashboard } from "./harness-dashboard.js";
+export { mapSourcePathIntoWorktree } from "./worktree-path.js";
 export * from "./execution-env.js";
 export * from "./workspace-transfer.js";

@@ -108,3 +108,36 @@ commonly source `configuredDefaultAgent` from:
 
 - `POE_DEFAULT_AGENT`: overrides file-backed `core.defaultAgent` values before
   callers pass `configuredDefaultAgent`.
+
+## Queue work during a run
+
+Append plans and follow-up messages while your harness runs.
+
+```ts
+import { createRunQueue } from "@poe-code/agent-harness-tools";
+
+const queue = createRunQueue({
+  plans: ["docs/plans/release.md"],
+  afterEachPlan: ["Review the result and run the focused checks."]
+});
+
+queue.onChange((snapshot) => renderQueue(snapshot));
+
+// These can also be called while execute() is awaiting an agent.
+queue.enqueueMessage("Summarize the remaining risks.");
+queue.enqueuePlan("docs/plans/accessibility.md");
+
+await queue.run({
+  signal: abortController.signal,
+  execute: async (item) => {
+    if (item.kind === "plan") return runPlan(item.path);
+    return runAgentMessage(item.text);
+  }
+});
+```
+
+`execute` returns `completed`, `failed`, `cancelled`, or `paused`. Only completed work advances the queue. Failures, cancellation, and partial plans retain the pending entries in the final snapshot. Exceptions retain their original identity and mark the active entry failed (or cancelled when the signal is aborted).
+
+Messages run in insertion order immediately after their target plan, before the next plan. `enqueueMessage(text, planId?)` defaults to the active plan, including while its messages run. Before execution it defaults to the first plan. A plan that the queue has already passed cannot receive new messages. `afterEachPlan` applies to initial and subsequently appended plans.
+
+Snapshots and their entries are immutable. `onChange` returns an unsubscribe function. A queue can run once; create another queue for a later run. Duplicate paths are compared relative to `cwd`, which defaults to the current directory. The caller validates plan contents before accepting them and supplies the same agent configuration to its plan and message executors.

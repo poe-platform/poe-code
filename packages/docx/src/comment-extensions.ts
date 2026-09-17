@@ -1,4 +1,5 @@
 import { commentExtensionParts } from "./comment-extension-parts.js";
+import { parseMediaType } from "./media-type.js";
 import type { DocumentBudget } from "./budget.js";
 import type { DocumentPackage } from "./package.js";
 import type { XmlElement } from "./package-xml.js";
@@ -21,10 +22,11 @@ export function inventoryCommentExtensions(graph: DocumentPackage, editors: Read
   const result: CommentExtensionInfo[] = [];
   const relationships = ["/", ...graph.parts.filter(p => p.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(p => p.partname)].flatMap(owner => graph.relationships(owner));
   for (const part of graph.parts) {
+    const type = parseMediaType(part.content_type);
     const root = editors.get(part.partname)?.root;
-    const descriptor = commentExtensionParts.find(e => e.contentType.toLowerCase() === part.content_type.toLowerCase() ||
+    const descriptor = commentExtensionParts.find(e => e.contentType.toLowerCase() === type ||
       root?.namespace === e.namespace && root.localName === e.root || relationships.some(r => r.reltype === e.relationship && !r.is_external && r.target_part === part));
-    if (!descriptor && !["commentsExtended", "commentsIds", "commentsExtensible", "people"].some(k => part.content_type.toLowerCase().includes(k.toLowerCase()))) continue;
+    if (!descriptor && !["commentsExtended", "commentsIds", "commentsExtensible", "people"].some(k => type.includes(k.toLowerCase()))) continue;
     const entries: CommentExtensionInfo["entries"][number][] = [];
     const visit = (node: XmlElement, path: readonly number[]) => {
       budget.charge("work", 1 + node.attributes.length);
@@ -86,7 +88,7 @@ export function synchronizeCommentExtensions(state: State, selected: State["reco
   for (const info of state.extensions) {
     const descriptor = commentExtensionParts.find(e => e.kind === info.kind);
     const editor = state.editors.get(info.part);
-    if (!descriptor || !editor || groups.has(info.kind) || state.graph.getPart(info.part).content_type.toLowerCase() !== descriptor.contentType.toLowerCase() ||
+    if (!descriptor || !editor || groups.has(info.kind) || parseMediaType(state.graph.getPart(info.part).content_type) !== descriptor.contentType.toLowerCase() ||
       editor.root.namespace !== descriptor.namespace || editor.root.localName !== descriptor.root) refuse();
     const edges = state.graph.relationships(state.main).filter(e => e.reltype === descriptor!.relationship);
     if (edges.length !== 1 || edges[0]!.is_external || edges[0]!.fragment || edges[0]!.target_part.partname !== info.part) refuse();

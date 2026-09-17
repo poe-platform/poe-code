@@ -3,6 +3,7 @@ import { documentCompatibilityProfile } from "./compatibility.js";
 import { archiveSettings, type ArchiveContext } from "./archive.js";
 import { documentDialects, dialectForNamespace } from "./dialect.js";
 import { openDocumentLocations } from "./locations.js";
+import { parseMediaType } from "./media-type.js";
 import { DocumentPackage } from "./package.js";
 import { InvalidPackageError, isXmlContentType, type XmlElement } from "./package-xml.js";
 import { DocumentXmlEditor } from "./xml-write.js";
@@ -36,7 +37,7 @@ export async function openComments(input: Uint8Array, context: ArchiveContext) {
   const extensions = inventoryCommentExtensions(graph, editors, budget);
   if (part && extensions.length) editors.set(part, new DocumentXmlEditor(graph.getPart(part).bytes, {}, { ...documentCompatibilityProfile, understoodNamespaces: [...documentCompatibilityProfile.understoodNamespaces, commentParagraphNamespace] }, budget));
   const editor = part ? editors.get(part) : undefined;
-  if (part && (!editor || editor.root.namespace !== w || editor.root.localName !== "comments" || graph.getPart(part).content_type.toLowerCase() !== "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"))
+  if (part && (!editor || editor.root.namespace !== w || editor.root.localName !== "comments" || parseMediaType(graph.getPart(part).content_type) !== "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"))
     throw new InvalidPackageError("Invalid comments part.");
   const markers: CommentMarker[] = [];
   for (const [name, xml] of editors) {

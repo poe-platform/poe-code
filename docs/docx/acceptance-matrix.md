@@ -1,5 +1,11 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 native comment qualification](native-media-comments-20260917.md)
+records 288 exact comment/metadata cases in the joint 915-pass run, zero skips,
+and 24 built SDK/Shell workflows. Native MIME parameters retain role authority;
+unrelated parameter text stays inert. Exact synchronized removal preserves all
+other records and parts. Full F01–F07 and remaining consumers stay open.
+
 The [2026-09-17 native binding qualification](native-media-bindings-20260917.md)
 records 288 exact binding cases in the joint 915-pass run, zero skips, with
 48 built SDK/Shell workflows and 72 expected guard refusals. Active aliases

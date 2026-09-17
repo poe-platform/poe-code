@@ -108,3 +108,13 @@ F01/F02/F03/F04/F05 identity, mutation, preservation and refusal evidence throug
 applicable model, SDK and actual shell routes. The 320 cases include 64 paired
 unsupported affected edits and successful unrelated edits. The whole-family
 reconciliation remains open; no bounded label or total accepts a complete family.
+
+## Current canonical image evidence
+
+The [canonical image record](canonical-image-routes-20260917.md) adds 216 exact
+F01/F02/F03/F04 cross-family cases for body/header insertion, replacement,
+resizing, layout, media allocation and physical drawing-ID reservation. Applicable
+model, SDK and actual shell routes preserve original members and relationship
+graphs. Shared replacement followed by a separate layout operation is qualified;
+combined shared resizing retains its explicit contract-defined rejection.
+Full-family acceptance and independently spelled relationship members remain open.

@@ -121,17 +121,17 @@ export async function replaceDocumentImage(
     selected = resolveDocxSelection(document, invocation) as readonly Location<"image">[],
     archive = document.snapshot();
   assertDocumentEditable(archive, scoped);
+  const graph = new DocumentPackage(archive, settings.limits, budget);
   const main = document.list("story", { scope: "body" })[0]!.value.part,
     dialect = dialectForNamespace(
       parseDocumentXml(
-        archive.members.find((member) => "/" + member.name === main)!.bytes,
+        graph.getPart(main).bytes,
         {},
         budget
       ).root.namespace
     )!,
     ns = documentDialects[dialect];
-  const graph = new DocumentPackage(archive, settings.limits, budget),
-    editor = new DocumentArchiveEditor(archive, {}, undefined, budget);
+  const editor = new DocumentArchiveEditor(archive, {}, undefined, budget);
   const resizeEditors = new Map<string, DocumentXmlEditor>();
   const unusedRelationships: { name: string; id: string }[] = [];
   const admitted: {
@@ -264,7 +264,7 @@ export async function replaceDocumentImage(
         "image/tiff": "tiff"
       } as Record<string, string>
     )[mime];
-    const taken = new Set(archive.members.map((member) => asciiKey("/" + member.name)));
+    const taken = new Set(graph.parts.map((part) => asciiKey(part.partname)));
     let ordinal = 1;
     do {
       budget.charge("work", 1);
@@ -352,7 +352,7 @@ export async function replaceDocumentImage(
           throw new InvalidValueError("Image crop is empty.");
       }
       for (const item of admitted) {
-        const name = item.owner.slice(1);
+        const name = graph.getPart(item.owner).name;
         let xml = resizeEditors.get(name);
         if (!xml) {
           xml = new DocumentXmlEditor(editor.xml(name).serialize(), {}, undefined, budget);

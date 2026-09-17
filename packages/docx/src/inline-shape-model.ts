@@ -243,10 +243,8 @@ export function insertModelImage(
     );
     const relationshipId = graph.allocateRelationshipId(ref.part),
       drawingIds = new Set<number>();
-    for (const member of store.snapshot().members) {
-      const type = graph.parts.find((p) => p.partname === "/" + member.name)?.content_type;
-      if (!type || !isXmlContentType(type))
-        continue;
+    for (const candidate of graph.parts) {
+      if (!isXmlContentType(candidate.content_type)) continue;
       const collect = (node: XmlElement) => {
         store.context.budget.charge("work", 1);
         if (node.namespace === ns.wp && node.localName === "docPr")
@@ -255,7 +253,7 @@ export function insertModelImage(
           );
         for (const child of node.children) collect(child);
       };
-      collect(parseDocumentXml(member.bytes, {}, store.context.budget).root);
+      collect(parseDocumentXml(candidate.bytes, {}, store.context.budget).root);
     }
     let drawingId = 1;
     while (drawingIds.has(drawingId)) drawingId++;

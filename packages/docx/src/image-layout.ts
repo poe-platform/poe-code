@@ -11,6 +11,7 @@ import { openDocumentLocations } from "./locations.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
+import { DocumentPackage } from "./package.js";
 import { documentDialects, dialectForNamespace, type DocumentDialect } from "./dialect.js";
 import { assertOutsideRevisionRanges } from "./revision-markup.js";
 import {
@@ -362,10 +363,11 @@ export async function setDocumentImageLayout(
     selected = resolveDocxSelection(document, invocation),
     archive = document.snapshot();
   assertDocumentEditable(archive, scoped);
+  const graph = new DocumentPackage(archive, settings.limits, budget);
   const main = document.list("story", { scope: "body" })[0]!.value.part,
     dialect = dialectForNamespace(
       parseDocumentXml(
-        archive.members.find((member) => "/" + member.name === main)!.bytes,
+        graph.getPart(main).bytes,
         {},
         budget
       ).root.namespace
@@ -394,7 +396,7 @@ export async function setDocumentImageLayout(
   ];
   for (const before of selected) {
     if (before.kind !== "image" || before.value.range !== null) unsupported();
-    const member = archive.members.find((item) => "/" + item.name === before.value.part)!,
+    const member = graph.getPart(before.value.part),
       xml = new DocumentXmlEditor(member.bytes, {}, undefined, budget);
     let node = xml.root;
     const ancestors = [node];
@@ -461,8 +463,8 @@ export async function setDocumentImageLayout(
     });
   }
   for (const plan of plans) {
-    const name = plan.before.value.part.slice(1),
-      member = archive.members.find((item) => item.name === name)!;
+    const member = graph.getPart(plan.before.value.part),
+      name = member.name;
     const edit = (action: (xml: DocumentXmlEditor, p: Picture) => void) => {
       const before = staged.get(name) ?? member.bytes,
         xml = new DocumentXmlEditor(before, {}, undefined, budget);

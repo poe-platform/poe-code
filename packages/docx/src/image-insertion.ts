@@ -135,8 +135,9 @@ export async function insertDocumentImage(input: Uint8Array, request: ImageInser
     const expected = ({ png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", bmp: "image/bmp", tif: "image/tiff", tiff: "image/tiff", svg: "image/svg+xml" } as Record<string, string>)[suffix];
     if (expected && expected !== mime) throw new InvalidValueError("Image filename type conflicts with its admitted signature.");
   }
-  const size = imageSize(header, options), main = document.list("story", { scope: "body" })[0]!.value.part, dialect = dialectForNamespace(parseDocumentXml(archive.members.find(m => "/" + m.name === main)!.bytes, {}, budget).root.namespace)!, ns = documentDialects[dialect];
-  const graph = new DocumentPackage(archive, settings.limits, budget), takenNames = new Set(archive.members.map(m => asciiKey("/" + m.name)));
+  const graph = new DocumentPackage(archive, settings.limits, budget);
+  const size = imageSize(header, options), main = document.list("story", { scope: "body" })[0]!.value.part, dialect = dialectForNamespace(parseDocumentXml(graph.getPart(main).bytes, {}, budget).root.namespace)!, ns = documentDialects[dialect];
+  const takenNames = new Set(graph.parts.map(part => asciiKey(part.partname)));
   const extension = ({ "image/png": "png", "image/jpeg": "jpg", "image/gif": "gif", "image/bmp": "bmp", "image/tiff": "tiff" } as Record<string, string>)[header.mime]!;
   let mediaOrdinal = 1, media: string; do { media = `${main.slice(0, main.lastIndexOf("/"))}/media/image-${mediaOrdinal++}.${extension}`; } while (takenNames.has(asciiKey(media)));
   takenNames.add(asciiKey(media));
@@ -145,11 +146,10 @@ export async function insertDocumentImage(input: Uint8Array, request: ImageInser
     do { vectorPart = `${main.slice(0, main.lastIndexOf("/"))}/media/image-${mediaOrdinal++}.svg`; } while (takenNames.has(asciiKey(vectorPart)));
   }
   const drawingIds = new Set<string>();
-  for (const member of archive.members) {
-    const part = graph.parts.find(p => p.partname === "/" + member.name);
-    if (!part || !isXmlContentType(part.content_type)) continue;
+  for (const part of graph.parts) {
+    if (!isXmlContentType(part.content_type)) continue;
     const visit = (node: ReturnType<typeof parseDocumentXml>["root"]) => { budget.charge("work", 1); if (node.namespace === ns.wp && node.localName === "docPr") { const id = node.attributes.find(a => a.namespace === "" && a.localName === "id")?.value; if (id) drawingIds.add(String(Number(id))); } for (const child of node.children) visit(child); };
-    visit(parseDocumentXml(member.bytes, {}, budget).root);
+    visit(parseDocumentXml(part.bytes, {}, budget).root);
   }
   const additions = new Map<string, { name: string; xml: string }>(), editor = new DocumentArchiveEditor(archive, {}, undefined, budget), updates: { before: Location; path: readonly number[] }[] = [];
   for (const before of selected) {
@@ -158,11 +158,11 @@ export async function insertDocumentImage(input: Uint8Array, request: ImageInser
     if (ancestors.some(n => n.namespace === ns.w && (["ins", "del", "moveFrom", "moveTo"].includes(n.localName) || n.children.some(c => c.namespace === ns.w && ["pPr", "tcPr"].includes(c.localName) && c.children.some(p => p.localName.endsWith("Change")))))) throw new UnsupportedEditError("Tracked containers require explicit revision operations.");
     assertOutsideRevisionRanges(xml.root, node, budget, xml.compatibility.branches);
     if (node.namespace !== ns.w || !["p", "body", "tc", "hdr", "ftr", "footnote", "endnote", "comment", "txbxContent"].includes(node.localName)) throw new UnsupportedEditError("Unsupported image insertion container.");
-    const ownerMember = archive.members.find(m => "/" + m.name === before.value.part)!, utf8 = parseDocumentXml(ownerMember.bytes, {}, budget).encoding === "UTF-8", alt = options.alt ?? "";
+    const ownerMember = graph.getPart(before.value.part), utf8 = parseDocumentXml(ownerMember.bytes, {}, budget).encoding === "UTF-8", alt = options.alt ?? "";
     budget.charge("work", alt.length);
     const alternativeSize = xmlTextSize(alt, utf8, true);
     budget.check("xmlPartBytes", ownerMember.bytes.length + alternativeSize.bytes);
-    const owner = before.value.part, slash = owner.lastIndexOf("/"), relname = owner.slice(1, slash + 1) + "_rels/" + owner.slice(slash + 1) + ".rels";
+    const owner = before.value.part, slash = ownerMember.name.lastIndexOf("/"), relname = ownerMember.name.slice(0, slash + 1) + "_rels/" + ownerMember.name.slice(slash + 1) + ".rels";
     let idOrdinal = 1; const taken = new Set(graph.relationships(owner).map(edge => edge.rId)); while (taken.has(`rId${idOrdinal}`)) idOrdinal++; const relationshipId = `rId${idOrdinal}`;
     taken.add(relationshipId);
     while (taken.has(`rId${idOrdinal}`)) idOrdinal++;

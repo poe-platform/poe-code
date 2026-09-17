@@ -16,7 +16,9 @@ converter implementation and runtime QA are separate tasks.
    semantics, continuations and block ordinals. Verify opening fence lengths;
    percent signs in stdin/expected TeX must not create tests. Distinguish the two
    nested chapter inputs from automatically registered command files.
-4. Compare all 652 CommonMark and 672 pinned GFM example locators and sections
+4. Authenticate the exact published CommonMark dependency packages selected by
+   pinned stack.yaml; enumerate every file-based, inline and property registration,
+   preserving fixture-specific license provenance. Compare all 652 CommonMark and 672 pinned GFM example locators and sections
    with the research specifications. Review external dependency-suite coverage
    separately; specification example coverage is not a complete dependency-suite
    claim. Copy no fixture payloads into tests without actual-license review.
@@ -40,3 +42,9 @@ converter implementation and runtime QA are separate tasks.
 Current outcome: initial inventory written; structural/hash validation and
 formatting recorded in docs/pandoc/inventory-validation.json. Exact independent
 completeness review and missing primary-document retrieval remain pending.
+
+External dependency review: all published suite registrations in commonmark 0.3
+and commonmark-extensions 0.2.7.1 are assigned. commonmark-pandoc 0.3 declares no
+test suite. Archive hashes and source hashes bind research only; zero passing
+converter tests are inferred. Exact Pandoc completeness and primary-document
+retrieval are handled separately.

@@ -5,7 +5,7 @@ adapter belong to subsequent tasks. The research checkout is detached at
 `c9a9a5eed7185783b69043e019c067370dc09615` outside the worktree.
 
 [upstream-cases.json](upstream-cases.json) assigns reserved original test IDs to
-4,211 rows: 4,198 planned and 13 not-applicable. There are **zero passing tests**.
+5,101 rows: 5,088 planned and 13 not-applicable. There are **zero passing tests**.
 These IDs identify future original cases, not existing test functions. Native
 expectations are research targets; locally admitted semantics, typed rejection,
 and strict/lossy behavior are governed by [contract.md](contract.md).
@@ -37,15 +37,29 @@ extended tables and literate profiles independently of fixture-file discovery.
 External coverage assigns every one of the 652 CommonMark 0.31.2 specification
 examples and 672 examples in `cmark-gfm`'s `0.29.0.gfm.13` specification source.
 GFM's older CommonMark baseline does not override the contract's 0.31.2 core.
-Pandoc declares ranges for its CommonMark dependencies, rather than pinning their
-separate test repositories; this inventory does not claim those repositories'
-regression/fuzz suites were enumerated. Specification example payloads remain
+Pandoc's `stack.yaml` pins the published `commonmark-0.3`,
+`commonmark-extensions-0.2.7.1` and `commonmark-pandoc-0.3` packages. Their Hackage
+source archives are authenticated by SHA-256 in `externalDependencies` and kept
+outside the worktree. All 890 dependency registrations are assigned: 652 core
+specification examples, 36 regression examples, one token round-trip property,
+two inline EOF/HTML examples, 198 extension examples and one relative-path case.
+The duplicated core specification registrations remain separate discovery rows;
+they are not additional independent passing evidence. The bridge package declares
+no test suite. The extension archive also contains an explanatory relative-path
+Markdown resource with no examples; its actual case is registered inline in Haskell.
+Disabled extensions are planned ordinary-syntax/profile-rejection cases against
+Required formats and defaults, not implicitly enabled dialects or skipped passes.
+This covers the exact published dependency suites selected by the pinned Stack
+configuration; it does not claim moving repository fuzz or regression suites.
+Specification example payloads remain
 research-only, licensed CC-BY-SA-4.0; the parser's BSD/MIT notices do not license
 the specification as BSD/MIT. No standards fixtures were deliberately imported.
 
 Pandoc test/source module notices specify GPL-2.0-or-later. This change contains
 locators, case names, hashes and original behavioral descriptions, not copied
-implementation or fixture bodies. Binary fixtures may have separate embedded
+implementation or fixture bodies. External dependency code/regression files carry
+BSD-3-Clause notices; the bundled CommonMark specification independently declares
+CC-BY-SA-4.0. No external test payloads were imported. Binary fixtures may have separate embedded
 provenance; the repository GPL notice does not establish permission to import
 third-party media, documents or fonts. Original Office/EPUB/RTF fixtures must be
 constructed in memory from independently authored content.

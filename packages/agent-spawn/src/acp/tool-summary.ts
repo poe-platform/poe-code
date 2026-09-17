@@ -54,6 +54,9 @@ function summarizeToolName(title: string): string {
 }
 
 function summarizeCommand(source: string): string {
+  // Embedded scripts can be megabytes long. Keep parsing within a small UI budget;
+  // the unchanged source remains available in the details view.
+  if (source.length > 8192) return "Run shell script";
   try {
     let command = source;
     let tokens = parse(command, (name) => `$${name}`);

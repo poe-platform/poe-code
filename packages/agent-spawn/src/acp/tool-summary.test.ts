@@ -22,6 +22,14 @@ describe("concise dashboard tool actions", () => {
       .toBe("Read packages/very-long-workspace-name/src/important-document-validation.ts");
   });
 
+  it.each([
+    `python3 - <<'PY'\n${"print('working')\n".repeat(12_000)}PY`,
+    `printf '%s' '${"payload ".repeat(24_000)}'`
+  ])("keeps oversized shell payloads out of the concise label", (command) => {
+    expect(summarizeToolAction({ kind: "exec", title: "script", input: { command } }))
+      .toEqual({ label: "Run shell script", detail: command });
+  });
+
   it("keeps file and search tools readable without provider-specific branches", () => {
     expect(summarizeToolAction({ kind: "edit", title: "src/settings.ts" }).label).toBe("Edit src/settings.ts");
     expect(summarizeToolAction({ kind: "search", title: "render", input: { pattern: "render", path: "src" } }).label)

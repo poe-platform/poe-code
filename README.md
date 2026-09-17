@@ -166,7 +166,7 @@ poe-code models --search claude
 
 ## SDK
 
-SafeJS, safe-bash, and the SafeJS harness are workspace tools and are not included in the published `poe-code` package. The `bash` and `harness` commands, SafeJS binaries, and sandbox SDK subpaths are unavailable in `poe-code`.
+SafeJS, safe-bash, the SafeJS harness, and PowerPoint are workspace tools and are not included in the published `poe-code` package. The `bash` and `harness` commands, SafeJS binaries, sandbox SDK subpaths, and `poe-code/pptx` are unavailable in `poe-code`. Terminal automation is available through the separate `terminal-pilot` and `terminal-pilot-mcp` packages.
 
 Use `poe-code` programmatically in your own code:
 

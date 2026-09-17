@@ -1,5 +1,4 @@
 import * as esbuild from "esbuild";
-import assert from "node:assert/strict";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { copyFile, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
@@ -10,7 +9,6 @@ import { resolveBundleGraph } from "./bundle-graph.mjs";
 import { publishBundleOutputs } from "./publish-bundle.mjs";
 import { collectPackageFiles, findBundleIssues } from "../packages/package-lint/dist/bundle-policy.js";
 import { rewriteWorkspaceDts } from "./rewrite-workspace-dts.mjs";
-import { rewriteWorkspaceRuntime } from "./rewrite-workspace-runtime.mjs";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(currentDir, "..");
@@ -201,18 +199,6 @@ if (providerEntryPoints.length > 0) {
       loader: { ".md": "text", ".mustache": "text", ".log": "text" }
     })
   );
-}
-
-const officePackage = packageJsons.find(({ dir }) => dir === "office-package");
-assert(officePackage, "Missing shared office package workspace");
-const officeRoutes = Object.fromEntries(
-  Object.entries(officePackage.pkg.exports).map(([key, value]) => [
-    officePackage.pkg.name + (key === "." ? "" : key.slice(1)),
-    path.resolve(packagesDir, officePackage.dir, value.import)
-  ])
-);
-for (const directory of ["pptx"]) {
-  await rewriteWorkspaceRuntime(path.join(packagesDir, directory, "dist"), officeRoutes);
 }
 
 // Bundle memory into a single esm file so consumers of poe-code/memory

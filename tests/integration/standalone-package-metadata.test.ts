@@ -174,7 +174,7 @@ describe("standalone package publish metadata", () => {
     expect(toolcraftPackage.optionalDependencies?.["mcp-oauth"]).toBeUndefined();
   });
   it("keeps root poe-code exports focused on supported SDK surfaces", () => {
-    expect(Object.keys(readPackageJson("package.json").exports ?? {}).sort()).toEqual([".", "./agent", "./config", "./config/testing", "./credentials", "./memory", "./pptx", "./skills"]);
+    expect(Object.keys(readPackageJson("package.json").exports ?? {}).sort()).toEqual([".", "./agent", "./config", "./config/testing", "./credentials", "./memory", "./skills"]);
   });
 
   it("publishes the superintendent MCP server bin with the root package", () => {

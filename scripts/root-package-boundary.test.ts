@@ -27,3 +27,13 @@ it('ships tokenfill as a separate dependency without its corpus copies', () => {
   expect(manifest.files).toContain('!dist/corpus');
   expect(manifest.files).toContain('!packages/memory/dist/corpus');
 });
+
+
+it('keeps terminal automation and PowerPoint outside the published core', () => {
+  const manifest = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+  expect(manifest.exports).not.toHaveProperty('./pptx');
+  for (const name of ['terminal-pilot', 'terminal-pilot-mcp', 'pptx', 'office-package']) {
+    expect(manifest.files.some((file: string) => file.startsWith(`packages/${name}/`))).toBe(false);
+  }
+  for (const name of ['pako', 'saxes', '@noble/hashes']) expect(manifest.dependencies).not.toHaveProperty(name);
+});

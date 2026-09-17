@@ -68,7 +68,6 @@ poe-code github-workflows --help
 poe-code gh --help
 poe-code eval --help
 poe-code superintendent --help
-poe-code braintrust --help
 poe-code tasks --help
 poe-code launch --help
 poe-code approvals --help

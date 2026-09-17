@@ -36,7 +36,6 @@
     "@poe-code/agent-harness-tools": "*",
     "@poe-code/agent-skill-config": "*",
     "@poe-code/agent-spawn": "*",
-    "@poe-code/braintrust": "*",
     "@poe-code/config-extends": "*",
     "toolcraft": "*",
     "toolcraft-design": "*",

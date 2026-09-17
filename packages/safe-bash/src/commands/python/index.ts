@@ -46,7 +46,7 @@ export interface PythonWorkerStart {
   readonly packages?: PythonPackageStart;
   readonly installOnly?: boolean;
   readonly shared: SharedArrayBuffer;
-  readonly invocation: { readonly args: readonly string[]; readonly cwd: string; readonly env: Readonly<Record<string, string>> };
+  readonly invocation: { readonly command?: string; readonly args: readonly string[]; readonly cwd: string; readonly env: Readonly<Record<string, string>> };
   readonly runtimeMount: string;
   readonly maxTransferBytes: number;
 }
@@ -257,7 +257,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
           void work.catch(fail);
         }, fail);
         if (settled) return;
-        const start: PythonWorkerStart = { type: 'start', shared, invocation: { args: [...context.args], cwd: context.cwd, env: { ...context.env } }, runtimeMount, maxTransferBytes, ...(packages ? {packages} : {}), installOnly: !!installation };
+        const start: PythonWorkerStart = { type: 'start', shared, invocation: { command: context.command, args: [...context.args], cwd: context.cwd, env: { ...context.env } }, runtimeMount, maxTransferBytes, ...(packages ? {packages} : {}), installOnly: !!installation };
         signal.throwIfAborted();
         endpoint!.postMessage(start);
       });

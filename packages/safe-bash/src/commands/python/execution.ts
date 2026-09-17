@@ -5,6 +5,7 @@ _safe_invocation = json.loads(_safe_invocation_json)
 os.environ.clear()
 os.environ.update(_safe_invocation['env'])
 _safe_args = list(_safe_invocation['args'])
+sys.orig_argv = [_safe_invocation.get('command', 'python')] + _safe_args
 _safe_exit = 0
 
 class _SafeOptionError(ValueError):
@@ -27,6 +28,9 @@ def _safe_launch():
  ignore_env = bool(sys.flags.ignore_environment)
  safe_path = bool(sys.flags.safe_path)
  native_warning_options = list(sys.warnoptions)
+ # Pyodide adds a bootstrap cwd entry even when CPython safe-path mode is set.
+ # Each execution mode below supplies its own entry after explicit PYTHONPATH.
+ sys.path[:] = [entry for entry in sys.path if entry != '']
  warning_options = []
  version_count = 0
  options_terminated = False
@@ -117,7 +121,7 @@ def _safe_launch():
    setattr(sys, name, replacement)
    setattr(sys, '__' + name + '__', replacement)
  main = types.ModuleType('__main__')
- main.__dict__.update(__package__=None, __spec__=None, __loader__=None, __builtins__=__builtins__)
+ main.__dict__.update(__package__=None, __spec__=None, __loader__=__import__('importlib.machinery', fromlist=['BuiltinImporter']).BuiltinImporter, __builtins__=__builtins__)
  sys.modules['__main__'] = main
  if not options_terminated and args and args[0] == '-c':
   sys.argv = ['-c'] + args[2:]

@@ -247,7 +247,7 @@ export function canonicalBundleFixture() {
     },
     files: ["dist", "packages/safe-js/dist", "packages/safe-fs/dist/**/*.d.ts"],
     dependencies: { jose: "*" },
-    optionalDependencies: { braintrust: "*" }
+    optionalDependencies: { "optional-sdk": "*" }
   };
   function graph(profile: "node" | "browser") {
     const directory = profile === "node" ? "packages/safe-js/dist" : "packages/safe-js/dist/browser";

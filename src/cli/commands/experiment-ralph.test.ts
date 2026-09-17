@@ -21,12 +21,6 @@ const { selectMock, promptTextMock, isCancelMock, cancelMock } = vi.hoisted(() =
   cancelMock: vi.fn()
 }));
 
-const braintrustLoadIntegrationsMock = vi.hoisted(() => vi.fn());
-
-vi.mock("@poe-code/braintrust", () => ({
-  loadIntegrations: braintrustLoadIntegrationsMock
-}));
-
 vi.mock("../../sdk/experiment.js", () => ({
   runExperiment: vi.fn().mockResolvedValue({
     stopReason: "max_experiments",
@@ -263,7 +257,6 @@ describe.each([
     sdkAppendExperimentJournalEntry,
     sdkSpawn,
     sdkSpawn.autonomous,
-    braintrustLoadIntegrationsMock,
     selectMock,
     promptTextMock,
     createDashboard
@@ -445,7 +438,7 @@ describe.each([
       program = createBaseProgram();
       register(program, container);
       if (dryRun) {
-        for (const callback of [sdkRunRalph, sdkRunExperiment, braintrustLoadIntegrationsMock]) {
+        for (const callback of [sdkRunRalph, sdkRunExperiment,]) {
           vi.mocked(callback).mockImplementation(() => {
             throw new Error("Unexpected dry-run execution");
           });
@@ -464,10 +457,8 @@ describe.each([
         if (dryRun) {
           expect(sdkRunRalph).not.toHaveBeenCalled();
           expect(sdkRunExperiment).not.toHaveBeenCalled();
-          expect(braintrustLoadIntegrationsMock).not.toHaveBeenCalled();
         }
       } finally {
-        braintrustLoadIntegrationsMock.mockReset();
         vi.clearAllMocks();
       }
     });
@@ -538,7 +529,6 @@ describe.each([
 
       expect(sdkRunRalph).not.toHaveBeenCalled();
       expect(sdkRunExperiment).not.toHaveBeenCalled();
-      expect(braintrustLoadIntegrationsMock).not.toHaveBeenCalled();
       expect(logs.some((message) => message.includes("Dry run: would run"))).toBe(false);
     });
   });
@@ -1272,69 +1262,6 @@ describe("experiment run command", () => {
     );
     expect(dashboardMock.stop).toHaveBeenCalledTimes(1);
     expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
-  });
-
-  it("runs integration experiment callbacks after CLI callbacks when enabled", async () => {
-    const calls: string[] = [];
-    braintrustLoadIntegrationsMock.mockResolvedValue({
-      experimentCallbacks: {
-        onExperimentStart: () => calls.push("integration")
-      },
-      traceRun: async (_surface: string, _name: string, fn: () => Promise<unknown>) => fn(),
-      shutdown: vi.fn(async () => undefined)
-    });
-    vi.mocked(sdkRunExperiment).mockImplementationOnce(async (options) => {
-      options.onExperimentStart?.(1, "codex");
-      return {
-        stopReason: "max_experiments",
-        docPath: options.docPath,
-        experimentsCompleted: 1,
-        experimentsKept: 0,
-        totalDurationMs: 1_000
-      };
-    });
-
-    const container = createCliContainer({
-      fs: createMemFs({
-        [`${homeDir}/.poe-code/config.json`]: JSON.stringify({
-          integrations: {
-            braintrust: {
-              enabled: true,
-              apiKey: "key",
-              project: "project"
-            }
-          }
-        }),
-        "/repo/docs/loop.md": "# Loop"
-      }),
-      prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
-      logger: (message) => {
-        if (message === "Experiment 1 (codex)") {
-          calls.push("cli");
-        }
-      }
-    });
-    const program = createBaseProgram();
-    registerExperimentCommand(program, container);
-
-    await program.parseAsync([
-      "node",
-      "cli",
-      "--yes",
-      "experiment",
-      "run",
-      "docs/loop.md",
-      "--agent",
-      "codex",
-      "--max-experiments",
-      "1",
-      "--no-tui"
-    ]);
-
-    expect(calls).toEqual(["cli", "integration"]);
-
-    braintrustLoadIntegrationsMock.mockReset();
   });
 
   it("uses the experiment.tui config value when set", async () => {

@@ -1,5 +1,5 @@
-import { FsError } from "virtual-bash";
-import type { WebDavAtomicEmptyDirectoryBinding, WebDavAtomicEmptyDirectoryRequest } from "virtual-bash/fs/webdav";
+import { FsError } from "@poe-platform/safe-bash";
+import type { WebDavAtomicEmptyDirectoryBinding, WebDavAtomicEmptyDirectoryRequest } from "@poe-platform/safe-bash/fs/webdav";
 
 export interface PublicMockBacking {
   readonly files: Pick<Map<string, Uint8Array | null>, "get" | "has" | "keys" | "delete">;

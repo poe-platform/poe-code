@@ -176,7 +176,7 @@ export async function canonicalPeerState(
         assert.equal(target, "./packages/safe-js/dist/safe-fs.js", "canonical checkout must use the shared SafeJS bundle");
         const workspaceBytes = await read(join(packageRoot, "package.json"));
         const workspace = JSON.parse(new TextDecoder().decode(workspaceBytes));
-        assert.equal(workspace.name, "virtual-bash");
+        assert.equal(workspace.name, "@poe-platform/safe-bash");
         assert.equal(workspace.private, true);
         const lockBytes = await read(join(directory, "package-lock.json"));
         const lock = JSON.parse(new TextDecoder().decode(lockBytes));

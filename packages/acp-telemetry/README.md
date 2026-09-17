@@ -1,15 +1,14 @@
 # @poe-code/acp-telemetry
 
-Pure ACP event-to-trace conversion plus Braintrust and OpenTelemetry emitters.
+Pure ACP event-to-trace conversion plus OpenTelemetry emitters.
 
 ## Public Exports
 
 - `acpToTrace(ctx)` converts an `@poe-code/agent-spawn` ACP spawn context into an `AcpTrace`.
 - `createTraceSinkMiddleware(sink)` delivers each completed trace to a backend-neutral consumer.
-- `emitToBraintrust(trace, parent)` writes the trace as nested Braintrust task/tool spans.
 - `emitToOtel(trace, tracer)` writes the trace as OpenTelemetry-style spans and attributes.
 - `redact(value)` removes sensitive prompt, tool, and metadata fields before emission.
-- Types: `AcpTrace`, `AcpTraceSpan`, `BraintrustSpanLike`, `OtelSpanLike`, `OtelTracerLike`.
+- Types: `AcpTrace`, `AcpTraceSpan`, `OtelSpanLike`, `OtelTracerLike`.
 
 ## Trace shape
 
@@ -23,8 +22,6 @@ emitToOtel(trace, tracer);
 ```
 
 ## Emitters
-
-Braintrust emission expects a parent span-like object with `startSpan`, `log`, and `end`. The root is emitted as a `task`; children are emitted as `tool` spans.
 
 OpenTelemetry emission expects a tracer-like object with `startSpan`. Agent spans set `gen_ai.system`, request model, agent name, token usage, and Poe Code session/thread attributes. Tool spans set tool name and tool-call id attributes. Non-primitive inputs and outputs are serialized as JSON attributes.
 

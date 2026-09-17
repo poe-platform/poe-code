@@ -33,13 +33,7 @@ import {
   resolveAgentSupport,
   type BridgeHookManifest
 } from "@poe-code/agent-hook-config";
-import {
-  text,
-  select,
-  isCancel,
-  resolveOutputFormat,
-  renderMarkdown
-} from "toolcraft-design";
+import { text, select, isCancel, resolveOutputFormat, renderMarkdown } from "toolcraft-design";
 import {
   createExecutionResources,
   resolveCommandFlags,
@@ -54,7 +48,6 @@ import {
   type ExecutionResources,
   type SpawnTarget
 } from "./shared.js";
-import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
 import type { SpawnCommandOptions } from "../../providers/spawn-options.js";
 import { formatSpawnDryRunMessage, resolveConfiguredModel } from "../../sdk/spawn-core.js";
 import { spawn as spawnSdk } from "../../sdk/spawn.js";
@@ -214,7 +207,6 @@ export function registerSpawnCommand(
         service,
         this
       );
-      let integrations: Integrations | null = null;
       const shouldEmitUiOutput = resolveOutputFormat() !== "json";
       const rawMcpInput = commandOptions.mcpServers ?? commandOptions.mcpConfig;
       const mcpInput = await resolveMcpSpawnInput(rawMcpInput, container.fs, container.env.cwd);
@@ -273,9 +265,7 @@ export function registerSpawnCommand(
       const cwdOverride = workspace.cwd;
 
       try {
-        integrations = await loadIntegrations(
-          await resolveMergedDocument(container, { readOnly: flags.dryRun })
-        );
+        await resolveMergedDocument(container, { readOnly: flags.dryRun });
         if (commandOptions.interactive) {
           // A worktree run reconciles output after the agent exits, which an interactive
           // TUI session has no defined success signal for. Refuse rather than accept the
@@ -313,7 +303,11 @@ export function registerSpawnCommand(
             cwd: cwdOverride
           };
           if (flags.dryRun) {
-            const resources = createExecutionResources(container, flags, `spawn:${canonicalService}`);
+            const resources = createExecutionResources(
+              container,
+              flags,
+              `spawn:${canonicalService}`
+            );
             resources.logger.dryRun(formatSpawnDryRunMessage(target.label, interactiveOptions));
             return;
           }
@@ -338,7 +332,10 @@ export function registerSpawnCommand(
             : {}),
           ...(commandOptions.logContent ? { logContent: true } : {}),
           ...(commandOptions.captureSession === false ? { captureSession: false } : {}),
-          ...(commandOptions.captureOtel || commandOptions.captureOtelContent || process.env.POE_CODE_CAPTURE_OTEL === "1" || process.env.POE_CODE_CAPTURE_OTEL_CONTENT === "1"
+          ...(commandOptions.captureOtel ||
+          commandOptions.captureOtelContent ||
+          process.env.POE_CODE_CAPTURE_OTEL === "1" ||
+          process.env.POE_CODE_CAPTURE_OTEL_CONTENT === "1"
             ? { captureOtel: true }
             : {}),
           ...(commandOptions.captureOtelContent || process.env.POE_CODE_CAPTURE_OTEL_CONTENT === "1"
@@ -348,7 +345,6 @@ export function registerSpawnCommand(
           ...(isWorktreeRequested(commandOptions)
             ? { worktree: pickWorktreeOptions(commandOptions) }
             : {}),
-          ...(integrations?.spawnMiddleware ? { middlewares: [integrations.spawnMiddleware] } : {}),
           runtimeConfigCwd: container.env.cwd,
           ...runtimeOptions,
           useStdin: shouldReadFromStdin
@@ -374,12 +370,9 @@ export function registerSpawnCommand(
 
         const target = resolvedTarget ?? resolveSpawnTarget(container, service);
         const canonicalService = target.name;
-        const configuredModel = await resolveConfiguredModel(
-          container,
-          canonicalService,
-          model,
-          { readOnly: flags.dryRun }
-        );
+        const configuredModel = await resolveConfiguredModel(container, canonicalService, model, {
+          readOnly: flags.dryRun
+        });
         const spawnOptions: SpawnCommandOptions = {
           ...directSpawnOptions,
           model: configuredModel
@@ -435,37 +428,35 @@ export function registerSpawnCommand(
             );
           }
 
-          const final = await traceSpawnRun(integrations, canonicalService, () =>
-            spawnAutonomous(spawnSdk, {
-              service: canonicalService,
-              prompt: spawnOptions.prompt,
-              args: spawnOptions.args,
-              model: spawnOptions.model,
-              mode: spawnOptions.mode,
-              cwd: spawnOptions.cwd,
-              ...(spawnOptions.mcpServers ? { mcpServers: spawnOptions.mcpServers } : {}),
-              ...(spawnOptions.skills ? { skills: spawnOptions.skills } : {}),
-              ...(spawnOptions.hooks ? { hooks: spawnOptions.hooks } : {}),
-              ...(spawnOptions.resumeThreadId !== undefined
-                ? { resumeThreadId: spawnOptions.resumeThreadId }
-                : {}),
-              ...(spawnOptions.logDir !== undefined ? { logDir: spawnOptions.logDir } : {}),
-              ...(spawnOptions.logFileName !== undefined
-                ? { logFileName: spawnOptions.logFileName }
-                : {}),
-              ...(spawnOptions.logContent ? { logContent: true } : {}),
-              ...(spawnOptions.captureSession === false ? { captureSession: false } : {}),
-              ...(spawnOptions.captureOtel ? { captureOtel: true } : {}),
-              ...(spawnOptions.captureOtelContent ? { captureOtelContent: true } : {}),
-              ...(spawnOptions.activityTimeoutMs !== undefined
-                ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
-                : {}),
-              ...(spawnOptions.worktree ? { worktree: spawnOptions.worktree } : {}),
-              ...(spawnOptions.useStdin ? { useStdin: spawnOptions.useStdin } : {}),
-              runtimeConfigCwd: container.env.cwd,
-              ...runtimeOptions
-            })
-          );
+          const final = await spawnAutonomous(spawnSdk, {
+            service: canonicalService,
+            prompt: spawnOptions.prompt,
+            args: spawnOptions.args,
+            model: spawnOptions.model,
+            mode: spawnOptions.mode,
+            cwd: spawnOptions.cwd,
+            ...(spawnOptions.mcpServers ? { mcpServers: spawnOptions.mcpServers } : {}),
+            ...(spawnOptions.skills ? { skills: spawnOptions.skills } : {}),
+            ...(spawnOptions.hooks ? { hooks: spawnOptions.hooks } : {}),
+            ...(spawnOptions.resumeThreadId !== undefined
+              ? { resumeThreadId: spawnOptions.resumeThreadId }
+              : {}),
+            ...(spawnOptions.logDir !== undefined ? { logDir: spawnOptions.logDir } : {}),
+            ...(spawnOptions.logFileName !== undefined
+              ? { logFileName: spawnOptions.logFileName }
+              : {}),
+            ...(spawnOptions.logContent ? { logContent: true } : {}),
+            ...(spawnOptions.captureSession === false ? { captureSession: false } : {}),
+            ...(spawnOptions.captureOtel ? { captureOtel: true } : {}),
+            ...(spawnOptions.captureOtelContent ? { captureOtelContent: true } : {}),
+            ...(spawnOptions.activityTimeoutMs !== undefined
+              ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
+              : {}),
+            ...(spawnOptions.worktree ? { worktree: spawnOptions.worktree } : {}),
+            ...(spawnOptions.useStdin ? { useStdin: spawnOptions.useStdin } : {}),
+            runtimeConfigCwd: container.env.cwd,
+            ...runtimeOptions
+          });
           process.exitCode = final.exitCode;
 
           if (shouldEmitUiOutput && final.detached) {
@@ -531,7 +522,6 @@ export function registerSpawnCommand(
           }
         }
       } finally {
-        await integrations?.shutdown();
         await workspace.cleanup?.();
       }
     });
@@ -565,7 +555,7 @@ export function registerSpawnCommand(
     examples: [
       'poe-code spawn claude "explain src/cli/program.ts"',
       "poe-code spawn claude @prompt.md --model Claude-Sonnet-4.5",
-      'git diff | poe-code spawn codex --stdin --mode read',
+      "git diff | poe-code spawn codex --stdin --mode read",
       'poe-code spawn claude "fix the failing test" --mode edit -C ~/repo',
       "poe-code spawn claude -i",
       `poe-code spawn claude ping --mcp-servers '{"docs":{"command":"mcp-docs"}}'`,
@@ -577,14 +567,6 @@ export function registerSpawnCommand(
       "Infrastructure flags cover logging, telemetry, and where the agent runs."
     ]
   });
-}
-
-async function traceSpawnRun<T>(
-  integrations: Integrations | null,
-  name: string,
-  run: () => Promise<T>
-): Promise<T> {
-  return integrations?.traceRun("spawn", name, run) ?? run();
 }
 
 async function resolveSpawnMode(
@@ -616,9 +598,7 @@ async function resolveSpawnMode(
     { value: "yolo", label: "Yolo", hint: "Use provider full-access or skip-permission flags" }
   ];
   const modeOptions = allModeOptions.filter((option) => supportsSpawnMode(service, option.value));
-  const initialValue = supportsSpawnMode(service, DEFAULT_SPAWN_MODE)
-    ? DEFAULT_SPAWN_MODE
-    : "edit";
+  const initialValue = supportsSpawnMode(service, DEFAULT_SPAWN_MODE) ? DEFAULT_SPAWN_MODE : "edit";
 
   const selected = await select<SpawnMode>({
     message: "Select permission mode:",
@@ -742,9 +722,7 @@ function resolveHookOptions(
     }
     if (scope) {
       command.outputHelp({ error: true });
-      command.error(
-        "error: option '--hooks-scope <scope>' requires '--hooks-from <agentId>'"
-      );
+      command.error("error: option '--hooks-scope <scope>' requires '--hooks-from <agentId>'");
     }
     return undefined;
   }
@@ -790,7 +768,10 @@ function validateDryRunBridgeResources(
   container: CliContainer,
   options: SpawnCommandOptions
 ): void {
-  if ((options.skills === undefined || options.skills.length === 0) && options.hooks === undefined) {
+  if (
+    (options.skills === undefined || options.skills.length === 0) &&
+    options.hooks === undefined
+  ) {
     return;
   }
 

@@ -1,5 +1,5 @@
-import { Shell, MemoryFileSystem, agentCommands, createAgentCommands, createBoundedRegexProvider, standardCommands, createStandardCommands, ShellLimitError, type AgentCommandsOptions, type StandardCommandsOptions, type ReadDirectoryOptions as BashReadDirectoryOptions } from 'virtual-bash';
-import { FsError, type CommandInvokeOptions, type CommandContext, type ByteSource, type CommandDefinition, type VirtualShellPlugin, type ReadDirectoryOptions } from 'virtual-bash/contracts';
+import { Shell, MemoryFileSystem, agentCommands, createAgentCommands, createBoundedRegexProvider, standardCommands, createStandardCommands, ShellLimitError, type AgentCommandsOptions, type StandardCommandsOptions, type ReadDirectoryOptions as BashReadDirectoryOptions } from '@poe-platform/safe-bash';
+import { FsError, type CommandInvokeOptions, type CommandContext, type ByteSource, type CommandDefinition, type VirtualShellPlugin, type ReadDirectoryOptions } from '@poe-platform/safe-bash/contracts';
 import type { FileSystem as RootFileSystem, ReadDirectoryOptions as RootReadDirectoryOptions } from 'poe-code/safe-fs';
 
 const directoryOptions: RootReadDirectoryOptions = { maxEntries: 1, signal: new AbortController().signal };

@@ -6,8 +6,8 @@ import {
   migrateSnapshot,
   run
 } from "./index.js";
-import fixture from "../../../docs/plans/qualify-realms-and-recovery/legacy-v8.json" with { type: "json" };
-import sourceFixture from "../../../docs/plans/qualify-realms-and-recovery/legacy-v8-source.json" with { type: "json" };
+import fixture from "../test/fixtures/legacy-v8/legacy-v8.json" with { type: "json" };
+import sourceFixture from "../test/fixtures/legacy-v8/legacy-v8-source.json" with { type: "json" };
 
 it.each(["saved", "completed"] as const)(
   "retains genuine v8 transport observations for a %s checkpoint",

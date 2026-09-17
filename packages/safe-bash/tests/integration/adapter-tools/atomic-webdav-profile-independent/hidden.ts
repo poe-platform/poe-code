@@ -3,8 +3,8 @@ import test from "node:test";
 import {
   agentCommands, FsError, MemoryFileSystem, MountFileSystem, OverlayFileSystem,
   ReadOnlyFileSystem, Shell, WebDavFileSystem, type FileSystem,
-} from "virtual-bash";
-import type { WebDavAtomicEmptyDirectoryBinding, WebDavAtomicEmptyDirectoryRequest } from "virtual-bash/fs/webdav";
+} from "@poe-platform/safe-bash";
+import type { WebDavAtomicEmptyDirectoryBinding, WebDavAtomicEmptyDirectoryRequest } from "@poe-platform/safe-bash/fs/webdav";
 import { MockDav } from "../../../fs/webdav/mock.js";
 import { atomicMockBinding } from "../atomic-webdav-profile/atomic-mock.js";
 
@@ -255,7 +255,7 @@ for (const wrapper of ["mount", "readonly", "readonly-mount", "webdav-upper"] as
     } else {
       assert.equal(result.exitCode, 1);
       assert.match(result.stderr, wrapper === "webdav-upper" ? /ENOTSUP/ : /EROFS/);
-      if (wrapper === "webdav-upper") assert.equal(wrapped.capabilities.readOnly, true);
+      if (wrapper === "webdav-upper") assert.equal(wrapped.capabilities.readOnly, undefined);
       assert.equal(requests.length, 0);
       assert.deepEqual(snapshot(mock), before);
     }

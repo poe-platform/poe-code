@@ -268,3 +268,17 @@ function createBindingRecord<TValue extends SandboxValue>(
 ): Record<string, TValue> {
   return Object.assign(Object.create(null) as Record<string, TValue>, entries);
 }
+
+const sourceLoaders = new WeakMap<ModuleEnvironment, (specifier: string, referrer: string) => Promise<Record<string, SandboxValue>>>();
+
+export function attachSourceLoader(environment: ModuleEnvironment,
+  loader: (specifier: string, referrer: string) => Promise<Record<string, SandboxValue>>): void {
+  sourceLoaders.set(environment,loader);
+}
+
+export function importModuleNamespace(environment: ModuleEnvironment, specifier: string, referrer: string):
+  Record<string, SandboxValue> | Promise<Record<string, SandboxValue>> {
+  const loader = sourceLoaders.get(environment);
+  return loader === undefined || environment.available.includes(specifier)
+    ? resolveModuleNamespace(environment,specifier) : loader(specifier,referrer);
+}

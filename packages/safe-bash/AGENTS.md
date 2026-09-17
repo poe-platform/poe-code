@@ -3,7 +3,7 @@
 ## Authority and ownership
 
 - Work in packages/safe-bash within the authorized poe-code worktree. The
-  integration does not rename the package: it remains private virtual-bash.
+  workspace uses the published name @poe-platform/safe-bash and remains private.
   Root coordinates Git ownership; do not stage, commit, or push without assignment.
 - User statements are authoritative. Preserve exact requirements without
   invention, reinterpretation or silent scope reduction.
@@ -17,7 +17,7 @@
 
 ## Exact requirements and scope
 
-- Build an extensible virtual Bash companion to poe-code packages/safejs,
+- Build an extensible Safe Bash companion to poe-code packages/safejs,
   with Express-like plugins; memory, real, S3-compatible
   (including a mock), WebDAV and further filesystems; many agent-used tools;
   full piping, stdin and shell support. A scaffold or passing subset is not completion.

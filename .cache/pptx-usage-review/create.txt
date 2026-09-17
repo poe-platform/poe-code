@@ -1,4 +1,0 @@
-$ pptx create --output draft.pptx --slides-json [{"shapes":[{"name":"heading","x":0,"y":0,"width":3657600,"height":914400,"text":"Draft coastal survey"}]}]
-Created presentation (1 slides)
-
-exit 0

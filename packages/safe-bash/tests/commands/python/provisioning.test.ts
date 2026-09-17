@@ -44,6 +44,21 @@ test('failed installation does not commit environment and cancellation is preser
  const ctx=context();const env=createPythonPackageEnvironment({requirements:['one==1']});let s=await env.prepare(ctx);env.finish(s);s=await env.prepare({...ctx,requirements:['two==2']});assert.deepEqual(s.requirements,['one==1','two==2']);
  const controller=new AbortController();const error=new Error('cancel install');controller.abort(error);await assert.rejects(env.prepare({...ctx,signal:controller.signal}),e=>e===error);
 });
+test('requirements strip whitespace-delimited comments before validating continuations',async()=>{
+ const ctx=context();
+ const wheel='https://example.org/demo-1.0-py3-none-any.whl#sha256='+'a'.repeat(64);
+ await ctx.fs.writeFile('/requirements.txt',new TextEncoder().encode([
+  'demo==1.0\t# pinned dependency',
+  'other==2.0 # comment ending in '+String.fromCharCode(92),
+  wheel+'\t# retain integrity fragment',
+ ].join('\n')));
+ const env=createPythonPackageEnvironment({requirementFiles:['/requirements.txt']});
+ const start=await env.prepare(ctx);
+ assert.deepEqual(start.requirements,['demo==1.0','other==2.0',wheel]);
+ env.finish(start);
+ await ctx.fs.writeFile('/requirements.txt',new TextEncoder().encode('demo==1.0 '+String.fromCharCode(92)+' # unsupported continuation'));
+ await assert.rejects(env.prepare(ctx),error=>error instanceof Error && error.message.includes('continuation'));
+});
 test('canonical wheel URLs preserve special characters and missing requirements explain path',async()=>{
  const ctx=context();await ctx.fs.writeFile('/a#?-1.0-py3-none-any.whl',bytes);
  const env=createPythonPackageEnvironment({requirements:['/a#?-1.0-py3-none-any.whl']});const s=await env.prepare(ctx);

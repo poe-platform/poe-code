@@ -18,6 +18,15 @@ import {
   sections
 } from "./generate-docs.js";
 
+vi.mock("node:fs", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:fs")>();
+  return {
+    ...actual,
+    existsSync: vi.fn(actual.existsSync),
+    readFileSync: vi.fn(actual.readFileSync)
+  };
+});
+
 const repoRoot = path.resolve(import.meta.dirname, "../../..");
 const packageRoot = path.resolve(import.meta.dirname, "..");
 

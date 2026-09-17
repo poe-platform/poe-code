@@ -1,3 +1,4 @@
+import {isSandboxModuleNamespace} from "./module-namespace.js";
 import type { Budget } from "./budget.js";
 import type { SandboxCallContext, SandboxValue } from "./values.js";
 import { guestProxyStates, withGuestProxyTrap } from "./guest-proxy.js";
@@ -27,6 +28,7 @@ export function sandboxHasProperty(
         return false;
       });
     }
+    if (isSandboxModuleNamespace(current)) return Reflect.has(current,key);
     if (Object.getOwnPropertyDescriptor(objectProperties(current as SandboxValue), key) !== undefined) return true;
     // Integer-indexed objects do not consult prototypes for canonical numeric keys.
     if (isNumericTypedArray(current) && typeof key !== "symbol" && isTypedArrayIndex(String(key))) return false;

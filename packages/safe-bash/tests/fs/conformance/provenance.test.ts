@@ -17,12 +17,12 @@ function peerFixture(checkout: boolean) {
   const moduleUrl = pathToFileURL(`${peerRoot}/${target.slice(2)}`).href;
   const metadata = { name: "poe-code", version: checkout ? "0.0.0-dev" : "13.0.0", workspaces: ["packages/*"], exports: { "./safe-fs": { import: target } } };
   const lock = checkout ? {
-    packages: { "": { name: "poe-code", version: metadata.version }, "packages/safe-bash": { name: "virtual-bash", devDependencies: { "poe-code": "file:../.." } } },
+    packages: { "": { name: "poe-code", version: metadata.version }, "packages/safe-bash": { name: "@poe-platform/safe-bash", devDependencies: { "poe-code": "file:../.." } } },
   } : { packages: { "node_modules/poe-code": { version: metadata.version, integrity: "sha512-synthetic-registry-binding" } } };
   const files = new Map<string, string>([
     [`${peerRoot}/package.json`, JSON.stringify(metadata)],
     [`${checkout ? peerRoot : packageRoot}/package-lock.json`, JSON.stringify(lock)],
-    [`${packageRoot}/package.json`, JSON.stringify({ name: "virtual-bash", private: true })],
+    [`${packageRoot}/package.json`, JSON.stringify({ name: "@poe-platform/safe-bash", private: true })],
     [fileURLToPath(moduleUrl), "synthetic canonical module"],
   ]);
   const reads: string[] = [];

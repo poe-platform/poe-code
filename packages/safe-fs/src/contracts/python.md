@@ -16,7 +16,11 @@ the backing filesystem's capabilities as its own supported RPC surface.
 
 The defaults are 65,536 bytes per transfer, 256 simultaneous descriptors and
 65,536 entries per directory listing. `maxTransferBytes`, `maxOpenFiles`, and
-`maxDirectoryEntries` configure these admission bounds. Transfers return the
+`maxDirectoryEntries` configure these admission bounds. Directory listing limits
+are forwarded to the backend; cancellation is checked when the listing returns,
+then an oversized reply is rejected with `EFBIG` before reaching the interpreter.
+This does not bound allocations
+already made by a backend that ignores the requested limit. Transfers return the
 actual partial count; no write retry is hidden. The transport additionally must
 bound admitted concurrent messages and its serialized reply capacity. Errors,
 including exact cancellation reasons, are propagated by the asynchronous service;

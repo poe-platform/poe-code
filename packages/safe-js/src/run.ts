@@ -1,3 +1,4 @@
+import type {SourceResolver} from "./modules/source-graph.js";
 import { createHostCallbackContext } from "#safe-js-platform";
 import { attachExecutionControl, SandboxJobQueue, type ExecutionControl } from "./interp/jobs.js";
 import { runWithExtensions, type RealmOptions } from "./realm.js";
@@ -90,6 +91,9 @@ import {
 } from "./snapshot/replay-data.js";
 
 export type RunOptions = {
+  sourceType?: "module";
+  sourceResolver?: SourceResolver;
+  sourceRoot?: string;
   extensions?: RealmOptions["extensions"];
   builtinOverrides?: RealmOptions["builtinOverrides"];
   grants?: RealmOptions["grants"];
@@ -177,8 +181,19 @@ const DEFAULT_MAX_CALL_DEPTH = 1_000;
 
 export function run(source: string, options: RunOptions = {}): RunPromise {
   const jobs = new SandboxJobQueue();
-  if (options.extensions !== undefined || options.builtinOverrides !== undefined) {
-    const result = runWithExtensions(source, options, jobs).finally(() => jobs.finish());
+  if (options.extensions !== undefined || options.builtinOverrides !== undefined || options.sourceType !== undefined || options.sourceResolver !== undefined || options.sourceRoot !== undefined) {
+    const result = (async () => {
+      if (options.sourceType === undefined && (options.sourceResolver !== undefined || options.sourceRoot !== undefined))
+        throw new TypeError("Source resolution requires sourceType: 'module'.");
+      if (options.sourceRoot !== undefined) {
+        if (options.sourceResolver !== undefined) throw new TypeError("Specify sourceRoot or sourceResolver, not both.");
+        const {createRootedSourceResolver} = await import("./modules/source-files.js");
+        const {sourceRoot, ...resolved} = options;
+        const sourceResolver = await createRootedSourceResolver(sourceRoot);
+        return runWithExtensions(source,{...resolved,filename:await sourceResolver.entryId(options.filename),sourceResolver},jobs);
+      }
+      return runWithExtensions(source, options, jobs);
+    })().finally(() => jobs.finish());
     const dumpController = createDumpController();
     dumpController.fail(new TypeError("Snapshot is not replayable: Live realm state cannot be serialized or replayed."));
     return attachExecutionControl(attachDumpController(result, dumpController), jobs, options.signal);

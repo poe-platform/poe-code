@@ -3,8 +3,8 @@ import test from "node:test";
 import {
   agentCommands, FsError, MemoryFileSystem, MountFileSystem, OverlayFileSystem,
   ReadOnlyFileSystem, Shell, WebDavFileSystem, type FileSystem,
-} from "virtual-bash";
-import type { WebDavAtomicEmptyDirectoryBinding, WebDavAtomicEmptyDirectoryRequest } from "virtual-bash/fs/webdav";
+} from "@poe-platform/safe-bash";
+import type { WebDavAtomicEmptyDirectoryBinding, WebDavAtomicEmptyDirectoryRequest } from "@poe-platform/safe-bash/fs/webdav";
 import { MockDav } from "../../../fs/webdav/mock.js";
 import { atomicMockBinding } from "./atomic-mock.js";
 
@@ -162,7 +162,7 @@ for (const configured of [false, true]) {
       const result = await command(wrapped, `rmdir ${path}`);
       if (wrapper === "overlay") {
         assert.equal(fs.capabilities.atomicRename, false);
-        assert.equal(wrapped.capabilities.readOnly, true, "atomic rmdir does not supply the atomic rename required by overlay upper");
+        assert.equal(wrapped.capabilities.readOnly, undefined, "WebDAV supplies no readOnly assertion; unsupported overlay mutations remain ENOTSUP");
       }
       const succeeds = configured && wrapper === "mount";
       assert.equal(result.exitCode, succeeds ? 0 : 1, result.stderr);

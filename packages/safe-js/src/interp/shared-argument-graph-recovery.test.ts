@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { run } from "../run.js";
 import { dump } from "../dump.js";
 import { declareHostOperation } from "./host-bridge.js";
-import legacy from "../../../../docs/plans/qualify-realms-and-recovery/rr8-repair-20260914/legacy-graph-v8.json" with { type: "json" };
+import legacy from "./legacy-graph-v8.fixture.json" with { type: "json" };
 
 const shapes: Array<[string, string, (value: any) => SharedArrayBuffer]> = [
   ["direct", "b", value => value],

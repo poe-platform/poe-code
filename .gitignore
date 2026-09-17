@@ -68,3 +68,7 @@ harnesses/fix-bugs/fix-bugs.md
 
 # Downloaded packages used by local QA runs
 /output/**/cache/
+
+# Disposable local QA artifacts
+/.cache/
+/output/

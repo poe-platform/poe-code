@@ -1,6 +1,0 @@
-
-> poe-code@0.0.0-dev screenshot
-> tsx scripts/screenshot.ts --output output/python-usage-finalization/cli-traceback.png node dist/bin.cjs bash --root output/python-usage-finalization --python-runtime file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/tests/integration/pyodide-runtime/node_modules/pyodide/pyodide.mjs --python-trusted -c python -c 'raise ValueError(42)'
-
-output/python-usage-finalization/cli-traceback.png
-node dist/bin.cjs bash --root output/python-usage-finalization --python-runtime file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/tests/integration/pyodide-runtime/node_modules/pyodide/pyodide.mjs --python-trusted -c python -c 'raise ValueError(42)' exited with code 1 — screenshot saved

@@ -154,7 +154,13 @@ export class PythonFileSystem {
       case "stat": return fs.stat(this.#path(request.args[0]), options);
       case "lstat": return fs.lstat(this.#path(request.args[0]), options);
       case "realpath": return fs.realpath(this.#path(request.args[0]), options);
-      case "readdir": return fs.readdir(this.#path(request.args[0]), { ...options, maxEntries: this.#directoryLimit });
+      case "readdir": {
+        const path = this.#path(request.args[0]);
+        const entries = await fs.readdir(path, { ...options, maxEntries: this.#directoryLimit });
+        signal.throwIfAborted();
+        if (entries.length > this.#directoryLimit) throw new FsError("EFBIG", { syscall: "readdir", path, message: "Python directory listing exceeds configured limit" });
+        return entries;
+      }
       case "access": return fs.access(this.#path(request.args[0]), request.args[1], options);
       case "mkdir": return fs.mkdir(this.#path(request.args[0]), { ...request.args[1], ...options });
       case "rm": {

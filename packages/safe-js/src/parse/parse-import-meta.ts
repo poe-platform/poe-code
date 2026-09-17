@@ -4,7 +4,8 @@ import type { Identifier, MetaProperty } from "./parser.js";
 export function isImportMetaTokenSequence(
   importToken: Token,
   dotToken: Token,
-  metaToken: Token
+  metaToken: Token,
+  allowTrivia = false
 ): boolean {
   return (
     importToken.type === "keyword" &&
@@ -13,8 +14,9 @@ export function isImportMetaTokenSequence(
     dotToken.value === "." &&
     metaToken.type === "identifier" &&
     metaToken.value === "meta" &&
-    importToken.end.offset === dotToken.start.offset &&
-    dotToken.end.offset === metaToken.start.offset
+    metaToken.end.offset - metaToken.start.offset === metaToken.value.length &&
+    (allowTrivia || (importToken.end.offset === dotToken.start.offset &&
+      dotToken.end.offset === metaToken.start.offset))
   );
 }
 

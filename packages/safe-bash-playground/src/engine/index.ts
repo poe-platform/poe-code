@@ -1,5 +1,5 @@
 import { createAgentCommands, createWorkerRegexProvider } from "virtual:safe-bash-kernel";
-import type { ShellLimits, VirtualShellPlugin } from "virtual-bash";
+import type { ShellLimits, VirtualShellPlugin } from "@poe-platform/safe-bash";
 
 export {
   Shell,
@@ -16,7 +16,7 @@ export type {
   ShellOptions,
   CommandDefinition,
   VirtualShellPlugin
-} from "virtual-bash";
+} from "@poe-platform/safe-bash";
 export type { ShellExecOptions, RootShellState } from "virtual:safe-bash-kernel";
 
 export const browserLimits: Readonly<ShellLimits> = Object.freeze({

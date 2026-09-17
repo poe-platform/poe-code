@@ -55,8 +55,12 @@ type RenderedLine = {
   sourceColumnStart: number;
 };
 
-export function formatParseError(source: string, filename: string, error: Error): ParseError {
-  const location = parseErrorLocation(error.message);
+export function formatParseError(
+  source: string,
+  filename: string,
+  error: Error,
+  location = parseErrorLocation(error.message)
+): ParseError {
   if (location === undefined) {
     // Capacity/internal parser failures have no trustworthy token location.
     // Preserve their type without publishing the host implementation stack.
@@ -130,7 +134,6 @@ function parseErrorLocation(message: string): ParseErrorLocation | undefined {
     endColumn: endLocation?.column ?? column
   };
 }
-
 
 function renderLine(
   lineNumber: number,

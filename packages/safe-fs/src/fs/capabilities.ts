@@ -116,7 +116,7 @@ export function quotaCapabilities(capabilities: FileSystemCapabilities): FileSys
   const streamingWrite = requireCapabilities(capabilities.write, capabilities.append, !capabilities.readOnly);
   const streamingAppend = requireCapabilities(capabilities.append, !capabilities.readOnly);
   const { streamingWrite: ignoredWrite, streamingAppend: ignoredAppend, ...rest } = capabilities;
-  return Object.freeze({ ...rest, open: false, descriptorWriteStream: false, atomicResize: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
+  return Object.freeze({ ...rest, descriptorWriteStream: false, atomicResize: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
     ...(streamingWrite === undefined ? {} : { streamingWrite }),
     ...(streamingAppend === undefined ? {} : { streamingAppend }),
   });

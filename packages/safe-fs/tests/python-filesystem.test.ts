@@ -241,7 +241,7 @@ it("preserves readonly mutation precedence over descriptor capability refusal", 
   for (const view of [readonly, new DeviceFileSystem(readonly)]) {
     const service = new PythonFileSystem(view, { cwd: "/" });
     await expect(service.dispatch({ op: "open", args: ["/file", { access: "write" }] })).rejects.toMatchObject({ code: "EROFS" });
-    await expect(service.dispatch({ op: "open", args: ["/new", { access: "read", creation: "exclusive" }] })).rejects.toMatchObject({ code: view === readonly ? "EROFS" : "ENOTSUP" });
+    await expect(service.dispatch({ op: "open", args: ["/new", { access: "read", creation: "exclusive" }] })).rejects.toMatchObject({ code: "EROFS" });
     await service.close();
   }
   expect(await fs.readFile("/file")).toEqual(bytes("safe"));

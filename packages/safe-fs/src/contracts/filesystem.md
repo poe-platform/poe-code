@@ -268,10 +268,12 @@ and truncation fail EBADF. Readonly descriptor synchronization is deliberately
 unavailable (`synchronization: "none"`); it cannot flush a mutable backing store.
 Synthetic mount directories do not advertise descriptor support.
 
-Quota proxies intercept `open` before generic method forwarding and advertise
-`open: false`, globally and per path. Every open is refused with ENOTSUP because
-the pathname-based quota layer cannot account retained, unlinked descriptor
-identity. Overlay, S3 and WebDAV also explicitly advertise false and refuse open
+Quota proxies intercept `open` before generic method forwarding. Retained reads
+preserve backend authority; writable regular-file handles require complete
+identity and apply the [logical namespace quota](filesystem-quota.md) before
+each growth or resize. This does not impose a physical retained-storage limit.
+Missing or explicitly unsupported backing `open` still refuses with ENOTSUP.
+Overlay, S3 and WebDAV explicitly advertise false and refuse open
 without acquiring lower/upper handles, copying up, contacting remote storage,
 or imitating a descriptor through read-modify-replace. These are deliberate
 phase-1 refusals, not claims of descriptor parity for those providers.
@@ -1248,7 +1250,8 @@ Memory uses its synchronous nonrecursive removal, which already rejects all
 directories. Rooted real uses native unlink after its existing rooted admission;
 this retains the documented stable-root/path-race limitations. Mount forwarding
 selects the final entry without following its symlink and requires backend unlink.
-Read-only refuses mutation; quota currently withholds unlink rather than acquiring
-an unqualified removal path. Overlay and remote adapters have no new unlink
+Read-only refuses mutation; quota delegates only the backing strong unlink,
+preserving its cancellation, readonly policy and retained-object behavior.
+It does not synthesize unlink from rm. Overlay and remote adapters have no new unlink
 support. The Python filesystem service requires this operation for guest unlink;
 it never falls back to lstat followed by rm.

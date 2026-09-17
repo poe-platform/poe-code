@@ -3,20 +3,21 @@ import { test } from 'node:test';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
-import { MemoryFileSystem } from 'poe-code/safe-fs/core';
+import { MemoryFileSystem, withFileSystemQuota } from 'poe-code/safe-fs/core';
 import { Shell, agentCommands } from 'poe-code/safe-bash';
 import { pythonCommands } from 'poe-code/safe-bash/commands/python';
 import { createWorker, createOfflineCache, delayedFileSystem } from './public-runtime-fixture.mjs';
 
 // Explicit real-runtime integration only. Provision assets before this suite;
 // no downloads and no host writes unless the operator requests artifact capture.
-for (const profile of ['memory', 'delayed']) {
+for (const profile of ['memory', 'delayed', 'quota', 'quota-delayed']) {
   test(`public Python document scripts through canonical ${profile} storage`, { timeout: 180000 }, async t => {
     const storage = new MemoryFileSystem();
     await storage.mkdir('/work');
     await storage.mkdir('/tmp');
-    const delayed = delayedFileSystem(storage);
-    const fs = profile === 'delayed' ? delayed.fs : storage;
+    const bounded = profile.startsWith('quota') ? withFileSystemQuota(storage, { maxBytes: 32 * 1024 * 1024 }) : storage;
+    const delayed = delayedFileSystem(bounded);
+    const fs = profile.endsWith('delayed') ? delayed.fs : bounded;
     for (const mode of ['create', 'edit', 'verify', 'streams']) {
       await storage.writeFile(`/work/documents-${mode}.py`, await readFile(new URL(`./fixtures/documents-${mode}.py`, import.meta.url)));
     }
@@ -97,7 +98,7 @@ for (const profile of ['memory', 'delayed']) {
         assert.equal(createHash('sha256').update(bytes).digest('hex'), artifact.sha256, name);
       }
       assert.equal((await storage.readdir('/tmp')).length, 0);
-      if (profile === 'delayed') {
+      if (profile.endsWith('delayed')) {
         assert.ok(delayed.operations() > 0);
         assert.equal(delayed.handles.size, 0);
         t.diagnostic(`Delayed canonical operations: ${delayed.operations()}; open handles: ${delayed.handles.size}`);

@@ -42,10 +42,12 @@ shell's `workerd` export condition is not a Python executor.
 ### Filesystem, packages and lifetime
 
 Ordinary Python file opens currently require canonical retained `fs.open`
-handles. A `readFile`/stream-capable backend alone is insufficient. Quota-backed
-opens (#748), immutable flat object stores (#747), and descriptor-safe
-`TemporaryDirectory` cleanup (#749) remain required failing workflows. Memory
-and delayed-memory successes are not remote-storage or full POSIX guarantees.
+handles. A `readFile`/stream-capable backend alone is insufficient. The #748
+implementation adds quota-checked retained descriptors, with real Node document
+creation/reopening and ENOSPC recovery through quota and delayed-quota views.
+Immutable flat object stores (#747) and descriptor-safe `TemporaryDirectory`
+cleanup (#749) remain required failing workflows. Memory and delayed-memory
+successes are not remote-storage, physical-memory or full POSIX guarantees.
 Readonly/mount layers must retain their authority; never unwrap a quota view or
 substitute recursive path deletion for retained directory operations.
 

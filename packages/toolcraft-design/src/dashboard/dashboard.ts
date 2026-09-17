@@ -77,7 +77,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
   let otherDraft = createComposerState("plan");
   let submitting = false;
   let showQueue = false;
-  let workOffset = 0;
+  let workOffset: number | undefined = 0;
   let feedback: string | undefined;
   let showDetails = false;
   let lastActivePlanId: string | undefined;
@@ -197,7 +197,10 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
         }
       }
       if (conversation && !composer?.focused && (event.ch === "v" || event.ch === "d")) {
-        if (event.ch === "v") showQueue = !showQueue;
+        if (event.ch === "v") {
+          showQueue = !showQueue;
+          if (showQueue) workOffset = undefined;
+        }
         else showDetails = !showDetails;
         render();
         return;
@@ -220,7 +223,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
       }
       if (command === "follow") {
         if (showQueue) {
-          workOffset = Number.MAX_SAFE_INTEGER;
+          workOffset = event.name === "end" ? Number.MAX_SAFE_INTEGER : undefined;
           render();
           return;
         }
@@ -239,7 +242,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
         const amount = command === "page-up" || command === "page-down" ? page : 1;
         const direction = command === "scroll-up" || command === "page-up" ? 1 : -1;
         if (showQueue) {
-          workOffset = Math.max(0, workOffset - amount * direction);
+          workOffset = Math.max(0, (workOffset ?? 0) - amount * direction);
           renderTimer ??= setTimeout(render, 16);
           return;
         }

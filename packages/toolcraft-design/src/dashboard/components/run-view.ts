@@ -79,7 +79,7 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   let scrollOffset = options.scrollOffset;
   let workOffset = options.workOffset ?? 0;
   if (options.showQueue) {
-    workOffset = renderWorkList(buffer, outputRect, stats, workOffset);
+    workOffset = renderWorkList(buffer, outputRect, stats, options.workOffset);
   } else {
     scrollOffset = renderOutputPane(buffer, outputRect, options.output, options.scrollOffset, {
       conversation: true, details: options.showDetails
@@ -133,7 +133,7 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   return { scrollOffset, workOffset, outputRect, ...(cursor ? { cursor } : {}) };
 }
 
-function renderWorkList(buffer: ScreenBuffer, rect: Rect, stats: DashboardStats, requestedOffset: number): number {
+function renderWorkList(buffer: ScreenBuffer, rect: Rect, stats: DashboardStats, requestedOffset?: number): number {
   const theme = getTheme().styles;
   const queue = stats.run?.queue ?? [];
   const tasks = stats.run?.tasks ?? [];
@@ -141,23 +141,31 @@ function renderWorkList(buffer: ScreenBuffer, rect: Rect, stats: DashboardStats,
   lines.push({ text: `PLANS · ${queue.filter((item) => item.kind === "plan").length}`, style: { bold: true } });
   let planNumber = 0;
   let parentPlan: string | undefined;
+  let currentLine = 0;
+  const activeMessage = queue.some((item) => item.kind === "message" && item.status === "running");
   for (const item of queue) {
+    if (activeMessage ? item.kind === "message" && item.status === "running" : item.id === stats.run?.activePlanId) {
+      currentLine = lines.length;
+    }
     if (item.kind === "plan") parentPlan = displayPlanPath(item.path, stats.run?.cwd);
     const text = item.kind === "plan" ? `${++planNumber}. ${parentPlan}` : `  └ ${item.text}`;
     lines.push({ text: `${marker(item.status)} ${text}`, style: tone(item.status), ...(item.kind === "message" ? { parent: `After ${parentPlan}` } : {}) });
   }
   lines.push({ text: "", style: {} }, { text: `TASKS · ${tasks.filter((task) => task.status === "completed").length}/${tasks.length}`, style: { bold: true } });
   for (const [index, task] of tasks.entries()) {
+    const currentTask = !activeMessage && task.id === stats.run?.activeTaskId;
+    if (currentTask) currentLine = lines.length;
     const active = task.id === stats.run?.activeTaskId && stats.status === "running";
     const status = active ? "running" : task.status;
     lines.push({ text: `${marker(status)} ${index + 1}. ${task.title}`, style: tone(status) });
     for (const step of task.steps ?? []) {
+      if (currentTask && step.name === stats.run?.activeStep) currentLine = lines.length;
       const status = active && step.name === stats.run?.activeStep ? "running" : step.status;
       lines.push({ text: `    ${marker(status)} ${step.name}`, style: tone(status), parent: `${index + 1}. ${task.title}` });
     }
   }
   const capacity = Math.max(0, rect.height - 2);
-  const offset = Math.max(0, Math.min(requestedOffset, lines.length - capacity));
+  const offset = Math.max(0, Math.min(requestedOffset ?? Math.max(0, currentLine - 1), lines.length - capacity));
   if (offset > 0) put(buffer, rect, 0, `↑ earlier · ${lines[offset]?.parent ?? "tasks and plans"}`, theme.muted);
   for (let row = 0; row < capacity; row++) {
     const line = lines[offset + row];

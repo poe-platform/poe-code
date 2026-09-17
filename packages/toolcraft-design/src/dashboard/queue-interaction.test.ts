@@ -171,4 +171,59 @@ describe("dashboard live queue input", () => {
       } finally { ui.dashboard.destroy(); }
     });
   });
+
+  it("opens the work list at the active task and returns there with Follow", async () => {
+    await withOutputFormat("terminal", async () => {
+      vi.useFakeTimers();
+      const ui = fixture(vi.fn());
+      try {
+        ui.dashboard.updateStats({ run: { activeTaskId: "task-39", activeStep: "verify", tasks: Array.from({ length: 60 }, (_, index) => ({
+          id: `task-${index}`, title: `Task ${index + 1}`, status: index < 39 ? "completed" as const : "pending" as const,
+          steps: [{ name: "implement", status: "completed" as const }, { name: "verify", status: "pending" as const }]
+        })) } });
+        ui.send("\u001b");
+        vi.advanceTimersByTime(51);
+        ui.send("v");
+        expect(ui.screen()).toContain("40. Task 40");
+        expect(ui.screen()).toContain("› verify");
+        ui.send("\u001b[H");
+        expect(ui.screen()).toContain("1. Task 1");
+        ui.dashboard.updateStats({ elapsedMs: 1000 });
+        vi.advanceTimersByTime(20);
+        expect(ui.screen()).not.toContain("40. Task 40");
+        ui.send("f");
+        expect(ui.screen()).toContain("40. Task 40");
+        ui.send("\u001b[F");
+        expect(ui.screen()).toContain("60. Task 60");
+        ui.send("vv");
+        expect(ui.screen()).toContain("40. Task 40");
+      } finally { ui.dashboard.destroy(); }
+    });
+  });
+
+  it("focuses the running message ahead of completed plan tasks", async () => {
+    await withOutputFormat("terminal", async () => {
+      vi.useFakeTimers();
+      const ui = fixture(vi.fn());
+      try {
+        ui.dashboard.updateStats({ run: { activePlanId: "first", queue: [
+          { kind: "plan", id: "first", path: "first.md", status: "completed" },
+          ...Array.from({ length: 50 }, (_, index) => ({
+            kind: "message" as const, id: `message-${index}`, afterPlanId: "first", text: `Follow-up ${index + 1}`,
+            status: index < 37 ? "completed" as const : index === 37 ? "running" as const : "pending" as const
+          })),
+          { kind: "plan", id: "second", path: "second.md", status: "pending" }
+        ] } });
+        ui.send("\u001b");
+        vi.advanceTimersByTime(51);
+        ui.send("v");
+        expect(ui.screen()).toContain("›   └ Follow-up 38");
+        expect(ui.screen()).toContain("After first.md");
+        ui.send("\u001b[H");
+        expect(ui.screen()).not.toContain("Follow-up 38");
+        ui.send("f");
+        expect(ui.screen()).toContain("›   └ Follow-up 38");
+      } finally { ui.dashboard.destroy(); }
+    });
+  });
 });

@@ -550,7 +550,10 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
         const name = path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`;
         const expected = mirrorArchiveExportTargets(conditions);
         if (path === "./commands/pandoc") expected.import = "./packages/pandoc/dist/public/command.js";
-        assert.deepEqual(rootManifest.exports[name], expected, `root export mismatch: ${name}`);
+        const detached = manifest.poeCode?.integration?.peerProfile === "checkout-root"
+          && rootManifest.exports["./safe-bash"] === undefined;
+        assert.deepEqual(rootManifest.exports[name], detached ? undefined : expected, `root export mismatch: ${name}`);
+        if (detached) assert.ok(!rootManifest.files.includes("packages/safe-bash/dist"), "private shell must not be shipped by root");
       }
       assert.equal(lock.lockfileVersion, 3, "workspace lock version");
       for (const [key, expected] of [["", rootManifest], [packagePrefix, manifest]]) {

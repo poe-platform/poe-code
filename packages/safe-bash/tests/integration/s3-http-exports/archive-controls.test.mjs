@@ -887,14 +887,10 @@ for (const route of ["poe-code/safe-fs", "poe-code/safe-fs/core"]) test(`committ
   assert.equal(committed.get(`${packagePrefix}/src/not-in-live-checkout.ts`), bytes);
 });
 
-test("explicit committed peer imports extend declaration closure without scanning live source", () => {
+test("retired public peer imports cannot qualify the private checkout as a published release", () => {
   const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
-  const defaults = createPeerBinding(authority, manifest);
-  assert.deepEqual([...defaults.publicEntries.keys()], ["poe-code/safe-fs"]);
-  const binding = createPeerBinding(authority, manifest, new Map(), ["poe-code/safe-fs/core"]);
-  assert.deepEqual([...binding.publicEntries.keys()].sort(), ["poe-code/safe-fs", "poe-code/safe-fs/core"]);
-  assert.equal(binding.publicEntries.get("poe-code/safe-fs/core"), "packages/safe-fs/dist/core.d.ts");
-  assert.equal(binding.declarations.get("packages/safe-fs/dist/core.d.ts"), digest(readRegularInput(resolve(authority, "../.."), "packages/safe-fs/dist/core.d.ts", 300000)));
+  assert.throws(() => createPeerBinding(authority, manifest), /Public SafeFS must preserve shared SafeJS runtime identity/);
+  assert.throws(() => createPeerBinding(authority, manifest, new Map(), ["poe-code/safe-fs/core"]), /Public SafeFS must preserve shared SafeJS runtime identity/);
 });
 
 for (const route of ["poe-code/safe-fs", "poe-code/safe-fs/core", "poe-code/private"]) test(`packed consumer admits only authenticated peer public routes: ${route}`, () => {

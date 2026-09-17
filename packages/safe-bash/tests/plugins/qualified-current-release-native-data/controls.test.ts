@@ -117,9 +117,60 @@ function approvedCompilerConfiguration(): CompilerConfiguration {
     compilerOptions: {
       ...before.before.config.compilerOptions,
       paths: {
-        "virtual-bash": ["./dist/index.d.ts"],
-        "virtual-bash/*": ["./dist/*"],
-        "virtual-bash/commands/table-text": ["./dist/commands/table-text/index.d.ts"]
+        "virtual-bash": [
+          "./dist/index.d.ts"
+        ],
+        "virtual-bash/*": [
+          "./dist/*"
+        ],
+        "virtual-bash/commands/table-text": [
+          "./dist/commands/table-text/index.d.ts"
+        ],
+        "poe-code/safe-fs": [
+          "../safe-fs/src/index.ts"
+        ],
+        "poe-code/safe-fs/core": [
+          "../safe-fs/src/core.ts"
+        ],
+        "poe-code/safe-fs/node": [
+          "../safe-fs/src/node-host.ts"
+        ],
+        "poe-code/safe-fs/node/filesystem": [
+          "../safe-fs/src/node/filesystem.ts"
+        ],
+        "poe-code/safe-playwright": [
+          "../safe-playwright/src/index.ts"
+        ],
+        "poe-code/safe-playwright/adapter": [
+          "../safe-playwright/src/adapter.ts"
+        ],
+        "poe-code/safe-js": [
+          "../safe-js/src/index.ts"
+        ],
+        "poe-code/safejs": [
+          "../safe-js/src/index.ts"
+        ],
+        "poe-code/safe-js/core": [
+          "../safe-js/src/core.ts"
+        ],
+        "@poe-code/safe-fs": [
+          "../safe-fs/src/index.ts"
+        ],
+        "@poe-code/safe-fs/core": [
+          "../safe-fs/src/core.ts"
+        ],
+        "@poe-code/safe-fs/node": [
+          "../safe-fs/src/node-host.ts"
+        ],
+        "poe-code/safejs/core": [
+          "../safe-js/src/core.ts"
+        ],
+        "@poe-code/safe-js": [
+          "../safe-js/src/index.ts"
+        ],
+        "@poe-code/safe-fs/node/filesystem": [
+          "../safe-fs/src/node/filesystem.ts"
+        ]
       }
     },
     exclude: [...before.before.config.exclude, native, ...capturedTypePaths, ...stagedDuPaths, ...integrationTypePaths]

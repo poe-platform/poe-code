@@ -39,3 +39,11 @@ Evidence: `docs/pandoc/adversarial-json-{unit,lint,build}.log`.
 Streaming preflight is intentionally lazy: existing canonical tests require no
 abort before acquisition. Retain that contract; no lifecycle change is justified
 by the initial supplied-sink experiment.
+
+RST reproduction: a direct 2048-unit paragraph finished without any scheduler
+checkpoint; 256 opening brackets also bypassed the documented search work
+accounting, and an inline node ceiling of four was not admitted before growth.
+Inline resolution is now awaited, scans cooperate, and output nodes/slots/text
+reservations precede growth. Original cycle and malformed-RTF tests retain their
+existing exact errors. Maintained pandoc units (1013 tests), lint/typechecks and
+selected workspace build passed; see `adversarial-rst-*` evidence.

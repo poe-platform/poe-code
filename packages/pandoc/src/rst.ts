@@ -62,40 +62,41 @@ class RstReader {
     this.addTarget(name, `#${id}`, false, at);
     return {t: "Span", c: [[id, [], []], label]};
   }
-  substitution(name: string, at: RstLine, stack: readonly string[], depth: number): readonly Inline[] {
+  async substitution(name: string, at: RstLine, stack: readonly string[], depth: number): Promise<readonly Inline[]> {
     const key = `sub:${name}`;
     this.context.bound("depth", depth);
     this.context.charge("macros", 1);
     if (stack.includes(key)) rstError(this.context, at, "Recursive substitution", "E_LIMIT");
     const sub = this.substitutions.get(name);
     if (!sub) rstError(this.context, at, `Undefined substitution: ${name}`);
-    if (sub.image) {this.resolve(sub.image, [...stack, key], depth + 1); return [sub.image];}
+    if (sub.image) {await this.resolve(sub.image, [...stack, key], depth + 1); return [sub.image];}
     this.context.charge("expandedBytes", sub.text!.length * 2);
     return rstInlines(sub.text!, sub.at, this, [...stack, key], depth + 1);
   }
-  note(name: string, at: RstLine, stack: readonly string[], depth: number): Inline {
+  async note(name: string, at: RstLine, stack: readonly string[], depth: number): Promise<Inline> {
     this.context.bound("depth", depth);
     const key = name === "#" ? this.autoNotes[this.autoIndex++] : name === "*" ? this.symbolNotes[this.symbolIndex++] : name;
     if (!key || !this.notes.has(key)) rstError(this.context, at, `Unknown note: ${name}`);
     if (stack.includes(`note:${key}`)) rstError(this.context, at, "Recursive note", "E_LIMIT");
     const blocks = this.notes.get(key)!;
-    this.resolve(blocks, [...stack, `note:${key}`], depth + 1);
+    await this.resolve(blocks, [...stack, `note:${key}`], depth + 1);
     this.context.charge("references", 1);
     return {t: "Note", c: blocks};
   }
-  resolve(value: unknown, stack: readonly string[] = [], depth = 0): void {
+  async resolve(value: unknown, stack: readonly string[] = [], depth = 0): Promise<void> {
     this.context.bound("depth", depth);
-    this.context.checkpoint();
+    await this.context.cooperate();
     if (!value || typeof value !== "object") return;
     const job = this.jobs.get(value as Inline[]);
     if (job) {
       const slot = value as Inline[];
       if (this.filled.has(slot)) return;
-      slot.push(...rstInlines(job.text, job.at, this, stack, depth + 1));
+      const nodes = await rstInlines(job.text, job.at, this, stack, depth + 1);
+      for (const node of nodes) { slot.push(node); await this.context.cooperate(); }
       this.filled.add(slot);
       return;
     }
-    for (const v of Object.values(value)) this.resolve(v, stack, depth + 1);
+    for (const v of Object.values(value)) await this.resolve(v, stack, depth + 1);
   }
   indented(lines: readonly RstLine[], start: number): number {
     let i = start;
@@ -419,7 +420,7 @@ export const rstReader: ReaderCapability = {
     context.charge("references", text.split("\n").length);
     const reader = new RstReader(context);
     const blocks = await reader.blocks(rstLines(text, input.base, undefined, context));
-    reader.resolve(blocks);
+    await reader.resolve(blocks);
     for (const target of reader.targets.values()) reader.target(target);
     for (const link of reader.links) {
       const target = link.definition ?? (link.name === undefined ? undefined : reader.targets.get(link.name));

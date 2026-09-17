@@ -55,8 +55,8 @@
     "@poe-code/agent-spawn": "*",
     "@poe-code/frontmatter": "*",
     "@poe-code/safe-fs": "*",
-    "tiny-mcp-client": "*",
-    "temporal-polyfill": "1.0.4"
+    "temporal-polyfill": "1.0.4",
+    "tiny-mcp-client": "*"
   },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && node scripts/numberformat-data.mjs && rm -rf dist && tsc && node scripts/numberformat-data.mjs --copy && node ../../scripts/set-bin-executable.mjs",

@@ -128,7 +128,6 @@
     "packages/config-mutations/dist",
     "packages/toolcraft-design/dist",
     "packages/memory/dist",
-    "packages/op/dist/**/*.d.ts",
     "scripts/postinstall-sync-skills.mjs",
     "packages/superintendent/dist",
     "packages/tiny-stdio-mcp-server/dist",
@@ -185,7 +184,8 @@
     "packages/workspace-resolver/dist",
     "packages/worktree/dist",
     "!dist/corpus",
-    "!packages/memory/dist/corpus"
+    "!packages/memory/dist/corpus",
+    "packages/user-error/dist"
   ],
   "engines": {
     "node": ">=18.18"

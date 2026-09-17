@@ -230,7 +230,7 @@ test("built owned numbering creation agrees across the public SDK and explicit s
     const batch = await sdk.applyStyleModelBatch(input, { version: 1, operations }, context());
     const dry = await shell.exec("docx batch source.docx --ops-file numbering.json --dry-run --json");
     assert.equal(dry.exitCode, 0, dry.stderr);
-    assert.deepEqual(JSON.parse(dry.stdout).data.results, batch.results);
+    assert.deepEqual(JSON.parse(dry.stdout).data.results, batch.operationResults);
     const edited = await shell.exec("docx batch source.docx --ops-file numbering.json -o - > numbered.docx");
     assert.equal(edited.exitCode, 0, edited.stderr);
     const output = new Uint8Array(volume.readFileSync("/work/numbered.docx") as Uint8Array);

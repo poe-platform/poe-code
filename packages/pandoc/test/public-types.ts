@@ -1,5 +1,5 @@
-import {convert, type ConversionOptions} from "poe-code/pandoc";
-import {pandocCommands, type PandocCommandsOptions} from "poe-code/safe-bash/commands/pandoc";
+import {convert, type ConversionOptions} from "@poe-code/pandoc";
+import {pandocCommands, type PandocCommandsOptions} from "@poe-platform/safe-bash/commands/pandoc";
 const options: ConversionOptions = {from: "commonmark", to: "plain"};
 const plugin: PandocCommandsOptions = {replace: true, limits: {inputBytes: 100}};
 void convert([{bytes: new Uint8Array()}], options, {}); void pandocCommands(plugin);

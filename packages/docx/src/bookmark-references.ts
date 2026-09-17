@@ -1,10 +1,10 @@
 import { documentPartRole } from "./document-part-roles.js";
 import { parseMediaType } from "./media-type.js";
-import { propertyGroupDefinition, readPropertyNodes } from "./property-values.js";
+import { corePropertyKeys, customPropertyType, extendedPropertyKeys, propertyDeclaration, propertyGroupDefinition, readPropertyNodes } from "./property-values.js";
 import type { DocumentPackage } from "./package.js";
 import { DocumentBudget } from "./budget.js";
 import { dialectForNamespace, documentDialects } from "./dialect.js";
-import type { XmlContent, XmlElement } from "./package-xml.js";
+import type { XmlAttribute, XmlContent, XmlElement } from "./package-xml.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 
 interface Operand { start: number; end: number }
@@ -56,15 +56,44 @@ export function updateBookmarkReferences(
     const type = parseMediaType(graph.getPart(part).content_type), root = editor.root;
     const rootDialect = dialectForNamespace(root.namespace) ?? "transitional";
     const math = documentDialects[rootDialect].m, role = documentPartRole(type, root);
-    const literalProperties = new Set<XmlElement>();
+    const literalProperties = new Set<XmlElement>(), literalPropertyAttributes = new Set<XmlAttribute>(), literalPropertyContent = new Set<XmlContent>();
+    const mc = "http://schemas.openxmlformats.org/markup-compatibility/2006";
     for (const group of ["core", "extended", "custom"] as const) {
       const definition = propertyGroupDefinition(group, rootDialect);
       if (type !== definition.contentType || root.namespace !== definition.namespace || root.localName !== definition.root) continue;
       for (const property of readPropertyNodes(root, group, rootDialect, budget)) {
         budget.charge("work", 1);
         if (property.valueNode && property.value !== null && property.value.value !== null) {
-          budget.charge("retainedBytes", 8); literalProperties.add(property.valueNode);
+          budget.charge("retainedBytes", 8 + (property.valueContent?.length ?? 0) * 8); literalProperties.add(property.valueNode);
+          for (const content of property.valueContent ?? []) literalPropertyContent.add(content);
         }
+      }
+      const opaque = new Set<XmlElement>(), projected = [...editor.compatibility.content];
+      while (projected.length) {
+        const item = projected.pop()!;
+        budget.charge("work", 1);
+        if (!("source" in item)) continue;
+        budget.charge("retainedBytes", 16 + item.content.length * 8);
+        if (item.disposition !== "understood") opaque.add(item.source);
+        else projected.push(...item.content);
+      }
+      const declarations = group === "custom" ? [] : Object.keys(group === "core" ? corePropertyKeys : extendedPropertyKeys).map(key => propertyDeclaration(group, key, rootDialect)!);
+      const pending: {node: XmlElement; parent?: XmlElement; scalar: boolean}[] = [{node: root, scalar: false}];
+      while (pending.length) {
+        const {node, parent, scalar} = pending.pop()!;
+        budget.charge("work", 1 + node.attributes.length + declarations.length);
+        if (opaque.has(node)) continue;
+        const custom = group === "custom" && node.namespace === documentDialects[rootDialect].cus && node.localName === "property";
+        if (custom) for (const attribute of node.attributes) if (!attribute.namespace && ["name", "pid", "fmtid"].includes(attribute.localName)) {
+          budget.charge("retainedBytes", 8); literalPropertyAttributes.add(attribute);
+        }
+        const nativeScalar = group === "custom"
+          ? node.namespace === documentDialects[rootDialect].vt && parent?.namespace === documentDialects[rootDialect].cus && parent.localName === "property" && customPropertyType(node.localName) !== null
+          : declarations.some(entry => entry.namespace === node.namespace && entry.localName === node.localName);
+        const literal = nativeScalar || scalar && node.namespace === mc && ["AlternateContent", "Choice", "Fallback"].includes(node.localName);
+        budget.charge("retainedBytes", 8 + node.children.length * 32);
+        if (literal) literalProperties.add(node);
+        for (const child of node.children) pending.push({node: child, parent: node, scalar: literal});
       }
     }
     const remove = new Set<XmlElement>();
@@ -88,11 +117,12 @@ export function updateBookmarkReferences(
         const knownWordAttribute = word && (item.namespace === node.namespace ||
           item.namespace === documentDialects[dialect!].r || item.namespace === "http://www.w3.org/XML/1998/namespace");
         const knownMathFont = role === "settings" && parent?.namespace === math && parent.localName === "mathPr" && root.children.includes(parent) && node.namespace === math && node.localName === "mathFont" && item.namespace === math && item.localName === "val";
-        if (!knownWordAttribute && !knownMathFont && item.value.includes(oldName))
+        const compatibilityAttribute = item.namespace === mc || node.namespace === mc && node.localName === "Choice" && !item.namespace && item.localName === "Requires";
+        if (!knownWordAttribute && !knownMathFont && !compatibilityAttribute && !literalPropertyAttributes.has(item) && item.value.includes(oldName))
           unsafe("An opaque XML attribute may reference the bookmark.");
       }
       if (!word && !literalMathText && !literalProperties.has(node)) {
-        const text = node.content.map(part => part.kind === "text" || part.kind === "cdata" ? part.text : "").join("");
+        const text = node.content.map(part => !literalPropertyContent.has(part) && (part.kind === "text" || part.kind === "cdata") ? part.text : "").join("");
         budget.charge("work", text.length);
         if (text.includes(oldName)) unsafe("Opaque XML text may reference the bookmark.");
       }

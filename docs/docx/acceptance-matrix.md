@@ -401,3 +401,13 @@ exact cases in a passing 1,356-test maintained run. The built campaign executes
 240 expected inner-branch removal refusals and 48 inactive-ID reservations.
 Outer carriers, inactive XML and relationships survive exact-byte assertions.
 Bookmark/property interactions and complete F01–F07 acceptance remain open.
+
+## Current bookmark/property carrier evidence
+
+The [2026-09-17 bookmark/property qualification](bookmark-property-carriers-20260917.md)
+adds 368 exact cases within 967 focused passes, zero skips. All 736 built paired
+SDK/Shell workflows, each with a model round-trip, pass across both dialects/kinds
+and four encodings, including 432 paired expected refusals. Native literals and
+MCE namespace controls retain their metadata role; active opaque/generic
+dependencies remain protected. Exact dirty-part and untouched member retention
+pass. This closes the named dependency, not complete F01–F07 acceptance.

@@ -48,7 +48,7 @@ export async function prepareObjectSanitization(staged: Uint8Array, context: Pub
   let result = editor.snapshot();
   // Remove only unused object bindings; targets survive other incoming references.
   const retired = new Set<string>();
-  for (const item of inventory.items) for (const reference of item.references.filter(edge => edge.owner === item.location.value.part && ["oleObject", "package"].some(role => edge.type.endsWith("/" + role)))) {
+  for (const item of inventory.items) for (const reference of item.references.filter(edge => edge.owner === item.location.value.part && Object.values(documentDialects).some(dialect => edge.type === `${dialect.r}/oleObject` || edge.type === `${dialect.r}/package`))) {
     const split = reference.owner.lastIndexOf("/"), name = reference.owner.slice(1, split + 1) + "_rels/" + reference.owner.slice(split + 1) + ".rels";
     const owner = editor.xml(reference.owner.slice(1));
     const used = (node: typeof owner.root): boolean => { budget.charge("work", 1); return node.attributes.some(a => Object.values(documentDialects).some(d => a.namespace === d.r) && a.value === reference.id) || node.children.some(used); };

@@ -1,5 +1,12 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 packing admission qualification](pack-xml-admission-20260917.md)
+records 512 exact new metadata/boundary cases within 873 focused passes, zero
+skips, and 72 built SDK/actual Shell workflows. XML MIME parameters cannot bypass
+pre-acquisition byte ceilings; SDK limit options apply through publication;
+malformed MIME metadata rejects before payload reads. Both dialects/kinds and
+exact member retention pass. Other F01–F07 obligations remain open.
+
 The [2026-09-17 native object qualification](native-object-carriers-20260917.md)
 records 308 exact native-carrier/profile cases within 1,197 focused passes, zero
 skips, and 64 built SDK/actual Shell workflows. Native DrawingML/MCE and

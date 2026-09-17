@@ -18,9 +18,11 @@ export interface ArchivePackingContext extends ArchiveContext {
 
 /** Reconstructs only explicitly authenticated VFS payloads, with one staged publication. */
 export async function packDocumentArchive(input: unknown, options: DocxOperationArguments<"pack">, context: ArchivePackingContext): Promise<CreateMutationData> {
-  const settings = archiveSettings(context), { budget, signal, limits } = settings;
-  if (signal.aborted) throw new CancellationError("Archive packing cancelled.", { cause: signal.reason });
-  const admitted = validateDocxInvocation({ operation: "pack", inputs: ["-"], options }, budget).options;
+  const host = archiveSettings(context);
+  if (host.signal.aborted) throw new CancellationError("Archive packing cancelled.", { cause: host.signal.reason });
+  const admitted = validateDocxInvocation({ operation: "pack", inputs: ["-"], options }, host.budget).options as DocxOperationArguments<"pack">;
+  const settings = archiveSettings({ ...context, budget: host.budget.lower(Object.fromEntries((admitted.limit ?? []).map(limit => [limit.name, limit.value]))) });
+  const { budget, signal, limits } = settings;
   const directory = context.inventoryDirectory;
   if (directory !== undefined && directory !== "/") inventoryPath(directory, true);
   const inventory = admitPackageInventory(input, budget, directory === undefined);

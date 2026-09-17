@@ -1,6 +1,7 @@
 import type { DocxJsonSchema } from "./operation-json-schema.js";
 import { InputTypeError, InvalidContainerError, ResourceLimitError } from "./archive.js";
 import { normalizePartName } from "./part-uri.js";
+import { isXmlContentType } from "./package-xml.js";
 import type { DocumentBudget } from "./budget.js";
 
 export interface PackageEntry {
@@ -81,7 +82,8 @@ export function admitPackageInventory(value: unknown, budget: DocumentBudget, ab
     total += e.bytes;
     if (!Number.isSafeInteger(total)) throw new ResourceLimitError("Inventory byte total exceeded.");
     budget.check("expandedPackage", total);
-    if (e.part === "[Content_Types].xml" || e.contentType.toLowerCase().endsWith("+xml") || ["application/xml", "text/xml"].includes(e.contentType.toLowerCase())) budget.check("xmlPartBytes", e.bytes);
+    const xml = isXmlContentType(e.contentType);
+    if (e.part === "[Content_Types].xml" || xml) budget.check("xmlPartBytes", e.bytes);
     budget.charge("retainedBytes", (e.part.length + e.path.length + e.contentType.length + 64) * 4 + 128);
     budget.charge("work", e.part.length + e.path.length + 1);
     return Object.freeze(e as unknown as PackageEntry);

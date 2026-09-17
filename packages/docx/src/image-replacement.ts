@@ -275,7 +275,7 @@ export async function replaceDocumentImage(
       for (const owner of [
         "/",
         ...graph.parts
-          .filter((part) => !part.content_type.endsWith("relationships+xml"))
+          .filter((part) => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml")
           .map((part) => part.partname)
       ])
         for (const edge of graph.relationships(owner)) {
@@ -461,7 +461,7 @@ export async function replaceDocumentImage(
     for (const owner of [
       "/",
       ...nextGraph.parts
-        .filter((part) => !part.content_type.endsWith("relationships+xml"))
+        .filter((part) => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml")
         .map((part) => part.partname)
     ])
       for (const edge of nextGraph.relationships(owner)) {

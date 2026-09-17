@@ -84,7 +84,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
   }
   parts.sort((a, b) => compare(a.name, b.name));
   const relationships: InspectionReference[] = [];
-  for (const owner of ["/", ...graph.parts.filter(p => !p.content_type.toLowerCase().endsWith("relationships+xml")).map(p => p.partname)].sort(compare)) {
+  for (const owner of ["/", ...graph.parts.filter(p => p.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(p => p.partname)].sort(compare)) {
     for (const edge of graph.relationships(owner))
       relationships.push({ owner, id: edge.rId, type: edge.reltype, target: edge.target_ref, external: edge.is_external });
   }
@@ -192,7 +192,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
     ["F37", chartParts.length > 0, decodedCharts ? "read" : "preserve"],
     ["F38", knownDiagrams, "preserve"],
     ["F28", counts.controls > 0, "read"], ["F30", propertyParts.length > 0, properties.length > 0 ? "read" : "preserve"], ["F31", media.length > 0, "read"], ["F39", counts.equations > 0, "preserve"],
-    ["F41", relationships.some(r => ["http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml", "http://purl.oclc.org/ooxml/officeDocument/relationships/customXml", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/glossaryDocument", "http://purl.oclc.org/ooxml/officeDocument/relationships/glossaryDocument"].includes(r.type)) || parts.some(p => p.contentType.toLowerCase() === "application/vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml" || p.contentType.toLowerCase() === "application/vnd.openxmlformats-officedocument.customxmlproperties+xml"), "preserve"], ["F42", fontNames.size + embedded.length + protection.length > 0 || parts.some(p => p.contentType.endsWith(".settings+xml") || p.contentType.endsWith(".fontTable+xml")), "read"], ["F43", signed, "preserve"]
+    ["F41", relationships.some(r => ["http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml", "http://purl.oclc.org/ooxml/officeDocument/relationships/customXml", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/glossaryDocument", "http://purl.oclc.org/ooxml/officeDocument/relationships/glossaryDocument"].includes(r.type)) || parts.some(p => p.contentType.toLowerCase() === "application/vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml" || p.contentType.toLowerCase() === "application/vnd.openxmlformats-officedocument.customxmlproperties+xml"), "preserve"], ["F42", fontNames.size + embedded.length + protection.length > 0 || parts.some(p => p.contentType.toLowerCase().endsWith(".settings+xml") || p.contentType.toLowerCase().endsWith(".fonttable+xml")), "read"], ["F43", signed, "preserve"]
   ];
   const fontResources = readFontResources(archive, roots, budget);
   if (fontResources.diagnostics.length) warnings.push({ code: "unresolved-font-resources", message: "Theme or embedded font references have unresolved package resources; see fontResources.diagnostics." });

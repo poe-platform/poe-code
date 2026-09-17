@@ -98,7 +98,7 @@ export class ControlClonePlanner {
     if (stack.length) throw new UnsupportedEditError("Bookmarks cross the template boundary.");
     const markers = all.filter(node => node.namespace === item.namespace && ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName));
     if (markers.length) {
-      if (this.#package.parts.some(part => ["commentsExtended", "commentsIds", "commentsExtensible", "people"].some(name => part.content_type.includes(name)))) throw new UnsupportedEditError("Modern comments cannot be cloned.");
+      if (this.#package.parts.some(part => ["commentsextended", "commentsids", "commentsextensible", "people"].some(name => part.content_type.toLowerCase().includes(name)))) throw new UnsupportedEditError("Modern comments cannot be cloned.");
       const edges = this.#package.relationships(owner).filter(edge => edge.reltype.endsWith("/comments"));
       if (edges.length !== 1 || edges[0]!.is_external) throw new UnsupportedEditError("A classic comment part is required.");
       const comments = this.#source.get(edges[0]!.target_part.partname)!;
@@ -129,7 +129,7 @@ export class ControlClonePlanner {
       const embed = blip.attributes.filter(attr => relationships.includes(attr.namespace) && attr.localName === "embed");
       if (embed.length !== 1 || blip.attributes.some(attr => relationships.includes(attr.namespace) && attr.localName === "link")) throw new UnsupportedEditError("Only internal picture embeds are admitted.");
       const edge = this.#package.relationships(owner).find(edge => edge.rId === embed[0]!.value);
-      if (!edge || edge.is_external || !edge.reltype.endsWith("/image") || edge.target_part.content_type !== "image/png") throw new UnsupportedEditError("Only admitted internal PNG pictures are cloned.");
+      if (!edge || edge.is_external || !edge.reltype.endsWith("/image") || edge.target_part.content_type.toLowerCase() !== "image/png") throw new UnsupportedEditError("Only admitted internal PNG pictures are cloned.");
       if (!this.#admittedMedia.has(edge.target_part.partname)) { this.#context.budget.charge("embeddedMediaBytes", edge.target_part.bytes.length); await admitControlPng(edge.target_part.bytes, this.#context); this.#admittedMedia.add(edge.target_part.partname); }
       for (const node of nodes(drawing, this.#context.budget)) if (!(word.includes(node.namespace) && node.localName === "drawing" || drawings.includes(node.namespace) && ["inline", "extent", "docPr"].includes(node.localName) || pictures.includes(node.namespace) && ["pic", "nvPicPr", "cNvPr", "cNvPicPr", "blipFill", "spPr"].includes(node.localName) || drawingMain.includes(node.namespace) && ["graphic", "graphicData", "blip", "stretch", "fillRect", "xfrm", "off", "ext", "prstGeom", "avLst"].includes(node.localName))) throw new UnsupportedEditError("The picture contains unverified drawing markup.");
       const profile: Readonly<Record<string, { children: readonly string[]; attributes: readonly string[] }>> = {

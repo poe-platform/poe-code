@@ -228,7 +228,7 @@ export async function editDocumentControls(input: Uint8Array, options: DocxOpera
     assertOutsideRevisionRanges(xml.root, node, budget, xml.compatibility.branches);
     if (walk(content).some(n => n.namespace === node.namespace && n.localName === "sdt")) throw new UnsupportedEditError("Scalar filling cannot erase nested controls.");
     if (item.kind === "picture" && file !== undefined) {
-      if (!item.value || typeof item.value !== "object" || item.value.external || !item.value.contentType?.startsWith("image/")) throw new UnsupportedEditError("Only an existing internal picture occurrence supports filling.");
+      if (!item.value || typeof item.value !== "object" || item.value.external || !item.value.contentType?.toLowerCase().startsWith("image/")) throw new UnsupportedEditError("Only an existing internal picture occurrence supports filling.");
       picture ??= await acquireControlPng(file as DocxBinaryInput, { ...context, budget });
       stages.push(() => replaceControlPicture(result.editor, result.archive, location.value.part, content, picture!, { ...settings, budget }));
     } else stages.push(prepareControlValue(xml, node, item, { ...(text === undefined ? {} : { text }), ...(checked === undefined ? {} : { checked }), ...(choice === undefined ? {} : { choice }), ...(date === undefined ? {} : { date }) }, { ...settings, budget }));

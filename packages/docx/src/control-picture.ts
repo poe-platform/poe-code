@@ -97,7 +97,7 @@ export function readControlPicture(archive: DocumentArchive, owner: string, cont
 const staged = new WeakMap<DocumentArchiveEditor, { owner: string; id: string; media: string; bytes: Uint8Array; reltype: string }[]>();
 export function replaceControlPicture(editor: DocumentArchiveEditor, archive: DocumentArchive, owner: string, content: XmlElement, bytes: Uint8Array, context: ArchiveContext): void {
   const { limits, budget } = archiveSettings(context); const pkg = new DocumentPackage(archive, limits, budget); const target = occurrence(content);
-  const edge = pkg.relationships(owner).find(edge => edge.rId === target.id); if (!edge || edge.is_external || !edge.reltype.endsWith("/image") || !edge.target_part.content_type.startsWith("image/")) unsupported();
+  const edge = pkg.relationships(owner).find(edge => edge.rId === target.id); if (!edge || edge.is_external || !edge.reltype.endsWith("/image") || !edge.target_part.content_type.toLowerCase().startsWith("image/")) unsupported();
   const additions = staged.get(editor) ?? []; let ordinal = 1; let media: string; do { media = `/word/media/control-picture-${ordinal++}.png`; } while (pkg.parts.some(part => part.partname === media) || additions.some(item => item.media === media));
   const taken = new Set([...pkg.relationships(owner).map(edge => edge.rId), ...additions.filter(item => item.owner === owner).map(item => item.id)]); ordinal = 1; while (taken.has(`rId${ordinal}`)) ordinal++;
   const id = `rId${ordinal}`; editor.xml(owner.slice(1)).setAttribute(target.node, { namespace: target.namespace, localName: "embed" }, id);

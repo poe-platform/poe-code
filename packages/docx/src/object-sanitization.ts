@@ -60,7 +60,7 @@ export async function prepareObjectSanitization(staged: Uint8Array, context: Pub
   }
   result = editor.snapshot();
   const packageView = new DocumentPackage(result, settings.limits, budget);
-  for (const target of targets) if (!["/", ...packageView.parts.filter(part => !part.content_type.endsWith("relationships+xml")).map(part => part.partname)].some(owner => packageView.relationships(owner).some(edge => !edge.is_external && edge.target_part.partname === target))) {
+  for (const target of targets) if (!["/", ...packageView.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(part => part.partname)].some(owner => packageView.relationships(owner).some(edge => !edge.is_external && edge.target_part.partname === target))) {
     if (packageView.relationships(target).length) { gaps.push("Unreferenced embedded targets with outgoing graphs are retained."); continue; }
     retired.add(target.slice(1));
     const split = target.lastIndexOf("/");

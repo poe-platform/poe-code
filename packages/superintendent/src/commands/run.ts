@@ -309,7 +309,7 @@ export function createRunMcpCommand(runners?: RunMcpCommandRunners) {
       const cwd = process.cwd();
       const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
       const commandConfig = await resolveSuperintendentCommandConfig(cwd, homeDir, process.env);
-  
+
       const runOptions: RunCommandOptions = {
         cwd,
         homeDir,
@@ -326,7 +326,7 @@ export function createRunMcpCommand(runners?: RunMcpCommandRunners) {
         interactive: false,
         useDashboard: false,
         env: process.env,
-          worktree: pickWorktreeOptions(params),
+        worktree: pickWorktreeOptions(params),
         ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {}),
         ...(runners?.runLoop ? { runLoop: runners.runLoop } : {})
       };
@@ -632,7 +632,7 @@ export async function runSuperintendentCommand(
           session: undefined,
           executeAgent: options.executeAgent,
           selectedBuilderAgent: () => selectedBuilderAgent,
-              runtime: {
+          runtime: {
             runtime: options.runtime,
             runtimeImage: options.runtimeImage,
             detach: options.detach,
@@ -965,7 +965,7 @@ export async function runSuperintendentCommand(
         session,
         executeAgent: options.executeAgent,
         selectedBuilderAgent: () => selectedBuilderAgent,
-          runtime: {
+        runtime: {
           runtime: options.runtime,
           runtimeImage: options.runtimeImage,
           detach: options.detach,

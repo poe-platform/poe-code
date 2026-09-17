@@ -100,7 +100,7 @@ export class ControlClonePlanner {
     const markers = all.filter(node => node.namespace === item.namespace && ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName));
     if (markers.length) {
       if (this.#package.parts.some(part => commentExtensionParts.some(role => part.content_type.toLowerCase() === role.contentType.toLowerCase()))) throw new UnsupportedEditError("Modern comments cannot be cloned.");
-      const edges = this.#package.relationships(owner).filter(edge => edge.reltype.endsWith("/comments"));
+      const edges = this.#package.relationships(owner).filter(edge => relationships.some(namespace => edge.reltype === `${namespace}/comments`));
       if (edges.length !== 1 || edges[0]!.is_external) throw new UnsupportedEditError("A classic comment part is required.");
       const comments = this.#source.get(edges[0]!.target_part.partname)!;
       for (const id of new Set(markers.map(node => number(attribute(node, "id"))))) {
@@ -163,7 +163,7 @@ export class ControlClonePlanner {
     const commentMarkers = all.filter(node => node.namespace === item.namespace && ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName));
     if (commentMarkers.length) {
       if (this.#package.parts.some(part => commentExtensionParts.some(role => part.content_type.toLowerCase() === role.contentType.toLowerCase()))) throw new UnsupportedEditError("Modern comments cannot be cloned.");
-      const edges = this.#package.relationships(owner).filter(edge => edge.reltype.endsWith("/comments")); if (edges.length !== 1 || edges[0]!.is_external) throw new UnsupportedEditError("A classic comment part is required.");
+      const edges = this.#package.relationships(owner).filter(edge => relationships.some(namespace => edge.reltype === `${namespace}/comments`)); if (edges.length !== 1 || edges[0]!.is_external) throw new UnsupportedEditError("A classic comment part is required.");
       const part = edges[0]!.target_part.partname, comments = this.#source.get(part)!;
       for (const id of new Set(commentMarkers.map(node => number(attribute(node, "id"))))) {
         const markers = commentMarkers.filter(node => number(attribute(node, "id")) === id);

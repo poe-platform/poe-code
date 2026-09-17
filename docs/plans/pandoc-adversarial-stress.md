@@ -47,3 +47,10 @@ Inline resolution is now awaited, scans cooperate, and output nodes/slots/text
 reservations precede growth. Original cycle and malformed-RTF tests retain their
 existing exact errors. Maintained pandoc units (1013 tests), lint/typechecks and
 selected workspace build passed; see `adversarial-rst-*` evidence.
+
+PDF cancellation reproduction: a direct writer checkpoint aborted the signal,
+but the sibling font path normalized that callback rejection to `E_CAPABILITY`.
+The adapter now checks its sticky session failure before mapping sibling errors.
+Canonical tests assert `E_CANCELLED` and no sink acquisition/writes/close.
+Final maintained pandoc unit route passed 1043 tests; package lint/typechecks and
+selected workspace build passed. See `adversarial-final-{unit,lint,build}.log`.

@@ -130,6 +130,12 @@ export const pdfWriter: WriterCapability = {
         if (key === "glyphs") ctx.charge("retainedBytes", amount * 96);
       }});
       return {kind: "binary", bytes};
-    } catch (error) { if (error instanceof PdfError) throw new PandocError(error.code, ctx.operation ?? "write", error.message, "pdf"); throw error; }
+    } catch (error) {
+      // A sibling engine may normalize a trusted callback throw as a font error.
+      // Preserve this session's sticky budget/cancellation failure first.
+      ctx.checkpoint(0);
+      if (error instanceof PdfError) throw new PandocError(error.code, ctx.operation ?? "write", error.message, "pdf");
+      throw error;
+    }
   }
 };

@@ -1,6 +1,7 @@
 import {createHash} from "node:crypto";
 import {expect,it} from "vitest";
 import oracle from "./__snapshots__/euc-kr-kernel-oracle.json";
+import encodePartitions from "./__snapshots__/euc-kr-encode-partitions-3.14.7.json";
 import incrementalOracle from "./__snapshots__/euc-kr-incremental-partitions-3.14.7.json";
 import {CodePointString} from "./code-point-string.js";
 import {PythonDecodeError} from "./decode-error.js";
@@ -93,15 +94,30 @@ it.each(["strict","ignore","replace"] as const)("matches every composition byte 
   expect(hash.digest("hex")).toBe(oracle.composition[errors].sha256);
 });
 
-it.each(Array.from({length:17},(_,plane)=>plane))("matches every strict Unicode encoding and fault in plane %i",plane=>{
+it("retains every strict Unicode encoding oracle across plane partitions",()=>{
+  expect(encodePartitions.reference.version.split(" ")[0]).toBe(oracle.reference.version.split(" ")[0]);
+  expect(encodePartitions.reference).toMatchObject({unicode:oracle.reference.unicode,platform:oracle.reference.platform,byteorder:oracle.reference.byteorder});
+  expect(encodePartitions.records).toBe(oracle.strictEncode.records);
+  expect(encodePartitions.sha256).toBe(oracle.strictEncode.sha256);
+  expect(encodePartitions.planes.map(row=>row.plane)).toEqual(Array.from({length:17},(_,plane)=>plane));
+  for(const row of encodePartitions.planes){
+    expect(row.sha256).toBe(oracle.strictEncode.planes[row.plane]);
+    expect(row.partitions.map(part=>part.block)).toEqual(Array.from({length:16},(_,block)=>block));
+    expect(row.partitions.map(part=>part.records)).toEqual(new Array<number>(16).fill(4096));
+  }
+});
+
+it.each(encodePartitions.planes.flatMap(row=>row.partitions.map(part=>({plane:row.plane,...part}))))("matches every strict Unicode encoding and fault in plane $plane block $block",({plane,block,records,sha256})=>{
   const hash=createHash("sha256");
-  for(let point=plane*0x10000;point<(plane+1)*0x10000;point++){
+  let count=0;
+  for(let point=plane*0x10000+block*4096;point<plane*0x10000+(block+1)*4096;point++){
     let row:unknown;
     try{row=["ok",[...eucKrCodec.encode(string(String.fromCodePoint(point)),"strict",meter())]];}
     catch(error){row=failure(error);}
-    hash.update(JSON.stringify(row)+"\n");
+    hash.update(JSON.stringify(row)+"\n");count++;
   }
-  expect(hash.digest("hex")).toBe(oracle.strictEncode.planes[plane]);
+  expect(count).toBe(records);
+  expect(hash.digest("hex")).toBe(sha256);
 });
 
 it.each(["ignore","replace"] as const)("matches all-point encoding with %s",errors=>{

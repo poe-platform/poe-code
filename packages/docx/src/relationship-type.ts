@@ -2,7 +2,7 @@ function asciiLetter(char: string): boolean {
   return char >= "a" && char <= "z" || char >= "A" && char <= "Z";
 }
 
-function iriComponent(value: string, extra: string, query = false): boolean {
+export function iriComponent(value: string, extra: string, query = false): boolean {
   for (let index = 0; index < value.length; index++) {
     const char = value[index]!, point = value.codePointAt(index)!;
     if (char === "%") {
@@ -67,6 +67,24 @@ export function isAbsoluteRelationshipType(value: string): boolean {
   if (hierarchy.startsWith("//")) {
     const slash = hierarchy.indexOf("/", 2);
     return iriAuthority(hierarchy.slice(2, slash < 0 ? undefined : slash)) && (slash < 0 || iriComponent(hierarchy.slice(slash), ":@/"));
+  }
+  return iriComponent(hierarchy, ":@/");
+}
+
+/** OPC Target admits an IRI reference, including a retained fragment. */
+export function isRelationshipTargetReference(value: string): boolean {
+  const hash = value.indexOf("#");
+  if (hash >= 0) {
+    if (!iriComponent(value.slice(hash + 1), ":@/?")) return false;
+    value = value.slice(0, hash);
+  }
+  const query = value.indexOf("?"), hierarchy = value.slice(0, query < 0 ? undefined : query);
+  const colon = hierarchy.indexOf(":"), slash = hierarchy.indexOf("/");
+  if (colon >= 0 && (slash < 0 || colon < slash)) return isAbsoluteRelationshipType(value);
+  if (query >= 0 && !iriComponent(value.slice(query + 1), ":@/?", true)) return false;
+  if (hierarchy.startsWith("//")) {
+    const end = hierarchy.indexOf("/", 2);
+    return iriAuthority(hierarchy.slice(2, end < 0 ? undefined : end)) && (end < 0 || iriComponent(hierarchy.slice(end), ":@/"));
   }
   return iriComponent(hierarchy, ":@/");
 }

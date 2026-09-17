@@ -1,5 +1,11 @@
 # DOCX acceptance matrix
 
+The [external Target IRI record](external-target-iri-20260917.md) qualifies
+3,200 exact model/SDK/actual Shell cases, 144 built public checks and 2,407
+existing consumer cases, zero skips. Active malformed targets reject; valid
+relative/Unicode/fragment references and inactive metadata retain their exact
+semantics and bytes. Full F01–F07 acceptance remains open.
+
 The [signature inspection variant record](signature-inspection-variants-20260917.md)
 qualifies 960 exact public model/SDK/actual Shell cases, zero skips, across both
 dialects/kinds, native MIME and active/inactive relationship carriers. Physical

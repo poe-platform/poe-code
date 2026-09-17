@@ -1,5 +1,21 @@
 # Bounded PDF serialization
 
+## Current task revalidation (2026-09-16)
+
+The requested engine and wiring already exist in the current checkout. Preserve
+them and unrelated work; validate gaps with original failing tests.
+
+- Reproduced malformed object counts reaching enumeration: NaN, negative and
+  fractional identity counts bypassed the pre-enumeration admission check.
+  Original in-memory regression precedes the fix; require safe, nonnegative,
+  bounded counts before enumeration. Red/green logs: docs/pandoc.
+- Current maintained gates pass: 49 PDF tests, 1,063 Pandoc tests, both package
+  lint/typechecks, selected Pandoc build closure. No new full-repository unit
+  result is claimed; the historical limitation below remains historical.
+- Refresh pinned independent parser/renderer QA against all current readers,
+  including PPTX. Keep evidence in docs/pandoc and procedure in docs/plans.
+- Local commits only; no push or release authorized.
+
 Own serialization in packages/pdf using pinned pdf-lib 1.17.1 object primitives;
 keep conversion in packages/pandoc and the existing safe-bash adapter thin.
 Preserve unrelated changes; local atomic commits on main only.

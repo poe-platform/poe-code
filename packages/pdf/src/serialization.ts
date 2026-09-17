@@ -14,7 +14,7 @@ export async function serializePdf(context: PDFContext, budget: SerializationBud
   const invalid = (message: string): never => {throw new PdfError("E_CAPABILITY", message);};
   if (!Number.isSafeInteger(budget.outputBytes) || budget.outputBytes < 0 || budget.outputBytes > 0x7fffffff || !Number.isSafeInteger(budget.objects) || budget.objects < 0 || budget.objects > 1_000_000) limit("Invalid PDF serialization budget");
   // Check identity range before enumerating or building an xref table.
-  if (context.largestObjectNumber > budget.objects) limit("PDF object count exceeded");
+  if (!Number.isSafeInteger(context.largestObjectNumber) || context.largestObjectNumber < 0 || context.largestObjectNumber > budget.objects) limit("Invalid or exhausted PDF object count");
   const objects = context.enumerateIndirectObjects();
   if (objects.length !== context.largestObjectNumber) invalid("Sparse PDF object identities");
   const identities = new Set(objects.map(([ref]) => ref));

@@ -33,6 +33,15 @@ it("rejects exhausted budgets before copying into an output allocation", async (
     await expect(serializePdf(context, {outputBytes, objects: 10})).rejects.toMatchObject({code: "E_LIMIT"});
   }
 });
+it("rejects malformed identity counts before enumerating resources", async () => {
+  for (const count of [NaN, Infinity, -1, 1.5, Number.MAX_SAFE_INTEGER]) {
+    const context = minimal();
+    context.largestObjectNumber = count;
+    const enumerate = vi.spyOn(context, "enumerateIndirectObjects");
+    await expect(serializePdf(context, {outputBytes: 1000, objects: 10})).rejects.toMatchObject({code: "E_LIMIT"});
+    expect(enumerate).not.toHaveBeenCalled();
+  }
+});
 it("rejects dangling references, sparse identities and unsafe object sizes", async () => {
   const context = minimal();
   context.register(context.obj({Dangling: PDFRef.of(99)}));

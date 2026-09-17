@@ -388,6 +388,12 @@ async function runPipelineWithDashboard(options: PipelineDashboardRunOptions): P
     validatePlan: options.validatePlan
   });
   const { dashboard } = view;
+  const runAgent = createDashboardAgentRunner({
+    spawn: sdkSpawn,
+    onOutput: dashboard.appendOutput,
+    onActivity: (activity) => view.updateRun({ activity }),
+    onUsage: view.addUsage
+  });
   const abortController = new AbortController();
   let finishCleanup!: () => void;
   const cleanupComplete = new Promise<void>((resolve) => { finishCleanup = resolve; });
@@ -407,12 +413,15 @@ async function runPipelineWithDashboard(options: PipelineDashboardRunOptions): P
       queue: options.queue,
       signal: abortController.signal,
       ...createPipelineDashboardCallbacks(view),
-      runAgent: createDashboardAgentRunner({
-        spawn: sdkSpawn,
-        onOutput: dashboard.appendOutput,
-        onActivity: (activity) => view.updateRun({ activity }),
-        onUsage: view.addUsage,
-      }),
+      runAgent(input) {
+        const specifier = parseAgentSpecifier(input.agent);
+        view.updateRun({
+          cwd: input.cwd,
+          agent: specifier.agent,
+          model: input.model ?? specifier.model
+        });
+        return runAgent(input);
+      },
       runPlan: sdkRunPipeline
     });
   } catch (error) {

@@ -1796,7 +1796,7 @@ describe("pipeline run command", () => {
       });
 
       expect(dashboardMock.updateStats).toHaveBeenLastCalledWith(expect.objectContaining({
-        session: { cwd: "/repo/worktree", agent, model: "stage-model" }
+        run: expect.objectContaining({ cwd: "/repo/worktree", agent, model: "stage-model" })
       }));
 
       options.onTaskComplete?.({

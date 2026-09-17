@@ -1,5 +1,11 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 native owner validation qualification](validation-owner-mime-20260917.md)
+records 972 new exact cases inside 1,364 scoped passes from a 1,580-pass joint
+run, zero skips, plus 48 built SDK/Shell workflows. MIME parameter text no longer
+hides native relationship owners. Real native reference errors still reject;
+generic XML remains inert and retained. Other F01–F07 obligations stay open.
+
 The [2026-09-17 extraction qualification](extract-xml-admission-20260917.md)
 records 680 exact new cases within 866 focused passes, zero skips, and 48 built
 SDK/Shell workflows. MIME-based raw/pretty XML behavior, both UTF-16 byte orders,

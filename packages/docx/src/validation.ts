@@ -223,7 +223,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
   }
   const relatedParts = new Map(graph.relationships(main.partname).filter(e => !e.is_external).map(e => [e.reltype, e.target_part.partname]));
   const related = (name: string): string | undefined => relatedParts.get(`${r}/${name}`);
-  const relationships = new Map(graph.parts.filter(p => !p.content_type.toLowerCase().includes("relationships+xml")).map(p => [p.partname, new Map(graph.relationships(p.partname).map(e => [e.rId, e]))]));
+  const relationships = new Map(graph.parts.filter(p => parseMediaType(p.content_type) !== "application/vnd.openxmlformats-package.relationships+xml").map(p => [p.partname, new Map(graph.relationships(p.partname).map(e => [e.rId, e]))]));
   const lookup = (name: string, id: string | undefined, part = related(name === "style" ? "styles" : name === "num" || name === "abstractNum" ? "numbering" : name === "comment" ? "comments" : name + "s")) =>
     id === undefined || !part ? undefined : definitions.get(`${part}:${name}`)?.get(id);
   const completedStyles = new Set<Node>();

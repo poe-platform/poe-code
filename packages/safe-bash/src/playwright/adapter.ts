@@ -126,11 +126,13 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
       const resource = await source.acquireBrowser(options);
       let context: PlaywrightContext | undefined;
       let closed = false;
+      let contextCloseObserved = false;
+      let browserDisconnectedObserved = false;
       let releasing: Promise<void> | undefined;
       const listeners = new Set<() => void>();
       const detach = () => {
-        resource.browser.off("disconnected", notify);
-        context?.off("close", notify);
+        resource.browser.off("disconnected", onDisconnected);
+        context?.off("close", onContextClosed);
       };
       const notify = () => {
         if (closed) return;
@@ -140,13 +142,28 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
         listeners.clear();
         for (const listener of pending) listener();
       };
+      const onDisconnected = () => { browserDisconnectedObserved = true; notify(); };
+      const onContextClosed = () => { contextCloseObserved = true; notify(); };
       const release = (): Promise<void> => {
         releasing ??= Promise.resolve().then(async () => {
           const errors: unknown[] = [];
+          let contextFailure: { error: unknown } | undefined;
+          try { browserDisconnectedObserved ||= !resource.browser.isConnected(); }
+          catch (error) { errors.push(error); }
           if (context) {
-            try { await context.close(); notify(); } catch (error) { errors.push(error); }
+            try { await context.close(); notify(); } catch (error) { contextFailure = { error }; }
           }
           try { await resource.release(); } catch (error) { errors.push(error); }
+          try { browserDisconnectedObserved ||= !resource.browser.isConnected(); }
+          catch (error) { errors.push(error); }
+          if (contextFailure) {
+            const error = contextFailure.error;
+            const expectedClosure = (contextCloseObserved || browserDisconnectedObserved)
+              && error instanceof Error && !(error instanceof AggregateError)
+              && ['Error', 'TargetClosedError'].includes(error.name)
+              && ['Target page, context or browser has been closed', 'browserContext.close: Target page, context or browser has been closed'].includes(error.message);
+            if (!expectedClosure) errors.unshift(error);
+          }
           // Retirement invalidates the local lease even if context closure
           // failed or the host merely returned a borrowed browser to its owner.
           // This notification does not establish remote browser termination.
@@ -157,14 +174,14 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
         return releasing;
       };
       try {
-        resource.browser.on("disconnected", notify);
+        resource.browser.on("disconnected", onDisconnected);
         options.signal.throwIfAborted();
-        if (!resource.browser.isConnected()) notify();
+        if (!resource.browser.isConnected()) onDisconnected();
         if (closed) throw new Error("Playwright browser is closed");
         context = await resource.browser.newContext();
-        context.on("close", notify);
+        context.on("close", onContextClosed);
         options.signal.throwIfAborted();
-        if (!resource.browser.isConnected()) notify();
+        if (!resource.browser.isConnected()) onDisconnected();
         if (closed) throw new Error("Playwright browser closed during context acquisition");
         return {
           context,

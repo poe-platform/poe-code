@@ -43,8 +43,8 @@ test('SDK help needs no adapter, artifact sink or valid session environment', as
     let output = '';
     await controller.run({ args: ['--help', 'snapshot'], env: { PLAYWRIGHT_CLI_SESSION: 'invalid session' }, signal: new AbortController().signal, write: async text => { output += text; } });
     assert.ok(output.includes('Usage: playwright-cli snapshot'));
-    assert.ok(output.includes('--filename'));
-    assert.ok(output.includes('refs'));
+    assert.ok(output.includes('Not enabled by this client'));
+    assert.ok(!output.includes('--filename'));
     const signal = AbortSignal.abort(new Error('cancelled help'));
     await assert.rejects(controller.run({ args: ['--help'], env: {}, signal, write: async () => { throw new Error('unexpected write'); } }), /cancelled help/);
   } finally { await controller.dispose(); }

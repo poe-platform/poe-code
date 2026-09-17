@@ -2,10 +2,13 @@ import type { PlaywrightAdapter, PlaywrightLease, PlaywrightPage } from './adapt
 import { createSnapshotEngine } from './snapshot.js';
 import { parseInvocation, type PlaywrightInvocation } from './invocation.js';
 import { formatPlaywrightHelp } from './help.js';
+import { registerPlaywrightAbilities, type PlaywrightAbilities, type PlaywrightAbilityRequest } from './abilities.js';
+import { executePlaywrightAbility } from './ability-execution.js';
 
 export interface PlaywrightControllerOptions {
   readonly adapter?: PlaywrightAdapter;
-  readonly limits?: { readonly maxSessions?: number; readonly actionTimeoutMs?: number; readonly maxSnapshotBytes?: number; readonly maxSnapshotRefs?: number; readonly maxArtifactBytes?: number; readonly maxTabs?: number };
+  readonly abilities?: PlaywrightAbilities;
+  readonly limits?: { readonly maxSessions?: number; readonly actionTimeoutMs?: number; readonly maxSnapshotBytes?: number; readonly maxSnapshotRefs?: number; readonly maxArtifactBytes?: number; readonly maxTabs?: number; readonly maxCommandBytes?: number };
   /** Billing declarations are separate; reporting/charging is not implemented. */
   readonly billing?: never;
 }
@@ -18,6 +21,7 @@ interface Session {
   page?: PlaywrightPage;
   pages?: PlaywrightPage[];
   readonly snapshot: ReturnType<typeof createSnapshotEngine>;
+  readonly cleanups: Set<() => Promise<void>>;
   detachPage?: () => void;
   unsubscribe?: () => void;
   releasing?: Promise<void>;
@@ -26,8 +30,8 @@ interface Session {
 export function createPlaywrightController(options: PlaywrightControllerOptions = {}) {
   if (!options || typeof options !== 'object') throw new TypeError('Invalid Playwright configuration');
   if (options.adapter !== undefined && (!options.adapter || typeof options.adapter.acquire !== 'function')) throw new TypeError('An injected Playwright adapter is required');
-  if (Object.keys(options).some(key => !['adapter', 'limits', 'billing'].includes(key))) throw new TypeError('Unsupported Playwright configuration');
-  if (options.limits !== undefined && (!options.limits || typeof options.limits !== 'object' || Object.keys(options.limits).some(key => !['maxSessions', 'actionTimeoutMs', 'maxSnapshotBytes', 'maxSnapshotRefs', 'maxArtifactBytes', 'maxTabs'].includes(key)))) throw new TypeError('Unsupported Playwright limits');
+  if (Object.keys(options).some(key => !['adapter', 'abilities', 'limits', 'billing'].includes(key))) throw new TypeError('Unsupported Playwright configuration');
+  if (options.limits !== undefined && (!options.limits || typeof options.limits !== 'object' || Object.keys(options.limits).some(key => !['maxSessions', 'actionTimeoutMs', 'maxSnapshotBytes', 'maxSnapshotRefs', 'maxArtifactBytes', 'maxTabs', 'maxCommandBytes'].includes(key)))) throw new TypeError('Unsupported Playwright limits');
   if (options.billing !== undefined) throw new Error('Live billing is not implemented');
   const maxSessions = options.limits?.maxSessions ?? 4;
   const actionTimeoutMs = options.limits?.actionTimeoutMs ?? 30_000;
@@ -35,8 +39,10 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   const maxSnapshotRefs = options.limits?.maxSnapshotRefs ?? 1000;
   const maxArtifactBytes = options.limits?.maxArtifactBytes ?? 16 * 1024 * 1024;
   const maxTabs = options.limits?.maxTabs ?? 16;
+  const maxCommandBytes = options.limits?.maxCommandBytes ?? 16 * 1024 * 1024;
+  const abilities = registerPlaywrightAbilities(options.abilities, options.adapter !== undefined);
   let refSequence = 0;
-  for (const value of [maxSessions, actionTimeoutMs, maxSnapshotBytes, maxSnapshotRefs, maxArtifactBytes, maxTabs]) if (!Number.isSafeInteger(value) || value < 1) throw new RangeError('Invalid Playwright limit');
+  for (const value of [maxSessions, actionTimeoutMs, maxSnapshotBytes, maxSnapshotRefs, maxArtifactBytes, maxTabs, maxCommandBytes]) if (!Number.isSafeInteger(value) || value < 1) throw new RangeError('Invalid Playwright limit');
   const sessions = new Map<string, Session>();
   const tails = new Map<string, Promise<void>>();
   const work = new Set<Promise<unknown>>();
@@ -49,7 +55,10 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     session.releasing = Promise.resolve().then(async () => {
       try {
         session.detachPage?.();
-        const results = await Promise.allSettled([session.snapshot.invalidate(), Promise.resolve().then(() => session.lease?.release())]);
+        const callbacks = [...session.cleanups];
+        session.cleanups.clear();
+        const custom = callbacks.map(cleanup => Promise.resolve().then(cleanup));
+        const results = await Promise.allSettled([...custom, session.snapshot.invalidate(), Promise.resolve().then(() => session.lease?.release())]);
         const errors = results.flatMap(result => result.status === 'rejected' ? [result.reason] : []);
         if (errors.length === 1) throw errors[0];
         if (errors.length > 1) throw new AggregateError(errors, 'Playwright session retirement failed');
@@ -86,7 +95,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   };
   const run = async (invocation: PlaywrightInvocation): Promise<void> => {
     if (lifetime.signal.aborted) throw new Error('Playwright controller is disposed');
-    const parsed = parseInvocation(invocation, options.adapter);
+    const parsed = parseInvocation(invocation, abilities, options.adapter);
     invocation.signal.throwIfAborted();
     const local = new AbortController();
     let active: Session | undefined;
@@ -128,16 +137,17 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     const execute = async () => {
       check();
       if (parsed.command === 'help') {
-        await invocation.write(formatPlaywrightHelp(parsed.topic));
+        await invocation.write(formatPlaywrightHelp(parsed.topic, abilities));
         check();
         return;
       }
-      if (parsed.command === 'list') {
+      const ability = abilities.get(parsed.command)!;
+      if (parsed.command === 'list' && !ability.execute) {
         await invocation.write([...sessions.values()].map(s => `${s.name}\t${s.state}\n`).join(''));
         check();
         return;
       }
-      if (parsed.command === 'close-all') {
+      if (parsed.command === 'close-all' && !ability.execute) {
         const results = await Promise.allSettled([...new Set([...sessions.keys(), ...tails.keys()])].map(name => enqueue(name, async () => {
           check();
           const session = sessions.get(name);
@@ -151,6 +161,51 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       await enqueue(parsed.session, async () => {
         try {
           check();
+          if (ability.execute) {
+            let browserSession: PlaywrightAbilityRequest['browserSession'];
+            if (ability.scope === 'session') {
+              const session = sessions.get(parsed.session);
+              if (!session || session.state !== 'open') throw new Error(`Session closed: ${parsed.session}; reopen explicitly`);
+              active = session;
+              checkSession(session);
+              const pages = [...session.lease!.context.pages()];
+              if (!session.pages || pages.length !== session.pages.length || pages.some((page, index) => page !== session.pages![index])) await session.snapshot.invalidate();
+              session.pages = pages;
+              if (session.page && !pages.includes(session.page)) {
+                session.detachPage?.();
+                delete session.page;
+              }
+              checkSession(session);
+              browserSession = Object.freeze({
+                context: session.lease!.context,
+                page: session.page,
+                async resolveTarget(ref: string) { checkSession(session); const target = await session.snapshot.resolve(ref); checkSession(session); return target; },
+                async selectPage(page: PlaywrightPage) {
+                  checkSession(session);
+                  const pages = session.lease!.context.pages();
+                  if (!pages.includes(page)) throw new Error('Page does not belong to this session');
+                  if (pages.length > maxTabs) throw new Error('Playwright tab limit exceeded');
+                  await selectPage(session, page, () => checkSession(session));
+                  session.pages = [...pages];
+                },
+                registerCleanup(cleanup: () => Promise<void>) {
+                  checkSession(session);
+                  if (typeof cleanup !== 'function') throw new TypeError('Invalid Playwright session cleanup');
+                  session.cleanups.add(cleanup);
+                },
+              });
+            }
+            await executePlaywrightAbility(ability, parsed, invocation, { signal: local.signal, maxCommandBytes, maxArtifactBytes, ...(browserSession ? { browserSession } : {}), check: () => active ? checkSession(active) : check() });
+            check();
+            if (active) {
+              await active.snapshot.invalidate();
+              checkSession(active);
+              active.pages = [...active.lease!.context.pages()];
+              if (active.pages.length > maxTabs) throw new Error('Playwright tab limit exceeded');
+            }
+            retained = true;
+            return;
+          }
           if (parsed.command === 'close') {
             const session = sessions.get(parsed.session);
             if (session) await release(session);
@@ -167,7 +222,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             // claim this slot during retirement's asynchronous boundary.
             const occupied = [...sessions.values()].filter(s => s.state !== 'closed').length;
             if (occupied >= maxSessions) throw new Error('Playwright session capacity exceeded');
-            active = { name: parsed.session, generation: ++generation, state: 'acquiring', snapshot: createSnapshotEngine({ maxSnapshotBytes, maxSnapshotRefs }, () => `e${++refSequence}`) };
+            active = { name: parsed.session, generation: ++generation, state: 'acquiring', snapshot: createSnapshotEngine({ maxSnapshotBytes, maxSnapshotRefs }, () => `e${++refSequence}`), cleanups: new Set() };
             sessions.set(parsed.session, active);
             const session = active;
             session.lease = await options.adapter!.acquire({ acquisitionId: `playwright-${session.generation}`, session: session.name, browser: parsed.browser, headless: parsed.headless, signal: local.signal });

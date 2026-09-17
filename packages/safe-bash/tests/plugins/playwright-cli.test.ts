@@ -34,11 +34,14 @@ test('standard help works through the shell with and without a configured adapte
         const result = await shell.exec(`playwright-cli ${args}`);
         assert.equal(result.exitCode, 0, result.stderr);
         assert.equal(result.stderr, '');
-        for (const expected of ['Usage:', 'open [url]', 'goto <url>', 'snapshot [target]', 'click <target> [button]', 'fill <target> <text>', 'press <key>', 'screenshot [target]', 'tab-list', 'tab-new', 'tab-select', 'tab-close', 'close-all', '--session', '-s', 'PLAYWRIGHT_CLI_SESSION', 'default', '--filename', '--full-page', 'Unsupported']) assert.ok(result.stdout.includes(expected), expected);
+        for (const expected of ['Usage:', 'close-all', '--session', '-s', 'PLAYWRIGHT_CLI_SESSION', 'default']) assert.ok(result.stdout.includes(expected), expected);
+        for (const expected of ['open [url]', 'goto <url>', 'snapshot [target]', 'click <target> [button]', 'fill <target> <text>', 'press <key>', 'screenshot [target]', 'tab-list', 'tab-new', 'tab-select', 'tab-close', '--filename', '--full-page']) assert.equal(result.stdout.includes(expected), 'adapter' in options, expected);
+        assert.ok(!result.stdout.includes('  cookie-list'));
+        assert.ok(!result.stdout.includes('Network:'));
       }
       const unsupported = await shell.exec('playwright-cli run-code --help');
-      assert.equal(unsupported.exitCode, 1);
-      assert.equal(unsupported.stdout, '');
+      assert.equal(unsupported.exitCode, 0);
+      assert.ok(unsupported.stdout.includes('Not enabled by this client'));
       for (const args of ['click e1 right', 'snapshot e1', 'screenshot e1', 'cookie-list', 'requests', 'webmcp-list', '--json list', '--raw list', '--version']) {
         const result = await shell.exec(`playwright-cli ${args}`);
         assert.equal(result.exitCode, 1, args);
@@ -58,8 +61,9 @@ test('command help accepts standard prefix and suffix forms without arguments or
       const result = await shell.exec(`playwright-cli ${args}`);
       assert.equal(result.exitCode, 0, result.stderr);
       assert.ok(result.stdout.includes('Usage: playwright-cli screenshot'));
-      assert.ok(result.stdout.includes('--filename'));
-      assert.ok(result.stdout.includes('--full-page'));
+      assert.ok(result.stdout.includes('Not enabled by this client'));
+      assert.ok(!result.stdout.includes('--filename'));
+      assert.ok(!result.stdout.includes('--full-page'));
     }
     for (const args of ['open --help', 'goto --help', 'list --help', 'close --help', 'close-all --help', 'snapshot --help', 'click --help', 'fill --help', 'press --help', 'tab-list --help', 'tab-new --help', 'tab-select --help', 'tab-close --help', 'tab new --help', 'help tab', '--session research --help']) {
       const result = await shell.exec(`playwright-cli ${args}`);
@@ -68,7 +72,7 @@ test('command help accepts standard prefix and suffix forms without arguments or
     }
     const open = await shell.exec('playwright-cli open');
     assert.equal(open.exitCode, 1);
-    assert.match(open.stderr, /adapter.*required/i);
+    assert.match(open.stderr, /not enabled/i);
   } finally { await shell.dispose(); }
 });
 

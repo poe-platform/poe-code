@@ -1,19 +1,22 @@
 import type { BrowserEngine, PlaywrightAdapter } from './adapter.js';
-import { playwrightCommands, type PlaywrightCommand } from './help.js';
+import { playwrightCommandCatalog, type PlaywrightCommand } from './catalog.js';
+import type { RegisteredPlaywrightAbility } from './abilities.js';
 
 export interface PlaywrightInvocation {
   readonly args: readonly string[];
-  /** Only exported shell variables. Never read the host environment. */
   readonly env: Readonly<Record<string, string>>;
   readonly signal: AbortSignal;
   write(text: string): Promise<void>;
-  /** Byte destination: optional guest filename, resolved by the injected VFS. */
+  readonly readArtifact?: ((filename: string, maxBytes: number) => Promise<Uint8Array>) | undefined;
   readonly writeArtifact?: ((bytes: Uint8Array, filename?: string) => Promise<void>) | undefined;
   readonly registerCleanup?: ((cleanup: () => Promise<void>) => void) | undefined;
 }
+
 export type ParsedInvocation = {
   command: PlaywrightCommand;
   session: string;
+  args: readonly string[];
+  options: Readonly<Record<string, string | boolean | readonly string[]>>;
   browser: BrowserEngine;
   headless: boolean;
   url?: string;
@@ -25,81 +28,112 @@ export type ParsedInvocation = {
   imageType: 'png' | 'jpeg';
 };
 
-export function parseInvocation(invocation: PlaywrightInvocation, adapter?: PlaywrightAdapter): ParsedInvocation | { command: 'help'; topic?: PlaywrightCommand | 'tab' } {
-  let session: string | undefined;
-  let browser: string = 'chromium';
-  let headless = true;
-  let filename: string | undefined;
-  let fullPage = false;
-  let browserOption = false;
-  let modeOption = false;
-  let help = false;
+export function parseInvocation(invocation: PlaywrightInvocation, abilities: ReadonlyMap<PlaywrightCommand, RegisteredPlaywrightAbility>, adapter?: PlaywrightAdapter): ParsedInvocation | { command: 'help'; topic?: PlaywrightCommand | 'tab' } {
   const positional: string[] = [];
-  const seen = new Set<string>();
+  const supplied = new Map<string, (string | boolean)[]>();
+  const knownOptions = new Map(Object.values(playwrightCommandCatalog).flatMap(command => Object.entries(command.options)));
+  knownOptions.set('headless', { type: 'boolean', description: '' });
+  knownOptions.set('session', { type: 'string', description: '' });
+  let help = false;
   let literal = false;
-  for (let i = 0; i < invocation.args.length; i++) {
-    const arg = invocation.args[i]!;
+  for (let index = 0; index < invocation.args.length; index++) {
+    const arg = invocation.args[index]!;
+    if (typeof arg !== 'string' || arg.includes('\0')) throw new Error('Invalid Playwright argument');
     if (arg === '--' && !literal) { literal = true; continue; }
-    if (literal || !arg.startsWith('-')) { positional.push(arg); continue; }
+    const numeric = arg.startsWith('-') && arg.length > 1 && '0123456789.'.includes(arg[1]!) && Number.isFinite(Number(arg));
+    if (literal || !arg.startsWith('-') || numeric) { positional.push(arg); continue; }
     const separator = arg.indexOf('=');
     const flag = separator === -1 ? arg : arg.slice(0, separator);
-    const key = flag === '-s' ? '--session' : flag;
-    if (seen.has(key)) throw new Error(`Repeated option: ${flag}`);
-    seen.add(key);
-    if (key === '--session' || key === '--browser' || key === '--filename') {
-      const value = separator === -1 ? invocation.args[++i] : arg.slice(separator + 1);
-      if (!value || value.startsWith('-') || value.includes('\0')) throw new Error(`Missing or invalid value: ${flag}`);
-      if (key === '--session') session = value;
-      else if (key === '--filename') filename = value;
-      else { browser = value; browserOption = true; }
-    } else if ((key === '--help' || key === '-h') && separator === -1) help = true;
-    else if (key === '--headed' || key === '--headless') {
-      if (separator !== -1 || modeOption) throw new Error(`Invalid option: ${arg}`);
-      headless = key === '--headless'; modeOption = true;
-    } else if (key === '--full-page' && separator === -1) fullPage = true;
-    else throw new Error(`Unsupported option: ${arg}`);
+    const key = flag === '-s' ? 'session' : flag === '-g' ? 'global' : flag.slice(2);
+    if ((flag === '-h' || flag === '--help') && separator === -1) { help = true; continue; }
+    const definition = knownOptions.get(key);
+    if (!definition || flag !== '-s' && flag !== '-g' && !flag.startsWith('--')) throw new Error(`Unsupported option: ${arg}`);
+    let value: string | boolean;
+    if (definition.type === 'boolean') {
+      if (separator !== -1) throw new Error(`Invalid option: ${arg}`);
+      value = true;
+    } else if (definition.optionalValue && separator === -1 && (invocation.args[index + 1] === undefined || invocation.args[index + 1]!.startsWith('-'))) {
+      value = true;
+    } else {
+      const candidate = separator === -1 ? invocation.args[++index] : arg.slice(separator + 1);
+      if (candidate === undefined || candidate.includes('\0') || separator === -1 && candidate.startsWith('-') && !Number.isFinite(Number(candidate))) throw new Error(`Missing or invalid value: ${flag}`);
+      value = candidate;
+    }
+    const values = supplied.get(key) ?? [];
+    values.push(value);
+    supplied.set(key, values);
   }
   if (positional[0] === 'help') { help = true; positional.shift(); }
+  if (!positional.length && !supplied.size) help = true;
   if (help && (positional.length === 0 || positional.length === 1 && positional[0] === 'tab')) return { command: 'help', ...(positional[0] === 'tab' ? { topic: 'tab' } : {}) };
-  // Accept both agent-oriented CLI tab-* spellings and tab <operation>.
   if (positional[0] === 'tab') positional.splice(0, 2, `tab-${positional[1] ?? ''}`);
-  const command = positional[0] as ParsedInvocation['command'];
-  if (!Object.hasOwn(playwrightCommands, command)) throw new Error(`Unsupported command in qualified subset: ${command ?? ''}`);
+  const command = positional.shift() as PlaywrightCommand;
+  if (!Object.hasOwn(playwrightCommandCatalog, command)) throw new Error(`Unsupported command: ${command ?? ''}`);
   if (help) return { command: 'help', topic: command };
-  session ??= invocation.env.PLAYWRIGHT_CLI_SESSION ?? 'default';
+  const ability = abilities.get(command);
+  if (!ability) throw new Error(`Playwright ability not enabled: ${command}`);
+  const sessionValues = supplied.get('session');
+  if (sessionValues && sessionValues.length !== 1) throw new Error('Repeated option: --session');
+  const session = (sessionValues?.[0] as string | undefined) ?? invocation.env.PLAYWRIGHT_CLI_SESSION ?? 'default';
   if (!session || session.length > 128 || [...session].some(char => !'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-'.includes(char))) throw new Error('Invalid session name');
-  const [min, max] = playwrightCommands[command].arity;
+  supplied.delete('session');
+  const options: Record<string, string | boolean | readonly string[]> = {};
+  for (const [flag, values] of supplied) {
+    const definition = ability.options[flag];
+    if (!definition) throw new Error(`Unsupported option: --${flag}`);
+    if (values.length > 1 && !definition.repeatable) throw new Error(`Repeated option: --${flag}`);
+    options[flag] = definition.repeatable ? Object.freeze(values as string[]) : values[0]!;
+  }
+  const [min, max] = ability.arity;
   if (positional.length < min || positional.length > max) throw new Error(`Invalid arguments for ${command}`);
-  if (command !== 'open' && (browserOption || modeOption)) throw new Error('Browser options require open');
-  if (filename !== undefined && command !== 'snapshot' && command !== 'screenshot') throw new Error('Filename requires snapshot or screenshot');
-  if (fullPage && command !== 'screenshot') throw new Error('Full page requires screenshot');
-  if (command === 'screenshot' || filename !== undefined) {
+  const parsed: ParsedInvocation = { command, session, args: Object.freeze(positional), options: Object.freeze(options), browser: 'chromium', headless: true, fullPage: false, imageType: 'png' };
+  if (ability.execute) return parsed;
+  const browser = options.browser ?? 'chromium';
+  if (browser !== 'chromium' && browser !== 'firefox' && browser !== 'webkit') throw new Error(`Unsupported browser: ${browser}`);
+  parsed.browser = browser;
+  if (options.headed && options.headless) throw new Error('Invalid option: --headless');
+  parsed.headless = !options.headed;
+  parsed.fullPage = options['full-page'] === true;
+  if (options.filename !== undefined) {
+    const filename = options.filename as string;
+    if (!filename) throw new Error('Missing or invalid value: --filename');
+    parsed.filename = filename;
+  }
+  if (command === 'screenshot' || parsed.filename !== undefined) {
     if (typeof invocation.writeArtifact !== 'function') throw new Error('Artifact byte destination unsupported');
   }
-  if (browser !== 'chromium' && browser !== 'firefox' && browser !== 'webkit') throw new Error(`Unsupported browser: ${browser}`);
   if (command === 'open') {
     if (!adapter) throw new Error('An injected Playwright adapter is required');
     const capability = adapter.browsers[browser];
     if (!capability) throw new Error(`Unsupported browser: ${browser}`);
-    if (!headless && !capability.headed) throw new Error(`Headed mode is unsupported for ${browser}`);
+    if (!parsed.headless && !capability.headed) throw new Error(`Headed mode is unsupported for ${browser}`);
   }
-  let imageType: 'png' | 'jpeg' = 'png';
-  if (command === 'screenshot' && filename !== undefined) {
-    const lower = filename.toLowerCase();
-    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) imageType = 'jpeg';
+  if (command === 'screenshot' && parsed.filename !== undefined) {
+    const lower = parsed.filename.toLowerCase();
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) parsed.imageType = 'jpeg';
     else if (!lower.endsWith('.png')) throw new Error('Unsupported screenshot extension; use png or jpeg');
   }
-  const url = command === 'open' || command === 'goto' || command === 'tab-new' ? positional[1] : undefined;
+  const url = command === 'open' || command === 'goto' || command === 'tab-new' ? positional[0] : undefined;
   if (url !== undefined) {
-    const parsed = new URL(url);
-    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:' && url !== 'about:blank') throw new Error('Unsupported navigation URL');
+    const parsedUrl = new URL(url);
+    if (parsedUrl.protocol !== 'https:' && parsedUrl.protocol !== 'http:' && url !== 'about:blank') throw new Error('Unsupported navigation URL');
+    parsed.url = url;
   }
-  const ref = command === 'click' || command === 'fill' ? positional[1] : undefined;
-  if (ref !== undefined && (ref[0] !== 'e' || ref.length < 2 || [...ref.slice(1)].some(char => !'0123456789'.includes(char)))) throw new Error('Action requires a snapshot ref');
-  const value = command === 'fill' ? positional[2] : command === 'press' ? positional[1] : undefined;
-  if (command === 'press' && !value) throw new Error('Missing press key');
-  const tabValue = command === 'tab-select' || command === 'tab-close' ? positional[1] : undefined;
-  const tab = tabValue === undefined ? undefined : Number(tabValue);
-  if (tabValue !== undefined && (!tabValue || [...tabValue].some(char => !'0123456789'.includes(char)) || !Number.isSafeInteger(tab))) throw new Error('Invalid tab index');
-  return { command, session, browser, headless, fullPage, imageType, ...(url === undefined ? {} : { url }), ...(ref === undefined ? {} : { ref }), ...(value === undefined ? {} : { value }), ...(tab === undefined ? {} : { tab }), ...(filename === undefined ? {} : { filename }) };
+  if (command === 'click' || command === 'fill') {
+    const ref = positional[0]!;
+    if (ref[0] !== 'e' || ref.length < 2 || [...ref.slice(1)].some(char => !'0123456789'.includes(char))) throw new Error('Action requires a snapshot ref');
+    parsed.ref = ref;
+  }
+  if (command === 'fill') parsed.value = positional[1]!;
+  if (command === 'press') {
+    if (!positional[0]) throw new Error('Missing press key');
+    parsed.value = positional[0];
+  }
+  const tabValue = command === 'tab-select' || command === 'tab-close' ? positional[0] : undefined;
+  if (tabValue !== undefined) {
+    const tab = Number(tabValue);
+    if (!tabValue || [...tabValue].some(char => !'0123456789'.includes(char)) || !Number.isSafeInteger(tab)) throw new Error('Invalid tab index');
+    parsed.tab = tab;
+  }
+  return parsed;
 }

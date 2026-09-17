@@ -15,7 +15,7 @@ export function createPlaywrightCli(options: PlaywrightCliOptions = {}): { reado
     setup(host) {
       host.commands.register({
         name: 'playwright-cli',
-        description: 'Qualified injected subset: sessions, DOM snapshot refs, click/fill/press, screenshots, tabs',
+        description: 'Playwright commands selected and implemented by injected client abilities',
         async execute(context) {
           try {
             await controller.run({
@@ -23,6 +23,13 @@ export function createPlaywrightCli(options: PlaywrightCliOptions = {}): { reado
               env: context.env,
               signal: context.signal,
               registerCleanup: context.registerCleanup,
+              readArtifact: async (filename, maxBytes) => {
+                context.signal.throwIfAborted();
+                const path = resolvePath(context.cwd, filename);
+                const bytes = await context.fs.readFile(path, { signal: context.signal, maxBytes });
+                if (bytes.byteLength > maxBytes) throw new Error('Artifact byte limit exceeded');
+                return bytes;
+              },
               writeArtifact: async (bytes, filename) => {
                 context.signal.throwIfAborted();
                 if (filename === undefined) await writeBytes(context.stdout, bytes, context.signal);

@@ -2406,6 +2406,8 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/plugins/zip-commands.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-adapter.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-cli.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-abilities.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-ability-execution.test.ts"));
   assert.ok(files.includes("tests/plugins/zip-safety.test.ts"));
   assert.ok(files.includes("tests/plugins/csplit-commands.test.ts"));
   assert.ok(files.includes("tests/shell/owned-output-drain.test.ts"));

@@ -8,7 +8,8 @@ import type { Browser as CloudflareBrowser, BrowserContext as CloudflareContext,
 import { createPlaywrightAdapter } from "@poe-platform/safe-bash/playwright";
 import type { PlaywrightBrowser, PlaywrightContext, PlaywrightPage, PlaywrightLocator, PlaywrightBrowserSource, PlaywrightFrame, PlaywrightElementHandle } from "@poe-platform/safe-bash/playwright";
 import { createPlaywrightController } from "@poe-platform/safe-bash/playwright";
-import type { PlaywrightBillingHooks } from "@poe-platform/safe-bash/playwright";
+import type { PlaywrightBillingHooks, PlaywrightAbilities } from "@poe-platform/safe-bash/playwright";
+import { playwrightCommandCatalog } from "@poe-platform/safe-bash/playwright";
 import { createPlaywrightCli } from "poe-code/safe-bash/commands/playwright";
 
 declare const regularBrowser: RegularBrowser;
@@ -66,6 +67,29 @@ const options = { adapter, limits: { maxSessions: 2, maxTabs: 3, actionTimeoutMs
 const controller = createPlaywrightController(options);
 const cli = createPlaywrightCli({ ...options, replace: false });
 void [controller.run, controller.dispose, cli.plugin, cli.dispose];
+const abilities = {
+  open: true,
+  close: true,
+  "state-save": {
+    scope: "session",
+    async execute(request) {
+      const state = await regularContext.storageState();
+      await request.writeArtifact(new TextEncoder().encode(JSON.stringify(state)), request.args[0]);
+      request.browserSession!.registerCleanup(async () => {});
+    },
+  },
+  "webmcp-call": {
+    options: ["params", "frame"],
+    async execute(request) {
+      const bytes = await request.readFile("input.json");
+      request.signal.throwIfAborted();
+      await request.write(new TextDecoder().decode(bytes));
+    },
+  },
+} satisfies PlaywrightAbilities;
+const clientController = createPlaywrightController({ ...options, abilities, limits: { maxCommandBytes: 1024 } });
+const clientCli = createPlaywrightCli({ ...options, abilities });
+void [clientController, clientCli, playwrightCommandCatalog["cookie-set"].options];
 declare const billing: PlaywrightBillingHooks;
 // @ts-expect-error SDK reporting declarations do not enable a billing runtime.
 createPlaywrightController({ ...options, billing });

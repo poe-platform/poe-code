@@ -1,5 +1,13 @@
 # Python through Pyodide
 
+Standalone publication status, September 17, 2026: `@poe-platform/safe-bash`
+exports the Python plugin, worker runner and Node endpoint. Version `0.1.652`
+contains a stale CLI-package runner reference (#745); the package-relative fix
+in `9557d2469` passes real standalone and retained CLI tarball tests. Check the
+[delivery record](../../../docs/plans/python-standalone-runtime-issues.md) for
+publication evidence before installing a fixed version. These are trusted-Node
+passes, not Cloudflare or untrusted-code qualification.
+
 Status: **optional implementation available; complete qualification remains open**.
 Fresh [main-module and stream user QA](../../../docs/plans/pyodide-main-loader-qa.md)
 records 141 passing built-public integration entries and three required failing
@@ -39,33 +47,36 @@ Pyodide's own interpreter/standard-library assets are distinct from user files.
 
 The supported deployment is **Node.js 22 or newer**, with the explicitly supplied
 **Pyodide 314.0.6 / CPython 3.14.2 / wasm32 ABI 2026_0** runtime. The recorded
-runtime checks use Node **22.23.2**. Other Node versions are prerequisites allowed
-by the package, not independently tested profiles. This workspace's safe-bash
-package is private; the examples use built `poe-code` public exports, not a
-separately installable `safe-bash` package. They do not assert npm publication.
+runtime checks use Node **22.23.2**; the September 17 fresh packed-consumer checks
+also qualify Node **22.22.0**. Other Node versions are prerequisites allowed by
+the package, not independently tested profiles. The workspace manifest remains
+private, but the release packager publishes **`@poe-platform/safe-bash`** and
+**`@poe-platform/safe-fs`** as standalone packages. Consumers do not need the
+`poe-code` CLI package. The CLI's retained re-exports are tested separately.
 
-For a checkout, build the public exports and install the isolated pinned runtime:
+After confirming a release containing the #745 fix, install in a fresh directory:
 
 ```sh
-npm run build
-npm ci --prefix packages/safe-bash/tests/integration/pyodide-runtime --ignore-scripts
+npm install --ignore-scripts @poe-platform/safe-bash @poe-platform/safe-fs pyodide@314.0.6
 ```
 
 Supply an absolute file URL for `pyodide.mjs` and retain its adjacent `.wasm`,
 standard-library ZIP, lock/index and package assets. The isolated install places
-the module at `packages/safe-bash/tests/integration/pyodide-runtime/node_modules/pyodide/pyodide.mjs`.
+the module at `node_modules/pyodide/pyodide.mjs` in that fresh consumer directory.
 Setting `indexURL` explicitly selects the runtime asset directory; otherwise it
 defaults to the module's directory. Runtime loading is trusted host work and is
 separate from installer download authorization. Neither command registration nor
 a non-Python shell command initializes Python. Arbitrary guest code is not an
 admitted security profile: the Node endpoint requires `trustedPython: true`.
 
-Save this as `python-example.mjs` at the checkout root. Application paths here
+Save this as `python-example.mjs` in the installation directory. Application paths here
 are canonical memory paths, and the Python script uses ordinary `pathlib`:
 
 ```js
-import { runBash } from 'poe-code';
-import { MemoryFileSystem } from 'poe-code/safe-bash';
+import { Shell, agentCommands } from '@poe-platform/safe-bash';
+import { pythonCommands } from '@poe-platform/safe-bash/commands/python';
+import { createNodePythonWorker } from '@poe-platform/safe-bash/commands/python/node';
+import { MemoryFileSystem } from '@poe-platform/safe-fs/core';
 
 const fs = new MemoryFileSystem();
 await fs.mkdir('/work', { recursive: true });
@@ -74,39 +85,7 @@ await fs.writeFile('/work/report.py', new TextEncoder().encode(
   + 'Path("report.txt").write_text("hello from Python\\n", encoding="utf-8")\n'
   + 'print(Path("report.txt").read_text(encoding="utf-8"), end="")\n'
 ));
-const result = await runBash({
-  fs, cwd: '/work', source: 'python report.py',
-  python: {
-    trustedPython: true,
-    runtimeModuleURL: new URL(
-      './packages/safe-bash/tests/integration/pyodide-runtime/node_modules/pyodide/pyodide.mjs',
-      import.meta.url,
-    ).href,
-  },
-});
-process.stdout.write(result.stdout);
-process.stderr.write(result.stderr);
-process.exitCode = result.exitCode;
-```
-
-Run it with `node python-example.mjs`. Expected output is `hello from Python`.
-The async host API services filesystem requests on its event loop; Python does
-not call an async shell wrapper. To use host files, replace `fs` with
-`root: '/absolute/project'`; that directory becomes canonical `/`. Do not pass
-host absolute paths as Python filenames expecting implicit host access.
-
-For repeated commands with one package environment, construct `Shell` explicitly:
-
-```js
-import { Shell, agentCommands } from 'poe-code/safe-bash';
-import { pythonCommands } from 'poe-code/safe-bash/commands/python';
-import { createNodePythonWorker } from 'poe-code/safe-bash/commands/python/node';
-
-// Reuse the fs seeded above; resolve the explicitly selected runtime module.
-const runtimeModuleURL = new URL(
-  './packages/safe-bash/tests/integration/pyodide-runtime/node_modules/pyodide/pyodide.mjs',
-  import.meta.url,
-).href;
+const runtimeModuleURL = import.meta.resolve('pyodide/pyodide.mjs');
 const shell = new Shell({ fs, cwd: '/work' }).use(agentCommands()).use(
   pythonCommands({
     createWorker: () => createNodePythonWorker({ trustedPython: true, runtimeModuleURL }),
@@ -114,13 +93,32 @@ const shell = new Shell({ fs, cwd: '/work' }).use(agentCommands()).use(
 );
 try {
   const result = await shell.exec('python report.py');
-  console.log(result.stdout);
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exitCode = result.exitCode;
 } finally {
   await shell.dispose();
 }
 ```
 
-Inside either configured shell, these are the ordinary command forms:
+Run it with `node python-example.mjs`. Expected output is `hello from Python`.
+The async host API services filesystem requests on its event loop; Python does
+not call an async shell wrapper. This example exposes only the memory filesystem;
+host files require an explicitly rooted filesystem adapter. Do not pass host
+absolute paths as Python filenames expecting implicit host access.
+
+For repeated commands, reuse that shell before disposal. Its plugin-owned package
+environment can cache package assets, but every Python invocation still starts a
+fresh interpreter. Independent plugins do not share admission or cache-writer
+coordination automatically; see #751 and [package environments](python-packages.md).
+
+The maintained [packed-package test](../tests/integration/pyodide-runtime/public-package.test.mjs)
+resolves APIs from a fresh installation, asserts that standalone consumers cannot
+resolve `poe-code`, and checks real inline Python, binary files, pipelines and
+awaited worker termination. Its setup and environment options are recorded in
+the [delivery plan](../../../docs/plans/python-standalone-runtime-issues.md).
+
+Inside the configured shell, these are the ordinary command forms:
 
 ```sh
 python report.py
@@ -139,7 +137,9 @@ local module, save `report.py` in the canonical cwd and run `python -m report`.
 File, `-c` and `-m` forms leave stdin for the program; `python -` and no-argument
 Python consume it as source. A heredoc supplying source therefore cannot also
 supply independent program input on that same stream. Quoted heredoc delimiters
-prevent shell expansion of the Python body. CLI source is passed with `-c`:
+prevent shell expansion of the Python body. The optional CLI example below
+requires a separately installed `poe-code` package or a built CLI checkout;
+the standalone libraries do not install that launcher. CLI source uses `-c`:
 
 ```sh
 node dist/bin.cjs bash --root /absolute/project --cwd / \
@@ -304,6 +304,12 @@ normally COOP `same-origin` and COEP `require-corp`, plus compatible CSP,
 CORS/COEP and worker/runtime assets. Historical browser fixtures qualify their
 specific setup; they are not a ready-made public browser adapter. Browser main
 threads and workerd are not qualified deployments for this shared-memory route.
+The September 17 #746 workerd probe reports available SAB/Atomics/JSPI primitives,
+but unavailable `node:worker_threads` and rejected `Atomics.wait`. Passing a small
+JSPI Wasm probe does not qualify Pyodide's native I/O/import/C-extension boundaries.
+A same-isolate JSPI executor remains unimplemented; a separate Cloudflare service
+is not the same thing as a dedicated interpreter thread. See the
+[current Cloudflare boundary](../../../docs/integrations/cloudflare-safe-bash-python.md).
 For an injected host, implement the `PythonWorkerEndpoint` message/error/
 termination protocol and call `runPythonWorker` with the supplied startup
 configuration on the worker side; the [worker protocol](../src/contracts/python.md)

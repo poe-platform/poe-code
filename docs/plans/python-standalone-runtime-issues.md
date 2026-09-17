@@ -50,3 +50,22 @@ original published-package missing-runner failure remains separately preserved.
 This fixes packaging only. Cloudflare execution, untrusted-code confinement,
 quota-backed descriptors, retained directory operations, shared package caches,
 diagnostics and documentation requests #746–#753 remain separately tracked.
+
+## #753: current standalone embedding documentation
+
+Validated the stale claims directly: the Cloudflare guide described the Python
+API as absent and the Pyodide setup denied standalone publication, despite the
+published exports and #745 packed-consumer results. The current sections now
+document the public standalone imports, opt-in trusted Node profile, exact runtime
+pin, dedicated-thread versus same-isolate JSPI boundaries, and unresolved
+filesystem/cache/resource/deployment requirements. The original absence review
+and experimental evidence remain explicitly historical.
+
+Extracted the exact new `python-example.mjs` fenced example from the Pyodide guide
+and executed it in the fixed standalone tarball installation with Pyodide
+314.0.6: exit zero, `hello from Python`, canonical memory-file write/read and
+awaited shell disposal. No `poe-code` dependency is present in that consumer.
+The guide deliberately warns that `0.1.652` has #745 and that source/candidate
+verification is not registry publication. The release workflow on `9557d2469`
+failed at the separate Pandoc bundle publication gate, so a fixed registry
+version is not yet claimed. Installed-registry revalidation remains pending.

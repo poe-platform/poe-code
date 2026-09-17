@@ -8,7 +8,7 @@ import { createSandboxRelativeTimeFormat, relativeTimeFormatState } from "../int
 import { createSandboxDisplayNames, displayNamesState } from "../interp/intl-displaynames.js";
 import { createSandboxPluralRules, pluralRulesState, type ResolvedPluralRulesOptions } from "../interp/intl-pluralrules.js";
 import { resolveDurationLocale } from "../interp/intl-duration-locale.js";
-import { createSandboxSegmenter, createSandboxSegments, segmenterState, segmentState } from "../interp/intl-segmenter.js";
+import { createSandboxSegmenter, createSandboxSegments, findContainingSegment, segmenterState, segmentState } from "../interp/intl-segmenter.js";
 import { createSandboxNumberFormat, numberFormatState, type NumberFormatOptions } from "../interp/intl-numberformat.js";
 import { createSandboxDateTimeFormat, dateTimeFormatState, type DateTimeFormatOptions } from "../interp/intl-datetimeformat.js";
 import { createBuiltinBindings } from "../interp/globals.js";
@@ -551,7 +551,7 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
       const options = record(segmenter.options);
       const owner = createSandboxSegmenter(options.locale as string, options as Intl.SegmenterOptions);
       const value = createSandboxSegments({ segmenter: owner, input: node.input });
-      if ((node.index as number) < node.input.length && segmentState(value).native.containing(node.index as number)?.index !== node.index)
+      if ((node.index as number) < node.input.length && findContainingSegment(segmentState(value).native, node.input.length, node.index as number)?.index !== node.index)
         throw new TypeError("Invalid segment iterator boundary.");
     }
     state(node.state);

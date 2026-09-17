@@ -22,7 +22,8 @@ export function renderOutputPane(
   buffer: ScreenBuffer,
   rect: Rect,
   items: OutputItem[],
-  scrollOffset = 0
+  scrollOffset = 0,
+  options: { conversation?: boolean; details?: boolean } = {}
 ): number {
   buffer.clearRect(rect);
 
@@ -31,7 +32,32 @@ export function renderOutputPane(
   }
 
   const { rows: visualLines, offset: actualOffset } = selectViewportTail(
-    items, rect.height, scrollOffset, item => computeVisualLines([item], rect.width)
+    items, rect.height, scrollOffset, item => {
+      if (options.conversation && item.role === "reasoning" && !options.details) return [];
+      const text = options.details && item.detail ? `${item.text}\n${item.detail}` : item.text;
+      const lines = computeVisualLines([text === item.text ? item : { ...item, text }], rect.width);
+      if (!options.conversation) return lines;
+      const prose = item.role === "agent" || item.role === "user";
+      if (prose) {
+        while (lines.length > 0 && lines.at(-1)!.text.trim().length === 0) lines.pop();
+        while (lines.length > 0 && lines[0]!.text.trim().length === 0) lines.shift();
+      }
+      const style = item.kind === "error" ? getTheme().styles.error
+        : prose ? {} : getTheme().styles.muted;
+      const prefix = item.role === "user" ? "›" : item.role === "agent" ? "•"
+        : item.kind === "tool" ? "›" : item.kind === "success" ? "✓"
+          : item.kind === "error" ? "!" : "·";
+      for (let index = 0; index < lines.length; index++) {
+        const line = lines[index]!;
+        line.prefix = index === 0 ? prefix : "";
+        line.prefixStyle = style;
+        if (prose) line.style = style;
+      }
+      if (prose && lines.length > 0) {
+        lines.push({ text: "", prefix: "", style: {}, prefixStyle: {} });
+      }
+      return lines;
+    }
   );
   const textRect: Rect = {
     x: rect.x + TEXT_OFFSET,
@@ -240,11 +266,13 @@ function wrapParagraph(value: string, width: number): string[] {
   const tokens = tokenize(value);
   const lines: string[] = [];
   let currentLine = "";
+  let currentWidth = 0;
   let pendingSpace = "";
 
   const flushLine = (): void => {
     lines.push(currentLine);
     currentLine = "";
+    currentWidth = 0;
     pendingSpace = "";
   };
 
@@ -261,16 +289,19 @@ function wrapParagraph(value: string, width: number): string[] {
     for (let index = 0; index < chunks.length; index += 1) {
       const chunk = chunks[index] ?? "";
       const gap = index === 0 ? pendingSpace : "";
+      const chunkWidth = displayWidth(chunk);
 
-      if (currentLine.length > 0 && displayWidth(`${currentLine}${gap}${chunk}`) > width) {
+      if (currentLine.length > 0 && currentWidth + gap.length + chunkWidth > width) {
         flushLine();
       }
 
       if (currentLine.length > 0 && gap.length > 0) {
         currentLine += gap;
+        currentWidth += gap.length;
       }
 
       currentLine += chunk;
+      currentWidth += chunkWidth;
       pendingSpace = "";
 
       if (index < chunks.length - 1) {

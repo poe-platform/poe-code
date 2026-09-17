@@ -6,6 +6,38 @@ export type OutputItem = {
   kind: OutputItemKind;
   text: string;
   ts: number;
+  role?: "agent" | "reasoning" | "action" | "user";
+  detail?: string;
+};
+
+export type DashboardWorkStatus = "pending" | "running" | "completed" | "failed" | "cancelled" | "paused";
+
+export type DashboardQueueItem = Readonly<{
+  id: string;
+  status: DashboardWorkStatus;
+} & (
+  | { kind: "plan"; path: string }
+  | { kind: "message"; text: string; afterPlanId: string }
+)>;
+
+export type DashboardTask = {
+  id: string;
+  title: string;
+  status: DashboardWorkStatus;
+  steps?: Array<{ name: string; status: DashboardWorkStatus }>;
+};
+
+export type DashboardRunState = {
+  agent?: string;
+  model?: string;
+  cwd?: string;
+  phase?: string;
+  activity?: string;
+  activePlanId?: string;
+  activeTaskId?: string;
+  activeStep?: string;
+  queue?: readonly DashboardQueueItem[];
+  tasks?: readonly DashboardTask[];
 };
 
 export type DashboardStats = {
@@ -19,6 +51,8 @@ export type DashboardStats = {
   elapsedMs: number;
   currentAction?: string;
   session?: { cwd: string; agent: string; model?: string };
+  usageAvailable?: boolean;
+  run?: DashboardRunState;
 };
 
 export type Command =

@@ -3,12 +3,17 @@ export { createDashboardLineBuffer, createStreamingDashboardLineBuffer } from ".
 export { limitOutputPreview, createOutputPreviewBuffer } from "./output-preview.js";
 export { shouldUseInteractiveDashboard } from "./should-use-dashboard.js";
 export type { Dashboard, DashboardOptions } from "./dashboard.js";
+export type { DashboardSubmission } from "./composer.js";
 export { renderDashboardSnapshot } from "./snapshot.js";
 export type { SnapshotOptions } from "./snapshot.js";
 export type {
   OutputItem,
   OutputItemKind,
   DashboardStats,
+  DashboardTask,
+  DashboardRunState,
+  DashboardQueueItem,
+  DashboardWorkStatus,
   Command,
   DashboardState
 } from "./types.js";

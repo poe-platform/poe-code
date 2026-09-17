@@ -493,3 +493,12 @@ Shell cancellation observations remain distinct. Three corrected harness
 failures are preserved with zero credit. No product change was required. The
 model BatchData contract gap, current workspace gate and full F01–F07 acceptance
 remain open.
+
+# Inspection reservation reuse — 2026-09-17
+
+The [inspection reservation record](inspection-reservation-reuse-20260917.md)
+qualifies 118 unchanged-source passing cases and four built SDK/actual Shell
+workflows. Both dialects/kinds retain complete invalid-grid inventory under the
+original 500000-byte ceiling; the 1000-byte refusal remains enforced. Historical
+fixture/product failures are preserved. This closes the named F06 budget
+dependency only. Full F01–F07 acceptance remains open.

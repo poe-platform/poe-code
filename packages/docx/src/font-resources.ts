@@ -56,7 +56,7 @@ const attr = (node: XmlElement | undefined, name: string, namespace = ""): strin
 const values = (node: XmlElement) => Object.fromEntries(node.attributes.filter(a => a.namespace === node.namespace).map(a => [a.localName, a.value]));
 
 /** Inventory stored resources only. Resolved means a package slot exists, never an installed or licensed face. */
-export function readFontResources(archive: AdmittedDocumentArchive, roots: ReadonlyMap<string, XmlElement>, budget: DocumentBudget): FontResourceData {
+export function readFontResources(archive: AdmittedDocumentArchive, roots: ReadonlyMap<string, XmlElement>, budget: DocumentBudget, compatibilityViews?: ReadonlyMap<string, MarkupCompatibility>): FontResourceData {
   const { w, a, r } = documentDialects[archive.dialect];
   const graph = archive.package;
   const themes: ThemeResource[] = [], fontTables: FontTableResource[] = [];
@@ -68,7 +68,7 @@ export function readFontResources(archive: AdmittedDocumentArchive, roots: Reado
     const type = graph.getPart(part).content_type, resourceRole = fontResourceRole(type, root), documentRole = documentPartRole(type, root);
     const formatting = resourceRole === "styles" || documentRole === "story" || documentRole === "glossary" || documentRole === "settings";
     if (resourceRole === null && !formatting) continue;
-    const view = new MarkupCompatibility(root, compatibilityProfileForPart(part), budget);
+    const view = compatibilityViews?.get(part) ?? new MarkupCompatibility(root, compatibilityProfileForPart(part), budget);
     const selected = new Map<XmlElement, readonly XmlElement[]>();
     const projection: CompatibilityContent[] = [...view.content];
     while (projection.length) {

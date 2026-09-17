@@ -74,11 +74,10 @@ export class LocationIndex {
   readonly #budget: DocumentBudget;
   readonly #grids = new Map<XmlElement, Map<string, XmlElement>>();
 
-  constructor(archive: DocumentArchive, limits: ArchiveLimits, mainPart: string, dialect: DocumentDialect, budget: DocumentBudget) {
+  constructor(archive: DocumentArchive, limits: ArchiveLimits, mainPart: string, dialect: DocumentDialect, budget: DocumentBudget, graph = new DocumentPackage(archive, limits, budget)) {
     this.#budget = budget;
     const { w, r, a } = documentDialects[dialect];
     this.#w = w;
-    const graph = new DocumentPackage(archive, limits, budget);
     const roots = new Map<string, XmlElement>();
     const branches = new Map<XmlElement, XmlElement | undefined>();
     const bodyRoots = new Set<XmlElement>();

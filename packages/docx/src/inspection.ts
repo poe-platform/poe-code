@@ -100,6 +100,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
   const themeNames = new Set<string>();
   const unknownNamespaces = new Set<string>();
   const roots = new Map<string, XmlElement>();
+  const compatibilityViews = new Map<string, MarkupCompatibility>();
   let cachedBreaks = 0;
   let compatibility = false;
   const annotationNames = new Set(["comment", "ins", "del", "moveFrom", "moveTo", "rPrChange", "pPrChange", "tblPrChange", "tcPrChange", "sectPrChange", "numberingChange"]);
@@ -120,6 +121,8 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
       for (const attr of node.attributes) if (attr.namespace && attr.namespace !== "http://www.w3.org/2000/xmlns/" && attr.namespace !== "http://schemas.openxmlformats.org/markup-compatibility/2006" && !documentCompatibilityProfile.understoodNamespaces.includes(attr.namespace)) unknownNamespaces.add(attr.namespace);
     }
     const view = new MarkupCompatibility(root, compatibilityProfileForPart(part.partname), budget);
+    budget.charge("retainedBytes", 64);
+    compatibilityViews.set(part.partname, view);
     const settingsProtection = role === "settings" ? activeSettingsProtection(root, view, budget) : new Set<XmlElement>();
     const controlLocks = role === "story" || role === "glossary" ? activeControlLocks(root, view, budget) : new Map<XmlElement, never>();
     compatibility ||= view.branches.length > 0;
@@ -162,7 +165,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
   properties.sort((a, b) => compare(a.part, b.part) || compare(a.name, b.name));
   const pages = properties.filter(p => p.group === "extended" && p.name === "pages");
   counts.cachedPages = pages.length === 1 && typeof pages[0]!.value === "number" && pages[0]!.value >= 0 ? pages[0]!.value : null;
-  const index = new LocationIndex(archive, limits, archive.mainPart, archive.dialect, budget);
+  const index = new LocationIndex(archive, limits, archive.mainPart, archive.dialect, budget, graph);
   counts.images = index.entries.filter(entry => entry.kind === "image").length;
   const stories = index.entries.filter(entry => entry.kind === "story").map(entry => {
     const value: LocationPayload = { version: 1, sourceSha256, generation: 0, part: entry.part, story: entry.story, path: entry.path, range: null };
@@ -188,7 +191,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
   const chartParts = chartDefinitionParts(graph, budget);
   const decodedCharts = chartParts.some(part => parseMediaType(part.content_type) === "application/vnd.openxmlformats-officedocument.drawingml.chart+xml" && roots.has(part.partname) && decodeChartContent(roots.get(part.partname)!, part.partname, budget).status === "decoded");
   const diagramRoles = diagramPartRoles(graph, archive.dialect, budget);
-  const diagramObservations = [...roots].flatMap(([part, root]) => collectDiagramObservations(root, archive.dialect, part, budget));
+  const diagramObservations = [...roots].flatMap(([part, root]) => collectDiagramObservations(root, archive.dialect, part, budget, compatibilityViews.get(part)));
   const knownDiagrams = diagramRoles.size > 0 || diagramObservations.some(observation => observation.kind === "relIds");
   const detections: readonly [string, boolean, "read" | "preserve"][] = [
     ["F01", true, "read"], ["F02", true, "read"], ["F03", archive.kind === "dotx", "read"], ["F05", compatibility, "read"], ["F06", true, "read"],
@@ -200,7 +203,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
     ["F28", counts.controls > 0, "read"], ["F30", propertyParts.length > 0, properties.length > 0 ? "read" : "preserve"], ["F31", media.length > 0, "read"], ["F39", counts.equations > 0, "preserve"],
     ["F41", relationships.some(r => ["http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml", "http://purl.oclc.org/ooxml/officeDocument/relationships/customXml", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/glossaryDocument", "http://purl.oclc.org/ooxml/officeDocument/relationships/glossaryDocument"].includes(r.type)) || parts.some(p => parseMediaType(p.contentType) === "application/vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml" || parseMediaType(p.contentType) === "application/vnd.openxmlformats-officedocument.customxmlproperties+xml"), "preserve"], ["F42", fontNames.size + embedded.length + protection.length > 0 || parts.some(p => ["application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml", "application/vnd.openxmlformats-officedocument.wordprocessingml.fonttable+xml"].includes(parseMediaType(p.contentType))), "read"], ["F43", signed, "preserve"]
   ];
-  const fontResources = readFontResources(archive, roots, budget);
+  const fontResources = readFontResources(archive, roots, budget, compatibilityViews);
   for (const table of fontResources.fontTables) for (const font of table.fonts) if (font.name) fontNames.add(font.name);
   if (fontResources.diagnostics.length) warnings.push({ code: "unresolved-font-resources", message: "Theme or embedded font references have unresolved package resources; see fontResources.diagnostics." });
   const result: InspectionData = { fontResources, kind: archive.kind, dialect: archive.dialect, sizes: { archiveBytes: owned.length, expandedBytes: parts.reduce((sum, p) => sum + p.bytes, 0), mediaBytes: media.reduce((sum, p) => sum + p.bytes, 0) }, parts, relationships,

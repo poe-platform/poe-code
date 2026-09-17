@@ -9,9 +9,9 @@ const drawing='http://schemas.microsoft.com/office/drawing/2008/diagram',mc='htt
 const officeShape='http://schemas.microsoft.com/office/word/2010/wordprocessingShape',officeGroup='http://schemas.microsoft.com/office/word/2010/wordprocessingGroup';
 const roots=['dataModel','layoutDef','styleDef','colorsDef'];
 /** Observes original physical graphics ancestry without expanding compatibility understanding. */
-export function collectDiagramObservations(root:XmlElement,dialect:DocumentDialect,part:string,budget:DocumentBudget):readonly RawDiagramObservation[] {
+export function collectDiagramObservations(root:XmlElement,dialect:DocumentDialect,part:string,budget:DocumentBudget,compatibility?:MarkupCompatibility):readonly RawDiagramObservation[] {
  const ns=documentDialects[dialect],active=new Set<XmlElement>(),result:RawDiagramObservation[]=[];
- const expose=(content:readonly CompatibilityContent[])=>{for(const item of content){budget.charge('work',1);if('source' in item){active.add(item.source);budget.charge('retainedBytes',16);if(item.disposition==='understood')expose(item.content);}}};expose(new MarkupCompatibility(root,compatibilityProfileForPart(part),budget).content);
+ const expose=(content:readonly CompatibilityContent[])=>{for(const item of content){budget.charge('work',1);if('source' in item){active.add(item.source);budget.charge('retainedBytes',16);if(item.disposition==='understood')expose(item.content);}}};expose((compatibility??new MarkupCompatibility(root,compatibilityProfileForPart(part),budget)).content);
  const attr=(node:XmlElement,name:string,namespace='')=>node.attributes.find(a=>a.namespace===namespace&&a.localName===name)?.value??null;
  const is=(node:XmlElement|undefined,namespace:string,name:string)=>node?.namespace===namespace&&node.localName===name;
  const envelope=(chain:readonly XmlElement[])=>chain.length===4&&is(chain[0],ns.w,'drawing')&&chain[1]?.namespace===ns.wp&&['inline','anchor'].includes(chain[1].localName)&&is(chain[2],ns.a,'graphic')&&is(chain[3],ns.a,'graphicData');

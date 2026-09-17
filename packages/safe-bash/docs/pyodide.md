@@ -1,12 +1,12 @@
 # Python through Pyodide
 
 Standalone publication status, September 17, 2026: `@poe-platform/safe-bash`
-exports the Python plugin, worker runner and Node endpoint. Version `0.1.652`
-contains a stale CLI-package runner reference (#745); the package-relative fix
-in `9557d2469` passes real standalone and retained CLI tarball tests. Check the
-[delivery record](../../../docs/plans/python-standalone-runtime-issues.md) for
-publication evidence before installing a fixed version. These are trusted-Node
-passes, not Cloudflare or untrusted-code qualification.
+exports the Python plugin, worker runner and Node endpoint. Version `0.1.653`
+publishes the standalone runner fix (#745), quota descriptors (#748) and typed
+host diagnostics (#752). The [delivery record](../../../docs/plans/python-standalone-runtime-issues.md)
+records successful scoped publication and npm verification. These are
+trusted-Node runtime passes, not Cloudflare execution or untrusted-code
+qualification; the separate CLI release remains independently tracked.
 
 The #748 implementation adds guarded retained descriptors to the canonical quota
 wrapper. Fresh Node checks cover bounded reads/writes, ENOSPC recovery and document
@@ -62,7 +62,7 @@ private, but the release packager publishes **`@poe-platform/safe-bash`** and
 **`@poe-platform/safe-fs`** as standalone packages. Consumers do not need the
 `poe-code` CLI package. The CLI's retained re-exports are tested separately.
 
-After confirming a release containing the #745 fix, install in a fresh directory:
+Install version `0.1.653` or a newer release in a fresh directory:
 
 ```sh
 npm install --ignore-scripts @poe-platform/safe-bash @poe-platform/safe-fs pyodide@314.0.6

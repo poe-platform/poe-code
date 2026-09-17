@@ -111,3 +111,13 @@ Commit `433c66735` fixes the earlier Pandoc bundle-order gate. Its GitHub scoped
 release then passed bundling but failed required package README checks for
 Pandoc/PDF. Permission to add those READMEs has been requested; registry
 publication is still pending, independently of this candidate's passing checks.
+
+## Verified scoped publication — September 17, 2026
+
+The README fix landed separately as `aee265445`. Scoped workflow `35247726840`
+then completed successfully on that main commit. npm reports `0.1.653` for
+`@poe-platform/safe-fs`, `@poe-platform/safe-js` and `@poe-platform/safe-bash`;
+Safe Bash's `latest` tag and exact-version metadata were checked separately.
+This publishes #745, #748, #752 and the #753 documentation correction. The
+`poe-code` CLI release is still running separately and is not established by
+the scoped package publication.

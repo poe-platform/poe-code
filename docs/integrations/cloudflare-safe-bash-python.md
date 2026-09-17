@@ -16,11 +16,11 @@ Python automatically. Each command owns a fresh interpreter; the application
 supplies the canonical asynchronous filesystem rather than mirroring its workspace
 into interpreter MEMFS.
 
-Published `0.1.652` has the standalone Node runner-resolution defect tracked in
-#745. Commit `9557d2469` resolves the runner relative to its package, and both
-standalone and CLI candidate tarballs pass the maintained real-runtime consumer
-test. Do not treat a successful source build as npm publication; check the
-published version before adopting these instructions.
+Published `0.1.653` includes the standalone runner-resolution fix (#745), quota
+descriptors (#748) and typed host diagnostics (#752). GitHub scoped release
+`35247726840` succeeded, and all three scoped packages were verified on npm.
+The separate `poe-code` CLI release is tracked independently; candidate CLI
+tarball tests do not establish CLI registry publication.
 
 ### Three different execution models
 

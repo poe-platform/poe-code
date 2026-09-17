@@ -64,6 +64,8 @@ compatibility to bypass the portable export surface.
 
 ## Delivery
 
-Prepared for remote-main delivery. The separate Pandoc/PDF README permission gate
-still blocks GitHub publication; successful local tests and candidate tarballs
-are not a published release.
+Commit `ed40be6df` was pushed and independently verified on remote main before
+#752 was closed. Its first scoped workflow failed the separate Pandoc/PDF README
+gate. After the README fix landed in `aee265445`, scoped workflow `35247726840`
+succeeded and published version `0.1.653`; the npm version and `latest` tag were
+verified. The separate `poe-code` CLI release remains independently monitored.

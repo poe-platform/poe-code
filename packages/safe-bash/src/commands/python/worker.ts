@@ -378,6 +378,29 @@ def _safe_scandir(path='.'):
 os.scandir = _safe_scandir
 
 `);
+    runtime.globals.set('_safe_tree_cleanup', (path: string) => {
+      const absolute = path.startsWith('/') ? path : `${runtime.FS.cwd()}/${path}`;
+      if (absolute === start.runtimeMount || absolute.startsWith(start.runtimeMount + '/')) return JSON.stringify({ supported: false });
+      try {
+        if (!request('rmtreeSupported', absolute)) return JSON.stringify({ supported: false });
+        request('rmtree', absolute);
+        return JSON.stringify({ supported: true });
+      } catch (error) { return JSON.stringify({ supported: true, errno: (error as { errno?: number }).errno ?? errno.EIO }); }
+    });
+    runtime.runPython(`
+import shutil, os, json
+_safe_tree_callback = _safe_tree_cleanup
+_safe_original_rmtree_impl = shutil._rmtree_impl
+def _safe_rmtree_impl(path, dir_fd, onexc):
+ if dir_fd is not None:
+  return _safe_original_rmtree_impl(path, dir_fd, onexc)
+ value = json.loads(_safe_tree_callback(os.fsdecode(path)))
+ if not value['supported']:
+  return _safe_original_rmtree_impl(path, dir_fd, onexc)
+ if 'errno' in value:
+  onexc(os.rmdir, path, OSError(value['errno'], 'directory cleanup failed', path))
+shutil._rmtree_impl = _safe_rmtree_impl
+`);
     runtime.globals.set('_safe_invocation_json', JSON.stringify(start.invocation));
     postMessage({type:'ready'});
     category = 'runtime';

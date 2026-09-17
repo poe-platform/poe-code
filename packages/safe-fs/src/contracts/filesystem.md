@@ -1235,6 +1235,31 @@ mount and device views enforce the advertised capability and mutation boundaries
 Read-only and quota views neither expose nor advertise the operation. Retained
 cleanup does not gain this general source-removal operation.
 
+## Atomic conditional tree removal
+
+`atomicTreeRemoval: true` requires `removeTreeConditional(path, { parent,
+expected, signal })`. The supplied observations identify the parent directory
+and the directory being removed by their scoped identities. A replacement of
+either object must reject with `EAGAIN`; unknown identity must reject with
+`ENOTSUP`. Directory revision equality is not required: this removes the current
+contents of the same directory, not an earlier listing snapshot.
+
+The implementation must protect identity checks, permission preflight and the
+entire subtree removal from concurrent namespace substitution. It never follows
+contained symlinks or deletes their targets. Permission or pre-commit cancellation
+failure leaves the tree unchanged. Root, terminal-dot and protected mount entries
+are refused. Open files retain their identities and storage until their handles
+close. Neither ordinary recursive `rm` nor a caller-side check followed by `rm`
+establishes this capability.
+
+Memory implements this as one synchronous, identity-checked namespace operation.
+Mount and device wrappers enforce their protected boundaries; scoped wrappers
+charge operation admission. Quota wrappers can delegate this deletion-only
+operation without granting unchecked writes; readonly views do not advertise it.
+S3, WebDAV and rooted-real adapters do not currently implement this stronger
+operation. An asynchronous host may expose it only when its authoritative
+backend supplies the specified guarantees, not by asserting a capability flag.
+
 # Optional atomic unlink
 
 `FileSystem.unlink?(path, options)` removes one final nondirectory entry, including

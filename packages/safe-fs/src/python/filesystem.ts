@@ -2,7 +2,7 @@ import { parsePythonFsRequest } from "./request.js";
 import { composeAbortSignals } from "../contracts/abort.js";
 import { FsError } from "../contracts/errors.js";
 import type { FileDescriptor, FileSystem, OpenFileOptions, MkdirOptions } from "../contracts/filesystem.js";
-import { validatePath } from "../contracts/virtual-path.js";
+import { dirname, validatePath } from "../contracts/virtual-path.js";
 
 export type PythonFsRequest =
   | { readonly op: "open"; readonly args: readonly [string, OpenFileOptions] }
@@ -11,7 +11,7 @@ export type PythonFsRequest =
   | { readonly op: "fstat" | "close" | "position" | "descriptorCapabilities"; readonly args: readonly [number] }
   | { readonly op: "ftruncate"; readonly args: readonly [number, number] }
   | { readonly op: "sync"; readonly args: readonly [number, boolean] }
-  | { readonly op: "stat" | "lstat" | "readdir" | "realpath" | "readlink" | "rm" | "rmdir"; readonly args: readonly [string] }
+  | { readonly op: "stat" | "lstat" | "readdir" | "realpath" | "readlink" | "rm" | "rmdir" | "rmtree" | "rmtreeSupported"; readonly args: readonly [string] }
   | { readonly op: "rename" | "symlink" | "link"; readonly args: readonly [string, string] }
   | { readonly op: "mkdir"; readonly args: readonly [string, MkdirOptions?] }
   | { readonly op: "chmod" | "truncate" | "access"; readonly args: readonly [string, number] }
@@ -175,6 +175,21 @@ export class PythonFileSystem {
         if (capabilities.readOnly === true) throw new FsError("EROFS", { syscall: "rmdir", path });
         if (!fs.rmdir || capabilities.removeDirectory === false || capabilities.snapshotRmdir === true) throw new FsError("ENOTSUP", { syscall: "rmdir", path });
         return fs.rmdir(path, options);
+      }
+      case "rmtreeSupported":
+      case "rmtree": {
+        const path = this.#path(request.args[0]);
+        const capabilities = fs.capabilitiesFor ? await fs.capabilitiesFor(path, options) : fs.capabilities;
+        signal.throwIfAborted();
+        if (request.op === "rmtreeSupported") return capabilities.readOnly === true || capabilities.atomicTreeRemoval === true && typeof fs.removeTreeConditional === "function";
+        if (capabilities.readOnly === true) throw new FsError("EROFS", { syscall: "rmtree", path });
+        if (capabilities.atomicTreeRemoval !== true || !fs.removeTreeConditional) throw new FsError("ENOTSUP", { syscall: "rmtree", path });
+        const expected = await fs.lstat(path, options);
+        signal.throwIfAborted();
+        if (expected.type !== "directory") throw new FsError("ENOTDIR", { syscall: "rmtree", path });
+        const parent = await fs.stat(dirname(path), options);
+        signal.throwIfAborted();
+        return fs.removeTreeConditional(path, { ...options, parent, expected });
       }
       case "rename": return fs.rename(this.#path(request.args[0]), this.#path(request.args[1]), options);
       case "readlink": if (fs.readlink) return fs.readlink(this.#path(request.args[0]), options); break;

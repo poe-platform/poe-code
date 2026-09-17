@@ -65,15 +65,9 @@ for (const profile of ['memory', 'delayed', 'quota', 'quota-delayed']) {
       // font/image stream assertions to the existing cross-invocation coverage.
       const qualifiedRun = await shell.exec('PROBE_ROOT=/work PROBE_FONT=/work/font.ttf PROBE_PROFILE=bridge python qualified-documents.py');
       const qualification = JSON.parse(Buffer.from(await storage.readFile('/work/report.json')).toString());
-      // Keep the reproduced retained-directory cleanup requirement visible.
-      // Do not replace CPython's safe rmtree with weaker path-based deletion.
-      assert.equal(qualifiedRun.exitCode, 1);
-      assert.equal(qualification.priority_passed, false);
-      assert.match(qualification.workflows.filesystem.error, /Not supported/);
-      assert.match(qualification.workflows.filesystem.traceback, /_rmtree_safe_fd/);
-      await t.test('required TemporaryDirectory descriptor cleanup', {
-        todo: 'Canonical retained directory descriptors and descriptor-relative operations are unsupported',
-      }, () => {
+      assert.equal(qualifiedRun.exitCode, 0, qualifiedRun.stderr);
+      assert.equal(qualification.priority_passed, true);
+      await t.test('required TemporaryDirectory conditional cleanup', () => {
         assert.equal(qualification.workflows.filesystem.status, 'passed',
           qualification.workflows.filesystem.traceback);
       });

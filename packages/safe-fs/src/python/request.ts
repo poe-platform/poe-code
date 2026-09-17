@@ -4,7 +4,7 @@ import type { PythonFsRequest } from "./filesystem.js";
 const argumentKinds = {
   open: ["string", "object"], read: ["number", "number", "position"], write: ["number", "bytes", "position"],
   descriptorCapabilities: ["number"], fstat: ["number"], close: ["number"], position: ["number"], ftruncate: ["number", "number"], sync: ["number", "boolean"],
-  stat: ["string"], lstat: ["string"], readdir: ["string"], realpath: ["string"], readlink: ["string"], rm: ["string"], rmdir: ["string"],
+  stat: ["string"], lstat: ["string"], readdir: ["string"], realpath: ["string"], readlink: ["string"], rm: ["string"], rmdir: ["string"], rmtree: ["string"], rmtreeSupported: ["string"],
   rename: ["string", "string"], symlink: ["string", "string"], link: ["string", "string"], mkdir: ["string", "optionalObject"],
   chmod: ["string", "number"], truncate: ["string", "number"], access: ["string", "number"], utimes: ["string", "number", "number"],
 } as const;

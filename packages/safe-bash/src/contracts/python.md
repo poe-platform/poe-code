@@ -52,6 +52,25 @@ start messages may supply `invocation.command`; omission uses `python`.
 
 ## Configuration and ownership
 
+### Temporary-directory cleanup
+
+On filesystems advertising `atomicTreeRemoval` with `removeTreeConditional`,
+Python's `shutil.rmtree` uses identity-checked backend subtree removal. This lets
+`tempfile.TemporaryDirectory` clean normal and exceptional scopes without
+pretending that the bridge exposes retained POSIX directory descriptors.
+Supported compositions preserve readonly policy, quotas, protected mounts,
+symlink targets and operation cancellation. Cleanup errors still flow through
+the standard `onexc`/`onerror` and `ignore_errors` handling.
+
+Capability absence leaves CPython's original descriptor-safe implementation in
+place; its global symlink-protection setting is never disabled. Generic `dir_fd`
+operations and cleanup on backends lacking the required capability remain
+unsupported. A delayed Memory-backed implementation is not evidence of deployed
+object-store support. Remote hosts must provide authoritative conditional
+subtree removal or a separately qualified retained-directory implementation.
+
+### Options
+
 - `createWorker` is required. It must place the synchronous interpreter on a
   different event loop from filesystem and shell stream service work.
 - `runtimeMount` defaults to `/.pyodide-runtime`. It must be an absolute

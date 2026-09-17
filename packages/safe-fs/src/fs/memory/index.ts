@@ -124,7 +124,7 @@ export class MemoryFileSystem implements FileSystem {
       permissions: true,
       timestamps: true,
       atomicRename: true,
-      atomicFileStaging: true, atomicFileMutation: true, atomicEntryRemoval: true,
+      atomicFileStaging: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicTreeRemoval: true,
       atomicDirectoryMetadata: true,
       streamingRead: true,
       retainedRead: true,
@@ -704,6 +704,15 @@ export class MemoryFileSystem implements FileSystem {
     this.changed(location.parent);
   }
 
+  async removeTreeConditional(path: string, options: ConditionalRemoveEntryOptions): Promise<void> {
+    options.signal?.throwIfAborted();
+    const location = this.entry(path, "removeTreeConditional", true);
+    this.expectEntry(location.parent, options.parent, path, false);
+    this.expectEntry(location.node, options.expected, path, false);
+    if (location.node?.type !== "directory") this.fail("ENOTDIR", "removeTreeConditional", path);
+    this.removeLocation(location, path, "removeTreeConditional", true);
+  }
+
   async writeFile(path: string, data: Uint8Array, options: WriteFileOptions = {}): Promise<void> {
     options.signal?.throwIfAborted();
     this.writeData(path, data, options, "writeFile");
@@ -779,16 +788,20 @@ export class MemoryFileSystem implements FileSystem {
       if (options.force && error instanceof FsError && error.code === "ENOENT") return;
       throw error;
     }
+    this.removeLocation(location, path, "rm", options.recursive === true);
+  }
+
+  private removeLocation(location: Location, path: string, syscall: string, recursive: boolean): void {
     const node = location.node!;
-    if (this.terminalDot(path)) this.fail("EINVAL", "rm", path);
-    if (node === this.root) this.fail("EBUSY", "rm", path);
-    this.permission(location.parent, 3, "rm", path);
-    if (node.type === "directory" && !options.recursive) this.fail("EISDIR", "rm", path);
+    if (this.terminalDot(path)) this.fail("EINVAL", syscall, path);
+    if (node === this.root) this.fail("EBUSY", syscall, path);
+    this.permission(location.parent, 3, syscall, path);
+    if (node.type === "directory" && !recursive) this.fail("EISDIR", syscall, path);
     const removed: MemoryNode[] = [node];
     for (let index = 0; index < removed.length; index++) {
       const entry = removed[index]!;
       if (entry.type === "directory" && entry.entries.size > 0) {
-        this.permission(entry, 7, "rm", path);
+        this.permission(entry, 7, syscall, path);
         for (const child of entry.entries.values()) removed.push(child);
       }
     }

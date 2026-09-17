@@ -3,6 +3,7 @@ import { createLogger } from "../components/logger.js";
 import { resolveOutputFormat } from "../internal/output-format.js";
 import { ScreenBuffer, diff } from "./buffer.js";
 import { renderContextPane } from "./components/context-pane.js";
+import { plainTerminalText } from "./ansi.js";
 import { renderBorder } from "./components/border.js";
 import { defaultHints, renderFooter } from "./components/footer.js";
 import type { FooterHint } from "./components/footer.js";
@@ -184,7 +185,9 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
                 composer = createComposerState(submission.kind, submission.afterPlanId);
                 feedback = submission.kind === "plan" ? "Plan queued" : "Message queued";
               } catch (error) {
-                composer = { ...composer!, error: error instanceof Error ? error.message : String(error) };
+                const message = error instanceof Error ? error.message : String(error);
+                composer = { ...composer!, error: message };
+                if (destroyed) fallbackLogger.error(`Could not queue ${submission.kind}: ${plainTerminalText(message)}`);
               } finally {
                 submitting = false;
                 render();
@@ -299,6 +302,9 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
     }
 
     stop();
+    for (const draft of [composer, otherDraft]) {
+      if (draft?.error) fallbackLogger.error(`Could not queue ${draft.kind}: ${plainTerminalText(draft.error)}`);
+    }
     commandHandlers.clear();
     store = undefined;
     destroyed = true;

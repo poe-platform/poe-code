@@ -64,6 +64,21 @@ describe("dashboard live queue input", () => {
     });
   });
 
+  it.each([false, true])("reports a rejected submission after leaving the TUI (rejected after exit: %s)", async (afterExit) => {
+    await withOutputFormat("terminal", async () => {
+      let reject!: (error: Error) => void;
+      const ui = fixture(() => new Promise<void>((_resolve, fail) => { reject = fail; }));
+      ui.send("\u0010missing.md\r");
+      if (afterExit) ui.dashboard.destroy();
+      reject(new Error("Plan file was not found"));
+      await Promise.resolve();
+      await Promise.resolve();
+      if (!afterExit) ui.dashboard.destroy();
+      expect(ui.screen()).toContain("Could not queue plan: Plan file was not found");
+      expect(ui.screen().split("Could not queue plan")).toHaveLength(2);
+    });
+  });
+
   it("can target a later plan without moving or interrupting the active plan", async () => {
     await withOutputFormat("terminal", async () => {
       const onSubmit = vi.fn();

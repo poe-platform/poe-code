@@ -14,12 +14,11 @@ export async function setPipelineTerminalName(name: string): Promise<void> {
       if (!pane) return;
       await new Promise<void>((resolve) => {
         execFile("tmux", [
-          "rename-window", "-t", pane, "--", title, ";",
-          "select-pane", "-t", pane, "-T", title
+          "rename-window", "-t", pane, "--", title
         ], { timeout: 500 }, () => resolve());
       });
     } else if (process.env.TERM_PROGRAM === "iTerm.app" && process.stdout.isTTY) {
-      process.stdout.write(`\u001b]0;${title}\u0007`);
+      process.stdout.write(`\u001b]1;${title}\u0007`);
     }
   } catch {
     // Missing tmux, stale panes and unsupported terminals are harmless.

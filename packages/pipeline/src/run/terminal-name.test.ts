@@ -28,13 +28,12 @@ describe("pipeline terminal naming", () => {
     expect(parsePlan("kind: pipeline\nversion: 1\nname: Fix login\ntasks: []").name).toBe("Fix login");
   });
 
-  it("targets the original tmux pane and its window with a bounded command", async () => {
+  it("renames only the tmux window containing the original pane with a bounded command", async () => {
     vi.stubEnv("TMUX", "/tmp/tmux/default,1,0");
     vi.stubEnv("TMUX_PANE", "%42");
     await setPipelineTerminalName("Fix login");
     expect(execFile).toHaveBeenCalledWith("tmux", [
-      "rename-window", "-t", "%42", "--", "Fix login", ";",
-      "select-pane", "-t", "%42", "-T", "Fix login"
+      "rename-window", "-t", "%42", "--", "Fix login"
     ], { timeout: 500 }, expect.any(Function));
   });
 
@@ -55,12 +54,12 @@ describe("pipeline terminal naming", () => {
     expect(execFile).not.toHaveBeenCalled();
   });
 
-  it("sets an iTerm title and strips terminal control characters", async () => {
+  it("sets only an iTerm tab title and strips terminal control characters", async () => {
     vi.stubEnv("TERM_PROGRAM", "iTerm.app");
     Object.defineProperty(process.stdout, "isTTY", { configurable: true, value: true });
     const write = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     await setPipelineTerminalName("Fix\u001b\u0007\n login\u009c");
-    expect(write).toHaveBeenCalledWith("\u001b]0;Fix login\u0007");
+    expect(write).toHaveBeenCalledWith("\u001b]1;Fix login\u0007");
   });
 
   it("keeps redirected iTerm output clean", async () => {

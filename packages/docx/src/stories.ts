@@ -132,9 +132,10 @@ export async function editDocumentStories(input: Uint8Array, request: StoryEditR
   const clone = (source: string | null): { part: string; id: string } => {
     const directory = source ? source.slice(0, source.lastIndexOf("/") + 1) : "/" + main.slice(0, main.lastIndexOf("/") + 1);
     const part = graph.allocatePartName(directory + name, ".xml"), id = graph.allocateRelationshipId("/" + main);
-    const bytes = source ? graph.getPart(source).bytes : new TextEncoder().encode(`<w:${name === "header" ? "hdr" : "ftr"} xmlns:w="${w}"><w:p/></w:${name === "header" ? "hdr" : "ftr"}>`);
+    const sourcePart = source ? graph.getPart(source) : undefined;
+    const bytes = sourcePart?.bytes ?? new TextEncoder().encode(`<w:${name === "header" ? "hdr" : "ftr"} xmlns:w="${w}"><w:p/></w:${name === "header" ? "hdr" : "ftr"}>`);
     staged.set(part.slice(1), bytes);
-    const relationships = source && archive.members.find(member => member.name === relationshipName(source.slice(1)));
+    const relationships = sourcePart && archive.members.find(member => member.name === relationshipName(sourcePart.name));
     if (relationships) staged.set(relationshipName(part.slice(1)), relationships.bytes);
     newTypes.push(`<Override xmlns="${typeNamespace}" PartName="${xmlValue(part)}" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.${name}+xml"/>`);
     newRelationships.push(`<Relationship xmlns="${relNamespace}" Id="${id}" Type="${r}/${name}" Target="${xmlValue(relativePartTarget("/" + main, part))}"/>`);
@@ -150,7 +151,8 @@ export async function editDocumentStories(input: Uint8Array, request: StoryEditR
     else { const copied = clone(binding.part); refs.set(item.position, copied.id); target = copied.part; }
   }
   if (opts.text !== undefined && target) {
-    const story = new DocumentXmlEditor(staged.get(target.slice(1)) ?? graph.getPart(target).bytes, {}, undefined, budget);
+    const targetName = staged.has(target.slice(1)) ? target.slice(1) : graph.getPart(target).name;
+    const story = new DocumentXmlEditor(staged.get(targetName) ?? graph.getPart(target).bytes, {}, undefined, budget);
     // Whole-story assignment is intentionally destructive for simple text, but does not discard fields or opaque blocks.
     const patches = new Map<XmlElement, string>();
     for (const [index, child] of story.root.children.entries()) {
@@ -169,7 +171,7 @@ export async function editDocumentStories(input: Uint8Array, request: StoryEditR
     else {
       if (patches.size) for (const [child, replacement] of patches) story.replaceElement(child, replacement);
       else story.insertChildren(story.root, `<pi:p xmlns:pi="${w}">${paragraphTextRun(w, opts.text)}</pi:p>`);
-      staged.set(target.slice(1), story.serialize());
+      staged.set(targetName, story.serialize());
     }
   }
   const removedIds = new Set<string>();

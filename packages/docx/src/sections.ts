@@ -70,7 +70,8 @@ function sectionOwners(body: XmlElement, bodyPath: readonly number[], budget: Do
 }
 export function sectionState(document: DocumentLocations, archive: DocumentArchive, settings: ReturnType<typeof archiveSettings>) {
   const bodyLocation = document.list("story", { scope: "body" })[0]!;
-  const main = bodyLocation.value.part.slice(1);
+  const graph = new DocumentPackage(archive, settings.limits, settings.budget);
+  const main = graph.getPart(bodyLocation.value.part).name;
   const editor = new DocumentArchiveEditor(archive, {}, undefined, settings.budget);
   const xml = editor.xml(main);
   const active = new Map<XmlElement, readonly XmlElement[]>();
@@ -88,7 +89,6 @@ export function sectionState(document: DocumentLocations, archive: DocumentArchi
   };
   const body = sectionChild(xml.root, "body", children)!;
   const owners = sectionOwners(body, bodyLocation.value.path, settings.budget, children);
-  const graph = new DocumentPackage(archive, settings.limits, settings.budget);
   const dialect = dialectForNamespace(xml.root.namespace)!;
   const r = documentDialects[dialect].r;
   const edges = graph.relationships("/" + main);

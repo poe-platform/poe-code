@@ -127,3 +127,14 @@ SDK/actual-shell dialect/kind/owner/spelling/sizing combinations with the explic
 guard removal and its mistaken positive oracle were withdrawn; all historical
 execution logs remain qualified as history. No required case was removed, and
 successful combined shared resizing is not claimed as conformance.
+
+## Current canonical section and story evidence
+
+The [section/story record](canonical-section-stories-20260917.md) adds 720 exact
+F01/F02/F03/F04/F05 cross-family cases covering original member identity, shared
+text, content-preserving clones and their outgoing edges, removal/relink pinning,
+global settings and model fresh-definition materialization. It executes all
+header/footer variants in both dialects and macro-free kinds through applicable
+model, SDK, actual shell and typed batch routes. All 720 pass in the unfiltered
+10,672-test DOCX run with zero skips. Independent relationship-member spellings
+and the remaining full-family obligations remain open.

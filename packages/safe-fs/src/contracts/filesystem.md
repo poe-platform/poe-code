@@ -1,5 +1,9 @@
 # Optional file descriptors
 
+Immutable backends can opt into the explicit non-POSIX
+[object-publication descriptor profile](./object-publication.md). Its retained
+versions and conditional flush semantics differ from mutable inode descriptors.
+
 `FileSystem.open?(path, options)` returns a canonical `FileDescriptor` bound to
 the opened object, not a pathname that is reopened for each operation. Its types
 are defined in `contracts/descriptor.ts` and re-exported by this filesystem

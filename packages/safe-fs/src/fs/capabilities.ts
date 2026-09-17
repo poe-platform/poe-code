@@ -100,7 +100,7 @@ export async function openRetainedResizeFile(filesystem: FileSystem, path: strin
 export function readOnlyCapabilities(capabilities: FileSystemCapabilities): FileSystemCapabilities {
   const inspection = Object.fromEntries([
     "read", "stat", "readdir", "realpath", "access", "readlink", "explicitDirectories", "implicitDirectories",
-    "symlinks", "streamingRead", "open", "retainedRead",
+    "symlinks", "streamingRead", "open", "retainedRead", "versionedDescriptors",
   ].filter(name => capabilities[name] !== undefined).map(name => [name, capabilities[name]]));
   return Object.freeze({
     ...inspection, readOnly: true, write: false, append: false, exclusiveCreate: false,

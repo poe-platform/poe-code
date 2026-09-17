@@ -941,6 +941,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/python/environment.test.ts"));
   assert.ok(files.includes("tests/commands/python/environment-review.test.ts"));
   assert.ok(files.includes("tests/commands/python/tree-cleanup-review.test.ts"));
+  assert.ok(files.includes("tests/commands/python/object-publication-review.test.ts"));
   assert.ok(files.includes("tests/commands/python/admission.test.ts"));
   assert.ok(files.includes("tests/commands/python/invocation.test.ts"));
   assert.ok(files.includes("tests/commands/python/installation.test.ts"));
@@ -2589,6 +2590,14 @@ test("Python tree cleanup public acceptance remains admitted current input", () 
   const root = fileURLToPath(new URL("../", import.meta.url));
   const boundaries = loadBoundaries(root);
   const path = "tests/integration/pyodide-runtime/public-cleanup.test.mjs";
+  assertAdmittedInputPath(path, boundaries);
+  assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+});
+
+test("Python object publication public acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  const path = "tests/integration/pyodide-runtime/public-object-publication.test.mjs";
   assertAdmittedInputPath(path, boundaries);
   assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
 });

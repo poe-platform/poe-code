@@ -9,6 +9,7 @@
     "test:standalone": "node --test public-package.test.mjs",
     "test:shared-environment": "node --test public-shared-environment.test.mjs",
     "test:cleanup": "node --test public-cleanup.test.mjs",
+    "test:object-publication": "node --test public-object-publication.test.mjs",
     "provision:public": "node provision-public-runtime.mjs",
     "test:public": "node --test --test-concurrency=1 public-command-parity.test.mjs public-documents.test.mjs public-lifecycle.test.mjs"
   }

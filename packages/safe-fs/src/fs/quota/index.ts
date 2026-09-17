@@ -38,7 +38,7 @@ function namespaceMetadata<Value>(metadata: Promise<Value>, signal?: AbortSignal
   });
 }
 
-async function usedBytes(fs: FileSystem, limits: { maxScanEntries: number; maxScanDepth: number }, options?: FsOptions, change?: { path: string; stat: FileStat; delta: number; retained?: boolean }, retained = change?.retained === true): Promise<number> {
+async function scanUsedBytes(fs: FileSystem, limits: { maxScanEntries: number; maxScanDepth: number }, options?: FsOptions, change?: { path: string; stat: FileStat; delta: number; retained?: boolean }, retained = change?.retained === true): Promise<number> {
   let total = 0;
   let retainedTotal = 0n;
   let shrinkCredited = false;
@@ -138,6 +138,8 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
     if (!Number.isSafeInteger(value) || value < 0) throw new RangeError(`${name} must be a nonnegative safe integer`);
   }
   let queue: Promise<unknown> = Promise.resolve();
+  let reservedBytes = 0;
+  const usedBytes = async (...args: Parameters<typeof scanUsedBytes>): Promise<number> => await scanUsedBytes(...args) + reservedBytes;
   const mutate = <Result>(operation: () => Promise<Result>): Promise<Result> => {
     const result = queue.then(operation);
     queue = result.catch(() => undefined);
@@ -187,6 +189,14 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
         try {
           admitted.signal?.throwIfAborted();
           const pinned = admitted.access === "read" ? undefined : { ...await descriptor.stat(admitted) };
+          const conditional = descriptor.capabilities.publication === "conditional" && pinned !== undefined;
+          let publishedSize = pinned?.size ?? 0;
+          let reserved = 0;
+          const reserve = (size: number): void => {
+            const next = Math.max(0, size - publishedSize);
+            reservedBytes += next - reserved;
+            reserved = next;
+          };
           admitted.signal?.throwIfAborted();
           if (pinned && (pinned.type !== "file" || !completeIdentity(pinned))) {
             throw new FsError("ENOTSUP", { syscall: "open", path, message: "quota requires complete retained file identity" });
@@ -198,7 +208,7 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
             const stat = { ...await descriptor.stat(operationOptions) };
             operationOptions.signal?.throwIfAborted();
             if (!pinned || stat.type !== "file" || !completeIdentity(stat)
-              || stat.identityScope !== pinned.identityScope || stat.dev !== pinned.dev || stat.ino !== pinned.ino
+              || !conditional && (stat.identityScope !== pinned.identityScope || stat.dev !== pinned.dev || stat.ino !== pinned.ino)
               || !Number.isSafeInteger(stat.size) || stat.size < 0) {
               throw new FsError("EIO", { syscall: "fstat", path, message: "invalid retained quota identity or size" });
             }
@@ -206,13 +216,25 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
           };
           const admitSize = async (stat: FileStat, nextBytes: number, operationOptions: FsOptions): Promise<void> => {
             if (!Number.isSafeInteger(nextBytes) || nextBytes < 0) throw new FsError("EFBIG", { syscall: "write", path });
-            const projected = await usedBytes(fs, scanLimits, operationOptions, { path, stat, delta: nextBytes - stat.size, retained: true });
+            const projected = conditional
+              ? await usedBytes(fs, scanLimits, operationOptions) - reserved + Math.max(0, nextBytes - publishedSize)
+              : await usedBytes(fs, scanLimits, operationOptions, { path, stat, delta: nextBytes - stat.size, retained: true });
             operationOptions.signal?.throwIfAborted();
             if (projected > options.maxBytes) throw new FileSystemQuotaError(options.maxBytes);
+            if (conditional) reserve(Math.max(nextBytes, publishedSize + reserved));
           };
-          const forwarded = forwardFileDescriptor(descriptor, (syscall, operationOptions, action) => syscall === "close" ? action() : mutate(async () => {
-            operationOptions.signal?.throwIfAborted();
-            return action();
+          const forwarded = forwardFileDescriptor(descriptor, (syscall, operationOptions, action) => syscall === "close" && !conditional ? action() : mutate(async () => {
+            try {
+              operationOptions.signal?.throwIfAborted();
+              const result = await action();
+              if (conditional && (syscall === "fsync" || syscall === "fdatasync")) {
+                publishedSize = (await current(operationOptions)).size;
+                reserve(publishedSize);
+              }
+              return result;
+            } finally {
+              if (syscall === "close") { reservedBytes -= reserved; reserved = 0; }
+            }
           }));
           return {
             ...forwarded,
@@ -233,12 +255,22 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
               }
               if (!Number.isSafeInteger(offset) || offset < 0) throw new FsError("EIO", { syscall: "getPosition", path });
               await admitSize(stat, Math.max(stat.size, offset + buffer.byteLength), operationOptions);
-              return retained.write(buffer, position, operationOptions);
+              const count = await retained.write(buffer, position, operationOptions);
+              if (conditional) {
+                const size = (await current(operationOptions)).size;
+                if (admitted.synchronization !== undefined) publishedSize = size;
+                reserve(size);
+              }
+              return count;
             }),
             truncate: (retained, length, operationOptions) => mutate(async () => {
               operationOptions.signal?.throwIfAborted();
               await admitSize(await current(operationOptions), length, operationOptions);
               await retained.truncate(length, operationOptions);
+              if (conditional) {
+                if (admitted.synchronization !== undefined) publishedSize = length;
+                reserve(length);
+              }
             }),
           };
         } catch (error) {

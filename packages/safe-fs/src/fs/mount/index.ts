@@ -149,7 +149,7 @@ export class MountFileSystem implements FileSystem {
       };
       const values = mounts.map(({ backend }) => {
         if (backend.capabilities.readOnly === true
-          && !["open", "read", "stat", "readdir", "realpath", "access", "readlink", "explicitDirectories", "implicitDirectories"].includes(capability)) return false;
+          && !["open", "versionedDescriptors", "read", "stat", "readdir", "realpath", "access", "readlink", "explicitDirectories", "implicitDirectories"].includes(capability)) return false;
         const declared = backend.capabilities[capability];
         if (capability === "descriptorWriteStream" && backend.capabilities.streamingWrite === false) return false;
         return declared === true && optional[capability]?.some(method => typeof backend[method] !== "function") ? false : declared;
@@ -158,7 +158,7 @@ export class MountFileSystem implements FileSystem {
       return values.every(value => value === true) ? true : values.every(value => value === false) ? false : undefined;
     };
     const semantics = Object.fromEntries([
-      "atomicEntryRemoval", "atomicTreeRemoval", "atomicFileMutation", "atomicFileStaging", "atomicDirectoryMetadata", "read", "stat", "readdir", "realpath", "access", "open",
+      "atomicEntryRemoval", "atomicTreeRemoval", "atomicFileMutation", "atomicFileStaging", "atomicDirectoryMetadata", "read", "stat", "readdir", "realpath", "access", "open", "versionedDescriptors",
       "write", "append", "exclusiveCreate", "explicitDirectories", "implicitDirectories", "mkdir", "recursiveMkdir",
       "remove", "removeDirectory", "recursiveRemove", "rename", "atomicRenameNoReplace", "copy", "exclusiveCopy", "readlink", "truncate",
       "streamingAppend", "randomAccessWrite", "descriptorWriteStream", "retainedResize", "atomicResize", "symlinks", "hardlinks", "permissions", "timestamps",

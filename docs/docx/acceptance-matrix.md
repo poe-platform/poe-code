@@ -1,5 +1,11 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 template style correction](template-style-identity-20260917.md)
+qualifies 192 named F01/F02/F03/F04 cases across model, archive SDK, utility SDK
+and actual Shell. Encoded style members retain identity, relationships and custom
+definitions during template copy and append. Complete-family acceptance remains
+open, including the separate active template carrier dependency.
+
 The [2026-09-17 protection carrier correction](protection-carrier-closure-20260917.md)
 adds 1,440 exact settings/SDT carrier cases, independently rerun within 16,028
 passing DOCX workspace tests. Active MCE ownership, credential-free summaries,

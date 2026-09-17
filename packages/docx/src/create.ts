@@ -111,7 +111,7 @@ async function populateTemplate(template: AdmittedDocumentArchive, content: Docx
   if (!body) throw new UnsupportedEditError("Template requires one direct document body.");
   const section = body.children.find(child => child.namespace === w && child.localName === "sectPr");
   const stylesEdge = template.package.relationships("/" + main.name).find(edge => edge.reltype === `${r}/styles`);
-  const stylesMember = stylesEdge && !stylesEdge.is_external ? template.members.find(member => "/" + member.name === stylesEdge.target_part.partname) : undefined;
+  const stylesMember = stylesEdge && !stylesEdge.is_external ? template.members.find(member => member.name === stylesEdge.target_part.name) : undefined;
   const stylesEditor = stylesMember ? new DocumentXmlEditor(stylesMember.bytes, {}, undefined, budget) : undefined;
   const rendered = renderContent(content, w, budget, stylesEditor?.root, pageGeometry(undefined, section, w).width);
   if (rendered.body) editor.insertChildren(body, rendered.body, section);

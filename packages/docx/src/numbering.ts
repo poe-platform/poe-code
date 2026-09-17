@@ -3,7 +3,7 @@ import { xmlValue } from "./create-content.js";
 import type { XmlElement, XmlAttribute } from "./package-xml.js";
 import { parseDocumentXml } from "./package-xml.js";
 import { runElementOpen } from "./run-properties.js";
-import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { DocumentXmlEditor, sourceRootEnvelope, UnsupportedEditError } from "./xml-write.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import { MarkupCompatibility, type CompatibilityContent } from "./compatibility.js";
 
@@ -449,13 +449,8 @@ export class NumberingGraph {
     const original = this.xml.serialize();
     const encoding = original[0] === 0xff && original[1] === 0xfe ? "UTF-16LE"
       : original[0] === 0xfe && original[1] === 0xff ? "UTF-16BE" : "UTF-8";
-    this.budget.charge("retainedBytes", original.length * 2);
-    this.budget.charge("work", original.length);
-    const source = new TextDecoder(encoding, { fatal: true, ignoreBOM: true }).decode(original);
-    const originalRoot = this.xml.sourceXml(root);
-    const offset = source.indexOf(originalRoot);
-    if (offset < 0 || source.indexOf(originalRoot, offset + 1) !== -1) throw new UnsupportedEditError("Ambiguous lexical numbering root.");
-    const rewritten = source.slice(0, offset) + runElementOpen(root) + content + `</${root.name}>` + source.slice(offset + originalRoot.length);
+    const [prolog, epilog] = this.xml[sourceRootEnvelope]();
+    const rewritten = prolog + runElementOpen(root) + content + `</${root.name}>` + epilog;
     this.budget.check("xmlPartBytes", rewritten.length * (encoding === "UTF-8" ? 1 : 2));
     this.budget.charge("retainedBytes", rewritten.length * 3);
     this.budget.charge("work", rewritten.length * 3);

@@ -23,6 +23,9 @@ export class UnsupportedEditError extends Error {
 /** Internal list-editor authority; not part of the public XML-view surface. */
 export const replaceListPropertyXml = Symbol("replace-list-property-xml");
 
+/** Internal read of admitted document siblings; grants no XML mutation authority. */
+export const sourceRootEnvelope = Symbol("source-root-envelope");
+
 function unsupported(): never {
   throw new UnsupportedEditError("The XML edit cannot establish faithful preservation.");
 }
@@ -176,6 +179,14 @@ export class DocumentXmlEditor {
   }
 
   get root(): XmlElement { return this.#document.root; }
+
+  [sourceRootEnvelope](): readonly [string, string] {
+    const span = this.#spans.get(this.root)!;
+    const length = this.#source.length - (span.end - span.start);
+    this.#budget.charge("work", length);
+    this.#budget.charge("retainedBytes", length * 2);
+    return [this.#source.slice(0, span.start), this.#source.slice(span.end)];
+  }
 
   get dirtyNodes(): readonly XmlContent[] {
     return [...new Set([...this.#patches.keys()].map(token => this.#spans.get(token)!.owner))];

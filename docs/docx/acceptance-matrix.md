@@ -1,5 +1,11 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 numbering source-position correction](numbering-lexical-root-20260917.md)
+qualifies 320 exact prolog/epilog/encoding/dialect/kind cases. List edits preserve
+comments and processing instructions containing literal root XML. Its 1,494
+focused passes and 64 built workflows close this dependency only; complete
+F01–F07 acceptance remains open.
+
 The [2026-09-17 template style-carrier correction](template-style-carriers-20260917.md)
 adds 576 exact native declaration/name/property/outline cases across six public
 routes, both dialects/kinds and active/inert carriers. Named styles and existing

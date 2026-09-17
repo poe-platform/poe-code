@@ -1,4 +1,4 @@
-import { PublicDiagnostic } from "../../diagnostics.js";
+import { PublicDiagnostic } from "../../public-diagnostic.js";
 import { parentPort } from "node:worker_threads";
 import { compile } from "./matching.js";
 import { matchExpr, searchBre } from "../expr/bre-worker.js";

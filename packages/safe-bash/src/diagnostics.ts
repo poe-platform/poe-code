@@ -1,7 +1,8 @@
 import { FsError } from "./contracts/errors.js";
 import { CommandArgumentIdentityError, type InternalErrorHandler } from "./contracts/command.js";
 
-export class PublicDiagnostic extends Error {}
+import { PublicDiagnostic } from "./public-diagnostic.js";
+export { PublicDiagnostic } from "./public-diagnostic.js";
 
 export function publicDiagnosticMessage(error: unknown, onInternalError?: InternalErrorHandler): string {
   if (error instanceof FsError || error instanceof CommandArgumentIdentityError) return error.message;

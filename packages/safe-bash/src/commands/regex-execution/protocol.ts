@@ -1,4 +1,4 @@
-import { PublicDiagnostic } from "../../diagnostics.js";
+import { PublicDiagnostic } from "../../public-diagnostic.js";
 export interface RegexExecutionOptions {
   readonly requestTimeoutMs?: number;
   readonly startupTimeoutMs?: number;

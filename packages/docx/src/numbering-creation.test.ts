@@ -536,7 +536,7 @@ it("routes actual CLI dry-run and binary publication through the same creation e
   const dry = await command(input);
   expect(dry.result.exitCode, new TextDecoder().decode(dry.stdout)).toBe(0);
   const envelope = JSON.parse(new TextDecoder().decode(dry.stdout));
-  expect(envelope).toMatchObject({ ok: true, affected: 1, data: { dryRun: true, output: [] } });
+  expect(envelope).toMatchObject({ ok: true, affected: 1, data: { publication: {dryRun: true, output: null} } });
   const published = await command(input, operations, ["--output", "-"]);
   expect(published.result.exitCode).toBe(0);
   preserved(readPackage(input), readPackage(published.stdout), [
@@ -669,14 +669,14 @@ it("discovers a closed owner argument and a concrete NumberingPart result schema
     textContext
   );
   const validate = new Ajv({ strict: false }).compile(data.operations[0]!.result);
-  expect(validate(batch.results[2]), JSON.stringify(validate.errors)).toBe(true);
+  expect(validate(batch.operationResults[2]), JSON.stringify(validate.errors)).toBe(true);
   expect(
     validate({
-      operation,
-      value: { id: "placeholder", type: "PartView", owner: "document", revision: 0 }
+      ...batch.operationResults[2],
+      data: { id: "placeholder", type: "PartView", owner: "document", revision: 0 }
     })
   ).toBe(false);
-  for (const item of batch.results) {
+  for (const item of batch.operationResults) {
     const schema = (
       getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: item.operation } })!
         .data as DocxSchemaData

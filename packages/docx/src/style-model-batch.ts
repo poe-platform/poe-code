@@ -18,7 +18,8 @@ import { UnsupportedProfileError } from "./package-xml.js";
 import { DocxUsageError } from "./argument-json.js";
 import { BoundsError } from "./model-errors.js";
 import { validateDocxBatch } from "./command.js";
-import { docxOperationSchemas } from "./operation-schema.js";
+import { ModelBatchEffects, type ModelBatchItemResult } from "./model-batch-effects.js";
+import { documentByteView } from "./byte-input.js";
 import { BaseStyle, CharacterStyle, ParagraphStyle, TableStyle, Styles, LatentStyles, LatentStyle, StylePartView } from "./styles-model.js";
 import { Font, ParagraphFormat, TabStops, TabStop, ColorFormat, RGBColor } from "./formatting-model.js";
 import { styleModelBatchOperations, styleModelBatchActions, styleModelBatchBootstrap } from "./style-model-batch-operations.js";
@@ -29,11 +30,19 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
   const settings = modelContext(context);
   const batch = validateDocxBatch(operations, settings.budget);
   for (const item of batch.operations) if (!styleModelBatchOperations.includes(item.operation) && !structureModelBatchActions.has(item.operation)) throw new UnsupportedProfileError("This model operation is not implemented by the style batch executor.");
-  const document = await Document(input, settings);
+  const borrowed = documentByteView(input);
+  settings.budget.check("compressedInput", borrowed.length);
+  settings.budget.charge("retainedBytes", borrowed.length);
+  const source = new Uint8Array(borrowed);
+  const document = await Document(source, settings);
   const model = { get styles() { return document.styles; }, package: document.store.package, warnings: [] as readonly { readonly code: string }[], save: (output: import("./model-output.js").DocumentOutput, options?: import("./model-output.js").DocumentSaveOptions) => document.save(output, options), publish: (options: import("./publication.js").PublicationOptions, context: import("./publication.js").PublicationContext) => document.store.publish(options, context) };
   const named = new Map<string, unknown>();
   const objectIds = new Map<object, string>();
   const results: { operation: string; value: unknown }[] = [];
+  const operationResults: ModelBatchItemResult[] = [];
+  settings.budget.charge("work", source.length);
+  const sourceSha256 = [...new Uint8Array(await crypto.subtle.digest("SHA-256", source))].map(byte => byte.toString(16).padStart(2, "0")).join("");
+  const effects = new ModelBatchEffects(document.store.snapshot(), sourceSha256, settings.budget);
   let affected = 0;
   const currentRevision = () => document.store.revision + model.package.revision;
   let revision = currentRevision();
@@ -103,23 +112,35 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
     }
     return Object.fromEntries(Object.entries(record).map(([key, item]) => [key, resolve(item)]));
   }
-  for (const item of batch.operations) {
-    await settings.budget.checkpoint();
-    let value: unknown;
-    if (item.operation === styleModelBatchBootstrap) {
-      const receiver = item.receiver;
-      if (!(receiver?.resultHandle === "document" && Object.keys(receiver).length === 1) && (receiver?.id !== "document" || receiver.type !== "DocumentModel" || receiver.owner !== "document" || receiver.revision !== 0)) throw new DocxUsageError("The root receiver must be this document's initial handle.");
-      value = model.styles;
-    } else {
-      const args = Object.fromEntries(Object.entries(item.arguments).map(([key, value]) => [key, resolve(value)]));
-      const imageAction = imageBatchActions.get(item.operation), packageAction = packageViewBatchActions.get(item.operation);
-      value = await (imageAction ? imageAction(resolve(item.receiver), args, settings) : packageAction ? packageAction(resolve(item.receiver), args, settings) : (structureModelBatchActions.get(item.operation) ?? styleModelBatchActions.get(item.operation))!(resolve(item.receiver), args));
+  for (const [index, item] of batch.operations.entries()) {
+    try {
+      await settings.budget.checkpoint();
+      let value: unknown;
+      if (item.operation === styleModelBatchBootstrap) {
+        const receiver = item.receiver;
+        if (!(receiver?.resultHandle === "document" && Object.keys(receiver).length === 1) && (receiver?.id !== "document" || receiver.type !== "DocumentModel" || receiver.owner !== "document" || receiver.revision !== 0)) throw new DocxUsageError("The root receiver must be this document's initial handle.");
+        value = model.styles;
+      } else {
+        const args = Object.fromEntries(Object.entries(item.arguments).map(([key, value]) => [key, resolve(value)]));
+        const imageAction = imageBatchActions.get(item.operation), packageAction = packageViewBatchActions.get(item.operation);
+        value = await (imageAction ? imageAction(resolve(item.receiver), args, settings) : packageAction ? packageAction(resolve(item.receiver), args, settings) : (structureModelBatchActions.get(item.operation) ?? styleModelBatchActions.get(item.operation))!(resolve(item.receiver), args));
+      }
+      if (item.resultHandle) named.set(item.resultHandle, value);
+      const encoded = encode(value);
+      results.push({ operation: item.operation, value: encoded });
+      const nextRevision = currentRevision();
+      const changes = nextRevision !== revision ? effects.record(document.store.snapshot()) : [];
+      const count = changes.length ? 1 : 0;
+      affected += count;
+      operationResults.push({version: 1, operation: item.operation, ok: true, data: encoded, affected: count,
+        warnings: [], errors: [], locations: changes.flatMap(change => change.after ? [change.after] : [])});
+      revision = nextRevision;
+    } catch (cause) {
+      const error = cause instanceof Error ? cause : new Error("Document model batch operation failed.", {cause});
+      Object.assign(error, {operationIndex: index});
+      throw error;
     }
-    if (item.resultHandle) named.set(item.resultHandle, value);
-    results.push({ operation: item.operation, value: encode(value) });
-    const nextRevision = currentRevision();
-    if (docxOperationSchemas[item.operation]!.mutates && nextRevision !== revision) affected++;
-    revision = nextRevision;
   }
-  return { save: model.save, publish: model.publish, warnings: model.warnings, results: Object.freeze(results), affected };
+  return { save: model.save, publish: model.publish, warnings: model.warnings, results: Object.freeze(results),
+    operationResults: Object.freeze(operationResults), changes: Object.freeze(effects.changes), affected };
 }

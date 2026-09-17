@@ -68,7 +68,7 @@ it.each([0, null, 24, 0.5, -4])("checks SDK and CLI priority assignment %s", asy
   });
   const envelope = JSON.parse(volume.readFileSync("/stdout", "utf8") as string);
   expect(result.exitCode, JSON.stringify(envelope)).toBe(valid ? 0 : 2);
-  if (valid) expect(envelope.data.results.at(-1).value).toBe(value);
+  if (valid) expect(envelope.data.results.at(-1).data).toBe(value);
   else {
     expect(envelope.errors[0].code).toBe("usage");
     expect(envelope.affected).toBe(0);

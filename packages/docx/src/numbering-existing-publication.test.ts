@@ -136,7 +136,7 @@ it.each(["sdk", "cli"])(
       expect(JSON.parse(new TextDecoder().decode(result.stdout))).toMatchObject({
         ok: true,
         affected: 0,
-        data: { output: [{ path: "/out/copied.docx" }] }
+        data: { publication: {changed: false, output: { path: "/out/copied.docx" }} }
       });
     }
     preserved(

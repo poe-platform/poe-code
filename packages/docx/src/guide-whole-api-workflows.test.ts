@@ -720,9 +720,9 @@ it.each(workflows)(
           ok: true,
           errors: [],
           affected: sdk.affected,
-          data: { output: [] }
+          data: { publication: {dryRun: true, output: null} }
         });
-        expect(output.data.results).toEqual(sdk.results);
+        expect(output.data.results).toEqual(sdk.operationResults);
       } else
         workflow.check(
           await Document(new Uint8Array(volume.readFileSync("/stdout") as Buffer), context)

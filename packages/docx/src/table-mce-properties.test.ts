@@ -58,7 +58,7 @@ for (const strict of [false, true]) for (const route of ["model", "batch", "inve
       expect(cli.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
       const envelope = JSON.parse(volume.readFileSync("/out", "utf8") as string);
       expect(envelope.affected).toBe(0);
-      if (route === "batch") expect(envelope.data.results.slice(2).map((result: { value: unknown }) => result.value)).toEqual(expected);
+      if (route === "batch") expect(envelope.data.results.slice(2).map((result: { data: unknown }) => result.data)).toEqual(expected);
       else expect(envelope.data.items[0].details).toMatchObject(details);
       expect(volume.readFileSync("/input.docx")).toEqual(Buffer.from(input));
     }

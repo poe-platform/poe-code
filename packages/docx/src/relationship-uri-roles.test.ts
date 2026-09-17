@@ -49,7 +49,7 @@ for (const strict of [false, true]) for (const kind of ["officeDocument", "style
       expect(data.results.at(-1)!.value).toBe(expected); expect(data.affected).toBe(0);
     } else {
       const envelope = JSON.parse(new TextDecoder().decode(await command(input, ["batch", "/input", "--ops-json", JSON.stringify(batch), "--dry-run", "--json"])));
-      expect(envelope.data.results.at(-1).value).toBe(expected); expect(envelope.affected).toBe(0);
+      expect(envelope.data.results.at(-1).data).toBe(expected); expect(envelope.affected).toBe(0);
     }
   }
   expect(input).toEqual(original);

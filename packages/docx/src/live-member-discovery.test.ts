@@ -173,7 +173,7 @@ it.each(elements)(
       "--json"
     ]);
     const expected = { kind: "bytes", base64: Buffer.from(sdk().serialize()).toString("base64") };
-    expect(cli.results.at(-1).value).toEqual(expected);
+    expect(cli.results.at(-1).data).toEqual(expected);
     expect((await applyStyleModelBatch(input, batch, context)).results.at(-1)!.value).toEqual(
       expected
     );
@@ -202,7 +202,7 @@ it.each([
       JSON.stringify({ version: 1, operations }),
       "--json"
     ]);
-    expect(cli.results.slice(-2).map((row: { value: unknown }) => row.value)).toEqual([
+    expect(cli.results.slice(-2).map((row: { data: unknown }) => row.data)).toEqual([
       true,
       false
     ]);
@@ -275,7 +275,7 @@ it("exposes returned metadata, XML name components and cell ownership", async ()
     "--json"
   ]);
   const values = new Map(
-    cli.results.map((row: { operation: string; value: unknown }) => [row.operation, row.value])
+    cli.results.map((row: { operation: string; data: unknown }) => [row.operation, row.data])
   );
   expect(values.get("model.text.hyperlink.Hyperlink.history.get")).toBe(
     document.paragraphs[1]!.hyperlinks[0]!.history
@@ -286,8 +286,8 @@ it("exposes returned metadata, XML name components and cell ownership", async ()
     "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
   );
   expect(values.get("model.table._Cell.text.get")).toBe("Tidal sample");
-  expect(cli.results.at(-3).value).toBe(document.inline_shapes.at(0).part.content_type);
-  expect(cli.results.at(-1).value).toBe(document.core_properties.part.content_type);
+  expect(cli.results.at(-3).data).toBe(document.inline_shapes.at(0).part.content_type);
+  expect(cli.results.at(-1).data).toBe(document.core_properties.part.content_type);
 });
 
 it("describes the executed live model families without stale utility-era pending claims", async () => {

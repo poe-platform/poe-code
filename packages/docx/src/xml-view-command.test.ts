@@ -28,7 +28,7 @@ it("exposes XML view batch behavior and truthful result schemas through the publ
   });
   expect(result.exitCode).toBe(0);
   const envelope = JSON.parse(volume.readFileSync("/stdout", "utf8") as string);
-  expect(envelope).toMatchObject({ ok: true, affected: 1, data: { dryRun: true, output: [] } });
+  expect(envelope).toMatchObject({ ok: true, affected: 1, data: { publication: {dryRun: true, output: null} } });
   const ajv = new Ajv({ strict: false });
   for (const item of envelope.data.results) {
     const schema = getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: item.operation } })!;

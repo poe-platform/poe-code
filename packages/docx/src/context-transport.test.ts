@@ -162,7 +162,7 @@ it("admits package-open context through actual SDK and CLI batch execution", asy
     });
   expect(result.exitCode, String(volume.readFileSync("/stderr", "utf8"))).toBe(0);
   expect(JSON.parse(volume.readFileSync("/stdout", "utf8") as string).data.results).toEqual(
-    sdk.results
+    sdk.operationResults
   );
   expect(volume.readFileSync("/input.docx")).toEqual(Buffer.from(input));
   expect(volume.readFileSync("/other.docx")).toEqual(Buffer.from(other));

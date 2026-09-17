@@ -2,8 +2,8 @@ import { resolvePath, type FileSystem } from "@poe-code/safe-fs/core";
 import { archiveSettings, type ArchiveContext } from "./archive.js";
 import type { DocxInvocation } from "./command.js";
 import type { DocxInspectionCommandRequest } from "./inspection-command.js";
-import { PublicationError, type PublicationInput, type PublicationOptions } from "./publication.js";
-import { applyStyleModelBatch } from "./style-model-batch.js";
+import { PublicationError, type PublicationInput } from "./publication.js";
+import { executeDocumentBatch, type DocumentBatchOptions } from "./batch.js";
 import { DocumentIo } from "./io.js";
 import { UnsupportedProfileError } from "./package-xml.js";
 
@@ -15,10 +15,13 @@ export async function executeStyleModelCommand(invocation: DocxInvocation, bytes
     if (item.operation !== "model.image.image.Image.from_file.call" || !descriptor || typeof descriptor !== "object" || !("path" in descriptor) || !("capability" in descriptor) || descriptor.capability !== "command") return item;
     return { ...item, arguments: { ...item.arguments, imageDescriptor: { ...descriptor, path: resolvePath(request.cwd, descriptor.path as string) } } };
   });
-  const model = await applyStyleModelBatch(bytes, { version: options.version, operations }, { ...context,
-    ...(options.timestamp === undefined ? {} : { timestamp: new Date(options.timestamp as string) }),
-    ...(options.author === undefined ? {} : { author: options.author as string }),
-    ...(request.registerCleanup ? { registerCleanup: request.registerCleanup } : {}),
+  const output = options.output === undefined ? undefined : options.output === "-" ? "-" : resolvePath(request.cwd, options.output as string);
+  if ((options.inPlace || output !== undefined && output !== "-") && invocation.inputs[0] !== "-" && !input)
+    throw new PublicationError("unsupported-publication", "File publication requires admitted input identity.");
+  const {version, operations: ignoredOperations, ...intent} = options;
+  const data = await executeDocumentBatch(bytes, {version, operations}, {...intent, ...(input ? {input} : {}), ...(output === undefined ? {} : {output})} as DocumentBatchOptions, { ...context,
+    encoding: {order: "input", compression: "store"}, filesystem: request.filesystem as FileSystem, stdout: request.stdout,
+    ...(request.registerCleanup ? {registerCleanup: request.registerCleanup} : {}),
     binaryResolver: { capability: "command", async *open(path, { signal, maxBytes }) {
       const readStream = request.filesystem.readStream;
       if (!readStream) throw new UnsupportedProfileError("Image paths require an explicit streaming read capability.");
@@ -27,21 +30,8 @@ export async function executeStyleModelCommand(invocation: DocxInvocation, bytes
       try { signal.throwIfAborted(); yield await io.readBytes(source); } finally { await io.cleanup(); }
     } }
   });
-  const output = options.output === undefined ? undefined : options.output === "-" ? "-" : resolvePath(request.cwd, options.output as string);
-  const publishes = model.affected > 0 || output !== undefined || options.inPlace === true;
-  if (publishes && (options.inPlace || output !== undefined && output !== "-") && invocation.inputs[0] !== "-" && !input)
-    throw new PublicationError("unsupported-publication", "File publication requires admitted input identity.");
-  const warnings = model.warnings.map(warning => ({ code: warning.code, message: "Style ID lookup is deprecated; use a style name." }));
-  const budget = archiveSettings(context).budget;
-  budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation: "batch", ok: true,
-    data: { results: model.results, dryRun: options.dryRun === true, output: [{ path: output ?? input?.path ?? "", bytes: Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER) }] },
-    warnings, errors: [], affected: model.affected, locations: [] }) + "\n").length);
-  const publication: PublicationOptions = { ...(input ? { input } : {}), ...(output === undefined ? {} : { output }),
-    ...(options.inPlace === undefined ? {} : { inPlace: options.inPlace as boolean }), ...(options.force === undefined ? {} : { force: options.force as boolean }),
-    ...(options.dryRun === undefined ? {} : { dryRun: options.dryRun as boolean }), ...(options.json === undefined ? {} : { json: options.json as boolean }) };
-  const published = publishes ? await model.publish(publication, { ...context, encoding: { order: "input", compression: "store" }, filesystem: request.filesystem as FileSystem, stdout: request.stdout }) : null;
-  if (publishes && output === "-" && !options.dryRun) return new Uint8Array();
-  const data = { results: model.results, dryRun: options.dryRun === true, output: published?.published ?? [] };
-  return new TextEncoder().encode(options.json ? JSON.stringify({ version: 1, operation: "batch", ok: true, data, warnings, errors: [], affected: model.affected, locations: [] }) + "\n"
-    : `docx batch: ${options.dryRun ? "dry-run; " : ""}${model.results.length} operations; ${model.affected} changes\n`);
+  if (data.publication && output === "-" && !options.dryRun) return new Uint8Array();
+  const affected = data.results.reduce((sum, result) => sum + result.affected, 0);
+  return new TextEncoder().encode(options.json ? JSON.stringify({ version: 1, operation: "batch", ok: true, data, warnings: [], errors: [], affected, locations: [] }) + "\n"
+    : `docx batch: ${options.dryRun ? "dry-run; " : ""}${data.results.length} operations; ${affected} changes\n`);
 }

@@ -53,13 +53,13 @@ it("uses SDK package URI operations through CLI JSON without document publicatio
   });
   expect(result.exitCode).toBe(0);
   expect(fs.readFileSync("/err", "utf8")).toBe("");
-  expect(JSON.parse(fs.readFileSync("/out", "utf8") as string)).toMatchObject({ version: 1, operation: "batch", ok: true, affected: 0, data: { output: [], results: [{ value: "/reports/page1.xml" }, { value: "/reports" }] } });
+  expect(JSON.parse(fs.readFileSync("/out", "utf8") as string)).toMatchObject({ version: 1, operation: "batch", ok: true, affected: 0, data: { publication: null, results: [{ data: "/reports/page1.xml" }, { data: "/reports" }] } });
   expect(new Uint8Array(fs.readFileSync("/input.docx") as Uint8Array)).toEqual(input);
 });
 it("describes immutable package URI results as strings and package feature reads", async () => {
   const { styleModelOperationResultSchema } = await import("./style-model-result-schema.js");
   const { getDocxDiscovery } = await import("./discovery.js");
-  expect(styleModelOperationResultSchema(`${prefix}.call`).properties?.value).toEqual({ type: "string" });
+  expect(styleModelOperationResultSchema(`${prefix}.call`).properties?.data).toEqual({ type: "string" });
   const discovery = getDocxDiscovery({ operation: "schema", inputs: [], options: {} })!;
   const data = discovery.data as DocxSchemaData;
   expect(data.operations.find(item => item.id === `${prefix}.call`)).toMatchObject({ featureIds: ["F01", "F04"], support: "read" });

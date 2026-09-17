@@ -145,7 +145,7 @@ for (const dialect of ["transitional", "strict"] as const) for (const route of [
     expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
     const resultData = JSON.parse(volume.readFileSync("/out", "utf8") as string);
     expect(resultData.affected).toBe(0);
-    expect(resultData.data.results[1].value).toBe(types.dotx);
+    expect(resultData.data.results[1].data).toBe(types.dotx);
     expect(volume.readdirSync("/")).toEqual(["err", "input", "out"]);
   }
   expect(volume.readFileSync("/input")).toEqual(Buffer.from(input));

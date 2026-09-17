@@ -1,5 +1,14 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 model batch contract qualification](model-batch-data-contract-20260917.md)
+records 1,837 final focused passes in eighteen files, zero skips, and 112 paired
+built SDK/actual Shell workflows across both dialects/kinds and four encodings.
+Versioned results, actual publication metadata, source ownership, no-op/getter
+effects, font capabilities and late failure indexes pass. Original failures and
+the failed 89-file consumer run remain retained; all its failed consumers
+pass in the focused rerun. The active-MCE XML attribute dependency remains open.
+These results do not accept complete F01–F07 families or a full workspace gate.
+
 The [2026-09-17 native owner validation qualification](validation-owner-mime-20260917.md)
 records 972 new exact cases inside 1,364 scoped passes from a 1,580-pass joint
 run, zero skips, plus 48 built SDK/Shell workflows. MIME parameter text no longer

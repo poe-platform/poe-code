@@ -41,7 +41,7 @@ for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const
     const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); await fs.writeFile("/ops.json", encode(JSON.stringify({ version: 1, operations })));
     const shell = new Shell({ fs }).use(docxCommands({ engine: createDocxInspectionCommandEngine({ limits: textContext.limits }) }));
     const result = await shell.exec("docx batch /input --ops-file /ops.json --json"); expect(result.exitCode, result.stderr).toBe(0);
-    const envelope = JSON.parse(result.stdout); expect(envelope).toMatchObject({ ok: true, affected: 0, errors: [], data: operation === "empty" ? { publication: null } : { output: [] } }); check({ affected: envelope.affected, results: envelope.data.results });
+    const envelope = JSON.parse(result.stdout); expect(envelope).toMatchObject({ ok: true, affected: 0, errors: [], data: { publication: null } }); check({ affected: envelope.affected, results: envelope.data.results.map((item: {data: unknown}) => ({value: item.data})) });
     expect(await fs.readFile("/input")).toEqual(input);
     // Outer create-from-template is the documented copy/save route, without
     // invoking a definition-creating getter or a nested sink operation.

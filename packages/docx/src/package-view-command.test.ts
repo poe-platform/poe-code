@@ -55,7 +55,7 @@ it("exposes the package/part/relationship surface and correct typed results thro
     const validate = ajv.compile(declaration.result);
     expect(validate(item), `${item.operation}: ${JSON.stringify(validate.errors)}`).toBe(true);
   }
-  expect(envelope.data.results.at(-1).value).toBe("2024-02-29T12:34:56.000Z");
+  expect(envelope.data.results.at(-1).data).toBe("2024-02-29T12:34:56.000Z");
   expect(volume.readFileSync("/input")).toEqual(Buffer.from(input));
 });
 
@@ -90,7 +90,7 @@ it("executes image collection and owned part factories through the shared typed 
   ] };
   const result = await applyStyleModelBatch(input, batch, { ...textContext, timestamp: new Date("2026-09-15T00:00:00Z") });
   const ajv = new Ajv({ strict: false }); addFormats(ajv);
-  for (const item of result.results) {
+  for (const item of result.operationResults) {
     const schema = getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: item.operation } })!;
     const declaration = (schema.data as DocxSchemaData).operations[0]!;
     const validate = ajv.compile(declaration.result);

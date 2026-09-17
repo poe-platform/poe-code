@@ -30,7 +30,7 @@ it("executes style model batch through CLI with one pure binary publication", as
 it("reports model batch dry-run without publishing a package", async () => {
   const result = await execute(["--dry-run", "--json"]);
   expect(result.exitCode).toBe(0);
-  expect(JSON.parse(new TextDecoder().decode(result.output))).toMatchObject({ version: 1, operation: "batch", ok: true, data: { dryRun: true, results: expect.any(Array) }, errors: [] });
+  expect(JSON.parse(new TextDecoder().decode(result.output))).toMatchObject({ version: 1, operation: "batch", ok: true, data: { publication: {dryRun: true, output: null}, results: expect.any(Array) }, errors: [] });
 });
 it("binds only the command VFS capability for immutable image batches without publication", async () => {
   const volume = Volume.fromJSON({ "/input.docx": Buffer.from(await textFixture(paragraph("Harbor"))), "/Map.PNG": Buffer.from(rasterPng()), "/out": "" });
@@ -43,7 +43,7 @@ it("binds only the command VFS capability for immutable image batches without pu
     filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); }, readStream(path) { return { async *[Symbol.asyncIterator]() { yield new Uint8Array(volume.readFileSync(path) as Buffer); } }; } }, stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write() {} } });
   expect(result.exitCode).toBe(0);
-  expect(JSON.parse(volume.readFileSync("/out", "utf8") as string)).toMatchObject({ affected: 0, data: { output: [], results: [{ value: { owner: "batch" } }, { value: "Map.PNG" }] } });
+  expect(JSON.parse(volume.readFileSync("/out", "utf8") as string)).toMatchObject({ affected: 0, data: { publication: null, results: [{ data: { owner: "batch" } }, { data: "Map.PNG" }] } });
 });
 it("refuses image paths without bounded stream acquisition before calling readFile", async () => {
   const input = await textFixture(paragraph("Harbor"));

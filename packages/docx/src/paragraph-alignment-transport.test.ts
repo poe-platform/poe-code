@@ -195,7 +195,7 @@ it.each(
     expect(result.exitCode, result.stderr).toBe(mode === "conflict" ? 1 : 0);
     const envelope = JSON.parse(decoder.decode(result.stdout));
     expect(envelope.ok).toBe(mode !== "conflict");
-    if (options.dryRun) expect(envelope.data.dryRun).toBe(true);
+    if (options.dryRun) expect((route === "cli-batch" ? envelope.data.publication : envelope.data).dryRun).toBe(true);
     if (mode === "conflict")
       expect(envelope).toMatchObject({ affected: 0, data: null, errors: [{ code: "conflict" }] });
   }

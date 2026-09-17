@@ -338,8 +338,8 @@ export function createDocxInspectionCommandEngine(options: { readonly limits?: P
           : failureMessage;
         const diagnostic = commandDiagnostic(recoveryMessage, code, budget.limits.diagnosticBytes);
         const message = diagnostic.message;
-        const batchFailure = invocation.operation === "batch" && error instanceof Error && "operationIndex" in error && "operationId" in error
-          ? { operationIndex: error.operationIndex, operationId: error.operationId } : {};
+        const batchFailure = invocation.operation === "batch" && error instanceof Error && "operationIndex" in error
+          ? { operationIndex: error.operationIndex, ...("operationId" in error ? {operationId: error.operationId} : {}) } : {};
         const imageFailure = ["images.extract", "objects.extract"].includes(invocation.operation) && (error instanceof ImageCommandPublicationError || error instanceof ObjectCommandPublicationError) ? error : undefined;
         const locatedFailure = error instanceof UnsupportedDiagramMutationError || error instanceof UnsupportedEquationMutationError ? error : undefined;
         if (imageFailure) imageReceipt = imageFailure.data;

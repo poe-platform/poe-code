@@ -21,8 +21,8 @@ it("awaits standalone image admission before binding batch-local handles and enc
   expect(applied.results[3]?.value).toEqual([{ value: 12700, unit: "emu" }, { value: 12700, unit: "emu" }]);
 });
 it("declares awaited Image handles and exact length tuples in result schemas", () => {
-  expect(styleModelOperationResultSchema(`${prefix}.from_blob.call`)).toMatchObject({ properties: { value: { properties: { type: { const: "Image" }, owner: { const: "batch" } } } } });
-  expect(styleModelOperationResultSchema(`${prefix}.scaled_dimensions.call`)).toMatchObject({ properties: { value: { type: "array", minItems: 2, maxItems: 2 } } });
+  expect(styleModelOperationResultSchema(`${prefix}.from_blob.call`)).toMatchObject({ properties: { data: { properties: { type: { const: "Image" }, owner: { const: "batch" } } } } });
+  expect(styleModelOperationResultSchema(`${prefix}.scaled_dimensions.call`)).toMatchObject({ properties: { data: { type: "array", minItems: 2, maxItems: 2 } } });
 });
 it("rejects guessed batch handles and context authority before binary acquisition", async () => {
   const input = await textFixture(paragraph("Harbor"));

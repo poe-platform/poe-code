@@ -91,7 +91,7 @@ for (const strict of [false, true]) for (const uppercase of [false, true]) for (
       expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
       const envelope = JSON.parse(volume.readFileSync("/out", "utf8") as string);
       expect(envelope.affected).toBe(0);
-      expect(envelope.data.results.at(-1).value).toBe(expected);
+      expect(envelope.data.results.at(-1).data).toBe(expected);
       expect(volume.readFileSync("/input")).toEqual(Buffer.from(input));
       expect(volume.readdirSync("/")).toEqual(["err", "input", "out"]);
     }

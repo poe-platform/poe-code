@@ -6,9 +6,12 @@ import { docxOperationSchemas } from "./operation-schema.js";
 import { UnsupportedProfileError } from "./package-xml.js";
 import { publishDocumentArchive, type PublicationContext, type PublicationOptions } from "./publication.js";
 import type { ImageInsertionContext } from "./image-insertion.js";
+import type { DocumentModelContext } from "./model-context.js";
 import { closedRecord, encodeLocation, type Location } from "./location-token.js";
 import type { DocumentBudget } from "./budget.js";
 import type { DocxBatchItem } from "./operation-types.js";
+import { applyStyleModelBatch } from "./style-model-batch.js";
+import type { ModelBatchItemResult } from "./model-batch-effects.js";
 
 export interface DocumentBatchItemResult {
   readonly id: string;
@@ -22,7 +25,7 @@ export interface DocumentBatchItemResult {
   readonly locations: readonly Location[];
 }
 export interface DocumentBatchData {
-  readonly results: readonly DocumentBatchItemResult[];
+  readonly results: readonly (DocumentBatchItemResult | ModelBatchItemResult)[];
   readonly publication: { readonly changed: boolean; readonly changes: readonly { readonly kind: "add" | "set" | "remove" | "replace"; readonly before: Location | null; readonly after: Location | null }[]; readonly dryRun: boolean; readonly output: { readonly path: string | null; readonly bytes: number; readonly sha256: string } | null } | null;
 }
 export interface DocumentBatchInput { readonly version: 1; readonly operations: readonly (DocxBatchItem & { readonly id?: string })[] }
@@ -42,7 +45,7 @@ function rebaseLocations(value: unknown, generation: number, beforeGeneration: n
 }
 
 /** Syntax is admitted as a whole; effects stay local until the single outer publication. */
-export async function executeDocumentBatch(input: Uint8Array, value: unknown, options: DocumentBatchOptions, context: PublicationContext & Pick<ImageInsertionContext, "binaryResolver">): Promise<DocumentBatchData> {
+export async function executeDocumentBatch(input: Uint8Array, value: unknown, options: DocumentBatchOptions, context: PublicationContext & Pick<ImageInsertionContext, "binaryResolver"> & Pick<DocumentModelContext, "registerCleanup" | "fontResolver">): Promise<DocumentBatchData> {
   const settings = archiveSettings(context);
   closedRecord(options, ["input", "output", "inPlace", "force", "dryRun", "json", "limit", "author", "timestamp"]);
   if (![Object.prototype, null].includes(Object.getPrototypeOf(options))) throw new InputTypeError("Expected owned batch options.");
@@ -55,6 +58,25 @@ export async function executeDocumentBatch(input: Uint8Array, value: unknown, op
   const invocation = validateDocxInvocation({ operation: "batch", inputs: [identity?.path ?? "document"], options: { ...operationOptions, ...initial } }, settings.budget);
   const batch = { version: 1, operations: invocation.options.operations } as DocxBatch;
   const budget = settings.budget.lower(Object.fromEntries((options.limit ?? []).map(item => [item.name, item.value])));
+  if (batch.operations.length && batch.operations.every(item => !documentBatchActions.has(item.operation))) {
+    const model = await applyStyleModelBatch(input, batch, { ...settings, budget,
+      ...(context.binaryResolver ? {binaryResolver: context.binaryResolver} : {}),
+      ...(context.registerCleanup ? {registerCleanup: context.registerCleanup} : {}),
+      ...(context.fontResolver ? {fontResolver: context.fontResolver} : {}),
+      ...(options.timestamp === undefined ? {} : {timestamp: new Date(options.timestamp)}),
+      ...(options.author === undefined ? {} : {author: options.author}) });
+    const mutates = batch.operations.some(item => docxOperationSchemas[item.operation]!.mutates);
+    const publication: DocumentBatchData["publication"] = mutates ? {changed: model.affected > 0, changes: model.changes, dryRun: options.dryRun ?? false, output: null} : null;
+    const prospective = publication ? {...publication, output: options.dryRun ? null : {path: options.inPlace ? identity?.path ?? null : options.output === "-" ? null : options.output ?? null, bytes: settings.limits.maxArchiveBytes, sha256: "0".repeat(64)}} : null;
+    budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({version: 1, operation: "batch", ok: true,
+      data: {results: model.operationResults, publication: prospective}, warnings: [], errors: [], affected: model.affected, locations: []}) + "\n").length);
+    if (publication) {
+      const {limit: ignoredLimit, author: ignoredAuthor, timestamp: ignoredTimestamp, ...intent} = options;
+      const published = await model.publish(intent, {...context, ...settings, budget});
+      if (published.published.length) Object.assign(publication, {output: {path: options.output === "-" ? null : published.published[0]!.path, bytes: published.published[0]!.bytes, sha256: published.archiveSha256!}});
+    }
+    return {results: model.operationResults, publication};
+  }
   for (const item of batch.operations) if (!documentBatchActions.has(item.operation)) throw new UnsupportedProfileError("This operation is not implemented by the ordered utility batch executor.");
   budget.charge("batchOperations", batch.operations.length);
   if (!batch.operations.length) return { results: [], publication: null };

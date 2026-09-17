@@ -177,7 +177,7 @@ it("discovers the exact read-only getter and a closed XmlElementView result hand
   ).toContain(getter);
   const validate = new Ajv({ strict: false }).compile(declaration!.result);
   const value = { id: "handle3", type: "XmlElementView", owner: "document", revision: 0 };
-  expect(validate({ operation: getter, value })).toBe(true);
+  expect(validate({version: 1, operation: getter, ok: true, data: value, affected: 0, warnings: [], errors: [], locations: []})).toBe(true);
   for (const invalid of [
     { ...value, type: "Paragraph" },
     { ...value, owner: "batch" },
@@ -186,7 +186,7 @@ it("discovers the exact read-only getter and a closed XmlElementView result hand
     null,
     "<w:p/>"
   ]) {
-    expect(validate({ operation: getter, value: invalid })).toBe(false);
+    expect(validate({version: 1, operation: getter, ok: true, data: invalid, affected: 0, warnings: [], errors: [], locations: []})).toBe(false);
   }
   const batch = (
     getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "batch" } })!
@@ -355,9 +355,9 @@ it("executes actual CLI batch reads and operation help/schema with no undeclared
   ]);
   expect(run.result.exitCode).toBe(0);
   const envelope = JSON.parse(run.volume.readFileSync("/stdout", "utf8") as string);
-  expect(envelope).toMatchObject({ ok: true, affected: 0, data: { output: [], dryRun: false } });
+  expect(envelope).toMatchObject({ ok: true, affected: 0, data: { publication: null } });
   expect(envelope.data.results).toEqual(
-    (await applyStyleModelBatch(input, { version: 1, operations: read }, textContext)).results
+    (await applyStyleModelBatch(input, { version: 1, operations: read }, textContext)).operationResults
   );
   expect(run.readFile.mock.calls.map(([path]) => path)).toEqual(["/source.docx"]);
   expect(run.volume.readFileSync("/stderr").length).toBe(0);
@@ -385,7 +385,7 @@ it("requires explicit CLI publication and reloads the authorized edit while dry-
   expect(JSON.parse(dry.volume.readFileSync("/stdout", "utf8") as string)).toMatchObject({
     ok: true,
     affected: 1,
-    data: { dryRun: true, output: [] }
+    data: { publication: {dryRun: true, output: null} }
   });
   const saved = await cli(input, [...args, "--output", "-"]);
   expect(saved.result.exitCode).toBe(0);
@@ -749,7 +749,7 @@ it("treats a constructor-named result binding as data and never as executable pr
   ]);
   expect(run.result.exitCode).toBe(0);
   expect(
-    JSON.parse(run.volume.readFileSync("/stdout", "utf8") as string).data.results.at(-1).value
+    JSON.parse(run.volume.readFileSync("/stdout", "utf8") as string).data.results.at(-1).data
   ).toEqual({ namespaceURI: w, localName: "p" });
 });
 

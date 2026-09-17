@@ -242,7 +242,7 @@ it("executes inherited package views through their declared batch IDs", async ()
     "--json"
   ]);
   expect(cli.exitCode, cli.stderr).toBe(0);
-  expect(JSON.parse(cli.stdout).data.results.at(-1).value).toBe(
+  expect(JSON.parse(cli.stdout).data.results.at(-1).data).toBe(
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"
   );
   for (const operation of ["extract", "pack"]) {
@@ -307,7 +307,7 @@ it("exposes the inherited styles-part loader through its identical XML-part oper
     "--json"
   ]);
   expect(cli.exitCode, cli.stderr).toBe(0);
-  expect(JSON.parse(cli.stdout).data.results.at(-1).value).toEqual({
+  expect(JSON.parse(cli.stdout).data.results.at(-1).data).toEqual({
     kind: "bytes",
     base64: btoa(new TextDecoder().decode(xml))
   });

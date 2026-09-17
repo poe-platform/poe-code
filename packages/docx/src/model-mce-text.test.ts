@@ -24,7 +24,7 @@ async function verifyContainerBatch(input: Uint8Array, operations: readonly unkn
   expect(cli.exitCode, volume.readFileSync("/stderr", "utf8") as string).toBe(0);
   const result = JSON.parse(volume.readFileSync("/stdout", "utf8") as string);
   expect(result.affected).toBe(0);
-  expect(result.data.results.slice(-expected.length).map((item: { value: unknown }) => item.value)).toEqual(expected);
+  expect(result.data.results.slice(-expected.length).map((item: { data: unknown }) => item.data)).toEqual(expected);
   expect(volume.readFileSync("/input.docx")).toEqual(Buffer.from(input));
   await sdk.save({ async write(bytes) { volume.appendFileSync("/saved", bytes); } });
   const saved = new Uint8Array(volume.readFileSync("/saved") as Buffer);
@@ -172,7 +172,7 @@ for (const strict of [false, true]) it.each(cases)(
     expect(cli.exitCode, files.readFileSync("/stderr", "utf8") as string).toBe(0);
     const result = JSON.parse(files.readFileSync("/stdout", "utf8") as string);
     expect(result.affected).toBe(0);
-    expect(result.data.results.slice(1).map((item: { value: string }) => item.value)).toEqual(texts);
+    expect(result.data.results.slice(1).map((item: { data: string }) => item.data)).toEqual(texts);
     expect(files.readFileSync("/input.docx")).toEqual(Buffer.from(input));
     await document.save({ async write(chunk) { files.appendFileSync("/saved.docx", chunk); } });
     const saved = new Uint8Array(files.readFileSync("/saved.docx") as Buffer);

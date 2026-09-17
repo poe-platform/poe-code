@@ -80,10 +80,9 @@ it("shares batch CLI schemas, JSON, dry-run effects and binary publication with 
     ok: true,
     affected: 1,
     data: {
-      dryRun: true,
-      output: [],
+      publication: {dryRun: true, output: null},
       results: expect.arrayContaining([
-        { operation: "model.table._Cell.text.get", value: "Verified" }
+        expect.objectContaining({ operation: "model.table._Cell.text.get", data: "Verified", ok: true, affected: 0 })
       ])
     }
   });

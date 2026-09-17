@@ -163,7 +163,7 @@ it("uses the SDK-backed CLI for enum conversions with pure JSON and no publicati
   });
   expect(result.exitCode).toBe(0);
   expect(volume.readFileSync("/stderr", "utf8")).toBe("");
-  expect(JSON.parse(volume.readFileSync("/stdout", "utf8") as string)).toMatchObject({ version: 1, operation: "batch", ok: true, affected: 0, errors: [], data: { output: [], results: [{ value: { enum: "WD_ORIENTATION", name: "LANDSCAPE" } }, { value: "landscape" }] } });
+  expect(JSON.parse(volume.readFileSync("/stdout", "utf8") as string)).toMatchObject({ version: 1, operation: "batch", ok: true, affected: 0, errors: [], data: { publication: null, results: [{ data: { enum: "WD_ORIENTATION", name: "LANDSCAPE" } }, { data: "landscape" }] } });
   expect(volume.readFileSync("/input.docx")).toEqual(Buffer.from(input));
   expect(styleModelBatchOperations).toContain("model.enum.text.WD_BREAK_TYPE.TEXT_WRAPPING.get");
 });

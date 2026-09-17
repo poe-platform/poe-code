@@ -17,7 +17,8 @@ it("executes typed live style, font and tab edits and publishes only to the supp
     { operation: "model.text.tabstops.TabStops.add_tab_stop.call", receiver: ref("tabs"), arguments: { position: { value: 1, unit: "in" } }, resultHandle: "stop" },
     { operation: "model.text.tabstops.TabStop.position.get", receiver: ref("stop"), arguments: {} }
   ] }, textContext);
-  expect(applied.affected).toBe(4);
+  expect(applied.affected).toBe(5);
+  expect(applied.operationResults.map(result => result.affected)).toEqual([1, 1, 0, 1, 0, 1, 1, 0]);
   expect(applied.results.at(-1)).toMatchObject({ value: { value: 914400, unit: "emu" } });
   const volume = Volume.fromJSON({ "/result": "" });
   await applied.save({ async write(bytes: Uint8Array) { volume.appendFileSync("/result", bytes); } });

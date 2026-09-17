@@ -60,7 +60,7 @@ for (const strict of [false, true]) for (const route of ["model", "batch", "tabs
       expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
       const envelope = JSON.parse(volume.readFileSync("/out", "utf8") as string);
       expect(envelope.affected).toBe(0);
-      expect(envelope.data.results.slice(2).map((result: { value: unknown }) => result.value)).toEqual(expected);
+      expect(envelope.data.results.slice(2).map((result: { data: unknown }) => result.data)).toEqual(expected);
       expect(volume.readFileSync("/input.docx")).toEqual(Buffer.from(input));
     }
     expect(document.element.serialize()).toEqual(beforeXml);

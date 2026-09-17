@@ -54,8 +54,8 @@ it("identifies a stored style by name, ID and type consistently through public m
   });
   expect(result.exitCode).toBe(0);
   const output = JSON.parse(volume.readFileSync("/stdout", "utf8") as string);
-  expect(output).toMatchObject({ version: 1, operation: "batch", ok: true, affected: 0, errors: [], data: { output: [] } });
-  expect(output.data.results.slice(2).map((item: { value: unknown }) => item.value)).toEqual(expected);
+  expect(output).toMatchObject({ version: 1, operation: "batch", ok: true, affected: 0, errors: [], data: { publication: {changed: false, output: null, dryRun: true} } });
+  expect(output.data.results.slice(2).map((item: { data: unknown }) => item.data)).toEqual(expected);
   expect(volume.readFileSync("/stderr", "utf8")).toBe("");
   expect(new Uint8Array(volume.readFileSync("/input.docx") as Buffer)).toEqual(input);
 });

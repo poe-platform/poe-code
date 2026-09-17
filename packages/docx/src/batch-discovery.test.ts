@@ -11,12 +11,12 @@ it("advertises the bounded ordered utility registry without extending live model
   expect(discover("help", "batch").human).toContain("one publication");
   expect(discover("help", "images", "add").human).toContain("admitted ordered utility batch");
 });
-it("publishes precise utility result envelopes beside the original typed style branch", () => {
+it("publishes precise utility result envelopes alongside typed model results", () => {
   const schema = (discover("schema", "batch").data as DocxSchemaData).operations[0]!;
   expect(schema.featureIds).toContain("F47");
   const branch = schema.result.oneOf?.find(item => item.properties?.data?.properties?.publication);
   const variants = branch?.properties?.data?.properties?.results?.items;
-  expect(variants ? variants.oneOf?.map(item => item.properties?.operation?.const) : []).toEqual([...documentBatchOperations]);
+  expect(variants ? variants.oneOf?.filter(item => item.properties?.id).map(item => item.properties?.operation?.const) : []).toEqual([...documentBatchOperations]);
   const text = variants ? variants.oneOf?.find(item => item.properties?.operation?.const === "text.replace") : undefined;
   expect(text?.properties?.id).toMatchObject({ type: "string" });
   expect(text?.properties?.data?.additionalProperties).toBe(false);

@@ -54,3 +54,14 @@ The adapter now checks its sticky session failure before mapping sibling errors.
 Canonical tests assert `E_CANCELLED` and no sink acquisition/writes/close.
 Final maintained pandoc unit route passed 1043 tests; package lint/typechecks and
 selected workspace build passed. See `adversarial-final-{unit,lint,build}.log`.
+
+PPTX resource reproduction: a text-only original presentation succeeded with a
+1024-byte resource ceiling despite larger ZIP expansion. Public sibling archive
+entry/total ceilings now include resource and retained-byte ceilings, with a
+zero-capacity guard before acquisition. Archive adversarial units pass for ZIP
+amplification, compressed/expanded/part/resource/XML/reference ceilings, EPUB DTD,
+duplicate spine and fallback cycles, malformed sfnt directories/locations,
+oversized mapped glyph IDs, zero advance and impossible page geometry.
+PPTX cancellation is injected at an acquisition boundary and verified through
+the signal passed to the next sibling API call. No Office native fallback exists.
+See `adversarial-office-resource-before.log` and `adversarial-archive-focused.log`.

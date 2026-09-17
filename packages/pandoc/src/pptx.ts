@@ -13,11 +13,15 @@ import { PandocError } from "./errors.js";
 const attr: Attr = ["", [], []];
 function engineContext(context: AdapterContext): PresentationContext & Required<Pick<PresentationContext, "limits" | "archiveLimits" | "xmlLimits" | "relationshipLimits">> {
   const l = context.limits;
+  // Package expansion consumes resource ownership even when no image is emitted.
+  // Pass the tighter host ceilings into the public sibling API before it allocates.
+  const expanded = Math.min(l.expandedBytes, l.resourceBytes, l.retainedBytes);
+  for (const key of ["expandedBytes", "resourceBytes", "retainedBytes"] as const) context.bound(key, 1);
   return {
     ...(context.signal ? {signal: context.signal} : {}),
     limits: {maxBytes: Math.min(l.binaryBytes, Math.max(l.inputBytes, l.outputBytes)), maxReads: l.work, chunkBytes: 4096},
-    archiveLimits: {maxArchiveBytes: l.compressedBytes, maxEntryBytes: l.binaryBytes,
-      maxTotalBytes: l.expandedBytes, maxMembers: l.parts, maxPathBytes: 1024,
+    archiveLimits: {maxArchiveBytes: l.compressedBytes, maxEntryBytes: Math.min(l.binaryBytes, expanded),
+      maxTotalBytes: expanded, maxMembers: l.parts, maxPathBytes: 1024,
       maxDepth: l.depth, maxPaxBytes: 4096, maxTextBytes: l.text, chunkSize: 4096},
     xmlLimits: {maxBytes: l.binaryBytes, maxNodes: l.xmlNodes, maxDepth: l.xmlDepth},
     relationshipLimits: {maxBytes: l.binaryBytes, maxParts: l.parts, maxRelationships: l.references}

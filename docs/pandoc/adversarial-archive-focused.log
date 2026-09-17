@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ✓ packages/pandoc/src/archive-adversarial.test.ts (26 tests) 525ms
+
+ Test Files  1 passed (1)
+      Tests  26 passed (26)
+   Start at  19:22:05
+   Duration  2.53s (transform 1.45s, setup 40ms, import 1.87s, tests 525ms, environment 0ms)
+

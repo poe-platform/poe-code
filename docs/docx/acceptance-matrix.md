@@ -1,5 +1,11 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 XML/MCE public variant qualification](xml-public-variants-20260917.md)
+retains 138 historical case names and adds 222 independent kind/Shell variants.
+All 360 cases pass within 476 focused checks. Expected opaque/unmatched-profile
+refusals remain explicit; these matrix omissions are closed, while complete
+F01–F07 acceptance remains open.
+
 The [2026-09-17 numbering source-position correction](numbering-lexical-root-20260917.md)
 qualifies 320 exact prolog/epilog/encoding/dialect/kind cases. List edits preserve
 comments and processing instructions containing literal root XML. Its 1,494

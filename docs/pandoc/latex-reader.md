@@ -48,8 +48,14 @@ Only newcommand, renewcommand and providecommand with a braced simple ASCII
 control-word name (1–64 letters), 0–9 braced required arguments and an optional
 first-argument default are interpreted. Stars, unbraced arguments, parameter
 patterns, doubled parameter markers and primitive definitions are unsupported.
-Parameters are single #1–#9 markers bounded by the declared count; escaped markers
-and comments are literal/comment syntax. Definitions are local to groups and
+Parameters are single #1–#9 markers bounded by the declared count; escaped markers,
+comments and verbatim regions are literal/comment syntax. Outside math,
+substitution uses token lists, so command arguments and comment boundaries cannot
+merge control words with adjacent letters. Reconstructed raw source inserts an
+empty group where necessary to retain that boundary. Math parameters interpolate
+source and the complete resulting math region is reparsed for delimiter and
+forbidden-primitive validation; ordinary macros inside math remain source.
+Definitions are local to groups and
 non-document environments; included files share their caller's macro scope.
 Built-in/structural/reserved commands cannot be replaced. Definition and invocation
 counts charge macros; substitution charges expandedBytes, resourceBytes and

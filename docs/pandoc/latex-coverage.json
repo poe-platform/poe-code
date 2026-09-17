@@ -236,6 +236,38 @@
       "preservedRaw": "E_CAPABILITY",
       "lossy": "E_CAPABILITY",
       "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.macro-token-boundaries",
+      "originalTest": "preserves macro parameter and comment control-word boundaries",
+      "strict": "typed AST",
+      "preservedRaw": "typed AST",
+      "lossy": "typed AST",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.macro-verbatim",
+      "originalTest": "does not substitute parameter markers inside macro verbatim regions",
+      "strict": "literal Code",
+      "preservedRaw": "literal Code",
+      "lossy": "literal Code",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.macro-raw-boundaries",
+      "originalTest": "preserves expanded token boundaries when an unsupported environment is retained raw",
+      "strict": "E_CAPABILITY",
+      "preservedRaw": "RawBlock with token separator + W_RAW_CONTENT",
+      "lossy": "RawBlock with token separator + W_RAW_CONTENT",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.macro-math-primitives",
+      "originalTest": "validates interpolated math source against forbidden primitives under every policy",
+      "strict": "E_CAPABILITY",
+      "preservedRaw": "E_CAPABILITY",
+      "lossy": "E_CAPABILITY",
+      "status": "passing-original-profile"
     }
   ],
   "unsupportedProfiles": {
@@ -389,9 +421,9 @@
     }
   ],
   "verification": {
-    "packageTests": 676,
-    "latexTests": 47,
+    "packageTests": 1049,
+    "latexTests": 52,
     "newCommandTests": 1,
-    "evidence": "docs/pandoc/latex-reader-evidence.md"
+    "evidence": "docs/pandoc/latex-token-expansion-evidence.md"
   }
 }

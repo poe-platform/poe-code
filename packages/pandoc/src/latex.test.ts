@@ -129,6 +129,38 @@ it("preserves significant whitespace inside nested groups", async () => {
 it("does not treat comment parameter markers as macro parameters", async () => {
   expect((await read("\\newcommand{\\x}{a%# nonsense\nb}\\x")).blocks).toEqual([{t: "Para", c: [str("ab")]}]);
 });
+it("preserves macro parameter and comment control-word boundaries", async () => {
+  expect((await read("\\newcommand{\\suffix}[1]{#1x}\\suffix{\\ae}")).blocks).toEqual([{t: "Para", c: [str("æx")]}]);
+  expect((await read("\\newcommand{\\joined}{\\ae% boundary\nx}\\joined")).blocks).toEqual([{t: "Para", c: [str("æx")]}]);
+  expect((await read("\\newcommand{\\format}[1]{\\emph{#1x}}\\format{\\oe}")).blocks).toEqual([{t: "Para", c: [{t: "Emph", c: [str("œx")]}]}]);
+  for (const policy of [{}, {rawContent: "retain"}, {lossy: true}]) {
+    for (const source of ["\\newcommand{\\suffix}[1]{#1x}\\suffix{\\ae}", "\\newcommand{\\joined}{\\ae% boundary\nx}\\joined"]) {
+      const result = await json(source, policy);
+      expect(result.kind === "text" && JSON.parse(result.text).blocks).toEqual([{t: "Para", c: [str("æx")]}]);
+    }
+  }
+});
+it("does not substitute parameter markers inside macro verbatim regions", async () => {
+  expect((await read("\\newcommand{\\literal}{\\verb|#1|}\\literal")).blocks).toEqual([{t: "Para", c: [{t: "Code", c: [["", [], []], "#1"]}]}]);
+  for (const policy of [{}, {rawContent: "retain"}, {lossy: true}]) {
+    const result = await json("\\newcommand{\\literal}{\\verb|#1|}\\literal", policy);
+    expect(result.kind === "text" && JSON.parse(result.text).blocks).toEqual([{t: "Para", c: [{t: "Code", c: [["", [], []], "#1"]}]}]);
+  }
+});
+it("preserves expanded token boundaries when an unsupported environment is retained raw", async () => {
+  const source = "\\newcommand{\\wrap}[1]{\\begin{custom}#1x\\end{custom}}\\wrap{\\ae}";
+  await expect(json(source)).rejects.toMatchObject({code: "E_CAPABILITY"});
+  for (const policy of [{rawContent: "retain"}, {lossy: true}]) {
+    const result = await json(source, policy);
+    expect(result.kind === "text" && JSON.parse(result.text).blocks).toEqual([{t: "RawBlock", c: ["latex", "\\begin{custom}\\ae{}x\\end{custom}"]}]);
+    expect(result.diagnostics.map(d => d.code)).toEqual(["W_RAW_CONTENT"]);
+  }
+});
+it("validates interpolated math source against forbidden primitives under every policy", async () => {
+  for (const policy of [{}, {rawContent: "retain"}, {lossy: true}]) {
+    await expect(json("\\newcommand{\\mathsource}[1]{$\\wr#1$}\\mathsource{ite18{x}}", policy)).rejects.toMatchObject({code: "E_CAPABILITY"});
+  }
+});
 it("rejects repeated captions instead of deleting their arguments", async () => {
   await expect(read("\\begin{figure}\\caption{one}\\caption{two}\\end{figure}")).rejects.toMatchObject({code: "E_PARSE"});
 });

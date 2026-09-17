@@ -29,3 +29,18 @@ accent and line-break commands under strict, preserved-raw and lossy policies;
 complete the reserved macro names. Verify package tests, lint/typechecks and the
 selected workspace build before committing this correction locally. Preserve
 the unrelated plan and public-wiring evidence. No push or release authorized.
+
+Second atomic correction: original failing tests reproduced macro control-word
+merging across parameters/comments, verbatim parameter substitution and lost
+boundaries in preserved expanded raw environments. Replace text reparsing outside
+math with token substitution. Preserve environment wrappers and verbatim text;
+validate interpolated math against forbidden primitives with an additional
+original failing security case. Keep cancellation/work and allocation admission
+bounded, including the existing expansion cancellation contract.
+
+Executed QA: use the built thin command with injected memfs to convert included
+macro source, reject built-in replacement and interpolated write18, retain expanded
+raw source with an explicit token separator and fail missing includes with empty
+stdout. Render and inspect latex-token-expansion-command.png for readable output
+and diagnostics. Full package tests (1049), package lint/typechecks and the selected
+workspace build pass. Commit this atomic correction locally; no push or release.

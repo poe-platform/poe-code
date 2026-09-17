@@ -3,7 +3,7 @@ import type { AdapterContext } from "./types.js";
 
 export type TexToken =
   | {kind: "text" | "space" | "comment" | "command" | "code"; text: string; raw: string}
-  | {kind: "group" | "optional" | "environment"; text: string; raw: string; children: TexToken[]}
+  | {kind: "group" | "optional" | "environment"; text: string; raw: string; children: TexToken[]; opening?: string; closing?: string}
   | {kind: "math"; text: string; raw: string; display: boolean};
 export const forbiddenTex = new Set([
   "catcode", "write", "directlua", "luaexec", "def", "gdef", "edef", "xdef", "csname", "endcsname",
@@ -127,9 +127,11 @@ export async function parseTex(source: string, context: AdapterContext): Promise
           } else if (["equation", "equation*", "displaymath", "math", "align", "align*"].includes(name)) {
             token = await math(`\\end{${name}}`, name !== "math", start);
           } else {
+            const opening = source.slice(start, cursor);
             const children = await sequence(depth + 1, undefined, name);
             context.charge("retainedBytes", (cursor - start) * 2);
-            token = {kind: "environment", text: name, raw: source.slice(start, cursor), children};
+            const closing = source.slice(start + opening.length + texSource(children).length, cursor);
+            token = {kind: "environment", text: name, raw: source.slice(start, cursor), children, opening, closing};
           }
         } else if (name === "(" || name === "[") token = await math(name === "(" ? "\\)" : "\\]", name === "[", start);
         else if (name === ")" || name === "]") return texError(context, "Unmatched math end");

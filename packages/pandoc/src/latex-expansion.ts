@@ -2,7 +2,7 @@ import type { AdapterContext } from "./types.js";
 import { PandocError } from "./errors.js";
 import { parseTex, TexCursor, texError, texSource, forbiddenTex } from "./latex-syntax.js";
 import type { TexToken } from "./latex-syntax.js";
-interface Macro {count: number; body: string; fallback?: string}
+interface Macro {count: number; body: TexToken[]; fallback?: TexToken[]}
 // No primitive, structural or built-in command can be replaced by a user macro.
 const reserved = new Set([
   ...forbiddenTex, "begin", "end", "input", "include", "newcommand", "renewcommand", "providecommand",
@@ -21,9 +21,85 @@ function includePath(name: string, base: string | undefined, context: AdapterCon
   return {id, identity: `${base ?? ""}/${id}`};
 }
 /** Definitions are lexical, simple newcommand/renewcommand/providecommand only.
- * Expansion is textual parameter substitution followed by the same syntax parser.
+ * Expansion substitutes token lists, preserving control-word boundaries.
  * Includes are eagerly acquired; no output capability is touched here. */
 export async function expandTex(tokens: readonly TexToken[], context: AdapterContext, base?: string): Promise<TexToken[]> {
+  async function sourceOf(tokens: readonly TexToken[], following = ""): Promise<string> {
+    let source = "";
+    for (let i = 0; i < tokens.length; i++) {
+      await context.cooperate();
+      const token = tokens[i]!;
+      const next = tokens[i + 1]?.raw[0] ?? following;
+      const last = token.text.at(-1) ?? "";
+      const boundary = token.kind === "command" && (last >= "a" && last <= "z" || last >= "A" && last <= "Z") && (next >= "a" && next <= "z" || next >= "A" && next <= "Z");
+      context.charge("retainedBytes", token.raw.length * 2 + (boundary ? 4 : 0));
+      source += token.raw + (boundary ? "{}" : "");
+    }
+    return source;
+  }
+  async function substitute(tokens: readonly TexToken[], count: number, args?: readonly TexToken[][], depth = 0): Promise<TexToken[]> {
+    context.bound("depth", depth);
+    const out: TexToken[] = [];
+    const push = async (token: TexToken) => {
+      for (let i = 0; i < token.raw.length; i++) {
+        await context.cooperate();
+        if (args) context.charge("expandedBytes", 2);
+      }
+      if (args) {
+        context.charge("nodes", 1);
+        context.charge("references", 1);
+        context.charge("retainedBytes", 32);
+      }
+      out.push(token);
+    };
+    for (let i = 0; i < tokens.length; i++) {
+      await context.cooperate();
+      const token = tokens[i]!;
+      if (token.kind === "text" && token.text === "#") {
+        const parameter = tokens[++i];
+        const digit = parameter?.text[0];
+        if (parameter?.kind !== "text" || !digit || digit < "1" || digit > String(count)) texError(context, "Invalid macro parameter");
+        if (args) for (const argument of args[Number(digit) - 1]!) await push(argument);
+        const remainder = parameter.text.slice(1);
+        if (remainder) await push({...parameter, text: remainder, raw: remainder});
+      } else if ("children" in token && !token.text.startsWith("verbatim")) {
+        const children = await substitute(token.children, count, args, depth + 1);
+        const opening = token.kind === "environment" ? token.opening! : token.kind === "group" ? "{" : "[";
+        const closing = token.kind === "environment" ? token.closing! : token.kind === "group" ? "}" : "]";
+        await push({...token, children, raw: opening + await sourceOf(children) + closing});
+      } else if (token.kind === "math" && token.text.includes("#")) {
+        // Math remains source, but parameter substitution must preserve lexical boundaries.
+        let text = "";
+        for (let j = 0; j < token.text.length; j++) {
+          await context.cooperate();
+          const c = token.text[j]!;
+          if (c === "\\") {
+            if (args) context.charge("expandedBytes", 4);
+            text += c + (token.text[++j] ?? ""); continue;
+          }
+          if (c === "%") {
+            while (j < token.text.length && token.text[j] !== "\n") {await context.cooperate(); if (args) context.charge("expandedBytes", 2); text += token.text[j++];}
+            if (j < token.text.length) text += "\n";
+            continue;
+          }
+          if (c !== "#") {if (args) context.charge("expandedBytes", 2); text += c; continue;}
+          const digit = token.text[++j];
+          if (!digit || digit < "1" || digit > String(count)) texError(context, "Invalid macro parameter");
+          const replacement = args ? await sourceOf(args[Number(digit) - 1]!, token.text[j + 1] ?? "") : "#" + digit;
+          if (args) context.charge("expandedBytes", replacement.length * 2);
+          text += replacement;
+        }
+        const start = token.raw.indexOf(token.text);
+        const raw = token.raw.slice(0, start) + text + token.raw.slice(start + token.text.length);
+        if (args) {
+          const parsed = await parseTex(raw, context);
+          if (parsed.length !== 1 || parsed[0]?.kind !== "math") texError(context, "Macro interpolation changed math delimiters");
+          await push(parsed[0]);
+        } else await push(token);
+      } else await push(token);
+    }
+    return out;
+  }
   async function expand(tokens: readonly TexToken[], macros: Map<string, Macro>, stack: readonly string[], includes: readonly string[], base: string | undefined, depth: number): Promise<TexToken[]> {
     context.bound("depth", depth);
     const out: TexToken[] = [];
@@ -42,42 +118,25 @@ export async function expandTex(tokens: readonly TexToken[], context: AdapterCon
         const count = Number(countText);
         const fallbackToken = cursor.optional();
         if (fallbackToken && !count) texError(context, "Optional macro default requires an argument");
-        const body = texSource(cursor.group().children);
-        for (let i = 0; i < body.length; i++) {
-          await context.cooperate();
-          if (body[i] === "%") {while (i < body.length && body[i] !== "\n") {await context.cooperate(); i++;} continue;}
-          if (body[i] === "\\") {i++; continue;}
-          if (body[i] === "#") {
-            const n = body[++i];
-            if (!n || n < "1" || n > String(count)) texError(context, "Invalid macro parameter");
-          }
-        }
+        const body = cursor.group().children;
+        await substitute(body, count);
         if (token.text === "newcommand" && macros.has(name) || token.text === "renewcommand" && !macros.has(name)) texError(context, `Invalid macro redefinition: ${name}`);
         context.charge("macros", 1);
-        if (token.text !== "providecommand" || !macros.has(name)) macros.set(name, {count, body, ...(fallbackToken && "children" in fallbackToken ? {fallback: texSource(fallbackToken.children)} : {})});
+        if (token.text !== "providecommand" || !macros.has(name)) macros.set(name, {count, body, ...(fallbackToken && "children" in fallbackToken ? {fallback: fallbackToken.children} : {})});
         // TeX control words consume following whitespace; definitions do not create paragraphs.
         cursor.skip();
       } else if (token.kind === "command" && macros.has(token.text)) {
         if (stack.includes(token.text)) texError(context, `Recursive macro: ${token.text}`, "E_LIMIT");
         context.charge("macros", 1);
         const macro = macros.get(token.text)!;
-        const args: string[] = [];
+        const args: TexToken[][] = [];
         if (macro.fallback !== undefined) {
           const optional = cursor.optional();
-          args.push(optional && "children" in optional ? texSource(optional.children) : macro.fallback);
+          args.push(optional && "children" in optional ? optional.children : macro.fallback);
         }
-        while (args.length < macro.count) args.push(texSource(cursor.group().children));
-        let source = "";
-        for (let i = 0; i < macro.body.length; i++) {
-          await context.cooperate();
-          if (macro.body[i] === "%") {while (i < macro.body.length && macro.body[i] !== "\n") {await context.cooperate(); i++;} continue;}
-          const c = macro.body[i]!;
-          if (!c) break;
-          const piece = c === "#" ? args[Number(macro.body[++i]) - 1]! : c === "\\" ? c + (macro.body[++i] ?? "") : c;
-          context.charge("expandedBytes", piece.length * 2);
-          source += piece;
-        }
-        for (const t of await expand(await parseTex(source, context), macros, [...stack, token.text], includes, base, depth + 1)) out.push(t);
+        while (args.length < macro.count) args.push(cursor.group().children);
+        const substituted = await substitute(macro.body, macro.count, args);
+        for (const t of await expand(substituted, macros, [...stack, token.text], includes, base, depth + 1)) out.push(t);
       } else if (token.kind === "command" && (token.text === "input" || token.text === "include")) {
         const name = texSource(cursor.group().children).trim();
         const {id, identity} = includePath(name, base, context);

@@ -430,3 +430,13 @@ model/SDK/Shell dirty-part retention and 96 paired expected XML-edit refusals.
 Selected MCE content and declared native roles are now read consistently; generic
 payloads stay inert. This closes the named font/theme dependency. Full F01–F07
 reconciliation, other recorded dependencies and full workspace verification stay open.
+# Core Properties MCE prohibition — 2026-09-17
+
+[Exact evidence](core-properties-mce-20260917.md) qualifies native OPC core
+properties rejection before compatibility selection, with generic XML and
+namespace-only controls. The 456 new cases and 1,304-test focused run pass;
+16 built model/SDK/actual Shell workflows include 160 prohibited variants,
+four XML encodings and exact unrelated-member preservation. The original
+failures and two invalid test setups remain preserved. This closes the named
+F01/F04/F05/F06/F07 dependency only; full-family acceptance and the replacement
+workspace run remain open.

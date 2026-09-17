@@ -186,6 +186,17 @@ export class DocumentPackage {
       this.byName.set(key, part);
     }
     this.parts = Object.freeze(parts);
+    // ECMA-376-2 §8.3.2 forbids physical MCE markup in core properties,
+    // including markup hidden from an application's selected compatibility view.
+    for (const part of parts) {
+      if (parseMediaType(part.content_type) !== "application/vnd.openxmlformats-package.core-properties+xml") continue;
+      xml(part.bytes, tag => {
+        budget.charge("work", tag.attributes.length);
+        const mce = "http://schemas.openxmlformats.org/markup-compatibility/2006";
+        if (tag.namespace === mce || tag.attributes.some(attribute => attribute.namespace === mce))
+          throw new InvalidPackageError("Core properties cannot contain markup compatibility elements or attributes.", part.partname, "/", "core-properties-mce");
+      }, false, budget, parsed.get(part.bytes));
+    }
     for (const part of parts) {
       const owner = relationshipOwner(part.partname);
       if (owner === null) {

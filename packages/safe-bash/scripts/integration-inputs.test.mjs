@@ -2670,19 +2670,12 @@ test("UTF-8 literal workerd acceptance remains admitted current input", () => {
   }
 });
 
-test("published root mirrors only declared subpaths and keeps the feature isolated", () => {
+test("published root excludes sandbox and office packages while preserving private workspace contracts", () => {
   const source = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
   const root = JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url), "utf8"));
   const build = JSON.parse(readFileSync(new URL("../tsconfig.build.json", import.meta.url), "utf8"));
-  const mirror = target => typeof target === "string" ? target.startsWith("./dist/opt-in/") ? `./dist/safe-bash-opt-in/${target.slice("./dist/opt-in/".length)}` : `./packages/safe-bash${target.slice(1)}` : target === null ? null : Object.fromEntries(Object.entries(target).map(([condition, value]) => [condition, mirror(value)]));
-  const expected = Object.fromEntries(Object.entries(source.exports).map(([key, conditions]) => [
-    key === "." ? "./safe-bash" : `./safe-bash${key.slice(1)}`,
-    mirror(conditions),
-  ]));
-  expected["./safe-bash/commands/pandoc"].import = "./packages/pandoc/dist/public/command.js";
-  assert.deepEqual(Object.fromEntries(Object.entries(root.exports).filter(([key]) => key === "./safe-bash" || key.startsWith("./safe-bash/"))), expected);
-  assert.equal(root.exports["./safe-bash/*"], undefined);
-  assert.equal(root.exports["./safe-bash/node"].browser, null);
+  assert.deepEqual(Object.keys(root.exports).filter(key => key.startsWith("./safe")), []);
+  assert.equal(source.exports["./node"].browser, null);
   assert.equal(root.engines.node, ">=18.18");
   assert.equal(source.engines.node, ">=22");
   assert.equal(source.name, "@poe-platform/safe-bash");
@@ -2694,19 +2687,18 @@ test("published root mirrors only declared subpaths and keeps the feature isolat
   const archive = JSON.parse(readFileSync(new URL("../../office-package/package.json", import.meta.url), "utf8"));
   assert.equal(archive.name, "@poe-code/office-package");
   assert.deepEqual(archive.dependencies, { pako: "3.0.1" });
-  assert.equal(root.devDependencies["@poe-code/office-package"], "*");
-  assert.equal(root.dependencies.pako, "3.0.1");
-  assert.ok(root.files.includes("packages/office-package/dist"));
-  assert.ok(root.files.includes("packages/office-package/LICENSE"));
+  assert.equal(root.dependencies.pako, undefined);
+  assert.equal(root.files.includes("packages/office-package/dist"), false);
+  assert.equal(root.files.includes("packages/office-package/LICENSE"), false);
   assert.deepEqual(source.exports["./commands/pptx"], { types: "./dist/commands/pptx/index.d.ts", import: "./dist/commands/pptx/index.js" });
-  assert.deepEqual(root.exports["./pptx"], { types: "./packages/pptx/dist/index.d.ts", import: "./packages/pptx/dist/index.js" });
+  assert.equal(root.exports["./pptx"], undefined);
   assert.equal(root.devDependencies.pptx, "*");
-  assert.equal(root.dependencies.saxes, "6.0.0");
-  assert.ok(root.files.includes("packages/pptx/dist"));
-  assert.ok(root.files.includes("packages/pptx/LICENSE"));
+  assert.equal(root.dependencies.saxes, undefined);
+  assert.equal(root.files.includes("packages/pptx/dist"), false);
+  assert.equal(root.files.includes("packages/pptx/LICENSE"), false);
   assert.equal(root.dependencies["@poe-platform/safe-bash"], undefined);
   assert.equal(root.devDependencies["@poe-platform/safe-bash"], "*");
-  assert.ok(root.files.includes("packages/safe-bash/dist"));
+  assert.equal(root.files.includes("packages/safe-bash/dist"), false);
   assert.deepEqual([...source.poeCode.packageLint.sourceExclude].sort(), build.exclude.filter(path => path.startsWith("src/")).sort());
   const entry = readFileSync(new URL("../../../src/index.ts", import.meta.url), "utf8");
   assert.equal(entry.includes("@poe-platform/safe-bash"), false);

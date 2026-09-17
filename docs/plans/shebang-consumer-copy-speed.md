@@ -9,3 +9,7 @@ more than once. Packaging membership remains covered by dedicated artifact tests
 
 Validate the moved consumer within its existing timeout, ESLint, and the maintained
 test route.
+
+CI reproduced a missing published Office compression artifact in the moved
+consumer. Include the Office workspace's published files in the fixture because
+the release build can route the shell's compression imports through those files.

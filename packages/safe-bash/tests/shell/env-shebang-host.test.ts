@@ -195,7 +195,7 @@ if (process.argv[2]?.startsWith("guarded:")) {
       // Move the published shell and filesystem artifacts used by this consumer.
       const published: string[] = [];
       for await (const path of glob(manifest.files.filter(path => !path.startsWith("!")
-        && ["packages/safe-bash/", "packages/safe-js/", "packages/safe-fs/"].some(prefix => path.startsWith(prefix))), {
+        && ["packages/safe-bash/", "packages/safe-js/", "packages/safe-fs/", "packages/office-package/"].some(prefix => path.startsWith(prefix))), {
         cwd: repository, exclude: manifest.files.filter(path => path.startsWith("!")).map(path => path.slice(1)),
       })) published.push(path);
       published.sort((left, right) => left.length - right.length);

@@ -1179,6 +1179,36 @@ describe("pipeline run command", () => {
     );
   });
 
+  it("reports already-complete plans without a no-work claim after queued follow-ups", async () => {
+    const logs: string[] = [];
+    const dashboardMock = createDashboardMock();
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+    vi.mocked(sdkRunPipeline).mockImplementation(async (options) => ({
+      stopReason: "nothing_to_run", planPath: options.plan!, runsCompleted: 0, totalDurationMs: 0,
+      metrics: { totalInputTokens: 0, totalOutputTokens: 0, totalCachedTokens: 0, tasksCompleted: 0, tasksFailed: 0, stepsCompleted: 0 }
+    }));
+    let messages = 0;
+    vi.mocked(sdkSpawn).mockImplementation(() => ({
+      events: (async function* () {})(),
+      result: (async () => {
+        if (++messages === 1) await vi.mocked(createDashboard).mock.calls[0]![0]!.onSubmit!({ kind: "plan", text: "two.md" });
+        return { exitCode: 0, stdout: "Reviewed", stderr: "" };
+      })()
+    }));
+    const fs = createMemFs({ "/repo/one.md": PIPELINE_MD_EMPTY, "/repo/two.md": PIPELINE_MD_EMPTY });
+    const container = createCliContainer({ fs, prompts: vi.fn().mockResolvedValue({}), env: { cwd, homeDir }, logger: (line) => logs.push(line) });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+    await withMockedTerminal(() => program.parseAsync(["node", "cli", "--yes", "pipeline", "run", "one.md", "--agent", "codex", "--tui", "--after-plan", "Review this plan"]));
+    expect(messages).toBe(2);
+    expect(logs.some((line) => line.includes("2/2 plans · 2/2 messages"))).toBe(true);
+    expect(logs.some((line) => line.includes("one.md · Already complete"))).toBe(true);
+    expect(logs.some((line) => line.includes("two.md · Already complete"))).toBe(true);
+    expect(logs.some((line) => line.includes("Nothing to run"))).toBe(false);
+    expect(logs.some((line) => line.includes("0 tasks · 0 steps"))).toBe(false);
+    expect(logs.some((line) => line.includes("Pipeline run finished."))).toBe(true);
+  });
+
   it("keeps one live dashboard while queued messages and appended plans execute in order", async () => {
     const logs: string[] = [];
     const dashboardMock = createDashboardMock();

@@ -230,6 +230,7 @@ function resolvePipelineInitSourcePath(
 }
 
 function formatRunSummary(result: PipelineRunResult): string {
+  if (result.stopReason === "nothing_to_run") return `${path.basename(result.planPath)} · Already complete`;
   const metrics = result.metrics;
   const tokens = metrics.totalInputTokens + metrics.totalOutputTokens;
   return [
@@ -762,7 +763,6 @@ export function registerPipelineCommand(program: Command, container: CliContaine
               return "stopped";
             }
             if (planResult.stopReason !== "nothing_to_run") ranWork = true;
-            else if (result.plans.length > 1) resources.logger.info("Nothing to run.");
           }
           if (result.status === "failed" || result.status === "cancelled") {
             process.exitCode = result.status === "cancelled" ? 130 : 1;

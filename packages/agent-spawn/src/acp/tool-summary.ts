@@ -19,7 +19,9 @@ export function summarizeToolAction(tool: { kind: string; title: string; input?:
     };
     const query = tool.kind === "search" ? stringField(input, "pattern", "query") : undefined;
     const location = query ? stringField(input, "path") : undefined;
-    label = `${verbs[tool.kind] ?? "Use"} ${query ?? target}${location ? ` in ${location}` : ""}`;
+    label = verbs[tool.kind]
+      ? `${verbs[tool.kind]} ${query ?? target}${location ? ` in ${location}` : ""}`
+      : summarizeToolName(tool.title);
   }
   const clean = stripAnsi(label).split("\n").join(" ").split("\r").join(" ").trim();
   const characters = Array.from(clean);
@@ -32,6 +34,23 @@ function stringField(input: Record<string, unknown>, ...keys: string[]): string 
     if (typeof value === "string" && value.length > 0) return value;
   }
   return undefined;
+}
+
+function summarizeToolName(title: string): string {
+  const parts = title.startsWith("mcp__") ? title.slice(5).split("__") : title.split(".");
+  if (parts.length < 2 || parts.some((part) => part.length === 0 || Array.from(part).some((character) =>
+    !(character >= "a" && character <= "z") && !(character >= "A" && character <= "Z")
+    && !(character >= "0" && character <= "9") && character !== "_" && character !== "-"))) return `Use ${title}`;
+  const name = parts.pop()!;
+  let label = "";
+  for (const [index, character] of Array.from(name).entries()) {
+    if (character === "_" || character === "-") label += " ";
+    else {
+      if (index > 0 && character >= "A" && character <= "Z" && name[index - 1]! >= "a" && name[index - 1]! <= "z") label += " ";
+      label += character.toLowerCase();
+    }
+  }
+  return `${label[0]!.toUpperCase()}${label.slice(1)} · ${parts.join(".")}`;
 }
 
 function summarizeCommand(source: string): string {
@@ -76,7 +95,7 @@ function summarizeCommand(source: string): string {
     if (actions.length > 1 && actions.every((action) => action.startsWith("Read "))) {
       return `Read ${actions.map((action) => action.slice(5)).join(", ")}`;
     }
-    if (actions.length === 1) return actions[0]!;
+    if (actions.length === 1) return actions[0]!.startsWith("Run ") ? `Run ${command}` : actions[0]!;
     return actions.length > 1 ? `${actions[0]} (+${actions.length - 1} commands)` : "Run command";
   } catch {
     return `Run ${source}`;
@@ -87,44 +106,18 @@ function summarizeWords(words: string[]): string {
   const command = basename(words[0] ?? "");
   if (command === "git" && words[1] === "grep") return summarizeWords(["grep", ...words.slice(2)]);
   if (command === "git" && words[1] === "ls-files") return summarizeWords(["rg", "--files", ...words.slice(2)]);
-  if (["cat", "head", "tail", "sed"].includes(command)) {
+  if (command === "sed") return summarizeSed(words) ?? `Run ${words.join(" ")}`;
+  if (["cat", "head", "tail"].includes(command)) {
     const args: string[] = [];
     let options = true;
-    let edit = false;
-    let expression = false;
     for (let index = 1; index < words.length; index++) {
       const word = words[index]!;
       if (options && word === "--") { options = false; continue; }
-      if (options && command === "sed") {
-        if (word === "--in-place" || word.startsWith("--in-place=")) {
-          edit = true;
-          continue;
-        }
-        if (["-e", "--expression", "-f", "--file"].includes(word)) { expression = true; index++; continue; }
-        if (word.startsWith("--expression=") || word.startsWith("--file=")) { expression = true; continue; }
-        if (word.startsWith("-") && !word.startsWith("--")) {
-          for (let flagIndex = 1; flagIndex < word.length; flagIndex++) {
-            const flag = word[flagIndex];
-            if (flag === "i") {
-              edit = true;
-              if (flagIndex === word.length - 1 && words[index + 1] === "") index++;
-              break;
-            }
-            if (flag === "e" || flag === "f") {
-              expression = true;
-              if (flagIndex === word.length - 1) index++;
-              break;
-            }
-          }
-          continue;
-        }
-      }
-      if (options && ["-n", "-c", "--lines", "--bytes"].includes(word) && command !== "sed") { index++; continue; }
+      if (options && ["-n", "-c", "--lines", "--bytes"].includes(word)) { index++; continue; }
       if (options && word.startsWith("-")) continue;
       args.push(word);
     }
-    const files = command === "sed" && !expression ? args.slice(1) : args;
-    if (files.length > 0) return `${edit ? "Edit" : "Read"} ${files.join(", ")}`;
+    if (args.length > 0) return `Read ${args.join(", ")}`;
   }
   if (command === "rg" || command === "grep") {
     const operands: string[] = [];
@@ -144,6 +137,60 @@ function summarizeWords(words: string[]): string {
     return `List files${paths.length ? ` in ${paths.join(", ")}` : ""}`;
   }
   return `Run ${words.join(" ")}`;
+}
+
+function summarizeSed(words: string[]): string | undefined {
+  const operands: string[] = [];
+  const scripts: string[] = [];
+  let options = true;
+  let edit = false;
+  let scriptFile = false;
+  for (let index = 1; index < words.length; index++) {
+    const word = words[index]!;
+    if (!options || !word.startsWith("-")) { operands.push(word); continue; }
+    if (word === "--") { options = false; continue; }
+    if (["--quiet", "--silent", "--regexp-extended", "--unbuffered", "--separate", "--posix"].includes(word)) continue;
+    if (word === "--in-place" || word.startsWith("--in-place=")) { edit = true; continue; }
+    if (word === "--expression" || word.startsWith("--expression=")) {
+      scripts.push(word === "--expression" ? words[++index] ?? "" : word.slice("--expression=".length));
+      continue;
+    }
+    if (word === "--file" || word.startsWith("--file=")) {
+      scriptFile = true;
+      if (word === "--file") index++;
+      continue;
+    }
+    if (word.startsWith("--")) return undefined;
+    for (let flagIndex = 1; flagIndex < word.length; flagIndex++) {
+      const flag = word[flagIndex]!;
+      if ("nErsu".includes(flag)) continue;
+      if (flag === "i") {
+        edit = true;
+        if (flagIndex === word.length - 1 && words[index + 1] === "") index++;
+        break;
+      }
+      if (flag === "e" || flag === "f") {
+        const value = word.slice(flagIndex + 1) || words[++index] || "";
+        if (flag === "e") scripts.push(value);
+        else scriptFile = true;
+        break;
+      }
+      return undefined;
+    }
+  }
+  if (scripts.length === 0 && !scriptFile) scripts.push(operands.shift() ?? "");
+  if (operands.length === 0) return undefined;
+  if (edit) return `Edit ${operands.join(", ")}`;
+  if (scriptFile || !scripts.every((script) => {
+    const expression = script.trim();
+    if (!expression.endsWith("p")) return false;
+    const range = expression.slice(0, -1);
+    if (!range) return true;
+    const addresses = range.split(",");
+    return addresses.length <= 2 && addresses.every((address) => address === "$"
+      || (address.length > 0 && Array.from(address).every((character) => character >= "0" && character <= "9")));
+  })) return undefined;
+  return `Read ${operands.join(", ")}`;
 }
 
 function basename(value: string): string {

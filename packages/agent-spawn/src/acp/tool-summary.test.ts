@@ -27,7 +27,16 @@ describe("concise dashboard tool actions", () => {
     expect(summarizeToolAction({ kind: "search", title: "render", input: { pattern: "render", path: "src" } }).label)
       .toBe("Search render in src");
     expect(summarizeToolAction({ kind: "other", title: "github.get_pull_request" }).label)
-      .toBe("Use github.get_pull_request");
+      .toBe("Get pull request · github");
+  });
+
+  it.each([
+    ["owner-workflow.workflow_transition", "Workflow transition · owner-workflow"],
+    ["mcp__task_board__list_tasks", "List tasks · task_board"],
+    ["browser.takeScreenshot", "Take screenshot · browser"],
+    ["Describe the current selection", "Use Describe the current selection"]
+  ])("presents readable names for generic tools: %s", (title, label) => {
+    expect(summarizeToolAction({ kind: "other", title })).toEqual({ label, detail: title });
   });
 
   it("does not mislabel a redirected command as a file read", () => {
@@ -48,7 +57,6 @@ describe("concise dashboard tool actions", () => {
     ["sed -ni '1p' src/settings.ts", "Edit src/settings.ts"],
     ["sed -Eni.bak '1p' src/settings.ts", "Edit src/settings.ts"],
     ["sed -ne'1p' src/settings.ts", "Read src/settings.ts"],
-    ["sed -fscript.sed src/settings.ts", "Read src/settings.ts"],
     ["sed -n -e '1,5p' -e '10p' src/settings.ts", "Read src/settings.ts"],
     ["rg -n 'serialize|xml' packages/docx/src/xml-element-view.ts | head -75", "Search serialize|xml in packages/docx/src/xml-element-view.ts"],
     ["rg --files src | sort | head -40", "List files in src"],
@@ -67,4 +75,25 @@ describe("concise dashboard tool actions", () => {
       expect(summarizeToolAction({ kind: "exec", title }).label).toBe(`Run ${title}`);
     }
   );
+
+  it.each([
+    "sed -fscript.sed src/settings.ts",
+    "sed --file=script.sed src/settings.ts",
+    "sed -n -e '1p' -f script.sed src/settings.ts",
+    "sed -n -e '1p' -e 'w copy.ts' src/settings.ts",
+    "sed 'w copy.ts' src/settings.ts",
+    "sed 'e echo changed' src/settings.ts",
+    "sed 's/old/new/w copy.ts' src/settings.ts",
+    "sed 's/old/new/e' src/settings.ts"
+  ])("does not describe an unrecognized sed program as a read: %s", (title) => {
+    expect(summarizeToolAction({ kind: "exec", title }).label).toBe(`Run ${title}`);
+  });
+
+  it.each([
+    "sed -n '1,$p' src/settings.ts",
+    "sed --quiet --expression=1,10p src/settings.ts",
+    "sed -n -e 1p -e 10p -- src/settings.ts"
+  ])("recognizes bounded sed print programs: %s", (title) => {
+    expect(summarizeToolAction({ kind: "exec", title }).label).toBe("Read src/settings.ts");
+  });
 });

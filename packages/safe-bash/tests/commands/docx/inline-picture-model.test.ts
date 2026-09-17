@@ -74,13 +74,14 @@ test("inline picture handles admit VFS bytes and publish typed sizing through a 
     const envelope = JSON.parse(dry.stdout);
     assert.equal(envelope.version, 1);
     assert.equal(envelope.operation, "batch");
-    assert.equal(envelope.data.dryRun, true);
-    assert.deepEqual(envelope.data.output, []);
-    assert.equal(envelope.data.results[0].value.type, "InlineShape");
-    assert.equal(envelope.data.results[0].value.owner, "document");
-    assert.equal(envelope.data.results[4].value, 1);
-    assert.equal(envelope.data.results[6].value.name, "PICTURE");
-    assert.equal(envelope.data.results.at(-1).value, "/word/document.xml");
+    assert.equal(envelope.data.publication.dryRun, true);
+    assert.equal(envelope.data.publication.output, null);
+    assert.equal(envelope.data.results[0].data.type, "InlineShape");
+    assert.equal(envelope.data.results[0].data.owner, "document");
+    assert.equal(envelope.data.results[4].data, 1);
+    assert.equal(envelope.data.results[6].data.name, "PICTURE");
+    assert.equal(envelope.data.results.at(-1).data, "/word/document.xml");
+    assert.deepEqual(envelope.data.results.map((item: {operation: string; version: number; ok: boolean}) => [item.operation, item.version, item.ok]), operations.map(item => [item.operation, 1, true]));
     await fs.writeFile(
       "/work/picture.sh",
       new TextEncoder().encode(
@@ -125,11 +126,12 @@ test("run picture traversal exposes a closed drawing image metadata handle", asy
     );
     assert.equal(result.exitCode, 0, result.stderr);
     const envelope = JSON.parse(result.stdout);
-    assert.equal(envelope.data.results[4].value, true);
-    assert.equal(envelope.data.results[5].value.type, "Image");
-    assert.equal(envelope.data.results[5].value.owner, "batch");
-    assert.equal(envelope.data.results[6].value, 1);
-    assert.equal(envelope.data.results[7].value.length, 40);
+    assert.equal(envelope.data.results[4].data, true);
+    assert.equal(envelope.data.results[5].data.type, "Image");
+    assert.equal(envelope.data.results[5].data.owner, "batch");
+    assert.equal(envelope.data.results[6].data, 1);
+    assert.equal(envelope.data.results[7].data.length, 40);
+    assert.deepEqual(envelope.data.results.map((item: {operation: string; version: number; ok: boolean}) => [item.operation, item.version, item.ok]), operations.map(item => [item.operation, 1, true]));
     assert.deepEqual(await fs.readFile("/work/input.docx"), input);
   } finally {
     await shell.dispose();

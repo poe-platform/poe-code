@@ -112,9 +112,10 @@ test("table model rectangle merges preserve ordered content and dry runs publish
     const dry = await batch(operations, "--dry-run --json");
     assert.equal(dry.exitCode, 0, dry.stderr);
     const envelope = JSON.parse(dry.stdout);
-    assert.equal(envelope.data.dryRun, true);
-    assert.deepEqual(envelope.data.output, []);
-    assert.equal(envelope.data.results.at(-1).value, "North\nEast\nSouth\nWest");
+    assert.equal(envelope.data.publication.dryRun, true);
+    assert.equal(envelope.data.publication.output, null);
+    assert.equal(envelope.data.results.at(-1).data, "North\nEast\nSouth\nWest");
+    assert.deepEqual(envelope.data.results.map((item: {operation: string; version: number; ok: boolean}) => [item.operation, item.version, item.ok]), operations.map(item => [item.operation, 1, true]));
     assert.deepEqual(await fs.readFile("/work/input.docx"), input);
     const published = await batch(operations, "-o -");
     assert.equal(published.exitCode, 0, published.stderr);
@@ -143,7 +144,8 @@ test("table model slices use checked zero based bounds through binary stdin", as
       { stdin: input }
     );
     assert.equal(result.exitCode, 0, result.stderr);
-    assert.equal(JSON.parse(result.stdout).data.results.at(-1).value, "South");
+    assert.equal(JSON.parse(result.stdout).data.results.at(-1).data, "South");
+    assert.equal(JSON.parse(result.stdout).data.publication, null);
     assert.equal(JSON.parse(result.stdout).affected, 0);
     assert.deepEqual(await fs.readFile("/work/input.docx"), input);
   } finally {

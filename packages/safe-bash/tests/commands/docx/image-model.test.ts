@@ -27,10 +27,11 @@ test("explicit docx plugin awaits image factories through a virtual script and p
     assert.equal(result.exitCode, 0);
     const envelope = JSON.parse(result.stdout);
     assert.equal(envelope.affected, 0);
-    assert.deepEqual(envelope.data.output, []);
-    assert.equal(envelope.data.results[0].value.owner, "batch");
-    assert.equal(envelope.data.results[1].value, "Map.PNG");
-    assert.equal(envelope.data.results[2].value.length, 40);
+    assert.equal(envelope.data.publication, null);
+    assert.equal(envelope.data.results[0].data.owner, "batch");
+    assert.equal(envelope.data.results[1].data, "Map.PNG");
+    assert.equal(envelope.data.results[2].data.length, 40);
+    assert.deepEqual(envelope.data.results.map((item: {operation: string; version: number; ok: boolean}) => [item.operation, item.version, item.ok]), batch.operations.map(item => [item.operation, 1, true]));
     assert.deepEqual(await fs.readFile("/work/input.docx"), input);
   } finally { await shell.dispose(); }
 });

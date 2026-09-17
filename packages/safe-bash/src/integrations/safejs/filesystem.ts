@@ -1,6 +1,5 @@
 import type { FileSystem, NodeFsBridgeOptions } from "poe-code/safe-fs";
 
-export { createNodeFsBridge } from "poe-code/safe-fs";
 export type { NodeFsBridgeFileSystem, NodeFsBridgeOptions, NodeFsImplementation as SafeJsFsImplementation } from "poe-code/safe-fs";
 
 export function makeSafeJsFsModule<Module>(

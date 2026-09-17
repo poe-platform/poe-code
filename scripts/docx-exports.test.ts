@@ -1,29 +1,9 @@
-import { readFile } from "node:fs/promises";
 import { expect, it } from "vitest";
-import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { textContext, textFixture } from "../packages/docx/tests/fixtures/text.js";
 import { rasterPng } from "../packages/docx/tests/fixtures/raster.js";
 import { chartContext, chartFixture, chartSpace, series } from "../packages/docx/tests/fixtures/charts.js";
 import { diagramContext, diagramFixture, diagramCarrier } from "../packages/docx/tests/fixtures/diagrams.js";
 import { MemoryFileSystem } from "../packages/safe-fs/src/fs/memory/index.js";
-
-it("ships the optional document API and command with matching portable runtime and type routes", async () => {
-  const manifest = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
-  expect(manifest.exports["./docx"]).toEqual({
-    types: "./packages/docx/dist/index.d.ts",
-    import: "./packages/docx/dist/index.js"
-  });
-  expect(manifest.exports["./safe-bash/commands/docx"]).toEqual({
-    types: "./packages/safe-bash/dist/commands/docx/index.d.ts",
-    browser: "./packages/safe-bash/dist/commands/docx/index.browser.js",
-    import: "./packages/safe-bash/dist/commands/docx/index.js"
-  });
-  expect(manifest.files).toEqual(expect.arrayContaining([
-    "packages/docx/dist", "packages/docx/LICENSE", "packages/docx/THIRD_PARTY_NOTICES.txt"
-  ]));
-  expect(resolveBrowserShellBuild("/repo").entryPoints["commands/docx/index.browser"])
-    .toBe("/repo/packages/safe-bash/src/commands/docx/index.ts");
-});
 
 it("closes the document runtime over portable ZIP and XML implementations", async () => {
   const { build } = await import("esbuild");

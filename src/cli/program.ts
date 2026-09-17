@@ -48,12 +48,10 @@ import { registerMemoryCommand } from "./commands/memory.js";
 import { registerMemoryMcpCommand } from "./commands/memory-mcp.js";
 import { registerProviderCommand } from "./commands/provider.js";
 import { registerRuntimeCommand } from "./commands/runtime/index.js";
-import { registerHarnessCommand } from "./commands/harness.js";
 import { registerDoctorCommand } from "./commands/doctor.js";
 import { registerCompletionCommand } from "./commands/completion.js";
 import { registerTasksCommand } from "./commands/tasks.js";
 import { registerGaslightCommand } from "./commands/gaslight.js";
-import { registerBashCommand } from "./commands/bash.js";
 import { registerWorktreeCommand } from "./commands/worktree.js";
 import { packageVersion } from "../package-metadata.js";
 import { throwCommandNotFound } from "./command-not-found.js";
@@ -102,7 +100,7 @@ const ROOT_HELP_PRIMARY_COMMANDS: readonly string[] = [
   "pipeline",
   "plan",
   "traces",
-  "harness",
+
   "experiment",
   "ralph",
   "usage",
@@ -1025,9 +1023,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerMemoryMcpCommand(program, container);
   registerProviderCommand(program, container);
   registerRuntimeCommand(program, container);
-  registerHarnessCommand(program, container);
   registerWorktreeCommand(program, container);
-  registerBashCommand(program);
   registerDoctorCommand(program, container);
   registerTasksCommand(program, container);
   registerForwardedToolcraftCommand(

@@ -4,10 +4,6 @@ import { pathToFileURL } from "node:url";
 import { applyPoeTheme } from "./cli/poe-theme.js";
 
 applyPoeTheme();
-
-// SDK exports
-export { runBash } from "./sdk/bash.js";
-export type { RunBashOptions, BashPythonOptions } from "./sdk/bash.js";
 export { spawn } from "./sdk/spawn.js";
 export { runPipeline, runPipelineInit, runPipelineSequence, createRunQueue } from "./sdk/pipeline.js";
 export { runMaestro } from "@poe-code/maestro";

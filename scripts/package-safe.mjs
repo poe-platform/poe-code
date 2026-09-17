@@ -286,8 +286,11 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       return enqueueExport(workspaceTarget(built));
     };
     if (name === "safe-js") {
-      for (const [key, value] of Object.entries(root.exports)) {
-        if (key === "./safe-js" || key.startsWith("./safe-js/")) exports[key === "./safe-js" ? "." : "." + key.slice("./safe-js".length)] = enqueueExport(value);
+      const rootExports = Object.entries(root.exports ?? {})
+        .filter(([key]) => key === "./safe-js" || key.startsWith("./safe-js/"))
+        .map(([key, value]) => [key === "./safe-js" ? "." : "." + key.slice("./safe-js".length), value]);
+      for (const [key, value] of rootExports.length ? rootExports : Object.entries(source.exports).map(([key, value]) => [key, workspaceTarget(value)])) {
+        exports[key] = enqueueExport(value);
       }
       for (const suffix of ["", "/core", "/node"]) {
         const target = "./dist/compat/fs" + suffix.replace("/", "-");

@@ -191,7 +191,7 @@ for (const profile of ["dependencies", "devDependencies"]) for (const defect of 
   assert.equal(owned.descriptors.size, 0);
 });
 
-for (const defect of ["none", "declaration", "runtime"]) test(`build portable SafeFS declaration admission: ${defect}`, async () => {
+for (const defect of ["none", "detached", "declaration", "runtime"]) test(`build portable SafeFS declaration admission: ${defect}`, async () => {
   const owned = fixture({
     "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." }, poeCode: { integration: { peerProfile: "checkout-root" } } }),
     "src/index.ts": 'import type { FileSystem } from "poe-code/safe-fs/core"; export const filesystem: FileSystem = { portable: true };',
@@ -202,7 +202,8 @@ for (const defect of ["none", "declaration", "runtime"]) test(`build portable Sa
     "../../packages/safe-fs/dist/index.d.ts": "export interface FileSystem { portable: boolean; }",
     "../../packages/safe-fs/dist/core.d.ts": "export interface FileSystem { portable: boolean; }",
   });
-  if (defect === "none") {
+  if (defect === "detached") owned.memory.writeFileSync("/package.json", JSON.stringify({ name: "poe-code", type: "module", exports: {} }));
+  if (defect === "none" || defect === "detached") {
     assert.equal((await owned.run()).status, 0, owned.output.join(""));
     assert.ok(owned.reads.includes("/packages/safe-fs/dist/core.d.ts"));
   } else {

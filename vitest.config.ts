@@ -108,6 +108,9 @@ function getPackageAliases(): Record<string, string> {
 
   // Longer subpaths must precede their parent aliases (including nested exports).
   return Object.fromEntries(Object.entries({
+    "poe-code/safe-fs/node/filesystem": path.resolve(packagesDir, "safe-fs/src/node/filesystem.ts"),
+    "poe-code/safe-fs/core": path.resolve(packagesDir, "safe-fs/src/core.ts"),
+    "poe-code/safe-fs": path.resolve(packagesDir, "safe-fs/src/index.ts"),
     ...bareSubpathAliases,
     ...subpathAliases,
     ...bareMainAliases,

@@ -339,9 +339,6 @@ describe("completion command", () => {
       { input: "-- models <empty>", path: "models", prefix: "", ended: true, expected: [] },
       { input: "models --verb", path: "models", prefix: "--verb", ended: false, expected: ["--verbose"] },
       { input: "--", path: "", prefix: "--", ended: false, expected: ["--yes", "--dry-run", "--verbose", "--version", "--help"] },
-      { input: "harness run --dir -- --re", path: "harness run", prefix: "--re", ended: false, expected: ["--resume"] },
-      { input: "harness run --dir -- -- --re", path: "harness run", prefix: "--re", ended: true, expected: [] },
-      { input: "harness run --dir=-- --re", path: "harness run", prefix: "--re", ended: false, expected: ["--resume"] },
       { input: "plan --kind=-- v", path: "plan", prefix: "v", ended: false, expected: ["view"] },
       { input: "plan --kind -- v", path: "plan", prefix: "v", ended: false, expected: ["view"] },
       { input: "plan --kind -- -- v", path: "plan", prefix: "v", ended: true, expected: ["view"] }
@@ -412,17 +409,11 @@ describe("completion command", () => {
     it.each([
       { input: "plan view docs/plans/example.md --out", path: "plan view", prefix: "--out", ended: false, expected: ["--output"] },
       { input: "plans view docs/plans/example.md --ar", path: "plans view", prefix: "--ar", ended: false, expected: ["--archived"] },
-      { input: "harness run one.md two.md --re", path: "harness run", prefix: "--re", ended: false, expected: ["--resume"] },
       { input: "spawn codex --mo", path: "spawn", prefix: "--mo", ended: false, expected: ["--model", "--mode"] },
       { input: "s codex hello --mo", path: "s", prefix: "--mo", ended: false, expected: ["--model", "--mode"] },
       { input: 'plan view "docs/plans/with spaces.md" --out', path: "plan view", prefix: "--out", ended: false, expected: ["--output"] },
       { input: 'plan view "" --out', path: "plan view", prefix: "--out", ended: false, expected: ["--output"] },
-      { input: "harness run models plan --re", path: "harness run", prefix: "--re", ended: false, expected: ["--resume"] },
-      { input: "harness run --dir tmp one.md --re", path: "harness run", prefix: "--re", ended: false, expected: ["--resume"] },
-      { input: "harness run one.md --dir tmp --re", path: "harness run", prefix: "--re", ended: false, expected: ["--resume"] },
       { input: "spawn codex hello --model example --mo", path: "spawn", prefix: "--mo", ended: false, expected: ["--model", "--mode"] },
-      { input: "harness run one.md --dir -- --re", path: "harness run", prefix: "--re", ended: false, expected: ["--resume"] },
-      { input: "harness run one.md --dir -- -- --re", path: "harness run", prefix: "--re", ended: true, expected: [] },
       { input: "plan view example.md -- --out", path: "plan view", prefix: "--out", ended: true, expected: [] },
       { input: "plans view example.md -- --ar", path: "plans view", prefix: "--ar", ended: true, expected: [] },
       { input: "spawn codex -- --model forwarded --mo", path: "spawn", prefix: "--mo", ended: true, expected: [] },
@@ -485,7 +476,7 @@ describe("completion command", () => {
       });
       const script = await emitCompletion(shell, program);
 
-      for (const path of ["", "models", "maestro", "plan", "plans", "harness"]) {
+      for (const path of ["", "models", "maestro", "plan", "plans",]) {
         expect(script).not.toContain(`      "${path}") continue;;`);
       }
       for (const path of ["unknown", "plan unknown", "models unexpected", "maestro WORKFLOW.md"]) {
@@ -646,7 +637,7 @@ describe("completion command", () => {
   });
 
   describe.each(["bash", "zsh", "fish"])("%s implicit help options", (shell) => {
-    it.each(["", "models", "plan view", "harness run", "maestro", "plans view"])(
+    it.each(["", "models", "plan view", "maestro", "plans view"])(
       "includes current-command help and description at real path '%s'",
       async (path) => {
         const program = createProgram({

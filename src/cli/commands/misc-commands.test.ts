@@ -1200,7 +1200,6 @@ describe("root command", () => {
       "plan",
       "pipeline",
       "experiment",
-      "harness",
       "ralph",
       "usage"
     ]) {

@@ -612,3 +612,11 @@ describe("optional peer export-pattern segment admission", () => {
     });
   }
 });
+
+it('packages SafeJS from its own exports when the root no longer exposes sandboxes', async () => {
+  const { volume, options } = optionalLeftovers();
+  volume.writeFileSync('/repo/package.json', JSON.stringify({ license: 'MIT', exports: {} }));
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const manifest = JSON.parse(volume.readFileSync('/output/safe-js/package.json', 'utf8') as string);
+  expect(manifest.exports['.']).toEqual({ types: './dist/safe-js/index.d.ts', import: './dist/safe-js/index.js' });
+});

@@ -239,24 +239,31 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
         peerMetadata.add(join(peerRoot, "package.json"));
         const peer = JSON.parse(read(join(peerRoot, "package.json")));
         assert.equal(peer.name, "poe-code", "canonical public peer identity");
-        const exported = peer.exports?.["./safe-fs"];
+        const detached = checkout && peer.exports?.["./safe-fs"] === undefined;
+        const exported = detached
+          ? { types: "./packages/safe-fs/dist/index.d.ts" }
+          : peer.exports?.["./safe-fs"];
         const target = typeof exported?.types === "string" ? exported.types : exported?.types?.default;
         assert.equal(target, "./packages/safe-fs/dist/index.d.ts", "canonical public SafeFS declaration entry");
-        if (checkout) assert.equal(exported.import, "./packages/safe-js/dist/safe-fs.js", "canonical public SafeFS must use the shared SafeJS runtime");
+        if (checkout && !detached) assert.equal(exported.import, "./packages/safe-js/dist/safe-fs.js", "canonical public SafeFS must use the shared SafeJS runtime");
         toolRoots.push(join(peerRoot, "packages/safe-fs/dist"));
         peerPaths = { "poe-code/safe-fs": [resolve(peerRoot, target)] };
-        const core = peer.exports?.["./safe-fs/core"];
+        const core = detached
+          ? { types: "./packages/safe-fs/dist/core.d.ts" }
+          : peer.exports?.["./safe-fs/core"];
         if (core !== undefined) {
           const coreTarget = typeof core.types === "string" ? core.types : core.types?.default;
           assert.equal(coreTarget, "./packages/safe-fs/dist/core.d.ts", "canonical public SafeFS core declaration entry");
-          if (checkout) assert.equal(core.import, "./packages/safe-js/dist/safe-fs-core.js", "canonical public SafeFS core must use the shared SafeJS runtime");
+          if (checkout && !detached) assert.equal(core.import, "./packages/safe-js/dist/safe-fs-core.js", "canonical public SafeFS core must use the shared SafeJS runtime");
           peerPaths["poe-code/safe-fs/core"] = [resolve(peerRoot, coreTarget)];
         }
         if (manifest.devDependencies?.['@poe-code/safe-playwright'] !== undefined) {
           assert.equal(manifest.devDependencies['@poe-code/safe-playwright'], '*', 'Playwright build dependency must be the local workspace');
           for (const entry of ['index', 'adapter']) {
             const name = entry === 'index' ? './safe-playwright' : './safe-playwright/adapter';
-            const exported = peer.exports?.[name];
+            const exported = detached
+              ? { types: './packages/safe-playwright/dist/' + entry + '.d.ts', import: './packages/safe-playwright/dist/' + entry + '.js' }
+              : peer.exports?.[name];
             const target = `./packages/safe-playwright/dist/${entry}.d.ts`;
             assert.equal(exported?.types, target, 'canonical public Playwright declaration entry');
             assert.equal(exported?.import, `./packages/safe-playwright/dist/${entry}.js`, 'canonical public Playwright runtime entry');

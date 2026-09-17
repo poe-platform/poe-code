@@ -166,7 +166,7 @@ poe-code models --search claude
 
 ## SDK
 
-The isolated `poe-code/safe-bash` entrypoint and its public subpaths require Node.js 22 or newer. They expose the private workspace package `@poe-platform/safe-bash` through `poe-code`; the existing root entrypoints retain their current Node.js requirement and do not load this feature.
+SafeJS, safe-bash, and the SafeJS harness are workspace tools and are not included in the published `poe-code` package. The `bash` and `harness` commands, SafeJS binaries, and sandbox SDK subpaths are unavailable in `poe-code`.
 
 Use `poe-code` programmatically in your own code:
 

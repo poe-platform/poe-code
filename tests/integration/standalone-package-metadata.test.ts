@@ -37,11 +37,6 @@ function getUnbundledWorkspaceDeps(pkg: PackageJson): string[] {
 }
 
 describe("standalone package publish metadata", () => {
-  it("ships the declaration closure and bundled-font license for the explicit pandoc plugin", () => {
-    const files = readPackageJson("package.json").files ?? [];
-    for (const path of ["packages/pandoc/dist/**/*.d.ts", "packages/pandoc/dist/public", "packages/pdf/dist/**/*.d.ts", "packages/pdf/OFL.txt"])
-      expect(files).toContain(path);
-  });
   it.each(["package.json", "packages/poe-agent/package.json"])(
     "%s requires a patched shell-quote consumer floor",
     (relativePath) => {
@@ -178,156 +173,8 @@ describe("standalone package publish metadata", () => {
     expect(toolcraftPackage.bundleDependencies).not.toContain("mcp-oauth");
     expect(toolcraftPackage.optionalDependencies?.["mcp-oauth"]).toBeUndefined();
   });
-
   it("keeps root poe-code exports focused on supported SDK surfaces", () => {
-    const exportsField = readPackageJson("package.json").exports ?? {};
-
-    expect(Object.keys(exportsField).sort()).toEqual([
-      ".",
-      "./agent",
-      "./config",
-      "./config/testing",
-      "./credentials",
-      "./docx",
-      "./memory",
-      "./pandoc",
-      "./pptx",
-      "./safe-bash",
-      "./safe-bash/yes",
-      "./safe-bash/cmp",
-      "./safe-bash/dd",
-      "./safe-bash/shuf",
-      "./safe-bash/truncate",
-      "./safe-bash/install",
-      "./safe-bash/yq",
-      "./safe-bash/devices",
-      "./safe-bash/arrays",
-      "./safe-bash/jobs",
-      "./safe-bash/mapfile",
-      "./safe-bash/read",
-      "./safe-bash/trap",
-      "./safe-bash/commands/apply-patch",
-      "./safe-bash/commands/archive",
-      "./safe-bash/commands/column",
-      "./safe-bash/commands/csplit",
-      "./safe-bash/commands/docx",
-      "./safe-bash/commands/du",
-      "./safe-bash/commands/expr",
-      "./safe-bash/commands/factor",
-      "./safe-bash/commands/file",
-      "./safe-bash/commands/getopt",
-      "./safe-bash/commands/grep-aliases",
-      "./safe-bash/commands/hexdump",
-      "./safe-bash/commands/html-to-markdown",
-      "./safe-bash/commands/iconv",
-      "./safe-bash/commands/line-endings",
-      "./safe-bash/commands/llm",
-      "./safe-bash/commands/llm/providers",
-      "./safe-bash/commands/metadata",
-      "./safe-bash/commands/network",
-      "./safe-bash/commands/node",
-      "./safe-bash/commands/node/host",
-      "./safe-bash/commands/op",
-      "./safe-bash/commands/pandoc",
-      "./safe-bash/commands/playwright",
-      "./safe-bash/commands/pptx",
-      "./safe-bash/commands/pr",
-      "./safe-bash/commands/python",
-      "./safe-bash/commands/python/docker",
-      "./safe-bash/commands/python/node",
-      "./safe-bash/commands/python/worker",
-      "./safe-bash/commands/split",
-      "./safe-bash/commands/stream-format",
-      "./safe-bash/commands/stream-inspection",
-      "./safe-bash/commands/table-text",
-      "./safe-bash/commands/time-env",
-      "./safe-bash/commands/timeout",
-      "./safe-bash/commands/tree",
-      "./safe-bash/commands/tsort",
-      "./safe-bash/commands/which",
-      "./safe-bash/commands/xml",
-      "./safe-bash/commands/yq",
-      "./safe-bash/contracts",
-      "./safe-bash/contracts/*",
-      "./safe-bash/contracts/index",
-      "./safe-bash/contracts/path",
-      "./safe-bash/fs/mount",
-      "./safe-bash/fs/overlay",
-      "./safe-bash/fs/readonly",
-      "./safe-bash/fs/s3",
-      "./safe-bash/fs/s3/http",
-      "./safe-bash/fs/webdav",
-      "./safe-bash/node",
-      "./safe-bash/optional-host",
-      "./safe-fs",
-      "./safe-fs/core",
-      "./safe-fs/node",
-      "./safe-fs/node/filesystem",
-      "./safe-bash/playwright",
-      "./safe-js",
-      "./safe-js/cli",
-      "./safe-js/core",
-      "./safe-js/workerd",
-      "./safe-playwright",
-      "./safe-playwright/adapter",
-      "./safejs",
-      "./safejs/cli",
-      "./safejs/core",
-      "./safejs/workerd",
-      "./skills"
-    ].sort());
-  });
-
-  it("keeps browser contracts portable and Node contracts native across declared paths", () => {
-    for (const [manifest, prefix, directory] of [
-      ["package.json", "./safe-bash", "./packages/safe-bash/dist"],
-      ["packages/safe-bash/package.json", ".", "./dist"]
-    ]) {
-      const exportsField = readPackageJson(manifest!).exports ?? {};
-      for (const [suffix, browser, node] of [
-        ["/contracts", "index", "node"],
-        ["/contracts/index", "index", "node"],
-        ["/contracts/path", "path", "node-path"]
-      ]) {
-        expect(Object.keys(exportsField[`${prefix}${suffix}`] as object)).toEqual(["types", "browser", "import"]);
-        expect(exportsField[`${prefix}${suffix}`]).toEqual({
-          types: {
-            browser: `${directory}/contracts/${browser}.d.ts`,
-            default: `${directory}/contracts/${node}.d.ts`
-          },
-          browser: `${directory}/contracts/${browser}.js`,
-          import: `${directory}/contracts/${node}.js`
-        });
-      }
-    }
-  });
-
-  it("declares portable byte dependencies for the root safe-bash entry", () => {
-    const rootPackage = readPackageJson("package.json");
-    const shellPackage = readPackageJson("packages/safe-bash/package.json");
-    for (const [name, version] of Object.entries({ "@noble/hashes": "2.4.0", pako: "3.0.1" })) {
-      expect(rootPackage.dependencies?.[name]).toBe(version);
-    }
-    expect(shellPackage.dependencies).toEqual({});
-    expect(shellPackage.private).toBe(true);
-    for (const [name, version] of Object.entries({ "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*" })) {
-      expect(shellPackage.devDependencies?.[name]).toBe(version);
-    }
-    expect(readPackageJson("packages/office-package/package.json").dependencies).toEqual({ pako: "3.0.1" });
-    expect(rootPackage.dependencies?.["@poe-code/office-package"]).toBeUndefined();
-    expect(rootPackage.files).toContain("packages/office-package/dist");
-    expect(rootPackage.files).toContain("packages/office-package/LICENSE");
-    expect(rootPackage.dependencies?.saxes).toBe("6.0.0");
-    expect(rootPackage.dependencies?.pptx).toBeUndefined();
-    expect(rootPackage.files).toContain("packages/pptx/dist");
-    expect(rootPackage.files).toContain("packages/pptx/LICENSE");
-    expect(rootPackage.exports?.["./pptx"]).toEqual({
-      types: "./packages/pptx/dist/index.d.ts", import: "./packages/pptx/dist/index.js"
-    });
-    expect(rootPackage.exports?.["./safe-bash/commands/pptx"]).toEqual({
-      types: "./packages/safe-bash/dist/commands/pptx/index.d.ts",
-      import: "./packages/safe-bash/dist/commands/pptx/index.js"
-    });
+    expect(Object.keys(readPackageJson("package.json").exports ?? {}).sort()).toEqual([".", "./agent", "./config", "./config/testing", "./credentials", "./memory", "./pptx", "./skills"]);
   });
 
   it("publishes the superintendent MCP server bin with the root package", () => {
@@ -344,8 +191,8 @@ describe("standalone package publish metadata", () => {
       "poe",
       "poe-agent",
       "poe-code",
-      "poe-safe-js",
-      "poe-safejs",
+
+
       "poe-superintendent-mcp"
     ]);
   });
@@ -380,23 +227,8 @@ describe("standalone package publish metadata", () => {
 
     expect(rootPackage.devDependencies?.["@poe-code/safe-js"]).toBe("*");
     expect(rootPackage.devDependencies?.["@poe-code/agent-script"]).toBeUndefined();
-    expect(rootPackage.files).toContain("packages/safe-js/dist");
+    expect(rootPackage.files).not.toContain("packages/safe-js/dist");
     expect(rootPackage.files).not.toContain("packages/agent-script/dist");
-    expect(rootPackage.bin?.["poe-safejs"]).toBe("packages/safe-js/dist/cli.js");
-    for (const [subpath, entrypoint] of [
-      ["./safejs", "index"],
-      ["./safejs/core", "core"],
-      ["./safejs/cli", "cli"]
-    ]) {
-      expect(rootPackage.exports?.[subpath]).toEqual({
-        types: {
-          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
-          default: `./packages/safe-js/dist/${entrypoint}.d.ts`
-        },
-        browser: null,
-        import: `./packages/safe-js/dist/${entrypoint}.js`
-      });
-    }
     expect(safejsPackage).toMatchObject({
       name: "@poe-code/safe-js",
       bin: {
@@ -419,45 +251,16 @@ describe("standalone package publish metadata", () => {
     });
   });
 
-  it("keeps Python host integrations explicit and Node-only", () => {
+  it("keeps private Python host integrations explicit and Node-only", () => {
     const root = readPackageJson("package.json");
     const standalone = readPackageJson("packages/safe-bash/package.json");
     for (const host of ["node", "docker"]) {
-      expect(root.exports?.[`./safe-bash/commands/python/${host}`]).toEqual({
-        types: `./packages/safe-bash/dist/commands/python/${host}.d.ts`,
-        browser: null,
-        import: `./packages/safe-bash/dist/commands/python/${host}.js`
-      });
+      expect(root.exports?.[`./safe-bash/commands/python/${host}`]).toBeUndefined();
       expect(standalone.exports?.[`./commands/python/${host}`]).toEqual({
         types: `./dist/commands/python/${host}.d.ts`,
         browser: null,
         import: `./dist/commands/python/${host}.js`
       });
     }
-  });
-
-  it("keeps canonical and legacy SafeJS routes identical and Node-only", () => {
-    const rootPackage = readPackageJson("package.json");
-    for (const [suffix, entrypoint] of [
-      ["", "index"],
-      ["/core", "core"],
-      ["/cli", "cli"]
-    ]) {
-      expect(rootPackage.exports?.[`./safe-js${suffix}`]).toEqual({
-        types: {
-          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
-          default: `./packages/safe-js/dist/${entrypoint}.d.ts`
-        },
-        browser: null,
-        import: `./packages/safe-js/dist/${entrypoint}.js`
-      });
-      expect(rootPackage.exports?.[`./safejs${suffix}`]).toEqual(
-        rootPackage.exports?.[`./safe-js${suffix}`]
-      );
-    }
-    expect(rootPackage.bin?.["poe-safe-js"]).toBe("packages/safe-js/dist/cli.js");
-    expect(rootPackage.bin?.["poe-safejs"]).toBe(rootPackage.bin?.["poe-safe-js"]);
-    expect(rootPackage.files).not.toContain("packages/safejs/dist");
-    expect(rootPackage.devDependencies?.["@poe-code/safejs"]).toBeUndefined();
   });
 });

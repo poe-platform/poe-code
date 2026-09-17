@@ -148,7 +148,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
   - id: zip-additional-codecs
     title: "Add LZMA and PPMd format extensions"
     prompt: |
@@ -156,10 +156,10 @@ tasks:
 
       After inspecting the complete matrix and existing compression assets, add bounded ZIP LZMA (method 14) and PPMd (method 98) interoperability as separate format extensions, not claims about native Info-ZIP Zip 3.0. Reuse existing suitable codecs only after validating ZIP framing, properties/version, end markers and cooperative limits. If none exists, design a minimal dependency-free codec with independent published vectors and pinned public fixtures before implementation; do not vendor an unaudited external library or claim support from recognizing a method number. Cover encode/decode, empty/small/incompressible inputs, malformed properties, excessive dictionary/model requests, truncated streams, output bombs, cancellation and method-specific flags/extraction versions. Preserve STORE/DEFLATE/BZIP2 tests and keep unavailable codec cells explicitly open. Each codec is a separate atomic improvement.
     status:
-      reproduce: open
-      implement: open
-      refactor: open
-      test: open
+      reproduce: done
+      implement: done
+      refactor: done
+      test: done
       commit: open
   - id: zip-final-qualification
     title: "Verify the complete compatibility profile and document remaining

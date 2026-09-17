@@ -25,7 +25,7 @@ export interface ArchiveCommandsOptions {
   /** Explicit trusted host capabilities; neither capability reads shell stdin. */
   readonly zipHost?: ZipHost;
   /** Defaults for creation; CLI -Z and --encryption override these. */
-  readonly zip?: Readonly<{ compression?: "store" | "deflate" | "bzip2"; encryption?: ZipEncryptionProfile }>;
+  readonly zip?: Readonly<{ compression?: "store" | "deflate" | "bzip2" | "lzma"; encryption?: ZipEncryptionProfile }>;
 }
 
 export type ZipEncryptionProfile = "zipcrypto" | "aes-128-ae1" | "aes-128-ae2" | "aes-192-ae1" | "aes-192-ae2" | "aes-256-ae1" | "aes-256-ae2";

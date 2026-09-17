@@ -8,7 +8,7 @@ Usage: zip [options] archive [file ...]
   -q          suppress progress messages
   -0          store without compression
   -1 .. -9    select compression effort
-  -Z METHOD   select store, deflate, or bzip2 compression
+  -Z METHOD   select store, deflate, bzip2, or lzma compression
   --encryption PROFILE  select zipcrypto or aes-{128,192,256}-ae{1,2}
   -n SUFFIXES store matching suffixes (colon-separated)
   -u / -f     update / freshen existing members
@@ -107,13 +107,16 @@ Logging
   Completed log/publication effects remain if a later write fails.
 
 Compression and format
-  -Z selects store, deflate, or bzip2; method names accept unique prefixes.
+  -Z selects store, deflate, bzip2, or lzma; method names accept unique prefixes.
   -1 through -9 select effort. Store selection remains through later levels.
   -n .jpg:.png stores matching suffixes; -9 overrides suffix-based storage.
   Compression may fall back to STORE for regular files when it expands data.
   -l converts text LF to CRLF, leaving detected binary input unchanged.
   -fz forces ZIP64; -fz- disables it. -fd forces signed data descriptors.
   BZIP2 members use extraction version 4.6, including with ZIP64 records.
+  LZMA is a ZIP format extension (not native Info-ZIP Zip 3.0).
+  LZMA uses version 6.3, a bounded 1 MiB encoder dictionary, and EOS.
+  Readers admit dictionaries up to 8 MiB and SDK 9.4 properties only.
 
 Streaming
   A '-' input filename reads one member from stdin, named '-'.
@@ -150,7 +153,7 @@ Displays
 
 export const zipVersion = `safe-bash zip (virtual-bash)
 Bounded virtual ZIP implementation; not an Info-ZIP native build.
-Compression: store, deflate, bzip2. Single-volume ZIP and ZIP64 output.
+Compression: store, deflate, bzip2, lzma (format extension). Single-volume ZIP and ZIP64 output.
 Filesystem, signals and byte limits are supplied by the host.
 Native compiler identity and ambient environment are not reported.
 `;

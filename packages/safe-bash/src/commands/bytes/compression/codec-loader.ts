@@ -29,6 +29,10 @@ export async function createCodec(
 ): Promise<BoundedCodec> {
   signal.throwIfAborted();
   if (!Number.isInteger(options.level) || options.level < 1 || options.level > 9) throw new RangeError("invalid codec level");
+  const lzma = options.lzma;
+  if (lzma && (options.format !== "xz" || !Number.isInteger(lzma.dictionary) || lzma.dictionary < 0 || lzma.dictionary > 8 * 1024 * 1024 ||
+      !Number.isInteger(lzma.properties) || lzma.properties < 0 || lzma.properties >= 225 || lzma.properties % 9 + Math.floor(lzma.properties / 9) % 5 > 4 ||
+      typeof lzma.eos !== "boolean" || !Number.isSafeInteger(lzma.size) || lzma.size < 0)) throw new PublicDiagnostic("invalid LZMA properties or dictionary limit exceeded");
   if (!factory) {
     switch (options.format) {
       case "bzip2": factory = (await import("./native/generated/bz2.mjs")).default; break;
@@ -44,7 +48,9 @@ export async function createCodec(
   };
   try {
     module._initialize?.();
-    const initialized = module.bridge_create(Number(options.decompress), options.level, 64 * 1024 * 1024, 23);
+    const initialized = lzma
+      ? module.bridge_create_lzma?.(Number(options.decompress), options.level, 64 * 1024 * 1024, lzma!.dictionary, lzma!.properties, Number(lzma!.eos), lzma!.size >>> 0, Math.floor(lzma!.size / 0x100000000))
+      : module.bridge_create(Number(options.decompress), options.level, 64 * 1024 * 1024, 23);
     signal.throwIfAborted();
     if (initialized !== 0) throw new PublicDiagnostic("codec initialization failed or memory limit exceeded");
     const inputPointer = module.bridge_input();

@@ -4795,3 +4795,527 @@ format. Portable vetted primitives remain unavailable; native AES+BZIP2 readers
 remain unqualified. These checks do not establish every possible input or a full
 repository, build, screenshot, committed-archive, remote-main or release gate.
 No commit or push was performed.
+
+## ZIP LZMA and PPMd gap revalidation — 2026-09-17
+
+Validation-only candidate: `a7bb9bc511e845d7951707edd7e64a81b76a386d`,
+branch `main`, Node **22.22.2**, Darwin arm64. The pre-existing edit to
+`docs/plans/safe-bash-zip-remaining-features.md` was preserved. No SafeJS,
+README, product source, package manifest or runtime dependency was changed.
+This section records prerequisite work, not completed format extensions.
+
+### Actual valid inputs and fast failing checks
+
+The method-14 input is the independent Python `zipfile.ZIP_LZMA` fixture
+already described above: name `x`, payload `x`, DOS timestamp
+2024-01-02 03:04:06, 120 archive bytes, SHA-256
+`8db94eeb30c05d8324b73a957bae873c2871f399950e67ce5f9991489296a023`.
+Its extraction version is 63 and GPBF is 2 (EOS marker advertised).
+Archive bytes, encoded as base64:
+
+```text
+UEsDBD8AAgAOAIMYIliDFtyMFAAAAAEAAAABAAAAeAkEBQBdAACAAAA8Qfv////gAAAAUEsBAj8DPwACAA4AgxgiWIMW3IwUAAAAAQAAAAEAAAAAAAAAAAAAAIABAAAAAHhQSwUGAAAAAAEAAQAvAAAAMwAAAAAA
+```
+
+A temporary memory-only `node:test` check called the existing
+`fixture(oracle)` and `execute("unzip", fs, ["-p", "sample.zip", "x"])`
+helpers and asserted exit 0 and payload `x`. Running
+`node --import tsx --test packages/safe-bash/tests/commands/zip-lzma.test.ts`
+produced **1 failure / 0 passes**: actual exit 2, empty payload, diagnostic
+`unzip: ZIP unsupported general purpose flags\n`. The temporary failing
+test was removed after recording the reproduction; it is not a maintained
+passing support test.
+
+For method 98, use the immutable public fixture at:
+
+```text
+https://raw.githubusercontent.com/libarchive/libarchive/9525f90ca4bd14c7b335e2f8c84a4607b0af6bdf/libarchive/test/test_read_format_zip_ppmd8.zipx.uu
+```
+
+The uuencoded input is SHA-256
+`edd1a418baf069f41f79b93ec1977a447217c684041fc030305d18dfc354bfbc`;
+the decoded archive is 616 bytes, SHA-256
+`3524501a47b1947a162cb2b33ccabc8d2bd8c2311b86c0a6af6f7ba28eedbf6e`.
+It contains `vimrc`: method 98, extraction version 63, flags 0, compressed
+size 472, uncompressed size 912. This is a real PPMd representation, not a
+method-number mutation of STORE data.
+
+Independent extraction used `/usr/bin/bsdtar -xOf -`, passing the decoded
+archive through stdin and retaining stdout in memory: **exit 0**, 912 bytes,
+payload SHA-256
+`b16e85e457397ab2043a7ee0a3c84307c6b4eac157fd0b721694761f25b3ed5b`.
+The exact observed oracle version output was
+`bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8`.
+This native process was only an isolated oracle; product invocation used the
+memory VFS and had no native fallback.
+
+An inline `node --import tsx --input-type=module` probe fetched that immutable
+fixture, decoded its uuencoding in memory, checked the decoded archive hash,
+then ran `execute("unzip", await fixture(archive), ["-p", "sample.zip",
+"vimrc"])`. Asserting exit 0 failed: **actual 2**, no stdout,
+`unzip: ZIP unsupported compression method\n`. On the same VFS, ordinary
+`zip -q control.zip binary` and `unzip -p control.zip binary` both returned
+**0**, with exact binary bytes `00ff800d0a41`. Thus failure is not explained
+by an unusable invocation/helper/VFS. Public-fixture license review is still
+required before any future committed adaptation; the fixture was not vendored.
+
+### Complete matrix and existing codec assets
+
+The complete compatibility matrix was inspected, including native options,
+APPNOTE fields and extras, conditional platforms, upstream anchors and explicit
+completion accounting. Its method-14/98 cells remain open. These methods are
+format extensions beyond native Info-ZIP Zip 3.0, not missing native writer flags.
+
+Current source confirms the reproduced gaps:
+
+- `zip-format.ts` admits payload methods 0/8/12 only; its method-dependent
+  flag admission rejects LZMA GPBF bit 1 before codec dispatch.
+- `zip.ts` and archive SDK `zip.compression` admit store/deflate/bzip2 only.
+- Existing assets are bz2, xz and zstd; there is no PPMd asset or bridge.
+- The pinned XZ 5.8.3 build includes LZMA1 source files, but the existing
+  bridge initializes `lzma_stream_decoder` / `lzma_easy_encoder`, which handle
+  the XZ container. ZIP LZMA consists of ZIP codec version/properties framing
+  followed by raw LZMA1. Treating that payload as XZ is incorrect.
+- `RawCodecModule` exports no raw-LZMA initializer or property configuration.
+  LZMA1 appearing in the build manifest is not proof of callable ZIP support.
+  No unexported generated-code internals were patched or reused.
+
+Revision-specific SHA-256 inputs, relative to `packages/safe-bash`:
+
+| Input | SHA-256 |
+| --- | --- |
+| src/commands/archive/zip-format.ts | 28e7bc287ef274fc2e64b2b40fe9091ee4f6ef9a9b9af1cdf48fffc86eca8ae9 |
+| src/commands/archive/zip.ts | 18ee991c5115d674f6a38704e1f5f14c609da3765e8e7d5968342c937367fc3b |
+| src/commands/archive/internal.ts | bd0cbf4a0100f9abc44886539621634b1c38c4a97923e3c407bf2db2d8a54578 |
+| src/commands/bytes/compression/codec-loader.ts | bbccb357671dbe3f3b37c3ecfd4fcd770f2eaa8ab701a0192f35a5830cfacb4a |
+| src/commands/bytes/compression/bounded-codec.ts | 1d3781cf1dea6de3fda051027d1b642c476bd3c92f769e03c71200fc9b933c3e |
+| src/commands/bytes/compression/native/bridge.c | da6e8f038c8238ec0aa8d959469e299b9d69fce2b168fc350cd748751eb73b6c |
+| src/commands/bytes/compression/native/sources.json | 96a2fbae305ef796ddcb55e5547216e3d1cf62d43113303d1a684ec7e5ad78e7 |
+| src/commands/bytes/compression/native/generated/xz.mjs | e4795fbc3e71478bc4dc44fedb70a26fa27569353abd0e94db0daff63dd44a4e |
+
+### Proposed implementation prerequisites, not implemented support
+
+LZMA should first qualify an explicit raw-LZMA1 bridge built from the existing
+authenticated source tree. Parse and bound ZIP version bytes, property length,
+lc/lp/pb and dictionary request before initialization/allocation. Qualify
+`LZMA_FILTER_LZMA1` with required EOS and the size-aware LZMA1EXT path for
+non-EOS members separately; a known output size does not excuse truncated
+range-coder data. Reuse the bounded step driver, signals, owned reader/codec
+cleanup and archive output limits. Encoder settings must fit the existing
+allocation budget at every exposed level, and steps must yield cooperatively.
+Do not admit method 14 until the raw bridge, properties and termination modes
+have independent positive and malformed-stream proof.
+
+PPMd requires a separately designed dependency-free **PPMd variant I** codec;
+a 7z PPMd variant H stream is not a ZIP method-98 control. The two-byte ZIP
+properties encode `(order - 1)` in bits 0–3, `(memory MiB - 1)` in bits 4–11,
+and restoration method in bits 12–15. Admission must precede model allocation.
+The minimal design needs explicit arena accounting, bounded context/suffix
+walks and rescaling, restoration semantics, range-coder termination, owned
+incremental input/output and cooperative work counters. Order/model caps and
+unsupported restoration modes must be explicit refusals, never guessed decoding.
+The pinned positive fixture above is an interoperability anchor; it is not an
+independent published arithmetic/model known-answer vector or an audited codec.
+Those vectors and model-transition design remain prerequisites. No external
+PPMd library was copied and no recognition-only support was added.
+
+Both extensions require separate atomic improvements with CLI/SDK parity;
+encode/decode controls for empty, small and incompressible inputs; malformed
+properties; excessive dictionary/model requests; truncated streams and trailing
+data; actual output bombs; cancellation before acquisition and during input,
+codec work and output; exact method-specific flags/extraction versions; and
+STORE/DEFLATE/BZIP2 neighboring controls. All these new-codec acceptance cells
+remain **unimplemented/unverified**, not passed or waived by this revalidation.
+
+### Neighboring controls and exclusions
+
+Executed:
+
+```sh
+node --import tsx --test --test-concurrency=1 \
+  packages/safe-bash/tests/commands/zip-codec.test.ts \
+  packages/safe-bash/tests/commands/zip-bzip2.test.ts \
+  packages/safe-bash/tests/commands/zip-format.test.ts \
+  packages/safe-bash/tests/commands/zip.test.ts \
+  packages/safe-bash/tests/commands/unzip.test.ts
+```
+
+**343 tests passed**, 0 failed/cancelled/skipped/TODO, about 9.0 seconds.
+This is a scoped baseline control, not the full workspace test route, a full
+ZIP gate or either new codec's cancellation/boundary qualification. No product
+changes were made, so no new CLI screenshot, build, lint, remote-main delivery
+or release qualification is claimed. No commit or push was performed.
+
+## Bounded LZMA implementation and PPMd prerequisite design — 2026-09-17
+
+Live candidate on main, base HEAD `a7bb9bc511e845d7951707edd7e64a81b76a386d`,
+Node 22.22.2 / Darwin arm64. The preceding gap section is the pre-implementation
+baseline; its method-14 disposition is superseded only within the bounded
+profile below. Method 98 remains unimplemented. The two documentation edits
+present at task start were preserved. No README, SafeJS source, package manifest,
+runtime dependency or host-process product path changed.
+
+### Reproduction, implementation and reviewed limits
+
+The first maintained `zip-lzma.test.ts` test exercised the independent 120-byte
+Python archive above through memory VFS and actual `unzip -p`. Before changes:
+one test failed, actual exit 2, empty output, unsupported-general-purpose-flags
+diagnostic. After the raw bridge and ZIP framing extension: it passed with `x`.
+The complete compatibility matrix and existing compression assets were inspected.
+
+The existing authenticated liblzma 5.8.3 source, not a new library, now exposes
+`bridge_create_lzma`. Normal XZ initialization remains separate. The maintained
+native build verified upstream commit/tree hashes and exact tool versions:
+Zig 0.14.1, Binaryen 132.0.0, esbuild 0.28.1, TypeScript 5.9.3. Downloaded Zig
+matched official SHA-256
+`39f3dc5e79c22088ce878edc821dedb4ca5a1cd9f5ef915e9b3cc3053e8faefa`.
+The rebuilt bz2/zstd bytes and hashes were unchanged; only XZ's authenticated
+generated artifact changed. Product execution remains pure JavaScript, without
+WASM compilation, runtime fetch, native processes or additional dependencies.
+
+The admitted ZIP framing is encoder-version bytes 9.4 plus five-byte LZMA1
+properties. Dictionary requests above 8 MiB and lc+lp above 4 fail before codec
+acquisition; smaller-than-4-KiB dictionaries use liblzma's minimum. Writer levels
+1–9 use a 1 MiB dictionary and lc=3/lp=0/pb=2. EOS members use raw LZMA1;
+clear-EOS members use strict size-aware LZMA1EXT without optional EOS. The writer
+advertises/emits EOS and extraction version 63 even with ZIP64. Buffered descriptor
+members retain known local compressed spans; live sources advertise their actual
+EOS regardless of an omitted/clear caller flag. Copied non-EOS members keep their
+flags and compressed bytes.
+
+The codec reuses the 64 MiB tracked allocator budget, fixed heap maximum,
+64 KiB input/output step contract, cooperative step driver, signal checks and
+idempotent destruction. Archive size/output/CRC/trailing-byte checks remain in
+the package. LZMA output cannot be published past the declared member size.
+The nine-byte property reader borrows unread bytes while the producer remains
+suspended, avoiding an archive-sized duplicate before property admission.
+It consumes that remainder before advancing/finalizing the producer; this is
+not a concurrent-mutation lease. Existing outer reader and output-operation
+ownership/cleanup contracts remain responsible for invocation settlement.
+
+CLI `-Zlzma`/unique prefix/long option and SDK `zip.compression: "lzma"` share
+the package implementation. The contract/help explicitly separate this extension
+from native Info-ZIP Zip 3.0. Existing buffered STORE fallback remains; forced
+and live/stdout compressed profiles retain LZMA even when it expands input.
+
+Independent stress review found three concrete defects during development:
+
+- DOS `-k` erased EOS: two new controls failed before preserving method flags.
+- Explicit clear flags on fresh low-level live sources omitted advertised EOS:
+  two new controls failed before normalizing their emitted flags.
+- Property parsing duplicated a 2 MiB slab before rejecting its invalid property:
+  one new control failed before removing the unnecessary retained copy.
+
+A buffered descriptor-span control also failed before known local spans were
+retained. Each has passing final controls. Development runs with omitted collector
+options and Buffer/Uint8Array assertion mismatches were test errors, corrected
+without product changes. No-EOS encoding was rerun after rebuilding the modified
+bridge; runs against the earlier artifact are not final qualification.
+
+### Acceptance dimensions, bounded LZMA profile
+
+All named controls are in `tests/commands/zip-lzma.test.ts`; all unit data/effects
+use memory VFS or owned memory bytes, with no native or network unit oracle.
+
+| Dimension | Final controls/proof |
+| --- | --- |
+| Positive | Independent Python empty/small/binary/incompressible/bomb archives; independent native no-EOS vectors; encode/decode at levels 1/6/9 for empty/small/random/repetitive bytes; actual command flags, SDK/Shell defaults and CLI override |
+| Negative | Malformed version/property length/lc-lp-pb; excessive dictionaries; EOS flag/termination mismatch; every prefix of compact EOS and non-EOS streams; altered size; trailing bytes; reserved flags/extraction versions; malformed extraction preserves existing destination |
+| Boundary | Dictionary 0/1/4095/4096/8 MiB/8 MiB+1; empty/small/incompressible STORE fallback versus forced/live method; descriptors/ZIP64/version 63; one-byte producer reuse; large-slab admission; fresh live-source omitted/clear/set flags; real 200,000-byte output bomb cannot publish beyond budgets/declared size |
+| Cancellation | Before acquisition, during initializer acquisition, native step, blocked input, yielded output and cooperative work; consumer retirement; every actual native module returns tracked allocation to zero and peak stays within 64 MiB; live command source cancellation retains exact reason, closes source and publishes no destination |
+| Neighboring regression | Mixed raw LZMA copies with STORE/DEFLATE/BZIP2; unchanged codecs plus ZIP/unzip/crypto/streaming/plugin controls in the final 2,349-test cohort |
+
+### Independent interoperability, exact exclusions
+
+CPython 3.9.6 independently extracted **36/36 live/stdout archives**: empty,
+four-byte binary, 10,000-byte repetitive and deterministic mixed bytes; levels
+1/6/9; default, forced descriptors and forced ZIP64. The ordered archive-hash
+sequence joined by newlines has SHA-256
+`cb57c991f1e2cd54799196f85ca1ade292b4f464986fc034247a2428f4b9c8be`.
+The same bsdtar/libarchive build rejected **36/36** unknown-local-span live
+archives as truncated LZMA. These are failed native-reader cells, not passes.
+
+For **48 forced buffered archives**, crossing the same four inputs/three levels
+with descriptors on/off and forced ZIP64 on/off, Python extracted **48/48**;
+bsdtar independently extracted **36/36 non-empty** archives. Its **12 empty**
+cases failed with LZMA error 10 and remain open. Ordered archive-hash sequence:
+`df84454f5f77b0736c9b89eaa64dfc570db2703d99ce63f96cc426676337e2b3`.
+Observed native build: `bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12
+liblzma/5.4.3 bz2lib/1.0.8`. Oracle input/output stayed in memory/stdin/stdout;
+these native processes are isolated maintenance oracles, never product fallback.
+
+Pinned libarchive public input at revision
+`9525f90ca4bd14c7b335e2f8c84a4607b0af6bdf`,
+`libarchive/test/test_read_format_zip_lzma_stream_end.zipx.uu`:
+uu SHA-256 `a09cfb6640d26129cdc6d9990bef697887125a5c49525bd9b46900e5ea8c3716`,
+decoded archive SHA-256
+`cd960a59a5a97bdca61b00d26056414f7209506dfb851257b80df62c8bf65cba`.
+Product `unzip -p` and bsdtar both returned 0 and exactly 912 bytes, payload
+SHA-256 `b16e85e457397ab2043a7ee0a3c84307c6b4eac157fd0b721694761f25b3ed5b`.
+This input was inspected/executed outside canonical tests, not vendored.
+The older pinned `test_read_format_zip_7z_lzma.zip.uu` decodes to archive
+SHA-256 `483fe85398d6deb627ff10c2cb487da6168120e419bc4f6d61e18911556938c1`;
+it advertises version 20, encoder bytes 4.61 and a 64 MiB dictionary. That legacy
+profile remains excluded. No broad upstream-suite or legacy acceptance is claimed.
+
+The maintained independent JSON includes Python-created ZIP members and native
+liblzma 5.8.3 raw LZMA1EXT vectors for empty/x/1,200-byte repetitive payloads.
+Native vector settings: preset 6, dict_size 4096, ext_flags 0, no EOS; emitted
+through the public raw-buffer API, not product helpers. Maintenance oracle C
+source SHA-256 was
+`874eb9e0140a5f53a4b56b02e62fb2f2d59413806e21767f6da104e5ac22acc8`.
+
+### Final verification and delivery scope
+
+| Check | Result |
+| --- | --- |
+| Focused LZMA suite | 81 passed, zero failures/skips/cancellations/TODO; final invocation 14,064.660709 ms under concurrent build/lint load |
+| Serial ZIP/unzip/plugin and bytes/compression suites | 2,349 passed, zero failures/skips/cancellations/TODO; 103,169.015708 ms |
+| Codec asset and integration-input controls | 113 passed, zero failures/skips/cancellations/TODO |
+| Maintained selected workspace build | Exit 0; six-build declared dependency closure, 76 workspaces/217 edges/ten layers |
+| Screenshot preparation | 75 successful uncached declared Turbo builds plus root bundle; no-build workspace not counted as pass; not the maintained full npm test/build gate |
+| Maintained virtual-bash typecheck, rebuilt declarations | Exit 0; source/tests and 26 current consumer groups pass, three expected exit-2 negative controls; compile-only, no runtime acceptance |
+| Guarded root lint:eslint | Complete=true, exit 0; 15,510 configured/linted subjects, zero errors/four unchanged warnings; no separate lint:types/workflows gate claimed |
+| Visual CLI | Actual help displays lzma option; stdout pipeline emits 301 bytes and visible `(lzma -132%)` progress, exit 0 |
+
+The first broad cohort overlapped screenshot preparation deleting/rebuilding
+dependency dist modules. It had 342 passes / 28 failures, including module setup
+errors and one below-budget CPU timing control under heavy cohost load; it is
+not passing proof. The stable final rerun above has zero failures. Timings are
+cohost wall measurements, not an intrinsic codec benchmark or latency guarantee.
+
+The option/progress screenshot was visually inspected, SHA-256
+`f684eea058db37922d9e66d3fb1d162938734fad5acf02d920ebd23b1656284c`.
+Initial full-help capture scrolled the option out of view; a second direct
+capture used the maintained screenshot implementation with already-built CLI,
+`zip --help | head -n 12; printf "LZMA extension\n" | zip -Zlzma - - | wc -c`.
+Because host `/out` was read-only, owned scratch used ignored repository
+`out/zip-codec-work`; inputs/logs/screenshots/source checkout/tool archives are
+purged after recording this evidence. No unrelated scratch is removed.
+
+Other encoder versions/property lengths, dictionaries above 8 MiB, AES+LZMA,
+libarchive empty/unknown-local-span acceptance, browser/runtime consumers,
+other native readers/platforms and exhaustive combinations remain open.
+This is a bounded LZMA profile with five acceptance dimensions, not universal
+method-14 or native Info-ZIP parity, full npm test, a frozen committed archive,
+remote-main delivery or release qualification. No commit or push was performed.
+
+### Revision-specific candidate inputs
+
+Paths relative to packages/safe-bash. ASCII pathname ordering; compact JSON
+array of [path, SHA-256] pairs has SHA-256
+`ca86e0f8c76a99891a9249299ec062117cac5fb949d7af7162ab4627866dda2c`.
+Post-run hashes cover these original selected inputs, not an append-proof inventory.
+
+| Input | SHA-256 |
+| --- | --- |
+| scripts/integration-inputs.test.mjs | 839973665ac5228beb5c6131c59e813f4cea9840dfbbb3481117579be389b108 |
+| src/commands/archive/internal.ts | 90b9e8ea00466bb5c58d8bcd23d1306570dcc0b05cc350e1aef789458c1b0231 |
+| src/commands/archive/zip-format.ts | 77c939422c879ed35730d751f3202259997697d639907122c7cd5d5ecdf6446d |
+| src/commands/archive/zip.ts | 13bc732f71ab5b3c098fa606acdc214ab70a80fbf130294ffde73f693b59087d |
+| src/commands/archive/zip/help.ts | 6bee6482aa3dbd2e32ff298d60f780e95203faaee333ff82cbfc9b2ab0ebd0ff |
+| src/commands/archive/zip/lzma.ts | ff8c29b32005edb50d64991eac92a4b505fd98c898b91c7caede0cf309a88aaf |
+| src/commands/bytes/compression/bounded-codec.ts | ca74552fc15f161d58775a7ae3b429a9ad1bd240b716dddbc8b347485eab27a1 |
+| src/commands/bytes/compression/codec-loader.ts | 3bf0032213e8f0e73e1d3beda4bee7b3c6ac6631fa394f45298aefcb692d8889 |
+| src/commands/bytes/compression/native/bridge.c | e9cd6df3ee35a742ac0844f3cfa4735bd7d8b5da0d89f233277510cf5718f166 |
+| src/commands/bytes/compression/native/build.mjs | da1960758062e2449627ec82bdbf0c7883d3a0be97b30d6792e2d85fe0880c09 |
+| src/commands/bytes/compression/native/generated/xz.mjs | 2c5e7515eff57c3190815368f8624ae3ade54a0a8150744c3b5acdabd11d468b |
+| src/commands/bytes/compression/native/sources.json | fd59a4acb587fc28f24a9f87d5a06af8dc5f2afddba52f349d77e014718ee71c |
+| src/commands/bytes/compression/native/types.ts | 67502d4f05181640425a191aa86a179c261d8eb9c417dbe4c580119f2301bae8 |
+| src/contracts/zip.md | f404a51cbb2de4edfe08b81aff0c896f392f447eb807e9dce62c600adb91e5ce |
+| tests/commands/fixtures/zip-lzma-independent.json | f99238703cf7aeeccdd927dc05986864f87a7e5d372dd251e84504e0fade05fc |
+| tests/commands/zip-lzma.test.ts | b3aa0d719a9884441e541ab74a1a64bcade0f57ea9069c992c30edd52dfe8361 |
+
+### PPMd: refreshed gap, prerequisite design, all acceptance cells open
+
+The previously pinned real method-98 fixture was freshly authenticated using
+both recorded uu/archive SHA-256 values and re-executed against this candidate.
+bsdtar returned 0, exactly 912 bytes and the recorded payload hash; memory-VFS
+`unzip -p sample.zip vimrc` still returned 2, no stdout and `ZIP unsupported
+compression method`. Ordinary ZIP/unzip controls passed on the same VFS.
+No recognition-only admission or decoder/encoder stub was added.
+
+[Codec design](safe-bash-zip-codec-design.md), SHA-256
+`687421f79f83c2d9cb32623ac004a84e7d01a27444b21da95ec9199dc65dee56`,
+specifies a dependency-free variant-I arena/model/range-coder design, proposed
+order/model/restoration admission and cooperative maintenance counters. It is
+prerequisite work, not a completed second codec improvement. No suitable existing
+PPMd asset exists. Independent published arithmetic/model transition vectors
+and a reviewed variant-I transition/arena specification are still unqualified;
+the pinned large positive fixture alone does not replace them. No external
+PPMd source/library was copied. Future committed fixture adaptation/provenance
+and license qualification remain prerequisites.
+
+PPMd encode/decode, empty/small/incompressible inputs, malformed properties,
+excessive arena requests, restoration/arena boundaries, truncated/end/trailing
+streams, output bombs, all cancellation phases, method flags/version, CLI/SDK
+parity and neighboring controls are **open/unimplemented/unverified**. No PPMd
+support, second completed atomic codec, remote delivery or release is claimed.
+
+## ZIP codec follow-up revalidation and PPMd published known answer — 2026-09-17
+
+Live working candidate on `main`, HEAD
+`a7bb9bc511e845d7951707edd7e64a81b76a386d`. The LZMA implementation,
+fixtures, tests and earlier evidence were already present at turn entry;
+they were preserved, not authored or committed by this follow-up. No product
+code, runtime dependency, README or SafeJS file was changed. The complete
+compatibility matrix and codec design were inspected; historical matrix
+dispositions remain bound to their stated revisions, not this dirty candidate.
+
+### Current executable controls
+
+| Invocation | Actual result |
+| --- | --- |
+| `node --import tsx --test packages/safe-bash/tests/commands/zip-lzma.test.ts` | 81 passes; zero failures/skips/cancellations/TODO; 1,135.346209 ms |
+| `node --import tsx --test --test-concurrency=1 packages/safe-bash/tests/commands/zip-format.test.ts packages/safe-bash/tests/commands/zip.test.ts packages/safe-bash/tests/commands/unzip.test.ts packages/safe-bash/tests/commands/bytes/compression/bounded-codec.test.ts packages/safe-bash/tests/commands/bytes/compression/bounded-codec-single-member.test.ts` | 340 passes; zero failures/skips/cancellations/TODO; 3,218.521041 ms |
+
+These are focused uncached checks, not the full maintained workspace/npm test,
+build, lint, typecheck, consumer, publication or frozen-archive gates. No code
+change required a new failing unit test. LZMA's existing positive, negative,
+boundary, cancellation and mixed STORE/DEFLATE/BZIP2 controls all passed.
+The PPMd rejection below is concrete gap evidence, not a passing support cell.
+
+### Published variant-I known answer, independently cross-read
+
+Immutable source:
+`https://raw.githubusercontent.com/miurahr/pyppmd/f5a852c3ae83df5de9b9a2814fe6de685e492d98/tests/test_ppmd8.py`.
+Downloaded source SHA-256:
+`61331fa7252adcee58de35cae00b60c2c852995051ff3b64dc6ef9d2740b1844`.
+The source's literal `source` and `encoded` assignments were read using Python
+AST literal parsing, without executing imported upstream code. Its published
+encoder tests assert the same encoded bytes for whole and split input at
+order 6, 8 MiB model, restart restoration; the high-level tests explicitly
+select variant I. The upstream Python test suite was not executed.
+
+| Vector component | Bytes | SHA-256 |
+| --- | --- | --- |
+| Plain payload | 67 | `12d9bad8bc62e56d78786ae27eb9f32cd417c0df075f5149fe3730e34503065f` |
+| Published raw encoded stream | 42 | `05a28c807626579ed35da74ed26aeb5b63701e93b6610936b1a057faf021d023` |
+| Locally constructed ZIP wrapper | 174 | `99c93e98c9665e7a224ee30010f8ff8ad46ce53cc20670f4b10f3fdd214d1a27` |
+
+The wrapper contains one `published-vector` member. Its property word is
+`0x0075`, little endian: order-1 = 5, memory-MiB-1 = 7, restoration = 0.
+Extraction/creator version 63, method 98, UTF-8 flag `0x0800`, zero DOS
+time/date, classic sizes, no extras/comments/descriptors; compressed size 44,
+uncompressed size 67, CRC computed independently with Python zlib. It uses
+the actual published PPMd payload, not a changed method number on STORE data.
+For byte-exact reproduction, the constructed wrapper is:
+
+```text
+UEsDBD8AAAhiAAAAAABw/VULLAAAAEMAAAAQAAAAcHVibGlzaGVkLXZlY3RvcnUAVBZDbVzY1zqzWDGsHQkj/RHVcmJzE7bOsudqufboZvUIwwoJNhLr2tq6UEsBAj8APwAACGIAAAAAAHD9VQssAAAAQwAAABAAAAAAAAAAAAAAAAAAAAAAAHB1Ymxpc2hlZC12ZWN0b3JQSwUGAAAAAAEAAQA+AAAAWgAAAAAA
+```
+
+`bsdtar -xOf - published-vector`, stdin/stdout in memory: **exit 0**, exactly
+the 67 published payload bytes, empty stderr. Oracle version:
+`bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8`.
+Same bytes passed to the memory-VFS `fixture`/`execute` helpers:
+`unzip -p sample.zip published-vector` returned **2**, zero stdout bytes,
+`unzip: ZIP unsupported compression method\n`. A separate ordinary creation
+control, `zip -q control.zip folder/data`, returned 0; extraction from that
+archive returned 0 and 2,048 bytes. No disk fixtures, native product fallback,
+installed comparator dependency or copied upstream codec were used.
+
+### Range-design correction and remaining prerequisites
+
+Inspected upstream C source pins at the same revision, paths under
+`src/lib/ppmd/`; inspection does not establish a complete source audit:
+
+| Source | SHA-256 |
+| --- | --- |
+| `Ppmd8.c` | `50b8dfd41e1c2fa724bdb2f37c8faf3dcc8e1a117c1e6db09efa0d815157d7fe` |
+| `Ppmd8.h` | `3b0dbd41453095992b98c1d42c7f20d1524b348bf02d1d50fce173b1ffca4553` |
+| `Ppmd8Dec.c` | `5f5d7a10a14f62b35e9f8419fc969289671bd566c8ccf19727e5239b18f71335` |
+| `Ppmd8Enc.c` | `8ff94835f0b2cb7d7672acc99c4b3e39693f954a4d6fee9389f8beb21b76030d` |
+
+The inspected encoder/decoder use the Subbotin **carryless** range coder.
+The design's earlier reference to explicit carry propagation was corrected;
+initialization, interval updates, normalization, flush, root escape and
+resumable I/O phases are now described in the codec design. No model, allocator
+or range implementation was copied or added.
+
+PyPPMd `LICENSE` SHA-256:
+`dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551`;
+`docs/license_notices.rst` SHA-256:
+`c445e4f5146e7954ff9473f4e798b169ed088661e577e5fa9cd9f1ac1d97b6a1`.
+The project identifies original wrappers/tests as LGPL 2.1 or later and the
+referenced PPMd/range C notices as public domain. No adapted upstream test code
+was committed; fixture-suite adaptation still requires applicable notices.
+
+A published full-codec byte vector is now located and independently decoded.
+It does **not** provide model-update/arena traces, independent arithmetic
+state vectors, an audited bounded codec, empty/small/incompressible/restart
+fixture profiles or strict malformed terminal verification. In particular,
+the upstream compact decoder tests comment out their EOF assertions; neither
+those tests nor a successful libarchive decode certify truncation/trailing
+refusal. All method-98 product acceptance cells remain explicitly open:
+encode/decode, negative properties, model bounds, terminals/prefixes, bombs,
+cancellation/cleanup, flags/version and CLI/SDK parity. Method-14 exclusions
+from the previous section also remain open. No feature completion, atomic
+codec commit, push, verified remote-main delivery or release is claimed here.
+
+Selected live inputs matched the previous section's SHA-256 values before
+this documentation edit and after the executable checks:
+`src/commands/archive/zip-format.ts`,
+`src/commands/bytes/compression/native/generated/xz.mjs`, and
+`tests/commands/zip-lzma.test.ts`. This is a selected-input check, not a complete
+or append-proof inventory. All oracle/source/ZIP bytes were held in memory;
+no temporary logs or generated files require cleanup.
+
+## User edge-case review — 2026-09-17
+
+Reviewed live dirty `main` based on `a7bb9bc511e845d7951707edd7e64a81b76a386d`.
+Existing edits were preserved. This review appended seven tests to the existing
+LZMA test file and this evidence section; no product code, SafeJS, README,
+dependency, CLI help or generated asset was changed. These observations do not
+qualify the committed baseline or establish complete method-14/98 support.
+
+Selected candidate SHA-256 values after the checks:
+
+| Input | SHA-256 |
+| --- | --- |
+| `src/commands/archive/zip-format.ts` | `77c939422c879ed35730d751f3202259997697d639907122c7cd5d5ecdf6446d` |
+| `src/commands/archive/zip/lzma.ts` | `ff8c29b32005edb50d64991eac92a4b505fd98c898b91c7caede0cf309a88aaf` |
+| `src/commands/bytes/compression/native/generated/xz.mjs` | `2c5e7515eff57c3190815368f8624ae3ade54a0a8150744c3b5acdabd11d468b` |
+| `tests/commands/zip-lzma.test.ts` | `b640c63515c7ca51af48b8944f9bd6665d8465204c7c9f7c46ee5734603932da` |
+| `tests/commands/fixtures/zip-lzma-independent.json` | `f99238703cf7aeeccdd927dc05986864f87a7e5d372dd251e84504e0fade05fc` |
+
+Initial LZMA/BZIP2/ZIP-codec run: 115 passes, no failures/skips/TODO.
+Added memory-only controls cover property-header cancellation after 0, 1, 4,
+8 and 9 bytes with exact reason identity and reused-source closure; independent
+EOS decoding with too-small/too-large declared sizes and incorrect CRC; and
+actual ZIP create, STORE addition, integrity test, raw copy, LZMA replacement,
+deletion and neighboring STORE extraction. First execution was 87/88: the
+new CRC fixture incorrectly used a signed JavaScript bitwise result. Correcting
+it to unsigned 32-bit allowed the intended CRC-mismatch path to run. This was
+a test-authoring defect, not a product bug or waived failure.
+
+Final uncached command, from repository root:
+
+```sh
+node --import tsx --test --test-concurrency=1 --test-reporter=dot packages/safe-bash/tests/commands/zip-lzma.test.ts packages/safe-bash/tests/commands/zip-bzip2.test.ts packages/safe-bash/tests/commands/zip-codec.test.ts packages/safe-bash/tests/commands/zip-format.test.ts packages/safe-bash/tests/commands/zip.test.ts packages/safe-bash/tests/commands/unzip.test.ts packages/safe-bash/tests/commands/bytes/compression/bounded-codec.test.ts packages/safe-bash/tests/commands/bytes/compression/bounded-codec-single-member.test.ts
+```
+
+Result: exit 0, 462 passing tests (88 LZMA), 4,989.535917 ms shell duration.
+`git diff --check` also passed. No validated product defect required a fix.
+
+Independent ad hoc oracle controls used memory/stdin/stdout only, outside unit
+discovery. Product `zip -qZlzma - -` output was extracted by Python 3.9.6
+`zipfile`, asserting actual method 14 and exact bytes for empty, three-byte
+binary, 131,073-byte repetitive and 4,096-byte deterministic input. All four
+passed. Native processes were isolated comparators, never product fallbacks.
+
+The published PPMd ZIP wrapper recorded above was rerun: bsdtar extracted
+67 bytes at exit 0; memory-VFS `unzip -p sample.zip published-vector` returned
+2 with unsupported compression method. Oracle: bsdtar 3.5.3 / libarchive 3.7.4,
+zlib 1.2.12, liblzma 5.4.3, bz2lib 1.0.8. Method 98 remains unavailable; its
+encoding, decoding and all five feature-acceptance dimensions remain open.
+The existing dependency-free design and published-vector prerequisite findings
+remain applicable; no unaudited codec was imported or guessed.
+
+Exclusions: no exhaustive cross-product, full maintained npm/workspace gate,
+lint, build, typecheck, browser consumer or publication check was executed.
+Other encoder-version profiles, AES+LZMA and larger dictionaries remain open.
+No visual CLI behavior changed, so no screenshot was taken. No atomic codec
+commit, push, remote-main delivery or release is claimed. This is selected-input
+dirty-candidate evidence, not an append-proof or frozen-archive inventory.
+No temporary logs or fixture files were created.

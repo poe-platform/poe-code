@@ -35,7 +35,7 @@ Traditional ZipCrypto and the separate WinZip AES AE-1/AE-2 profile are supporte
 PKWARE strong encryption remains refused.
 
 `ArchiveCommandsOptions.zip` selects creation defaults: `compression` is `store`,
-`deflate` (the default), or `bzip2`; `encryption` is `zipcrypto` or
+`deflate` (the default), `bzip2`, or `lzma`; `encryption` is `zipcrypto` or
 `aes-{128,192,256}-ae{1,2}`. An explicit encryption default requests encryption
 and requires password capability or `-P`; omission preserves unencrypted creation.
 The shell CLI accepts `zip -Z METHOD --encryption PROFILE -P PASSWORD ...`, or
@@ -300,3 +300,24 @@ The CLI and SDK share the command parser and archive options. The current CLI ha
 no volume resolver/prompt binding; multi-volume reads and `-sp` require an SDK
 host configuration. Named writes still require owned VFS staging, which the
 current real adapter does not supply. No host-process fallback is introduced.
+
+## ZIP LZMA format extension
+
+Method 14 is separate from native Info-ZIP Zip 3.0. CLI `-Zlzma` and SDK
+`zip.compression: "lzma"` select the same codec. Writer levels 1–9 use a 1 MiB
+dictionary, lc=3/lp=0/pb=2, SDK version bytes 9.4, extraction version 6.3 and
+GPBF bit 1 (EOS). Existing STORE fallback remains for buffered empty/small
+inputs; stdout/live compressed members retain the requested method.
+
+The reader admits the 9.4 five-byte property profile, dictionary requests up to
+8 MiB and lc+lp up to 4. Smaller dictionaries use liblzma's 4 KiB minimum.
+EOS streams must terminate explicitly. Without GPBF bit 1, the strict size-aware
+LZMA1EXT decoder requires a stream without EOS. Truncated data, trailing bytes,
+wrong size/CRC and reserved flags fail. Codec allocation remains capped at
+64 MiB; steps use at most 64 KiB input/output and yield cooperatively.
+Cancellation and consumer retirement close codec state and its owned reader.
+
+Other SDK version/property profiles, larger dictionaries, AES+LZMA and PPMd
+(method 98) remain unavailable. Rejection/recognition is not codec support.
+Plain streaming extraction can deliver earlier bytes before a final error, as
+with DEFLATE; it provides no authentication or rollback guarantee.

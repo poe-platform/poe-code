@@ -16,6 +16,8 @@ export interface BoundedCodec {
 
 export interface BoundedCodecOptions {
   readonly format: "bzip2" | "xz" | "zstd";
+  /** Explicit raw LZMA1 configuration for the liblzma asset; no XZ framing. */
+  readonly lzma?: Readonly<{ dictionary: number; properties: number; eos: boolean; size: number }>;
   readonly decompress: boolean;
   readonly level: number;
   /** Stop at the first frame and return unread bytes to the input reader. */

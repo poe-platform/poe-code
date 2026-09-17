@@ -85,7 +85,7 @@ interface ZipOptions {
   readonly includes: readonly string[];
   readonly excludes: readonly string[];
   readonly level: number;
-  readonly method: "store" | "deflate" | "bzip2";
+  readonly method: "store" | "deflate" | "bzip2" | "lzma";
   readonly suffixes: readonly string[];
   readonly operands: readonly string[];
   readonly firstOperand: number;
@@ -178,7 +178,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits, defaults?: ArchiveC
   let metadata: ZipOptions["metadata"] = "default";
   let level = 6;
   let method: ZipOptions["method"] = defaults?.compression ?? "deflate";
-  if (method !== "store" && method !== "deflate" && method !== "bzip2") fail("ZIP unsupported compression method");
+  if (method !== "store" && method !== "deflate" && method !== "bzip2" && method !== "lzma") fail("ZIP unsupported compression method");
   let suffixes: readonly string[] = defaultStoreSuffixes;
   let stdinNames = false;
   let literal = false;
@@ -409,10 +409,10 @@ async function parse(scope: ZipScope, limits: ArchiveLimits, defaults?: ArchiveC
             suffixes = value ? value.split(":").filter(suffix => suffix.length > 0) : defaultStoreSuffixes;
             if (value && suffixes.length > limits.maxMembers) fail("suffix count limit exceeded");
           } else {
-            const matches = ["store", "deflate", "bzip2"].filter(name => name.startsWith(value.toLowerCase()));
+            const matches = (["store", "deflate", "bzip2", "lzma"] as const).filter(name => name.startsWith(value.toLowerCase()));
             const selected = matches.length === 1 ? matches[0] : undefined;
             if (!selected) throw new ZipFailure(16, "Invalid command arguments", "Option -Z (--compression-method):  unknown method");
-            method = selected === "store" ? "store" : selected === "bzip2" ? "bzip2" : "deflate";
+            method = selected;
           }
           break;
         }
@@ -675,10 +675,10 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
       budget.totalBytes += bytes.length - originalSize;
     }
     const level = store ? 0 : parsed.level;
-    let entry = await makeZipEntry(name, bytes, attributes, limits, context.signal, level, !store && (parsed.archive === "-" && parsed.tempPath === undefined || parsed.descriptors && bytes.length > 0), parsed.method === "bzip2" ? "bzip2" : "deflate");
+    let entry = await makeZipEntry(name, bytes, attributes, limits, context.signal, level, !store && (parsed.archive === "-" && parsed.tempPath === undefined || parsed.descriptors && bytes.length > 0), parsed.method === "store" ? "deflate" : parsed.method);
     if (live) {
       entry = { ...entry, data: new Uint8Array(), size: expectedSize ?? 0, source: input as ByteSource, level,
-        method: store || expectedSize === 0 && parsed.archive !== "-" ? 0 : parsed.method === "bzip2" ? 12 : 8, ...(expectedSize === undefined ? {} : { expectedSize }) };
+        method: store || expectedSize === 0 && parsed.archive !== "-" ? 0 : parsed.method === "lzma" ? 14 : parsed.method === "bzip2" ? 12 : 8, ...(parsed.method === "lzma" && !store && !(expectedSize === 0 && parsed.archive !== "-") ? { flags: 0x802 } : {}), ...(expectedSize === undefined ? {} : { expectedSize }) };
     }
     if (parsed.fromCrlf && sourceSize > 0 && !store && entry.internalAttributes === 0 && !attributes.directory && !attributes.symlink && !parsed.quiet) {
       conversionWarnings.set(name, `\tzip warning: ${bytes === originalBytes ? "has binary so -ll ignored" : "-ll used on binary file - corrupted?"}\n`);
@@ -692,7 +692,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
     if (entry.data.length > limits.maxArchiveBytes - compressedBytes) fail("archive byte limit exceeded");
     compressedBytes += entry.data.length;
     if (dosConvertedNames.has(name)) {
-      entry = { ...entry, mode: attributes.directory ? 0o040755 : 0o100644, versionMadeBy: 30, externalAttributes: attributes.directory ? 16 : 0, flags: prior?.comment?.some(byte => byte >= 128) ? (prior.flags ?? 0) & 0x800 : 0 };
+      entry = { ...entry, mode: attributes.directory ? 0o040755 : 0o100644, versionMadeBy: 30, externalAttributes: attributes.directory ? 16 : 0, flags: (entry.flags ?? 0) & ~0x800 | (prior?.comment?.some(byte => byte >= 128) ? (prior.flags ?? 0) & 0x800 : 0) };
     }
     if (parsed.encryption && !entry.directory) entry.encryption = parsed.encryption;
     selected.set(name, { entry, source, sourceSize });
@@ -968,7 +968,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
     if (dotCount > limits.maxTextBytes - budget.textBytes - progressBytes) fail("text output limit exceeded");
     const dots = ".".repeat(dotCount);
     const warning = conversionWarnings.get(entry.name);
-    queue(`${prefix}${update ? parsed.action === "freshen" ? "freshening:" : "updating:" : "  adding:"} ${escapeText(zipPublicText(entry.name), "display")}${usize}${verbose}${warning ? `\n${warning}` : ""} ${dots ? `${dots} ` : ""}(${entry.method === 12 ? `bzipped ${percentage}%` : entry.method === 8 ? `deflated ${percentage}%` : "stored 0%"})\n`);
+    queue(`${prefix}${update ? parsed.action === "freshen" ? "freshening:" : "updating:" : "  adding:"} ${escapeText(zipPublicText(entry.name), "display")}${usize}${verbose}${warning ? `\n${warning}` : ""} ${dots ? `${dots} ` : ""}(${entry.method === 14 ? `lzma ${percentage}%` : entry.method === 12 ? `bzipped ${percentage}%` : entry.method === 8 ? `deflated ${percentage}%` : "stored 0%"})\n`);
   };
   for (const entry of archive.entries) {
     if (++work > limits.maxPatternSteps) fail("archive work limit exceeded");

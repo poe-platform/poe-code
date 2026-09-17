@@ -108,6 +108,15 @@ async function getProviderEntryPoints(root) {
   };
 }
 
+const pandocOptions = resolvePandocBuild(rootDir);
+const pandocBundle = await esbuild.build(pandocOptions);
+await publishBundleOutputs(pandocBundle, {
+  outdir: pandocOptions.outdir,
+  entryPoints: Object.values(pandocOptions.entryPoints),
+  workingDirectory: rootDir
+});
+consumerBuilds.push(pandocBundle);
+
 const mainBuild = await esbuild.build({
   entryPoints: [path.join(rootDir, "src/index.ts")],
   bundle: true,
@@ -266,15 +275,6 @@ await publishBundleOutputs(shellBundle, {
 });
 consumerBuilds.push(shellBundle);
 await publishRootOptionalPackage(rootDir);
-
-const pandocOptions = resolvePandocBuild(rootDir);
-const pandocBundle = await esbuild.build(pandocOptions);
-await publishBundleOutputs(pandocBundle, {
-  outdir: pandocOptions.outdir,
-  entryPoints: Object.values(pandocOptions.entryPoints),
-  workingDirectory: rootDir
-});
-consumerBuilds.push(pandocBundle);
 
 // The opt-in converter bundles its private SDK implementation. Its public
 // declaration closure is shipped separately; no private workspace is installed

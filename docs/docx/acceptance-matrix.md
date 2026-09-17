@@ -1,5 +1,12 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 native MIME role qualification](native-media-roles-20260917.md)
+binds 972 exact passing cases across model/SDK/actual Shell, both dialects/kinds,
+native role resolution, physical inventory, native image loading, protection
+refusal and exact declaration/resource retention. Thirty-six built workflows
+also pass. OPC-specific parameter refusals remain required. Remaining consumers,
+carriers and complete F01–F07 acceptance stay open.
+
 The [2026-09-17 duplicate ZIP member qualification](public-duplicate-members-20260917/evidence.json)
 records 96 exact passing expected-rejection cases with admitted controls through
 model/SDK/actual Shell, both dialects/kinds, stored/deflated and ZIP32/ZIP64.

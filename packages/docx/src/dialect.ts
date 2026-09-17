@@ -1,3 +1,4 @@
+import { parseMediaType } from "./media-type.js";
 import { commentExtensionParts } from "./comment-extension-parts.js";
 import { InvalidPackageError, isXmlContentType, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
 import { MarkupCompatibility, compatibilityProfileForPart, documentCompatibilityProfile, type CompatibilityContent, type CompatibilityProfile } from "./compatibility.js";
@@ -106,13 +107,13 @@ export function validatePackageDialect(graph: DocumentPackage, mainEdge: Package
       const prefix = documentDialects[dialect].r + "/";
       const relationshipName = edge.reltype.startsWith(prefix) ? edge.reltype.slice(prefix.length).toLowerCase() : "";
       if (Object.hasOwn(wordRoots, relationshipName) && !relationshipName.includes(".") &&
-        (edge.is_external || edge.target_part.content_type.toLowerCase() !==
+        (edge.is_external || parseMediaType(edge.target_part.content_type) !==
           `application/vnd.openxmlformats-officedocument.wordprocessingml.${relationshipName}+xml`))
         throw new InvalidPackageError("A WordprocessingML relationship target has an incompatible content type.", owner, "/", "relationship-content-type");
     }
   }
   for (const part of graph.parts) {
-    const type = part.content_type.toLowerCase();
+    const type = parseMediaType(part.content_type);
     const prefix = "application/vnd.openxmlformats-officedocument.wordprocessingml.";
     const word = type.startsWith(prefix) && type.endsWith("+xml");
     const officeXml = type.startsWith("application/vnd.openxmlformats-officedocument.") && type.endsWith("+xml");

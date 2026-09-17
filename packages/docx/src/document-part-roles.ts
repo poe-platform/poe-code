@@ -1,3 +1,4 @@
+import { parseMediaType } from "./media-type.js";
 import type { XmlElement } from "./package-xml.js";
 import { documentDialects } from "./dialect.js";
 
@@ -7,7 +8,7 @@ export function documentPartRole(contentType: string, root: XmlElement): Documen
   const types: Readonly<Record<string, readonly [string, DocumentPartRole]>> = {
     "document.main": ["document", "story"], "template.main": ["document", "story"], header: ["hdr", "story"], footer: ["ftr", "story"], footnotes: ["footnotes", "story"], endnotes: ["endnotes", "story"], comments: ["comments", "story"], "document.glossary": ["glossaryDocument", "glossary"], settings: ["settings", "settings"],
   };
-  const type = contentType.toLowerCase();
+  const type = parseMediaType(contentType);
   if (type === "application/vnd.openxmlformats-officedocument.customxmlproperties+xml") return root.namespace === "http://schemas.openxmlformats.org/officeDocument/2006/customXml" && root.localName === "datastoreItem" ? "custom-xml-properties" : null;
   for (const [suffix, [name, role]] of Object.entries(types)) if (type === `application/vnd.openxmlformats-officedocument.wordprocessingml.${suffix}+xml` && root.localName === name && Object.values(documentDialects).some(dialect => dialect.w === root.namespace)) return role;
   return null;

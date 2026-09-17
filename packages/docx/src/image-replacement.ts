@@ -1,3 +1,4 @@
+import { parseMediaType } from "./media-type.js";
 import { relationshipXmlRows } from "./relationship-xml.js";
 import { retainedRelationshipTargets } from "./relationship-part.js";
 import {
@@ -201,7 +202,7 @@ export async function replaceDocumentImage(
       );
     try {
       const header = characterizeRasterHeader(edge.target_part.bytes, scoped);
-      if (header.mime !== edge.target_part.content_type.toLowerCase())
+      if (header.mime !== parseMediaType(edge.target_part.content_type))
         throw new UnsupportedEditError("Image content type conflicts with its byte signature.");
     } catch (error) {
       if (

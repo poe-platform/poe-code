@@ -1,3 +1,4 @@
+import { parseMediaType } from "./media-type.js";
 import { resolvePath } from "@poe-code/safe-fs/core";
 import { archiveSettings, CancellationError, type ArchiveContext } from "./archive.js";
 import { validateDocxInvocation } from "./command.js";
@@ -103,7 +104,7 @@ async function inventory(input: Uint8Array, operation: "images.list" | "images.g
     const existing = resources.get(part); if (existing) return existing;
     const member = graph.getPart(part); budget.check("embeddedMediaBytes", member.bytes.length);
     const value = { part: member.partname, bytes: member.bytes, mime: mediaType(member.bytes, member.content_type, budget), sha256: await hash(member.bytes, budget) };
-    if (value.mime === "application/octet-stream" || value.mime !== member.content_type.toLowerCase()) warn("unrecognized-image-type", "Image bytes have an unknown or mismatched declared media type; exact bytes remain preserved.");
+    if (value.mime === "application/octet-stream" || value.mime !== parseMediaType(member.content_type)) warn("unrecognized-image-type", "Image bytes have an unknown or mismatched declared media type; exact bytes remain preserved.");
     resources.set(part, value); return value;
   };
   for (const location of selected) {

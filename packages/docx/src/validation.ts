@@ -144,7 +144,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     return result();
   }
   const main = mains[0]!.target_part;
-  if (![wordType + "document.main+xml", wordType + "template.main+xml"].includes(main.content_type.toLowerCase()))
+  if (![wordType + "document.main+xml", wordType + "template.main+xml"].includes(parseMediaType(main.content_type)))
     throw new UnsupportedProfileError("Only non-macro Word documents and templates are supported.");
   const root = roots.get(main.partname);
   if (!root) {

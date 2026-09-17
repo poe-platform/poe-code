@@ -1,3 +1,4 @@
+import { parseMediaType } from "./media-type.js";
 import { diagramPartRoles } from "./diagrams.js";
 import { collectDiagramObservations } from "./diagram-observations.js";
 import { chartDefinitionParts } from "./charts.js";
@@ -172,7 +173,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
   const signatureParts = parts.filter(part => signatureContentTypes.includes(part.contentType.toLowerCase()) || signatureTargets.has(part.name));
   const signed = signatureParts.length > 0 || signatureReferences.length > 0;
   const media = parts.filter(p => ["image/", "audio/", "video/"].some(prefix => p.contentType.toLowerCase().startsWith(prefix)));
-  const embedded = parts.filter(p => p.contentType.toLowerCase().includes("font") && !isXmlContentType(p.contentType)).map(p => p.name);
+  const embedded = parts.filter(p => parseMediaType(p.contentType).includes("font") && !isXmlContentType(p.contentType)).map(p => p.name);
   const warnings: InspectionWarning[] = [
     { code: "partial-validation", message: "Inspection is an inventory; core-v1 validation is partial and does not certify schema conformance." },
     { code: "cached-layout", message: "Page metadata and stored page breaks are cached; rendered pages are not measured." },
@@ -183,7 +184,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
   if (protection.length) warnings.push({ code: "unvalidated-protection", message: "Protection metadata is present; passwords and enforcement are not verified." });
   if (unknownNamespaces.size) warnings.push({ code: "unvalidated-extensions", message: "Opaque extension content is inventoried without semantic validation." });
   const chartParts = chartDefinitionParts(graph, budget);
-  const decodedCharts = chartParts.some(part => part.content_type.toLowerCase() === "application/vnd.openxmlformats-officedocument.drawingml.chart+xml" && roots.has(part.partname) && decodeChartContent(roots.get(part.partname)!, part.partname, budget).status === "decoded");
+  const decodedCharts = chartParts.some(part => parseMediaType(part.content_type) === "application/vnd.openxmlformats-officedocument.drawingml.chart+xml" && roots.has(part.partname) && decodeChartContent(roots.get(part.partname)!, part.partname, budget).status === "decoded");
   const diagramRoles = diagramPartRoles(graph, archive.dialect, budget);
   const diagramObservations = [...roots].flatMap(([part, root]) => collectDiagramObservations(root, archive.dialect, part, budget));
   const knownDiagrams = diagramRoles.size > 0 || diagramObservations.some(observation => observation.kind === "relIds");
@@ -195,7 +196,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
     ["F37", chartParts.length > 0, decodedCharts ? "read" : "preserve"],
     ["F38", knownDiagrams, "preserve"],
     ["F28", counts.controls > 0, "read"], ["F30", propertyParts.length > 0, properties.length > 0 ? "read" : "preserve"], ["F31", media.length > 0, "read"], ["F39", counts.equations > 0, "preserve"],
-    ["F41", relationships.some(r => ["http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml", "http://purl.oclc.org/ooxml/officeDocument/relationships/customXml", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/glossaryDocument", "http://purl.oclc.org/ooxml/officeDocument/relationships/glossaryDocument"].includes(r.type)) || parts.some(p => p.contentType.toLowerCase() === "application/vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml" || p.contentType.toLowerCase() === "application/vnd.openxmlformats-officedocument.customxmlproperties+xml"), "preserve"], ["F42", fontNames.size + embedded.length + protection.length > 0 || parts.some(p => ["application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml", "application/vnd.openxmlformats-officedocument.wordprocessingml.fonttable+xml"].includes(p.contentType.toLowerCase())), "read"], ["F43", signed, "preserve"]
+    ["F41", relationships.some(r => ["http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml", "http://purl.oclc.org/ooxml/officeDocument/relationships/customXml", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/glossaryDocument", "http://purl.oclc.org/ooxml/officeDocument/relationships/glossaryDocument"].includes(r.type)) || parts.some(p => parseMediaType(p.contentType) === "application/vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml" || parseMediaType(p.contentType) === "application/vnd.openxmlformats-officedocument.customxmlproperties+xml"), "preserve"], ["F42", fontNames.size + embedded.length + protection.length > 0 || parts.some(p => ["application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml", "application/vnd.openxmlformats-officedocument.wordprocessingml.fonttable+xml"].includes(parseMediaType(p.contentType))), "read"], ["F43", signed, "preserve"]
   ];
   const fontResources = readFontResources(archive, roots, budget);
   if (fontResources.diagnostics.length) warnings.push({ code: "unresolved-font-resources", message: "Theme or embedded font references have unresolved package resources; see fontResources.diagnostics." });

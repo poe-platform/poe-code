@@ -1,3 +1,4 @@
+import { parseMediaType } from "./media-type.js";
 import { InvalidValueError } from "./archive.js";
 import type { AdmittedDocumentArchive } from "./admission.js";
 import { documentDialects, type DocumentDialect } from "./dialect.js";
@@ -85,7 +86,7 @@ export function readPropertyParts(archive: AdmittedDocumentArchive, budget: Docu
   for (const group of ["core", "extended", "custom"] as const) {
     const definition = propertyGroupDefinition(group, archive.dialect), declarations = edges.filter(edge => edge.reltype === definition.relationship);
     for (const part of archive.package.parts) {
-      if (part.content_type.toLowerCase() !== definition.contentType) continue;
+      if (parseMediaType(part.content_type) !== definition.contentType) continue;
       const root = roots?.get(part.partname) ?? parseDocumentXml(part.bytes, {}, budget).root;
       if (root.namespace !== definition.namespace || root.localName !== definition.root) continue;
       const owned = declarations.some(edge => !edge.is_external && edge.target_part.partname === part.partname), properties = readPropertyNodes(root, group, archive.dialect);

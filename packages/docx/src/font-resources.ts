@@ -1,3 +1,4 @@
+import { parseMediaType } from "./media-type.js";
 import type { AdmittedDocumentArchive } from "./admission.js";
 import type { DocumentBudget } from "./budget.js";
 import { MarkupCompatibility, compatibilityProfileForPart } from "./compatibility.js";
@@ -70,7 +71,7 @@ export function readFontResources(archive: AdmittedDocumentArchive, roots: Reado
         name: attr(node, "name", w), alternateName: attr(child(node, "altName"), "val", w), charset: attr(child(node, "charset"), "val", w), family: attr(child(node, "family"), "val", w), pitch: attr(child(node, "pitch"), "val", w),
         embedded: node.children.filter(n => n.namespace === w && embeddedNames.has(n.localName) && view.canEdit(n)).map(n => {
           const id = attr(n, "id", r), edge = id === null ? undefined : bindings.get(id);
-          const valid = edge && !edge.is_external && edge.fragment === null && edge.reltype === `${r}/font` && ["application/vnd.openxmlformats-officedocument.obfuscatedfont", "application/x-fontdata"].includes(edge.target_part.content_type.toLowerCase());
+          const valid = edge && !edge.is_external && edge.fragment === null && edge.reltype === `${r}/font` && ["application/vnd.openxmlformats-officedocument.obfuscatedfont", "application/x-fontdata"].includes(parseMediaType(edge.target_part.content_type));
           if (!valid) diagnostics.push({ code: "invalid-font-reference", part, message: "Embedded font reference does not identify an internal font resource." });
           return { kind: n.localName, id, fontKey: attr(n, "fontKey", w), subsetted: attr(n, "subsetted", w), target: valid ? edge.target_part.partname : null, status: valid ? "resolved" as const : "invalid-font-reference" as const };
         })
@@ -106,7 +107,7 @@ export function readFontResources(archive: AdmittedDocumentArchive, roots: Reado
     const local = ownedEdges.filter(e => e.reltype === `${r}/theme`);
     const edges = local.length ? local : mainEdges.filter(e => e.reltype === `${r}/theme`);
     const edge = edges.length === 1 && !edges[0]!.is_external && edges[0]!.fragment === null ? edges[0] : undefined;
-    const theme = edge && edge.target_part.content_type.toLowerCase() === "application/vnd.openxmlformats-officedocument.theme+xml" ? themeByPart.get(edge.target_part.partname) : undefined;
+    const theme = edge && parseMediaType(edge.target_part.content_type) === "application/vnd.openxmlformats-officedocument.theme+xml" ? themeByPart.get(edge.target_part.partname) : undefined;
     budget.charge("work", (theme?.colors.length ?? 0) + (theme?.fonts.length ?? 0));
     let slot: string | undefined, exists = false;
     if (ref.attribute === "themeColor" || ref.attribute === "themeFill") {
@@ -133,7 +134,7 @@ export function embeddedFontState(graph: DocumentPackage, budget: DocumentBudget
   const state: unknown[] = [];
   for (const part of graph.parts) {
     budget.charge("work", 1);
-    if (part.content_type.toLowerCase() === "application/vnd.openxmlformats-officedocument.wordprocessingml.fonttable+xml") {
+    if (parseMediaType(part.content_type) === "application/vnd.openxmlformats-officedocument.wordprocessingml.fonttable+xml") {
       const root = parseDocumentXml(part.bytes, {}, budget).root;
       for (const font of root.children) if (font.namespace === root.namespace && font.localName === "font" && font.children.some(n => n.namespace === root.namespace && embeddedNames.has(n.localName))) state.push([part.partname, displayXml(font, budget, false)]);
     }

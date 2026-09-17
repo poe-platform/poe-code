@@ -1,3 +1,4 @@
+import { parseMediaType } from "./media-type.js";
 import {archiveSettings,InputTypeError,type ArchiveContext} from './archive.js';
 import {readDocumentArchive} from './admission.js';
 import {validateDocxInvocation} from './command.js';
@@ -28,7 +29,7 @@ const compare=(a:string,b:string)=>a<b?-1:a>b?1:0;
 /** Physical definition roles are declarative package metadata, independent of drawing visibility. */
 export function chartDefinitionParts(graph:DocumentPackage,budget:DocumentBudget):readonly PackagePart[] {
  const names=new Set<string>();
- for(const part of graph.parts){budget.charge('work',1);if([standardMime,extendedMime].includes(part.content_type.toLowerCase()))names.add(part.partname);}
+ for(const part of graph.parts){budget.charge('work',1);if([standardMime,extendedMime].includes(parseMediaType(part.content_type)))names.add(part.partname);}
  for(const owner of ['/',...graph.parts.filter(p=>p.content_type.toLowerCase()!=='application/vnd.openxmlformats-package.relationships+xml').map(p=>p.partname)])for(const edge of graph.relationships(owner)){budget.charge('work',1);if(!edge.is_external&&definitionRelations.includes(edge.reltype))names.add(edge.target_part.partname);}
  budget.check('matches',names.size);budget.charge('retainedBytes',names.size*96);return [...names].sort(compare).map(name=>graph.getPart(name));
 }
@@ -49,11 +50,11 @@ export async function inspectDocumentCharts(input:Uint8Array,options:DocxOperati
  for(const part of chartDefinitionParts(graph,budget)){
   await budget.checkpoint();const definition=await descriptor(part),parsed=root(part),decoded=decodeChartContent(parsed,part.partname,budget);let status=decoded.status;const issues=[...decoded.issues];
   const issue=(code:string,path:readonly number[],message:string):ChartIssue=>{budget.charge('diagnosticBytes',code.length+message.length+part.partname.length+32);budget.charge('retainedBytes',128+(code.length+message.length+part.partname.length)*2+path.length*8);return{code,part:part.partname,path,message};};
-  if(part.content_type.toLowerCase()!==standardMime){status='opaque';issues.push(issue('opaque-chart-type',[],'The declared resource type is outside the bounded standard chart profile.'));}
+  if(parseMediaType(part.content_type)!==standardMime){status='opaque';issues.push(issue('opaque-chart-type',[],'The declared resource type is outside the bounded standard chart profile.'));}
   const outgoing=graph.relationships(part.partname);
   const binding=async(role:ChartBinding['role'],id:string|null,path:readonly number[]):Promise<ChartBinding>=>{
    let state:ChartBinding['status']='internal',edge:PackageRelationship|undefined,target:ChartPart|null=null;const bindingIssues:ChartIssue[]=[];
-   if(!id)state='missing-id';else{edge=outgoing.find(e=>e.rId===id);if(!edge)state='missing-relationship';else if(!resourceRoles[role].types.includes(edge.reltype))state='wrong-relationship-type';else if(edge.is_external)state='external';else{const targetPart=edge.target_part;target=await descriptor(targetPart);if(!resourceRoles[role].mimes.includes(targetPart.content_type.toLowerCase()))state='wrong-resource-type';else if(role!=='workbook'){const metadata=root(targetPart);if(metadata.namespace!=='http://schemas.microsoft.com/office/drawing/2012/chartStyle'||metadata.localName!==(role==='style'?'chartStyle':'colorStyle'))state='opaque';}}}
+   if(!id)state='missing-id';else{edge=outgoing.find(e=>e.rId===id);if(!edge)state='missing-relationship';else if(!resourceRoles[role].types.includes(edge.reltype))state='wrong-relationship-type';else if(edge.is_external)state='external';else{const targetPart=edge.target_part;target=await descriptor(targetPart);if(!resourceRoles[role].mimes.includes(parseMediaType(targetPart.content_type)))state='wrong-resource-type';else if(role!=='workbook'){const metadata=root(targetPart);if(metadata.namespace!=='http://schemas.microsoft.com/office/drawing/2012/chartStyle'||metadata.localName!==(role==='style'?'chartStyle':'colorStyle'))state='opaque';}}}
    if(edge&&!edge.is_external&&!target)target=await descriptor(edge.target_part);
    if(state!=='internal')bindingIssues.push(issue('chart-binding-'+state,path,'The stored resource binding is external, unresolved or outside its declared inert resource role.'));
    budget.charge('retainedBytes',160+path.length*8);return{role,relationshipId:id,reference:edge?reference(part.partname,edge):null,status:state,target,issues:bindingIssues};

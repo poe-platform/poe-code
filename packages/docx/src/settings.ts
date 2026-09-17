@@ -1,3 +1,4 @@
+import { parseMediaType } from "./media-type.js";
 import { archiveSettings, InputTypeError, type ArchiveContext } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
 import { validateDocxInvocation } from "./command.js";
@@ -52,7 +53,7 @@ export async function inspectDocumentSettings(input: Uint8Array, options: DocxOp
   const records: SettingsRecord[] = [];
   for (const part of archive.package.parts) {
     budget.charge("work", 1);
-    if (part.content_type.toLowerCase() !== "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml") continue;
+    if (parseMediaType(part.content_type) !== "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml") continue;
     const root = parseDocumentXml(part.bytes, {}, budget).root, native = documentPartRole(part.content_type, root) === "settings";
     const view = new MarkupCompatibility(root, undefined, budget), entries: SettingEntry[] = [], protection: Omit<InspectionProtection, "part">[] = [];
     const activeProtection = native ? activeSettingsProtection(root, view, budget) : new Set<XmlElement>();
@@ -84,7 +85,7 @@ export async function inspectDocumentSettings(input: Uint8Array, options: DocxOp
 
 /** Raw settings edits admit field-update intent only; other settings remain inert. */
 export function assertSettingsXmlReplacement(contentType: string, original: Uint8Array, replacement: Uint8Array, budget: DocumentBudget): void {
-  if (contentType.toLowerCase() !== "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml") return;
+  if (parseMediaType(contentType) !== "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml") return;
   const before = new DocumentXmlEditor(original, {}, undefined, budget), after = new DocumentXmlEditor(replacement, {}, undefined, budget);
   if (documentPartRole(contentType, before.root) !== "settings" || documentPartRole(contentType, after.root) !== "settings") throw new UnsupportedEditError("Affected settings root is unsupported.");
   const remainder = (editor: DocumentXmlEditor) => {

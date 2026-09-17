@@ -1,7 +1,6 @@
 import { documentXmlCache } from "./budget.js";
 import { documentByteView } from "./byte-input.js";
 import { DocumentPackage } from "./package.js";
-import { asciiKey } from "./part-uri.js";
 import { InvalidPackageError, isXmlContentType, parseDocumentXmlAsync, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
 import { parseMediaType } from "./media-type.js";
 import { validatePackageDialect, type DocumentDialect } from "./dialect.js";
@@ -97,7 +96,7 @@ export async function admitDocumentArchive(archive: DocumentArchive, context: Ar
   if (mainRelationships[0]!.is_external || mainRelationships[0]!.fragment !== null)
     throw new InvalidPackageError("The main document relationship must be internal and have no fragment.");
   const main = mainRelationships[0]!.target_part;
-  const type = asciiKey(main.content_type);
+  const type = parseMediaType(main.content_type);
   const kind =
     type === documentTypes.docx ? "docx" : type === documentTypes.dotx ? "dotx" : undefined;
   if (!kind)

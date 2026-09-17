@@ -1,3 +1,4 @@
+import { parseMediaType } from "./media-type.js";
 import { documentPartRole, signatureContentTypes, signatureRelationshipTypes } from "./document-part-roles.js";
 import { dirname, basename, type FileStat, type FileSystem } from "@poe-code/safe-fs/core";
 import { documentSession, archiveSettings, CancellationError, InputTypeError, ResourceLimitError, type ArchiveContext, type DocumentArchive } from "./archive.js";
@@ -221,7 +222,8 @@ export function assertDocumentEditable(archive: DocumentArchive, { limits, budge
       if (sourcePackage.relationships(owner).some(edge => signatureRelationshipTypes.includes(edge.reltype))) throw new UnsupportedEditError("Signed package publication requires separate explicit signature removal.");
   }
   if (controlSource) for (const sourcePart of sourcePackage!.parts) {
-    if (!sourcePart.content_type.toLowerCase().startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.") || !sourcePart.content_type.toLowerCase().endsWith("+xml")) continue;
+    const sourceType = parseMediaType(sourcePart.content_type);
+    if (!sourceType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.") || !sourceType.endsWith("+xml")) continue;
     const source = new DocumentXmlEditor(sourcePart.bytes, {}, undefined, budget);
     const role = documentPartRole(sourcePart.content_type, source.root);
     if (role === "settings" && activeSettingsProtection(source.root, source.compatibility, budget).size) throw new UnsupportedEditError("Protected document settings do not authorize publication.");
@@ -244,7 +246,7 @@ export function assertDocumentEditable(archive: DocumentArchive, { limits, budge
   }
   for (const owner of ["/", ...packageView.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(part => part.partname)]) for (const edge of packageView.relationships(owner)) if (signatureRelationshipTypes.includes(edge.reltype)) throw new UnsupportedEditError("Signed package publication is not supported.");
   for (const part of packageView.parts) {
-    const type = part.content_type.toLowerCase();
+    const type = parseMediaType(part.content_type);
     if (signatureContentTypes.includes(type)) throw new UnsupportedEditError("Signed package publication is not supported.");
     if (!type.endsWith("+xml") && type !== "application/xml" && type !== "text/xml") continue;
     const current = controlSource ? new DocumentXmlEditor(part.bytes, {}, undefined, budget) : undefined;

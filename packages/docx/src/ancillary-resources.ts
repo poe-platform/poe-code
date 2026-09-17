@@ -1,3 +1,4 @@
+import { parseMediaType } from "./media-type.js";
 import { archiveSettings, InputTypeError, type ArchiveContext } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
 import { validateDocxInvocation } from "./command.js";
@@ -34,15 +35,15 @@ export async function inspectDocumentPackageResources(input: Uint8Array, operati
   if (!(input instanceof Uint8Array)) throw new InputTypeError("Expected archive bytes."); budget.check("compressedInput", input.length); budget.charge("retainedBytes", input.length); budget.charge("work", input.length); const owned = new Uint8Array(input);
   const archive = await readDocumentArchive(owned, { ...settings, budget }), graph = archive.package;
   budget.charge("work", 1); budget.charge("retainedBytes", archive.members.length * 96);
-  const parts = new Map(graph.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(part => [part.partname, part]));
+  const parts = new Map(graph.parts.filter(part => parseMediaType(part.content_type) !== "application/vnd.openxmlformats-package.relationships+xml").map(part => [part.partname, part]));
   const edges = ["/", ...parts.keys()].flatMap(owner => { const references = graph.relationships(owner); budget.charge("work", references.length); budget.charge("retainedBytes", references.length * 32); return references.map(edge => ({ owner, edge })); });
   const relation = (type: string, name: string) => customXmlRelationshipNamespaces.some(namespace => type === namespace + name);
   const itemNames = new Set(edges.filter(({ edge }) => !edge.is_external && relation(edge.reltype, "customXml")).map(({ edge }) => edge.target_part.partname));
   const associated = new Set(edges.filter(({ owner, edge }) => itemNames.has(owner) && !edge.is_external && relation(edge.reltype, "customXmlProps")).map(({ edge }) => edge.target_part.partname));
-  const candidates = operation === "custom-xml.list" ? [...itemNames, ...[...parts.values()].filter(part => part.content_type.toLowerCase() === "application/vnd.openxmlformats-officedocument.customxmlproperties+xml" && !associated.has(part.partname)).map(part => part.partname)] : [...parts.values()].filter(part => part.content_type.toLowerCase() === "application/vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml").map(part => part.partname);
+  const candidates = operation === "custom-xml.list" ? [...itemNames, ...[...parts.values()].filter(part => parseMediaType(part.content_type) === "application/vnd.openxmlformats-officedocument.customxmlproperties+xml" && !associated.has(part.partname)).map(part => part.partname)] : [...parts.values()].filter(part => parseMediaType(part.content_type) === "application/vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml").map(part => part.partname);
   budget.check("matches", candidates.length); budget.charge("retainedBytes", candidates.length * 64);
   const roots = new Map<string, XmlElement>(), metadata = new Map<string, InspectionPart>();
-  const root = (name: string): XmlElement | undefined => { const part = parts.get(name)!; if (!part.content_type.toLowerCase().endsWith("+xml") && !["application/xml", "text/xml"].includes(part.content_type.toLowerCase())) return undefined; let value = roots.get(name); if (!value) { value = parseDocumentXml(part.bytes, {}, budget).root; roots.set(name, value); } return value; };
+  const root = (name: string): XmlElement | undefined => { const part = parts.get(name)!; if (!parseMediaType(part.content_type).endsWith("+xml") && !["application/xml", "text/xml"].includes(parseMediaType(part.content_type))) return undefined; let value = roots.get(name); if (!value) { value = parseDocumentXml(part.bytes, {}, budget).root; roots.set(name, value); } return value; };
   const sourceSha256 = await hash(owned, budget), records: PackageResourceRecord[] = [];
   for (const name of [...new Set(candidates)].sort(compare)) {
     budget.charge("work", 1); const pending = [name], closure = new Set<string>();

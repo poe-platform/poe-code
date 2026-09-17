@@ -1,3 +1,4 @@
+import { parseMediaType } from "./media-type.js";
 import { archiveSettings, InputTypeError, InvalidValueError, ResourceLimitError, type ArchiveContext, type ArchiveMember, type DocumentArchive } from "./archive.js";
 import { DocumentPackage, type PackagePart, type PackageRelationship } from "./package.js";
 import { validateDocumentArchive, SemanticValidationError } from "./validation.js";
@@ -132,7 +133,7 @@ export class PackageView {
     const key = asciiKey(metadata.partname);
     let part = this.#parts.get(key);
     if (!part) {
-      const type = asciiKey(metadata.content_type);
+      const type = parseMediaType(metadata.content_type);
       part = type.startsWith("image/") ? new ImagePartView(this, metadata.partname)
         : type === "application/vnd.openxmlformats-package.core-properties+xml" ? new CorePropertiesPartView(this, metadata.partname)
         : Object.values(documentTypes).includes(type) ? new DocumentPartView(this, metadata.partname)
@@ -173,14 +174,14 @@ export class PackageView {
   [packageBindImage](part: ImagePartView, image: Image): void {
     if (!(part instanceof ImagePartView) || !(image instanceof Image)) throw new InputTypeError("Expected an owned image part and characterized image.");
     const metadata = this[packageMetadata](part), bytes = image.blob;
-    if (asciiKey(metadata.content_type) !== image.content_type || metadata.bytes.length !== bytes.length ||
+    if (parseMediaType(metadata.content_type) !== image.content_type || metadata.bytes.length !== bytes.length ||
         !metadata.bytes.every((byte, i) => byte === bytes[i]))
       throw new InvalidValueError("Image characterization conflicts with the owned part bytes.");
     this.#images.set(metadata.partname, image);
   }
   async [packageAdmitImages](): Promise<void> {
     for (const part of this[packageImages]()) {
-      const type = asciiKey(part.content_type);
+      const type = parseMediaType(part.content_type);
       if (!["image/png", "image/jpeg", "image/gif", "image/bmp", "image/tiff"].includes(type)) continue;
       try {
         const image = await Image.from_blob(part.blob, this.#binding.context as ImageModelContext);
@@ -195,7 +196,7 @@ export class PackageView {
     const revision = this.#revision, ownerVersion = this.#binding.version();
     const image = bytes instanceof Image ? await Image.from_blob(bytes.blob, this.#binding.context as ImageModelContext) : await Image.from_blob(bytes, this.#binding.context as ImageModelContext);
     if (revision !== this.#revision || ownerVersion !== this.#binding.version()) throw new PublicationError("conflict", "Package changed during image admission.");
-    if (typeof contentType !== "string" || image.content_type !== asciiKey(contentType)) throw new InvalidValueError("Image part content type conflicts with its byte signature.");
+    if (typeof contentType !== "string" || image.content_type !== parseMediaType(contentType)) throw new InvalidValueError("Image part content type conflicts with its byte signature.");
     const part = this[packageAdmitPart](name, contentType, image.blob) as ImagePartView;
     this.#images.set(part.partname.toString(), image);
     return part;
@@ -529,7 +530,7 @@ export class XmlPartView extends PartView {
 
 export class DocumentPartView extends XmlPartView {
   static override async load(partname: string | PackURI, content_type: string, blob: Uint8Array, owner: PackageView): Promise<DocumentPartView> {
-    if (typeof content_type !== "string" || !Object.values(documentTypes).includes(asciiKey(content_type))) throw new InputTypeError("Expected a macro-free document or template content type.");
+    if (typeof content_type !== "string" || !Object.values(documentTypes).includes(parseMediaType(content_type))) throw new InputTypeError("Expected a macro-free document or template content type.");
     return await super.load(partname, content_type, blob, owner) as DocumentPartView;
   }
   get numbering_part(): NumberingPart {
@@ -540,7 +541,7 @@ export class DocumentPartView extends XmlPartView {
 export class NumberingPart extends XmlPartView {
   #definitions: _NumberingDefinitions | undefined;
   static override async load(partname: string | PackURI, content_type: string, blob: Uint8Array, owner: PackageView): Promise<NumberingPart> {
-    if (typeof content_type !== "string" || asciiKey(content_type) !== "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml") throw new InputTypeError("Expected the numbering content type.");
+    if (typeof content_type !== "string" || parseMediaType(content_type) !== "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml") throw new InputTypeError("Expected the numbering content type.");
     return await super.load(partname, content_type, blob, owner) as NumberingPart;
   }
   static new(owner: PackageView): NumberingPart {

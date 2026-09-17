@@ -1,4 +1,4 @@
-import { styleFontFlags } from "./style-properties.js";
+import { styleFontFlags } from "./style-font-flags.js";
 import type { DocxJsonSchema } from "./operation-json-schema.js";
 
 const string: DocxJsonSchema = { type: "string" };

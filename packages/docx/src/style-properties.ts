@@ -1,3 +1,5 @@
+import { styleFontFlags } from "./style-font-flags.js";
+export { styleFontFlags } from "./style-font-flags.js";
 import { Length } from "./formatting-values.js";
 import type { XmlElement } from "./package-xml.js";
 import { xmlValue } from "./create-content.js";
@@ -17,12 +19,7 @@ export function styleToggle(node: XmlElement | undefined): boolean | null {
   if (["0", "false", "off"].includes(value)) return false;
   throw new TypeError("Invalid style boolean value.");
 }
-export const styleFontFlags = {
-  bold: "b", italic: "i", allCaps: "caps", complexScriptEnabled: "cs", csBold: "bCs", csItalic: "iCs",
-  doubleStrike: "dstrike", emboss: "emboss", imprint: "imprint", math: "oMath", noProof: "noProof",
-  outline: "outline", shadow: "shadow", smallCaps: "smallCaps", snapToGrid: "snapToGrid",
-  specVanish: "specVanish", webHidden: "webHidden", strike: "strike", fontHidden: "vanish", rtl: "rtl"
-} as const;
+
 export const styleToggleFlags: readonly (keyof typeof styleFontFlags)[] = ["bold", "italic", "csBold", "csItalic", "allCaps", "smallCaps", "strike", "doubleStrike", "outline", "shadow", "emboss", "imprint", "fontHidden"];
 export function styleInteger(raw: string | undefined): number | null {
   if (raw === undefined) return null;

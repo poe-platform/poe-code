@@ -77,3 +77,27 @@ cover/unused-media hash assertions and memfs extraction tests still pass.
 Visual QA: [built adapter format list](epub-reader-format-verification.png), made
 with the maintained screenshot renderer and inspected; EPUB is present, readable
 and unclipped. No adapter, CLI design or native runtime fallback was added.
+
+## Foreign namespace verification follow-up (2026-09-16)
+
+Two additional original in-memory tests reproduced foreign XML defining XHTML
+fragment IDs and introducing note dependencies despite being dropped by the
+namespace-aware XHTML mapper. The dependency/fragment scanner now skips the same
+foreign subtrees. Strict SAX parsing and foreign media loss diagnostics remain.
+
+Final maintained checks: 1063 tests in 47 files passed, including 31 EPUB reader
+tests; package lint/typecheck and the selected workspace build passed again.
+The cover and unused-media SHA-256 expectations, ordered chapter AST assertions,
+memfs extraction, malicious archive/XML rejections and thin adapter test pass.
+
+Visual QA uses an original in-memory publication from the TypeScript EPUB writer
+through the built thin safe-bash adapter (`-f epub -t plain`), rendered using the
+maintained screenshot command into [conversion output](epub-reader-conversion-verification.png).
+Inspected: chapter/prose and explicit CSS loss warnings are legible and unclipped.
+Unit tests use no host scratch files, executables, downloads or LLMs.
+
+Additional manual QA with the larger existing `epub3-qa/original.epub` book
+(about 110 KB expanded, including a 78 KB chapter) hit the default 1,000,000 work
+quota and returned exit status 7. An attempted 5,000,000 work override was rejected
+as an invalid limit: context overrides can tighten the quota, not raise it. This
+book is not claimed as a successful conversion; the bounds remain enforced.

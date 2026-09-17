@@ -260,3 +260,19 @@ it("rejects navigation to missing admitted resources", async () => {
   p["Book/nav.xhtml"] = xhtml('<nav epub:type="toc"><a href="missing.xhtml">Missing</a></nav>');
   await expect(read(p)).rejects.toMatchObject({code: "E_PARSE", location: "original.epub:Book/nav.xhtml"});
 });
+
+it("does not let dropped foreign media redefine XHTML fragment identity", async () => {
+  const p = entries();
+  p["Book/Text/one.xhtml"] = xhtml('<h1 id="same">First</h1><svg xmlns="http://www.w3.org/2000/svg" id="same"><text>Foreign media</text></svg><p><a href="#same">heading</a></p>');
+  const doc = await read(p);
+  expect(JSON.stringify(doc.blocks)).toContain('Book/Text/one.xhtml#same');
+  expect(JSON.stringify(doc.blocks)).not.toContain('Foreign media');
+});
+
+it("does not load note dependencies from dropped foreign XML", async () => {
+  const p = entries();
+  p["Book/Text/one.xhtml"] = xhtml('<p>Safe chapter</p><foreign xmlns="urn:original:foreign" epub:type="noteref" href="missing.xhtml#note"/>');
+  const doc = await read(p);
+  expect(JSON.stringify(doc.blocks)).toContain('Safe');
+  expect(doc.blocks).toHaveLength(2);
+});

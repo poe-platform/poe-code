@@ -48,3 +48,18 @@ Status: three original regression tests failed before the implementation and now
 pass. Maintained package tests passed (47 files, 1061 tests, 29 EPUB reader cases),
 as did package lint/typecheck and the selected workspace build. The built adapter
 format-list screenshot was inspected: EPUB remains visible and text is legible.
+
+## Foreign namespace verification follow-up
+
+Reproduce fragment/dependency scanning of foreign XML that the XHTML mapper drops.
+Align the scanner with that mapper, retaining strict XML parsing and its existing
+foreign media loss diagnostics. Run maintained package tests, lint/typecheck and
+the selected build. Visually inspect the built thin adapter converting an original
+in-memory EPUB publication to plain text; keep the screenshot under docs/pandoc.
+
+Status: two original in-memory tests failed before the scanner correction. All
+1063 maintained package tests now pass (47 files, 31 EPUB reader cases), along
+with lint/typecheck and the selected workspace build. No unit test uses host files.
+The conversion screenshot was inspected: chapter/prose and CSS loss diagnostics
+are legible and unclipped. The larger existing manual QA book exceeds the default
+work quota; that bounded rejection is recorded in the evidence, not a success.

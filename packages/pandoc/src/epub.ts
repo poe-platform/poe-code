@@ -160,6 +160,9 @@ export const epubReader: ReaderCapability = {
     const noteRefs = new Set<string>();
     const scan = (node: XmlElement, part: string): void => {
       ctx.checkpoint();
+      // The XHTML mapper drops foreign subtrees; they cannot define AST anchors
+      // or introduce note dependencies in the assembled document.
+      if (node.uri !== ns.xhtml) return;
       const id = a(node, "id");
       if (id) {
         const key = identity(part, id);

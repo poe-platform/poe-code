@@ -1,5 +1,13 @@
 # DOCX acceptance matrix
 
+The [OPC Type and public boundary record](opc-public-boundaries-20260917.md)
+records 6,688 distinct passing cases across eighteen latest per-file receipts,
+zero skips, forty built public workflows and an inspected CLI screenshot.
+Active relationship Types require absolute IRIs; empty external Targets remain
+valid. Earlier empty-Type acceptance is explicitly superseded and retained.
+The broad four-failure run remains historical, with its generic no-op consumer
+passing separately. This does not close full F01–F07 acceptance.
+
 The [active MCE XML attribute record](xml-view-mce-attributes-20260917.md)
 qualifies native add/set/remove through selected Choice, Fallback, ProcessContent
 and nested carriers. Its final run has 1,553 named passes in fifteen files, zero

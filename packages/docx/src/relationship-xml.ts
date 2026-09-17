@@ -1,6 +1,7 @@
 import { DocumentBudget } from "./budget.js";
 import { isXmlLocalName, MarkupCompatibility, relationshipNamespace, relationshipCompatibilityProfile, type CompatibilityElement } from "./compatibility.js";
 import { InvalidPackageError, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
+import { isAbsoluteRelationshipType } from "./relationship-type.js";
 
 export interface RelationshipXmlRow {
   readonly element: XmlElement;
@@ -75,7 +76,7 @@ export function relationshipXmlRows(root: XmlElement, budget = new DocumentBudge
     attributes(node, ["Id", "Type", "Target", "TargetMode"], index);
     const rId = relationshipAttribute(element, "Id"), reltype = relationshipAttribute(element, "Type"), target_ref = relationshipAttribute(element, "Target");
     const mode = relationshipAttribute(element, "TargetMode") ?? "Internal";
-    if (rId === undefined || !isXmlLocalName(rId) || ids.has(rId) || reltype === undefined || target_ref === undefined || !["External", "Internal"].includes(mode)) invalid(index);
+    if (rId === undefined || !isXmlLocalName(rId) || ids.has(rId) || reltype === undefined || !isAbsoluteRelationshipType(reltype) || target_ref === undefined || !["External", "Internal"].includes(mode)) invalid(index);
     ids.add(rId!);
     budget.charge("retainedBytes", 160 + (rId!.length + reltype!.length + target_ref!.length) * 2);
     rows.push(Object.freeze({element, rId: rId!, reltype: reltype!, target_ref: target_ref!, is_external: mode === "External"}));

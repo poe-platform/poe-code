@@ -37,6 +37,10 @@ angle brackets and controls rather than risking multiline directive injection.
 Notes use numbered references and deferred footnote bodies; nested notes are
 assigned later numbers. Empty notes fail.
 
+Quote-leading cells, notes, definitions and nested quotes use an empty comment
+at the parent's content column before the indented child. This anchors indentation
+even when the quote is the only child; parser dedenting cannot erase its nesting.
+
 Images use only generated substitution directives `.. |name| image:: URI` with
 optional `:alt:`. The alt option contains literal text, so punctuation and
 backslashes are not escaped as inline RST markup; unsupported alt styles still
@@ -62,7 +66,7 @@ loss. The writer does not pretend that those features survived conversion.
 
 All projections report the existing `W_TABLE_LOSS` diagnostic with format `rst`
 and AST location; this shared code also covers nontable projections. Strict errors
-are `E_CAPABILITY`. Raw source is escaped/literalized only with explicit lossy
+are `E_UNSUPPORTED_FEATURE`. Raw source is escaped/literalized only with explicit lossy
 conversion, never retained as executable RST.
 
 ## Core AST coverage
@@ -83,18 +87,18 @@ expected strings and docutils structure assertions are in conformance/rst.mjs.
 | Cite, Span | Diagnosed displayed-text projection | unsupported families |
 | Link | Independent display and target; forward/duplicate/error | references; internal-duplicate; implicit target collision |
 | Image | image substitution and alt | roles-images |
-| Note | Deferred numbered body; empty error | references |
+| Note | Deferred numbered body; empty error; anchored quote bodies | references; quote-only-note |
 | Plain, Para | Inline body | ordered lists; all paragraph cases |
 | LineBlock | Native line block, empty error | code/roles/lines; empty containers |
 | CodeBlock | Literal/code directive | blocks; code-leading punctuation |
 | RawBlock | Diagnosed literal projection | unsupported families |
-| BlockQuote | Indented body; empty error | adjacent-containers; empty parents |
+| BlockQuote | Indented body; empty error; anchored nested quotes | adjacent-containers; empty parents; nested-block-quotes |
 | BulletList, OrderedList | Content-column lists; empty error | blocks; ordered list; empty containers |
-| DefinitionList | Indented definition body | blocks; empty containers |
+| DefinitionList | Indented definition body; anchored quote; separated following quote | blocks; empty containers; quote-only-definition; definition-followed-by-quote |
 | Header | Nine deterministic adornments; deeper loss/error | unicode-heading; extended-combining; deep-headings |
 | HorizontalRule | Interior transition; boundary error | transition; container-boundary failure |
 | Div, Figure | Diagnosed content/caption projection | unsupported families |
-| Table | Rectangular list-table; explicit semantic losses/span error | table; long cell continuations |
+| Table | Rectangular list-table; explicit semantic losses/span error; anchored quote cells | table; long cell continuations; quote-leading-cell |
 
 This is a conservative supported profile, not a claim of complete Pandoc
 Writers.RST compatibility. Cases are original and inspired by the requested

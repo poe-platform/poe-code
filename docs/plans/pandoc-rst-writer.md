@@ -45,3 +45,16 @@ lane, then inspect adapter screenshots. Commit each verified fix separately.
 
 Image alt punctuation fix verified: 1053 package tests, lint/typechecks, selected
 workspace build and 13 pinned oracle cases pass. Adapter screenshot inspected.
+
+Indentation fix: add original failures for quote-leading cells/notes, quote-only
+footnotes/definitions, nested quotes and definitions followed by quotes. Anchor
+parent content columns with empty comments and separate adjacent containers.
+QA must verify quote node counts and top-level adjacency in pinned docutils,
+plus the adapter's emitted indentation in a screenshot. Purge the isolated oracle
+environment after final checks and commit this fix separately without pushing.
+
+Final indentation checks pass: 1058 maintained package tests (26 writer tests),
+package lint/typechecks, selected workspace build and 18 pinned oracle cases.
+Adapter screenshot inspected after correcting the manual JSON input's API tuple
+to the supported four-element version. Temporary oracle environment purged.
+All core AST families retain tested representation or documented loss/error rows.

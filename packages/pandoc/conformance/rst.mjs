@@ -14,6 +14,11 @@ const cases = [
   {name: "roles-images", blocks: [p({t: "Code", c: [a, "*_.!"]}, {t: "Space"}, {t: "Superscript", c: [s("2")]}, {t: "Space"}, {t: "Subscript", c: [s("i")]}, {t: "Space"}, {t: "Image", c: [a, [s("alt")], ["image.png", ""]]})], text: "``*_.!`` :sup:`2` :sub:`i` |pc-image-1|\n\n.. |pc-image-1| image:: image.png\n   :alt: alt\n", tags: {literal: 1, superscript: 1, subscript: 1, image: 2}},
 ];
 cases.push(
+  {name: "definition-followed-by-quote", blocks: [{t: "DefinitionList", c: [[[s("term")], [[p(s("meaning"))]]]]}, {t: "BlockQuote", c: [p(s("outside"))]}], text: "term\n   meaning\n\n..\n\n   outside\n", tags: {definition_list: 1, block_quote: 1}, topLevel: ["definition_list", "comment", "block_quote"]},
+  {name: "quote-only-definition", blocks: [{t: "DefinitionList", c: [[[s("term")], [[{t: "BlockQuote", c: [p(s("quoted"))]}]]]]}], text: "term\n   ..\n\n      quoted\n", tags: {definition_list: 1, definition: 1, block_quote: 1}},
+  {name: "nested-block-quotes", blocks: [{t: "BlockQuote", c: [{t: "BlockQuote", c: [p(s("quoted"))]}]}], text: "   ..\n\n      quoted\n", tags: {block_quote: 2}},
+  {name: "quote-only-note", blocks: [p({t: "Note", c: [{t: "BlockQuote", c: [p(s("quoted"))]}]})], text: "[1]_\n\n.. [1]\n\n       ..\n\n          quoted\n", tags: {footnote: 1, block_quote: 1, paragraph: 2}},
+  {name: "quote-leading-cell", blocks: [{t: "Table", c: [a, [null, []], [["AlignDefault", {t: "ColWidthDefault"}]], [a, []], [[a, 0, [], [[a, [[a, "AlignDefault", 1, 1, [{t: "BlockQuote", c: [p(s("quoted")), p(s("continued"))]}, p(s("outside"))]]]]]]], [a, []]]}], text: ".. list-table::\n   :header-rows: 0\n\n   * -\n\n       ..\n\n          quoted\n\n          continued\n\n       outside\n", tags: {table: 1, entry: 1, block_quote: 1, paragraph: 3}},
   {name: "literal-image-alt", blocks: [p({t: "Image", c: [a, [s("a_b* [caption]: \\path")], ["image.png", ""]]})], text: "|pc-image-1|\n\n.. |pc-image-1| image:: image.png\n   :alt: a_b* [caption]: \\path\n", tags: {image: 2}, alt: "a_b* [caption]: \\path"},
   {name: "adjacent-containers", blocks: [{t: "BulletList", c: [[p(s("one"))]]}, {t: "BulletList", c: [[p(s("two"))]]}, {t: "BlockQuote", c: [p(s("first"))]}, {t: "BlockQuote", c: [p(s("second"))]}], text: "* one\n\n..\n\n* two\n\n..\n\n   first\n\n..\n\n   second\n", tags: {bullet_list: 2, block_quote: 2}},
   {name: "extended-combining", blocks: [{t: "Header", c: [1, a, [s("a᪰")]]}], text: "a᪰\n=\n", tags: {title: 1}},
@@ -45,6 +50,7 @@ for fixture in json.load(sys.stdin):
     if "literal" in fixture: assert next(tree.findall(nodes.literal_block)).astext() == fixture["literal"]
     if "urls" in fixture: assert [n["refuri"] for n in tree.findall(nodes.reference)] == fixture["urls"]
     if "alt" in fixture: assert all(n["alt"] == fixture["alt"] for n in tree.findall(nodes.image)), tree.pformat()
+    if "topLevel" in fixture: assert [n.tagname for n in tree.children] == fixture["topLevel"], tree.pformat()
 print("docutils 0.21.2: original cases parsed without diagnostics")
 `], {input: JSON.stringify(cases), encoding: "utf8"});
 if(oracle.error) throw oracle.error;

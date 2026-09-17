@@ -7,6 +7,12 @@ import {PandocError} from "./errors.js";
 function indent(text: string, width: number): string {
   return text.split("\n").map(line => line ? " ".repeat(width) + line : "").join("\n");
 }
+function markedBody(marker: string, body: string): string {
+  // Establish the content column before an indented first block. Footnote
+  // directives otherwise dedent an all-quote body into ordinary paragraphs.
+  if(body.startsWith(" ")) return marker.trimEnd() + "\n\n" + indent("..\n\n" + body, marker.length);
+  return marker + indent(body, marker.length).slice(body ? marker.length : 0);
+}
 class RstWriter {
   private readonly definitions: string[] = [];
   private readonly notes: {blocks: readonly Block[]; path: string}[] = [];
@@ -156,7 +162,11 @@ class RstWriter {
         case "HorizontalRule":
           if(i === 0 || i === nodes.length - 1 || nodes[i - 1]?.t === "Header" || nodes[i - 1]?.t === "HorizontalRule" || nodes[i + 1]?.t === "HorizontalRule") this.fail("RST transition requires content on both sides", p);
           text = "----"; break;
-        case "BlockQuote": text = indent(this.blocks(node.c, `${p}.c`), 3); if(!text) this.fail("Empty block quote", p); break;
+        case "BlockQuote": {
+          const body = this.blocks(node.c, `${p}.c`);
+          if(!body) this.fail("Empty block quote", p);
+          text = indent(body.startsWith(" ") ? "..\n\n" + body : body, 3); break;
+        }
         case "Div": this.loss("Div projected to contained blocks", p); text = this.attrs(node.c[0], p) + this.blocks(node.c[1], `${p}.c[1]`); break;
         case "Figure": this.loss("Figure projected to content and caption", p); text = this.blocks(node.c[2], `${p}.c[2]`) + "\n\n" + this.blocks(node.c[1][1], `${p}.c[1][1]`); if(node.c[1][0]?.length) text += "\n\n" + this.inlines(node.c[1][0], p); break;
         case "LineBlock": text = node.c.map((line, j) => "| " + this.inlines(line, `${p}.c[${j}]`)).join("\n"); break;
@@ -176,7 +186,7 @@ class RstWriter {
           const name = this.inlines(term, `${p}.c[${j}][0]`), body = defs.map((def, k) => this.blocks(def, `${p}.c[${j}][1][${k}]`)).join("\n\n");
           if(!name || !body) this.fail("Empty definition", p);
           if(defs.length > 1) this.loss("Multiple definitions merged into one body", p);
-          return name + "\n" + indent(body, 3);
+          return name + "\n" + indent(body.startsWith(" ") ? "..\n\n" + body : body, 3);
         }).join("\n\n"); break;
         case "Table": {
           const t = node.c;
@@ -194,7 +204,7 @@ class RstWriter {
               if(cell[2] !== 1 || cell[3] !== 1) this.fail("Table spans unsupported", p);
               if(cell[0][0] || cell[0][1].length || cell[0][2].length || cell[1] !== "AlignDefault") this.loss("Dropped cell attributes/alignment", p);
               const body = this.blocks(cell[4], `${p}.c.rows[${j}][${k}]`);
-              return (k ? "     - " : "   * - ") + indent(body, 7).slice(body ? 7 : 0);
+              return markedBody(k ? "     - " : "   * - ", body);
             }).join("\n");
           }).join("\n");
           if(!rows.length || !t[2].length) this.fail("Empty table", p);
@@ -205,7 +215,7 @@ class RstWriter {
       if(!text && !["Plain", "Para", "Div", "Figure"].includes(node.t)) this.fail("Empty RST structural container", p);
       const previous = nodes[i - 1];
       const lists = ["BulletList", "OrderedList"];
-      if(previous && (lists.includes(previous.t) && (lists.includes(node.t) || node.t === "BlockQuote") || previous.t === node.t && ["BlockQuote", "DefinitionList"].includes(node.t))) pieces.push("..");
+      if(previous && (lists.includes(previous.t) && (lists.includes(node.t) || node.t === "BlockQuote") || previous.t === "DefinitionList" && node.t === "BlockQuote" || previous.t === node.t && ["BlockQuote", "DefinitionList"].includes(node.t))) pieces.push("..");
       pieces.push(this.retain(text));
     }
     return this.retain(pieces.join("\n\n"));
@@ -234,7 +244,7 @@ class RstWriter {
       const note = this.notes[i]!, body = this.blocks(note.blocks, note.path);
       if(!body) this.fail("Empty note", note.path);
       const marker = `.. [${i + 1}] `;
-      this.definitions.push(marker + indent(body, marker.length).slice(marker.length));
+      this.definitions.push(markedBody(marker, body));
     }
     return {kind: "text", text: this.retain([text, ...this.definitions].filter(Boolean).join("\n\n") + (text || this.definitions.length ? "\n" : ""))};
   }

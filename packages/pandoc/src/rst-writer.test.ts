@@ -93,3 +93,23 @@ it("does not register dropped span identifiers as resolvable targets", async () 
 it("keeps image alternative text literal in directive options", async () => {
   expect(await rst([p({t: "Image", c: [a, [s("a_b* [caption]: \\path")], ["image.png", ""]]})])).toMatchObject({text: "|pc-image-1|\n\n.. |pc-image-1| image:: image.png\n   :alt: a_b* [caption]: \\path\n"});
 });
+it("preserves leading block quotes in table cells and footnote bodies", async () => {
+  const quote: Block = {t: "BlockQuote", c: [p(s("quoted")), p(s("continued"))]};
+  const table: Block = {t: "Table", c: [a, [null, []], [["AlignDefault", {t: "ColWidthDefault"}]], [a, []], [[a, 0, [], [[a, [[a, "AlignDefault", 1, 1, [quote, p(s("outside"))]]]]]]], [a, []]]};
+  expect(await rst([table, p({t: "Note", c: [quote, p(s("outside"))]})])).toMatchObject({text: ".. list-table::\n   :header-rows: 0\n\n   * -\n\n       ..\n\n          quoted\n\n          continued\n\n       outside\n\n[1]_\n\n.. [1]\n\n       ..\n\n          quoted\n\n          continued\n\n       outside\n"});
+});
+it("anchors quote-only footnotes", async () => {
+  const quote: Block = {t: "BlockQuote", c: [p(s("quoted"))]};
+  expect(await rst([p({t: "Note", c: [quote]})])).toMatchObject({text: "[1]_\n\n.. [1]\n\n       ..\n\n          quoted\n"});
+});
+it("anchors quote-only definitions", async () => {
+  const quote: Block = {t: "BlockQuote", c: [p(s("quoted"))]};
+  expect(await rst([{t: "DefinitionList", c: [[[s("term")], [[quote]]]]}])).toMatchObject({text: "term\n   ..\n\n      quoted\n"});
+});
+it("preserves nested block quotes", async () => {
+  const quote: Block = {t: "BlockQuote", c: [p(s("quoted"))]};
+  expect(await rst([{t: "BlockQuote", c: [quote]}])).toMatchObject({text: "   ..\n\n      quoted\n"});
+});
+it("separates a definition list from a following block quote", async () => {
+  expect(await rst([{t: "DefinitionList", c: [[[s("term")], [[p(s("meaning"))]]]]}, {t: "BlockQuote", c: [p(s("outside"))]}])).toMatchObject({text: "term\n   meaning\n\n..\n\n   outside\n"});
+});

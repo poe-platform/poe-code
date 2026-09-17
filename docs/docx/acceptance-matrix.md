@@ -252,3 +252,12 @@ reproduced standalone snapshot work-budget case. All pass in the final maintaine
 public QA passes 96 workflows with independent ZIP/XML retention assertions.
 Original and intermediate failures remain recorded. Other native style variants
 and complete F01–F07 acceptance remain open.
+
+## Current public container header evidence
+
+The [header rejection record](public-container-rejections-20260917.md) retains
+320 existing cases and adds 1,200 exact malformed-header public cases across both
+dialects/kinds, stored/deflated, ZIP32/ZIP64 and model/SDK/actual Shell. The final
+focused run passes 1,623 tests, zero skips; built QA passes 96 expected-rejection
+workflows. No product defect was found in these added variants. Other ZIP/OPC
+variants and complete F01–F07 acceptance remain open.

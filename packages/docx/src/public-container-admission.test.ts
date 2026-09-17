@@ -95,3 +95,38 @@ for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const
   else { const result = await (route === 'shell' ? shell : cli)(input, ["inspect", "/misleading.bin", "--json"], context); expect(result.exit).toBe(fault === "archive-limit" ? 4 : 1); expect(JSON.parse(result.output)).toMatchObject({ ok: false, data: null, affected: 0, locations: [], errors: [expect.objectContaining({ code })] }); }
   expect(input).toEqual(original);
 });
+
+for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
+for (const compression of ["store", "deflate"] as const) for (const extended of [false, true])
+for (const fault of ["local-crc", "local-method", "local-flags", "local-name", "central-offset", "central-name-length", "local-name-length", "central-extra-length", "local-extra-length", "central-comment-length", "member-disk", "unsupported-method", "reserved-flags", "symlink", "absolute-name", "parent-name", "backslash-name", "drive-name", "invalid-utf8", "underdeclared-expansion", "overdeclared-expansion", "truncated-end", "missing-end", "bad-local-signature", "bad-central-signature"] as const)
+for (const route of ["model", "sdk", "shell"] as const)
+it(`rejects ${fault} via ${route}; ${kind} strict=${strict} ${compression} ZIP${extended ? 64 : 32}`, async () => {
+  const original = await fixture(strict, kind, compression, extended), bytes = original.input.slice(), view = new DataView(bytes.buffer), at = original.central;
+  const localLength = view.getUint16(26, true);
+  if (fault === "local-crc") view.setUint32(14, (view.getUint32(14, true) ^ 1) >>> 0, true);
+  if (fault === "local-method") view.setUint16(8, compression === "store" ? 8 : 0, true);
+  if (fault === "local-flags") view.setUint16(6, view.getUint16(6, true) ^ 2048, true);
+  if (fault === "local-name") bytes[30] = 65;
+  if (fault === "central-offset") view.setUint32(at + 42, 1, true);
+  if (fault === "central-name-length") view.setUint16(at + 28, localLength - 1, true);
+  if (fault === "local-name-length") view.setUint16(26, localLength - 1, true);
+  if (fault === "central-extra-length") view.setUint16(at + 30, 3, true);
+  if (fault === "local-extra-length") view.setUint16(28, 3, true);
+  if (fault === "central-comment-length") view.setUint16(at + 32, 1, true);
+  if (fault === "member-disk") view.setUint16(at + 34, 1, true);
+  if (fault === "unsupported-method") {view.setUint16(8, 99, true); view.setUint16(at + 10, 99, true);}
+  if (fault === "reserved-flags") {view.setUint16(6, 16, true); view.setUint16(at + 8, 16, true);}
+  if (fault === "symlink") {view.setUint16(at + 4, 3 * 256 + 20, true); view.setUint32(at + 38, (0o120777 * 65536) >>> 0, true);}
+  const badName = fault === "absolute-name" ? "/" : fault === "parent-name" ? "../" : fault === "backslash-name" ? "a\\" : fault === "drive-name" ? "C:" : undefined;
+  if (badName) {const name = encode(badName.padEnd(localLength, "a")); bytes.set(name, 30); bytes.set(name, at + 46);}
+  if (fault === "invalid-utf8") {view.setUint16(6, 2048, true); view.setUint16(at + 8, 2048, true); bytes[30] = 255; bytes[at + 46] = 255;}
+  if (fault === "underdeclared-expansion" || fault === "overdeclared-expansion") {const size = view.getUint32(22, true) + (fault === "underdeclared-expansion" ? -1 : 1); view.setUint32(22, size, true); view.setUint32(at + 24, size, true);}
+  if (fault === "bad-local-signature") view.setUint32(0, 0, true);
+  if (fault === "bad-central-signature") view.setUint32(at, 0, true);
+  const input = fault === "truncated-end" ? bytes.slice(0, -1) : fault === "missing-end" ? bytes.slice(0, -22) : bytes;
+  const snapshot = input.slice(), context = {...textContext, limits: {...textContext.limits, maxExtraBytes: 1024, maxCommentBytes: 16384}};
+  if (route === "model") await expect(Document(input, context)).rejects.toMatchObject({code: "invalid-container"});
+  else if (route === "sdk") await expect(inspectDocument(input, context)).rejects.toMatchObject({code: "invalid-container"});
+  else {const result = await shell(input, ["inspect", "/misleading.bin", "--json"], context); expect(result.exit, result.output + result.error).toBe(1); expect(JSON.parse(result.output)).toMatchObject({ok: false, data: null, affected: 0, locations: [], errors: [expect.objectContaining({code: "invalid-container"})]});}
+  expect(input).toEqual(snapshot);
+});

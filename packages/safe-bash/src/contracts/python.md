@@ -114,12 +114,13 @@ mutations. An uncooperative backend promise can delay cleanup indefinitely.
 
 ## Capability and failure diagnostics
 
-`inspectPythonCapabilities({ createWorker, fs, requiredFileSystem, runtimeVersion })`
+`inspectPythonCapabilities({ createWorker, createExecutor, fs, requiredFileSystem, runtimeVersion })`
 returns `{ configurationValid, failures }` without starting an interpreter or
-opening files. `createWorker` is optional here, unlike command registration:
-its absence reports `executor-unavailable`. This portable API never imports or
-selects the Node transport. Supplying a factory does not prove that a host can
-actually run that transport; shared-memory checks are structural only.
+opening files. Supply exactly one of `createWorker` or `createExecutor`;
+missing or conflicting factories report `executor-unavailable`. This portable API
+never imports or selects a host transport. Supplying a factory does not prove
+that a host can actually run it; shared-memory checks for `createWorker` are
+structural only and do not apply to `createExecutor`.
 This is not a Cloudflare Python execution qualification.
 
 `requiredFileSystem` defaults to an empty list. Request `open`, `read`, `write`
@@ -134,7 +135,7 @@ or the private ABI.
 Categories distinguish `executor-unavailable`, `transport-unavailable`,
 `runtime-abi`, `runtime-assets`, `filesystem-open`, `filesystem-read`,
 `filesystem-write`, `filesystem-directory`, `filesystem-operation`, `capacity`,
-`cleanup`, `startup` and `runtime`. Unknown worker error categories never become
+`cleanup`, `startup`, `runtime`, `isolation-unavailable` and `deadline`. Unknown worker error categories never become
 agent-facing text. Loader/transport/factory failures yield status 1 with fixed
 messages; worker-provided and host error details go only to `onDiagnostic`.
 Unsupported filesystem requests retain ENOTSUP and emit one capability hint per
@@ -189,12 +190,18 @@ replacing its exhausted plugin.
 
 Already admitted host effects cannot be undone. Uncooperative filesystem,
 transport or sink promises may delay cleanup indefinitely; worker termination
-cannot preempt arbitrary host JavaScript. There is no enforced Python instruction
+cannot preempt arbitrary host JavaScript. The trusted worker has no enforced Python instruction
 quota, per-command CPU budget, WebAssembly heap cap or RSS cap. Host deadline
 cancellation can terminate execution while the host event loop is responsive;
 it is not a hard CPU-time guarantee. Worker count, bounded bridge buffers and
 cache limits reduce retained host resources without bounding guest allocations,
 installed package expansion or total process memory.
+
+The separate [Docker host](python-docker.md) supplies a concrete opt-in
+`createExecutor` implementation with container-wide memory/CPU-rate controls,
+external wall supervision and fresh invocation isolation. Its application-wide
+pool, operating-system prerequisites and precise limits are explicit; they are
+not guarantees of an arbitrary injected executor or the trusted Node worker.
 
 ## Preserved refusals and qualification limits
 

@@ -43,6 +43,7 @@ export const negativeGroups = [
 
 export const currentConsumerPaths = () => [...new Set(consumerGroups.flatMap(group => [...group.files, ...group.companions ?? []]))];
 export const currentSourceConsumerGroups = [
+  { name: "python-docker-public-types", files: ["tests/plugins/qualified-current-release/current-python-docker.ts"], route: "root-tsconfig-and-strict-build-first-consumer", qualification: "public Docker host and runner declarations; real-container execution remains an explicit integration gate" },
   { name: "playwright-billing-public-types", files: ["tests/plugins/qualified-current-release/current-playwright-billing.ts"], route: "root-tsconfig-and-strict-build-first-consumer", qualification: "injected host acquisition composition; declarations only, no metering or browser execution" },
   { name: "atomic-webdav-profile-source", files: ["tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts", "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts"], route: "root-tsconfig-and-strict-build-first-consumer", qualification: "current public imports use built declarations; explicit source MockDav helper is not a packed-provider proof" },
   { name: "atomic-webdav-independent-source", files: ["tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts"], route: "root-tsconfig-and-strict-build-first-consumer", qualification: "current public imports use built declarations; source fixture helpers remain explicit" },

@@ -2633,6 +2633,18 @@ test("Python shared executor admission tests remain admitted current input", () 
   }
 });
 
+test("Python Docker host acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/commands/python/docker.test.ts", "tests/commands/python/docker-review.test.ts",
+    "tests/commands/python/docker-runner-review.test.ts",
+    "tests/plugins/qualified-current-release/current-python-docker.ts",
+    "tests/integration/python-docker.test.mjs", "tests/integration/python-docker-runtime.mjs", "tests/integration/python-docker-runtime.Dockerfile"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
 test("UTF-8 literal workerd acceptance remains admitted current input", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const boundaries = loadBoundaries(root);

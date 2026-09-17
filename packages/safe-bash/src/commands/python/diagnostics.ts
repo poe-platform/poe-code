@@ -5,6 +5,8 @@ const messages = {
   'transport-unavailable': 'Python worker transport or shared-memory operations are unavailable.',
   'runtime-abi': 'Python runtime version or native ABI is unsupported.',
   'runtime-assets': 'Python runtime or package assets could not be loaded.',
+  'isolation-unavailable': 'Python host isolation or resource enforcement is unavailable.',
+  deadline: 'Python execution exceeded its host deadline.',
   'filesystem-open': 'Python filesystem handle access is unavailable; the backend must support retained open.',
   'filesystem-read': 'Python filesystem reads are unavailable for this backend.',
   'filesystem-write': 'Python filesystem writes are unavailable for this backend.',

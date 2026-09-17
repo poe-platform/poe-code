@@ -924,7 +924,7 @@ for (const route of ["poe-code/safe-fs", "poe-code/safe-fs/core", "poe-code/priv
 });
 
 test("packed runtime binds conditional private imports to authenticated package files", () => {
-  const prefix = "node_modules/virtual-bash/";
+  const prefix = "node_modules/@poe-platform/safe-bash/";
   const files = {
     [prefix + "package.json"]: JSON.stringify({ imports: { "#crypto": { types: "./src/crypto.ts", browser: "./dist/unavailable.js", default: "./dist/crypto.js" } } }),
     [prefix + "dist/index.js"]: 'export { value } from "#crypto";',

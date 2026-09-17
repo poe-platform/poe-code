@@ -147,8 +147,8 @@ export function bindPackedConsumer(consumer, packedFiles, peer, declarations, ts
       if (isBuiltin(specifier)) { edges[specifier] = specifier.startsWith("node:") ? specifier : `node:${specifier}`; continue; }
       const nativeEdge = facts?.nativeEdges.find(edge => edge.importer === peerLocal && edge.specifier === specifier);
       let privateTarget;
-      if (specifier.startsWith("#") && local.startsWith("node_modules/virtual-bash/")) {
-        const manifestPath = "node_modules/virtual-bash/package.json";
+      if (specifier.startsWith("#") && local.startsWith("node_modules/@poe-platform/safe-bash/")) {
+        const manifestPath = "node_modules/@poe-platform/safe-bash/package.json";
         const manifestBytes = readRegularInput(consumer, manifestPath, 300000, fileSystem);
         assert.equal(digest(manifestBytes), binding.files[manifestPath], "Runtime package metadata drift");
         const imports = JSON.parse(manifestBytes).imports ?? {};
@@ -156,7 +156,7 @@ export function bindPackedConsumer(consumer, packedFiles, peer, declarations, ts
         const selected = nodeImportTarget(imports[specifier]);
         assert.ok(typeof selected === "string" && selected.startsWith("./"), "Unbound runtime private import target");
         assertLiteralInputPath(selected.slice(2));
-        privateTarget = "node_modules/virtual-bash/" + selected.slice(2);
+        privateTarget = "node_modules/@poe-platform/safe-bash/" + selected.slice(2);
       }
       if (specifier.startsWith("#")) assert.ok(nativeEdge || privateTarget, `Unbound runtime dependency: ${specifier}`);
       const target = privateTarget ?? (nativeEdge ? `node_modules/poe-code/${nativeEdge.target}` : specifier.startsWith(".") ? relative(consumer, resolve(consumer, dirname(local), specifier)) : binding.entries[specifier] ?? dependencyEntries[specifier]);

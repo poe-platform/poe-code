@@ -2994,3 +2994,308 @@ the focused ZIP checks passed; it is not claimed as passing qualification.
 No repository-wide test, remote-main delivery or release is claimed. Temporary
 check logs and screenshots were kept in the ignored worktree `out` directory
 because the host `/out` root is read-only, and removed after inspection.
+
+
+## FIFO, DOS names and bracket-list option qualification — 2026-09-16
+
+Base: `main` at `f594b9c34cdf09fc085aa258d962d40ad6fed3a7`.
+This section qualifies live uncommitted inputs authenticated below, not a frozen
+commit, remote-main delivery or release. Entry working tree was clean. Product
+logic stayed in safe-bash; README, SafeJS sources, dependency declarations and
+root CLI/SDK sources were untouched. There are no new runtime dependencies,
+provider branches or product native-process fallbacks.
+
+### Reproduction and independent native profile
+
+Corrected memory-only initial controls failed 10/10 before implementation:
+`-k`, `-FI` and `-RE` rejected at argument parsing, while special sources were
+ignored by the current selector. The first attempt contained string writeFile
+fixtures, which the byte-only memory filesystem rejected; those setup failures
+are excluded from product evidence. The byte fixtures were corrected before
+product edits. Later failing controls reproduced FIFO filesync/difference
+skipping a size-zero producer and DOS archive fallback clearing Unicode flags.
+Independent review reproduced both and found a ZIP64 size-sentinel boundary
+issue; each received a fast failing control before correction.
+
+Native source: the existing pinned LuaDist Zip revision
+`f6cfe48f6bc5bf2d505a0e0eb265ce4cb238db89`, archive SHA-256
+`82631795a124b0dff92979286c74095be5e5f45ceb4183935985ed2839f26490`.
+The archive hash was checked and regular/directory-only relative paths admitted
+before extraction. Built without source patches using the selected `zip` target
+and the exact explicit CFLAGS/LFLAGS2 in the earlier pinned-build section.
+Oracle executable SHA-256:
+`f175f1aca8767e1f583dcde7a45e08393b5ed117798d733e437870e6141c4f8d`.
+Native `-so` exposes FI, k and RE. RE is therefore applicable to this pinned Unix
+build; it enables bracket-list globs and is already enabled by default. There is
+no general regex engine requirement. Apple-modified Darwin Zip 3.0 was separately
+probed; neither Darwin profile certifies Linux, Windows or DOS builds. Source
+shows Windows/MSDOS bracket-default conditionals; execution on those profiles
+is **Unverified**. A profile omitting an option is **N/A for that profile**, not
+a passing option cell; no such omitted-option executable was available here.
+
+Native per-name probes establish `longfilename.extension` → `LONGFILE.EXT`,
+`.hidden` → `HIDDEN`, `a.b.c` → `A.B`, `foo..bar` → `FOO.`,
+`foo+ bar.txt` → `FOOBAR.TXT`, and component conversion
+`longdirectory/name.txt` → `LONGDIRE/NAME.TXT`. CON and AUX.TXT remain unchanged.
+Punctuation controls cover spaces, plus/comma/semicolon/equal/brackets versus
+retained punctuation. `-j` runs before component conversion. Differently spelled
+names collapsing to one DOS name return native 16; no auto-numbering is inferred.
+The initial combined-name oracle collided and returned 16, so individual archives
+were used for name mapping. Incorrect initial expectations that `+.txt` was empty
+and that filtered-empty creates must return 12 were corrected from native controls:
+`+.txt` becomes TXT; a valid empty filtered archive returns 0.
+
+Native filter-order probes: `-i binary @ -k` selects source `binary` into BINARY;
+`-k ... -i binary` converts the filter to BINARY and excludes lowercase `binary`.
+With `-k` first, `*` is stripped from filters and selects nothing. `-k -R '*.txt'`
+and `-R '*.txt' -k` return 12. `-RE -i '[a].txt'` selects only a.txt.
+Those are native quirks, rather than a license to introduce general regex matching.
+Three isolated native FIFO producer probes passed: empty, three-byte text, and
+five-byte binary streams, each with a regular neighboring member and exact byte
+comparison. A negated-FI control ignored the FIFO and retained the regular member.
+Native FIFOs existed only in isolated oracle temporary directories, immediately
+removed; native subprocesses never entered product command execution.
+
+### Bounded product behavior and acceptance dimensions
+
+The package contract in `src/contracts/zip.md` defines ordering and restrictions.
+VFS mode `0010000` identifies a FIFO, with a special `character` carrier in the
+current filesystem type domain. FI requires an existing explicit VFS byte stream
+and path `streamingRead: true`; false, unknown or missing readers refuse. Disabled
+FIFO modes and unrelated character devices are ignored. Ordinary readFile is
+never a FIFO fallback; the real adapter continues to reject special nodes.
+The existing scoped VFS forwards readStream through actual Shell/SDK dispatch.
+No new filesystem interface or host binding was added.
+
+FIFO collection owns reused producer chunks, propagates the existing signal and
+chunk size, enforces remaining entry/total bytes and existing filesystem work
+limits, then uses owned staging/publication. Empty streams are valid. Producer
+failure, cancellation and changed metadata refuse publication. FIFO move refuses
+without producer admission or source deletion. Filesync/difference conservatively
+consume every eligible producer rather than treating zero stat size as a content
+snapshot; update/freshen retain their existing date eligibility rules.
+
+DOS selection retains original source paths and recursion prefixes. Include/exclude
+and recursive selection precede `-j`, then component conversion. Include/exclude
+filters parsed after k are DOS-converted; R filters use the final k setting.
+The existing raw-path filter policy remains: j does not rewrite filter paths.
+New converted members have DOS creator/attributes and ASCII names, with retained
+Unicode comments keeping their original encoding flag. Archive fallback preserves
+existing Unicode member spelling/encoding; untouched member metadata/payload remain.
+K ignores y and reads its target. No reserved-name device semantics are introduced.
+
+| Feature | Positive | Negative | Boundary | Cancellation | Neighbor |
+| --- | --- | --- | --- | --- | --- |
+| FI | Explicit source bytes, empty streams, actual Shell dispatch | Missing/false/unknown capability, producer failure, disabled mode, move refusal | Exact/short entry and total bytes, endless empty-chunk work exhaustion | Pre-abort identity; active producer cancellation with retirement and no publication | Regular files, character devices, FS/DF, owned reused bytes |
+| k | Name mappings, recursive separators, j, uppercase R source, DOS fields | Empty/restricted names, invalid forms, collisions preserving archive and move sources | 8/9 stem and 3/4 extension, multiple dots, control/Unicode restrictions | Pre-abort; active source cancellation closes owned stream | Filters, excludes, symlink target, Unicode without k, Unicode archive fallback/comments |
+| RE | Short/long bracket selection, existing Unix default | Negation/value refusal, general regex-looking input stays literal | Exact/one-byte-short argv; bounded matcher work exhaustion | Pre-abort; active matcher-yield cancellation | Includes/excludes, no-wild, maintained range and archive tests |
+
+Final focused memory controls: **68/68**, zero failures, cancellations, skips or
+TODOs. Registered by literal path in integration-input discovery. Wider ZIP/unzip
+command/plugin controls: **1746/1746**; product inputs were final, and the later
+fixture-only non-null TypeScript assertion has no emitted runtime effect and
+receives the fresh 68/68 run. Discovery/ownership controls: **109/109**. Final scoped
+ESLint and git diff whitespace checks pass. Selected maintained workspace build
+passes its declaration-derived six-workspace dependency closure. Maintained
+source/tests and consumer typecheck results are recorded in the final-check
+addendum below; no repository-wide npm test/lint gate is inferred.
+
+### Interoperability defect found during positive cross-reading
+
+Initial in-memory product archives passed Python **12/12** and BSD tar **11/12**.
+Buffered BZIP2 plus ZIP64 and descriptors was refused by BSD tar as truncated.
+A fast field control failed with a zero local ZIP64 size instead of six bytes.
+Buffered BZIP2 descriptors now retain known local sizes/CRC, including ZIP64.
+The independent review's synthetic 4 GiB boundary control then failed: both local
+32-bit size sentinels were set but only one ZIP64 value was emitted. Both known
+values are now retained. The synthetic boundary checks record shape without
+allocating a 4 GiB fixture; it does not certify a real 4 GiB payload or RSS.
+Unknown live-source descriptor spans stay zero and retain their existing profile.
+
+Final independent product reads: Python **12/12**, BSD tar **12/12**, three methods
+(store/deflate/BZIP2) × classic/forced ZIP64/descriptor/ZIP64+descriptor.
+Exact six-byte binary producer output was compared for the DOS member PIPE;
+Python also checked CRCs. Product archives/oracle streams stayed in memory.
+Oracles: Python 3.9.6; BSD tar 3.5.3 / libarchive 3.7.4, zlib 1.2.12,
+liblzma 5.4.3, bz2lib 1.0.8. The initial failing tar cell is retained as a failure,
+not counted as an unavailable tool or blamed on the tool.
+
+### Visual proof, exclusions and delivery limits
+
+Ran maintained screenshot-poe-code for actual built CLI extended ZIP help. Its
+uncached normal build completed. The first screenshot used an extra argument
+terminator and showed missing command input; excluded from ZIP visual proof.
+The corrected `bash --command='zip -h2'` screenshot captured the final viewport.
+The same renderer separately captured built CLI help's selection section using
+virtual head/tail, visibly showing RE, k and FI and their capability restrictions.
+Those images were inspected: option labels, explanatory text and line wrapping
+are readable. No screenshot tests or design-language change were introduced.
+
+Portable DOS conversion intentionally rejects non-ASCII, backslashes and controls
+rather than reproducing unsafe native Unicode/raw-name corruption. General
+regex syntax is excluded. FI materializes a regular member, unlike native Unix
+FIFO external mode metadata. FI uses bounded buffering, not constant-retention,
+RSS bounds or arbitrary preemption of uncooperative trusted callbacks. This
+qualifies explicit memory/synthetic VFS sources, not deployed real/S3/WebDAV
+FIFO support. Unknown capabilities fail instead of being promoted. The existing
+filter-before-flattening policy, conservative FIFO FS/DF consumption, refusal of
+FIFO move, and preserved Unicode archive fallback are explicit restricted profile
+choices. Split/fix/SFX adjustment and unrelated platform metadata remain outside
+this task. Other native host/build/locale profiles remain unverified.
+
+The first broader test attempt ran while screenshot predev rebuilt declarations:
+two plugin imports failed for missing transient safe-js dist/safe-fs-core.js.
+No SafeJS source was changed; after builds settled, all 1746 controls passed.
+The first typecheck caught an optional test-fixture stream method invocation;
+a fixture-only non-null assertion corrected it. Initial lint also found yield-less
+negative fixture generators, subsequently corrected. These failed attempts do not
+count as passes. Source/build fixtures and oracle failures were not weakened.
+
+Host `/out` creation returned read-only filesystem. Temporary oracle sources,
+binaries, logs and screenshots used only task-owned ignored `out/zip-fifo-oracle`
+and are purged after checks/inspection. No local commit, push, remote-main
+verification, issue closure or release was requested or performed.
+
+### Live input SHA-256 identities
+
+Paths below are relative to repository root.
+
+| Input | SHA-256 |
+| --- | --- |
+| `packages/safe-bash/src/commands/archive/zip.ts` | `9572f6125a08d3a83386015b85a99bd41e85c3466eef597b942dcf2304893d8a` |
+| `packages/safe-bash/src/commands/archive/zip-format.ts` | `21128bac77b54911d7ceb91d441aeab79e76d31114091d7aaf6156b3a7fef66d` |
+| `packages/safe-bash/src/commands/archive/zip/options.ts` | `66a54668458d3d00e76f0fed1186cb9fe315c87364f26b02d455037749c3d6e5` |
+| `packages/safe-bash/src/commands/archive/zip/safety.ts` | `0bb5905b7b02b2564e09b17079be1195026471e0621dbd4adc98623b2a643131` |
+| `packages/safe-bash/src/commands/archive/zip/names.ts` | `8c35c5491ed2f87ea5fba3f1aa6ded78e92f003473952cd78a83addba921d242` |
+| `packages/safe-bash/src/commands/archive/zip/help.ts` | `60f58fb97e7a30867e5caa751255790214629e05e8717764c3ad3f62dd81f390` |
+| `packages/safe-bash/tests/commands/zip-fifo-names.test.ts` | `f01a6ce7111de4c034d2a70efbd35803b26e905bcd79cb7249f18105475bfeb4` |
+| `packages/safe-bash/scripts/integration-inputs.test.mjs` | `276db35d20a296de65ce277b4b8ffee207a8e87ccefaea00450fdacb7d7c973d` |
+| `packages/safe-bash/src/contracts/zip.md` | `1b19b70d329fd519906cfefe06dbd07183f1e072c4342797632ebee71684bb5f` |
+| `docs/plans/safe-bash-zip-compatibility-matrix.md` | `0a278580fd408103aef43756e56855e2d31f440d9727a59e834d1f2abf7352d6` |
+
+### Final maintained checks
+
+The maintained `npm run typecheck --workspace=virtual-bash` rerun passed
+source/tests, historical compile-only controls and all **26** current consumer
+groups. Expected negative consumers returned 2; the final overall status was
+`typecheck-passed-not-runtime-acceptance`, cleanup true, zero runtime executions.
+All **10/10** live input hashes above were rechecked after qualification and
+still match. The final fixture-only assertion receives fresh **68/68** focused
+controls. `git diff --check` passes. No additional gate, delivery or deployed
+provider claims are introduced. Task-owned scratch was purged after inspection.
+
+### Repeat-request current-tree revalidation — 2026-09-16
+
+Revalidated on `main`, HEAD `f594b9c34cdf09fc085aa258d962d40ad6fed3a7`.
+Unlike the initial implementation run above, this run entered with the FIFO,
+DOS-name and RE implementation already present as tracked edits and untracked
+`names.ts` / `zip-fifo-names.test.ts`. Those existing changes were preserved.
+All ten input SHA-256 identities in the preceding table were recomputed and
+matched. The stated missing-option gap does not reproduce in these live inputs;
+no additional product or test changes were justified or made. SafeJS, README,
+dependencies, CLI/SDK sources and unrelated edits were preserved.
+
+Fresh command (from repository root):
+
+```sh
+node --import tsx --test --test-concurrency=1 packages/safe-bash/tests/commands/zip-fifo-names.test.ts packages/safe-bash/tests/commands/zip-pattern-ranges.test.ts packages/safe-bash/tests/commands/zip-archive-source-patterns.test.ts packages/safe-bash/tests/commands/zip-filesync.test.ts
+```
+
+Result: **116/116 passed**, zero failed, cancelled, skipped or TODO, in 3.762 s.
+This includes positive, negative, boundary, active/pre-abort cancellation and
+neighboring controls for the three features, plus archive source fallback,
+filesync and native bracket-range regressions. Memory fixtures and actual
+Shell/SDK dispatch remain covered. This is a focused live-tree revalidation,
+not a frozen-commit, full-suite, fresh native-oracle or visual qualification.
+The pinned-build applicability, ordering, native proof and exclusions above
+remain bound to the matching inputs; other profiles are not newly qualified.
+
+An initial `npm test --workspace=virtual-bash -- tests/commands/zip-fifo-names.test.ts`
+attempt was stopped: the maintained runner appends its entire discovered test
+inventory, so that argument does not restrict discovery. That interrupted run
+is not counted as a pass or a product failure. The explicit focused command
+above completed successfully. Only this evidence note was added during this
+revalidation; no commit, push, remote-main delivery or release was performed.
+
+### Subsequent original-task revalidation — 2026-09-16
+
+Current `main` remains at `f594b9c34cdf09fc085aa258d962d40ad6fed3a7`.
+Read root and package AGENTS.md; preserved the existing implementation and all
+unrelated edits. Recomputed the ten live input hashes above: **10/10 match**.
+The same explicit four-file focused command above freshly passed **116/116**
+controls in 3.731 s, with zero failures, cancellations, skips or TODOs.
+`git diff --check` passed. The missing-feature gap again does not reproduce;
+no additional product changes or refactoring were justified. Existing native
+build applicability, ordering and restricted-profile exclusions remain as
+recorded, with no fresh oracle, screenshot, full-suite or deployed-provider
+qualification claimed. Only this evidence entry was added; no commit, push or
+release was performed.
+
+### User-workflow edge-case review — 2026-09-16
+
+Reviewed current `main` at HEAD `f594b9c34cdf09fc085aa258d962d40ad6fed3a7`
+with the pre-existing dirty FIFO/DOS/RE implementation preserved. No missing
+option or additional product defect reproduced. Added six memory-only regression
+controls to the already registered `zip-fifo-names.test.ts`:
+
+- A producer yielding no chunks creates a DOS-named empty member that extracts
+  successfully (distinct from yielding one empty chunk).
+- Synchronous stream acquisition failure preserves the existing archive/source.
+- Failure on the first producer read retires the producer and preserves both.
+- An excluded FIFO never needs stream capability or producer admission.
+- A deterministic metadata change after EOF prevents archive publication.
+- An empty DOS directory component refuses publication; `-j` first discards
+  that directory component and successfully archives the basename.
+
+The initial metadata-change fixture used a same-millisecond VFS write and did
+not guarantee a changed timestamp; its expected rejection failed. Corrected the
+fixture to explicitly report an mtime increment after EOF. No product change
+was made to accommodate this fixture error, and the failed attempt is not a pass.
+
+Fresh validation:
+
+- Four-file focused command recorded above: **122/122 passed**, no failed,
+  cancelled, skipped or TODO controls, 3.078 s.
+- Before new tests, ZIP/unzip command/plugin glob suite: **1746/1746 passed**,
+  23.897 s. After adding the six controls, the same suite with Node's dot
+  reporter exits 0 (**1752 controls**, unchanged discovery plus six).
+- `node --test packages/safe-bash/scripts/integration-inputs.test.mjs`:
+  **109/109 passed**, 24.964 s, including literal test registration controls.
+- `npx eslint packages/safe-bash/tests/commands/zip-fifo-names.test.ts` and
+  `git diff --check`: passed.
+- `npm run typecheck --workspace=virtual-bash`: passed source/tests,
+  historical compile-only controls and all 26 current consumer groups;
+  expected negative consumers exited 2, cleanup true, no runtime executions.
+
+Current test SHA-256:
+`9769fad0cddd97e3b6e343f836bb8fbdd300f287c4d847df7d5c72ea3a3650fa`.
+The earlier table's test identity describes the earlier 68-control revision;
+this review's test revision has 74 controls. Product inputs were not edited.
+Existing native-build applicability, transformation ordering, restricted ASCII
+DOS profile, bounded glob semantics and provider exclusions remain as recorded
+above. No new native-build profile, deployed-provider, full repository gate or
+visual qualification is inferred from these tests. No visual/product code,
+SafeJS, README, runtime dependencies or CLI/SDK interfaces were changed.
+No commit, push, remote-main delivery or release was performed.
+
+### Commit preparation validation — 2026-09-16
+
+The user requested running tests and committing all pending changes. Preserved
+the existing ZIP implementation and regression controls; no product fixes were
+needed during this validation. Fresh checks passed:
+
+- ZIP command tests: **1680/1680**, no failures, cancellations, skips or TODOs.
+- Unzip command tests selected from guarded discovery: **59/59**.
+- `npm run test:runner --workspace=virtual-bash`: **522/522**.
+- `npm run build:workspaces -- --workspace=virtual-bash`: passed the declared
+  six-workspace build closure.
+- `npm run typecheck --workspace=virtual-bash`: passed source/tests, historical
+  compile-only controls, source consumers and all 26 consumer groups; the three
+  negative consumers returned their expected status 2.
+
+These focused checks cover this package change; these results do not claim a
+full repository test run, new native-build qualification or remote release.
+
+Repository `npm run lint:eslint` also passed: 15,501 configured inputs
+linted, zero errors and four warnings. `git diff --check` passed. The commit
+includes this validation record and marks the FIFO/name task commit stage done.

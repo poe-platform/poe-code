@@ -75,11 +75,12 @@ export class ZipScope {
       async return() { await close(); return { done: true as const, value: undefined }; },
     }) };
   }
-  async *input(path: string): ByteSource {
+  async *input(path: string, fifo = false): ByteSource {
     const { fs } = this.context;
     const controller = new AbortController();
     const signal = AbortSignal.any([this.context.signal, controller.signal]);
     const capabilities = await this.operation(() => fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities);
+    if (fifo && (!fs.readStream || capabilities.streamingRead !== true)) fail("filesystem lacks explicit FIFO byte stream capability");
     if (fs.readStream && capabilities.streamingRead !== false) {
       const source = await this.operation(() => this.source(fs.readStream!(path, { signal, chunkSize: this.limits.chunkSize }), controller));
       yield* readBytes(source, signal);

@@ -7,6 +7,7 @@ export class ZipFailure extends Error {
 export const reservedZipShortOptions = new Set(["mm"]);
 
 export const zipLongOptions: Readonly<Record<string, string>> = {
+  fifo: "FI", "DOS-names": "k", regex: "RE",
   password: "P", encrypt: "e",
   "difference-archive": "DF", grow: "g", "temp-path": "b", "junk-sfx": "J",
   "logfile-path": "lf", "log-append": "la", "log-info": "li", "unzip-command": "TT",
@@ -23,9 +24,8 @@ export const zipLongOptions: Readonly<Record<string, string>> = {
 // Include unimplemented Unix options when resolving abbreviations: a partial
 // implementation must not make native-ambiguous prefixes uniquely resolvable.
 const reservedOptions = [
-  "adjust-sfx", "fix", "fixfix", "fifo",
-  "DOS-names",
-  "regex", "split-size", "split-pause",
+  "adjust-sfx", "fix", "fixfix",
+  "split-size", "split-pause",
   "split-verbose", "split-bell", "show-unicode", "show-just-unicode",
 ];
 
@@ -49,7 +49,7 @@ export function normalizeZipOption(argument: string): string {
   return `-${short}${negate ? "-" : ""}${equal < 0 ? "" : argument.slice(equal)}`;
 }
 
-export const zipNegatableOptions = new Set(["fz", "X", "db", "dc", "dd", "dg", "du", "dv", "sf"]);
+export const zipNegatableOptions = new Set(["FI", "fz", "X", "db", "dc", "dd", "dg", "du", "dv", "sf"]);
 
 export function parseZipDotSize(value: string): number {
   if (!value) return 10 * 1024 * 1024;

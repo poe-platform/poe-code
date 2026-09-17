@@ -560,7 +560,9 @@ export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimi
     const member = zip64Member(entry.size, entry.data.length, localLength, forceZip64 || entry.zip64 === true, allowZip64 && (forceZip64 || entry.zip64 !== false), wide && descriptor);
     const originalCentralExtra = entry.centralExtra ?? timestampExtra(entry.modified);
     const originalCentralMetadata = extras(originalCentralExtra, rawName, comment, true, limits);
-    const localValues = descriptor && wide ? [0, 0] : [entry.size, entry.data.length].filter(value => forceZip64 || entry.zip64 === true || value >= 0xffffffff);
+    const localValues = descriptor && wide
+      ? entry.method === 12 && !entry.source ? [entry.size, entry.data.length] : [0, 0]
+      : [entry.size, entry.data.length].filter(value => forceZip64 || entry.zip64 === true || value >= 0xffffffff);
     const localExtraSize = originalLocalExtra.length - (originalLocalMetadata.zip64 ? originalLocalMetadata.zip64.length + 4 : 0) + (localValues.length ? 4 + localValues.length * 8 : 0);
     const centralExtraSize = originalCentralExtra.length - (originalCentralMetadata.zip64 ? originalCentralMetadata.zip64.length + 4 : 0) + (member.values.length ? 4 + member.values.length * 8 : 0);
     number(localExtraSize, Math.min(limits.maxPaxBytes, 65535), "extra field");
@@ -650,7 +652,7 @@ export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimi
     view.setUint16(offset + 12, date, true);
     // Buffered BZIP2 has a known compressed span. Retain it even with a
     // descriptor so streaming native readers can locate the member boundary.
-    const knownBzipSpan = entry.method === 12 && !entry.source && !wide;
+    const knownBzipSpan = entry.method === 12 && !entry.source;
     view.setUint32(offset + 14, flags & 8 && !knownBzipSpan ? 0 : entry.crc32, true);
     view.setUint32(offset + 18, wide && (descriptor || forceZip64 || entry.zip64 === true || entry.data.length >= 0xffffffff) ? 0xffffffff : flags & 8 && !knownBzipSpan ? 0 : entry.data.length, true);
     view.setUint32(offset + 22, wide && (descriptor || forceZip64 || entry.zip64 === true || entry.size >= 0xffffffff) ? 0xffffffff : flags & 8 && !knownBzipSpan ? 0 : entry.size, true);

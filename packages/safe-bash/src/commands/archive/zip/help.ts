@@ -17,6 +17,9 @@ Usage: zip [options] archive [file ...]
   -m          remove archived sources after successful publication
   -D / -y     omit directory entries / store symlinks
   -i / -x     include / exclude matching names
+  -RE         enable bracket-list glob matching (already enabled on Unix)
+  -k          convert new source names to portable ASCII DOS 8.3 names
+  -FI / -FI-  enable / disable explicit VFS FIFO byte sources
   -@          read filenames from stdin
   -t / -tt    select files from / before a date
   -T          test archive integrity before replacement
@@ -49,6 +52,12 @@ Long option equivalents are accepted, for example --junk-paths and
 
 export const zipExtendedHelp = `${zipHelp}
 Selection
+  -RE / --regex means bracket lists, not general regular expressions.
+  -k / --DOS-names converts components after selection and -j; collisions fail.
+  DOS conversion is restricted to printable ASCII. Filters parsed after -k
+  are DOS-converted before matching original case-sensitive source names.
+  -FI / --fifo requires a VFS-reported FIFO and explicit streamingRead capability.
+  FIFO payloads are bounded and cancellation-aware; producer failure aborts output.
   -r traverses listed directories; -R recursively searches matching names.
   Do not combine -r and -R. -D omits directory records without stopping traversal.
   -i patterns and -x patterns accept lists ending at another option or at @.

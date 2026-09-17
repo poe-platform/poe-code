@@ -69,7 +69,7 @@ coverage: `zip.test.ts`, `zip-review.test.ts`, `zip-format.test.ts`,
 | e | encrypt | encryption build | Missing | R; transform exists but no password/header workflow |
 | F | fix | flag | Missing | R; intact directory repair versus damaged inputs open |
 | FF | fixfix | flag | Missing | R; bounded local-record recovery/ambiguity open |
-| FI | fifo | neg; Unix capability | Missing | R; no permission to read implicit host FIFO |
+| FI | fifo | neg; Unix capability | Restricted | `zip-fifo-names.test.ts`; explicit VFS FIFO mode + streaming source only; no implicit host reads |
 | FS | filesync | flag | Supported | `zip-filesync.test.ts`; deletion scope and missing sources |
 | f | freshen | flag | Supported | `zip.test.ts`; existing-only timestamp updates |
 | fd | force-descriptors | flag | Supported | `zip-standard-flags.test.ts`, `zip-format.test.ts` |
@@ -82,7 +82,7 @@ coverage: `zip.test.ts`, `zip-review.test.ts`, `zip-format.test.ts`,
 | i | include | list | Supported | `zip-standard-flags.test.ts`, `zip-pattern-ranges.test.ts` |
 | j | junk-paths | flag | Supported | `zip.test.ts`, `zip-review.test.ts`; duplicate basename controls |
 | J | junk-sfx | flag | Missing | R; strip prefixes with rebased offsets open |
-| k | DOS-names | flag | Missing | R; 8.3 mapping/collisions/attributes open |
+| k | DOS-names | flag | Restricted | `zip-fifo-names.test.ts`; portable ASCII 8.3 mapping, native filter order, collision refusal; Unicode fallback preserved |
 | l | to-crlf | flag | Supported | `zip-line-endings.test.ts`, `zip-text-attributes.test.ts` |
 | ll | from-crlf | flag | Missing | R; native `a\r\nb\r\n` conversion versus current rejection |
 | lf | logfile-path | value | Missing | R with `log`; VFS logging and destination failures open |
@@ -101,7 +101,7 @@ coverage: `zip.test.ts`, `zip-review.test.ts`, `zip-format.test.ts`,
 | q | quiet | flag | Supported | `zip.test.ts`; fatal output/status retained, suppressed text budget |
 | r | recurse-paths | flag | Supported | `zip.test.ts`; depth/work limits, source links |
 | R | recurse-patterns | flag | Supported | `zip-standard-flags.test.ts`; conflicts, hidden files, trailing components |
-| RE | regex | flag | Missing | R; Info-ZIP means bracket-list glob matching, not general regex engine |
+| RE | regex | flag | Supported | `zip-fifo-names.test.ts`; pinned Unix exposes it, bracket-list glob matching through existing bounded matcher; other profiles separately qualified |
 | s | split-size | value | Missing | R with `64k`; minimum/units/zero and disk offsets open |
 | sp | split-pause | flag | Missing | R; legitimate injected interactive input needed |
 | sv | split-verbose | flag | Missing | R; split progress/failure controls open |

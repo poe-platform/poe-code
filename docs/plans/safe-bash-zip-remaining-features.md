@@ -96,11 +96,11 @@ tasks:
 
       Implement matrix-validated FIFO source selection (-FI), DOS name conversion (-k), and the native build-dependent regex selection option where applicable. FIFO reads require an explicit stream-capable VFS source, cancellation and limits; unsupported providers return truthful capability errors and never read host FIFOs implicitly. Define transformation ordering relative to -j, -r/-R, include/exclude, case, Unicode/raw names and archive fallback. Cover DOS-name collisions, multiple extensions, reserved names, separators, wildcards, hidden files, empty streams and producer failure. Do not add a regex runtime dependency or route unsafe unbounded matching into product selection. If the pinned Unix build does not expose an option, record not-applicable for that build and separately qualify other profiles.
     status:
-      reproduce: open
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      reproduce: done
+      implement: done
+      refactor: done
+      test: done
+      commit: done
   - id: zip-split-volumes
     title: "Implement split and multivolume archives"
     prompt: |

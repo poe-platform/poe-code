@@ -122,3 +122,51 @@ archive. A command that mutates its staged identity cannot publish using the old
 identity. Cleanup also refuses that stale identity and preserves externally
 changed bytes, reporting failure; this is not a sandbox or permission to delete
 those external changes.
+## FIFO sources and DOS names
+
+`-FI` / `--fifo` opts into a VFS-reported FIFO (POSIX mode type `0010000`).
+The current filesystem type domain can carry this special entry as `character`;
+mode identifies the FIFO independently of that carrier. The path must explicitly
+report `streamingRead: true` and implement `readStream`. Unknown/false capability
+or a missing reader fails truthfully; `readFile` is never a FIFO fallback.
+The ordinary real adapter still rejects special nodes. ZIP never discovers or
+opens a host FIFO implicitly. `-FI-` disables reads even for a file-typed FIFO
+mode, and unrelated character devices remain ignored.
+
+Eligible producer bytes are collected with owned chunk copies under remaining
+entry/total payload limits and the existing filesystem work budget. Empty streams
+are valid; endless empty chunks exhaust work limits. Signals, reader retirement,
+registered cleanup and staged publication use the existing ZIP scope. Producer
+failure, cancellation, limits or changed source metadata prevent publication.
+FIFO members materialize as regular archive files. FIFO move is unsupported;
+filesync/difference always consume eligible streams because zero stat size is
+not payload currency. Update/freshen still apply source timestamps. Listing does
+not consume producers. This is bounded buffering, not constant-memory streaming,
+and cannot preempt uncooperative trusted provider callbacks.
+
+`-k` / `--DOS-names` converts selected new filesystem names after source-name
+include/exclude and `-r`/`-R` selection, then after `-j` flattening. Each component
+loses leading dots and the native discarded punctuation, uppercases ASCII,
+retains at most eight stem and three extension characters, and stops after the
+second dot. Reserved device names are retained, without DOS device execution
+semantics. Empty components, control characters, backslashes and non-ASCII names
+are refused. Collisions fail before publication or move removal; no suffixes
+are invented. Source paths and recursion prefixes retain their original spelling.
+
+Native parse order is observable: include/exclude patterns read after `-k` are
+themselves DOS-converted (including stripping wildcards), then matched against
+case-sensitive original source names. Earlier filters retain their spelling.
+`-R` patterns receive DOS conversion under the final `-k` setting. The existing
+filter-before-flattening path policy remains; `-j` does not rewrite filter paths.
+Archive fallback preserves existing member spelling/Unicode encoding and does
+not DOS-convert it. Untouched members retain metadata and payload. New converted
+members use DOS creator/attributes and ASCII names; retained Unicode comments
+keep their existing encoding flag. `-k` ignores `-y`, reading its target instead.
+Invalid raw UTF-8 paths remain refused by existing argument validation.
+
+`-RE` / `--regex` is the native bracket-list glob compatibility option, enabled
+by default in the pinned Unix build. It selects through the existing bounded
+glob matcher with case-sensitive literals, bracket ranges, no-wild and directory
+controls. It does not introduce general regex syntax, dependencies or unbounded
+matching. Negation and attached values are invalid. Other build profiles require
+separate qualification; a build omitting the option is not applicable to that cell.

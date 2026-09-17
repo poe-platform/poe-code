@@ -24,8 +24,8 @@ it(`${route} keeps the document profile for inert XML using a Relationships root
       expect(part).toBeInstanceOf(XmlPartView); expect((part as XmlPartView).element.tag.localName).toBe("Relationships");
       const root = (part as XmlPartView).element, paragraph = form === "choice" ? root.children[0]!.children[0]!.children[0]! : root.children[0]!;
       root.set_attribute({namespaceURI: "", localName: "audit"}, null);
-      if (form === "choice") expect(() => paragraph.set_attribute({namespaceURI: "", localName: "audit"}, null)).toThrowError(expect.objectContaining({code: "unsupported-edit"}));
-      else paragraph.set_attribute({namespaceURI: "", localName: "audit"}, null);
+      paragraph.set_attribute({namespaceURI: "", localName: "audit"}, null);
+      expect((part as XmlPartView).blob).toEqual(parts.get("audit/data.xml"));
     } else expect(part).toBeUndefined();
     doc.paragraphs[0]!.text = "Changed coast"; await doc.save(sink);
   }

@@ -658,8 +658,10 @@ export function parsePlan(
     }
   }
 
+  const name = getOwnEntry(document, "name");
   return {
     extends: extendsName,
+    ...(typeof name === "string" ? { name } : {}),
     ...(stepOverrides !== undefined ? { stepOverrides } : {}),
     tasks,
     ...(setupCompleted !== undefined ? { setupCompleted } : {}),

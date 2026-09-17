@@ -17,6 +17,9 @@ import {
 import { interpolatePipelineVars } from "./vars/interpolate.js";
 import { resolvePipelineVars } from "./vars/resolve.js";
 import { runPipeline } from "./run/pipeline.js";
+import { setPipelineTerminalName } from "./run/terminal-name.js";
+
+vi.mock("./run/terminal-name.js", () => ({ setPipelineTerminalName: vi.fn().mockResolvedValue(undefined) }));
 import { createPipelineSimulation, failTurn, successTurn } from "./testing/simulation.js";
 import type {
   AgentRunUsage,
@@ -103,6 +106,29 @@ function pipelinePlanYaml(lines: string[]): string {
 afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
+  vi.mocked(setPipelineTerminalName).mockClear();
+});
+
+describe("runPipeline terminal name", () => {
+  it.each([
+    ["name: Fix login\n", "Fix login"],
+    ["", "login-plan"],
+    ['name: "  "\n', "login-plan"]
+  ])("uses plan metadata or filename (%s)", async (metadata, title) => {
+    const fs = createPipelineTestFs(createFs({
+      "/repo/login-plan.md": `---\nkind: pipeline\nversion: 1\n${metadata}tasks: []\n---\n`
+    }));
+    const result = await runPipeline({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      agent: "codex",
+      plan: "login-plan.md",
+      fs,
+      runAgent: vi.fn()
+    });
+    expect(result.stopReason).toBe("nothing_to_run");
+    expect(setPipelineTerminalName).toHaveBeenCalledExactlyOnceWith(title);
+  });
 });
 
 describe("@poe-code/pipeline public exports", () => {

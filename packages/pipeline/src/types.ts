@@ -52,6 +52,7 @@ export interface PipelineTask {
 }
 
 export interface PipelinePlan {
+  name?: string;
   finalization?: PipelineFinalizationStatus;
   setupCompleted?: boolean;
   extends?: string;

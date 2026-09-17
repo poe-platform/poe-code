@@ -193,7 +193,7 @@ test("review: quota refuses expansion before the eager memory allocation", async
   const fs = withFileSystemQuota(memory, { maxBytes: 8 });
   const result = await invoke(["-s9", "file"], fs);
   assert.equal(result.exitCode, 1);
-  assert.match(result.stderr.toString(), /Filesystem quota exceeded/);
+  assert.equal(result.stderr.toString(), "truncate: failed to truncate 'file' at 9 bytes: No space left on device\n");
   assert.deepEqual(await memory.readFile("/file"), Uint8Array.of(255, 0, 128));
 });
 

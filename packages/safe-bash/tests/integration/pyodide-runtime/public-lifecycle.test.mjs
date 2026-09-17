@@ -218,7 +218,7 @@ print('effects passed')
   });
 });
 
-test('built public Python quota refusal preserves memory/delayed composed storage and interpreter reuse', { timeout: 30000 }, async t => {
+test('built public Python quota admission preserves memory/delayed composed storage and interpreter reuse', { timeout: 30000 }, async t => {
   for (const delay of [0, 1]) await t.test(delay ? 'delayed backend' : 'memory backend', async context => {
     const storage = new MemoryFileSystem(), root = new MemoryFileSystem();
     await storage.writeFile('/kept', encode('original'));
@@ -229,16 +229,14 @@ test('built public Python quota refusal preserves memory/delayed composed storag
     const result = await shell.exec('python -c ' + quote(`
 import errno
 from pathlib import Path
-for path, mode, expected in (
- ('/quota/kept', 'rb', errno.ENOTSUP),
- ('/quota/kept', 'wb', errno.ENOTSUP),
- ('/quota/kept', 'ab', errno.ENOTSUP),
- ('/quota/new', 'xb', errno.ENOTSUP),
- ('/readonly/kept', 'wb', errno.EROFS),
-):
- try: open(path, mode)
- except OSError as error: assert error.errno == expected, repr(error)
- else: raise AssertionError('unsupported descriptor unexpectedly acquired')
+assert Path('/quota/kept').read_bytes() == b'original'
+with open('/quota/kept', 'ab', buffering=0) as stream:
+ try: stream.write(b'!')
+ except OSError as error: assert error.errno == errno.ENOSPC, repr(error)
+ else: raise AssertionError('quota growth unexpectedly admitted')
+try: open('/readonly/kept', 'wb')
+except OSError as error: assert error.errno == errno.EROFS, repr(error)
+else: raise AssertionError('readonly mutation unexpectedly admitted')
 Path('/recovered').write_text('successful')
 print('refusals preserved')
 `));
@@ -250,7 +248,7 @@ print('refusals preserved')
   });
 });
 
-test('required Python quota mount supports reads, bounded writes and recovery', { timeout: 30000, todo: 'Canonical quota wrapper refuses descriptor open with ENOTSUP; required workflow incomplete' }, async t => {
+test('required Python quota mount supports reads, bounded writes and recovery', { timeout: 30000 }, async t => {
   const root = new MemoryFileSystem(), storage = new MemoryFileSystem();
   await storage.writeFile('/input', encode('host input'));
   const fs = new MountFileSystem({ root, mounts: { '/quota': withFileSystemQuota(storage, { maxBytes: 32 }) } });
@@ -258,11 +256,12 @@ test('required Python quota mount supports reads, bounded writes and recovery', 
   t.after(() => shell.dispose());
   const result = await shell.exec('python -c ' + quote(`
 from pathlib import Path
+import errno
 assert Path('/quota/input').read_text() == 'host input'
 Path('/quota/output').write_bytes(b'bounded')
 try:
  with open('/quota/output', 'ab', buffering=0) as stream: stream.write(b'x' * 64)
-except OSError: pass
+except OSError as error: assert error.errno == errno.ENOSPC, repr(error)
 else: raise AssertionError('quota mutation succeeded')
 assert Path('/quota/output').read_bytes() == b'bounded'
 Path('/quota/output').write_bytes(b'recovered')

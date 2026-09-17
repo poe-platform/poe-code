@@ -1,9 +1,10 @@
-import type { FileResizeHandle, FileStat, FileSystem, FsOptions, OpenReadFileOptions, OpenResizeFileOptions } from "../../contracts/filesystem.js";
+import type { FileDescriptor, FileResizeHandle, FileStat, FileSystem, FsOptions, OpenReadFileOptions, OpenResizeFileOptions } from "../../contracts/filesystem.js";
 import { FsError } from "../../contracts/errors.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { openRetainedReadFile, openRetainedResizeFile, quotaCapabilities, retainedReadCapabilities, retainedResizeCapabilities } from "../capabilities.js";
 import { admitDirectoryEntries } from "../directory-admission.js";
+import { forwardFileDescriptor, openFileDescriptor } from "../descriptor.js";
 
 export interface FileSystemQuotaOptions {
   readonly maxBytes: number;
@@ -12,6 +13,7 @@ export interface FileSystemQuotaOptions {
 }
 
 export class FileSystemQuotaError extends Error {
+  readonly code = "ENOSPC";
   constructor(readonly maxBytes: number) {
     super(`Filesystem quota exceeded (${maxBytes} bytes)`);
     this.name = "FileSystemQuotaError";
@@ -171,9 +173,80 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
     if (projected > options.maxBytes) throw new FileSystemQuotaError(options.maxBytes);
   };
   const mutations: Partial<FileSystem> = {
-    async open(path, openOptions) {
-      openOptions.signal?.throwIfAborted();
-      throw new FsError("ENOTSUP", { syscall: "open", path });
+    open(path, openOptions) {
+      return openFileDescriptor<FileDescriptor>(path, openOptions, {
+        positionedRead: true, positionedWrite: true, truncate: true, synchronization: "storage",
+      }, admitted => mutate(async () => {
+        admitted.signal?.throwIfAborted();
+        const open = fs.open;
+        const capabilities = admitted.creation === "exclusive" ? fs.capabilities : await fs.capabilitiesFor?.(path, admitted) ?? fs.capabilities;
+        admitted.signal?.throwIfAborted();
+        if (!open || capabilities.open === false) throw new FsError("ENOTSUP", { syscall: "open", path });
+        admitted.signal?.throwIfAborted();
+        const descriptor = await open.call(fs, path, admitted);
+        try {
+          admitted.signal?.throwIfAborted();
+          const pinned = admitted.access === "read" ? undefined : { ...await descriptor.stat(admitted) };
+          admitted.signal?.throwIfAborted();
+          if (pinned && (pinned.type !== "file" || !completeIdentity(pinned))) {
+            throw new FsError("ENOTSUP", { syscall: "open", path, message: "quota requires complete retained file identity" });
+          }
+          if (pinned && (!Number.isSafeInteger(pinned.size) || pinned.size < 0)) {
+            throw new FsError("EIO", { syscall: "fstat", path, message: "invalid retained file size" });
+          }
+          const current = async (operationOptions: FsOptions): Promise<FileStat> => {
+            const stat = { ...await descriptor.stat(operationOptions) };
+            operationOptions.signal?.throwIfAborted();
+            if (!pinned || stat.type !== "file" || !completeIdentity(stat)
+              || stat.identityScope !== pinned.identityScope || stat.dev !== pinned.dev || stat.ino !== pinned.ino
+              || !Number.isSafeInteger(stat.size) || stat.size < 0) {
+              throw new FsError("EIO", { syscall: "fstat", path, message: "invalid retained quota identity or size" });
+            }
+            return stat;
+          };
+          const admitSize = async (stat: FileStat, nextBytes: number, operationOptions: FsOptions): Promise<void> => {
+            if (!Number.isSafeInteger(nextBytes) || nextBytes < 0) throw new FsError("EFBIG", { syscall: "write", path });
+            const projected = await usedBytes(fs, scanLimits, operationOptions, { path, stat, delta: nextBytes - stat.size, retained: true });
+            operationOptions.signal?.throwIfAborted();
+            if (projected > options.maxBytes) throw new FileSystemQuotaError(options.maxBytes);
+          };
+          const forwarded = forwardFileDescriptor(descriptor, (syscall, operationOptions, action) => syscall === "close" ? action() : mutate(async () => {
+            operationOptions.signal?.throwIfAborted();
+            return action();
+          }));
+          return {
+            ...forwarded,
+            write: (retained, buffer, position, operationOptions) => mutate(async () => {
+              operationOptions.signal?.throwIfAborted();
+              if (buffer.byteLength === 0) return retained.write(buffer, position, operationOptions);
+              const stat = await current(operationOptions);
+              let offset = position;
+              if (offset === null) {
+                if (admitted.append) offset = stat.size;
+                else {
+                  if (forwarded.capabilities?.position !== true || !forwarded.getPosition) {
+                    throw new FsError("ENOTSUP", { syscall: "getPosition", path });
+                  }
+                  offset = await retained.getPosition!(operationOptions);
+                  operationOptions.signal?.throwIfAborted();
+                }
+              }
+              if (!Number.isSafeInteger(offset) || offset < 0) throw new FsError("EIO", { syscall: "getPosition", path });
+              await admitSize(stat, Math.max(stat.size, offset + buffer.byteLength), operationOptions);
+              return retained.write(buffer, position, operationOptions);
+            }),
+            truncate: (retained, length, operationOptions) => mutate(async () => {
+              operationOptions.signal?.throwIfAborted();
+              await admitSize(await current(operationOptions), length, operationOptions);
+              await retained.truncate(length, operationOptions);
+            }),
+          };
+        } catch (error) {
+          await finishCleanup(() => descriptor.close(), true);
+          admitted.signal?.throwIfAborted();
+          throw error;
+        }
+      }));
     },
     openResizeFile(path, resizeOptions = {}) {
       return mutate(async () => {
@@ -298,11 +371,11 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
   // capabilities and methods without violating invariants on own properties.
   return new Proxy(Object.create(fs) as FileSystem, {
     get(_target, property) {
-      if (property === "removeEntryConditional" || property === "unlink" || property === "writeFileConditional" || property === "removeFileConditional" || property === "resizeFile" || property === "canonicalizeMissingTarget" || property === "createStagedFile" || property === "publishStagedFile" || property === "removeStagedFile" || property === "prepareDirectory") return undefined;
-      if (property === "capabilities") return quotaCapabilities(retainedResizeCapabilities(fs, retainedReadCapabilities(fs)));
+      if (property === "removeEntryConditional" || property === "writeFileConditional" || property === "removeFileConditional" || property === "resizeFile" || property === "canonicalizeMissingTarget" || property === "createStagedFile" || property === "publishStagedFile" || property === "removeStagedFile" || property === "prepareDirectory") return undefined;
+      if (property === "capabilities") return quotaCapabilities({ ...retainedResizeCapabilities(fs, retainedReadCapabilities(fs)), ...(typeof fs.open === "function" ? {} : { open: false }) });
       if (property === "capabilitiesFor") return async (path: string, fsOptions?: FsOptions) => {
         const capabilities = await fs.capabilitiesFor?.(path, fsOptions) ?? fs.capabilities;
-        return quotaCapabilities(retainedResizeCapabilities(fs, retainedReadCapabilities(fs, capabilities)));
+        return quotaCapabilities({ ...retainedResizeCapabilities(fs, retainedReadCapabilities(fs, capabilities)), ...(typeof fs.open === "function" ? {} : { open: false }) });
       };
       if (property === "openReadFile") return (path: string, fsOptions: OpenReadFileOptions = {}) => openRetainedReadFile(fs, path, fsOptions);
       const replacement = Reflect.get(mutations, property) as unknown;

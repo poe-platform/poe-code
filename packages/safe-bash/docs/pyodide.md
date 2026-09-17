@@ -8,6 +8,14 @@ in `9557d2469` passes real standalone and retained CLI tarball tests. Check the
 publication evidence before installing a fixed version. These are trusted-Node
 passes, not Cloudflare or untrusted-code qualification.
 
+The #748 implementation adds guarded retained descriptors to the canonical quota
+wrapper. Fresh Node checks cover bounded reads/writes, ENOSPC recovery and document
+creation/reopening through quota and delayed-quota views. `NamedTemporaryFile`
+cleanup uses the backend's strong unlink. `TemporaryDirectory` still requires
+the separate retained-directory work in #749. Quota means logical namespace
+accounting, not an interpreter-memory or physical retained-storage ceiling; see
+the [quota contract](../../safe-fs/src/contracts/filesystem-quota.md).
+
 Status: **optional implementation available; complete qualification remains open**.
 Fresh [main-module and stream user QA](../../../docs/plans/pyodide-main-loader-qa.md)
 records 141 passing built-public integration entries and three required failing
@@ -531,12 +539,13 @@ supply R evidence. Their skips/TODOs remain gaps, not passes.
 | Memory and delayed memory | R: ordinary scripts and document fixtures; delay demonstrates asynchronous canonical service, not a deployed remote provider. |
 | Rooted real storage | R: public filesystem/launcher checks; only the explicit root is exposed through the bridge. Host confinement against hostile JS recovery remains unproven. |
 | Readonly and mounts | R/U: selected-path authority/refusals remain; mounts do not turn unsupported backends into descriptor stores. |
-| Quota, overlay, S3, WebDAV | S/U: general retained `open` may refuse ENOTSUP. No bypass to underlying storage. Quota-backed document success remains an open priority requirement; remote deployment/document behavior is unqualified. |
+| Quota | R/U: guarded retained reads, writes, sparse growth, append and resize; Node quota/delayed-quota document creation/reopening and ENOSPC recovery. Backing identity, cursor and policy requirements still apply; this is logical namespace accounting, not retained-memory isolation. |
+| Overlay, S3, WebDAV | S/U: general retained `open` may refuse ENOTSUP. No bypass to underlying storage; remote deployment/document behavior remains unqualified. |
 | Atomic staging/conditional mutations | S: no ordinary Python syscall equivalent or general transaction guarantee. Python ZIP saves do not inherit the shell archive command's staged publication contract. |
 
 The detailed mapping and capability inventory below retain design requirements
 and earlier findings. They do not override this current evidence matrix.
-Full compliance remains **open**: quota-backed priority document workflows,
+Full compliance remains **open**: retained-directory cleanup,
 backend-specific descriptor/metadata fidelity, interactive TTY behavior, process/
 thread compatibility, complete guest host/network confinement and hard resource
 limits are not established. Honest ENOTSUP preserves optional canonical contracts

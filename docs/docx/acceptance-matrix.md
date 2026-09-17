@@ -1,5 +1,12 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 native repeat clone qualification](native-media-clone-20260917.md)
+records 888 exact native-role/raster cases inside 1,028 focused passes, zero skips,
+and 168 built SDK/Shell workflows. Retained IDs/names/classic comments, modern
+refusal, shared media and occurrence-local references pass. The full screenshot
+timeout remains incomplete; a labeled 16-workflow visual sample passed. Remaining
+raster variants, consumers and complete F01–F07 acceptance stay open.
+
 The [2026-09-17 native comment qualification](native-media-comments-20260917.md)
 records 288 exact comment/metadata cases in the joint 915-pass run, zero skips,
 and 24 built SDK/Shell workflows. Native MIME parameters retain role authority;

@@ -8,6 +8,8 @@ import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { admitControlPng } from "./control-picture.js";
 import { containsRevision } from "./revision-markup.js";
 import { commentExtensionParts } from "./comment-extension-parts.js";
+import { parseMediaType } from "./media-type.js";
+import { characterizeRasterHeader } from "./raster-header.js";
 
 const word = ["http://schemas.openxmlformats.org/wordprocessingml/2006/main", "http://purl.oclc.org/ooxml/wordprocessingml/main"];
 const relationships = ["http://schemas.openxmlformats.org/officeDocument/2006/relationships", "http://purl.oclc.org/ooxml/officeDocument/relationships"];
@@ -43,7 +45,7 @@ export class ControlClonePlanner {
     this.#context = archiveSettings(context); this.#package = new DocumentPackage(archive, this.#context.limits, this.#context.budget);
     const storyParts = new Map(Object.entries({ "document.main": "document", "template.main": "document", header: "hdr", footer: "ftr", footnotes: "footnotes", endnotes: "endnotes", comments: "comments" }).map(([kind, root]) => [`application/vnd.openxmlformats-officedocument.wordprocessingml.${kind}+xml`, root]));
     for (const part of this.#package.parts) {
-      const root = storyParts.get(part.content_type.toLowerCase()); if (root === undefined) continue;
+      const root = storyParts.get(parseMediaType(part.content_type)); if (root === undefined) continue;
       const xml = new DocumentXmlEditor(part.bytes, {}, undefined, this.#context.budget);
       if (!word.includes(xml.root.namespace) || xml.root.localName !== root) throw new UnsupportedEditError("A declared story part requires its matching WordprocessingML root.");
       this.#source.set(part.partname, xml);
@@ -99,7 +101,7 @@ export class ControlClonePlanner {
     if (stack.length) throw new UnsupportedEditError("Bookmarks cross the template boundary.");
     const markers = all.filter(node => node.namespace === item.namespace && ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName));
     if (markers.length) {
-      if (this.#package.parts.some(part => commentExtensionParts.some(role => part.content_type.toLowerCase() === role.contentType.toLowerCase()))) throw new UnsupportedEditError("Modern comments cannot be cloned.");
+      if (this.#package.parts.some(part => commentExtensionParts.some(role => parseMediaType(part.content_type) === role.contentType.toLowerCase()))) throw new UnsupportedEditError("Modern comments cannot be cloned.");
       const edges = this.#package.relationships(owner).filter(edge => relationships.some(namespace => edge.reltype === `${namespace}/comments`));
       if (edges.length !== 1 || edges[0]!.is_external) throw new UnsupportedEditError("A classic comment part is required.");
       const comments = this.#source.get(edges[0]!.target_part.partname)!;
@@ -130,8 +132,14 @@ export class ControlClonePlanner {
       const embed = blip.attributes.filter(attr => relationships.includes(attr.namespace) && attr.localName === "embed");
       if (embed.length !== 1 || blip.attributes.some(attr => relationships.includes(attr.namespace) && attr.localName === "link")) throw new UnsupportedEditError("Only internal picture embeds are admitted.");
       const edge = this.#package.relationships(owner).find(edge => edge.rId === embed[0]!.value);
-      if (!edge || edge.is_external || !edge.reltype.endsWith("/image") || edge.target_part.content_type.toLowerCase() !== "image/png") throw new UnsupportedEditError("Only admitted internal PNG pictures are cloned.");
-      if (!this.#admittedMedia.has(edge.target_part.partname)) { this.#context.budget.charge("embeddedMediaBytes", edge.target_part.bytes.length); await admitControlPng(edge.target_part.bytes, this.#context); this.#admittedMedia.add(edge.target_part.partname); }
+      if (!edge || edge.is_external || !edge.reltype.endsWith("/image")) throw new UnsupportedEditError("Only admitted internal raster pictures are cloned.");
+      if (!this.#admittedMedia.has(edge.target_part.partname)) {
+        this.#context.budget.charge("embeddedMediaBytes", edge.target_part.bytes.length);
+        const header = characterizeRasterHeader(edge.target_part.bytes, this.#context);
+        if (parseMediaType(edge.target_part.content_type) !== header.mime) throw new UnsupportedEditError("The cloned raster declaration does not match its bytes.");
+        if (header.mime === "image/png") await admitControlPng(edge.target_part.bytes, this.#context);
+        this.#admittedMedia.add(edge.target_part.partname);
+      }
       for (const node of nodes(drawing, this.#context.budget)) if (!(word.includes(node.namespace) && node.localName === "drawing" || drawings.includes(node.namespace) && ["inline", "extent", "docPr"].includes(node.localName) || pictures.includes(node.namespace) && ["pic", "nvPicPr", "cNvPr", "cNvPicPr", "blipFill", "spPr"].includes(node.localName) || drawingMain.includes(node.namespace) && ["graphic", "graphicData", "blip", "stretch", "fillRect", "xfrm", "off", "ext", "prstGeom", "avLst"].includes(node.localName))) throw new UnsupportedEditError("The picture contains unverified drawing markup.");
       const profile: Readonly<Record<string, { children: readonly string[]; attributes: readonly string[] }>> = {
         drawing: { children: ["inline"], attributes: [] }, inline: { children: ["extent", "docPr", "graphic"], attributes: ["distT", "distB", "distL", "distR"] }, extent: { children: [], attributes: ["cx", "cy"] }, docPr: { children: [], attributes: ["id", "name", "descr", "hidden"] }, graphic: { children: ["graphicData"], attributes: [] }, graphicData: { children: ["pic"], attributes: ["uri"] }, pic: { children: ["nvPicPr", "blipFill", "spPr"], attributes: [] }, nvPicPr: { children: ["cNvPr", "cNvPicPr"], attributes: [] }, cNvPr: { children: [], attributes: ["id", "name", "descr", "hidden"] }, cNvPicPr: { children: [], attributes: [] }, blipFill: { children: ["blip", "stretch"], attributes: [] }, blip: { children: [], attributes: [] }, stretch: { children: ["fillRect"], attributes: [] }, fillRect: { children: [], attributes: [] }, spPr: { children: ["xfrm", "prstGeom"], attributes: [] }, xfrm: { children: ["off", "ext"], attributes: [] }, off: { children: [], attributes: ["x", "y"] }, ext: { children: [], attributes: ["cx", "cy"] }, prstGeom: { children: ["avLst"], attributes: ["prst"] }, avLst: { children: [], attributes: [] },
@@ -162,7 +170,7 @@ export class ControlClonePlanner {
     if (ends.length !== starts.length || ends.some(end => !starts.some(start => attribute(start, "id") === attribute(end, "id")))) throw new UnsupportedEditError("Bookmarks cross the template boundary.");
     const commentMarkers = all.filter(node => node.namespace === item.namespace && ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName));
     if (commentMarkers.length) {
-      if (this.#package.parts.some(part => commentExtensionParts.some(role => part.content_type.toLowerCase() === role.contentType.toLowerCase()))) throw new UnsupportedEditError("Modern comments cannot be cloned.");
+      if (this.#package.parts.some(part => commentExtensionParts.some(role => parseMediaType(part.content_type) === role.contentType.toLowerCase()))) throw new UnsupportedEditError("Modern comments cannot be cloned.");
       const edges = this.#package.relationships(owner).filter(edge => relationships.some(namespace => edge.reltype === `${namespace}/comments`)); if (edges.length !== 1 || edges[0]!.is_external) throw new UnsupportedEditError("A classic comment part is required.");
       const part = edges[0]!.target_part.partname, comments = this.#source.get(part)!;
       for (const id of new Set(commentMarkers.map(node => number(attribute(node, "id"))))) {

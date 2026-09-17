@@ -20,6 +20,9 @@ export class UnsupportedEditError extends Error {
   readonly code = "unsupported-edit";
 }
 
+/** Internal list-editor authority; not part of the public XML-view surface. */
+export const replaceListPropertyXml = Symbol("replace-list-property-xml");
+
 function unsupported(): never {
   throw new UnsupportedEditError("The XML edit cannot establish faithful preservation.");
 }
@@ -255,6 +258,15 @@ export class DocumentXmlEditor {
     };
     check(node);
     this.#stageReplacement(node,xml);
+  }
+
+  /** The list domain validates active references and retains every other token. */
+  [replaceListPropertyXml](node: XmlElement, xml: string): void {
+    if (typeof xml !== "string") throw new InputTypeError("Expected XML markup.");
+    if (!this.#elements.has(node) || this.#patches.has(node) || !this.#dialect ||
+      node.namespace !== documentDialects[this.#dialect].w || node.localName !== "pPr") unsupported();
+    this.assertShapeEditAllowed(node);
+    this.#stageReplacement(node, xml);
   }
 
   #stageReplacement(node:XmlElement,xml:string):void {

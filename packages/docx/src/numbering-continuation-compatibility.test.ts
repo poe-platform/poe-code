@@ -15,7 +15,16 @@ type Node = ReturnType<typeof xmlStructure>;
 const elements = (node: Node): Node[] => node.children.filter((child): child is Node => typeof child !== "string");
 const cases = ["direct", "choice", "fallback", "process", "equal-inactive", "conflicting-inactive", "abstract", "level", "level-properties", "instance-reference", "override", "override-properties", "ignorable-attributes", "paragraph-properties", "paragraph-numbering", "style", "style-properties", "ignored-invalid-reference", "custom-xml", "custom-xml-ignored"] as const;
 
-for (const strict of [false, true]) for (const route of ["sdk", "cli", "shell"] as const) for (const action of ["continue", "restart"] as const) for (const carrier of cases) it(`${route} ${action} uses active numbering in ${carrier}; strict=${strict}`, async () => {
+async function withKind(input: Uint8Array<ArrayBuffer>, kind: "docx" | "dotx"): Promise<Uint8Array<ArrayBuffer>> {
+  if (kind === "docx") return input;
+  const parts = readPackage(input), memory = Volume.fromJSON({ "/zip": "" });
+  parts.set("[Content_Types].xml", new TextEncoder().encode(new TextDecoder().decode(parts.get("[Content_Types].xml")).replace("wordprocessingml.document.main+xml", "wordprocessingml.template.main+xml")));
+  await writeArchive({ comment: new Uint8Array(), members: [...parts].map(([name, bytes]) => ({ name, bytes, directory: false, modified: new Date("2025-01-02T03:04:06Z") })) },
+    { async write(bytes) { memory.appendFileSync("/zip", bytes); } }, { order: "input", compression: "store" }, textContext);
+  return new Uint8Array(memory.readFileSync("/zip") as Buffer);
+}
+
+for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const) for (const route of ["sdk", "cli", "shell"] as const) for (const action of ["continue", "restart"] as const) for (const carrier of cases) it(`${route} ${action} uses active numbering in ${carrier}; strict=${strict}${kind === "dotx" ? '; kind=dotx' : ''}`, async () => {
   let definitions = abstract(0), instance = num(1);
   if (carrier === "choice" || carrier === "fallback" || carrier === "equal-inactive") instance = alternate(instance, num(carrier === "equal-inactive" ? 1 : 9), carrier === "fallback");
   if (carrier === "process") instance = `<f:pass>${instance}</f:pass>`;
@@ -53,11 +62,12 @@ for (const strict of [false, true]) for (const route of ["sdk", "cli", "shell"] 
       { async write(bytes) { memory.appendFileSync("/zip", bytes); } }, { order: "input", compression: "store" }, textContext);
     input = new Uint8Array(memory.readFileSync("/zip") as Buffer);
   }
+  input = await withKind(input, kind);
   const before = readPackage(input), volume = Volume.fromJSON({ "/input": Buffer.from(input), "/out": "", "/err": "" });
   const stdout = { async write(bytes: Uint8Array) { volume.appendFileSync("/out", bytes); } };
-  // Selected paragraph properties may be read for continuation. Replacing that
-  // compatibility carrier requires a separately qualified editing operation.
-  const expectedRejection = carrier === "custom-xml" ? "invalid-xml" : ["paragraph-properties", "paragraph-numbering"].includes(carrier) && action === "restart" ? "unsupported-edit" : undefined;
+  // Malformed reserved control markup rejects; understood selected list
+  // references retain their inactive carriers while accepting scoped edits.
+  const expectedRejection = carrier === "custom-xml" ? "invalid-xml" : undefined;
   if (route === "sdk") {
     const request = action === "continue" ? { operation: "lists.add" as const, options: { paragraph: 1, kind: "decimal" as const, text: "Continued", output: "-" } } : { operation: "lists.set" as const, options: { paragraph: 1, restart: true, start: 5, output: "-" } };
     const pending = editDocumentLists(input, request, { ...textContext, encoding: { order: "input", compression: "store" }, stdout });
@@ -85,14 +95,14 @@ for (const strict of [false, true]) for (const route of ["sdk", "cli", "shell"] 
   assertPackageLinks(after);
   for (const [name, bytes] of before) if (name !== "word/document.xml" && (action === "continue" || name !== "word/numbering.xml")) expect(after.get(name), name).toEqual(bytes);
   const namespace = strict ? "http://purl.oclc.org/ooxml/wordprocessingml/main" : w;
+  const active = (node: Node): Node[] => elements(node).flatMap(child => child.name === `{${mc}}AlternateContent`
+    ? active(elements(child).find(branch => branch.name === `{${mc}}Choice` && branch.attributes["{}Requires"] === "w") ?? elements(child).find(branch => branch.name === `{${mc}}Fallback`)!)
+    : child.name === "{urn:original:future}pass" ? active(child) : [child]);
   if (action === "restart") {
     const oldRoot = elements(xmlStructure(before.get("word/numbering.xml")!)).find(node => node.name === `{${namespace}}numbering`)!;
     const newRoot = elements(xmlStructure(after.get("word/numbering.xml")!)).find(node => node.name === `{${namespace}}numbering`)!;
     expect(newRoot.children.slice(0, oldRoot.children.length)).toEqual(oldRoot.children);
     expect(elements(newRoot).at(-1)!.attributes[`{${namespace}}numId`]).toBe("2");
-    const active = (node: Node): Node[] => elements(node).flatMap(child => child.name === `{${mc}}AlternateContent`
-      ? active(elements(child).find(branch => branch.name === `{${mc}}Choice` && branch.attributes["{}Requires"] === "w") ?? elements(child).find(branch => branch.name === `{${mc}}Fallback`)!)
-      : child.name === "{urn:original:future}pass" ? active(child) : [child]);
     const override = active(elements(newRoot).at(-1)!).find(child => child.name === `{${namespace}}lvlOverride`)!;
     expect(active(override).find(child => child.name === `{${namespace}}startOverride`)!.attributes[`{${namespace}}val`]).toBe("5");
   }
@@ -100,20 +110,20 @@ for (const strict of [false, true]) for (const route of ["sdk", "cli", "shell"] 
   const body = elements(root).find(node => node.name === `{${namespace}}body`)!;
   const paragraphs = elements(body).filter(node => node.name === `{${namespace}}p`);
   const directId = (node: Node) => {
-    const props = elements(node).find(child => child.name === `{${namespace}}pPr`)!;
-    const numbering = elements(props).find(child => child.name === `{${namespace}}numPr`)!;
-    return elements(numbering).find(child => child.name === `{${namespace}}numId`)!.attributes[`{${namespace}}val`];
+    const props = active(node).find(child => child.name === `{${namespace}}pPr`)!;
+    const numbering = active(props).find(child => child.name === `{${namespace}}numPr`)!;
+    return active(numbering).find(child => child.name === `{${namespace}}numId`)!.attributes[`{${namespace}}val`];
   };
   expect(directId(paragraphs[action === "continue" ? 1 : 0]!)).toBe(action === "continue" ? "1" : "2");
   expect(directId(paragraphs.at(-1)!)).toBe("1");
   expect((await Document(output, textContext)).paragraphs.map(paragraph => paragraph.text)).toEqual(action === "continue" ? ["Selected", "Continued", "Retained"] : ["Selected", "Retained"]);
 });
 
-for (const strict of [false, true]) for (const route of ["sdk", "shell"] as const) for (const inert of ["invalid", "inactive-level"] as const) it(`${route} mixes an unused level around ${inert} references; strict=${strict}`, async () => {
+for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const) for (const route of ["sdk", "shell"] as const) for (const inert of ["invalid", "inactive-level"] as const) it(`${route} mixes an unused level around ${inert} references; strict=${strict}${kind === "dotx" ? '; kind=dotx' : ''}`, async () => {
   const levels = Array.from({ length: 9 }, (_, index) => `<w:lvl w:ilvl="${index}"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%${index + 1}."/></w:lvl>`).join("");
   const opaque = `<f:opaque>${inert === "invalid" ? '<w:numId w:val="invalid"/>' : '<w:p><w:pPr><w:numPr><w:ilvl w:val="1"/><w:numId w:val="1"/></w:numPr></w:pPr></w:p>'}</f:opaque>`;
   const source = `<w:numbering xmlns:w="${w}" xmlns:mc="${mc}" xmlns:f="urn:original:future" mc:Ignorable="f">${abstract(0, '<w:multiLevelType w:val="multilevel"/>' + levels)}${num(1)}${opaque}</w:numbering>`;
-  const input = await textFixture('<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr></w:pPr><w:r><w:t>Selected</w:t></w:r></w:p>', { numbering: { kind: "numbering", xml: source } }, strict);
+  const input = await withKind(await textFixture('<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr></w:pPr><w:r><w:t>Selected</w:t></w:r></w:p>', { numbering: { kind: "numbering", xml: source } }, strict), kind);
   const memory = Volume.fromJSON({ "/out": "" });
   if (route === "sdk") await editDocumentLists(input, { operation: "lists.add", options: { paragraph: 1, kind: "bullet", level: 1, text: "Nested", output: "-" } }, { ...textContext, encoding: { order: "input", compression: "store" }, stdout: { async write(bytes) { memory.appendFileSync("/out", bytes); } } });
   else {

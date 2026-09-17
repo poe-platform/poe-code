@@ -181,3 +181,15 @@ original reproduction has 192 failures and 64 controls; all cases now pass in
 the 895-case focused numbering/XML run, zero skips. BOMs, declarations, trivia,
 Unicode, opaque content and unchanged member bytes survive. This closes those
 named serializer variants only; complete F01–F07 acceptance remains open.
+
+## Current active list-carrier evidence
+
+The [list-carrier record](list-carrier-editing-20260917.md) adds 576 named cases
+for understood selected properties/references, inert content, active unsupported
+content and tracked-property guards across both dialects and macro-free kinds.
+It also executes the older full carrier matrix in DOCX and DOTX, preserving all
+248 original DOCX names and adding 248 DOTX counterparts. The maintained focused
+run passes 1,777 cases in ten files, zero skips. Former selected-paragraph restart
+refusals are superseded by exact positive assertions; malformed reserved markup
+and affected active unsupported/review content still reject. Full F01–F07 and
+the other recorded cross-family dependencies remain open.

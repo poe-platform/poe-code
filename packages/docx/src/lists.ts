@@ -16,7 +16,7 @@ import { relativePartTarget } from "./part-uri.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { runElementOpen } from "./run-properties.js";
 import { resolveDocxSelection } from "./simple-selection.js";
-import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { DocumentXmlEditor, UnsupportedEditError, replaceListPropertyXml } from "./xml-write.js";
 import { findRelationshipPart } from "./relationship-part.js";
 
 export type ListEditOperation = "lists.add" | "lists.set";
@@ -64,7 +64,7 @@ export async function editDocumentLists(input: Uint8Array, request: ListEditRequ
     let node = xml.root, parent = node;
     const ancestors = [node];
     for (const position of before.value.path) { parent = node; node = node.children[position]!; ancestors.push(node); }
-    if (ancestors.some(n => n.namespace === w && (["ins", "del", "moveFrom", "moveTo"].includes(n.localName) || child(child(n, "pPr"), "pPrChange"))))
+    if (ancestors.some(n => n.namespace === w && (["ins", "del", "moveFrom", "moveTo"].includes(n.localName) || graph.child(graph.child(n, "pPr"), "pPrChange"))))
       throw new UnsupportedEditError("Tracked list paragraphs require revision operations.");
     if (node.namespace !== w || !["p", "body", "tc", "hdr", "ftr", "footnote", "endnote", "comment", "txbxContent"].includes(node.localName)) throw new UnsupportedEditError("Expected a supported list paragraph or block container.");
     let previous = node.localName === "p" ? node : node.children.filter(n => n.namespace === w && n.localName === "p").at(-1);
@@ -83,8 +83,8 @@ export async function editDocumentLists(input: Uint8Array, request: ListEditRequ
       }
       if (id === existing.id && level === existing.level) continue;
       const props = graph.child(node, "pPr");
-      const markup = listProperties(xml, props, id, level, w);
-      if (props) xml.replaceElement(props, markup);
+      const markup = listProperties(xml, props, id, level, w, graph);
+      if (props) xml[replaceListPropertyXml](props, markup);
       else xml.insertChildren(node, markup, node.children[0]);
       updates.push({ before, path: before.value.path, kind: "format" });
     } else {
@@ -144,22 +144,39 @@ export async function editDocumentLists(input: Uint8Array, request: ListEditRequ
   return { changed: changes.length > 0, changes, dryRun: options.dryRun ?? false, output: result.published.length ? { path: result.published[0]!.path, bytes: result.published[0]!.bytes, sha256: result.archiveSha256! } : null };
 }
 
-function listProperties(xml: DocumentXmlEditor | undefined, props: XmlElement | undefined, id: number, level: number, w: string): string {
-  const old = child(props, "numPr");
-  if (old?.children.some(c => c.namespace !== w || !["ilvl", "numId"].includes(c.localName))) throw new UnsupportedEditError("Tracked or extended list references cannot be edited.");
-  const ilvl = `<nl:ilvl xmlns:nl="${w}" nl:val="${level}"/>`, numId = `<nl:numId xmlns:nl="${w}" nl:val="${id}"/>`;
+function listProperties(xml: DocumentXmlEditor | undefined, props: XmlElement | undefined, id: number, level: number, w: string, graph?: NumberingGraph): string {
+  const children = (node: XmlElement | undefined) => graph ? graph.children(node) : node?.children ?? [];
+  const find = (node: XmlElement | undefined, name: string) => graph ? graph.child(node, name) : child(node, name);
+  const old = find(props, "numPr");
+  if (children(old).some(c => c.namespace !== w || !["ilvl", "numId"].includes(c.localName))) throw new UnsupportedEditError("Tracked or extended list references cannot be edited.");
+  const priorLevel = find(old, "ilvl"), priorId = find(old, "numId");
+  const scalar = (node: XmlElement | undefined, name: string, value: number) => node && xml
+    ? runElementOpen({ ...node, attributes: node.attributes.map(attribute => attribute.namespace === w && attribute.localName === "val" ? { ...attribute, value: String(value) } : attribute) }) + xml.sourceXml(node, new Map(), true) + `</${node.name}>`
+    : `<nl:${name} xmlns:nl="${w}" nl:val="${value}"/>`;
+  const ilvl = scalar(priorLevel, "ilvl", level), numId = scalar(priorId, "numId", id);
+  const rewrite = (node: XmlElement, patches: ReadonlyMap<XmlElement, string>, contentOnly = false): string => {
+    const direct = new Map<XmlElement, string>();
+    for (const nodeChild of node.children) {
+      const changed = patches.get(nodeChild);
+      if (changed !== undefined) direct.set(nodeChild, changed);
+      else if (nodeChild.children.length) {
+        const original = xml!.sourceXml(nodeChild), candidate = rewrite(nodeChild, patches);
+        if (candidate !== original) direct.set(nodeChild, candidate);
+      }
+    }
+    return xml!.sourceXml(node, direct, contentOnly);
+  };
   let numbering = `<nl:numPr xmlns:nl="${w}">${ilvl}${numId}</nl:numPr>`;
   if (old && xml) {
-    const priorLevel = child(old, "ilvl"), priorId = child(old, "numId");
     const patches = new Map<XmlElement, string>();
     if (priorLevel) patches.set(priorLevel, ilvl);
     if (priorId) patches.set(priorId, (priorLevel ? "" : ilvl) + numId);
-    numbering = runElementOpen(old) + xml.sourceXml(old, patches, true) + (priorId ? "" : (priorLevel ? "" : ilvl) + numId) + `</${old.name}>`;
+    numbering = runElementOpen(old) + rewrite(old, patches, true) + (priorId ? "" : (priorLevel ? "" : ilvl) + numId) + `</${old.name}>`;
   }
   if (!props || !xml) return `<nl:pPr xmlns:nl="${w}">${numbering}</nl:pPr>`;
-  if (old) return xml.sourceXml(props, new Map([[old, numbering]]));
+  if (old) return rewrite(props, new Map([[old, numbering]]));
   const preceding = ["pStyle", "keepNext", "keepLines", "pageBreakBefore", "framePr", "widowControl"];
-  const next = props.children.find(c => c.namespace === w && !preceding.includes(c.localName));
-  const content = xml.sourceXml(props, next ? new Map([[next, numbering + xml.sourceXml(next)]]) : new Map(), true) + (next ? "" : numbering);
+  const next = children(props).find(c => c.namespace === w && !preceding.includes(c.localName));
+  const content = rewrite(props, next ? new Map([[next, numbering + xml.sourceXml(next)]]) : new Map(), true) + (next ? "" : numbering);
   return runElementOpen(props) + content + `</${props.name}>`;
 }

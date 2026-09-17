@@ -84,7 +84,7 @@ export class NumberingGraph {
     };
     collect(new MarkupCompatibility(root, undefined, this.budget).content);
   }
-  private children(node: XmlElement | undefined): readonly XmlElement[] {
+  children(node: XmlElement | undefined): readonly XmlElement[] {
     this.budget.charge("work", 1);
     return node ? this.#children.get(node) ?? [] : [];
   }
@@ -136,6 +136,15 @@ export class NumberingGraph {
     for (;;) {
       this.budget.charge("work", 1);
       const numbering = this.child(props, "numPr");
+      if (numbering) {
+        this.attributes(numbering, []);
+        for (const reference of this.children(numbering)) {
+          if (reference.namespace !== node.namespace || !["numId", "ilvl"].includes(reference.localName)) throw new UnsupportedEditError("Unsupported paragraph numbering content cannot be interpreted.");
+          this.child(numbering, reference.localName);
+          this.scalar(reference, ["val"]);
+          integer(numberingAttribute(reference), reference.localName === "ilvl" ? 8 : Number.MAX_SAFE_INTEGER);
+        }
+      }
       id ??= numberingAttribute(this.child(numbering, "numId"));
       if (style === undefined) break;
       if (seen.has(style)) throw new UnsupportedEditError("Paragraph numbering style cycle.");

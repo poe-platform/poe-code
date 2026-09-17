@@ -6,7 +6,7 @@ import { decodeChartContent } from "./chart-values.js";
 import { readPropertyParts } from "./property-values.js";
 import { activeControlLocks, activeSettingsProtection } from "./protection.js";
 import { documentPartRole, signatureContentTypes, signatureRelationshipTypes } from "./document-part-roles.js";
-import { readFontResources, type FontResourceData } from "./font-resources.js";
+import { embeddedFontContentTypes, fontResourceRole, readFontResources, type FontResourceData } from "./font-resources.js";
 import { archiveSettings, readArchive, InputTypeError, InvalidValueError, type ArchiveContext } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
 import { documentDialects, type DocumentDialect } from "./dialect.js";
@@ -109,6 +109,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
     const root = parseDocumentXml(part.bytes, {}, budget).root;
     roots.set(part.partname, root);
     const role = documentPartRole(type, root);
+    const fontRole = fontResourceRole(type, root);
     const raw = [root];
     while (raw.length) {
       budget.charge("work", 1);
@@ -144,14 +145,15 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
           const enforced = name === "lock" ? edit !== "unlocked" : name === "writeProtection" ? true : enforcement === undefined ? false : ["1", "true", "on"].includes(enforcement) ? true : ["0", "false", "off"].includes(enforcement) ? false : null;
           protection.push({ part: part.partname, kind: name, enforced, edit });
         }
-        if (name === "font") { const value = attribute(node, "name", w); if (value) fontNames.add(value); }
-        if (name === "rFonts") for (const attr of node.attributes) {
+      }
+      if (node.namespace === w && (role === "story" || role === "glossary" || role === "settings" || fontRole === "styles")) {
+        if (node.localName === "rFonts") for (const attr of node.attributes) {
           if (attr.namespace !== w) continue;
           if (["ascii", "hAnsi", "eastAsia", "cs"].includes(attr.localName)) fontNames.add(attr.value);
           if (["asciiTheme", "hAnsiTheme", "eastAsiaTheme", "cstheme"].includes(attr.localName)) themeNames.add(attr.value);
         }
       }
-      if (node.namespace === a && ["latin", "ea", "cs", "font"].includes(node.localName)) { const value = attribute(node, "typeface"); if (value) fontNames.add(value); }
+      if (node.namespace === a && (fontRole === "theme" || role === "story" || role === "glossary" || ["application/vnd.openxmlformats-officedocument.drawingml.chart+xml", "application/vnd.ms-office.chartex+xml"].includes(parseMediaType(type))) && ["latin", "ea", "cs", "font"].includes(node.localName)) { const value = attribute(node, "typeface"); if (value) fontNames.add(value); }
       if (node.namespace === m && node.localName === "oMath") counts.equations++;
     }
   }
@@ -173,7 +175,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
   const signatureParts = parts.filter(part => signatureContentTypes.includes(part.contentType.toLowerCase()) || signatureTargets.has(part.name));
   const signed = signatureParts.length > 0 || signatureReferences.length > 0;
   const media = parts.filter(p => ["image/", "audio/", "video/"].some(prefix => p.contentType.toLowerCase().startsWith(prefix)));
-  const embedded = parts.filter(p => parseMediaType(p.contentType).includes("font") && !isXmlContentType(p.contentType)).map(p => p.name);
+  const embedded = parts.filter(p => embeddedFontContentTypes.includes(parseMediaType(p.contentType))).map(p => p.name);
   const warnings: InspectionWarning[] = [
     { code: "partial-validation", message: "Inspection is an inventory; core-v1 validation is partial and does not certify schema conformance." },
     { code: "cached-layout", message: "Page metadata and stored page breaks are cached; rendered pages are not measured." },
@@ -199,6 +201,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
     ["F41", relationships.some(r => ["http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml", "http://purl.oclc.org/ooxml/officeDocument/relationships/customXml", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/glossaryDocument", "http://purl.oclc.org/ooxml/officeDocument/relationships/glossaryDocument"].includes(r.type)) || parts.some(p => parseMediaType(p.contentType) === "application/vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml" || parseMediaType(p.contentType) === "application/vnd.openxmlformats-officedocument.customxmlproperties+xml"), "preserve"], ["F42", fontNames.size + embedded.length + protection.length > 0 || parts.some(p => ["application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml", "application/vnd.openxmlformats-officedocument.wordprocessingml.fonttable+xml"].includes(parseMediaType(p.contentType))), "read"], ["F43", signed, "preserve"]
   ];
   const fontResources = readFontResources(archive, roots, budget);
+  for (const table of fontResources.fontTables) for (const font of table.fonts) if (font.name) fontNames.add(font.name);
   if (fontResources.diagnostics.length) warnings.push({ code: "unresolved-font-resources", message: "Theme or embedded font references have unresolved package resources; see fontResources.diagnostics." });
   const result: InspectionData = { fontResources, kind: archive.kind, dialect: archive.dialect, sizes: { archiveBytes: owned.length, expandedBytes: parts.reduce((sum, p) => sum + p.bytes, 0), mediaBytes: media.reduce((sum, p) => sum + p.bytes, 0) }, parts, relationships,
     contentTypes: { defaults: graph.defaults.map(d => ({ extension: d.extension, contentType: d.content_type })).sort((a, b) => compare(a.extension, b.extension)), overrides: graph.overrides.map(d => ({ name: d.partname, contentType: d.content_type })).sort((a, b) => compare(a.name, b.name)) },

@@ -1,8 +1,9 @@
 import { parseMediaType } from "./media-type.js";
 import type { AdmittedDocumentArchive } from "./admission.js";
 import type { DocumentBudget } from "./budget.js";
-import { MarkupCompatibility, compatibilityProfileForPart } from "./compatibility.js";
+import { MarkupCompatibility, compatibilityProfileForPart, type CompatibilityContent } from "./compatibility.js";
 import { documentDialects } from "./dialect.js";
+import { documentPartRole } from "./document-part-roles.js";
 import type { DocumentPackage } from "./package.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { displayXml } from "./xml-display.js";
@@ -38,8 +39,20 @@ export interface FontResourceData {
 }
 
 const embeddedNames = new Set(["embedRegular", "embedBold", "embedItalic", "embedBoldItalic"]);
+export const embeddedFontContentTypes = Object.freeze(["application/vnd.openxmlformats-officedocument.obfuscatedfont", "application/x-fontdata"]);
+
+/** Native resource meaning requires both a declared part type and expanded root. */
+export function fontResourceRole(contentType: string, root: XmlElement): "theme" | "fontTable" | "styles" | null {
+  const type = parseMediaType(contentType);
+  for (const dialect of Object.values(documentDialects)) {
+    if (type === "application/vnd.openxmlformats-officedocument.theme+xml" && root.namespace === dialect.a && root.localName === "theme") return "theme";
+    if (root.namespace !== dialect.w) continue;
+    if (type === "application/vnd.openxmlformats-officedocument.wordprocessingml.fonttable+xml" && root.localName === "fonts") return "fontTable";
+    if (type === "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml" && root.localName === "styles") return "styles";
+  }
+  return null;
+}
 const attr = (node: XmlElement | undefined, name: string, namespace = ""): string | null => node?.attributes.find(a => a.localName === name && a.namespace === namespace)?.value ?? null;
-const child = (node: XmlElement | undefined, name: string) => node?.children.find(c => c.namespace === node.namespace && c.localName === name);
 const values = (node: XmlElement) => Object.fromEntries(node.attributes.filter(a => a.namespace === node.namespace).map(a => [a.localName, a.value]));
 
 /** Inventory stored resources only. Resolved means a package slot exists, never an installed or licensed face. */
@@ -52,26 +65,45 @@ export function readFontResources(archive: AdmittedDocumentArchive, roots: Reado
   const diagnostics: { code: string; part: string; message: string }[] = [];
   const pending: { part: string; path: number[]; attribute: string; value: string }[] = [];
   for (const [part, root] of roots) {
+    const type = graph.getPart(part).content_type, resourceRole = fontResourceRole(type, root), documentRole = documentPartRole(type, root);
+    const formatting = resourceRole === "styles" || documentRole === "story" || documentRole === "glossary" || documentRole === "settings";
+    if (resourceRole === null && !formatting) continue;
     const view = new MarkupCompatibility(root, compatibilityProfileForPart(part), budget);
-    if (root.namespace === a && root.localName === "theme") {
+    const selected = new Map<XmlElement, readonly XmlElement[]>();
+    const projection: CompatibilityContent[] = [...view.content];
+    while (projection.length) {
+      const item = projection.pop()!;
+      budget.charge("work", 1);
+      if (!("source" in item) || item.disposition !== "understood") continue;
+      budget.charge("retainedBytes", item.content.length * 8);
+      if (resourceRole === "theme" || resourceRole === "fontTable" || item.source.namespace === w &&
+        (["rFonts", "themeFontLang", "clrSchemeMapping"].includes(item.source.localName) || item.source.attributes.some(attribute => attribute.namespace === w && ["themeColor", "themeFill"].includes(attribute.localName)))) {
+        budget.charge("retainedBytes", 96 + item.content.length * 8);
+        selected.set(item.source, item.content.filter((node): node is Extract<CompatibilityContent, {source: XmlElement}> => "source" in node && node.disposition === "understood").map(node => node.source));
+      }
+      projection.push(...item.content);
+    }
+    const children = (node: XmlElement | undefined): readonly XmlElement[] => node ? selected.get(node) ?? [] : [];
+    const child = (node: XmlElement | undefined, name: string) => children(node).find(c => c.namespace === node?.namespace && c.localName === name);
+    if (resourceRole === "theme") {
       const elements = child(root, "themeElements"), scheme = child(elements, "fontScheme");
-      const colors = (child(elements, "clrScheme")?.children ?? []).filter(n => n.namespace === a && view.canEdit(n)).flatMap(n => n.children.filter(c => c.namespace === a && view.canEdit(c)).map(c => ({ slot: n.localName, kind: c.localName, value: attr(c, "val"), lastColor: attr(c, "lastClr") })));
+      const colors = children(child(elements, "clrScheme")).filter(n => n.namespace === a).flatMap(n => children(n).filter(c => c.namespace === a).map(c => ({ slot: n.localName, kind: c.localName, value: attr(c, "val"), lastColor: attr(c, "lastClr") })));
       const fonts: ThemeResource["fonts"][number][] = [];
-      for (const family of ["major", "minor"] as const) for (const node of child(scheme, family + "Font")?.children ?? []) {
+      for (const family of ["major", "minor"] as const) for (const node of children(child(scheme, family + "Font"))) {
         budget.charge("work", 1);
-        if (node.namespace === a && ["latin", "ea", "cs", "font"].includes(node.localName) && view.canEdit(node)) fonts.push({ family, slot: node.localName, script: attr(node, "script"), typeface: attr(node, "typeface") });
+        if (node.namespace === a && ["latin", "ea", "cs", "font"].includes(node.localName)) fonts.push({ family, slot: node.localName, script: attr(node, "script"), typeface: attr(node, "typeface") });
       }
       themes.push({ part, name: attr(root, "name"), colors, fonts });
     }
-    if (root.namespace === w && root.localName === "fonts") {
+    if (resourceRole === "fontTable") {
       const edges = graph.relationships(part);
       budget.charge("work", edges.length);
       const bindings = new Map(edges.map(edge => [edge.rId, edge]));
-      fontTables.push({ part, fonts: root.children.filter(n => n.namespace === w && n.localName === "font" && view.canEdit(n)).map(node => ({
+      fontTables.push({ part, fonts: children(root).filter(n => n.namespace === w && n.localName === "font").map(node => ({
         name: attr(node, "name", w), alternateName: attr(child(node, "altName"), "val", w), charset: attr(child(node, "charset"), "val", w), family: attr(child(node, "family"), "val", w), pitch: attr(child(node, "pitch"), "val", w),
-        embedded: node.children.filter(n => n.namespace === w && embeddedNames.has(n.localName) && view.canEdit(n)).map(n => {
+        embedded: children(node).filter(n => n.namespace === w && embeddedNames.has(n.localName)).map(n => {
           const id = attr(n, "id", r), edge = id === null ? undefined : bindings.get(id);
-          const valid = edge && !edge.is_external && edge.fragment === null && edge.reltype === `${r}/font` && ["application/vnd.openxmlformats-officedocument.obfuscatedfont", "application/x-fontdata"].includes(parseMediaType(edge.target_part.content_type));
+          const valid = edge && !edge.is_external && edge.fragment === null && edge.reltype === `${r}/font` && embeddedFontContentTypes.includes(parseMediaType(edge.target_part.content_type));
           if (!valid) diagnostics.push({ code: "invalid-font-reference", part, message: "Embedded font reference does not identify an internal font resource." });
           return { kind: n.localName, id, fontKey: attr(n, "fontKey", w), subsetted: attr(n, "subsetted", w), target: valid ? edge.target_part.partname : null, status: valid ? "resolved" as const : "invalid-font-reference" as const };
         })
@@ -82,9 +114,9 @@ export function readFontResources(archive: AdmittedDocumentArchive, roots: Reado
       budget.charge("work", 1);
       const { node, path } = stack.pop()!;
       for (let i = node.children.length - 1; i >= 0; i--) stack.push({ node: node.children[i]!, path: [...path, i] });
-      if (node.namespace !== w || !view.canEdit(node)) continue;
-      if (node.localName === "themeFontLang") languages.push({ part, values: values(node) });
-      if (node.localName === "clrSchemeMapping") colorMappings.push({ part, values: values(node) });
+      if (!formatting || node.namespace !== w || !selected.has(node)) continue;
+      if (documentRole === "settings" && node.localName === "themeFontLang") languages.push({ part, values: values(node) });
+      if (documentRole === "settings" && node.localName === "clrSchemeMapping") colorMappings.push({ part, values: values(node) });
       for (const attribute of node.attributes) {
         if (attribute.namespace !== w) continue;
         if (node.localName === "rFonts" && ["asciiTheme", "hAnsiTheme", "eastAsiaTheme", "cstheme"].includes(attribute.localName) || attribute.localName === "themeColor" || attribute.localName === "themeFill") pending.push({ part, path, attribute: attribute.localName, value: attribute.value });

@@ -420,3 +420,13 @@ paired SDK/Shell workflows each cover seventeen declarations, with model and
 utility dirty-part/relationship retention. Exact media types prevent false OLE
 roles and declared macro labels. Historical QA errors remain explicit. Full
 F01–F07 and the newly reproduced font/theme carrier dependency stay open.
+
+## Current font/resource carrier evidence
+
+The [2026-09-17 font/resource qualification](font-resource-carriers-20260917.md)
+records 592 original cases within 826 focused passes, zero skips. Ninety-six
+built paired carrier workflows and eight generic-role workflows pass, including
+model/SDK/Shell dirty-part retention and 96 paired expected XML-edit refusals.
+Selected MCE content and declared native roles are now read consistently; generic
+payloads stay inert. This closes the named font/theme dependency. Full F01–F07
+reconciliation, other recorded dependencies and full workspace verification stay open.

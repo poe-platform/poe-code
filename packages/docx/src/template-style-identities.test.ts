@@ -51,6 +51,11 @@ for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const
   const doc = await Document(output, textContext);
   expect(doc.paragraphs.map(p => p.text)).toEqual(action === "copy" ? ["Original coast"] : ["Original coast", "Added coast"]);
   if (action === "named-style") expect(doc.paragraphs[1]!.style?.name).toBe("Coastal Style");
-  if (action === "heading") expect(styles).toHaveLength(2);
+  if (action === "heading") {
+    expect(styles).toHaveLength(2);
+    const heading = styles.find(node => node.attributes[`{${w}}styleId`] !== "Coast")!;
+    const outline = flatten(heading).find(node => node.name === `{${w}}outlineLvl`);
+    expect(outline?.attributes[`{${w}}val`]).toBe("1");
+  }
   expect(input).toEqual(original); expect(memory.readFileSync("/input")).toEqual(Buffer.from(original));
 });

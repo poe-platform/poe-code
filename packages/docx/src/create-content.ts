@@ -4,6 +4,7 @@ import type { DocumentBudget } from "./budget.js";
 import type { DocxBlock, DocxContent, DocxLength, DocxRunInput, DocxThemeSettings } from "./operation-types.js";
 import type { XmlElement } from "./package-xml.js";
 import { activeXmlChildren } from "./xml-active-children.js";
+import { styleDisplayName } from "./style-names.js";
 
 export function xmlValue(value: string): string {
   let result = "";
@@ -60,7 +61,8 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
     const attribute = (node: XmlElement, key: string) => node.attributes.find(a => a.namespace === w && a.localName === key)?.value;
     const id = attribute(style, "styleId"), type = attribute(style, "type");
     const name = children(style).find(c => c.namespace === w && c.localName === "name");
-    const value = name && attribute(name, "val");
+    const stored = name && attribute(name, "val");
+    const value = stored === undefined ? undefined : styleDisplayName(stored);
     if (id) ids.add(id);
     if (value && id && type) {
       if (styles.has(value)) throw new InvalidValueError("Ambiguous style name in template.");
@@ -72,9 +74,10 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
   const added: string[] = [];
   const allocate = () => { let n = 1; while (ids.has(`Style${n}`)) n++; const id = `Style${n}`; ids.add(id); return id; };
   for (const style of content.styles ?? []) {
-    if (styles.has(style.name)) throw new InvalidValueError("A declared style name already exists.");
+    const name = styleDisplayName(style.name);
+    if (styles.has(name)) throw new InvalidValueError("A declared style name already exists.");
     const id = allocate();
-    styles.set(style.name, { id, type: style.type });
+    styles.set(name, { id, type: style.type });
     const size = style.size === undefined ? undefined : Math.round(lengthEmu(style.size) / 6350);
     if (size !== undefined && size < 1) throw new InvalidValueError("Font size must round to a positive half-point value.");
     const formatting = (style.font === undefined ? "" : `<w:rFonts w:ascii="${xmlValue(style.font)}" w:hAnsi="${xmlValue(style.font)}"/>`) +
@@ -83,7 +86,7 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
     added.push(`<w:style xmlns:w="${w}" w:type="${style.type}" w:customStyle="1" w:styleId="${id}"><w:name w:val="${xmlValue(style.name)}"/>${formatting ? `<w:rPr>${formatting}</w:rPr>` : ""}</w:style>`);
   }
   const resolve = (name: string, type: string): string => {
-    const style = styles.get(name);
+    const style = styles.get(styleDisplayName(name));
     if (!style || style.type !== type) throw new InvalidValueError("Expected an existing style of the selected kind.");
     return style.id;
   };

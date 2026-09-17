@@ -1,5 +1,13 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 heading semantics correction](template-heading-semantics-20260917.md)
+qualifies Title and every heading level, custom collisions, stored/display names
+and repeated definition reuse through model/SDK/actual Shell routes. The full
+captured DOCX run passes 19,722 cases across 294 files, zero skips; 108 built
+heading workflows also pass. This closes the named heading/name dependency only.
+Complete F01–F07 acceptance, style encoding and native omitted-type qualification
+remain open.
+
 The [2026-09-17 body/section carrier correction](template-body-carriers-20260917.md)
 qualifies 1,536 exact body/terminal-section/geometry/shared-carrier cases plus
 144 built joint model/SDK/Shell workflows. Typed appends preserve inactive native

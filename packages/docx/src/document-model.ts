@@ -7,7 +7,8 @@ import { Comments, bindCommentRange } from "./review-model.js";
 import type { Length } from "./formatting-values.js";
 import type { DocumentOutput, DocumentSaveOptions } from "./model-output.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
-import { WD_STYLE_TYPE, WD_BREAK, WD_SECTION_START, Emu, Inches } from "./formatting-values.js";
+import { WD_BREAK, WD_SECTION_START, Emu, Inches } from "./formatting-values.js";
+import { resolveHeadingStyle } from "./styles-model.js";
 import type { DocxEnumValue } from "./operation-types.js";
 import { mergeStyleChildren } from "./style-properties.js";
 import { sectionPropertyOrder } from "./section-properties.js";
@@ -96,9 +97,8 @@ export class DocumentView {
     if (level < 0 || level > 9)
       throw new InvalidValueError("Heading level must be between 0 and 9.");
     return this.store.transaction(() => {
-      const name = level === 0 ? "Title" : `Heading ${level}`;
-      if (!this.styles.has(name)) this.styles.add_style(name, WD_STYLE_TYPE.PARAGRAPH, true);
-      return this.store.addParagraph(this.ref, text, name);
+      const style = this.styles[resolveHeadingStyle](level);
+      return this.store.addParagraph(this.ref, text, style);
     });
   }
   add_page_break() {

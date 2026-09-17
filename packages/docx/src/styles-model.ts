@@ -9,7 +9,7 @@ import { archiveSettings, InputTypeError, InvalidValueError, type ArchiveContext
 import { modelOutput, type DocumentOutput, type DocumentSaveOptions } from "./model-output.js";
 import { documentDialects } from "./dialect.js";
 import { runElementOpen } from "./run-properties.js";
-import { xmlValue } from "./create-content.js";
+import { renderContent, xmlValue } from "./create-content.js";
 import { Font, ParagraphFormat, formattingXmlOwners, type FormattingXmlOwner } from "./formatting-model.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import { styleAttribute as attr, styleChild as child, styleToggle, styleInteger, mergeStyleChildren } from "./style-properties.js";
@@ -17,7 +17,7 @@ import { styleDisplayName, styleStoredName } from "./style-names.js";
 import { addDocumentStylesPart } from "./styles-part.js";
 import { editLatentStyles, readLatentStyles } from "./latent-styles.js";
 import type { DocxEnumValue } from "./operation-types.js";
-import type { XmlElement } from "./package-xml.js";
+import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { DocumentXmlEditor } from "./xml-write.js";
 import { assertDocumentEditable, publishDocumentArchive, PublicationError, publicationGenerationGuard, type PublicationOptions, type PublicationContext } from "./publication.js";
 
@@ -119,6 +119,9 @@ class StyleStore {
 export const styleOwnerCheckpoints = new WeakMap<Styles, () => () => void>();
 export const styleModelMutations = new WeakMap<Styles, { readonly revision: number }>();
 
+/** Internal shared heading allocation; retains the live styles owner. */
+export const resolveHeadingStyle = Symbol("resolve-heading-style");
+
 /** Read-only part metadata with owned byte snapshots; edits use the live model. */
 export class StylePartView extends XmlPartView {
   #styles: Styles | undefined;
@@ -159,6 +162,17 @@ export class Styles implements Iterable<BaseStyle> {
     if (!byId) throw new MissingKeyError("Style name was not found.");
     this.store.warnings.push({ code: "deprecated-style-id-lookup" });
     return byId;
+  }
+  [resolveHeadingStyle](level: number): ParagraphStyle {
+    const budget = archiveSettings(this.store.context).budget;
+    const root = this.rawElement;
+    const rendered = renderContent({version: 1, blocks: [{kind: "paragraph", level}]}, root.namespace, budget, root);
+    if (rendered.styles) return this.wrap(this.store.add(rendered.styles)) as ParagraphStyle;
+    const paragraph = parseDocumentXml(new TextEncoder().encode(rendered.body), {}, budget).root;
+    const id = attr(child(child(paragraph, "pPr"), "pStyle"), "val");
+    const style = [...this].find(style => style.style_id === id);
+    if (!(style instanceof ParagraphStyle)) throw new InvalidValueError("Expected the allocated paragraph heading style.");
+    return style;
   }
   add_style(name: string, style_type: typeof WD_STYLE_TYPE.PARAGRAPH, builtin?: boolean): ParagraphStyle;
   add_style(name: string, style_type: typeof WD_STYLE_TYPE.TABLE, builtin?: boolean): TableStyle;

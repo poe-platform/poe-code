@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ScreenBuffer } from "../buffer.js";
 import type { OutputItem } from "../types.js";
 import { renderOutputPane } from "./output-pane.js";
+import { getTheme } from "../../internal/theme-detect.js";
 
 function rows(items: OutputItem[], details = false) {
   const buffer = new ScreenBuffer(80, 15);
@@ -17,6 +18,20 @@ describe("concise conversation transcript", () => {
       { role: "action", kind: "error", text: "Build failed", ts: 2 }
     ]);
     expect(result.slice(0, 3)).toEqual(["›  Run tests", "✓  Read settings.ts", "!  Build failed"]);
+  });
+
+  it("keeps routine actions quiet while preserving visible errors and agent prose", () => {
+    const buffer = new ScreenBuffer(80, 15);
+    renderOutputPane(buffer, { x: 0, y: 0, width: 80, height: 15 }, [
+      { role: "action", kind: "success", text: "Read settings.ts", ts: 0 },
+      { kind: "status", text: "Builder starting", ts: 1 },
+      { role: "action", kind: "error", text: "Build failed", ts: 2 },
+      { role: "agent", kind: "info", text: "The fix is ready.", ts: 3 }
+    ], 0, { conversation: true });
+    expect(buffer.get(3, 0).style).toEqual(getTheme().styles.muted);
+    expect(buffer.get(3, 1).style).toEqual(getTheme().styles.muted);
+    expect(buffer.get(3, 2).style).toEqual(getTheme().styles.error);
+    expect(buffer.get(3, 3).style).toEqual({});
   });
 
   it("keeps one separator after prose with trailing newlines", () => {

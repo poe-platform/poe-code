@@ -68,10 +68,10 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   const tasks = run?.tasks ?? [];
   const completed = tasks.filter((task) => task.status === "completed").length;
   const taskCount = tasks.length > 0 ? `${completed}/${tasks.length} tasks` : `${stats.iterationsLabel ?? "Iterations"} ${stats.iterations}`;
-  const action = [run?.phase ?? stats.currentAction, run?.activity].filter(Boolean).join(" · ");
+  const phase = truncateToWidth(plainTerminalText(run?.phase ?? stats.currentAction ?? stats.status), Math.max(8, transcriptWidth - taskCount.length - 7));
   const statusMarker = { running: "●", error: "!", paused: "Ⅱ", idle: "○", done: "✓" }[stats.status];
   put(buffer, { x, y: outputY++, width: transcriptWidth, height: 1 }, 0,
-    `${statusMarker} ${action || stats.status} · ${taskCount}`, theme.info);
+    `${statusMarker} ${phase} · ${taskCount}${run?.activity ? ` · ${run.activity}` : ""}`, stats.status === "error" ? theme.error : { bold: true });
   outputY++;
   const outputRect: Rect = { x, y: outputY, width: transcriptWidth, height: Math.max(0, contentBottom - outputY) };
   let scrollOffset = options.scrollOffset;
@@ -123,8 +123,8 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   const hint = composer?.focused
     ? composer.kind === "plan" ? "Enter Queue plan  Ctrl+P Message  Esc Browse"
       : "Enter Queue  Alt+Enter Newline  Ctrl+P Plan  Alt+↑↓ Target  Esc Browse"
-    : options.hints ? options.hints.map((hint) => `${hint.key} ${hint.label}`).join("  ")
-      : options.showQueue ? "↑↓ Scroll  PgUp/PgDn Page  Home/End Jump  v Activity  i Message  q Quit"
+    : options.showQueue ? "↑↓ Scroll  PgUp/PgDn Page  Home/End Jump  v Activity  i Message  q Quit"
+      : options.hints ? options.hints.map((hint) => `${hint.key} ${hint.label}`).join("  ")
       : "i Message  p Add plan  v Tasks & plans  d Details  ↑↓ Scroll  f Follow  q Quit";
   put(buffer, { x, y: footerY, width, height: 1 }, 0, hint, theme.muted);
   return { scrollOffset, workOffset, outputRect, ...(cursor ? { cursor } : {}) };
@@ -137,9 +137,11 @@ function renderWorkList(buffer: ScreenBuffer, rect: Rect, stats: DashboardStats,
   const lines: Array<{ text: string; style: CellStyle; parent?: string }> = [];
   lines.push({ text: `PLANS · ${queue.filter((item) => item.kind === "plan").length}`, style: { bold: true } });
   let planNumber = 0;
+  let parentPlan: string | undefined;
   for (const item of queue) {
-    const text = item.kind === "plan" ? `${++planNumber}. ${item.path}` : `  └ ${item.text}`;
-    lines.push({ text: `${marker(item.status)} ${text}`, style: tone(item.status) });
+    if (item.kind === "plan") parentPlan = displayPlanPath(item.path, stats.run?.cwd);
+    const text = item.kind === "plan" ? `${++planNumber}. ${parentPlan}` : `  └ ${item.text}`;
+    lines.push({ text: `${marker(item.status)} ${text}`, style: tone(item.status), ...(item.kind === "message" ? { parent: `After ${parentPlan}` } : {}) });
   }
   lines.push({ text: "", style: {} }, { text: `TASKS · ${tasks.filter((task) => task.status === "completed").length}/${tasks.length}`, style: { bold: true } });
   for (const [index, task] of tasks.entries()) {
@@ -171,16 +173,22 @@ function renderWorkPanel(buffer: ScreenBuffer, rect: Rect, stats: DashboardStats
   let row = 0;
   put(buffer, rect, row++, `PLANS · ${plans.length > 0 ? planIndex + 1 : 0}/${plans.length}`, { bold: true });
   const planRows = Math.min(Math.max(3, Math.floor(rect.height * .4)), Math.max(0, rect.height - 4));
-  const activeIndex = Math.max(0, queue.findIndex((item) => item.id === stats.run?.activePlanId));
-  const queueStart = Math.max(0, Math.min(activeIndex, queue.length - planRows));
-  if (queueStart > 0) put(buffer, rect, row++, `  ↑ ${queueStart} earlier`, theme.muted);
-  for (let index = queueStart; index < queue.length && row <= planRows; index++) {
-    const item = queue[index]!;
+  const runningIndex = queue.findIndex((item) => item.status === "running");
+  const activeIndex = Math.max(0, runningIndex >= 0 ? runningIndex : queue.findIndex((item) => item.id === stats.run?.activePlanId));
+  const queueStart = Math.max(0, Math.min(activeIndex, queue.length - Math.max(1, planRows - 2)));
+  if (queueStart > 0) {
+    const first = queue[queueStart];
+    const parent = first?.kind === "message" ? plans.find((plan) => plan.id === first.afterPlanId) : undefined;
+    put(buffer, rect, row++, parent ? `↑ After ${basename(parent.path)}` : `↑ ${queueStart} earlier`, theme.muted);
+  }
+  let queueIndex = queueStart;
+  for (; queueIndex < queue.length && row < planRows; queueIndex++) {
+    const item = queue[queueIndex]!;
     const number = item.kind === "plan" ? plans.findIndex((plan) => plan.id === item.id) + 1 : undefined;
     const text = item.kind === "plan" ? `${number}. ${basename(item.path)}` : `  └ ${item.text}`;
     put(buffer, rect, row++, `${marker(item.status)} ${text}`, tone(item.status));
   }
-  if (queue.length - queueStart > planRows) put(buffer, rect, row++, "  ↓ more queued work", theme.muted);
+  if (queueIndex < queue.length) put(buffer, rect, row++, "  ↓ more queued work", theme.muted);
   row++;
   if (tasks.length === 0) {
     put(buffer, rect, row++, "TASKS", { bold: true });
@@ -224,6 +232,12 @@ function tone(status: DashboardWorkStatus): CellStyle {
 
 function basename(value: string): string {
   return value.split("/").at(-1) ?? value;
+}
+
+function displayPlanPath(value: string, cwd?: string): string {
+  if (!cwd) return value;
+  const prefix = cwd.endsWith("/") ? cwd : `${cwd}/`;
+  return value.startsWith(prefix) ? value.slice(prefix.length) : value;
 }
 
 function put(buffer: ScreenBuffer, rect: Rect, row: number, text: string, style: CellStyle): void {

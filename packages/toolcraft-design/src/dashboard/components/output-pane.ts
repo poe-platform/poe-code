@@ -51,7 +51,7 @@ export function renderOutputPane(
         const line = lines[index]!;
         line.prefix = index === 0 ? prefix : "";
         line.prefixStyle = style;
-        if (prose) line.style = style;
+        line.style = style;
       }
       if (prose && lines.length > 0) {
         lines.push({ text: "", prefix: "", style: {}, prefixStyle: {} });

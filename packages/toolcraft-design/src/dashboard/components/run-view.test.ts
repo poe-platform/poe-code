@@ -79,6 +79,59 @@ describe("run dashboard information hierarchy", () => {
     expect(text).toContain("↓ more tasks · v View all");
   });
 
+  it("keeps the active follow-up and its plan visible in a long message queue", () => {
+    const { text } = screen(120, 32, { stats: {
+      ...stats, run: { ...stats.run, queue: [
+        { kind: "plan", id: "first", path: "docs/plans/release.md", status: "completed" },
+        ...Array.from({ length: 25 }, (_, index) => ({
+          kind: "message" as const, id: `message-${index}`, afterPlanId: "first", text: `Follow-up ${index + 1}`,
+          status: index < 17 ? "completed" as const : index === 17 ? "running" as const : "pending" as const
+        })),
+        { kind: "plan", id: "second", path: "docs/plans/next.md", status: "pending" }
+      ] }
+    } });
+    expect(text).toContain("›   └ Follow-up 18");
+    expect(text).toContain("release.md");
+    expect(text).toContain("more queued work");
+  });
+
+  it("keeps progress visible when the active command is long", () => {
+    const { rows } = screen(80, 24, { stats: {
+      ...stats, run: { ...stats.run, activity: `Run npm test ${"very-long-option ".repeat(8)}` }
+    } });
+    const phase = rows.find((row) => row.includes("●"))!;
+    expect(phase).toContain("Setup");
+    expect(phase).toContain("7/30 tasks");
+    expect(phase).toContain("Run npm test");
+  });
+
+  it("shows workspace-relative plan paths and full work-list navigation hints", () => {
+    const { text } = screen(100, 30, {
+      showQueue: true, composer: undefined, hints: [{ key: "Space", label: "Pause" }],
+      stats: { ...stats, run: { ...stats.run, cwd: "/workspace/project", queue: [
+        { kind: "plan", id: "first", path: "/workspace/project/docs/plans/release.md", status: "running" },
+        { kind: "plan", id: "second", path: "/workspace/project-other/plan.md", status: "pending" }
+      ] } }
+    });
+    expect(text).toContain("1. docs/plans/release.md");
+    expect(text).toContain("2. /workspace/project-other/plan.md");
+    expect(text).toContain("Home/End Jump");
+  });
+
+  it("retains the parent plan while scrolling through messages in the full list", () => {
+    const { text } = screen(80, 24, {
+      showQueue: true, workOffset: 8, composer: undefined,
+      stats: { ...stats, run: { ...stats.run, queue: [
+        { kind: "plan", id: "first", path: "docs/plans/release.md", status: "running" },
+        { kind: "plan", id: "second", path: "docs/plans/next.md", status: "pending" },
+        ...Array.from({ length: 25 }, (_, index) => ({
+          kind: "message" as const, id: `message-${index}`, afterPlanId: "second", text: `Follow-up ${index + 1}`, status: "pending" as const
+        }))
+      ] } }
+    });
+    expect(text).toContain("↑ earlier · After docs/plans/next.md");
+  });
+
   it("shows a full task and plan view when the compact terminal switches views", () => {
     const { text } = screen(80, 24, { showQueue: true });
     expect(text).toContain("PLANS");

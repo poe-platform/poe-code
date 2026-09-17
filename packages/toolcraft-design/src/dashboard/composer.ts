@@ -3,6 +3,8 @@ import { graphemes, graphemeWidth } from "./terminal-width.js";
 import { layoutComposer } from "./composer-layout.js";
 import type { KeypressEvent } from "./terminal.js";
 
+const editingSegmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
+
 export type DashboardSubmission = {
   kind: "message" | "plan";
   text: string;
@@ -51,13 +53,11 @@ export function editComposer(state: ComposerState, event: KeypressEvent, width =
     }
     return { state: next, handled: true };
   }
-  const boundaries = [0];
-  if (["left", "right", "backspace", "delete"].includes(key ?? "") || (event.ctrl && (key === "d" || key === "w"))) {
-    for (const segment of graphemes(state.text)) boundaries.push(boundaries.at(-1)! + segment.length);
-  }
-  const position = Math.max(0, boundaries.indexOf(state.cursor));
-  const previous = boundaries[Math.max(0, position - 1)]!;
-  const following = boundaries[Math.min(boundaries.length - 1, position + 1)]!;
+  const segments = ["left", "right", "backspace", "delete"].includes(key ?? "") || (event.ctrl && (key === "d" || key === "w"))
+    ? editingSegmenter.segment(state.text) : undefined;
+  const previous = segments?.containing(state.cursor - 1)?.index ?? state.cursor;
+  const current = segments?.containing(state.cursor);
+  const following = current ? current.index + current.segment.length : state.cursor;
   const lineStart = state.cursor === 0 ? 0 : state.text.lastIndexOf("\n", state.cursor - 1) + 1;
   const newline = state.text.indexOf("\n", state.cursor);
   const lineEnd = newline === -1 ? state.text.length : newline;
@@ -98,10 +98,17 @@ export function editComposer(state: ComposerState, event: KeypressEvent, width =
   } else if (event.ctrl && key === "k") {
     replace(state.cursor, lineEnd);
   } else if (event.ctrl && key === "w") {
-    let start = position;
-    while (start > 0 && state.text.slice(boundaries[start - 1], boundaries[start]).trim() === "") start--;
-    while (start > 0 && state.text.slice(boundaries[start - 1], boundaries[start]).trim() !== "") start--;
-    replace(boundaries[start]!, state.cursor);
+    let start = state.cursor;
+    let preceding = segments?.containing(start - 1);
+    while (preceding && preceding.segment.trim() === "") {
+      start = preceding.index;
+      preceding = segments?.containing(start - 1);
+    }
+    while (preceding && preceding.segment.trim() !== "") {
+      start = preceding.index;
+      preceding = segments?.containing(start - 1);
+    }
+    replace(start, state.cursor);
   } else if (event.ch !== undefined && !event.ctrl && !event.meta) {
     replace(state.cursor, state.cursor, event.ch);
   } else {

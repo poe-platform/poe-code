@@ -125,6 +125,34 @@ describe("dashboard queue composer", () => {
     } finally { segment.mockRestore(); }
   });
 
+  it("bounds Unicode navigation work to the adjacent graphemes or deleted word", () => {
+    const text = "Earlier 👩‍💻 changes\n".repeat(3000) + "review 👩‍💻";
+    const state = { ...createComposerState("message"), text, cursor: text.length };
+    const original = Intl.Segmenter.prototype.segment;
+    let examined = 0;
+    const segment = vi.spyOn(Intl.Segmenter.prototype, "segment").mockImplementation(function (this: Intl.Segmenter, input) {
+      const actual = original.call(this, input);
+      return {
+        containing(index) {
+          const value = actual.containing(index);
+          examined += value?.segment.length ?? 0;
+          return value;
+        },
+        *[Symbol.iterator]() {
+          for (const value of actual) { examined += value.segment.length; yield value; }
+        }
+      };
+    });
+    try {
+      for (const event of [key("left"), key("backspace"), key("w", { ctrl: true })]) {
+        examined = 0;
+        const result = editComposer(state, event);
+        expect(result.state.cursor).toBe(text.length - "👩‍💻".length);
+        expect(examined).toBeLessThan(128);
+      }
+    } finally { segment.mockRestore(); }
+  });
+
   it.each([key("home"), key("u", { ctrl: true })])("keeps the cursor at the start of an empty first line: %j", (event) => {
     const state = { ...createComposerState("message"), text: "\nsecond line", cursor: 0 };
     expect(editComposer(state, event).state).toMatchObject({ text: state.text, cursor: 0 });

@@ -9,7 +9,7 @@ import { archiveSettings, readArchive, InputTypeError, InvalidValueError, type A
 import { readDocumentArchive } from "./admission.js";
 import { documentDialects, type DocumentDialect } from "./dialect.js";
 import { MarkupCompatibility, documentCompatibilityProfile, type CompatibilityContent } from "./compatibility.js";
-import { parseDocumentXml, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
+import { isXmlContentType, parseDocumentXml, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
 import { LocationIndex } from "./location-index.js";
 import { encodeLocation, type Location, type LocationPayload } from "./location-token.js";
 import { validateDocumentArchive, type ValidationData, type ValidationOptions } from "./validation.js";
@@ -84,7 +84,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
   }
   parts.sort((a, b) => compare(a.name, b.name));
   const relationships: InspectionReference[] = [];
-  for (const owner of ["/", ...graph.parts.filter(p => !p.content_type.endsWith("relationships+xml")).map(p => p.partname)].sort(compare)) {
+  for (const owner of ["/", ...graph.parts.filter(p => !p.content_type.toLowerCase().endsWith("relationships+xml")).map(p => p.partname)].sort(compare)) {
     for (const edge of graph.relationships(owner))
       relationships.push({ owner, id: edge.rId, type: edge.reltype, target: edge.target_ref, external: edge.is_external });
   }
@@ -165,11 +165,11 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
     return { kind: entry.scope ?? "story", location: { kind: "story" as const, token, value, positions: { ...entry.positions } }, properties: [], references: relationships.filter(r => r.owner === entry.part), support: "read" as const };
   });
   const signatureReferences = relationships.filter(reference => signatureRelationshipTypes.includes(reference.type));
-  const signatureTargets = new Set<string>(); for (const owner of ["/", ...graph.parts.filter(part => !part.content_type.endsWith("relationships+xml")).map(part => part.partname)]) for (const edge of graph.relationships(owner)) if (!edge.is_external && signatureRelationshipTypes.includes(edge.reltype)) signatureTargets.add(edge.target_part.partname);
+  const signatureTargets = new Set<string>(); for (const owner of ["/", ...graph.parts.filter(part => !part.content_type.toLowerCase().endsWith("relationships+xml")).map(part => part.partname)]) for (const edge of graph.relationships(owner)) if (!edge.is_external && signatureRelationshipTypes.includes(edge.reltype)) signatureTargets.add(edge.target_part.partname);
   const signatureParts = parts.filter(part => signatureContentTypes.includes(part.contentType.toLowerCase()) || signatureTargets.has(part.name));
   const signed = signatureParts.length > 0 || signatureReferences.length > 0;
   const media = parts.filter(p => ["image/", "audio/", "video/"].some(prefix => p.contentType.toLowerCase().startsWith(prefix)));
-  const embedded = parts.filter(p => p.contentType.toLowerCase().includes("font")).filter(p => !p.contentType.endsWith("+xml")).map(p => p.name);
+  const embedded = parts.filter(p => p.contentType.toLowerCase().includes("font") && !isXmlContentType(p.contentType)).map(p => p.name);
   const warnings: InspectionWarning[] = [
     { code: "partial-validation", message: "Inspection is an inventory; core-v1 validation is partial and does not certify schema conformance." },
     { code: "cached-layout", message: "Page metadata and stored page breaks are cached; rendered pages are not measured." },

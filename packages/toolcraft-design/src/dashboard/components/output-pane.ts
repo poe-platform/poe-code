@@ -2,6 +2,7 @@ import { selectViewportTail } from "../../viewport.js";
 import { getTheme } from "../../internal/theme-detect.js";
 import { hasAnsi, parseAnsi, type StyledSegment } from "../ansi.js";
 import { ScreenBuffer } from "../buffer.js";
+import { formatElapsed } from "../elapsed.js";
 import { displayWidth, expandTabs, graphemes, graphemeWidth } from "../terminal-width.js";
 import type { CellStyle, OutputItem, OutputItemKind, Rect } from "../types.js";
 
@@ -23,7 +24,7 @@ export function renderOutputPane(
   rect: Rect,
   items: OutputItem[],
   scrollOffset = 0,
-  options: { conversation?: boolean; details?: boolean } = {}
+  options: { conversation?: boolean; details?: boolean; now?: number } = {}
 ): number {
   buffer.clearRect(rect);
 
@@ -34,7 +35,13 @@ export function renderOutputPane(
   const { rows: visualLines, offset: actualOffset } = selectViewportTail(
     options.conversation && !options.details ? foldCompletedActions(items) : items, rect.height, scrollOffset, item => {
       if (options.conversation && item.role === "reasoning" && !options.details) return [];
-      const text = options.details && item.detail ? item.role === "plan" ? item.detail : `${item.text}\n${item.detail}` : item.text;
+      let label = item.text;
+      const elapsed = options.now === undefined ? 0 : options.now - item.ts;
+      if (options.conversation && item.role === "action" && item.kind === "tool" && Number.isFinite(elapsed) && elapsed >= 1000) {
+        const duration = formatElapsed(elapsed);
+        label += ` · ${elapsed >= 3_600_000 ? duration : duration.slice(3)}`;
+      }
+      const text = options.details && item.detail ? item.role === "plan" ? item.detail : `${label}\n${item.detail}` : label;
       const lines = computeVisualLines([text === item.text ? item : { ...item, text }], rect.width);
       if (!options.conversation) return lines;
       const prose = item.role === "agent" || item.role === "user";

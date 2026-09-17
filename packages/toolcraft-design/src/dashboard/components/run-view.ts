@@ -20,6 +20,7 @@ export type RunViewOptions = {
   workOffset?: number;
   feedback?: string;
   hints?: FooterHint[];
+  now?: number;
 };
 
 type DraftLayout = { lines: string[]; cursor: { x: number; y: number } };
@@ -98,7 +99,7 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
     workOffset = renderWorkList(buffer, outputRect, stats, options.workOffset);
   } else {
     scrollOffset = renderOutputPane(buffer, outputRect, options.output, options.scrollOffset, {
-      conversation: true, details: options.showDetails
+      conversation: true, details: options.showDetails, now: stats.status === "running" ? options.now : undefined
     });
   }
 

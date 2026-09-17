@@ -28,6 +28,30 @@ function fixture(onSubmit: NonNullable<DashboardOptions["onSubmit"]>) {
 }
 
 describe("dashboard live queue input", () => {
+  it("freezes the displayed action age while browsing held history and resumes it on Follow", async () => {
+    await withOutputFormat("terminal", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(64000);
+      const ui = fixture(vi.fn());
+      try {
+        for (let index = 0; index < 25; index++) ui.dashboard.appendOutput({ kind: "info", text: `Earlier output ${index}`, ts: 0 });
+        ui.dashboard.appendOutput({ kind: "tool", role: "action", text: "Run npm test", ts: 1000 });
+        ui.dashboard.appendOutput({ kind: "status", text: "Pending review", ts: 1000 });
+        ui.send("\u001b");
+        vi.advanceTimersByTime(51);
+        expect(ui.screen()).toContain("Run npm test · 01:03");
+        ui.send("\u001b[A");
+        vi.advanceTimersByTime(20);
+        vi.advanceTimersByTime(5000);
+        ui.dashboard.updateStats({ elapsedMs: 5000 });
+        expect(ui.screen()).toContain("Run npm test · 01:03");
+        expect(ui.screen()).not.toContain("Run npm test · 01:08");
+        ui.send("f");
+        expect(ui.screen()).toContain("Run npm test · 01:08");
+      } finally { ui.dashboard.destroy(); }
+    });
+  });
+
   it("accepts multiple messages while output streams and targets the displayed plan", async () => {
     await withOutputFormat("terminal", async () => {
       const onSubmit = vi.fn();

@@ -4,13 +4,32 @@ import type { OutputItem } from "../types.js";
 import { renderOutputPane } from "./output-pane.js";
 import { getTheme } from "../../internal/theme-detect.js";
 
-function rows(items: OutputItem[], details = false) {
+function rows(items: OutputItem[], details = false, now?: number) {
   const buffer = new ScreenBuffer(80, 15);
-  renderOutputPane(buffer, { x: 0, y: 0, width: 80, height: 15 }, items, 0, { conversation: true, details });
+  renderOutputPane(buffer, { x: 0, y: 0, width: 80, height: 15 }, items, 0, { conversation: true, details, now });
   return Array.from({ length: 15 }, (_, y) => Array.from({ length: 80 }, (_, x) => buffer.get(x, y).ch).join("").trimEnd());
 }
 
 describe("concise conversation transcript", () => {
+  it("shows elapsed time only for a live running action", () => {
+    const items: OutputItem[] = [
+      { role: "action", kind: "tool", text: "Run npm test", detail: "npm test --workspace=docx", ts: 1000 },
+      { role: "action", kind: "success", text: "Read settings.ts", ts: 1000 },
+      { role: "agent", kind: "info", text: "The checks are still running.", ts: 1000 }
+    ];
+    expect(rows(items, false, 64000).slice(0, 3)).toEqual([
+      "›  Run npm test · 01:03", "✓  Read settings.ts", "•  The checks are still running."
+    ]);
+    expect(rows(items, true, 3_664_000)[0]).toBe("›  Run npm test · 01:01:03");
+    expect(rows(items, true, 3_664_000)[1]).toBe("   npm test --workspace=docx");
+    expect(rows(items)[0]).toBe("›  Run npm test");
+  });
+
+  it.each([0, 1999, Number.NaN])("does not show an invalid or subsecond action age at %s", (now) => {
+    expect(rows([{ role: "action", kind: "tool", text: "Read settings.ts", ts: 1000 }], false, now)[0])
+      .toBe("›  Read settings.ts");
+  });
+
   it("expands a checklist once in details and keeps it separate from completed tool actions", () => {
     const items: OutputItem[] = [{
       role: "plan", kind: "status", ts: 0,

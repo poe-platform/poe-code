@@ -44,6 +44,12 @@ describe("run dashboard information hierarchy", () => {
     expect(screen(80, 24, { output, showDetails: true }).text).toContain("/bin/zsh");
   });
 
+  it("shows live action age during a run without applying a ticking clock to a finished view", () => {
+    const output = [{ role: "action" as const, kind: "tool" as const, text: "Run npm test", ts: 1000 }];
+    expect(screen(80, 24, { output, now: 64000 }).text).toContain("Run npm test · 01:03");
+    expect(screen(80, 24, { output, now: 64000, stats: { ...stats, status: "done" } }).text).not.toContain("01:03");
+  });
+
   it("separates a long setup from agent activity, task progress, and the plan sequence", () => {
     const { text } = screen(140, 36);
     expect(text).toContain("Setup");

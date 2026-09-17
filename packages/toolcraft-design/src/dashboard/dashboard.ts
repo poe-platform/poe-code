@@ -73,6 +73,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
   let scrollOffset = 0;
   let outputViewportHeight = 0;
   let heldOutput: OutputItem[] | undefined;
+  let heldAt: number | undefined;
   let renderTimer: ReturnType<typeof setTimeout> | undefined;
   let composer: ComposerState | undefined = opts.onSubmit ? createComposerState("message") : undefined;
   let otherDraft = createComposerState("plan");
@@ -231,6 +232,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
           return;
         }
         heldOutput = undefined;
+        heldAt = undefined;
         scrollOffset = 0;
         render();
         return;
@@ -249,9 +251,12 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
           renderTimer ??= setTimeout(render, 16);
           return;
         }
-        if (direction > 0) heldOutput ??= getStore().getState().output;
+        if (direction > 0 && heldOutput === undefined) {
+          heldOutput = getStore().getState().output;
+          heldAt = Date.now();
+        }
         scrollOffset = Math.max(0, scrollOffset + amount * direction);
-        if (scrollOffset === 0) heldOutput = undefined;
+        if (scrollOffset === 0) { heldOutput = undefined; heldAt = undefined; }
         renderTimer ??= setTimeout(render, 16);
         return;
       }
@@ -348,7 +353,8 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
       lastActivePlanId = activePlanId;
       const view = renderRunView(nextBuffer, {
         title, stats: state.stats, output: heldOutput ?? state.output, scrollOffset,
-        composer, submitting, showQueue, showDetails, workOffset, feedback, hints: opts.hints
+        composer, submitting, showQueue, showDetails, workOffset, feedback, hints: opts.hints,
+        now: heldOutput === undefined ? Date.now() : heldAt
       });
       scrollOffset = view.scrollOffset;
       workOffset = view.workOffset;
@@ -393,7 +399,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
       renderFooter(nextBuffer, layout.footer, footerHints, state.stats.session);
 
     }
-    if (scrollOffset === 0) heldOutput = undefined;
+    if (scrollOffset === 0) { heldOutput = undefined; heldAt = undefined; }
 
     const performanceRect = outputRect ?? layout.leftPane;
     if (showPerformance && performanceRect.height > 0) {

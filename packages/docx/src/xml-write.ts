@@ -586,20 +586,25 @@ export class DocumentXmlEditor {
 
   /** Qualified attribute insertion/removal preserves unrelated lexical shells. */
   setQualifiedAttribute(element: XmlElement, name: ExpandedXmlName, value: string | null): void {
-    this.#assertOwnedEdit(element);
+    const active = this.#guardCompatibility && !this.#canEdit(element) && this.#activeAttributeOwner(element);
+    this.#assertOwnedEdit(element, active);
     if (name.namespace === "http://www.w3.org/2000/xmlns/" || name.localName === "xmlns") unsupported();
     const existing = element.attributes.find(attribute => attribute.namespace === name.namespace && attribute.localName === name.localName);
-    if (existing && this.#guardCompatibility && !this.#canEdit(existing)) unsupported();
-    if (!existing && this.#guardCompatibility && !this.#profile.understoodNamespaces.includes(name.namespace)
-      && !this.#profile.understoodElements?.some(node => node.namespace === element.namespace && node.localName === element.localName
-        && node.attributes.some(attribute => attribute.namespace === name.namespace && attribute.localName === name.localName))) unsupported();
+    const understood = this.#profile.understoodNamespaces.includes(name.namespace)
+      || this.#profile.understoodElements?.some(node => node.namespace === element.namespace && node.localName === element.localName
+        && node.attributes.some(attribute => attribute.namespace === name.namespace && attribute.localName === name.localName));
+    if (existing && this.#guardCompatibility && !this.#canEdit(existing) && !(active && understood)) unsupported();
+    if (!existing && this.#guardCompatibility && !understood) unsupported();
     if (!existing && value === null) return;
-    if (existing && value !== null) { this.setAttribute(element, name, value); return; }
+    if (existing && value !== null && !active) { this.setAttribute(element, name, value); return; }
+    if (existing?.value === value) return;
     const span = this.#spans.get(element)!;
     let patch: string;
     if (existing) {
       const attribute = this.#spans.get(existing)!;
-      patch = this.#source.slice(span.start, attribute.attributeStart!) + this.#source.slice(attribute.attributeEnd!, span.end);
+      patch = value === null
+        ? this.#source.slice(span.start, attribute.attributeStart!) + this.#source.slice(attribute.attributeEnd!, span.end)
+        : this.#source.slice(span.start, attribute.start) + escapeValue(value, true) + this.#source.slice(attribute.end, span.end);
     } else {
       let prefix = "", declaration = "";
       if (name.namespace) {
@@ -616,8 +621,30 @@ export class DocumentXmlEditor {
     this.#acceptOwnedPatch(element, patch, existing ? 0 : 1);
   }
 
-  #assertOwnedEdit(element: XmlElement): void {
-    if (!this.#elements.has(element) || this.#patches.size || this.#guardCompatibility && !this.#canEdit(element)) unsupported();
+  /** Narrow attribute authority does not grant subtree edits or traverse opaque owners. */
+  #activeAttributeOwner(element: XmlElement): boolean {
+    this.#budget.charge("retainedBytes", this.compatibility.content.length * 8);
+    const pending = [...this.compatibility.content];
+    while (pending.length) {
+      this.#budget.charge("work", 1);
+      const item = pending.pop()!;
+      if (!("source" in item) || item.disposition !== "understood") continue;
+      // Paired representations keep the compatibility editor's coordinated-edit barrier.
+      const node = item.source;
+      if (node.localName === "blip" && Object.values(documentDialects).some(dialect => dialect.a === node.namespace)) {
+        this.#budget.charge("work", node.children.length);
+        if (node.children.some(child => child.namespace === node.namespace && child.localName === "extLst")) continue;
+      }
+      if (item.source === element) return true;
+      this.#budget.charge("work", item.content.length);
+      this.#budget.charge("retainedBytes", item.content.length * 8);
+      for (let index = item.content.length - 1; index >= 0; index--) pending.push(item.content[index]!);
+    }
+    return false;
+  }
+
+  #assertOwnedEdit(element: XmlElement, activeAttribute = false): void {
+    if (!this.#elements.has(element) || this.#patches.size || this.#guardCompatibility && !this.#canEdit(element) && !activeAttribute) unsupported();
     this.assertShapeEditAllowed(element);
   }
 

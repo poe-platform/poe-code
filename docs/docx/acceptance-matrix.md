@@ -1,5 +1,13 @@
 # DOCX acceptance matrix
 
+The [active MCE XML attribute record](xml-view-mce-attributes-20260917.md)
+qualifies native add/set/remove through selected Choice, Fallback, ProcessContent
+and nested carriers. Its final run has 1,553 named passes in fifteen files, zero
+skips, 336 paired built workflows and an inspected CLI screenshot. Opaque,
+inactive and paired-image boundaries retain explicit rejection checks; table
+row-height reset consumers have exact positive retention evidence. Full F01–F07
+acceptance and other dependencies remain open.
+
 The [2026-09-17 model batch contract qualification](model-batch-data-contract-20260917.md)
 records 1,837 final focused passes in eighteen files, zero skips, and 112 paired
 built SDK/actual Shell workflows across both dialects/kinds and four encodings.

@@ -1,6 +1,9 @@
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
-import { Document, DocumentBudget, Twips, WD_TABLE_ALIGNMENT, WD_TABLE_DIRECTION, WD_CELL_VERTICAL_ALIGNMENT, WD_ROW_HEIGHT_RULE, applyStyleModelBatch, createDocxInspectionCommandEngine, inspectDocumentTables, readArchive } from "./index.js";
+import { MemoryFileSystem, Shell } from "virtual-bash";
+import { docxCommands } from "virtual-bash/commands/docx";
+import { readPackage } from "../tests/assertions.js";
+import { Document, DocumentBudget, Twips, WD_TABLE_ALIGNMENT, WD_TABLE_DIRECTION, WD_CELL_VERTICAL_ALIGNMENT, WD_ROW_HEIGHT_RULE, applyStyleModelBatch, createDocxInspectionCommandEngine, executeDocumentBatch, writeArchive, inspectDocumentTables, readArchive } from "./index.js";
 import { textContext, textFixture, w } from "../tests/fixtures/text.js";
 
 const mc = "http://schemas.openxmlformats.org/markup-compatibility/2006";
@@ -100,7 +103,7 @@ for (const strict of [false, true]) it(`reads selected columns of an empty ${str
 });
 
 for (const strict of [false, true]) it.each(fixtures.filter(fixture => fixture !== "direct control"))(
-  `refuses affected ${strict ? "Strict" : "Transitional"} table properties in %s without changing state`,
+  `retains table subtree restrictions and supports native attribute resets in ${strict ? "Strict" : "Transitional"} %s`,
   async fixture => {
     const input = await inputFor(fixture, strict);
     const actions = ["alignment", "alignment reset", "autofit", "direction", "vertical", "vertical reset", "width", "width reset", "height", "height reset", "height rule", "height rule reset"];
@@ -122,9 +125,18 @@ for (const strict of [false, true]) it.each(fixtures.filter(fixture => fixture !
         if (action === "height rule") row.height_rule = WD_ROW_HEIGHT_RULE.AUTO;
         if (action === "height rule reset") row.height_rule = null;
       } catch (error) { code = error instanceof Error && "code" in error ? String(error.code) : String(error); }
+      if (action === "height reset" || action === "height rule reset") {
+        const attribute = action === "height reset" ? 'w:val="360"' : 'w:hRule="exact"';
+        expect(new TextDecoder().decode(doc.element.serialize())).toBe(new TextDecoder().decode(before).replace(attribute, ""));
+        expect(row.height?.twips ?? null).toBe(action === "height reset" ? null : 360);
+        expect(row.height_rule?.name).toBe(action === "height reset" ? "EXACTLY" : "AT_LEAST");
+      }
       outcomes.push({ action, code, retained: Buffer.from(doc.element.serialize()).equals(Buffer.from(before)) });
     }
-    expect(outcomes).toEqual(actions.map(action => ({ action, code: "unsupported-edit", retained: true })));
+    expect(outcomes).toEqual(actions.map(action => {
+      const reset = action === "height reset" || action === "height rule reset";
+      return { action, code: reset ? "no error" : "unsupported-edit", retained: !reset };
+    }));
   }
 );
 
@@ -140,6 +152,44 @@ it("refreshes cached table grids after ordinary edits and isolates document owne
   expect(table.columns.at(0).width?.twips).toBe(1440);
   expect(other.tables[0]!.columns.at(0).width?.twips).toBe(720);
 });
+
+for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
+for (const route of ["model", "sdk", "shell"] as const) for (const attribute of ["height", "height_rule"] as const)
+it.each(fixtures.filter(fixture => fixture !== "direct control"))(
+  `${route} saves the ${attribute} native reset with exact unrelated retention; ${kind} strict=${strict} carrier=%s`,
+  async fixture => {
+    const enc = (text: string) => new TextEncoder().encode(text);
+    const parts = readPackage(await inputFor(fixture, strict));
+    if (kind === "dotx") parts.set("[Content_Types].xml", enc(new TextDecoder().decode(parts.get("[Content_Types].xml")!).replace("wordprocessingml.document.main+xml", "wordprocessingml.template.main+xml")));
+    const volume = Volume.fromJSON({ "/input": "", "/output": "" });
+    await writeArchive({ comment: new Uint8Array(), members: [...parts].map(([name, bytes]) => ({ name, bytes, directory: false, modified: new Date("2026-01-02T03:04:06Z") })) }, { async write(bytes) { volume.appendFileSync("/input", bytes); } }, { order: "input", compression: "store" }, textContext);
+    const input = new Uint8Array(volume.readFileSync("/input") as Buffer);
+    const ref = (resultHandle: string, index?: number) => ({ resultHandle, ...(index === undefined ? {} : { index }) });
+    const batch = { version: 1, operations: [
+      { operation: "model.document.Document.tables.get", receiver: ref("document"), arguments: {}, resultHandle: "tables" },
+      { operation: "model.table.Table.rows.get", receiver: ref("tables", 0), arguments: {}, resultHandle: "rows" },
+      { operation: "model.table._Rows.__getitem__.get", receiver: ref("rows"), arguments: { index: 0 }, resultHandle: "row" },
+      { operation: `model.table._Row.${attribute}.set`, receiver: ref("row"), arguments: { value: null } }
+    ] };
+    const sink = { async write(bytes: Uint8Array) { volume.appendFileSync("/output", bytes); } };
+    if (route === "model") {
+      const model = await Document(input, textContext); model.tables[0]!.rows.at(0)[attribute] = null; await model.save(sink);
+    } else if (route === "sdk") {
+      const result = await executeDocumentBatch(input, batch, { output: "-" }, { ...textContext, encoding: { order: "input", compression: "store" }, stdout: sink });
+      expect(result.results.at(-1)?.affected).toBe(1); expect(result.publication?.changed).toBe(true);
+    } else {
+      const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); await fs.writeFile("/ops", enc(JSON.stringify(batch)));
+      const result = await new Shell({ fs }).use(docxCommands({ engine: createDocxInspectionCommandEngine({ limits: textContext.limits }) })).exec("docx batch /input --ops-file /ops --output - > /output");
+      expect(result.exitCode, result.stdout + result.stderr).toBe(0); volume.writeFileSync("/output", await fs.readFile("/output")); expect(await fs.readFile("/input")).toEqual(input);
+    }
+    const output = new Uint8Array(volume.readFileSync("/output") as Buffer), after = readPackage(output);
+    for (const [name, bytes] of parts) expect(after.get(name)).toEqual(name === "word/document.xml" ? enc(new TextDecoder().decode(bytes).replace(attribute === "height" ? 'w:val="360"' : 'w:hRule="exact"', "")) : bytes);
+    const row = (await Document(output, textContext)).tables[0]!.rows.at(0);
+    expect(row.height?.twips ?? null).toBe(attribute === "height" ? null : 360);
+    expect(row.height_rule?.name).toBe(attribute === "height" ? "EXACTLY" : "AT_LEAST");
+    expect(row.cells.map(cell => cell.text)).toEqual(["Original cell", "Original cell"]);
+  }
+);
 
 for (const strict of [false, true]) for (const route of ["model", "sdk", "cli"] as const) it(`saves an ordinary ${strict ? "Strict" : "Transitional"} table edit through ${route} beside preserved properties`, async () => {
   const row = '<w:tblGrid><w:gridCol w:w="720"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>Original</w:t></w:r></w:p></w:tc></w:tr>';

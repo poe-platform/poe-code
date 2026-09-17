@@ -150,3 +150,16 @@ it('forwards a package cache byte bound', async () => {
   await program.parseAsync(['bash', '-c', ':', '--python-runtime', 'file:///runtime.mjs', '--python-trusted', '--python-package-max-cache-bytes', '134217728'], { from: 'user' });
   expect(runBash).toHaveBeenCalledWith(expect.objectContaining({ python: expect.objectContaining({ provisioning: expect.objectContaining({ maxCacheBytes: 134217728 }) }) }));
 });
+
+it('enables the explicit Pandoc plugin through the SDK', async () => {
+  const program = new Command().exitOverride();
+  registerBashCommand(program);
+  await program.parseAsync(['bash', '--pandoc', '-c', 'pandoc --help'], { from: 'user' });
+  expect(runBash).toHaveBeenCalledWith(expect.objectContaining({ pandoc: {} }));
+});
+it('leaves Pandoc disabled by default', async () => {
+  const program = new Command().exitOverride();
+  registerBashCommand(program);
+  await program.parseAsync(['bash', '-c', 'echo ready'], { from: 'user' });
+  expect(runBash).toHaveBeenCalledWith(expect.objectContaining({ pandoc: undefined }));
+});

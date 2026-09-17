@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createComposerState, editComposer } from "./composer.js";
 import type { KeypressEvent } from "./terminal.js";
 
@@ -59,5 +59,22 @@ describe("dashboard queue composer", () => {
   it("submits plan paths separately from messages", () => {
     const draft = editComposer(createComposerState("plan"), key("paste", { ch: "docs/plans/next.md" })).state;
     expect(editComposer(draft, key("return")).submit).toEqual({ kind: "plan", text: "docs/plans/next.md" });
+  });
+
+  it("inserts text and submits a long draft without resegmenting untouched text", () => {
+    const text = "Review 👩‍💻 changes\n".repeat(1000);
+    const state = { ...createComposerState("message"), text, cursor: text.length };
+    const segment = vi.spyOn(Intl.Segmenter.prototype, "segment");
+    try {
+      const edited = editComposer(state, key("x", { ch: "x" })).state;
+      expect(edited.text).toBe(text + "x");
+      expect(editComposer(edited, key("return")).submit?.text).toBe(text + "x");
+      expect(segment).not.toHaveBeenCalled();
+    } finally { segment.mockRestore(); }
+  });
+
+  it.each([key("home"), key("u", { ctrl: true })])("keeps the cursor at the start of an empty first line: %j", (event) => {
+    const state = { ...createComposerState("message"), text: "\nsecond line", cursor: 0 };
+    expect(editComposer(state, event).state).toMatchObject({ text: state.text, cursor: 0 });
   });
 });

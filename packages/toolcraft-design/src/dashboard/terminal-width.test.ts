@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { displayWidth, expandTabs, graphemes, graphemeWidth, truncateToWidth } from "./terminal-width.js";
 
 describe("terminal width", () => {
-  it.each(["", "Hello, world! 0123456789 ~", "解析中 ASCII 界界", "\u4e00\u9fff"])(
+  it.each(["", "Hello, world! 0123456789 ~", "解析中 ASCII 界界", "\u4e00\u9fff", "\t", "first\n\tsecond\n"])(
     "segments %j without invoking the native segmenter",
     (value) => {
       const segment = vi.spyOn(Intl.Segmenter.prototype, "segment");
@@ -37,7 +37,6 @@ describe("terminal width", () => {
 
   it.each([
     { value: "\0", expected: ["\0"] },
-    { value: "\t", expected: ["\t"] },
     { value: "\r\n", expected: ["\r\n"] },
     { value: "\x1f", expected: ["\x1f"] },
     { value: "\x7f", expected: ["\x7f"] },

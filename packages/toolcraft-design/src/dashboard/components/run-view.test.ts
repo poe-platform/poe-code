@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { ScreenBuffer } from "../buffer.js";
 import { createComposerState } from "../composer.js";
 import { renderRunView } from "./run-view.js";
@@ -265,5 +265,26 @@ describe("run dashboard information hierarchy", () => {
     expect(text).toContain("Check the final result");
     expect(result.cursor?.y).toBeLessThan(24);
     expect(result.cursor?.x).toBeLessThan(80);
+  });
+
+  it("reuses an unchanged draft layout while output streams and invalidates it after editing or resizing", () => {
+    const text = "Review 👩‍💻 document changes\n".repeat(50);
+    const composer = { ...createComposerState("message", "first"), text, cursor: text.length };
+    const segment = vi.spyOn(Intl.Segmenter.prototype, "segment");
+    const measurements = () => segment.mock.calls.filter(([value]) => value === text).length;
+    try {
+      screen(80, 24, { composer });
+      screen(80, 24, { composer, output: [{ kind: "info", text: "Streaming progress", ts: 0 }] });
+      expect(measurements()).toBe(1);
+      const resized = screen(100, 24, { composer });
+      expect(measurements()).toBe(2);
+      composer.cursor = 0;
+      const moved = screen(100, 24, { composer });
+      expect(measurements()).toBe(3);
+      expect(moved.result.cursor?.y).toBeLessThan(resized.result.cursor?.y ?? 24);
+      composer.text = "Updated draft";
+      composer.cursor = composer.text.length;
+      expect(screen(100, 24, { composer }).text).toContain("Updated draft");
+    } finally { segment.mockRestore(); }
   });
 });

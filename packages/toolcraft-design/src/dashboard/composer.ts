@@ -32,11 +32,13 @@ export function editComposer(state: ComposerState, event: KeypressEvent): {
   if (key === "escape") return { state: { ...state, focused: false }, handled: true };
   const next = { ...state, error: undefined };
   const boundaries = [0];
-  for (const segment of graphemes(state.text)) boundaries.push(boundaries.at(-1)! + segment.length);
+  if (["left", "right", "backspace", "delete"].includes(key ?? "") || (event.ctrl && (key === "d" || key === "w"))) {
+    for (const segment of graphemes(state.text)) boundaries.push(boundaries.at(-1)! + segment.length);
+  }
   const position = Math.max(0, boundaries.indexOf(state.cursor));
   const previous = boundaries[Math.max(0, position - 1)]!;
   const following = boundaries[Math.min(boundaries.length - 1, position + 1)]!;
-  const lineStart = state.text.lastIndexOf("\n", state.cursor - 1) + 1;
+  const lineStart = state.cursor === 0 ? 0 : state.text.lastIndexOf("\n", state.cursor - 1) + 1;
   const newline = state.text.indexOf("\n", state.cursor);
   const lineEnd = newline === -1 ? state.text.length : newline;
 

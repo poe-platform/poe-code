@@ -22,6 +22,9 @@ export type RunViewOptions = {
   hints?: FooterHint[];
 };
 
+type DraftLayout = { lines: string[]; cursor: { x: number; y: number } };
+const draftLayouts = new WeakMap<ComposerState, { text: string; cursor: number; width: number; layout: DraftLayout }>();
+
 export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   scrollOffset: number;
   outputRect: Rect;
@@ -280,7 +283,9 @@ function put(buffer: ScreenBuffer, rect: Rect, row: number, text: string, style:
   buffer.putInRect(rect, row, truncateToWidth(plainTerminalText(text), rect.width), style);
 }
 
-function wrapDraft(state: ComposerState, width: number): { lines: string[]; cursor: { x: number; y: number } } {
+function wrapDraft(state: ComposerState, width: number): DraftLayout {
+  const cached = draftLayouts.get(state);
+  if (cached?.text === state.text && cached.cursor === state.cursor && cached.width === width) return cached.layout;
   const lines = [""];
   let column = 0;
   let offset = 0;
@@ -297,5 +302,7 @@ function wrapDraft(state: ComposerState, width: number): { lines: string[]; curs
     if (column >= width) { lines.push(""); column = 0; }
     cursor = { x: column, y: lines.length - 1 };
   }
-  return { lines, cursor };
+  const layout = { lines, cursor };
+  draftLayouts.set(state, { text: state.text, cursor: state.cursor, width, layout });
+  return layout;
 }

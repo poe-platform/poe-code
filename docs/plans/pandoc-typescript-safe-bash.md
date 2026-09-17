@@ -1711,3 +1711,58 @@ Later workspace stages and npm posttest are not reached. Build, repository lint
 and final pipeline validation pass separately; integration acceptance stays open.
 The executed audit retains this dependency repair and strict PDF attribute/font
 subsetting and plain-note projection evidence; it does not finalize the pipeline.
+
+
+## Owned teardown reconciliation, 2026-09-16
+
+Finalization review at `8af06a636` closes only this owned review, not delivery of
+the original required scope. Inherited working-tree task-status changes and
+untracked public-wiring/isolation captures are preserved and excluded from this
+commit. They are not independently verified completion declarations. The
+committed acceptance statuses remain open where required gates are unresolved;
+no automatic scope cut, pipeline execution, push or release is performed.
+
+Latest committed evidence supersedes historical audit snapshots where noted:
+
+- [Current matrix](../pandoc/current-matrix/execution.json): 135 successful SDK
+  conversions and 21 unsupported pairs out of 156; 156/156 destination and
+  156/156 stdout command checks pass, including expected refusals. Native reader
+  AST comparisons are 9 passing / 3 failing out of 12, not full reader parity.
+  Declared PDF lane is 12 passing / 2 not-run (DOCX/XLSX) out of 14.
+- [Latest QA](../pandoc/qa-current/results.md): maintained Pandoc tests pass
+  1,067 tests in 47 files and package source/type lint passes. Public SDK,
+  explicit plugin, CLI usage/errors/resources and inspected HTML/PDF screenshots
+  have bounded evidence. These are prior executed checks, not a fresh root
+  build/test/lint rerun by this teardown.
+- [Import isolation](../pandoc/text-office-isolation.md): static text graph
+  excludes presentation/DOCX engines; deferred PPTX execution, public consumers,
+  isolated declarations and pack closure are verified. This resolves the old
+  audit's eager-PPTX finding, not all integration prerequisites. Full npm test
+  remains unsuccessful; neither the isolation retry nor the earlier native
+  archive failure audit qualifies as a passing root integration gate.
+- Parsed current upstream ledger: 5,100 rows, 5,087 planned, 13 not-applicable,
+  zero passing. Matrix inventory records all 5,100 not-run; dispositions are not
+  passing tests or an in-scope implementation percentage. Discovery review,
+  original behavioral decomposition and run-to-ledger mappings remain pending.
+- DOCX byte SDK works but arbitrary inline structured note construction remains
+  a semantic dependency gate. XLSX has no verified local sibling workbook SDK.
+  PPTX conversion is enabled, with unmeasured text fit and incomplete independent
+  full-deck application inspection. Office conversion/editing QA is not complete.
+- Required package READMEs remain absent and permission-gated. RTF word-processor
+  QA has not succeeded; TeX tooling is absent; current EPUB reader QA was not
+  rerun and historical findings remain historical. PDF row splitting, shaping,
+  internal links, merged cells, stable font subsets and silent attribute loss
+  retain unresolved acceptance requirements. Contract/implementation differences,
+  profile reconciliation and final visual/documentation gates remain pending.
+
+Local history verification inspected 95 commits selected by Pandoc package,
+evidence, main plan and conformance-plan paths. All use Conventional Commit
+subjects; 94 include a docs/plans update. Exception `b46748403`
+(`docs(pandoc): record RTF writer profile and external QA acceptance gaps`) has
+only RTF evidence paths and lacks a relevant plan update. This footer records its
+RTF QA gate as still pending; it does not rewrite that historical commit or claim
+perfect historical compliance. Path inspection verifies concrete commit contents,
+not sole ownership or semantic atomicity of every historical improvement.
+This reconciliation is one atomic documentation improvement with its relevant
+plan update. Local commits are separate from verified remote main and successful
+publication: neither remote-main delivery nor publication is verified here.

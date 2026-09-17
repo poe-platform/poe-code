@@ -1,3 +1,7 @@
+import { documentPartRole } from "./document-part-roles.js";
+import { parseMediaType } from "./media-type.js";
+import { propertyGroupDefinition, readPropertyNodes } from "./property-values.js";
+import type { DocumentPackage } from "./package.js";
 import { DocumentBudget } from "./budget.js";
 import { dialectForNamespace, documentDialects } from "./dialect.js";
 import type { XmlContent, XmlElement } from "./package-xml.js";
@@ -41,22 +45,39 @@ function referenceOperand(instruction: string, name: string): Operand | undefine
 /** Edits only admitted internal links and literal REF/PAGEREF bookmark operands. */
 export function updateBookmarkReferences(
   editors: ReadonlyMap<string, DocumentXmlEditor>, oldName: string, newName: string | null,
-  policy: "update" | "remove" | "reject", budget: DocumentBudget
+  policy: "update" | "remove" | "reject", budget: DocumentBudget, graph: DocumentPackage
 ): void {
   const changes: (() => void)[] = [];
   const dependency = (): void => {
     if (policy === "reject") unsafe("The bookmark still has references; an explicit update or removal policy is required.");
     if ((newName === null) !== (policy === "remove")) unsafe("The bookmark reference policy does not match the operation.");
   };
-  for (const editor of editors.values()) {
+  for (const [part, editor] of editors) {
+    const type = parseMediaType(graph.getPart(part).content_type), root = editor.root;
+    const rootDialect = dialectForNamespace(root.namespace) ?? "transitional";
+    const math = documentDialects[rootDialect].m, role = documentPartRole(type, root);
+    const literalProperties = new Set<XmlElement>();
+    for (const group of ["core", "extended", "custom"] as const) {
+      const definition = propertyGroupDefinition(group, rootDialect);
+      if (type !== definition.contentType || root.namespace !== definition.namespace || root.localName !== definition.root) continue;
+      for (const property of readPropertyNodes(root, group, rootDialect)) {
+        budget.charge("work", 1);
+        if (property.valueNode && property.value !== null && property.value.value !== null) {
+          budget.charge("retainedBytes", 8); literalProperties.add(property.valueNode);
+        }
+      }
+    }
     const remove = new Set<XmlElement>();
     let fields: Field[] = [];
     let deletedTail = "";
     const attribute = (node: XmlElement, localName: string) => node.attributes.find(item => item.namespace === node.namespace && item.localName === localName);
-    const visit = (node: XmlElement): void => {
+    const visit = (node: XmlElement, parent?: XmlElement, mathContext: "outside" | "unit" | "opaque" = "outside"): void => {
       budget.charge("work", 1);
       const dialect = dialectForNamespace(node.namespace);
       const word = dialect !== undefined && node.namespace === documentDialects[dialect].w;
+      if (!word && node.namespace !== math && node.namespace !== "http://schemas.openxmlformats.org/markup-compatibility/2006") mathContext = "opaque";
+      if (mathContext === "outside" && (role === "story" || role === "glossary") && node.namespace === math && ["oMath", "oMathPara"].includes(node.localName)) mathContext = "unit";
+      const literalMathText = mathContext === "unit" && node.namespace === math && node.localName === "t" && parent?.namespace === math && parent.localName === "r" && node.children.length === 0;
       const story = word && ["body", "hdr", "ftr", "footnote", "endnote", "comment", "txbxContent"].includes(node.localName);
       const outerFields = fields;
       const outerDeletedTail = deletedTail;
@@ -66,10 +87,11 @@ export function updateBookmarkReferences(
         if (item.namespace === "http://www.w3.org/2000/xmlns/") continue;
         const knownWordAttribute = word && (item.namespace === node.namespace ||
           item.namespace === documentDialects[dialect!].r || item.namespace === "http://www.w3.org/XML/1998/namespace");
-        if (!knownWordAttribute && item.value.includes(oldName))
+        const knownMathFont = role === "settings" && parent?.namespace === math && parent.localName === "mathPr" && root.children.includes(parent) && node.namespace === math && node.localName === "mathFont" && item.namespace === math && item.localName === "val";
+        if (!knownWordAttribute && !knownMathFont && item.value.includes(oldName))
           unsafe("An opaque XML attribute may reference the bookmark.");
       }
-      if (!word) {
+      if (!word && !literalMathText && !literalProperties.has(node)) {
         const text = node.content.map(part => part.kind === "text" || part.kind === "cdata" ? part.text : "").join("");
         budget.charge("work", text.length);
         if (text.includes(oldName)) unsafe("Opaque XML text may reference the bookmark.");
@@ -146,7 +168,7 @@ export function updateBookmarkReferences(
           }
         }
       }
-      for (const child of node.children) visit(child);
+      for (const child of node.children) visit(child, node, mathContext);
       if (story) {
         if (fields.length) unsafe("A complex field crosses a story boundary or is missing its end.");
         fields = outerFields;

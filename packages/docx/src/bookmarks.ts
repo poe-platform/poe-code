@@ -10,7 +10,7 @@ import { closedRecord, encodeLocation, type Location } from "./location-token.js
 import { openDocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentPackage } from "./package.js";
-import type { XmlElement } from "./package-xml.js";
+import { isXmlContentType, type XmlElement } from "./package-xml.js";
 import { splitParagraphContent } from "./paragraph-content.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { runElementOpen } from "./run-properties.js";
@@ -106,8 +106,8 @@ function inventory(editors: ReadonlyMap<string, DocumentXmlEditor>, budget: Docu
 
 function xmlEditors(archive: DocumentArchive, settings: ReturnType<typeof archiveSettings>, budget: DocumentBudget) {
   const graph = new DocumentPackage(archive, settings.limits, budget);
-  return new Map(graph.parts.filter(p => p.content_type.toLowerCase().endsWith("+xml") || ["application/xml", "text/xml"].includes(p.content_type.toLowerCase()))
-    .map(p => [p.partname, new DocumentXmlEditor(p.bytes, {}, undefined, budget)]));
+  return { graph, editors: new Map(graph.parts.filter(p => isXmlContentType(p.content_type))
+    .map(p => [p.partname, new DocumentXmlEditor(p.bytes, {}, undefined, budget)])) };
 }
 
 export async function inspectDocumentBookmarks(input: Uint8Array, options: DocxOperationArguments<"bookmarks.list">, context: ArchiveContext): Promise<BookmarkListData> {
@@ -115,7 +115,7 @@ export async function inspectDocumentBookmarks(input: Uint8Array, options: DocxO
   const invocation = validateDocxInvocation({ operation: "bookmarks.list", inputs: ["document"], options }, settings.budget);
   const budget = settings.budget.lower(Object.fromEntries((options.limit ?? []).map(item => [item.name, item.value])));
   const archive = await readDocumentArchive(input, { ...settings, budget });
-  const found = inventory(xmlEditors(archive, settings, budget), budget);
+  const found = inventory(xmlEditors(archive, settings, budget).editors, budget);
   if (found.issues.length) {
     const data: BookmarkListData = { items: [], issues: found.issues };
     budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation: "bookmarks.list", ok: true, data, affected: 0, locations: [], warnings: [], errors: [] }) + "\n").length);
@@ -184,7 +184,7 @@ export async function editDocumentBookmarks(input: Uint8Array, request: Bookmark
   budget.check("matches", selected.length);
   let archive = document.snapshot();
   assertDocumentEditable(archive, { ...settings, budget });
-  const editors = xmlEditors(archive, settings, budget);
+  const { editors, graph } = xmlEditors(archive, settings, budget);
   const found = inventory(editors, budget);
   if (found.issues.length) throw new UnsupportedEditError("Bookmark structure is unsafe: " + found.issues.join("; "));
   const before = selected[0]!;
@@ -207,7 +207,7 @@ export async function editDocumentBookmarks(input: Uint8Array, request: Bookmark
     insertRange(editor, node, range.start, range.end, String(id), options.name, budget);
   } else if (!removing && marker!.name === options.name) changed = false;
   else {
-    updateBookmarkReferences(editors, marker!.name, removing ? null : options.name, options.references, budget);
+    updateBookmarkReferences(editors, marker!.name, removing ? null : options.name, options.references, budget, graph);
     if (removing) {
       editor.replaceElement(marker!.node, "");
       editors.get(marker!.end!.part)!.replaceElement(marker!.end!.node, "");
@@ -216,7 +216,7 @@ export async function editDocumentBookmarks(input: Uint8Array, request: Bookmark
   archive = { ...archive, members: archive.members.map(member => {
     const xml = editors.get("/" + member.name); return xml ? { ...member, bytes: xml.serialize() } : member;
   }) };
-  const finalEditors = xmlEditors(archive, settings, budget), finalInventory = inventory(finalEditors, budget);
+  const finalEditors = xmlEditors(archive, settings, budget).editors, finalInventory = inventory(finalEditors, budget);
   if (finalInventory.issues.length) throw new UnsupportedEditError("Bookmark mutation would create overlapping or invalid ranges.");
   let after = before;
   if (changed) {

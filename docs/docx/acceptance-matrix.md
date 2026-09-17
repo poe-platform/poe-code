@@ -1,5 +1,11 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 native XML cross-family qualification](native-media-cross-family-20260917.md)
+records 382 focused passing tests, zero skips, and 24 built SDK/actual Shell
+workflows. Named math refusal locations, bookmark MIME ownership and native
+literal/opaque carrier controls pass with exact retention. Historical failed
+runs remain separate; other consumers and full F01–F07 acceptance stay open.
+
 The [2026-09-17 native MIME role qualification](native-media-roles-20260917.md)
 binds 972 exact passing cases across model/SDK/actual Shell, both dialects/kinds,
 native role resolution, physical inventory, native image loading, protection

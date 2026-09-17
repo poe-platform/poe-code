@@ -2,14 +2,25 @@ import { expect, it } from "vitest";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { DocumentBudget } from "./budget.js";
 import { updateBookmarkReferences } from "./bookmark-references.js";
+import { DocumentPackage } from "./package.js";
+import { textContext } from "../tests/fixtures/text.js";
 
 const ns = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 function editor(content: string): DocumentXmlEditor {
   return new DocumentXmlEditor(new TextEncoder().encode(`<w:document xmlns:w="${ns}" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body>${content}</w:body></w:document>`));
 }
+function packageGraph(): DocumentPackage {
+  const files = {
+    "[Content_Types].xml": '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>',
+    "_rels/.rels": '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>',
+    "word/document.xml": '<root/>',
+    "word/header1.xml": '<root/>'
+  };
+  return new DocumentPackage({comment: new Uint8Array(), members: Object.entries(files).map(([name, content]) => ({name, bytes: new TextEncoder().encode(content), directory: false, modified: new Date("2026-01-02T03:04:06Z")}))}, textContext.limits);
+}
 const output = (xml: DocumentXmlEditor) => new TextDecoder().decode(xml.serialize());
 function update(xml: DocumentXmlEditor, name: string | null = "Arrival", policy: "update" | "remove" | "reject" = "update"): void {
-  updateBookmarkReferences(new Map([["word/document.xml", xml]]), "Harbor", name, policy, new DocumentBudget());
+  updateBookmarkReferences(new Map([["/word/document.xml", xml]]), "Harbor", name, policy, new DocumentBudget(), packageGraph());
 }
 
 it("renames internal links and simple field operands preserving switches and external links", () => {
@@ -71,7 +82,7 @@ it("checks every story before staging reference changes", () => {
   const main = editor('<w:p><w:hyperlink w:anchor="Harbor"><w:r><w:t>Port</w:t></w:r></w:hyperlink></w:p>');
   const header = editor('<w:p><w:fldSimple w:instr="CUSTOM Harbor"><w:r><w:t>Port</w:t></w:r></w:fldSimple></w:p>');
   const before = output(main);
-  expect(() => updateBookmarkReferences(new Map([["word/document.xml", main], ["word/header1.xml", header]]), "Harbor", "Arrival", "update", new DocumentBudget())).toThrow(UnsupportedEditError);
+  expect(() => updateBookmarkReferences(new Map([["/word/document.xml", main], ["/word/header1.xml", header]]), "Harbor", "Arrival", "update", new DocumentBudget(), packageGraph())).toThrow(UnsupportedEditError);
   expect(output(main)).toBe(before);
 });
 
@@ -136,6 +147,6 @@ it("rejects opaque fragment attributes containing the bookmark name", () => {
 it.each(["PAGE", "NUMPAGES"])("preserves operand-free %s fields when the bookmark shares their name", name => {
   const xml = editor(`<w:p><w:fldSimple w:instr=" ${name} \\* MERGEFORMAT "><w:r><w:t>14</w:t></w:r></w:fldSimple></w:p>`);
   const before = output(xml);
-  updateBookmarkReferences(new Map([["word/document.xml", xml]]), name, "Arrival", "update", new DocumentBudget());
+  updateBookmarkReferences(new Map([["/word/document.xml", xml]]), name, "Arrival", "update", new DocumentBudget(), packageGraph());
   expect(output(xml)).toBe(before);
 });

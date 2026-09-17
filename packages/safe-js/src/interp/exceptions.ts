@@ -418,10 +418,10 @@ export function createSubsetErrorValue(
     const prototype = options.transport ? undefined : errorPrototypes.get(budget)?.get(toSandboxErrorName(errorName));
     const error: SandboxObject = prototype === undefined ? { name: errorName, message: errorMessage, stack } : {};
     if (prototype !== undefined) {
+      Object.defineProperty(error, "stack", { value: stack, writable: true, configurable: true });
       if (message !== undefined) Object.defineProperty(error, "message", { value: errorMessage, writable: true, configurable: true });
       if (!errorPrototypes.get(budget)!.has(errorName as SandboxErrorName))
         Object.defineProperty(error, "name", { value: errorName, writable: true, configurable: true });
-      Object.defineProperty(error, "stack", { value: stack, writable: true, configurable: true });
       setSandboxPrototype(error, prototype, budget);
     }
 

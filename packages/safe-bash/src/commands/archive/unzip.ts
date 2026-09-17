@@ -90,7 +90,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       if (!parsed.pipe && !parsed.quiet) await budget.output(`Archive:  ${filtered(archive)}\n`);
       const resolved = await resolveZipVolumes({ context, limits, operation: action => extraction.operation(async () => action()), stat: path => extraction.stat(path), input: path => extraction.input(path) }, archivePath, bytes, options.zipHost);
       extraction.inputVolumes = resolved.volumes ?? [];
-      const zip = await readZipArchive(resolved.bytes, limits, context.signal, resolved.disks ? { disks: resolved.disks } : {});
+      const zip = await readZipArchive(resolved.bytes, limits, context.signal, resolved.disks ? { disks: resolved.disks } : { prefix: true });
       if (!parsed.pipe && !parsed.quiet) await comment(zip.comment, budget);
       if (!zip.entries.length) {
         await budget.output(`warning [${filtered(archive)}]:  zipfile is empty\n`, true);

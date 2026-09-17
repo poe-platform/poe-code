@@ -120,11 +120,11 @@ tasks:
 
       Add focused zip/repair.ts plus reader/command changes for SFX prefix handling, -A offset adjustment and -F/-FF recovery. Reading an SFX archive must never execute its prefix. Keep ordinary parsing strict; recovery runs only when explicitly requested and has bounded scan/work budgets. Validate candidate signatures, spans, local/central records, descriptors, CRCs and names; embedded signatures inside payloads are not automatically members. Cover prefixes with/without adjusted offsets, missing/truncated EOCD/central directory, orphan local records, gaps, trailing bytes, overlapping entries, duplicate candidates and corrupt payloads. Never overwrite the only damaged source during recovery; use verified separate-output semantics and label partial recovery explicitly with native-compatible diagnostics/status. Extraction retains traversal/symlink protections even for recovered metadata.
     status:
-      reproduce: open
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      reproduce: done
+      implement: done
+      refactor: done
+      test: done
+      commit: done
   - id: zip-metadata-platform-parity
     title: "Qualify names, metadata and filesystem edge cases"
     prompt: |

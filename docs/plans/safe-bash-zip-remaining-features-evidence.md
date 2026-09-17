@@ -3668,3 +3668,394 @@ Workspace typechecking passed, including all 26 current consumer groups and
 expected negative validators. Repository guarded ESLint passed before and after
 the test-only fix, with zero errors and four warnings in unchanged files.
 `git diff --check` passed. These are local checks; no push or release was requested.
+
+## SFX offset adjustment and explicit archive recovery, 2026-09-16
+
+### Current-main validation and implemented profile
+
+Work began on clean local main at
+`dec0204649d3f028e87bc29b643b00b268e5a664`. Root and package AGENTS.md were read.
+The first five memory-VFS controls all failed before implementation: ordinary
+`unzip -t` rejected an unadjusted SFX with missing-EOCD diagnostics, `zip -A`
+returned unsupported-option status 16, and `-F`/`-FF` returned status 16 for
+missing end records and orphan locals. Existing `-J` SFX validation was present;
+this is an extension of that implementation, not a claim it was absent.
+
+The focused `zip/repair.ts` uses existing strict ZIP parsing, ZIP64 fields/end
+encoders, decoding codecs and CRC verification. Ordinary unzip now accepts fully
+validated adjusted/unadjusted ZIP32/ZIP64 SFX without executing prefix bytes;
+ordinary parsing still rejects damaged directories, gaps, overlaps and trailing
+bytes. Reader prefix support is explicit. `-A` adjusts owned bytes while retaining
+the exact inert prefix, local records and compressed payloads. It validates CRCs
+before publication and is idempotent for already adjusted archives.
+
+`-F` rebuilds end metadata from a complete validated central directory. `-FF`
+also scans local records when central metadata cannot be proved. Candidates
+must pass strict metadata/path/span/descriptor checks and expanded-size/CRC
+validation. Existing central metadata is preferred, including symlink types.
+Bounded payload spans are skipped even when corrupt. An archive embedded inside
+an outer local payload is not reinterpreted as an SFX during repair. Unknown-size
+descriptors need verified unique record boundaries; ambiguous or unresolved
+payloads cannot nominate embedded members. Local UT access/creation timestamps
+are never promoted to modification time.
+
+Both recovery modes require a named separate `-O` output. Direct and symlink
+aliases are rejected. Recovered bytes are strictly read and decoded before
+existing owned atomic VFS staging/publication. No host-process fallback or new
+runtime dependency was added. Existing ByteSource/ByteSink, signal, filesystem
+identity and owned cleanup contracts are reused. Source and existing destination
+bytes survive rejected recovery and cancellation during stage acquisition.
+Shell and direct command SDK dispatch share arguments, bytes and statuses.
+
+Salvage with verified members returns status 0; excluded corrupt, duplicate,
+ambiguous or truncated members get an explicit partial-recovery warning. Failed salvage with no
+verified members or unusable `-F` central metadata returns status 3. Explicit
+recovery work/decode exhaustion returns status 4. Work accounts for input,
+scanning, synthetic candidate bytes and decoded verification bytes; candidates
+are bounded by maxMembers. Existing archive/path/entry/total limits still apply.
+
+### Positive, negative, boundary, cancellation and regression proof
+
+The final focused file has **63/63** passing memory-only controls, zero skips,
+failures, cancellations or TODOs. They include adjusted/unadjusted ZIP32/ZIP64
+SFX, idempotent adjustment, missing/truncated EOCD and central metadata, orphan
+locals, STORE/DEFLATE/BZIP2, signed/unsigned classic/wide descriptors, internal
+gaps, trailing junk, overlap and duplicate references, duplicate names, corrupt
+payloads, embedded local signatures, complete embedded ZIPs, fake and ambiguous
+descriptors, traversal names and verified central symlink extraction protection.
+Boundary controls cover empty archives/SFX, exact archive bytes, path/entry/total/
+member limits and recovery work exhaustion. Cancellation controls cover both
+cooperative scanners and all three commands during owned stage acquisition,
+including preserved source/destination and absence of leaked .zip stages.
+
+Additional failing controls preceded fixes for ZIP64 local recovery, preservation
+of verified central symlink metadata, ambiguous descriptors, a complete embedded
+archive and access-only UT timestamps. The first neighboring run found an obsolete
+test expecting `--fix` to remain unsupported. That assertion now uses the still
+unsupported `--show-unicode`; rejection coverage was preserved. A later typecheck
+found three TS2532 errors in test byte mutations; explicit known-index non-null
+assertions fixed them. Those failed attempts are not green validation receipts.
+Final quiet-output review also reproduced three failures before fixing success
+progress for `-q -A`, `-q -F` and `-q -FF`. A fourth control keeps partial-recovery
+warnings visible under `-q`; quiet mode does not hide data-loss diagnostics.
+
+Maintained selected build closure passed after the final runtime change:
+`npm run build:workspaces -- --workspace=virtual-bash` (six declared build tasks).
+Maintained `npm run test:runner --workspace=virtual-bash` passed **522/522**;
+the new canonical test is registered by its exact path in integration-input tests.
+Final neighboring/type/lint results are recorded below after settlement. The first
+guarded lint attempt ended with signal 143 and no receipt; it is incomplete, not
+a pass. Earlier intermediate checks do not certify the final source identities.
+
+### Isolated native oracles and executed Markdown visual QA
+
+Native commands ran only as isolated test oracles, with explicit binary paths,
+scratch cwd and `PATH=/usr/bin:/bin LC_ALL=C TZ=UTC`, no inherited credentials.
+Bindings were admitted as bounded regular files before hashing/execution:
+
+| Oracle | SHA-256 |
+| --- | --- |
+| Apple Info-ZIP Zip 3.0, `/usr/bin/zip` | `493a7f270b2cb3ea4f5cf153f735939bdce8b1bad48dce56d6ba89b495064271` |
+| Apple Info-ZIP UnZip 6.00, `/usr/bin/unzip` | `2246c1d0fee8aeda25a3b99c35b8f65f9b8f1d224971c92095072c2092ec70de` |
+
+Native `-FF` returned 0 for orphan-local salvage, including an unchecked corrupt
+payload. Native `-F` returned 3 without EOCD, even with a complete remaining
+central directory, and with no central directory. Native `-A` returned 0 and
+reported correcting a nine-byte prefix. Product `-F` deliberately supports the
+bounded, fully verified complete-central/no-EOCD case; that is stronger recovery
+than this native build, not byte/status parity for that input. Product excludes
+unchecked corrupt payloads and labels partial salvage. No native code was changed.
+
+Native UnZip `-t` and Python zipfile testzip independently accepted both product
+repair captures: five members each, status 0/no bad member. Output identities:
+`product-F.zip` = `05b6201250bd8421c7453ebe0b9c6fae8db2e1f1a989bc740024557b312d6cec`;
+`product-FF.zip` = `8b7890937df6eb72e651e5e7f0a517330f0f68e8f55a569f36ce2ea91ff9123a`.
+These qualify those captures, not every native format/tool version.
+
+Executed ad hoc visual steps (memory VFS through actual Shell dispatch):
+
+1. Place an inert-prefixed two-member archive; run `unzip -t sample.zip`.
+   Expect both members OK and status 0, with no prefix execution.
+2. Run `zip -A sample.zip`; expect adjusted-offset diagnostic and status 0.
+3. Remove central/end metadata and corrupt the second member; run
+   `zip -FF damaged.zip -O recovered.zip`. Expect explicit partial warning,
+   status 0 and only the verified member in `unzip -t recovered.zip`.
+4. Run `zip -F damaged.zip -O refused.zip`; expect structure diagnostic,
+   an explicit suggestion to use separate-output `-FF`, and status 3.
+5. Render the actual dispatch with maintained `npm run screenshot`; inspect PNG
+   for legible diagnostics/member results/statuses. All were visible and correct.
+
+Screenshot SHA-256:
+`974c6ca362801622da18625dc734db254f632c0edc788af67e1f7f697e930549`.
+The final render also included `zip -h`, quiet success for `-A`/`-F`, and quiet
+partial `-FF`: success progress was absent while the warning remained legible.
+Final render SHA-256:
+`391cd18d8868d77581645581d477b5da5135eb4022556d8e521beb02f14a5c25`.
+The root poe-code launcher does not provide this memory-VFS fixture; the maintained
+general renderer was used to capture its actual shell host. This is ad hoc QA,
+not a maintained screenshot test or QA script. Absolute `/out` creation failed
+with read-only-filesystem errno 30; task-owned ignored repository `out/zip-repair*`
+scratch is purged after receipts. Unrelated scratch is preserved.
+
+### Final working-tree revision identities
+
+These repository-relative inputs are bound by SHA-256; evidence itself excluded.
+
+| Input | SHA-256 |
+| --- | --- |
+| `packages/safe-bash/src/commands/archive/zip/repair.ts` | `f0331d26ce3b4da1592afc3ea387db98462752daf11fd438fc051f4249f55e8e` |
+| `packages/safe-bash/src/commands/archive/zip-format.ts` | `b4b78c1bd29f79261a133215338238c37a309d4b3fc1adc4aefe5cb102a78673` |
+| `packages/safe-bash/src/commands/archive/zip.ts` | `6b1b11d4c61e8f65040688faf93d80233f212becb1ac787a0c97bb246ef8a64b` |
+| `packages/safe-bash/src/commands/archive/unzip.ts` | `968a4191b6542f4660ae05a8337aa1d635fb6b90d4e87b1bb45cb31c81d40c8e` |
+| `packages/safe-bash/src/commands/archive/zip/zip64.ts` | `e46a420debd9cc9b7c24c027bcb3fb82967456c1c96f8e6f2e6e24f723ffe7e8` |
+| `packages/safe-bash/src/commands/archive/zip/options.ts` | `2e5b8ff794cef1a0b4a56ed883ce84fc322056c478e3780d79006e68196839dc` |
+| `packages/safe-bash/src/commands/archive/zip/help.ts` | `9079084aaa850625833a53d90be091e2e7662316c1f1f832d5f341f758075dbb` |
+| `packages/safe-bash/src/contracts/zip.md` | `c498b6e19f441547d556ccadb44d4fd77400deec9e9a15fbeaf392e47ef78bfc` |
+| `packages/safe-bash/tests/commands/zip-repair.test.ts` | `17d4379b4b254f8d07b104c018501cecea175eda9a08bf1d9a2479e5454a9514` |
+| `packages/safe-bash/tests/commands/zip.test.ts` | `01f602611ab304e1cafef3bc6fd59a60585690eba23943b4a5e105bde2308f00` |
+| `packages/safe-bash/scripts/integration-inputs.test.mjs` | `2fc6119f83cfede0febef1d53b44f1afd1a511ec90792af4a87a296e3e8493d4` |
+
+### Exclusions and qualification limits
+
+This is bounded single-file recovery, not arbitrary media/split recovery or all
+native option cross-products. Modification/selection, split/grow/move and repair
+cannot be combined. Recovery stops when a safe local end cannot be established;
+it does not promise later-member salvage across unknown corrupt payload spans.
+Unknown-size descriptors followed by non-record gaps/junk are conservatively
+refused. Metadata-shaped local headers within an apparent SFX prefix can cause
+explicit repair to refuse that SFX interpretation; ordinary validated SFX reads
+remain independent of this conservative recovery anchor.
+
+Local-only salvage cannot reconstruct absent central Unix types/comments or
+archive comments; it uses conservative regular-file/directory defaults. End-record
+reconstruction may lose damaged archive comments. Recovery publishes a plain ZIP;
+prefix preservation is qualified for `-A`, not recovery output. Unchecked payload copying,
+encrypted recovery without a supplied password, required ZIP32-to-ZIP64 offset
+promotion, arbitrary ZIP64-sized in-memory payloads and exact native diagnostic/
+prompt byte parity are excluded. Existing codec/crypto/name limits remain active.
+Known input/stat/identity validation is not a lease, transactional snapshot or
+ABA guarantee. Buffers remain subject to existing byte limits, not an RSS promise.
+
+No full repository unit gate, deployed real/S3/WebDAV service qualification,
+full compatibility-matrix sweep or new root CLI capability binding is inferred.
+README, SafeJS and unrelated edits were preserved. This is local working-tree
+proof: no commit, push, verified remote-main delivery, issue closure or release
+was requested or performed.
+
+### Final settled validation
+
+- Focused memory-only recovery/SFX controls: **63/63**, zero failures, skips,
+  cancellations or TODOs; 0.869 seconds.
+- Final uncached ZIP/unzip neighboring command/plugin controls: **1,907/1,907**,
+  zero failures, skips, cancellations or TODOs; test concurrency one,
+  33.447 seconds. The command selected zip*.test.ts, unzip.test.ts and the two
+  ZIP plugin files under packages/safe-bash, including the new focused file.
+- Final maintained selected build closure passed (six declared workspace builds).
+- Final `npm run typecheck --workspace=virtual-bash` passed source/tests and all
+  26 current consumer groups; three negative validators returned expected exit 2.
+  This establishes type acceptance, not runtime/service qualification.
+- Final guarded `npm run lint:eslint` returned 0 with a complete receipt:
+  15,505 configured subjects linted, zero errors and four warnings in unchanged
+  files. No guard/ownership exclusions or diagnostic waivers were added.
+  Full raw log SHA-256 before purge:
+  `acd1beab7ae805a026aee3d8ab235ca6273bf5bd0139d690b8eeb52ea91732be`.
+- Final native/Python recapture on the listed runtime revision reproduced both
+  output SHA-256 identities above, native status 0 and Python testzip None,
+  five members each. The final help/default/quiet screenshot was inspected.
+- All eleven maintained source/test/registration identities were recomputed
+  against this table. `git diff --check` passed. Task-owned scratch is purged;
+  unrelated artifacts remain. No commit, push or release was performed.
+
+These focused controls certify the bounded profile and exclusions above; they
+do not substitute for the excluded full repository/release gates. Complete,
+well-formed empty archives remain valid in both modes; failed local salvage
+with no verified members returns structure status 3.
+
+### Current-main follow-up: truncated orphan header diagnostics
+
+Revalidated on main at base `dec0204649d3f028e87bc29b643b00b268e5a664`
+with the existing dirty implementation preserved. The initial focused suite
+passed 63/63; the broad feature gap was already implemented in the working tree.
+Three new memory-only tests then failed concretely: after a verified local
+member, a final 4-, 14-, or 29-byte orphan local header was ignored and
+`partial` was false. The local salvage loop now scans complete four-byte
+signatures and marks an incomplete fixed header partial before reading fields.
+It retains bounded payload skipping, cooperative cancellation and work charging.
+
+Current identities supersede only these two rows of the earlier table:
+
+| Input | SHA-256 |
+| --- | --- |
+| `packages/safe-bash/src/commands/archive/zip/repair.ts` | `0d04d5b7ae3fcf5107be1fd95bce7e321c02720f0ff550ac0c0f8e3eb444ceef` |
+| `packages/safe-bash/tests/commands/zip-repair.test.ts` | `f05a95f7a9f3a2360c4dedd2f1c58ba66d623418aaa89f77a69641c188e41b57` |
+
+Validation on these bytes:
+
+- Focused `node --import tsx --test --test-reporter=dot
+  packages/safe-bash/tests/commands/zip-repair.test.ts`: all 66 tests passed.
+- Neighbor controls: `node --import tsx --test --test-reporter=dot
+  --test-concurrency=1 packages/safe-bash/tests/commands/zip*.test.ts
+  packages/safe-bash/tests/commands/unzip.test.ts
+  packages/safe-bash/tests/plugins/zip-commands.test.ts
+  packages/safe-bash/tests/plugins/zip-safety.test.ts`: exit 0.
+- Focused ESLint on the two changed files and `git diff --check`: exit 0.
+  This follow-up did not repeat repository-wide guarded lint or a release gate.
+- `npm run typecheck --workspace=virtual-bash`: exit 0, source/tests and
+  26 current consumer groups accepted; three negative validators returned
+  expected exit 2. Existing built declarations were used (zero builds);
+  this is compile acceptance, not runtime or publication proof.
+- Positive salvage, negative corrupt/embedded candidates, exact byte/work/member
+  boundaries, cooperative scanning/staging cancellation and neighboring strict
+  reads are exercised by the focused suite. New controls additionally assert
+  status 0, a visible quiet-mode partial warning and unchanged damaged source.
+- Ad hoc memory-VFS command dispatch rendered with `npm run screenshot`:
+  `zip -q -FF sample.zip -O repaired.zip` warned explicitly, then
+  `unzip -t repaired.zip` verified the good member. The PNG was inspected:
+  legible warning, member OK and both statuses 0. SHA-256 before purge:
+  `70727dfa7b53c9b62b86b28c77442225b6ead52de56ace2433f833a794478750`.
+
+Exclusions above remain active. Fewer than four residual bytes cannot establish
+a local signature and are not classified as a lost member. No new native-oracle
+capture or exact native diagnostic parity is claimed by this follow-up.
+Absolute `/out` remains read-only; the single task-owned ignored
+`out/zip-repair-header-followup.png` was used and purged. README, SafeJS and
+other existing edits were preserved; no commit, push or release was performed.
+
+### Current-main follow-up: single verification of complete central metadata
+
+Revalidated on main at base `dec0204649d3f028e87bc29b643b00b268e5a664`;
+the existing dirty SFX/repair implementation and unrelated changes were preserved.
+The initial 66 focused tests passed. A new memory-only test failed with
+`ZIP recovery total byte limit exceeded`: a complete archive containing one good
+and one corrupt four-byte member exhausted an exact eight-byte total budget
+because recovery decoded members again after the initial complete-archive check.
+
+Complete and reconstructed central directories now share one member verification
+path. Complete central metadata requires no signature rescan after a CRC failure:
+`-FF` retains verified members and labels partial recovery, while `-F` returns
+structure status 3. Cancellation and resource failures still escape; work and
+decoded-byte budgets remain cumulative, without resetting counters or weakening
+ordinary parsing. An all-corrupt complete archive returns structure status 3.
+
+| Input | SHA-256 |
+| --- | --- |
+| `packages/safe-bash/src/commands/archive/zip/repair.ts` | `c006b4772bdfe902c84d01a8dbb7a180df1c8cebebbfc1a102164602e1f3d064` |
+| `packages/safe-bash/tests/commands/zip-repair.test.ts` | `e50718893b60f2d0476a7670ee426cc33e92182d619a4b5f99394ddc2e0185d5` |
+
+Validation:
+
+- Focused recovery suite: 67/67 passed. New controls cover positive partial
+  salvage at the exact total-byte boundary, negative `-F`, insufficient budget,
+  visible partial diagnostics, unchanged damaged source, preserved destination
+  on failure and successful verification of the published separate output.
+  Existing cooperative scan/stage cancellation and strict neighboring controls
+  remain active.
+- ZIP/unzip command and plugin neighbors passed with concurrency one using the
+  same explicit selection as the earlier follow-up. This run preceded the final
+  additional command assertions in the new focused test; the complete focused
+  suite was rerun after those assertions were added.
+- Maintained `npm run build:workspaces -- --workspace=virtual-bash` passed all
+  six builds in its declared closure. Focused ESLint on the two changed files
+  and `git diff --check` passed.
+- `npm run typecheck --workspace=virtual-bash` passed source/tests and all 26
+  current consumer groups against rebuilt declarations; three negative
+  validators returned expected exit 2. Compile acceptance does not establish
+  runtime or publication acceptance.
+- Ad hoc memory-VFS command output was rendered using `npm run screenshot` and
+  inspected: the partial warning, verified good member and both status 0 results
+  are legible. PNG SHA-256 before purge:
+  `6911dcb7853643b090fdf3a884f57770a6935eae0bdbd7fd3aaf9f858eec832e`.
+  Absolute `/out` is read-only; task-owned ignored
+  `out/zip-repair-budget-followup.png` was used instead and purged.
+
+Earlier bounded-profile exclusions remain active. No new native-oracle capture,
+exact native diagnostic parity, full repository gate or service qualification
+is claimed. No runtime dependency or host-process fallback was added. README,
+SafeJS and unrelated edits were preserved. No commit, push or release performed.
+
+### Current-main user review: malformed bounded local extras
+
+Revalidated on main at base `dec0204649d3f028e87bc29b643b00b268e5a664`
+with the pre-existing dirty SFX/repair work preserved. The initial focused suite
+passed 67/67. A new memory-only failing test demonstrated that a malformed extra
+TLV in a bounded classic local record stopped `-FF` before a later valid member:
+expected `before, after`, actual `before`. The rejected payload contained a valid
+embedded local record, providing an independent false-member control.
+
+Recovery now skips the entire rejected record when a classic non-descriptor
+header bounds its payload within the input, then resumes scanning. It marks the
+result partial and never scans that payload for apparent members. Unverifiable
+ZIP64 extra data, descriptors and spans beyond EOF still stop recovery; their
+end cannot safely be inferred. Ordinary parsing and `-F` remain strict.
+
+| Input | SHA-256 |
+| --- | --- |
+| `packages/safe-bash/src/commands/archive/zip/repair.ts` | `badbeba4dc074667c229ab91fb38abbdf2e94bb005edb63e42a716ec17df324e` |
+| `packages/safe-bash/tests/commands/zip-repair.test.ts` | `cb7e8989f46424ec910af43bd2799a1e182b68cc48cb66fcfbb6e63ea089aa61` |
+
+Validation on these live inputs:
+
+- Focused recovery: 73/73 passed, zero skips/TODOs. Six new controls cover
+  later-member salvage, rejection of the embedded member, visible quiet partial
+  warning, unchanged source and verified separate output, empty-payload boundary,
+  conservative descriptor/ZIP64/truncation stops and command scan cancellation
+  preserving both source and pre-existing destination. Existing work/byte limits,
+  cooperative scan/stage cancellation, traversal and symlink controls also pass.
+- ZIP/unzip neighbors: 1,917/1,917 passed, zero skips/TODOs, via
+  `node --import tsx --test --test-concurrency=1
+  packages/safe-bash/tests/commands/zip*.test.ts
+  packages/safe-bash/tests/commands/unzip.test.ts
+  packages/safe-bash/tests/plugins/zip*.test.ts`. The broad run preceded a
+  cancellation test title correction only; the final focused file was rerun.
+- `npm run build:workspaces -- --workspace=virtual-bash` passed all six
+  declared build tasks. `npm run typecheck --workspace=virtual-bash` passed
+  source/tests and all 26 current consumer groups; three negative validators
+  returned expected exit 2. These are compile checks, not release proof.
+- Guarded root `npm run lint:eslint` passed with a complete receipt, exit 0,
+  zero errors and four warnings in untouched files (docx operation types, docx
+  table model and two ZIP review unused arguments). All 15,505 configured
+  subjects were linted; no lint policy or exclusions were changed.
+- Executed visual QA: rendered actual memory-VFS dispatch using
+  `npm run screenshot`; inspected legible `zip -q -FF` partial warning followed
+  by `unzip -t` verifying `before` and `after`, both status 0. Screenshot SHA-256:
+  `ebaf3b1066983385962030db76ffa061612128feeeb770f39b5443b7a5ec8372`.
+  Absolute `/out` creation failed with read-only filesystem; the task-owned ignored
+  `out/zip-repair-malformed-extra.png` was used instead and purged after inspection.
+
+All prior bounded-profile exclusions remain active, particularly no salvage
+promise across unknown corrupt spans, no split/media recovery or exact native
+diagnostic/prompt parity. The broad neighboring run includes maintained isolated
+and captured native oracles; it is not a new native oracle qualification of the
+malformed-extra case. No full repository test gate or universal edge-case proof
+is claimed. No dependency, host fallback, public API or README change was made.
+SafeJS and all unrelated edits were preserved. No commit, push or release performed.
+
+### Commit validation — 2026-09-17
+
+User requested tests and a commit of all pending changes. Validation of the
+current working tree:
+
+- Selected maintained workspace build passed all six declared build tasks.
+- Package typecheck passed source/tests and all 26 current consumer groups,
+  including expected failures from the three negative validators.
+- Guarded root ESLint passed: 15,505 configured subjects, zero errors and four
+  warnings. No lint configuration or exclusions changed.
+- Package runner checks passed 522/522. Focused ZIP/unzip command and plugin
+  tests passed 1,917/1,917, without failures, cancellations, skips or TODOs.
+- Full package unit run completed: 40,871 tests, 40,045 passes, two failures,
+  one cancellation and 823 skips. The failing native-data npm-script control
+  exceeded its subprocess timeout, the unchanged-host discovery control
+  exceeded its child deadline, and a public-cleanup control exceeded its
+  15-second test deadline. A rerun of all three affected files passed 73/73
+  with no failures, cancellations or skips.
+- A second full run encountered different timeout failures in GNU patch parity
+  and a network redirect-cap control; both passed an isolated rerun (2/2).
+  The second full run was stopped after more than 400 completed files. These
+  observations do not establish a clean full-package unit gate or prove the
+  cause of the timing instability. No timeout was raised, assertion weakened
+  or test excluded to produce a pass.
+
+Commit delivery is local only; no push, remote-main verification or release
+was requested for this validation. Task-owned temporary logs used the existing
+ignored workspace `out/` fallback because absolute `/out` is read-only, and
+were purged after inspection.

@@ -43,6 +43,8 @@ export interface ZipEntry {
 export interface ZipArchive {
   entries: readonly ZipEntry[];
   comment: Uint8Array;
+  /** Inert SFX bytes, never interpreted or executed. */
+  prefix?: Uint8Array;
   /** Serialized metadata retained and conservative input-slab admission bytes;
    * excludes codec workspace, provider storage and caller-owned input. */
   onRetention?: (counters: Readonly<{ metadataBytes: number; payloadBytes: number }>) => void;
@@ -192,6 +194,7 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
   number(bytes.length, limits.maxArchiveBytes, "archive byte");
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   let end = -1;
+  let displacement = 0;
   const lower = Math.max(0, bytes.length - 22 - 65535);
   for (let offset = bytes.length - 22; offset >= lower; offset--) {
     if ((bytes.length - offset) % 4096 === 0) await yieldTurn(signal);
@@ -199,13 +202,35 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
       const size = view.getUint32(offset + 12, true);
       const start = view.getUint32(offset + 16, true);
       const zip64 = size === 0xffffffff || start === 0xffffffff || offset >= 20 && view.getUint32(offset - 20, true) === 0x07064b50;
-      if (!zip64 && !profile.disks && start + size !== offset) continue;
+      let candidateDisplacement = 0;
+      if (!zip64 && !profile.disks && start + size !== offset) {
+        if (!profile.prefix || start + size > offset || offset - size < 0 || size && view.getUint32(offset - size, true) !== 0x02014b50) continue;
+        candidateDisplacement = offset - size - start;
+      }
+      if (zip64 && profile.prefix && !profile.disks && offset >= 76 && view.getUint32(offset - 20, true) === 0x07064b50) {
+        const declared = view.getBigUint64(offset - 12, true);
+        if (declared > BigInt(Number.MAX_SAFE_INTEGER)) fail("ZIP64 unsafe numeric field");
+        if (Number(declared) + 12 > offset - 20 || view.getUint32(Number(declared), true) !== 0x06064b50) {
+          let found = -1;
+          const low = Math.max(0, offset - 76 - limits.maxPaxBytes);
+          for (let wide = offset - 76; wide >= low; wide--) {
+            if (offset - 76 - wide > limits.maxPatternSteps) fail("ZIP SFX scan work limit exceeded");
+            if ((offset - wide) % 4096 === 0) await yieldTurn(signal);
+            if (view.getUint32(wide, true) !== 0x06064b50 || view.getBigUint64(wide + 4, true) !== BigInt(offset - 32 - wide)) continue;
+            if (found !== -1) fail("ZIP64 ambiguous SFX end records");
+            found = wide;
+          }
+          if (found < Number(declared)) continue;
+          candidateDisplacement = found - Number(declared);
+        }
+      }
       if (end !== -1) fail("ZIP ambiguous end records");
       end = offset;
+      displacement = candidateDisplacement;
     }
   }
   if (end === -1) fail("ZIP truncated or missing end of central directory");
-  const { members, centralStart, centralEnd, diskMembers, disk: finalDisk, zip64Disk, zip64DiskMembers } = zip64Directory(view, end, limits, profile.disks);
+  const { members, centralStart, centralEnd, diskMembers, disk: finalDisk, zip64Disk, zip64DiskMembers } = zip64Directory(view, end, limits, profile.disks, displacement);
   number(bytes.length - end - 22, limits.maxTextBytes, "archive comment");
   const entries: ZipEntry[] = [];
   const spans: Array<{ start: number; end: number }> = [];
@@ -250,6 +275,7 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
     const resolved = zip64Fields(centralMetadata.zip64, [size, compressedSize, local, disk === 65535 ? 0xffffffff : disk]);
     [size, compressedSize, local] = resolved as [number, number, number, number];
     local = zipDiskOffset(profile.disks, resolved[3]!, local);
+    local += displacement;
     number(size, limits.maxEntryBytes, "entry byte");
     number(compressedSize, limits.maxArchiveBytes, "compressed entry byte");
     if (flags & 1 && compressedSize < 12) fail("ZIP truncated encryption header");
@@ -341,7 +367,7 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
     entry.centralExtra = new Uint8Array(entry.centralExtra!);
     await yieldTurn(signal);
   }
-  return { entries, comment: new Uint8Array(bytes.subarray(end + 22)) };
+  return { entries, comment: new Uint8Array(bytes.subarray(end + 22)), ...(profile.prefix ? { prefix: new Uint8Array(bytes.subarray(0, spans[0]?.start ?? centralStart)) } : {}) };
 }
 
 export async function* decodeZipEntry(entry: ZipEntry, limits: ArchiveLimits, signal: AbortSignal, password?: Uint8Array): ByteSource {

@@ -7,6 +7,7 @@ export class ZipFailure extends Error {
 export const reservedZipShortOptions = new Set(["mm"]);
 
 export const zipLongOptions: Readonly<Record<string, string>> = {
+  "adjust-sfx": "A", fix: "F", fixfix: "FF",
   "split-size": "s", "split-pause": "sp", "split-verbose": "sv", "split-bell": "sb",
   fifo: "FI", "DOS-names": "k", regex: "RE",
   password: "P", encrypt: "e",
@@ -25,7 +26,6 @@ export const zipLongOptions: Readonly<Record<string, string>> = {
 // Include unimplemented Unix options when resolving abbreviations: a partial
 // implementation must not make native-ambiguous prefixes uniquely resolvable.
 const reservedOptions = [
-  "adjust-sfx", "fix", "fixfix",
   "show-unicode", "show-just-unicode",
 ];
 

@@ -85,9 +85,34 @@ sizes; it does not claim output before source EOF.
 including local/central agreement, complete contiguous spans, decoded lengths
 and CRCs, before rewriting without its prefix. It never executes prefix bytes.
 Unadjusted candidate scans use the archive/work limits and at most
-`min(64, maxMembers)` candidates. Ordinary reads remain strict. This option does
-not implement offset adjustment or damaged-archive recovery. Encrypted payload
-validation requires the supplied password.
+`min(64, maxMembers)` candidates. Ordinary parsing remains strict about complete
+directories, local agreement, gaps, overlaps and trailing bytes. `unzip` accepts
+validated adjusted/unadjusted ZIP32 and ZIP64 SFX prefixes without executing them.
+Encrypted payload validation requires the supplied password.
+
+`-A` / `--adjust-sfx` validates payloads and adjusts directory/member offsets in
+owned bytes, retaining the exact inert prefix and local records. Already adjusted
+archives are unchanged. Required ZIP32-to-ZIP64 promotion is refused.
+
+`-F` / `--fix` rebuilds a damaged end record only from a completely validated
+central directory. `-FF` / `--fixfix` additionally salvages local records when
+the directory cannot be proved. Both require a separate named `-O` destination;
+source aliases are refused before owned atomic staging. Recovered output is
+strictly parsed and decoded before publication. Work, candidate, archive, path,
+entry and total decode limits apply; cancellation drains existing owned scopes.
+Signature matches alone do not admit members. Bounded payloads are skipped even
+when corrupt; unknown-size descriptors require verified unique record boundaries.
+If no safe payload end is known, salvage stops rather than adopting inner records.
+
+Verified salvage returns status 0; excluded corrupt, duplicate or ambiguous
+members produce an explicit partial-recovery warning. Failed salvage with no verified members or
+unusable `-F` metadata returns structure status 3. Work/decode budget exhaustion
+returns status 4. Local-only salvage cannot reconstruct Unix types, entry comments
+or archive comments absent from the input metadata: file types use conservative
+regular-file/directory defaults. Verified central symlinks retain their type and
+remain subject to existing extraction path and symlink protections. This is a
+bounded single-file profile; arbitrary split/recovery combinations and exact
+native diagnostic/prompt parity are not promised.
 
 ## VFS logs and virtual test commands
 

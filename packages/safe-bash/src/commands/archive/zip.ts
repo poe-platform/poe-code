@@ -1,5 +1,6 @@
 import { zipDosName } from "./zip/names.js";
 import { readZipSfx } from "./zip/sfx.js";
+import { adjustZipSfx, repairZip } from "./zip/repair.js";
 import { zipGrowRecords } from "./zip/grow.js";
 import { ZipLog } from "./zip/log.js";
 import { parseZipTestCommand, testZipCommand } from "./zip/test-command.js";
@@ -17,7 +18,7 @@ import { yieldTurn } from "../../contracts/yield.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { escapeText } from "../../escaping.js";
 import { Budget, checkPath, display, fail, hasIdentity, sameIdentity, settings, text, vfsPath, type ArchiveCommandsOptions, type ArchiveLimits } from "./internal.js";
-import { makeZipEntry, readZipArchive, writeZipArchive, streamZipArchive, updateZipExtras, setZipEntryComment, type ZipArchive, type ZipEntry } from "./zip-format.js";
+import { decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, streamZipArchive, updateZipExtras, setZipEntryComment, type ZipArchive, type ZipEntry } from "./zip-format.js";
 import { zipHelp, zipExtendedHelp, zipVersion, zipLicense } from "./zip/help.js";
 import { publishZip, stageZip, ZipScope, type ZipPublication } from "./zip/safety.js";
 import { splitSize, splitZipVolumes, resolveZipVolumes, publishZipVolumes, volumeName } from "./zip/volumes.js";
@@ -61,6 +62,8 @@ interface ZipOptions {
   readonly grow: boolean;
   readonly tempPath: string | undefined;
   readonly junkSfx: boolean;
+  readonly repair: "F" | "FF" | undefined;
+  readonly adjust: boolean;
   readonly logPath: string | undefined;
   readonly logAppend: boolean;
   readonly logInfo: boolean;
@@ -150,6 +153,8 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   let grow = false;
   let tempPath: string | undefined;
   let junkSfx = false;
+  let repair: "F" | "FF" | undefined;
+  let adjust = false;
   let logPath: string | undefined;
   let logAppend = false;
   let logInfo = false;
@@ -233,6 +238,8 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
           break;
         } else if (flag === "g") grow = true;
         else if (flag === "J") junkSfx = true;
+        else if (flag === "A") adjust = true;
+        else if (flag === "F" && pair !== "FS" && pair !== "FI") { repair = pair === "FF" ? "FF" : "F"; if (pair === "FF") offset++; }
         else if (flag === "P") {
           let value = argument.slice(offset + 1);
           const attached = value.length > 0;
@@ -434,6 +441,10 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
     }
   }
   validateArgumentText();
+  if (repair || adjust) {
+    if (repair && adjust || junkSfx || grow || move || split !== undefined || operands.length || stdinNames || includes.length || excludes.length || action !== "add" || archiveComment || entryComments || latestTime || filesync || encrypt || showFiles !== undefined || difference || toCrlf || fromCrlf || recursive || recursivePatterns) throw new ZipFailure(16, "Invalid command arguments", "repair/adjust cannot be combined with archive modification or selection");
+    if (!archive || archive === "-" || repair && (!output || output === "-")) throw new ZipFailure(16, "Invalid command arguments", "recovery requires a named source and a separate --out file");
+  }
   if (showCommand) return { information: "command", command: [context.command, ...commandOptions, ...commandPaths], debug };
   if (showOptions) return { information: "options", debug };
   if (verbose && !dotsSet && !dotSize) dotSize = 10 * 1024 ** 2;
@@ -479,7 +490,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   if (filesync && (action !== "add" || grow)) throw new ZipFailure(16, "Invalid command arguments", "can't use -d, -f, -u, -U, or -g with filesync -FS\n");
   const diagnosticArgs = args.map((value, index) => passwordArguments.has(index - defaultsCount) ? "[redacted]" : zipPublicText(value));
   if (split && (archive === "-" || grow)) throw new ZipFailure(16, "Invalid command arguments", "split output requires a file and cannot grow");
-  return { split, splitPause, splitVerbose, splitBell, password, encrypt, args: diagnosticArgs, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, verbose, showFiles, debug, displayBytes, displayCounts, displayUsize, displayVolume, dotSize, globalDots, junkPaths, dosNames, fifo, omitDirectories, storeLinks: storeLinks && !dosNames, test, testCommand, difference, grow, tempPath, junkSfx, logPath, logAppend, logInfo, mustMatch, filesync, archiveComment, entryComments, latestTime, toCrlf, fromCrlf, move, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
+  return { repair, adjust, split, splitPause, splitVerbose, splitBell, password, encrypt, args: diagnosticArgs, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, verbose, showFiles, debug, displayBytes, displayCounts, displayUsize, displayVolume, dotSize, globalDots, junkPaths, dosNames, fifo, omitDirectories, storeLinks: storeLinks && !dosNames, test, testCommand, difference, grow, tempPath, junkSfx, logPath, logAppend, logInfo, mustMatch, filesync, archiveComment, entryComments, latestTime, toCrlf, fromCrlf, move, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -585,7 +596,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
     if (!Number.isSafeInteger(existing.size) || existing.size < 0 || existing.size > limits.maxArchiveBytes) fail("archive byte limit exceeded");
     const bytes = await collectBytes(scope.input(input), { maxBytes: limits.maxArchiveBytes, signal: context.signal });
     if (bytes.length !== existing.size) fail("archive changed while reading");
-    const resolved = await resolveZipVolumes(scope, input, bytes, host);
+    const resolved = parsed.repair || parsed.adjust ? { bytes, paths: [input] } : await resolveZipVolumes(scope, input, bytes, host);
     inputPaths = resolved.paths;
     await log?.protect(inputPaths);
     if (resolved.disks && resolved.disks.starts.length > 1) inputSplit = Math.max(65536, ...resolved.disks.lengths.slice(0, -1));
@@ -594,6 +605,26 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
       if (publication.output === path || stat && publication.existing && sameIdentity(stat, publication.existing)) fail("ZIP output aliases an input volume");
     }
     if ((parsed.split || resolved.disks) && parsed.output === undefined && parsed.showFiles === undefined) throw new ZipFailure(16, "Invalid command arguments", "split archives require a separate --out destination");
+    if (parsed.repair || parsed.adjust) {
+      if (!publication) fail("ZIP repair requires a file destination");
+      let outputBytes: Uint8Array, partial = false;
+      if (parsed.repair) {
+        const recovered = await repairZip(bytes, parsed.repair, limits, context.signal, parsed.password);
+        partial = recovered.partial;
+        outputBytes = await writeZipArchive(recovered.archive, limits, context.signal);
+        const verified = await readZipArchive(outputBytes, limits, context.signal);
+        for (const entry of verified.entries) for await (const chunk of decodeZipEntry(entry, limits, context.signal, parsed.password)) { void chunk; }
+      } else {
+        archive = await readZipArchive(bytes, limits, context.signal, { prefix: true });
+        outputBytes = await adjustZipSfx(bytes, archive, limits, context.signal, parsed.password);
+      }
+      const current = await scope.stat(input);
+      if (!current || !unchanged(existing, current)) fail("archive changed while reading");
+      const progress: string[] = [];
+      if (!parsed.quiet) progress.push(parsed.repair ? `Fix archive (-${parsed.repair}) - verified recovered members\n` : "Zip entry offsets adjusted\n");
+      if (partial) progress.push("\tzip warning: partial recovery; some entries were not recovered\n");
+      return { kind: "file" as const, inputSplit, inputPaths, testRequired: parsed.test, publication, bytes: outputBytes, progress, exitCode: 0, moves: [] };
+    }
     archive = parsed.junkSfx ? await readZipSfx(bytes, limits, context.signal, parsed.password) : await readZipArchive(resolved.bytes, limits, context.signal, { grow: parsed.grow, ...(resolved.disks ? { disks: resolved.disks } : {}) });
     if (!resolved.disks && (parsed.latestTime || parsed.test)) originalBytes = bytes;
     const current = await scope.stat(input);

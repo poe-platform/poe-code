@@ -171,3 +171,13 @@ scalar rejection on SDK/actual shell across both dialects and macro-free kinds.
 The older DOTX carrier matrix and selected paragraph-property carrier restarts
 remain open; old refusal expectations do not close those required interactions.
 Full F01–F07 acceptance remains open.
+
+## Current numbering XML encoding evidence
+
+The [numbering-encoding record](numbering-xml-encoding-20260917.md) qualifies all
+256 independent body/numbering encoding combinations across dialects, macro-free
+kinds, SDK/actual shell and two definition-changing actions. The corrected
+original reproduction has 192 failures and 64 controls; all cases now pass in
+the 895-case focused numbering/XML run, zero skips. BOMs, declarations, trivia,
+Unicode, opaque content and unchanged member bytes survive. This closes those
+named serializer variants only; complete F01–F07 acceptance remains open.

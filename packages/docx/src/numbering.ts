@@ -437,12 +437,27 @@ export class NumberingGraph {
     if (firstNum) patches.set(firstNum, additions + (patches.get(firstNum) ?? this.xml.sourceXml(firstNum)));
     if (cleanup) patches.set(cleanup, (firstNum === cleanup ? additions : "") + instances + (this.rebindings.get(cleanup) ?? this.xml.sourceXml(cleanup)));
     const content = this.xml.sourceXml(root, patches, true) + (firstNum ? "" : additions) + (cleanup ? "" : instances);
-    const source = new TextDecoder().decode(this.xml.serialize());
+    const original = this.xml.serialize();
+    const encoding = original[0] === 0xff && original[1] === 0xfe ? "UTF-16LE"
+      : original[0] === 0xfe && original[1] === 0xff ? "UTF-16BE" : "UTF-8";
+    this.budget.charge("retainedBytes", original.length * 2);
+    this.budget.charge("work", original.length);
+    const source = new TextDecoder(encoding, { fatal: true, ignoreBOM: true }).decode(original);
     const originalRoot = this.xml.sourceXml(root);
     const offset = source.indexOf(originalRoot);
     if (offset < 0 || source.indexOf(originalRoot, offset + 1) !== -1) throw new UnsupportedEditError("Ambiguous lexical numbering root.");
     const rewritten = source.slice(0, offset) + runElementOpen(root) + content + `</${root.name}>` + source.slice(offset + originalRoot.length);
-    const editor = new DocumentXmlEditor(new TextEncoder().encode(rewritten), {}, undefined, this.budget);
+    this.budget.check("xmlPartBytes", rewritten.length * (encoding === "UTF-8" ? 1 : 2));
+    this.budget.charge("retainedBytes", rewritten.length * 3);
+    this.budget.charge("work", rewritten.length * 3);
+    let bytes: Uint8Array;
+    if (encoding === "UTF-8") bytes = new TextEncoder().encode(rewritten);
+    else {
+      bytes = new Uint8Array(rewritten.length * 2);
+      const view = new DataView(bytes.buffer);
+      for (let index = 0; index < rewritten.length; index++) view.setUint16(index * 2, rewritten.charCodeAt(index), encoding === "UTF-16LE");
+    }
+    const editor = new DocumentXmlEditor(bytes, {}, undefined, this.budget);
     this.budget.charge("insertedNodes", parseDocumentXml(new TextEncoder().encode(`<root${[...root.namespaces].filter(([p]) => p !== "xml").map(([p, uri]) => ` ${p ? "xmlns:" + p : "xmlns"}="${xmlValue(uri)}"`).join("")}>${additions}${instances}</root>`), {}, this.budget).root.children.reduce((total, n) => total + countNodes(n), 0));
     return editor.serialize();
   }

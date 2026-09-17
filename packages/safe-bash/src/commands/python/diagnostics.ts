@@ -1,7 +1,7 @@
 import type { FileSystem } from '../../contracts/filesystem.js';
 
 const messages = {
-  'executor-unavailable': 'Python executor is unavailable; configure a supported interpreter worker.',
+  'executor-unavailable': 'Python executor is unavailable; configure exactly one supported executor or interpreter worker.',
   'transport-unavailable': 'Python worker transport or shared-memory operations are unavailable.',
   'runtime-abi': 'Python runtime version or native ABI is unsupported.',
   'runtime-assets': 'Python runtime or package assets could not be loaded.',
@@ -45,6 +45,7 @@ export function reportPythonFailure(category: PythonFailureCategory, cause: unkn
 
 export interface PythonCapabilityOptions {
   readonly createWorker?: () => unknown;
+  readonly createExecutor?: () => unknown;
   readonly fs?: FileSystem;
   readonly requiredFileSystem?: readonly PythonFileSystemRequirement[];
   readonly runtimeVersion?: string;
@@ -57,9 +58,11 @@ export interface PythonCapabilityReport {
 
 export function inspectPythonCapabilities(options: PythonCapabilityOptions = {}): PythonCapabilityReport {
   const failures = new Set<PythonFailureCategory>();
-  if (typeof options.createWorker !== 'function') failures.add('executor-unavailable');
-  if (typeof SharedArrayBuffer !== 'function' || typeof Atomics !== 'object'
-    || typeof Atomics.store !== 'function' || typeof Atomics.notify !== 'function') failures.add('transport-unavailable');
+  if ((typeof options.createWorker === 'function') === (typeof options.createExecutor === 'function')
+    || options.createWorker !== undefined && typeof options.createWorker !== 'function'
+    || options.createExecutor !== undefined && typeof options.createExecutor !== 'function') failures.add('executor-unavailable');
+  if (typeof options.createExecutor !== 'function' && (typeof SharedArrayBuffer !== 'function' || typeof Atomics !== 'object'
+    || typeof Atomics.store !== 'function' || typeof Atomics.notify !== 'function')) failures.add('transport-unavailable');
   if (options.runtimeVersion !== undefined && options.runtimeVersion !== '314.0.6') failures.add('runtime-abi');
   for (const requirement of options.requiredFileSystem ?? []) {
     if (!['open', 'read', 'write', 'directory'].includes(requirement)) throw new TypeError('Unknown Python filesystem requirement');

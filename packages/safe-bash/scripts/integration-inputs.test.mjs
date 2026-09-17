@@ -937,6 +937,8 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/core-sort/record-integration.test.ts"));
   assert.ok(files.includes("tests/plugins/git-removal.test.ts"));
   assert.ok(files.includes("tests/commands/python/runtime.test.ts"));
+  assert.ok(files.includes("tests/commands/python/async-executor.test.ts"));
+  assert.ok(files.includes("tests/commands/python/async-executor-review.test.ts"));
   assert.ok(files.includes("tests/commands/python/diagnostics.test.ts"));
   assert.ok(files.includes("tests/commands/python/environment.test.ts"));
   assert.ok(files.includes("tests/commands/python/environment-review.test.ts"));
@@ -2608,6 +2610,15 @@ test("Playwright session restoration public acceptance remains admitted current 
   const root = fileURLToPath(new URL("../", import.meta.url));
   const boundaries = loadBoundaries(root);
   for (const path of ["tests/integration/playwright-session-restore.test.mjs", "tests/integration/playwright-session-restore.worker.mjs"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
+test("Python asynchronous executor public acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/integration/python-async-executor.test.mjs", "tests/integration/python-async-executor.worker.mjs"]) {
     assertAdmittedInputPath(path, boundaries);
     assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
   }

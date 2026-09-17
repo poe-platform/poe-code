@@ -38,8 +38,10 @@ Notes use numbered references and deferred footnote bodies; nested notes are
 assigned later numbers. Empty notes fail.
 
 Images use only generated substitution directives `.. |name| image:: URI` with
-optional `:alt:`. Width, height, alignment, arbitrary attributes, titles and figure
-semantics are not represented. Unsupported attributes/titles require diagnosed
+optional `:alt:`. The alt option contains literal text, so punctuation and
+backslashes are not escaped as inline RST markup; unsupported alt styles still
+require projection. Width, height, alignment, arbitrary attributes, titles and
+figure semantics are not represented. Unsupported attributes/titles require diagnosed
 loss. No image file is fetched. Supported roles are exactly `:sup:` and `:sub:`;
 inline code uses double-backtick literals, and emphasis/strong use their native
 RST delimiters. Unsupported roles are never invented. Empty or whitespace-bounded

@@ -34,3 +34,14 @@ lint/typechecks and the selected workspace build pass; 12 exact-text/docutils
 integration cases pass. Byte-adapter screenshot inspected, with its CJK font
 limitation recorded in evidence. Temporary oracle environment purged. Commit the
 verified task as one atomic writer feature on main, without push or release.
+
+## Current-code validation follow-up
+
+The writer and full AST coverage already exist. Validate regressions with original
+failing tests before fixes. Image directive alt options must retain literal
+punctuation; quote-leading cells and footnotes must retain their block structure.
+Use the maintained package unit/lint/build routes and pinned docutils integration
+lane, then inspect adapter screenshots. Commit each verified fix separately.
+
+Image alt punctuation fix verified: 1053 package tests, lint/typechecks, selected
+workspace build and 13 pinned oracle cases pass. Adapter screenshot inspected.

@@ -90,3 +90,6 @@ it("rejects spans in tables even in lossy mode", async () => {
 it("does not register dropped span identifiers as resolvable targets", async () => {
   await expect(rst([p({t: "Span", c: [["ghost", [], []], [s("span")]]}), p({t: "Link", c: [a, [s("go")], ["#ghost", ""]]})], {lossy: true})).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
 });
+it("keeps image alternative text literal in directive options", async () => {
+  expect(await rst([p({t: "Image", c: [a, [s("a_b* [caption]: \\path")], ["image.png", ""]]})])).toMatchObject({text: "|pc-image-1|\n\n.. |pc-image-1| image:: image.png\n   :alt: a_b* [caption]: \\path\n"});
+});

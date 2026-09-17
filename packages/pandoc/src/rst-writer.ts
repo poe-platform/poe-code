@@ -30,12 +30,12 @@ class RstWriter {
     this.context.charge("retainedBytes", text.length * 2);
     return text;
   }
-  escape(text: string, path: string): string {
+  escape(text: string, path: string, literal = false): string {
     let out = "";
     for(const ch of text) {
       this.context.checkpoint();
       if(ch.charCodeAt(0) < 32 || ch.charCodeAt(0) === 127) this.fail("Control character in inline text", path);
-      out += "\\`*_|<>[]:.+-#!".includes(ch) ? `\\${ch}` : ch;
+      out += !literal && "\\`*_|<>[]:.+-#!".includes(ch) ? `\\${ch}` : ch;
     }
     return this.retain(out);
   }
@@ -70,15 +70,15 @@ class RstWriter {
     if(!target || target.trim() !== target || [...target].some(ch => ch.charCodeAt(0) <= 32 || "`<>\\".includes(ch))) this.fail("Unsupported RST target syntax", path);
     return target;
   }
-  inlines(nodes: readonly Inline[], path: string, nested = false): string {
+  inlines(nodes: readonly Inline[], path: string, nested = false, literal = false): string {
     const pieces: {text: string; markup: boolean}[] = [];
     for(const [i, node] of nodes.entries()) {
       const p = `${path}[${i}]`;
       this.context.checkpoint();
       let text = "", markup = false;
-      const children = (c: readonly Inline[]) => this.inlines(c, `${p}.c`, true);
+      const children = (c: readonly Inline[]) => this.inlines(c, `${p}.c`, true, literal);
       switch(node.t) {
-        case "Str": text = this.escape(node.c, p); break;
+        case "Str": text = this.escape(node.c, p, literal); break;
         case "Space": case "SoftBreak": text = " "; break;
         case "LineBreak": this.loss("Inline line break projected to space; use LineBlock", p); text = " "; break;
         case "Emph": case "Strong": case "Superscript": case "Subscript": {
@@ -89,19 +89,19 @@ class RstWriter {
           markup = true; break;
         }
         case "Underline": case "Strikeout": case "SmallCaps": this.loss(`Projected unsupported ${node.t} to text`, p); text = children(node.c); break;
-        case "Quoted": text = (node.c[0] === "SingleQuote" ? "‘" : "“") + this.inlines(node.c[1], `${p}.c[1]`, nested) + (node.c[0] === "SingleQuote" ? "’" : "”"); break;
-        case "Span": this.loss("Projected unsupported Span to text", p); text = this.inlines(node.c[1], `${p}.c[1]`, nested); break;
-        case "Cite": this.loss("Projected citation to displayed text", p); text = this.inlines(node.c[1], `${p}.c[1]`, nested); break;
+        case "Quoted": text = (node.c[0] === "SingleQuote" ? "‘" : "“") + this.inlines(node.c[1], `${p}.c[1]`, nested, literal) + (node.c[0] === "SingleQuote" ? "’" : "”"); break;
+        case "Span": this.loss("Projected unsupported Span to text", p); text = this.inlines(node.c[1], `${p}.c[1]`, nested, literal); break;
+        case "Cite": this.loss("Projected citation to displayed text", p); text = this.inlines(node.c[1], `${p}.c[1]`, nested, literal); break;
         case "Code": {
           if(node.c[0][0] || node.c[0][1].length || node.c[0][2].length) this.loss("Dropped inline code attributes", p);
-          if(nested) {this.loss("Nested inline code projected to text", p); text = this.escape(node.c[1], p); break;}
+          if(nested) {this.loss("Nested inline code projected to text", p); text = this.escape(node.c[1], p, literal); break;}
           if(!node.c[1] || node.c[1].trim() !== node.c[1] || node.c[1].includes("``") || node.c[1].startsWith("`") || node.c[1].endsWith("`") || node.c[1].includes("\n")) this.fail("Unrepresentable inline literal", p);
           text = `\`\`${node.c[1]}\`\``; markup = true; break;
         }
-        case "Math": this.loss("Math projected to literal source (no math extension)", p); text = this.escape(node.c[1], p); break;
-        case "RawInline": this.loss("Raw inline projected to escaped text", p); text = this.escape(node.c[1], p); break;
+        case "Math": this.loss("Math projected to literal source (no math extension)", p); text = this.escape(node.c[1], p, literal); break;
+        case "RawInline": this.loss("Raw inline projected to escaped text", p); text = this.escape(node.c[1], p, literal); break;
         case "Link": {
-          if(nested) {this.loss("Nested link projected to displayed text", p); text = this.inlines(node.c[1], `${p}.c[1]`, true); break;}
+          if(nested) {this.loss("Nested link projected to displayed text", p); text = this.inlines(node.c[1], `${p}.c[1]`, true, literal); break;}
           if(node.c[0][0] || node.c[0][1].length || node.c[0][2].length || node.c[2][1]) this.loss("Dropped link attributes/title", p);
           const label = this.inlines(node.c[1], `${p}.c[1]`, true);
           if(!label || label.trim() !== label) this.fail("Empty or whitespace-bounded link", p);
@@ -113,7 +113,7 @@ class RstWriter {
         case "Image": {
           if(nested) this.fail("Image nested in inline markup", p);
           if(node.c[0][0] || node.c[0][1].length || node.c[0][2].length || node.c[2][1]) this.loss("Dropped image attributes/title", p);
-          const alt = this.inlines(node.c[1], `${p}.c[1]`, true), name = this.reference("image");
+          const alt = this.inlines(node.c[1], `${p}.c[1]`, true, true), name = this.reference("image");
           this.definitions.push(`.. |${name}| image:: ${this.safeTarget(node.c[2][0], p)}${alt ? `\n   :alt: ${alt}` : ""}`);
           text = `|${name}|`; markup = true; break;
         }

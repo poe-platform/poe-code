@@ -14,6 +14,7 @@ const cases = [
   {name: "roles-images", blocks: [p({t: "Code", c: [a, "*_.!"]}, {t: "Space"}, {t: "Superscript", c: [s("2")]}, {t: "Space"}, {t: "Subscript", c: [s("i")]}, {t: "Space"}, {t: "Image", c: [a, [s("alt")], ["image.png", ""]]})], text: "``*_.!`` :sup:`2` :sub:`i` |pc-image-1|\n\n.. |pc-image-1| image:: image.png\n   :alt: alt\n", tags: {literal: 1, superscript: 1, subscript: 1, image: 2}},
 ];
 cases.push(
+  {name: "literal-image-alt", blocks: [p({t: "Image", c: [a, [s("a_b* [caption]: \\path")], ["image.png", ""]]})], text: "|pc-image-1|\n\n.. |pc-image-1| image:: image.png\n   :alt: a_b* [caption]: \\path\n", tags: {image: 2}, alt: "a_b* [caption]: \\path"},
   {name: "adjacent-containers", blocks: [{t: "BulletList", c: [[p(s("one"))]]}, {t: "BulletList", c: [[p(s("two"))]]}, {t: "BlockQuote", c: [p(s("first"))]}, {t: "BlockQuote", c: [p(s("second"))]}], text: "* one\n\n..\n\n* two\n\n..\n\n   first\n\n..\n\n   second\n", tags: {bullet_list: 2, block_quote: 2}},
   {name: "extended-combining", blocks: [{t: "Header", c: [1, a, [s("a᪰")]]}], text: "a᪰\n=\n", tags: {title: 1}},
   {name: "internal-duplicate", blocks: [p({t: "Link", c: [a, [s("go")], ["#x", ""]]}), {t: "Header", c: [1, ["x", [], []], [s("one")]]}, {t: "Header", c: [2, ["x", [], []], [s("two")]]}], text: "`go <pc-link-1_>`_\n\n.. _pc-id-78:\n\none\n===\n\n.. _pc-id-78-dup-2:\n\ntwo\n---\n\n.. _pc-link-1: pc-id-78_\n", tags: {reference: 1, section: 2}},
@@ -43,6 +44,7 @@ for fixture in json.load(sys.stdin):
     if "plain" in fixture: assert tree.astext() == fixture["plain"], tree.astext()
     if "literal" in fixture: assert next(tree.findall(nodes.literal_block)).astext() == fixture["literal"]
     if "urls" in fixture: assert [n["refuri"] for n in tree.findall(nodes.reference)] == fixture["urls"]
+    if "alt" in fixture: assert all(n["alt"] == fixture["alt"] for n in tree.findall(nodes.image)), tree.pformat()
 print("docutils 0.21.2: original cases parsed without diagnostics")
 `], {input: JSON.stringify(cases), encoding: "utf8"});
 if(oracle.error) throw oracle.error;

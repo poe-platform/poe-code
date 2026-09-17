@@ -4,7 +4,7 @@ import { archiveSettings, type ArchiveContext } from "./archive.js";
 import { documentDialects, dialectForNamespace } from "./dialect.js";
 import { openDocumentLocations } from "./locations.js";
 import { DocumentPackage } from "./package.js";
-import { InvalidPackageError, type XmlElement } from "./package-xml.js";
+import { InvalidPackageError, isXmlContentType, type XmlElement } from "./package-xml.js";
 import { DocumentXmlEditor } from "./xml-write.js";
 
 export const commentAttribute = (node: XmlElement, name: string) => node.attributes.find(a => a.namespace === node.namespace && a.localName === name)?.value;
@@ -26,7 +26,7 @@ export async function openComments(input: Uint8Array, context: ArchiveContext) {
   const document = await openDocumentLocations(input, settings), archive = document.snapshot();
   const main = document.list("story", { scope: "body" })[0]!.value.part;
   const graph = new DocumentPackage(archive, settings.limits, budget);
-  const editors = new Map(graph.parts.filter(p => p.content_type.endsWith("+xml") || ["application/xml", "text/xml"].includes(p.content_type))
+  const editors = new Map(graph.parts.filter(p => isXmlContentType(p.content_type))
     .map(p => [p.partname, new DocumentXmlEditor(p.bytes, {}, undefined, budget)]));
   const dialect = dialectForNamespace(editors.get(main)!.root.namespace)!;
   const { w, r } = documentDialects[dialect];
@@ -36,7 +36,7 @@ export async function openComments(input: Uint8Array, context: ArchiveContext) {
   const extensions = inventoryCommentExtensions(graph, editors, budget);
   if (part && extensions.length) editors.set(part, new DocumentXmlEditor(graph.getPart(part).bytes, {}, { ...documentCompatibilityProfile, understoodNamespaces: [...documentCompatibilityProfile.understoodNamespaces, commentParagraphNamespace] }, budget));
   const editor = part ? editors.get(part) : undefined;
-  if (part && (!editor || editor.root.namespace !== w || editor.root.localName !== "comments" || graph.getPart(part).content_type !== "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"))
+  if (part && (!editor || editor.root.namespace !== w || editor.root.localName !== "comments" || graph.getPart(part).content_type.toLowerCase() !== "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"))
     throw new InvalidPackageError("Invalid comments part.");
   const markers: CommentMarker[] = [];
   for (const [name, xml] of editors) {

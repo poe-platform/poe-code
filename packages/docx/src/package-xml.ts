@@ -3,6 +3,12 @@ import { CancellationError, InputTypeError, InvalidValueError, ResourceLimitErro
 import { documentXmlCache, DocumentBudget } from "./budget.js";
 export type { XmlElement, XmlContent, XmlAttribute } from "@poe-code/safe-fs/xml";
 
+/** Internal XML part classification; MIME spelling remains in package metadata. */
+export function isXmlContentType(contentType: string): boolean {
+  const type = contentType.toLowerCase();
+  return type === "application/xml" || type === "text/xml" || type.endsWith("+xml");
+}
+
 export class InvalidPackageError extends Error {
   readonly code = "invalid-package";
   constructor(message: string, readonly part?: string, readonly location = "/", readonly diagnosticCode = "package-structure") {

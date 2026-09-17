@@ -10,7 +10,7 @@ import { dialectForNamespace, documentDialects } from "./dialect.js";
 import { relativePartTarget } from "./part-uri.js";
 import { xmlValue } from "./create-content.js";
 import { inlineImageRun } from "./inline-image-xml.js";
-import { parseDocumentXml, type XmlElement } from "./package-xml.js";
+import { isXmlContentType, parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { numericSequence } from "./numeric-index.js";
 import { ImagePartView, packageBindImage } from "./package-view.js";
 
@@ -245,7 +245,7 @@ export function insertModelImage(
       drawingIds = new Set<number>();
     for (const member of store.snapshot().members) {
       const type = graph.parts.find((p) => p.partname === "/" + member.name)?.content_type;
-      if (!type || !(type.endsWith("+xml") || type === "application/xml" || type === "text/xml"))
+      if (!type || !isXmlContentType(type))
         continue;
       const collect = (node: XmlElement) => {
         store.context.budget.charge("work", 1);

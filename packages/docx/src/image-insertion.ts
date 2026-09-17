@@ -11,7 +11,7 @@ import { openDocumentLocations } from "./locations.js";
 import type { DocxBinaryInput, DocxDirectLength, DocxOperationArguments } from "./operation-types.js";
 import { DocumentPackage } from "./package.js";
 import { DocumentArchiveEditor } from "./package-write.js";
-import { parseDocumentXml } from "./package-xml.js";
+import { isXmlContentType, parseDocumentXml } from "./package-xml.js";
 import { asciiKey, relativePartTarget } from "./part-uri.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { characterizeRasterHeader, type RasterHeader } from "./raster-header.js";
@@ -147,7 +147,7 @@ export async function insertDocumentImage(input: Uint8Array, request: ImageInser
   const drawingIds = new Set<string>();
   for (const member of archive.members) {
     const part = graph.parts.find(p => p.partname === "/" + member.name);
-    if (!part || !(part.content_type.endsWith("+xml") || part.content_type === "application/xml" || part.content_type === "text/xml")) continue;
+    if (!part || !isXmlContentType(part.content_type)) continue;
     const visit = (node: ReturnType<typeof parseDocumentXml>["root"]) => { budget.charge("work", 1); if (node.namespace === ns.wp && node.localName === "docPr") { const id = node.attributes.find(a => a.namespace === "" && a.localName === "id")?.value; if (id) drawingIds.add(String(Number(id))); } for (const child of node.children) visit(child); };
     visit(parseDocumentXml(member.bytes, {}, budget).root);
   }

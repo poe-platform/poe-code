@@ -3,7 +3,7 @@ import { documentDialects, dialectForNamespace } from "./dialect.js";
 import { type Location } from "./location-token.js";
 import { openDocumentLocations } from "./locations.js";
 import { DocumentPackage } from "./package.js";
-import { InvalidPackageError, type XmlElement } from "./package-xml.js";
+import { InvalidPackageError, isXmlContentType, type XmlElement } from "./package-xml.js";
 import { DocumentXmlEditor } from "./xml-write.js";
 
 export type NoteKind = "footnote" | "endnote";
@@ -62,7 +62,7 @@ export async function openNotes(input: Uint8Array, context: ArchiveContext) {
   const main = document.list("story", { scope: "body" })[0]!.value.part;
   const graph = new DocumentPackage(archive, settings.limits, budget);
   const editors = new Map<string, DocumentXmlEditor>();
-  for (const part of graph.parts) if (part.content_type.endsWith("+xml") || part.content_type === "application/xml" || part.content_type === "text/xml") {
+  for (const part of graph.parts) if (isXmlContentType(part.content_type)) {
     if (part.partname.endsWith(".rels")) continue;
     editors.set(part.partname, new DocumentXmlEditor(part.bytes, {}, undefined, budget));
   }

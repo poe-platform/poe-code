@@ -14,7 +14,7 @@ import { createPropertyPart } from "./property-part.js";
 import { documentDialects, type DocumentDialect } from "./dialect.js";
 import { validateDocxValue } from "./operation-schema.js";
 import type { DocumentBudget } from "./budget.js";
-import { parseDocumentXml } from "./package-xml.js";
+import { isXmlContentType, parseDocumentXml } from "./package-xml.js";
 import { Image, type ImageModelInput, type ImageModelContext } from "./image-model.js";
 import type { DocumentModelInput } from "./model-input.js";
 import { admitDocumentModel } from "./model-admission.js";
@@ -67,7 +67,6 @@ function relationshipName(owner: string): string {
   const uri = new PackURI(owner);
   return uri.rels_uri.membername;
 }
-function xmlType(type: string): boolean { return ["application/xml", "text/xml"].includes(type.toLowerCase()) || type.toLowerCase().endsWith("+xml"); }
 
 /** Live bounded graph over the same document state as style and command edits. */
 export class PackageView {
@@ -128,7 +127,7 @@ export class PackageView {
         : type === "application/vnd.openxmlformats-package.core-properties+xml" ? new CorePropertiesPartView(this, metadata.partname)
         : Object.values(documentTypes).includes(type) ? new DocumentPartView(this, metadata.partname)
         : type === "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml" ? new NumberingPart(this, metadata.partname)
-        : xmlType(type) ? new XmlPartView(this, metadata.partname) : new PartView(this, metadata.partname);
+        : isXmlContentType(type) ? new XmlPartView(this, metadata.partname) : new PartView(this, metadata.partname);
     }
     return part;
   }
@@ -241,7 +240,7 @@ export class PackageView {
     if (input.length > settings.limits.maxEntryBytes) throw new ResourceLimitError("Part bytes exceed the admitted ceiling.");
     settings.budget.charge("retainedBytes", input.length); settings.budget.charge("work", input.length);
     const bytes = new Uint8Array(input), types = archive.members.find(member => asciiKey(member.name) === "[content_types].xml")!;
-    if (xmlType(content_type)) new DocumentXmlEditor(bytes, {}, undefined, settings.budget);
+    if (isXmlContentType(content_type)) new DocumentXmlEditor(bytes, {}, undefined, settings.budget);
     const xml = new DocumentXmlEditor(types.bytes, {}, undefined, settings.budget);
     let overrides = `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="${xmlValue(name)}" ContentType="${xmlValue(content_type)}"/>`;
     const members = [...archive.members];
@@ -326,7 +325,7 @@ export class PackageView {
     const removed = new Set(previous.filter(row => !pending.has(row.rId)).map(row => row.rId));
     if (owner && removed.size) {
       const metadata = this[packageMetadata](owner);
-      if (xmlType(metadata.content_type)) {
+      if (isXmlContentType(metadata.content_type)) {
         const stack = [parseDocumentXml(metadata.bytes, {}, settings.budget).root];
         while (stack.length) {
           const node = stack.pop()!;
@@ -496,7 +495,7 @@ export class PartView {
 export class XmlPartView extends PartView {
   #element: XmlElementView | undefined;
   static override async load(partname: string | PackURI, content_type: string, blob: Uint8Array, owner: PackageView): Promise<XmlPartView> {
-    if (!(owner instanceof PackageView) || !xmlType(content_type)) throw new InputTypeError("Expected an admitted XML owner package and content type.");
+    if (!(owner instanceof PackageView) || !isXmlContentType(content_type)) throw new InputTypeError("Expected an admitted XML owner package and content type.");
     return owner[packageAdmitPart](partname, content_type, blob) as XmlPartView;
   }
   get element(): XmlElementView { return this.#element ??= this.package[packageBindXml](this); }

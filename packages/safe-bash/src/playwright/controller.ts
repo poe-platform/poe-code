@@ -1,7 +1,7 @@
-import type { PlaywrightAdapter, PlaywrightLease, PlaywrightPage } from './adapter.js';
+import type { PlaywrightAdapter, PlaywrightContext, PlaywrightLease, PlaywrightPage } from './adapter.js';
 import { createSnapshotEngine } from './snapshot.js';
 import { capturePlaywrightScreenshot } from './screenshot.js';
-import { parseInvocation, type PlaywrightInvocation } from './invocation.js';
+import { parseInvocation, validatePlaywrightSessionName, type PlaywrightInvocation } from './invocation.js';
 import { formatPlaywrightHelp } from './help.js';
 import { registerPlaywrightAbilities, type PlaywrightAbilities, type PlaywrightAbilityRequest } from './abilities.js';
 import { executePlaywrightAbility } from './ability-execution.js';
@@ -14,6 +14,18 @@ export interface PlaywrightControllerOptions {
   readonly billing?: never;
 }
 export type PlaywrightSessionState = 'acquiring' | 'open' | 'closing' | 'closed';
+export interface PlaywrightSessionRestoreOptions {
+  readonly name: string;
+  readonly expiresAt?: number;
+  readonly signal?: AbortSignal;
+  acquire(options: { readonly signal: AbortSignal }): Promise<{ readonly lease: PlaywrightLease; readonly selectedPage?: PlaywrightPage | undefined }>;
+}
+export interface PlaywrightSessionCheckpoint {
+  readonly name: string;
+  readonly context: PlaywrightContext;
+  readonly selectedPage?: PlaywrightPage;
+  readonly expiresAt?: number;
+}
 interface Session {
   readonly name: string;
   readonly generation: number;
@@ -27,6 +39,7 @@ interface Session {
   unsubscribe?: () => void;
   releasing?: Promise<void>;
   failure?: Error;
+  expiresAt?: number;
 }
 
 export function createPlaywrightController(options: PlaywrightControllerOptions = {}) {
@@ -56,17 +69,19 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     session.state = 'closing';
     session.releasing = Promise.resolve().then(async () => {
       try {
-        session.detachPage?.();
         const callbacks = [...session.cleanups];
         session.cleanups.clear();
         const custom = callbacks.map(cleanup => Promise.resolve().then(cleanup));
-        const results = await Promise.allSettled([...custom, session.snapshot.invalidate(true), Promise.resolve().then(() => session.lease?.release())]);
+        const results = await Promise.allSettled([
+          Promise.resolve().then(() => session.detachPage?.()), ...custom,
+          session.snapshot.invalidate(true), Promise.resolve().then(() => session.unsubscribe?.()),
+          Promise.resolve().then(() => session.lease?.release()),
+        ]);
         const errors = results.flatMap(result => result.status === 'rejected' ? [result.reason] : []);
         if (errors.length === 1) throw errors[0];
         if (errors.length > 1) throw new AggregateError(errors, 'Playwright session retirement failed');
       }
       finally {
-        session.unsubscribe?.();
         delete session.page;
         session.state = 'closed';
       }
@@ -95,10 +110,100 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     session.page = page;
     if (page.on && page.off) {
       const invalidate = () => { void session.snapshot.invalidate().catch(() => {}); };
+      const closed = () => { if (session.page === page) delete session.page; invalidate(); };
+      session.detachPage = () => { page.off!('framenavigated', invalidate); page.off!('close', closed); };
       page.on('framenavigated', invalidate);
-      page.on('close', invalidate);
-      session.detachPage = () => { page.off!('framenavigated', invalidate); page.off!('close', invalidate); };
+      page.on('close', closed);
     }
+  };
+  const observeSession = (session: Session): void => {
+    const unsubscribe = session.lease!.onClosed(() => {
+      if (sessions.get(session.name) !== session || session.state === 'closed') return;
+      delete session.page;
+      session.state = 'closed';
+      void release(session).catch(() => {});
+    });
+    session.unsubscribe = unsubscribe;
+    if (session.releasing) { unsubscribe(); throw new Error(`Session closed: ${session.name}`); }
+    const context = session.lease!.context;
+    const onPage = () => enforceTabLimit(session);
+    session.cleanups.add(async () => { context.off('page', onPage); });
+    context.on('page', onPage);
+  };
+  const retireExpired = (): Promise<void> | undefined => {
+    const now = Date.now();
+    const expired = [...sessions.values()].filter(session => session.state === 'open' && session.expiresAt !== undefined && session.expiresAt <= now);
+    if (!expired.length) return undefined;
+    return Promise.allSettled(expired.map(session => {
+      session.failure = new Error(`Session expired: ${session.name}; reopen explicitly`);
+      return release(session);
+    })).then(results => {
+      const errors = results.flatMap(result => result.status === 'rejected' ? [result.reason] : []);
+      if (errors.length) throw new AggregateError(errors, 'Playwright expiry cleanup failed');
+    });
+  };
+  const inspectSessions = (): readonly PlaywrightSessionCheckpoint[] => Object.freeze([...sessions.values()]
+    .filter(session => session.state === 'open' && (session.expiresAt === undefined || session.expiresAt > Date.now()))
+    .map(session => Object.freeze({ name: session.name, context: session.lease!.context,
+      ...(session.page === undefined ? {} : { selectedPage: session.page }),
+      ...(session.expiresAt === undefined ? {} : { expiresAt: session.expiresAt }),
+    })));
+  const restoreSession = async (request: PlaywrightSessionRestoreOptions): Promise<void> => {
+    if (!request || typeof request !== 'object' || Object.keys(request).some(key => !['name', 'expiresAt', 'signal', 'acquire'].includes(key))
+      || typeof request.acquire !== 'function' || request.signal !== undefined && typeof request.signal.throwIfAborted !== 'function') throw new TypeError('Invalid Playwright session restoration');
+    validatePlaywrightSessionName(request.name);
+    if (request.expiresAt !== undefined && (!Number.isSafeInteger(request.expiresAt) || request.expiresAt < 0)) throw new TypeError('Invalid Playwright session expiry');
+    const { name, expiresAt, acquire } = request;
+    const signal = request.signal ? AbortSignal.any([request.signal, lifetime.signal]) : lifetime.signal;
+    const check = () => {
+      signal.throwIfAborted();
+      if (expiresAt !== undefined && expiresAt <= Date.now()) throw new Error(`Session expired: ${name}; reopen explicitly`);
+    };
+    check();
+    const operation = enqueue(name, async () => {
+      check();
+      await retireExpired();
+      const previous = sessions.get(name);
+      if (previous && previous.state !== 'closed') throw new Error(`Session already ${previous.state}: ${name}`);
+      if (previous?.releasing) await previous.releasing;
+      check();
+      if ([...sessions.values()].filter(session => session.state !== 'closed').length >= maxSessions) throw new Error('Playwright session capacity exceeded');
+      const epoch = Array.from(crypto.getRandomValues(new Uint32Array(4)), value => String(value).padStart(10, '0')).join('');
+      const session: Session = { name, generation: ++generation, state: 'acquiring', cleanups: new Set(),
+        snapshot: createSnapshotEngine({ maxSnapshotBytes, maxSnapshotRefs }, () => `e${epoch}${++refSequence}`),
+        ...(expiresAt === undefined ? {} : { expiresAt }),
+      };
+      sessions.set(name, session);
+      try {
+        const restored = await acquire.call(request, { signal });
+        session.lease = restored.lease;
+        check();
+        if (!session.lease || typeof session.lease.release !== 'function' || typeof session.lease.onClosed !== 'function'
+          || !session.lease.context || ['pages', 'newPage', 'close', 'on', 'off'].some(key => typeof Reflect.get(session.lease!.context, key) !== 'function')) throw new TypeError('Invalid restored Playwright lease');
+        observeSession(session);
+        const pages = [...session.lease.context.pages()];
+        if (pages.length > maxTabs) throw new Error('Playwright tab limit exceeded');
+        if (restored.selectedPage !== undefined) {
+          if (!pages.includes(restored.selectedPage)) throw new Error('Selected tab does not belong to the restored context');
+          await selectPage(session, restored.selectedPage, check);
+        }
+        check();
+        if (session.releasing) throw new Error(`Session closed: ${name}`);
+        const currentPages = [...session.lease.context.pages()];
+        if (currentPages.length > maxTabs) throw new Error('Playwright tab limit exceeded');
+        if (restored.selectedPage !== undefined && !currentPages.includes(restored.selectedPage)) throw new Error('Selected tab closed during restoration');
+        session.pages = currentPages;
+        session.state = 'open';
+      } catch (error) {
+        const reason = signal.aborted ? signal.reason : error;
+        try { await release(session); }
+        catch (cleanupError) { throw new AggregateError([reason, cleanupError], 'Playwright restoration and cleanup failed'); }
+        throw reason;
+      }
+    });
+    work.add(operation);
+    try { await operation; }
+    finally { work.delete(operation); }
   };
   const run = async (invocation: PlaywrightInvocation): Promise<void> => {
     if (lifetime.signal.aborted) throw new Error('Playwright controller is disposed');
@@ -139,6 +244,10 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     };
     const checkSession = (session: Session) => {
       check();
+      if (session.expiresAt !== undefined && session.expiresAt <= Date.now()) {
+        session.failure = new Error(`Session expired: ${session.name}; reopen explicitly`);
+        void release(session).catch(() => {});
+      }
       enforceTabLimit(session);
       if (session.releasing) throw session.failure ?? new Error(`Session closed: ${session.name}; reopen explicitly`);
     };
@@ -150,6 +259,9 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         return;
       }
       const ability = abilities.get(parsed.command)!;
+      const expiryRetirement = retireExpired();
+      if (expiryRetirement) await expiryRetirement;
+      check();
       if (parsed.command === 'list' && !ability.execute) {
         await invocation.write([...sessions.values()].map(s => `${s.name}\t${s.state}\n`).join(''));
         check();
@@ -237,19 +349,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             const session = active;
             session.lease = await options.adapter!.acquire({ acquisitionId: `playwright-${session.generation}`, session: session.name, browser: parsed.browser, headless: parsed.headless, signal: local.signal });
             check();
-            const unsubscribe = session.lease.onClosed(() => {
-              // A late notification belongs only to the lease's own generation.
-              if (sessions.get(session.name) !== session || session.state === 'closed') return;
-              delete session.page;
-              session.state = 'closed';
-              void release(session).catch(() => {});
-            });
-            session.unsubscribe = unsubscribe;
-            if (session.releasing) { unsubscribe(); throw new Error(`Session closed: ${session.name}`); }
-            const context = session.lease.context;
-            const onPage = () => enforceTabLimit(session);
-            session.cleanups.add(async () => { context.off('page', onPage); });
-            context.on('page', onPage);
+            observeSession(session);
             checkSession(session);
             if (session.lease.context.pages().length >= maxTabs) throw new Error('Playwright tab limit exceeded');
             await selectPage(session, await session.lease.context.newPage(), () => checkSession(session));
@@ -386,5 +486,5 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     lifetime.abort(new Error('Playwright controller is disposed'));
     return disposal;
   };
-  return { run, dispose };
+  return { run, dispose, restoreSession, inspectSessions };
 }

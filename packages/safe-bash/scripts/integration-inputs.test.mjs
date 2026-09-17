@@ -2423,6 +2423,8 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/plugins/zip-commands.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-adapter.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-controller.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-session-restore.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-session-restore-review.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-snapshot.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-snapshot-transport.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-frame-snapshot.test.ts"));
@@ -2600,6 +2602,15 @@ test("Python object publication public acceptance remains admitted current input
   const path = "tests/integration/pyodide-runtime/public-object-publication.test.mjs";
   assertAdmittedInputPath(path, boundaries);
   assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+});
+
+test("Playwright session restoration public acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/integration/playwright-session-restore.test.mjs", "tests/integration/playwright-session-restore.worker.mjs"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
 });
 
 test("UTF-8 literal workerd acceptance remains admitted current input", () => {

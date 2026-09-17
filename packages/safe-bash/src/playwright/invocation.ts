@@ -28,6 +28,10 @@ export type ParsedInvocation = {
   imageType: 'png' | 'jpeg';
 };
 
+export function validatePlaywrightSessionName(session: unknown): asserts session is string {
+  if (typeof session !== 'string' || !session || session.length > 128 || [...session].some(char => !'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-'.includes(char))) throw new Error('Invalid session name');
+}
+
 export function parseInvocation(invocation: PlaywrightInvocation, abilities: ReadonlyMap<PlaywrightCommand, RegisteredPlaywrightAbility>, adapter?: PlaywrightAdapter): ParsedInvocation | { command: 'help'; topic?: PlaywrightCommand | 'tab' } {
   const positional: string[] = [];
   const supplied = new Map<string, (string | boolean)[]>();
@@ -75,7 +79,7 @@ export function parseInvocation(invocation: PlaywrightInvocation, abilities: Rea
   const sessionValues = supplied.get('session');
   if (sessionValues && sessionValues.length !== 1) throw new Error('Repeated option: --session');
   const session = (sessionValues?.[0] as string | undefined) ?? invocation.env.PLAYWRIGHT_CLI_SESSION ?? 'default';
-  if (!session || session.length > 128 || [...session].some(char => !'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-'.includes(char))) throw new Error('Invalid session name');
+  validatePlaywrightSessionName(session);
   supplied.delete('session');
   const options: Record<string, string | boolean | readonly string[]> = {};
   for (const [flag, values] of supplied) {

@@ -128,10 +128,15 @@ describe("independent descriptor review", () => {
     const quota = withFileSystemQuota(fs, { maxBytes: 1 });
     const view: FileSystem = kind === "readonly-quota" ? new ReadOnlyFileSystem(quota)
       : kind === "mount-quota" ? new MountFileSystem({ root: quota }) : quota;
-    expect(view.capabilities.open).toBe(false);
-    expect((await view.capabilitiesFor!("/file")).open).toBe(false);
-    await expect(view.open!("/file", { access: "read" })).rejects.toMatchObject({ code: "ENOTSUP" });
-    expect(acquire).not.toHaveBeenCalled();
+    expect(view.capabilities.open).toBe(true);
+    expect((await view.capabilitiesFor!("/file")).open).toBe(true);
+    const descriptor = await view.open!("/file", { access: "read" });
+    const output = new Uint8Array(1);
+    expect(await descriptor.read(output, null)).toBe(1);
+    expect(output).toEqual(Uint8Array.of(7));
+    await expect(descriptor.write(Uint8Array.of(8), 1)).rejects.toMatchObject({ code: "EBADF" });
+    await descriptor.close();
+    expect(acquire).toHaveBeenCalledTimes(1);
     expect(await fs.readFile("/file")).toEqual(Uint8Array.of(7));
   });
 

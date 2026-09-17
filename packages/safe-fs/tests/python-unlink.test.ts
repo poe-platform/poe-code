@@ -35,12 +35,13 @@ it("mount unlink preserves backend authority while readonly and quota cannot byp
   const mount = new MountFileSystem({ root: fs });
   await expect(new ReadOnlyFileSystem(mount).unlink("/file")).rejects.toMatchObject({ code: "EROFS" });
   const quota = withFileSystemQuota(mount, { maxBytes: 1 });
-  expect(quota.unlink).toBeUndefined();
+  expect(typeof quota.unlink).toBe("function");
+  await expect(withFileSystemQuota(new ReadOnlyFileSystem(mount), { maxBytes: 1 }).unlink!("/file")).rejects.toMatchObject({ code: "EROFS" });
   const controller = new AbortController();
   controller.abort(false);
-  await expect(mount.unlink("/file", { signal: controller.signal })).rejects.toBe(false);
+  await expect(quota.unlink!("/file", { signal: controller.signal })).rejects.toBe(false);
   const retained = await mount.open("/file", { access: "read" });
-  await mount.unlink("/file");
+  await quota.unlink!("/file");
   expect(await retained.stat()).toMatchObject({ size: 1, nlink: 0 });
   await retained.close();
 });

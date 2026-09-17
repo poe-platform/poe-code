@@ -96,6 +96,45 @@ is not repaired here. Use an appropriately bounded backing filesystem when that
 composition is required; do not infer protection from this contract's narrower
 existing-file checks.
 
+## General retained descriptors
+
+The quota view exposes the backing `open` capability and wraps each acquired
+descriptor; it never returns an unmetered writable handle. Unsupported selected
+paths still refuse. Read-only descriptors do not require a census or complete
+file identity, so existing quota usage cannot prevent an ordinary read or import.
+Creating/truncating opens remain authoritative backend operations: creation adds
+a zero-length file, and truncation cannot increase size. Completed creation or
+truncation is not rolled back if later validation or cancellation fails.
+
+Writable descriptors require regular files with complete identity and valid
+logical sizes. Before every nonempty write or truncate, admission rereads that
+same retained object's metadata and performs the bounded retained census defined
+below. Sequential writes use the backing cursor; append uses the current file
+end; positioned append follows the descriptor's explicit positioned-append
+capability. Unsupported cursor observation refuses rather than inventing an
+offset. Sparse growth charges the resulting length. Empty writes retain the
+backing zero-write delegation contract without inventing growth at a distant
+offset. Partial writes preserve the backend's actual count; the next census
+uses the resulting state, not a permanent reservation for the offered buffer.
+Exclusive creation does not run a selected-path capability query that follows
+the final entry; the backend opener remains authoritative for EEXIST and
+readonly errors, including final symlinks.
+
+Descriptor operations and pathname writes share one wrapper's mutation queue.
+Close drains that descriptor's admitted operations, closes it once and does not
+wait for unrelated later acquisitions. Acquisition and adaptation failures retire
+the acquired resource; caller cancellation, including falsey reasons, remains
+observable. Quota errors expose `code: "ENOSPC"`, allowing mount and Python errno
+translation without turning a capacity refusal into an unrelated I/O error.
+
+Strong `unlink` is delegated only when the backend supplies it; readonly policy,
+directory refusal and retained identity remain backend-owned. There is no
+fallback to weaker recursive/path-based deletion. Logical namespace accounting
+does not bound unlinked retained allocation, Wasm memory, physical storage or
+external writers. Use the backing filesystem's own retained-storage limits when
+that stronger bound is needed. Existing external-writer and legacy pathname
+creation limitations remain as documented above.
+
 ## Retained writable resizing
 
 The quota view explicitly guards `openResizeFile`; its generic proxy forwarding

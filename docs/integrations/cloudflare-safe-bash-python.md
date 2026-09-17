@@ -16,11 +16,11 @@ Python automatically. Each command owns a fresh interpreter; the application
 supplies the canonical asynchronous filesystem rather than mirroring its workspace
 into interpreter MEMFS.
 
-Published `0.1.652` has the standalone Node runner-resolution defect tracked in
-#745. Commit `9557d2469` resolves the runner relative to its package, and both
-standalone and CLI candidate tarballs pass the maintained real-runtime consumer
-test. Do not treat a successful source build as npm publication; check the
-published version before adopting these instructions.
+Published `0.1.653` includes the standalone runner-resolution fix (#745), quota
+descriptors (#748) and typed host diagnostics (#752). GitHub scoped release
+`35247726840` succeeded, and all three scoped packages were verified on npm.
+The separate `poe-code` CLI release is tracked independently; candidate CLI
+tarball tests do not establish CLI registry publication.
 
 ### Three different execution models
 
@@ -42,10 +42,12 @@ shell's `workerd` export condition is not a Python executor.
 ### Filesystem, packages and lifetime
 
 Ordinary Python file opens currently require canonical retained `fs.open`
-handles. A `readFile`/stream-capable backend alone is insufficient. Quota-backed
-opens (#748), immutable flat object stores (#747), and descriptor-safe
-`TemporaryDirectory` cleanup (#749) remain required failing workflows. Memory
-and delayed-memory successes are not remote-storage or full POSIX guarantees.
+handles. A `readFile`/stream-capable backend alone is insufficient. The #748
+implementation adds quota-checked retained descriptors, with real Node document
+creation/reopening and ENOSPC recovery through quota and delayed-quota views.
+Immutable flat object stores (#747) and descriptor-safe `TemporaryDirectory`
+cleanup (#749) remain required failing workflows. Memory and delayed-memory
+successes are not remote-storage, physical-memory or full POSIX guarantees.
 Readonly/mount layers must retain their authority; never unwrap a quota view or
 substitute recursive path deletion for retained directory operations.
 

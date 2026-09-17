@@ -127,14 +127,17 @@ test('Python descriptor writes consume the shared shell output budget', async ()
 });
 
 test('subscription cleanup failure still terminates the interpreter', async () => {
+  const diagnostics: unknown[] = [];
   const instance = worker((_message, send) => queueMicrotask(() => send({ type: 'exit', exitCode: 0 })));
   const subscribe = instance.endpoint.subscribe;
   instance.endpoint.subscribe = (listener, onError) => {
     subscribe(listener, onError);
     return () => { throw new Error('unsubscribe failed'); };
   };
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(pythonCommands({ createWorker: () => instance.endpoint }));
-  await assert.rejects(shell.exec('python -c pass'), /unsubscribe failed/);
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(pythonCommands({ createWorker: () => instance.endpoint,
+    onDiagnostic(event) { diagnostics.push(event); } }));
+  await assert.rejects(shell.exec('python -c pass'), { name: 'PythonFailure', category: 'cleanup' });
+  assert.match(String((diagnostics[0] as { cause: unknown }).cause), /unsubscribe failed/);
   assert.equal(instance.terminated(), 1);
 });
 
@@ -346,11 +349,16 @@ test('pip help and rejected options do not load an interpreter or pretend succes
 });
 
 test('interpreter installer failures remain clear shell diagnostics', async () => {
-  const instance = worker((_message, send) => queueMicrotask(() => send({ type: 'error', message: 'Incompatible native desktop wheel: cp314-macosx.whl' })));
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(pythonCommands({ createWorker: () => instance.endpoint }));
+  const message = 'Incompatible native desktop wheel: cp314-macosx.whl';
+  const diagnostics: unknown[] = [];
+  const instance = worker((_message, send) => queueMicrotask(() => send({ type: 'error', category: 'runtime-assets', message })));
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(pythonCommands({ createWorker: () => instance.endpoint,
+    onDiagnostic(event) { diagnostics.push(event); } }));
   const result = await shell.exec('python -c pass');
   assert.equal(result.exitCode, 1);
-  assert.ok(result.stderr.includes('Incompatible native desktop wheel'));
+  assert.match(result.stderr, /Python runtime or package assets/);
+  assert.doesNotMatch(result.stderr, /cp314-macosx/);
+  assert.equal((diagnostics[0] as { cause: unknown }).cause, message);
 });
 
 test('SDK packages and shell requirements use canonical storage and mark installation-only invocations', async () => {
@@ -374,6 +382,8 @@ test('SDK packages and shell requirements use canonical storage and mark install
 });
 
 test('package transport exceptions preserve their diagnostic without an errno code', async () => {
+  const failure = new Error('Package TLS handshake failed');
+  const diagnostics: unknown[] = [];
   const instance = worker((message, send) => {
     const control = new Int32Array(message.shared, 0, 2);
     const payload = new Uint8Array(message.shared, 8);
@@ -382,17 +392,22 @@ test('package transport exceptions preserve their diagnostic without an errno co
       if (instance.terminated()) return;
       if (!Atomics.load(control, 0)) { setTimeout(observe, 1); return; }
       const reply = JSON.parse(new TextDecoder().decode(payload.slice(0, Atomics.load(control, 1))));
-      send({ type: 'error', message: reply.message });
+      assert.equal(reply.code, 'EPACKAGE');
+      assert.doesNotMatch(reply.message, /TLS handshake/);
+      send({ type: 'error', category: 'runtime-assets', message: reply.message });
     };
     observe();
   });
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(pythonCommands({
     createWorker: () => instance.endpoint,
-    provisioning: { authorize: () => true, transport: async () => { throw new Error('Package TLS handshake failed'); } },
+    provisioning: { authorize: () => true, transport: async () => { throw failure; } },
+    onDiagnostic(event) { diagnostics.push(event); },
   }));
   const result = await shell.exec('python -c pass');
   assert.equal(result.exitCode, 1);
-  assert.ok(result.stderr.includes('Package TLS handshake failed'), result.stderr);
+  assert.match(result.stderr, /Python runtime or package assets/);
+  assert.doesNotMatch(result.stderr, /TLS handshake/);
+  assert.equal((diagnostics[0] as { cause: unknown }).cause, failure);
 });
 
 test('worker admission fails immediately at capacity and releases after abort', async () => {

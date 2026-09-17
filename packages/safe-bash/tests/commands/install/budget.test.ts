@@ -156,7 +156,7 @@ test("quota-backed streaming retains exact committed prefix and preserves exclus
   const host = withFileSystemQuota(wrapped(source, { capabilities: { ...source.capabilities, append: true }, writeFile: backing.writeFile.bind(backing), appendFile: backing.appendFile.bind(backing) }), { maxBytes: 6 });
   const result = await run(["/source", "/target"], host);
   assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /Filesystem quota exceeded/u);
+  assert.equal(result.stderr, "install: error writing '/target': No space left on device\n");
   assert.deepEqual(await backing.readFile("/target"), content.subarray(0, 2));
   assert.equal((await backing.stat("/target")).mode & 0o7777, 0o600);
   assert.equal(state.sourceClosed, 1);

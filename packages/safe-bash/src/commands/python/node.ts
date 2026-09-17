@@ -23,7 +23,7 @@ export function createNodePythonWorker(options: NodePythonWorkerOptions): Python
         const { loadPyodide } = await import(workerData.runtimeModuleURL);
         await runPythonWorker({ start, loadRuntime: configuration => loadPyodide({...configuration, indexURL: workerData.indexURL}),
           postMessage: message => parentPort.postMessage(message) });
-      } catch (error) { parentPort.postMessage({type:'error', message:String(error)}); }
+      } catch (error) { parentPort.postMessage({type:'error', category:'runtime-assets', message:String(error)}); }
     });
     });
   `, {eval:true, workerData:{runner:new URL('./worker.js', import.meta.url).href,

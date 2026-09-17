@@ -69,3 +69,55 @@ The guide deliberately warns that `0.1.652` has #745 and that source/candidate
 verification is not registry publication. The release workflow on `9557d2469`
 failed at the separate Pandoc bundle publication gate, so a fixed registry
 version is not yet claimed. Installed-registry revalidation remains pending.
+
+## #748: quota-backed retained Python descriptors
+
+Eight initial focused tests reproduced the unconditional quota `open` refusal.
+The wrapper now retains backend descriptors, shares write admission with its
+existing mutation queue, and checks positioned/cursor/append/sparse growth against
+fresh bounded logical namespace censuses. Complete retained identity is required
+for writable regular files. Read-only access does not require a census. Quota
+errors carry ENOSPC through mount/Python translation. Strong backend unlink is
+forwarded without a weak rm fallback so named temporary files can clean up.
+
+Independent review added 51 edge cases, finding three failures in two areas:
+cancellation from an open-capability getter could still dispatch acquisition,
+and delegated empty writes could be falsely charged as distant growth. Both were
+fixed without weakening the regressions. A further mounted self-symlink regression
+preserves exclusive creation's EEXIST precedence. Close does not wait for unrelated
+later acquisitions; backend failures and falsey cancellation retain identity.
+
+Real pinned Python quota lifecycle checks pass four tests. Quota and delayed-quota
+document profiles pass their create/edit/reopen/stream workflows and leave zero
+tracked open handles (10,141 delayed operations). Each still records a required
+failing TemporaryDirectory TODO under #749; these two TODOs are not passes. Initial
+document tests exposed the strong-unlink refusal before its fix. This is not
+workerd, immutable-object-store, total-memory or cross-wrapper transaction proof.
+
+The earlier 4,304-test safe-fs workspace run passed after allowing loopback sockets;
+the sandboxed attempt had permission-denied network fixtures, not product passes.
+Final expanded tests and installed-candidate qualification follow separately.
+
+Final candidate: 4,357/4,357 safe-fs tests pass, strict workspace types pass,
+the maintained integration inventory passes 109/109, and guarded ESLint reports
+zero errors plus two unrelated warnings. The selected shell workspace closure,
+root bundle and standalone packager pass. Fresh installed `0.1.653-issue748`
+tarballs pass both memory and quota public consumer profiles, including named
+temporary-file cleanup, 256-byte binary I/O, refused excess growth, pipelines
+and awaited termination. The final built quota/delayed-quota document rerun
+passes both parent workflows, retaining the same two explicit #749 TODOs.
+
+Commit `433c66735` fixes the earlier Pandoc bundle-order gate. Its GitHub scoped
+release then passed bundling but failed required package README checks for
+Pandoc/PDF. Permission to add those READMEs has been requested; registry
+publication is still pending, independently of this candidate's passing checks.
+
+## Verified scoped publication — September 17, 2026
+
+The README fix landed separately as `aee265445`. Scoped workflow `35247726840`
+then completed successfully on that main commit. npm reports `0.1.653` for
+`@poe-platform/safe-fs`, `@poe-platform/safe-js` and `@poe-platform/safe-bash`;
+Safe Bash's `latest` tag and exact-version metadata were checked separately.
+This publishes #745, #748, #752 and the #753 documentation correction. The
+`poe-code` CLI release is still running separately and is not established by
+the scoped package publication.

@@ -3,6 +3,7 @@ import { pythonExecution } from './execution.js';
 import { parsePythonInvocation } from './invocation.js';
 import { installPythonPackages } from './provisioning-runtime.js';
 import type { PythonPackageStart } from './provisioning.js';
+import { PythonFailure, type PythonFailureCategory } from './diagnostics.js';
 
 export interface PythonWorkerStart {
   readonly packages?: PythonPackageStart;
@@ -30,17 +31,26 @@ export function createPythonWorkerRequest(
   postMessage: (message: unknown) => void,
   error: (code: string) => Error,
 ): (operation: string, ...args: any[]) => any {
-  const control = new Int32Array(shared, 0, 2);
-  const payload = new Uint8Array(shared, 8);
+  let control: Int32Array<SharedArrayBuffer>;
+  let payload: Uint8Array<SharedArrayBuffer>;
+  try {
+    control = new Int32Array(shared, 0, 2);
+    payload = new Uint8Array(shared, 8);
+  } catch (cause) { throw new PythonFailure('transport-unavailable', { cause }); }
   return (op, ...args) => {
-    Atomics.store(control, 0, 0);
-    postMessage({op, args});
-    while (Atomics.load(control, 0) === 0) Atomics.wait(control, 0, 0);
-    const length = Atomics.load(control, 1);
+    let length: number;
+    let status: number;
+    try {
+      Atomics.store(control, 0, 0);
+      postMessage({op, args});
+      while (Atomics.load(control, 0) === 0) Atomics.wait(control, 0, 0);
+      length = Atomics.load(control, 1);
+      status = Atomics.load(control, 0);
+    } catch (cause) { throw cause instanceof PythonFailure ? cause : new PythonFailure('transport-unavailable', { cause }); }
     if (length < 0 || length > payload.length) throw error('EIO');
     // Browser TextDecoder does not accept shared backing stores.
     const result = JSON.parse(new TextDecoder().decode(payload.slice(0, length)));
-    if (Atomics.load(control, 0) !== 1) {
+    if (status !== 1) {
       if (op.startsWith('package-') && typeof result.message === 'string') throw new Error(result.message);
       throw error(result.code ?? 'EIO');
     }
@@ -125,7 +135,7 @@ async function loadPythonRuntime(
  };
  try {
   const runtime = await load();
-  if (!protectedSystem || !protectedSockets) throw new Error('Python native syscall isolation ABI unavailable');
+  if (!protectedSystem || !protectedSockets) throw new PythonFailure('runtime-abi', { cause: new Error('Python native syscall isolation ABI unavailable') });
   // Public convenience APIs otherwise expose direct host FS/socket bindings via pyodide_js.
   const unavailable = () => { throw new Error('Host filesystem and native socket capabilities are unavailable'); };
   const api = runtime as unknown as Record<string, unknown>;
@@ -151,7 +161,12 @@ export async function runPythonWorker(options: {
   start: PythonWorkerStart;
   postMessage(message: unknown): void;
 }): Promise<void> {
-  const {start, postMessage} = options;
+  const {start} = options;
+  const postMessage = (message: unknown): void => {
+    try { options.postMessage(message); }
+    catch (cause) { throw new PythonFailure('transport-unavailable', { cause }); }
+  };
+  let category: PythonFailureCategory = 'startup';
   try {
     const startupRequest = createPythonWorkerRequest(start.shared, postMessage, code => new Error(code));
     const startupWrite = (stream: string, message: string) => {
@@ -169,12 +184,13 @@ export async function runPythonWorker(options: {
     }
     // Removes accidental `import js` access to process/fetch/globalThis. This is
     // defense in depth, not a sandbox: Python JS proxies can recover JS execution.
+    category = 'runtime-assets';
     const runtime = await loadPythonRuntime(() => options.loadRuntime({jsglobals: Object.create(null) as Record<string, never>, args:[...configuration.startupArgs], env:{...configuration.env},
       stdout: message => { startupWrite('stdout', message); },
       stderr: message => { startupWrite('stderr', message); },
     }));
     // Namespace relocation is qualified against this ABI only.
-    if (runtime.version !== '314.0.6') throw new Error('Python worker requires Pyodide 314.0.6');
+    if (runtime.version !== '314.0.6') throw new PythonFailure('runtime-abi', { cause: new Error('Python worker requires Pyodide 314.0.6') });
     if (start.packages) await installPythonPackages(runtime, start.packages, startupRequest, start.maxTransferBytes);
     const unavailablePackage = () => { throw new Error('Python package transport is only available during installation'); };
     const publicRuntime = runtime as unknown as Record<string, any>;
@@ -185,6 +201,7 @@ export async function runPythonWorker(options: {
       postMessage({type:'exit', exitCode:0});
       return;
     }
+    category = 'runtime-abi';
     const errno: Record<string, number> = JSON.parse(runtime.runPython("__import__('json').dumps({k:v for k,v in vars(__import__('errno')).items() if k.startswith('E') and isinstance(v,int)})"));
     const request = createPythonWorkerRequest(start.shared, postMessage, code => new runtime.FS.ErrnoError(errno[code] ?? errno.EIO));
     const libraries = runtime._module?.LDSO?.loadedLibsByName;
@@ -363,12 +380,14 @@ os.scandir = _safe_scandir
 `);
     runtime.globals.set('_safe_invocation_json', JSON.stringify(start.invocation));
     postMessage({type:'ready'});
+    category = 'runtime';
     const exitCode = runtime.runPython(pythonExecution);
     // Finalize CPython while canonical storage and stream RPC remain live.
     // This runs atexit and releases buffered files retained by guest modules.
     const finalized = runtime._module._Py_FinalizeEx();
     postMessage({type:'exit', exitCode: finalized < 0 ? 120 : Number(exitCode) & 255});
   } catch (error) {
-    postMessage({type:'error', message: String(error)});
+    postMessage({type:'error', category: error instanceof PythonFailure ? error.category : category,
+      message: String(error instanceof PythonFailure && error.cause !== undefined ? error.cause : error)});
   }
 }

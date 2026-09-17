@@ -29,6 +29,7 @@ import type {
 } from "../types.js";
 import { assertNotAborted } from "../utils.js";
 import { getAbortUsage } from "./abort-usage.js";
+import { setTerminalTabName } from "@poe-code/terminal-name";
 
 type ArchivePlanFs = NonNullable<Parameters<typeof archivePlanShared>[0]["fs"]>;
 type ResolvedPipelineRunOptions = PipelineRunOptions & Required<Pick<PipelineRunOptions, "fs" | "plan" | "runAgent">>;
@@ -313,6 +314,7 @@ async function runResolvedPipeline(
   const initialContent = await fs.readFile(absolutePlanPath, "utf8");
   const { plan: initialPlan, stepsConfig: initialStepsConfig } =
     await readResolvedPlanFromContent(initialContent);
+  await setTerminalTabName(initialPlan.name?.trim() || path.basename(absolutePlanPath, path.extname(absolutePlanPath)));
   const resolvedSetup =
     initialPlan.setup === null ? undefined : (initialPlan.setup ?? initialStepsConfig.setup);
   const initialResolvedTeardown =

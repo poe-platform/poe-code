@@ -304,10 +304,10 @@ test("exclusive stream still charges the same enrolled sink budget before payloa
   assert.equal(reserved, 2);
 });
 
-test("exclusive stream keeps quota enforcement and does not require canonical descriptors", async () => {
+test("exclusive stream keeps quota enforcement with canonical descriptors available", async () => {
   const backing = createMemoryFileSystem();
   const fs = withFileSystemQuota(backing, { maxBytes: 2 });
-  assert.equal(fs.capabilities.open, false);
+  assert.equal(fs.capabilities.open, true);
   const context = { fs, signal: new AbortController().signal };
   const target = await openFileOutput(context, "/out", { flag: "wx", mode: 0o600 });
   await target.sink.write(Uint8Array.of(1, 2));

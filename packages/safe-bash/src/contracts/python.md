@@ -68,6 +68,10 @@ start messages may supply `invocation.command`; omission uses `python`.
   oversized upstream stdin fragment returns status 1 before the bridge retains
   a copy. This bounds bridge retention, not allocation already made by its producer.
 - `replace` defaults to false and controls command-registration collisions.
+- `onDiagnostic` is an optional host-only callback receiving `{ failure, cause }`.
+  `failure` is a `PythonFailure` with a stable `category` and fixed safe message;
+  `cause` contains private underlying details. Do not forward `cause` to agents.
+  Callback failures are observed and ignored, and callbacks are not awaited.
 - `packages`, `requirements`, `packageProfile` and `provisioning` configure
   explicit package installation, canonical input files, the opt-in document
   profile, and installer transport/cache policy. The complete configuration and
@@ -80,6 +84,42 @@ accounting. The service is registered for invocation cleanup before acquisition
 and owns descriptor retirement, including late acquisitions. Backend errors and
 caller cancellation remain observable; cancellation does not undo completed
 mutations. An uncooperative backend promise can delay cleanup indefinitely.
+
+## Capability and failure diagnostics
+
+`inspectPythonCapabilities({ createWorker, fs, requiredFileSystem, runtimeVersion })`
+returns `{ configurationValid, failures }` without starting an interpreter or
+opening files. `createWorker` is optional here, unlike command registration:
+its absence reports `executor-unavailable`. This portable API never imports or
+selects the Node transport. Supplying a factory does not prove that a host can
+actually run that transport; shared-memory checks are structural only.
+This is not a Cloudflare Python execution qualification.
+
+`requiredFileSystem` defaults to an empty list. Request `open`, `read`, `write`
+or `directory` only for workflows that need them. Missing `fs.open` does not
+reject unrelated inline/stdin programs. Read/write checks inspect advertised
+capabilities and retained-open availability, not path permissions or backend
+connectivity. Retained directory operations remain unsupported (#749), so a
+requested `directory` capability currently always fails preflight. An optional
+`runtimeVersion` must match `314.0.6`; omission does not validate runtime assets
+or the private ABI.
+
+Categories distinguish `executor-unavailable`, `transport-unavailable`,
+`runtime-abi`, `runtime-assets`, `filesystem-open`, `filesystem-read`,
+`filesystem-write`, `filesystem-directory`, `filesystem-operation`, `capacity`,
+`cleanup`, `startup` and `runtime`. Unknown worker error categories never become
+agent-facing text. Loader/transport/factory failures yield status 1 with fixed
+messages; worker-provided and host error details go only to `onDiagnostic`.
+Unsupported filesystem requests retain ENOTSUP and emit one capability hint per
+category per invocation. Python application output and normal Python exception
+tracebacks are not rewritten.
+
+Caller cancellation, stream failures and work-budget/checkpoint exceptions retain
+their original control-flow behavior. Cleanup failures reject with a sanitized
+`PythonFailure` when observed through the shell cleanup barrier; the private
+cause is sent once to the host callback. An unconfirmed retirement retains its
+capacity slot, while confirmed failed-startup retirement releases it for the
+next invocation. Repeated shell disposal does not re-run retirement.
 
 The interpreter alone may block in `Atomics.wait`. The host services bounded
 stdin pulls, awaited stdout/stderr writes and asynchronous filesystem requests

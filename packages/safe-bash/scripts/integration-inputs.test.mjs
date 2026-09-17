@@ -937,6 +937,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/core-sort/record-integration.test.ts"));
   assert.ok(files.includes("tests/plugins/git-removal.test.ts"));
   assert.ok(files.includes("tests/commands/python/runtime.test.ts"));
+  assert.ok(files.includes("tests/commands/python/diagnostics.test.ts"));
   assert.ok(files.includes("tests/commands/python/admission.test.ts"));
   assert.ok(files.includes("tests/commands/python/invocation.test.ts"));
   assert.ok(files.includes("tests/commands/python/installation.test.ts"));
@@ -2559,12 +2560,14 @@ test("repository boundaries preserve unaccepted YQ as active source tests", () =
   assert.ok(selected.includes("tests/commands/yq-author-20260828/repair-allocation-v1/repair.test.ts"));
 });
 
-test("optional node workerd acceptance remains admitted current input", () => {
+test("optional interpreter workerd acceptance remains admitted current input", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const boundaries = loadBoundaries(root);
   for (const path of [
     "tests/integration/optional-node-workerd/worker.mjs",
     "tests/integration/optional-node-workerd/config.capnp",
+    "tests/integration/python-diagnostics-workerd/worker.mjs",
+    "tests/integration/python-diagnostics-workerd/config.capnp",
   ]) {
     assertAdmittedInputPath(path, boundaries);
     assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);

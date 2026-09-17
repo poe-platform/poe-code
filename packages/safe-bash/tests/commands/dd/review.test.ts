@@ -375,7 +375,7 @@ test("review: actual quota-backed Shell output keeps only its committed prefix a
     const metadata = await backing.stat("/output");
     assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, "");
-    assert.equal(result.stderr, "dd: error writing '/output': Filesystem quota exceeded (6 bytes)\n2+0 records in\n1+0 records out\n");
+    assert.equal(result.stderr, "dd: error writing '/output': No space left on device\n2+0 records in\n1+0 records out\n");
     assert.equal(metadata.size, 2);
     assert.deepEqual(await backing.readFile("/output"), bytes("WX"));
     assert.deepEqual(await backing.readFile("/input"), bytes("WXYZ"));

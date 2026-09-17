@@ -30,6 +30,9 @@ export const sourceRootEnvelope = Symbol("source-root-envelope");
 /** Internal typed body append; generic XML insertion retains its compatibility guard. */
 export const appendBodyBlocks = Symbol("append-body-blocks");
 
+/** Internal style-domain authority for active native definitions. */
+export const replaceActiveStyleXml = Symbol("replace-active-style-xml");
+
 function unsupported(): never {
   throw new UnsupportedEditError("The XML edit cannot establish faithful preservation.");
 }
@@ -265,14 +268,30 @@ export class DocumentXmlEditor {
     if (typeof xml !== "string") throw new InputTypeError("Expected XML markup.");
     if (!this.#elements.has(node) || node === this.root || this.#patches.has(node)) unsupported();
     this.assertShapeEditAllowed(node);
+    this.#assertEditableSubtree(node, token => this.#canEdit(token));
+    this.#stageReplacement(node,xml);
+  }
+
+  #assertEditableSubtree(node: XmlElement, canEdit: (token: Token) => boolean): void {
     const check = (element: XmlElement): void => {
       this.#budget.charge("work", 1);
-      if (this.#guardCompatibility && (!this.#canEdit(element) ||
-        element.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute)))) unsupported();
+      if (this.#guardCompatibility && (!canEdit(element) ||
+        element.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !canEdit(attribute)))) unsupported();
       for (const child of element.children) check(child);
     };
     check(node);
-    this.#stageReplacement(node,xml);
+  }
+
+  /** Resolve the selected declaration, retaining its physical compatibility carrier. */
+  [replaceActiveStyleXml](node: XmlElement, xml: string): void {
+    if (typeof xml !== "string") throw new InputTypeError("Expected XML markup.");
+    if (!this.#elements.has(node) || this.#patches.has(node) || !this.#dialect ||
+      this.root.namespace !== documentDialects[this.#dialect].w || this.root.localName !== "styles" ||
+      node.namespace !== this.root.namespace || node.localName !== "style" ||
+      !activeXmlChildren(this, this.#budget)(this.root).includes(node)) unsupported();
+    const view = new MarkupCompatibility(node, this.#profile, this.#budget);
+    this.#assertEditableSubtree(node, token => view.canEdit(token));
+    this.#stageReplacement(node, xml);
   }
 
   /** The list domain validates active references and retains every other token. */

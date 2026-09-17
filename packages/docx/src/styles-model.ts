@@ -18,7 +18,7 @@ import { addDocumentStylesPart } from "./styles-part.js";
 import { editLatentStyles, readLatentStyles } from "./latent-styles.js";
 import type { DocxEnumValue } from "./operation-types.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
-import { DocumentXmlEditor } from "./xml-write.js";
+import { DocumentXmlEditor, replaceActiveStyleXml } from "./xml-write.js";
 import { assertDocumentEditable, publishDocumentArchive, PublicationError, publicationGenerationGuard, type PublicationOptions, type PublicationContext } from "./publication.js";
 
 import { WD_STYLE_TYPE } from "./formatting-values.js";
@@ -75,7 +75,7 @@ class StyleStore {
   }
   private readonly identities = new Map<string, object>();
   identity(token: number, kind: string): object { const key = `${token}:${kind}`; let id = this.identities.get(key); if (!id) { id = Object.freeze({}); this.identities.set(key, id); } return id; }
-  constructor(public source: string, readonly context: ArchiveContext, readonly writable: () => void, partname: string, ownerPackage: PackageView) {
+  constructor(public source: Uint8Array, readonly context: ArchiveContext, readonly writable: () => void, partname: string, ownerPackage: PackageView) {
     this.part = new StylePartView(this, partname, ownerPackage);
     this.tokens = this.nodes(this.editor()).map((_, i) => i);
     this.nextToken = this.tokens.length;
@@ -83,7 +83,7 @@ class StyleStore {
     this.latentTokens = (readLatentStyles(xml.root, undefined, activeXmlChildren(xml, archiveSettings(context).budget))?.entries ?? []).map((_, index) => index);
     this.nextLatentToken = this.latentTokens.length;
   }
-  editor(): DocumentXmlEditor { if (!this.cachedEditor) { const settings = archiveSettings(this.context); this.cachedEditor = new DocumentXmlEditor(new TextEncoder().encode(this.source), {}, undefined, settings.budget); } return this.cachedEditor; }
+  editor(): DocumentXmlEditor { if (!this.cachedEditor) { const settings = archiveSettings(this.context); this.cachedEditor = new DocumentXmlEditor(this.source, {}, undefined, settings.budget); } return this.cachedEditor; }
   readChild(node: XmlElement, name: string): XmlElement | undefined { return child(node, name, activeXmlChildren(this.editor(), archiveSettings(this.context).budget)); }
   nodes(xml: DocumentXmlEditor): XmlElement[] { return activeXmlChildren(xml, archiveSettings(this.context).budget)(xml.root).filter(n => n.namespace === xml.root.namespace && n.localName === "style"); }
   node(xml: DocumentXmlEditor, token: number): XmlElement {
@@ -96,8 +96,9 @@ class StyleStore {
     this.writable();
     const xml = this.editor(); try {
       action(xml);
-      const source = new TextDecoder().decode(xml.serialize());
-      if (source !== this.source) this.revision++;
+      const source = xml.serialize(), previous = this.source;
+      archiveSettings(this.context).budget.charge("work", source.length);
+      if (source.length !== previous.length || source.some((byte, index) => byte !== previous[index])) this.revision++;
       this.source = source;
     } finally { this.cachedEditor = undefined; }
   }
@@ -110,7 +111,7 @@ class StyleStore {
     const token = this.nextToken++; this.tokens.push(token); return token;
   }
   remove(token: number): void {
-    this.change(xml => xml.replaceElement(this.node(xml, token), ""));
+    this.change(xml => xml[replaceActiveStyleXml](this.node(xml, token), ""));
     this.tokens.splice(this.tokens.indexOf(token), 1);
   }
 }
@@ -133,7 +134,11 @@ export class StylePartView extends XmlPartView {
   }
   get styles(): Styles { return this.#styles ??= new Styles(this.store); }
   constructor(private readonly store: StyleStore, partname: string, ownerPackage: PackageView) { super(ownerPackage, partname); Object.freeze(this); }
-  override get blob(): Uint8Array { const bytes = new TextEncoder().encode(this.store.source); archiveSettings(this.store.context).budget.charge("retainedBytes", bytes.length); return bytes; }
+  override get blob(): Uint8Array {
+    const bytes = this.store.source, budget = archiveSettings(this.store.context).budget;
+    budget.charge("work", bytes.length); budget.charge("retainedBytes", bytes.length);
+    return new Uint8Array(bytes);
+  }
   override get element(): XmlElementView { return this.store.xmlView("styles-root", xml => xml.root); }
 }
 
@@ -217,10 +222,10 @@ export class BaseStyle {
   get part(): StylePartView { void this.rawElement; return this.store.part; }
   equals(other: unknown): boolean { void this.rawElement; return other instanceof BaseStyle && other.store === this.store && other.token === this.token; }
   protected setValue(tag: string, value: string | null): void {
-    this.store.change(xml => { const node = this.store.node(xml, this.token); xml.replaceElement(node, mergeStyleChildren(xml, node, new Map([[tag, value === null ? "" : `<st:${tag} xmlns:st="${node.namespace}" st:val="${xmlValue(value)}"/>`]]), order)); });
+    this.store.change(xml => { const node = this.store.node(xml, this.token); xml[replaceActiveStyleXml](node, mergeStyleChildren(xml, node, new Map([[tag, value === null ? "" : `<st:${tag} xmlns:st="${node.namespace}" st:val="${xmlValue(value)}"/>`]]), order)); });
   }
   protected setAttribute(name: string, value: string | null): void {
-    this.store.change(xml => { const node = this.store.node(xml, this.token); xml.replaceElement(node, mergeStyleChildren(xml, node, new Map(), order, { [name]: value })); });
+    this.store.change(xml => { const node = this.store.node(xml, this.token); xml[replaceActiveStyleXml](node, mergeStyleChildren(xml, node, new Map(), order, { [name]: value })); });
   }
   get name(): string | null { const value = attr(this.store.readChild(this.rawElement, "name"), "val"); return value === undefined ? null : styleDisplayName(value); }
   set name(value: string | null) { if (value !== null && typeof value !== "string") throw new TypeError("Expected a style name or null."); this.setValue("name", value); }
@@ -262,7 +267,7 @@ export class CharacterStyle extends BaseStyle {
     }, setXml: source => {
       const fragment = new DocumentXmlEditor(new TextEncoder().encode(source));
       const props = child(fragment.root, kind + "Pr");
-      this.store.change(xml => { const node = this.store.node(xml, this.token); xml.replaceElement(node, mergeStyleChildren(xml, node, new Map([[kind + "Pr", props ? runElementOpen(props) + fragment.sourceXml(props, new Map(), true) + `</${props.name}>` : ""]]), order)); });
+      this.store.change(xml => { const node = this.store.node(xml, this.token); xml[replaceActiveStyleXml](node, mergeStyleChildren(xml, node, new Map([[kind + "Pr", props ? runElementOpen(props) + fragment.sourceXml(props, new Map(), true) + `</${props.name}>` : ""]]), order)); });
     } };
     formattingXmlOwners.set(owner, {
       budget: archiveSettings(store.context).budget,
@@ -396,7 +401,7 @@ export async function bindDocumentStyleModel({ archive: admitted, settings, sour
     stage: (candidate, rename) => { archive = candidate; if (rename?.from === "/" + stylesPart) stylesPart = rename.to.slice(1); },
     save: async (output, options) => { await model.save(output, options); }
   });
-  const store: StyleStore = new StyleStore(new TextDecoder().decode(archive.members.find(m => m.name === stylesPart)!.bytes), settings, () => assertDocumentEditable(admitted, settings), "/" + stylesPart, packageView);
+  const store: StyleStore = new StyleStore(archive.members.find(m => m.name === stylesPart)!.bytes, settings, () => assertDocumentEditable(admitted, settings), "/" + stylesPart, packageView);
   store.revision = createdStylesPart ? 1 : 0;
   const styles = store.part.styles;
   styleModelMutations.set(styles, store);
@@ -408,7 +413,7 @@ export async function bindDocumentStyleModel({ archive: admitted, settings, sour
       if (id !== undefined) ids.add(id);
     }
     if (!documentDialects[admitted.dialect] || root.namespace !== documentDialects[admitted.dialect].w || root.localName !== "styles") throw new InvalidValueError("Invalid styles part root.");
-    return ({ ...archive, members: archive.members.map(m => m.name === stylesPart ? { ...m, bytes: new TextEncoder().encode(store.source) } : m) });
+    return ({ ...archive, members: archive.members.map(m => m.name === stylesPart ? { ...m, bytes: store.source } : m) });
   };
   const guard = () => {
     const revision = store.revision, graphRevision = packageView.revision;
@@ -444,10 +449,10 @@ export function bindDocumentStyles(owner: {
   write(bytes: Uint8Array): void;
   writable(): void;
 }): Styles {
-  const store = new StyleStore(new TextDecoder().decode(owner.read()), owner.context, () => owner.writable(), owner.partname, owner.package);
+  const store = new StyleStore(owner.read(), owner.context, () => owner.writable(), owner.partname, owner.package);
   Object.defineProperty(store, "source", {
-    get: () => new TextDecoder().decode(owner.read()),
-    set: (source: string) => owner.write(new TextEncoder().encode(source))
+    get: () => owner.read(),
+    set: (source: Uint8Array) => owner.write(source)
   });
   const styles = store.part.styles;
   styleModelMutations.set(styles, store);

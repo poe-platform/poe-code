@@ -11,10 +11,10 @@ import { DocumentArchiveEditor } from "./package-write.js";
 import { type XmlElement } from "./package-xml.js";
 import { paragraphProperties } from "./paragraph-properties.js";
 import { formattedRunProperties } from "./run-properties.js";
-import { inheritStyleProperties, mergeStyleChildren, readStyleProperties, styleAttribute as attr, styleChild as child, styleToggle, styleInteger, type StyleProperties } from "./style-properties.js";
+import { inheritStyleProperties, mergeStyleChildren, readStyleProperties, styleAttribute as attr, styleChild, styleToggle, styleInteger, type StyleProperties } from "./style-properties.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { validateDocumentArchive, SemanticValidationError, type ValidationDiagnostic } from "./validation.js";
-import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { DocumentXmlEditor, replaceActiveStyleXml, UnsupportedEditError } from "./xml-write.js";
 import { editLatentStyles, readLatentStyles, type LatentStylesInfo } from "./latent-styles.js";
 import { styleDisplayName, styleStoredName } from "./style-names.js";
 import type { DocxOperationArguments } from "./operation-types.js";
@@ -140,7 +140,9 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
   }
   const editor = new DocumentArchiveEditor(writable, {}, undefined, budget);
   const xml = editor.xml(part), w = xml.root.namespace;
-  const nodes = xml.root.children.filter(n => n.namespace === w && n.localName === "style");
+  const children = activeXmlChildren(xml, budget);
+  const child = (node: XmlElement | undefined, name: string) => styleChild(node, name, children);
+  const nodes = children(xml.root).filter(n => n.namespace === w && n.localName === "style");
   const resolve = (name: string): XmlElement => {
     const matches = nodes.filter(n => styleStoredName(attr(child(n, "name"), "val") ?? "") === styleStoredName(name));
     if (matches.length !== 1) throw new SelectionError(matches.length ? "ambiguous-selection" : "missing-selection");
@@ -221,7 +223,7 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
     for (const node of new Set([...patches.keys(), ...attributes.keys()])) {
       const markup = mergeStyleChildren(xml, node, patches.get(node) ?? new Map(), styleOrder, attributes.get(node));
       if (markup === xml.sourceXml(node)) continue;
-      xml.replaceElement(node, markup); changes.push({ kind: "style", id: attr(node, "styleId")! });
+      xml[replaceActiveStyleXml](node, markup); changes.push({ kind: "style", id: attr(node, "styleId")! });
     }
     if (added && !changes.some(c => c.id === attr(selected, "styleId"))) changes.push({ kind: "style", id: attr(selected, "styleId")! });
   }

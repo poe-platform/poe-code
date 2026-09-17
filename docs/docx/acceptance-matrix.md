@@ -242,3 +242,13 @@ run passes 1,777 cases in ten files, zero skips. Former selected-paragraph resta
 refusals are superseded by exact positive assertions; malformed reserved markup
 and affected active unsupported/review content still reject. Full F01–F07 and
 the other recorded cross-family dependencies remain open.
+
+## Current style XML byte and active declaration evidence
+
+The [style encoding record](style-xml-encoding-20260917.md) binds 576 exact
+encoding/dialect/kind/carrier/action/public-route cases and the independently
+reproduced standalone snapshot work-budget case. All pass in the final maintained
+877-test focused run, zero skips; 526 captured hashes remain unchanged. Built
+public QA passes 96 workflows with independent ZIP/XML retention assertions.
+Original and intermediate failures remain recorded. Other native style variants
+and complete F01–F07 acceptance remain open.

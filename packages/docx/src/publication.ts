@@ -4,11 +4,12 @@ import { documentSession, archiveSettings, CancellationError, InputTypeError, Re
 import type { ArchiveSink, ArchiveWriteOptions } from "./archive-write.js";
 import { DocumentPackage } from "./package.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
-import { documentDialects } from "./dialect.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { writeDocumentArchive } from "./document-write.js";
 import { readDocumentArchive } from "./admission.js";
 import { SemanticValidationError, validateDocumentArchive } from "./validation.js";
+import { MarkupCompatibility } from "./compatibility.js";
+import { activeControlLocks, activeSettingsProtection } from "./protection.js";
 
 /** Caller-granted transactional output. Only the acquired stage is owned by save. */
 export interface ByteSink {
@@ -223,16 +224,19 @@ export function assertDocumentEditable(archive: DocumentArchive, { limits, budge
     if (!sourcePart.content_type.toLowerCase().startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.") || !sourcePart.content_type.toLowerCase().endsWith("+xml")) continue;
     const source = new DocumentXmlEditor(sourcePart.bytes, {}, undefined, budget);
     const role = documentPartRole(sourcePart.content_type, source.root);
-    if (role === "settings" && source.root.children.some(node => node.namespace === source.root.namespace && ["documentProtection", "writeProtection"].includes(node.localName))) throw new UnsupportedEditError("Protected document settings do not authorize publication.");
+    if (role === "settings" && activeSettingsProtection(source.root, source.compatibility, budget).size) throw new UnsupportedEditError("Protected document settings do not authorize publication.");
     if (role !== "story" && role !== "glossary") continue;
     const candidate = archive.members.find(part => part.name === sourcePart.name);
     const current = candidate ? new DocumentXmlEditor(candidate.bytes, {}, undefined, budget) : undefined;
+    const sourceLocks = activeControlLocks(source.root, source.compatibility, budget);
+    const lockedOwners = new Set([...sourceLocks].filter(([lock]) => lock.attributes.find(attribute => attribute.namespace === lock.namespace && attribute.localName === "val")?.value !== "unlocked").map(([, binding]) => binding.owner));
+    const currentOwners = new Set(current ? [...activeControlLocks(current.root, current.compatibility, budget).values()].map(binding => binding.owner) : []);
     const visit = (node: XmlElement, path: readonly number[]) => {
       budget.charge("work", 1);
-      if (node.namespace === source.root.namespace && node.localName === "sdt" && node.children.some(properties => properties.namespace === node.namespace && properties.localName === "sdtPr" && properties.children.some(lock => lock.namespace === node.namespace && lock.localName === "lock" && lock.attributes.find(attribute => attribute.namespace === node.namespace && attribute.localName === "val")?.value !== "unlocked"))) {
+      if (lockedOwners.has(node)) {
         let target: XmlElement | undefined = current?.root;
         for (const index of path) target = target?.children[index];
-        if (!target || !current || current.sourceXml(target) !== source.sourceXml(node)) throw new UnsupportedEditError("Protected content controls must remain unchanged.");
+        if (!target || !current || !currentOwners.has(target) || current.sourceXml(target) !== source.sourceXml(node)) throw new UnsupportedEditError("Protected content controls must remain unchanged.");
       }
       node.children.forEach((child, index) => visit(child, [...path, index]));
     };
@@ -248,23 +252,29 @@ export function assertDocumentEditable(archive: DocumentArchive, { limits, budge
     const original = originalPart ? new DocumentXmlEditor(originalPart.bytes, {}, undefined, budget) : undefined;
     const root = current?.root ?? parseDocumentXml(part.bytes, {}, budget).root;
     const role = documentPartRole(type, root); if (role !== "story" && role !== "glossary" && role !== "settings") continue;
+    if (role === "settings") {
+      if (activeSettingsProtection(root, current?.compatibility ?? new MarkupCompatibility(root, undefined, budget), budget).size) throw new UnsupportedEditError("Protected document settings do not authorize publication.");
+      continue;
+    }
+    const controlLocks = activeControlLocks(root, current?.compatibility ?? new MarkupCompatibility(root, undefined, budget), budget);
+    const originalLocks = original ? activeControlLocks(original.root, original.compatibility, budget) : undefined;
     const stack = [{ node: root, path: [] as number[], ancestors: [root] }];
     while (stack.length) {
       const { node, path, ancestors } = stack.pop()!;
       let preservedControlLock = false;
-      if (original && current && node.localName === "lock" && ancestors.at(-2)?.localName === "sdtPr" && ancestors.at(-3)?.localName === "sdt" && ancestors.slice(-3).every(owner => owner.namespace === node.namespace)) {
+      const binding = controlLocks.get(node);
+      if (original && current && binding) {
         let source: XmlElement | undefined = original.root; const sourceAncestors = [source];
         for (const index of path) { source = source?.children[index]; if (!source) break; sourceAncestors.push(source); }
-        const properties = ancestors.at(-2)!, owner = ancestors.at(-3)!, oldProperties = sourceAncestors.at(-2), oldOwner = sourceAncestors.at(-3);
-        const inherited = (chain: readonly XmlElement[]) => JSON.stringify(chain.slice(0, -3).map(ancestor => ancestor.attributes.filter(attribute => ["http://www.w3.org/XML/1998/namespace", "http://schemas.openxmlformats.org/markup-compatibility/2006"].includes(attribute.namespace)).map(attribute => [attribute.namespace, attribute.localName, attribute.value])));
-        if (source && oldProperties && oldOwner && source.namespace === node.namespace && source.localName === "lock" && oldProperties.localName === "sdtPr" && oldOwner.localName === "sdt" &&
-          current.sourceXml(properties) === original.sourceXml(oldProperties) && inherited(ancestors) === inherited(sourceAncestors) && owner.namespaces.size === oldOwner.namespaces.size && [...owner.namespaces].every(([prefix, uri]) => oldOwner.namespaces.get(prefix) === uri)) {
+        const { properties, owner } = binding, oldBinding = source && originalLocks?.get(source), oldProperties = oldBinding?.properties, oldOwner = oldBinding?.owner;
+        const inherited = (chain: readonly XmlElement[], owner: XmlElement) => JSON.stringify(chain.slice(0, chain.indexOf(owner)).map(ancestor => ancestor.attributes.filter(attribute => ["http://www.w3.org/XML/1998/namespace", "http://schemas.openxmlformats.org/markup-compatibility/2006"].includes(attribute.namespace)).map(attribute => [attribute.namespace, attribute.localName, attribute.value])));
+        if (source && oldProperties && oldOwner && source.namespace === node.namespace &&
+          current.sourceXml(properties) === original.sourceXml(oldProperties) && inherited(ancestors, owner) === inherited(sourceAncestors, oldOwner) && owner.namespaces.size === oldOwner.namespaces.size && [...owner.namespaces].every(([prefix, uri]) => oldOwner.namespaces.get(prefix) === uri)) {
           const lock = node.attributes.find(attribute => attribute.namespace === node.namespace && attribute.localName === "val")?.value;
           preservedControlLock = lock === "unlocked" || current.sourceXml(owner) === original.sourceXml(oldOwner);
         }
       }
-      if ((Object.values(documentDialects).some(dialect => node.namespace === dialect.w)
-        && (role === "settings" && ancestors.length === 2 && ["documentProtection", "writeProtection"].includes(node.localName) || node.localName === "lock" && ancestors.at(-2)?.namespace === node.namespace && ancestors.at(-2)?.localName === "sdtPr" && ancestors.at(-3)?.namespace === node.namespace && ancestors.at(-3)?.localName === "sdt" && !preservedControlLock)))
+      if (binding && !preservedControlLock)
         throw new UnsupportedEditError("Protected or signed package publication is not supported.");
       node.children.forEach((child, index) => stack.push({ node: child, path: [...path, index], ancestors: [...ancestors, child] }));
     }

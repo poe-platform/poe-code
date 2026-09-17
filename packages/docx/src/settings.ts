@@ -10,6 +10,7 @@ import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { measurePackageResourceSerialization } from "./ancillary-resources.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import type { DocumentBudget } from "./budget.js";
+import { activeSettingsProtection } from "./protection.js";
 
 export interface SettingEntry {
   readonly path: readonly number[]; readonly namespace: string; readonly localName: string;
@@ -54,15 +55,16 @@ export async function inspectDocumentSettings(input: Uint8Array, options: DocxOp
     if (part.content_type.toLowerCase() !== "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml") continue;
     const root = parseDocumentXml(part.bytes, {}, budget).root, native = documentPartRole(part.content_type, root) === "settings";
     const view = new MarkupCompatibility(root, undefined, budget), entries: SettingEntry[] = [], protection: Omit<InspectionProtection, "part">[] = [];
+    const activeProtection = native ? activeSettingsProtection(root, view, budget) : new Set<XmlElement>();
     const singleton = (name: string) => { budget.charge("work", root.children.length); const matches = root.children.filter(node => native && node.namespace === root.namespace && node.localName === name); const node = matches.length === 1 ? matches[0] : undefined; return node && view.canEdit(node) && !node.children.length && !node.text.trim() && node.attributes.every(attribute => attribute.namespace === "http://www.w3.org/2000/xmlns/" || attribute.namespace === node.namespace && attribute.localName === "val" && view.canEdit(attribute)) ? node : undefined; };
     const visit = (node: XmlElement, path: number[]) => {
       budget.charge("work", node.attributes.length + node.children.length + 1);
-      const protectedNode = native && node.namespace === root.namespace && path.length === 1 && ["documentProtection", "writeProtection"].includes(node.localName);
+      const protectedNode = native && node.namespace === root.namespace && ["documentProtection", "writeProtection"].includes(node.localName);
       const attributes = node.attributes.filter(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && (!protectedNode || attribute.namespace === node.namespace && ["edit", "enforcement", "recommended", "formatting"].includes(attribute.localName))).map(attribute => ({ namespace: attribute.namespace, localName: attribute.localName, value: attribute.value })).sort((a, b) => a.namespace.localeCompare(b.namespace) || a.localName.localeCompare(b.localName));
       budget.charge("retainedBytes", 128 + path.length * 8 + attributes.reduce((total, attribute) => total + 64 + (attribute.namespace.length + attribute.localName.length + attribute.value.length) * 2, 0));
       const known = ["compat", "updateFields", "embedTrueTypeFonts", "embedSystemFonts", "saveSubsetFonts", "documentProtection", "writeProtection", "evenAndOddHeaders"].includes(root.children[path[0]!]!.localName);
       entries.push({ path, namespace: node.namespace, localName: node.localName, attributes, status: native && known && node.namespace === root.namespace && view.canEdit(node) && node.attributes.every(attribute => attribute.namespace === "http://www.w3.org/2000/xmlns/" || view.canEdit(attribute)) ? "stored" : "opaque" });
-      if (protectedNode) {
+      if (activeProtection.has(node)) {
         const enforcement = value(node, "enforcement");
         protection.push({ kind: node.localName, edit: value(node, "edit") ?? null, enforced: node.localName === "writeProtection" ? true : enforcement === undefined ? false : ["true", "1", "on"].includes(enforcement) ? true : ["false", "0", "off"].includes(enforcement) ? false : null });
       }

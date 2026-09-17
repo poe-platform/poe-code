@@ -12,6 +12,7 @@ import { type XmlElement } from "./package-xml.js";
 import { UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import type { DocxOperationArguments } from "./operation-types.js";
+import { activeControlLocks } from "./protection.js";
 
 export type DummyTextOptions = DocxOperationArguments<"lorem.set"> & { readonly input?: PublicationInput };
 export type TextReplaceOptions = DocxOperationArguments<"text.replace"> & { readonly input?: PublicationInput };
@@ -73,6 +74,7 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
   const matches: Match[] = [];
   const fields = new Map<string, boolean[]>();
   const reviewRanges = new Map<string, Set<string>>();
+  const partLocks = new Map<XmlElement, ReadonlySet<XmlElement>>();
   for (const paragraph of document.list("paragraph", { scope: "all-stories" })) {
     budget.charge("work", selected.length + paragraph.value.path.length);
     const targets = selected.filter(target => target.value.story === paragraph.value.story &&
@@ -92,8 +94,12 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
     let paragraphUnsafe = false;
     const ranges = reviewRanges.get(paragraph.value.story) ?? new Set<string>();
     reviewRanges.set(paragraph.value.story, ranges);
-    const locked = (owner: XmlElement) => owner.namespace === w && owner.localName === "sdt" && owner.children.some(properties => properties.namespace === w && properties.localName === "sdtPr" && properties.children.some(lock => lock.namespace === w && lock.localName === "lock" && attr(lock, "val") !== "unlocked"));
-    let unsupported = ancestors.some(n => locked(n) || !!revisionInfo(n) && !["ins", "del"].includes(n.localName));
+    let lockedOwners = partLocks.get(xml.root);
+    if (!lockedOwners) {
+      lockedOwners = new Set([...activeControlLocks(xml.root, xml.compatibility, budget)].filter(([lock]) => attr(lock, "val") !== "unlocked").map(([, binding]) => binding.owner));
+      partLocks.set(xml.root, lockedOwners);
+    }
+    let unsupported = ancestors.some(n => lockedOwners.has(n) || !!revisionInfo(n) && !["ins", "del"].includes(n.localName));
     const flush = () => {
       if (dummy) {
         paragraphPieces.push(...pieces);
@@ -174,7 +180,7 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
       if (!visible(name)) return;
       if (!["p", "r"].includes(name) && !container) { flush(); return; }
       const previous = unsupported;
-      unsupported ||= locked(current) || changedProperties || ["moveTo", "moveFrom"].includes(name);
+      unsupported ||= lockedOwners.has(current) || changedProperties || ["moveTo", "moveFrom"].includes(name);
       const childOffset = name === "r" ? { value: 0 } : runOffset;
       current.children.forEach((child, i) => visit(child, [...path, i], name === "r" ? current : run, childOffset));
       if (container || changedProperties) flush();

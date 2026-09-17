@@ -3,6 +3,7 @@ import { collectDiagramObservations } from "./diagram-observations.js";
 import { chartDefinitionParts } from "./charts.js";
 import { decodeChartContent } from "./chart-values.js";
 import { readPropertyParts } from "./property-values.js";
+import { activeControlLocks, activeSettingsProtection } from "./protection.js";
 import { documentPartRole, signatureContentTypes, signatureRelationshipTypes } from "./document-part-roles.js";
 import { readFontResources, type FontResourceData } from "./font-resources.js";
 import { archiveSettings, readArchive, InputTypeError, InvalidValueError, type ArchiveContext } from "./archive.js";
@@ -106,17 +107,19 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
     if (!(type.endsWith("+xml") || type === "application/xml" || type === "text/xml")) continue;
     const root = parseDocumentXml(part.bytes, {}, budget).root;
     roots.set(part.partname, root);
-    const role = documentPartRole(type, root), owners = new Map<XmlElement, XmlElement>();
+    const role = documentPartRole(type, root);
     const raw = [root];
     while (raw.length) {
       budget.charge("work", 1);
       const node = raw.pop()!;
-      for (const child of node.children) { budget.charge("retainedBytes", 16); owners.set(child, node); raw.push(child); }
+      for (const child of node.children) { budget.charge("retainedBytes", 16); raw.push(child); }
       if (node.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006" || node.attributes.some(attr => attr.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006")) compatibility = true;
       if (!documentCompatibilityProfile.understoodNamespaces.includes(node.namespace) && node.namespace !== "http://schemas.openxmlformats.org/markup-compatibility/2006") unknownNamespaces.add(node.namespace);
       for (const attr of node.attributes) if (attr.namespace && attr.namespace !== "http://www.w3.org/2000/xmlns/" && attr.namespace !== "http://schemas.openxmlformats.org/markup-compatibility/2006" && !documentCompatibilityProfile.understoodNamespaces.includes(attr.namespace)) unknownNamespaces.add(attr.namespace);
     }
     const view = new MarkupCompatibility(root, undefined, budget);
+    const settingsProtection = role === "settings" ? activeSettingsProtection(root, view, budget) : new Set<XmlElement>();
+    const controlLocks = role === "story" || role === "glossary" ? activeControlLocks(root, view, budget) : new Map<XmlElement, never>();
     compatibility ||= view.branches.length > 0;
     const stack: CompatibilityContent[] = [...view.content].reverse();
     while (stack.length) {
@@ -134,7 +137,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
         if (name === "fldSimple" || name === "fldChar" && attribute(node, "fldCharType", w) === "begin") counts.fields++;
         if (name === "lastRenderedPageBreak") cachedBreaks++;
         if (annotationNames.has(name)) annotations.push({ part: part.partname, kind: name, id: attribute(node, "id", w) ?? null, author: attribute(node, "author", w) ?? null, date: attribute(node, "date", w) ?? null });
-        if (role === "settings" && owners.get(node) === root && ["documentProtection", "writeProtection"].includes(name) || name === "lock" && owners.get(node)?.namespace === w && owners.get(node)?.localName === "sdtPr" && owners.get(owners.get(node)!)?.namespace === w && owners.get(owners.get(node)!)?.localName === "sdt") {
+        if (settingsProtection.has(node) || controlLocks.has(node)) {
           const enforcement = attribute(node, "enforcement", w);
           const edit = attribute(node, name === "lock" ? "val" : "edit", w) ?? null;
           const enforced = name === "lock" ? edit !== "unlocked" : name === "writeProtection" ? true : enforcement === undefined ? false : ["1", "true", "on"].includes(enforcement) ? true : ["0", "false", "off"].includes(enforcement) ? false : null;

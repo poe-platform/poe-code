@@ -1,5 +1,11 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 protection carrier correction](protection-carrier-closure-20260917.md)
+adds 1,440 exact settings/SDT carrier cases, independently rerun within 16,028
+passing DOCX workspace tests. Active MCE ownership, credential-free summaries,
+unrelated text preservation and lock-closed raw XML refusal are qualified.
+Complete F01–F07 acceptance remains open.
+
 The [2026-09-17 container qualification](container-variant-closure-20260917.md)
 adds independent public dialect/kind/compression/ZIP64 variants and exact path,
 archive and XML-depth boundaries. Its 2,210 named passes close those stated

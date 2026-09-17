@@ -124,7 +124,7 @@ export class StylePartView extends XmlPartView {
   #styles: Styles | undefined;
   static default(owner: PackageView): StylePartView {
     if (!(owner instanceof PackageView)) throw new InputTypeError("Expected an admitted owner package.");
-    const edges = [...owner.main_document_part.rels.values()].filter(edge => edge.reltype.endsWith("/styles") && !edge.is_external);
+    const edges = [...owner.main_document_part.rels.values()].filter(edge => Object.values(documentDialects).some(dialect => edge.reltype === `${dialect.r}/styles`) && !edge.is_external);
     if (edges.length !== 1 || !(edges[0]!.target_part instanceof StylePartView)) throw new InvalidValueError("Expected the live styles part of this owner.");
     return edges[0]!.target_part as StylePartView;
   }

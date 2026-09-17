@@ -138,7 +138,7 @@ export function embeddedFontState(graph: DocumentPackage, budget: DocumentBudget
       for (const font of root.children) if (font.namespace === root.namespace && font.localName === "font" && font.children.some(n => n.namespace === root.namespace && embeddedNames.has(n.localName))) state.push([part.partname, displayXml(font, budget, false)]);
     }
     if (part.content_type.toLowerCase() === "application/vnd.openxmlformats-package.relationships+xml") continue;
-    for (const edge of graph.relationships(part.partname)) if (edge.reltype.endsWith("/font") || edge.reltype.endsWith("/fontTable")) state.push([part.partname, edge.rId, edge.reltype, edge.target_ref, edge.is_external]);
+    for (const edge of graph.relationships(part.partname)) if (Object.values(documentDialects).some(dialect => edge.reltype === `${dialect.r}/font` || edge.reltype === `${dialect.r}/fontTable`)) state.push([part.partname, edge.rId, edge.reltype, edge.target_ref, edge.is_external]);
   }
   return JSON.stringify(state);
 }

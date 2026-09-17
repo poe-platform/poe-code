@@ -294,7 +294,7 @@ export class PackageView {
       new TextEncoder().encode(`<w:numbering xmlns:w="${dialect.w}"/>`), { owner, reltype }) as NumberingPart;
   }
   get main_document_part(): DocumentPartView {
-    const edges = [...this.rels.values()].filter(edge => edge.reltype.endsWith("/officeDocument") && !edge.is_external);
+    const edges = [...this.rels.values()].filter(edge => Object.values(documentDialects).some(dialect => edge.reltype === `${dialect.r}/officeDocument`) && !edge.is_external);
     if (edges.length !== 1 || !(edges[0]!.target_part instanceof DocumentPartView)) throw new InvalidValueError("Expected one XML document part.");
     return edges[0]!.target_part as DocumentPartView;
   }

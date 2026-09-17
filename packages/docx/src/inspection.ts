@@ -186,7 +186,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
   const knownDiagrams = diagramRoles.size > 0 || diagramObservations.some(observation => observation.kind === "relIds");
   const detections: readonly [string, boolean, "read" | "preserve"][] = [
     ["F01", true, "read"], ["F02", true, "read"], ["F03", archive.kind === "dotx", "read"], ["F05", compatibility, "read"], ["F06", true, "read"],
-    ["F19", counts.tables > 0, "read"], ["F21", relationships.some(r => r.type.endsWith("/hyperlink")), "read"], ["F22", counts.fields > 0, "read"],
+    ["F19", counts.tables > 0, "read"], ["F21", relationships.some(r => Object.values(documentDialects).some(dialect => r.type === `${dialect.r}/hyperlink`)), "read"], ["F22", counts.fields > 0, "read"],
     ["F24", counts.footnotes + counts.endnotes > 0, "read"], ["F25", counts.comments > 0, "read"], ["F26", annotations.some(a => a.kind !== "comment"), "read"],
     ["F27", annotations.some(a => ["moveFrom", "moveTo", "tblPrChange", "tcPrChange", "sectPrChange"].includes(a.kind)), "read"],
     ["F37", chartParts.length > 0, decodedCharts ? "read" : "preserve"],

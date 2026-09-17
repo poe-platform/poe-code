@@ -46,6 +46,7 @@ export class NumberingGraph {
   readonly #roots: XmlElement[] = [];
   readonly #children = new WeakMap<XmlElement, readonly XmlElement[]>();
   readonly #attributes = new WeakMap<XmlElement, readonly XmlAttribute[]>();
+  readonly #scalarText = new WeakSet<XmlElement>();
   readonly #restarts = new Map<XmlElement, { id: number; position: number; starts: Map<number, number> }>();
   readonly reservedInstances = new Set<number>();
   readonly reservedAbstracts = new Set<number>();
@@ -74,6 +75,10 @@ export class NumberingGraph {
         this.budget.charge("retainedBytes", 96 + item.content.length * 8);
         this.#children.set(item.source, item.content.filter(node => "source" in node).map(node => node.source));
         this.#attributes.set(item.source, item.attributes);
+        for (const token of item.content) if (!('source' in token) && (token.kind === "text" || token.kind === "cdata")) {
+          this.budget.charge("work", token.text.length);
+          for (const char of token.text) if (!" \t\r\n".includes(char)) { this.#scalarText.add(item.source); break; }
+        }
         collect(item.content);
       }
     };
@@ -159,7 +164,9 @@ export class NumberingGraph {
     if (id === 0 || instances?.length !== 1) throw new UnsupportedEditError("Numbering instance is missing or ambiguous.");
     const num = instances[0]!;
     this.attributes(num, ["numId"]);
-    const definitions = this.abstracts.get(integer(numberingAttribute(this.child(num, "abstractNumId"))));
+    const reference = this.child(num, "abstractNumId");
+    if (reference) this.scalar(reference, ["val"]);
+    const definitions = this.abstracts.get(integer(numberingAttribute(reference)));
     if (definitions?.length !== 1) throw new UnsupportedEditError("Abstract numbering definition is missing or ambiguous.");
     let definition = definitions[0]!;
     this.attributes(definition, ["abstractNumId"]);
@@ -200,8 +207,7 @@ export class NumberingGraph {
       local.add(index);
       const start = this.child(node, "startOverride");
       if (start) {
-        this.attributes(start, ["val"]);
-        if (start.children.length) throw new UnsupportedEditError("Extended numbering start overrides cannot be edited.");
+        this.scalar(start, ["val"]);
         integer(numberingAttribute(start));
         starts.set(index, start);
       }
@@ -219,6 +225,10 @@ export class NumberingGraph {
   private attributes(node: XmlElement, allowed: readonly string[]): void {
     if ((this.#attributes.get(node) ?? node.attributes).some(a => a.namespace !== "http://www.w3.org/2000/xmlns/" && (a.namespace !== node.namespace || !allowed.includes(a.localName)))) throw new UnsupportedEditError("Unverified numbering attributes cannot be interpreted.");
   }
+  private scalar(node: XmlElement, allowed: readonly string[]): void {
+    this.attributes(node, allowed);
+    if (this.children(node).length || this.#scalarText.has(node)) throw new UnsupportedEditError("Active content in a scalar numbering property cannot be interpreted.");
+  }
   validateLevel(node: XmlElement, index: number): void {
     this.attributes(node, ["ilvl", "tentative"]);
     if (integer(numberingAttribute(node, "ilvl"), 8) !== index) throw new UnsupportedEditError("Override level differs from its owner.");
@@ -227,7 +237,7 @@ export class NumberingGraph {
     for (const child of this.children(node)) {
       if (child.namespace !== node.namespace || !["start", "numFmt", "lvlRestart", "pStyle", "isLgl", "suff", "lvlText", "lvlJc", "pPr", "rPr"].includes(child.localName)) throw new UnsupportedEditError("Picture bullets and extended numbering remain opaque.");
       this.child(node, child.localName);
-      if (!["pPr", "rPr"].includes(child.localName)) this.attributes(child, child.localName === "lvlText" ? ["val", "null"] : ["val"]);
+      if (!["pPr", "rPr"].includes(child.localName)) this.scalar(child, child.localName === "lvlText" ? ["val", "null"] : ["val"]);
     }
     const start = this.child(node, "start");
     if (start) integer(numberingAttribute(start));
@@ -316,10 +326,12 @@ export class NumberingGraph {
     for (const index of all) {
       const old = graph.overrides.get(index);
       const startNode = graph.starts.get(index);
-      const startXml = draft.starts.has(index) ? `<nl:startOverride xmlns:nl="${w}" nl:val="${draft.starts.get(index)}"/>` : startNode ? this.xml.sourceXml(startNode) : "";
+      const startXml = startNode ? this.fragment(startNode, this.xml.sourceXml(startNode, new Map(), true), draft.starts.get(index))
+        : draft.starts.has(index) ? `<nl:startOverride xmlns:nl="${w}" nl:val="${draft.starts.get(index)}"/>` : "";
       const effective = graph.levels.get(index)!;
       const definitionLevel = this.children(graph.definition).find(n => n.namespace === w && n.localName === "lvl" && integer(numberingAttribute(n, "ilvl"), 8) === index);
-      const levelXml = effective !== definitionLevel ? this.xml.sourceXml(effective) : "";
+      const levelXml = effective === definitionLevel ? "" : effective === this.child(old, "lvl") ? this.xml.sourceXml(effective)
+        : this.fragment(effective, this.xml.sourceXml(effective, new Map(), true));
       if (old) {
         const priorStart = this.child(old, "startOverride"), priorLevel = this.child(old, "lvl");
         const patches = new Map<XmlElement, string>();
@@ -341,12 +353,52 @@ export class NumberingGraph {
           const replacement = rewrite(child);
           if (replacement !== undefined) direct.set(child, replacement);
         }
-        overrides.set(index, runElementOpen(old) + this.xml.sourceXml(old, direct, true) + tail + `</${old.name}>`);
+        overrides.set(index, this.fragment(old, this.xml.sourceXml(old, direct, true) + tail));
       } else overrides.set(index, `<nl:lvlOverride xmlns:nl="${w}" nl:ilvl="${index}">${startXml}${levelXml}</nl:lvlOverride>`);
     }
     // Materializing an instance preserves effective linked overrides and leaves the style graph untouched.
     this.newInstances[draft.position] = `<nl:num xmlns:nl="${w}" nl:numId="${id}"><nl:abstractNumId nl:val="${xmlValue(numberingAttribute(graph.definition, "abstractNumId")!)}"/>${[...overrides].sort(([a], [b]) => a - b).map(([, xml]) => xml).join('')}</nl:num>`;
     return id;
+  }
+  /** Bind inherited compatibility names before relocating a numbering fragment. */
+  private fragment(node: XmlElement, content: string, value?: number): string {
+    const chain: XmlElement[] = [];
+    const find = (current: XmlElement): boolean => {
+      this.budget.charge("work", 1);
+      chain.push(current);
+      if (current === node || current.children.some(find)) return true;
+      chain.pop();
+      return false;
+    };
+    if (!find(this.xml.root)) throw new UnsupportedEditError("Numbering fragment has no source owner.");
+    const mc = "http://schemas.openxmlformats.org/markup-compatibility/2006";
+    const bindings = new Map(node.namespaces), controls = new Map<string, Set<string>>();
+    const prefixFor = (uri: string): string => {
+      this.budget.charge("work", bindings.size);
+      for (const [prefix, namespace] of bindings) if (prefix && namespace === uri) return prefix;
+      let index = 0;
+      while (bindings.has(`ctx${index}`)) { this.budget.charge("work", 1); index++; }
+      const prefix = `ctx${index}`; bindings.set(prefix, uri); return prefix;
+    };
+    for (const ancestor of chain) for (const attribute of ancestor.attributes) {
+      this.budget.charge("work", 1 + attribute.value.length);
+      if (attribute.namespace !== mc) continue;
+      const values = controls.get(attribute.localName) ?? new Set<string>();
+      // XML whitespace, not host-language whitespace, separates prefix/QName lists.
+      for (const token of attribute.value.split("\t").join(" ").split("\r").join(" ").split("\n").join(" ").split(" ").filter(Boolean)) {
+        const [prefix, local] = token.split(":");
+        const uri = ancestor.namespaces.get(prefix!);
+        if (!uri) throw new UnsupportedEditError("Unbound numbering compatibility name.");
+        values.add(prefixFor(uri) + (local === undefined ? "" : ":" + local));
+      }
+      controls.set(attribute.localName, values);
+    }
+    const attributes = node.attributes.filter(attribute => attribute.namespace !== mc).map(attribute => value !== undefined && attribute.namespace === node.namespace && attribute.localName === "val" ? { ...attribute, value: String(value) } : attribute);
+    for (const [localName, values] of controls) attributes.push({ name: prefixFor(mc) + ":" + localName, namespace: mc, localName, value: [...values].join(" ") });
+    const result = runElementOpen({ ...node, namespaces: bindings, attributes }) + content + `</${node.name}>`;
+    this.budget.charge("retainedBytes", result.length * 2);
+    this.budget.charge("work", result.length);
+    return result;
   }
   flush(): Uint8Array {
     const additions = this.newAbstracts.join("");

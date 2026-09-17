@@ -160,3 +160,14 @@ canonical editor changes back to their stored member names. All 968 cases pass
 in the unfiltered 11,760-test run, zero skips, with verified source hashes.
 The historical original/intermediate failures remain. This closes those named
 identity assertions; full F01–F07 and the other recorded dependencies remain open.
+
+## Current numbering compatibility-context evidence
+
+The [numbering-context record](numbering-scope-context-20260917.md) binds 256
+original scope/scalar cases, all passing in the 583-case focused numbering run
+with zero skips. It qualifies inherited MCE names after restart/reopen/continue,
+preserved scalar trivia and inert content, and explicit active unsupported
+scalar rejection on SDK/actual shell across both dialects and macro-free kinds.
+The older DOTX carrier matrix and selected paragraph-property carrier restarts
+remain open; old refusal expectations do not close those required interactions.
+Full F01–F07 acceptance remains open.

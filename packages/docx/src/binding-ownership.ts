@@ -1,12 +1,11 @@
 import type { DocumentBudget } from "./budget.js";
+import { customXmlDataNamespaces, customXmlRelationshipNamespaces } from "./custom-xml-namespaces.js";
 import { documentPartRole } from "./document-part-roles.js";
 import type { DocumentPackage } from "./package.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 
 export interface BindingDeclaration { readonly part: string; readonly path: readonly number[]; readonly storeItemId: string | null; readonly xpath: string | null; readonly prefixMappings: string | null; readonly supportedStory: boolean }
 export interface BindingStore { readonly item: string; readonly properties: string; readonly storeItemId: string | null }
-const office = ["http://schemas.openxmlformats.org/officeDocument/2006/relationships/", "http://purl.oclc.org/ooxml/officeDocument/relationships/"];
-const datastore = "http://schemas.openxmlformats.org/officeDocument/2006/customXml";
 export function readDocumentBindingOwnership(graph: DocumentPackage, budget: DocumentBudget): { readonly declarations: readonly BindingDeclaration[]; readonly stores: readonly BindingStore[] } {
   budget.charge("work", 1); const declarations: BindingDeclaration[] = [], stores: BindingStore[] = [], roots = new Map<string, XmlElement>();
   for (const part of graph.parts) {
@@ -23,9 +22,9 @@ export function readDocumentBindingOwnership(graph: DocumentPackage, budget: Doc
     }; visit(root, []);
   }
   for (const part of graph.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml")) for (const edge of graph.relationships(part.partname)) {
-    budget.charge("work", 1); if (!office.some(namespace => edge.reltype === namespace + "customXmlProps") || edge.is_external) continue;
-    const root = roots.get(edge.target_part.partname); if (!root || root.namespace !== datastore || root.localName !== "datastoreItem") continue;
-    budget.charge("retainedBytes", 64); stores.push({ item: part.partname, properties: edge.target_part.partname, storeItemId: root.attributes.find(attribute => attribute.namespace === datastore && attribute.localName === "itemID")?.value ?? null });
+    budget.charge("work", 1); if (!customXmlRelationshipNamespaces.some(namespace => edge.reltype === namespace + "customXmlProps") || edge.is_external) continue;
+    const root = roots.get(edge.target_part.partname); if (!root || !customXmlDataNamespaces.includes(root.namespace) || root.localName !== "datastoreItem") continue;
+    budget.charge("retainedBytes", 64); stores.push({ item: part.partname, properties: edge.target_part.partname, storeItemId: root.attributes.find(attribute => attribute.namespace === root.namespace && attribute.localName === "itemID")?.value ?? null });
   }
   return { declarations, stores };
 }

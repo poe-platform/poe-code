@@ -2,6 +2,7 @@ import { archiveSettings, InputTypeError, type ArchiveContext } from "./archive.
 import { readDocumentArchive } from "./admission.js";
 import { validateDocxInvocation } from "./command.js";
 import { documentPartRole } from "./document-part-roles.js";
+import { customXmlDataNamespaces, customXmlRelationshipNamespaces } from "./custom-xml-namespaces.js";
 import type { InspectionPart, InspectionReference } from "./inspection.js";
 import { encodeLocation, type Location } from "./location-token.js";
 import type { DocxOperationArguments } from "./operation-types.js";
@@ -12,8 +13,6 @@ export interface CustomXmlResourceDetails { readonly kind: "custom-xml"; readonl
 export interface GlossaryResourceDetails { readonly kind: "glossary"; readonly parts: readonly InspectionPart[]; readonly buildingBlocks: readonly { readonly path: readonly number[]; readonly name: string | null; readonly guid: string | null; readonly category: string | null; readonly gallery: string | null; readonly types: readonly string[]; readonly behaviors: readonly string[] }[] }
 export interface PackageResourceRecord { readonly kind: "custom-xml" | "glossary"; readonly location: Location<"part">; readonly name: string; readonly properties: readonly []; readonly references: readonly InspectionReference[]; readonly support: "preserve"; readonly details: CustomXmlResourceDetails | GlossaryResourceDetails }
 export interface PackageResourceListData { readonly items: readonly PackageResourceRecord[] }
-const office = ["http://schemas.openxmlformats.org/officeDocument/2006/relationships/", "http://purl.oclc.org/ooxml/officeDocument/relationships/"];
-const datastore = "http://schemas.openxmlformats.org/officeDocument/2006/customXml";
 const compare = (a: string, b: string) => a < b ? -1 : a > b ? 1 : 0;
 function attribute(node: XmlElement | undefined, name: string): string | null { return node?.attributes.find(attribute => attribute.namespace === node.namespace && attribute.localName === name)?.value ?? null; }
 function child(node: XmlElement | undefined, name: string): XmlElement | undefined { const matches = node?.children.filter(child => child.namespace === node.namespace && child.localName === name) ?? []; return matches.length === 1 ? matches[0] : undefined; }
@@ -37,7 +36,7 @@ export async function inspectDocumentPackageResources(input: Uint8Array, operati
   budget.charge("work", 1); budget.charge("retainedBytes", archive.members.length * 96);
   const parts = new Map(graph.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(part => [part.partname, part]));
   const edges = ["/", ...parts.keys()].flatMap(owner => { const references = graph.relationships(owner); budget.charge("work", references.length); budget.charge("retainedBytes", references.length * 32); return references.map(edge => ({ owner, edge })); });
-  const relation = (type: string, name: string) => office.some(namespace => type === namespace + name);
+  const relation = (type: string, name: string) => customXmlRelationshipNamespaces.some(namespace => type === namespace + name);
   const itemNames = new Set(edges.filter(({ edge }) => !edge.is_external && relation(edge.reltype, "customXml")).map(({ edge }) => edge.target_part.partname));
   const associated = new Set(edges.filter(({ owner, edge }) => itemNames.has(owner) && !edge.is_external && relation(edge.reltype, "customXmlProps")).map(({ edge }) => edge.target_part.partname));
   const candidates = operation === "custom-xml.list" ? [...itemNames, ...[...parts.values()].filter(part => part.content_type.toLowerCase() === "application/vnd.openxmlformats-officedocument.customxmlproperties+xml" && !associated.has(part.partname)).map(part => part.partname)] : [...parts.values()].filter(part => part.content_type.toLowerCase() === "application/vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml").map(part => part.partname);
@@ -56,9 +55,9 @@ export async function inspectDocumentPackageResources(input: Uint8Array, operati
     const itemRoot = root(name);
     if (operation === "custom-xml.list") {
       const propertiesParts = itemNames.has(name) ? graph.relationships(name).filter(edge => !edge.is_external && relation(edge.reltype, "customXmlProps")).map(edge => edge.target_part.partname).sort(compare) : [name];
-      const propertyRoots = propertiesParts.map(root).filter((node): node is XmlElement => node?.namespace === datastore && node.localName === "datastoreItem");
+      const propertyRoots = propertiesParts.map(root).filter((node): node is XmlElement => node !== undefined && customXmlDataNamespaces.includes(node.namespace) && node.localName === "datastoreItem");
       const storeIds = propertyRoots.map(node => attribute(node, "itemID"));
-      const schemaReferences = [...new Set(propertyRoots.flatMap(node => child(node, "schemaRefs")?.children.filter(child => child.namespace === datastore && child.localName === "schemaRef").map(node => attribute(node, "uri")).filter((uri): uri is string => uri !== null) ?? []))].sort(compare);
+      const schemaReferences = [...new Set(propertyRoots.flatMap(node => child(node, "schemaRefs")?.children.filter(child => child.namespace === node.namespace && child.localName === "schemaRef").map(node => attribute(node, "uri")).filter((uri): uri is string => uri !== null) ?? []))].sort(compare);
       details = { kind: "custom-xml", parts: inventory, root: itemNames.has(name) && itemRoot ? { namespace: itemRoot.namespace, localName: itemRoot.localName } : null, storeItemId: propertiesParts.length === 1 && propertyRoots.length === 1 ? storeIds[0] ?? null : null, propertiesParts, namespaces: itemRoot ? [...itemRoot.namespaces].map(([prefix, uri]) => ({ prefix, uri })).sort((a, b) => compare(a.prefix, b.prefix)) : [], schemaReferences };
     } else {
       const buildingBlocks: GlossaryResourceDetails["buildingBlocks"][number][] = [];

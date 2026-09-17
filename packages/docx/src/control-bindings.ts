@@ -1,4 +1,5 @@
 import { readDocumentBindingOwnership } from "./binding-ownership.js";
+import { customXmlDataNamespaces, customXmlRelationshipNamespaces } from "./custom-xml-namespaces.js";
 import { archiveSettings, CancellationError, ResourceLimitError } from "./archive.js";
 import { validateDocxInvocation } from "./command.js";
 import type { DocumentBudget } from "./budget.js";
@@ -16,8 +17,6 @@ import { assertDocumentEditable, publishDocumentArchive, type PublicationContext
 import { assertOutsideRevisionRanges, containsRevision } from "./revision-markup.js";
 import { UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
 
-const relationships = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/";
-const datastore = "http://schemas.openxmlformats.org/officeDocument/2006/customXml";
 const schema = "http://www.w3.org/2001/XMLSchema";
 const instance = "http://www.w3.org/2001/XMLSchema-instance";
 function reject(): never { throw new UnsupportedEditError("Binding requires a singleton admitted store, selector and complete unlocked recipient set."); }
@@ -36,7 +35,7 @@ export async function editDocumentControlBindings(input: Uint8Array, options: Do
   const budget = settings.budget.lower(Object.fromEntries((opts.limit ?? []).map(item => [item.name, item.value])));
   const bounded = { ...settings, budget }; const document = await openDocumentLocations(input, bounded); const archive = document.snapshot();
   const editor = new DocumentArchiveEditor(archive, {}, undefined, budget); const pkg = new DocumentPackage(archive, settings.limits, budget);
-  const owners = pkg.parts.filter(part => part.content_type !== "application/vnd.openxmlformats-package.relationships+xml" && part.partname !== "/[Content_Types].xml");
+  const owners = pkg.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml" && part.partname !== "/[Content_Types].xml");
   const { binding, valueJson, output, inPlace, force, dryRun, json, all, allowEmpty, limit: ignoredLimit, ...selectors } = opts;
   const selected = (await inspectDocumentControls(input, selectors, bounded)).items;
   const chosen = document.select(selected.map(item => item.location), { ...(all === undefined ? {} : { all }), ...(allowEmpty === undefined ? {} : { allowEmpty }) }, "mutation");
@@ -50,14 +49,14 @@ export async function editDocumentControlBindings(input: Uint8Array, options: Do
     if (!descriptor.xpath.startsWith("/")) reject();
     const steps = descriptor.xpath.slice(1).split("/").map(name => expanded(name, mappings.namespaces, budget));
     const stores = owners.filter(part => pkg.relationships(part.partname).some(edge => {
-      if (edge.reltype !== relationships + "customXmlProps") return false;
+      if (!customXmlRelationshipNamespaces.some(namespace => edge.reltype === namespace + "customXmlProps")) return false;
       if (edge.is_external) return false;
       const root = editor.xml(edge.target_part.partname.slice(1)).root;
-      return root.namespace === datastore && root.localName === "datastoreItem" && root.attributes.some(attribute => attribute.namespace === datastore && attribute.localName === "itemID" && attribute.value.toLowerCase() === descriptor.storeItemId!.toLowerCase());
+      return customXmlDataNamespaces.includes(root.namespace) && root.localName === "datastoreItem" && root.attributes.some(attribute => attribute.namespace === root.namespace && attribute.localName === "itemID" && attribute.value.toLowerCase() === descriptor.storeItemId!.toLowerCase());
     }));
     if (stores.length !== 1) reject(); const part = stores[0]!;
-    const edges = owners.flatMap(owner => pkg.relationships(owner.partname)).filter(edge => edge.reltype === relationships + "customXml" && !edge.is_external && edge.target_part.partname === part.partname);
-    if (!edges.length || pkg.relationships(part.partname).filter(edge => edge.reltype === relationships + "customXmlProps").length !== 1) reject();
+    const edges = owners.flatMap(owner => pkg.relationships(owner.partname)).filter(edge => customXmlRelationshipNamespaces.some(namespace => edge.reltype === namespace + "customXml") && !edge.is_external && edge.target_part.partname === part.partname);
+    if (!edges.length || pkg.relationships(part.partname).filter(edge => customXmlRelationshipNamespaces.some(namespace => edge.reltype === namespace + "customXmlProps")).length !== 1) reject();
     const xml = editor.xml(part.partname.slice(1)); let leaf = xml.root;
     for (let index = 0; index < steps.length; index++) { const [namespace, localName] = steps[index]!; const nodes = (index ? leaf.children : [leaf]).filter(node => node.namespace === namespace && node.localName === localName); if (nodes.length !== 1) reject(); leaf = nodes[0]!; }
     if (leaf.content.some(node => node.kind !== "text" && node.kind !== "cdata")) reject();

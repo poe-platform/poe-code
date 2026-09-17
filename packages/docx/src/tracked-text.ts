@@ -5,7 +5,7 @@ import { xmlValue } from "./create-content.js";
 import { assertOutsideFields, parseFields } from "./field-parser.js";
 import type { Location } from "./location-token.js";
 import type { DocumentArchiveEditor } from "./package-write.js";
-import { parseDocumentXml, type XmlElement } from "./package-xml.js";
+import { isXmlContentType, parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { assertOutsideRevisionRanges, containsRevision, revisionInfo } from "./revision-markup.js";
 import { UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
 
@@ -41,8 +41,7 @@ export function stageTrackedText(editor: DocumentArchiveEditor, edits: readonly 
   xmlValue(metadata.author); xmlValue(metadata.timestamp);
   const used = new Set<number>();
   for (const part of new DocumentPackage(editor.snapshot(), limits, budget).parts) {
-    const type = part.content_type.toLowerCase();
-    if (!type.endsWith("+xml") && !["application/xml", "text/xml"].includes(type)) continue;
+    if (!isXmlContentType(part.content_type)) continue;
     const visit = (node: XmlElement): void => {
       budget.charge("work", 1);
       const info = revisionInfo(node);

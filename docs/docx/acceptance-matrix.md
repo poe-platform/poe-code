@@ -1,5 +1,11 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 revision identity qualification](native-media-revisions-20260917.md)
+records 192 exact native/inactive main/header cases inside 288 focused passes,
+zero skips, and 24 built SDK/actual Shell workflows. MIME parameters no longer
+hide retained lexical IDs from allocation. Exact retention and original/final
+views pass; other consumers and complete F01–F07 acceptance remain open.
+
 The [2026-09-17 native XML cross-family qualification](native-media-cross-family-20260917.md)
 records 382 focused passing tests, zero skips, and 24 built SDK/actual Shell
 workflows. Named math refusal locations, bookmark MIME ownership and native

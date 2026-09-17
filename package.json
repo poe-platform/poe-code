@@ -809,6 +809,7 @@
     "@poe-code/safe-js": "*",
     "@poe-code/superintendent": "*",
     "@poe-code/task-list": "*",
+    "@poe-code/terminal-name": "*",
     "@poe-code/user-error": "*",
     "@poe-code/workspace-resolver": "*",
     "@poe-code/worktree": "*",

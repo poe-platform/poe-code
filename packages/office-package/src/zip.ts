@@ -45,6 +45,8 @@ export interface ZipEntry {
   comment?: Uint8Array;
   localExtra?: Uint8Array;
   centralExtra?: Uint8Array;
+  /** Original complete central header size, before ZIP64 extra-field normalization. */
+  readonly centralHeaderBytes?: number;
   flags?: number;
   versionMadeBy?: number;
   internalAttributes?: number;
@@ -618,6 +620,7 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
         comment,
         localExtra,
         centralExtra,
+        centralHeaderBytes: next - offset,
         flags,
         versionMadeBy,
         internalAttributes,

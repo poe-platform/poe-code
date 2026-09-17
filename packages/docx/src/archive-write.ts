@@ -97,6 +97,8 @@ export async function writeArchive(
       }
       if (nameBytes > Math.min(limits.maxPathBytes, 65535))
         throw new ResourceLimitError("Archive path limit exceeded.");
+      if (46 + nameBytes > 65535)
+        throw new InvalidContainerError("OPC central directory headers cannot exceed 65535 bytes.");
       const parts = member.name.split("/");
       if (parts.at(-1) === "") parts.pop();
       if (

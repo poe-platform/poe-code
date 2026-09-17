@@ -124,6 +124,32 @@ async function decoded(bytes: Uint8Array, extended = false): Promise<Uint8Array>
 }
 
 describe("bounded package archive", () => {
+  for (const method of [0, 8]) for (const extended of [false, true]) for (const opaque of [false, true]) {
+    it(`reports original central header bytes before ZIP64 normalization; method=${method} extended=${extended} opaque=${opaque}`, async () => {
+      const zip = createZipCodec(undefined, { zip64: true });
+      const input = archive(method, 2, extended, opaque);
+      const parsed = await zip.readZipArchive(input, limits, signal);
+      expect(parsed.entries[0]).toHaveProperty("centralHeaderBytes", 47 + (extended ? 28 : 0) + (opaque ? 5 : 0));
+      expect(parsed.entries[0]!.centralExtra).toHaveLength(opaque ? 5 : 0);
+      expect(await decoded(input, extended)).toEqual(content);
+    });
+  }
+  for (const compression of ["store", "deflate"] as const) {
+    it(`keeps generic ZIP headers larger than OPC allows; ${compression}`, async () => {
+      const zip = createZipCodec(), wideLimits = { ...limits, maxArchiveBytes: 262144, maxTextBytes: 65535 };
+      const entry = await zip.makeZipEntry("x", content, {
+        modified: new Date("2020-01-01T00:00:00Z"), mode: 0o100644,
+        directory: false, symlink: false, compression
+      }, wideLimits, signal);
+      entry.centralExtra = Uint8Array.of(0xef, 0xbe, 1, 0, 79);
+      entry.comment = new Uint8Array(65500).fill(99);
+      const bytes = await zip.writeZipArchive({ entries: [entry], comment: new Uint8Array() }, wideLimits, signal);
+      const parsed = await zip.readZipArchive(bytes, wideLimits, signal);
+      expect(parsed.entries[0]).toHaveProperty("centralHeaderBytes", 65552);
+      expect(parsed.entries[0]!.comment).toEqual(entry.comment);
+      expect(parsed.entries[0]!.centralExtra).toEqual(entry.centralExtra);
+    });
+  }
   it("preserves a leading byte order mark as literal filename content", async () => {
     const zip = createZipCodec();
     const entry = await zip.makeZipEntry(

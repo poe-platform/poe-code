@@ -133,6 +133,8 @@ export async function readArchive(
     budget.charge("zipEntries", archive.entries.length);
     let expanded = 0;
     for (const entry of archive.entries) {
+      if (entry.centralHeaderBytes! > 65535)
+        throw new InvalidContainerError("OPC central directory headers cannot exceed 65535 bytes.");
       if (entry.symlink || entry.name.includes("\\") || entry.name.includes(":"))
         throw new InvalidContainerError("Unsafe document archive member.");
       expanded += entry.size;

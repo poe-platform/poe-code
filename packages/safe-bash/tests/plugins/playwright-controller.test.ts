@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createPlaywrightController } from '../../src/playwright/index.js';
 import type { PlaywrightAdapter, PlaywrightLease, PlaywrightPage } from '../../src/playwright/index.js';
+import type { SnapshotNode } from '../../src/playwright/adapter.js';
+import { createSnapshotFrame } from '../helpers/playwright-snapshot.js';
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -51,18 +53,18 @@ for (const command of ['click', 'fill', 'custom'] as const) {
       navigation.resolve();
       await Promise.race([loaded.promise, disposed.promise.then(() => { throw new Error('Target page, context or browser has been closed'); })]);
     };
+    const node = { isConnected: true, tagName: 'BUTTON', textContent: 'Save', getAttribute: () => null };
     const handle = {
-      async evaluate(callback: (node: unknown) => unknown) {
-        return callback({ isConnected: true, tagName: 'BUTTON', textContent: 'Save', getAttribute: () => null });
-      },
+      async evaluate<T>(callback: (node: SnapshotNode) => T) { return callback(node); },
       click: action, fill: action,
       async dispose() { disposals++; disposed.resolve(); },
     };
+    const snapshot = createSnapshotFrame([{ node, native: handle }]);
     const page = {
       goto: async () => {}, url: () => 'https://example.test/save',
       on: (event: string, listener: () => void) => { if (event === 'framenavigated') listeners.add(listener); },
       off: (_event: string, listener: () => void) => { listeners.delete(listener); },
-      frames: () => [{ locator: () => ({ elementHandles: async () => [handle] }) }],
+      frames: () => [snapshot.frame],
     } as unknown as PlaywrightPage;
     const controller = createPlaywrightController({
       adapter: { browsers: { chromium: { headed: false } }, async acquire() {
@@ -81,6 +83,7 @@ for (const command of ['click', 'fill', 'custom'] as const) {
     try {
       await run(['open']);
       await run(['snapshot']);
+      assert.equal(snapshot.acquiredElements.length, 0);
       const pending = run(command === 'fill' ? ['fill', 'e1', 'value'] : ['click', 'e1']);
       const outcome = pending.then(() => undefined, error => error);
       await navigation.promise;
@@ -92,6 +95,7 @@ for (const command of ['click', 'fill', 'custom'] as const) {
       else assert.equal(await outcome, undefined);
       assert.equal(prematureDisposals, 0);
       assert.equal(disposals, 1);
+      assert.equal(snapshot.disposedCapsules.length, 1);
       assert.equal(releases, cancel ? 1 : 0);
       if (!cancel) await run(['snapshot']);
     } finally { loaded.resolve(); await controller.dispose(); }

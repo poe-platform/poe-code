@@ -181,8 +181,8 @@ unsupported. The limits and defaults are:
 | `maxSessions` | 4 | Concurrent controller-managed sessions |
 | `maxTabs` | 16 | All tabs in a controller-managed session, including page-created popups; overflow retires that session |
 | `actionTimeoutMs` | 30000 | Existing built-in browser action timeouts |
-| `maxSnapshotBytes` | 262144 | Built-in snapshot output |
-| `maxSnapshotRefs` | 1000 | Built-in snapshot handles |
+| `maxSnapshotBytes` | 262144 | Aggregate built-in snapshot UTF-8 output, admitted inside each frame before transfer |
+| `maxSnapshotRefs` | 1000 | Retained built-in snapshot nodes, admitted before native element-handle extraction |
 | `maxArtifactBytes` | 16777216 | Each artifact read/write |
 | `maxCommandBytes` | 16777216 | Aggregate custom-handler text/artifact input/output bytes |
 
@@ -190,6 +190,13 @@ All limits are positive safe integers. These are admission/transfer limits, not
 an isolation or memory ceiling for arbitrary client code. Client handlers must
 honor cancellation and implement their backend's action timeout policy. Opaque,
 uncooperative host work cannot be forcibly preempted by this library.
+
+Built-in snapshots require public frame `evaluateHandle`. They retain nodes in a
+browser-side object and transfer only bounded status and rendered text; they do
+not obtain locator element handles or transfer raw body text, attributes or input
+values. Native element handles are acquired lazily when an action resolves a ref,
+preserving node identity across DOM reordering. The snapshot budget does not bound
+later native action traffic, page-side allocations or arbitrary provider messages.
 
 The only environment variable read by the CLI is exported
 `PLAYWRIGHT_CLI_SESSION`. Selection precedence is explicit `-s`/`--session`, then

@@ -1,3 +1,5 @@
+import type { FrameSnapshotCapsule, FrameSnapshotInput } from './frame-snapshot.js';
+
 export type BrowserEngine = "chromium" | "firefox" | "webkit";
 
 // Deliberately excludes native paths, uploads, eval, and private snapshot APIs.
@@ -32,10 +34,20 @@ export interface PlaywrightElementHandle {
   dispose(): Promise<void>;
 }
 export interface PlaywrightFrame {
+  evaluateHandle?(callback: (input: FrameSnapshotInput) => FrameSnapshotCapsule, input: FrameSnapshotInput): Promise<PlaywrightSnapshotHandle>;
   locator(selector: string): {
     elementHandles?: () => Promise<PlaywrightElementHandle[]>;
     evaluate?: (callback: (node: SnapshotNode) => string) => Promise<string>;
   };
+}
+
+export interface PlaywrightSnapshotHandle {
+  evaluate<Result, Arg>(callback: (capsule: FrameSnapshotCapsule, arg: Arg) => Result, arg: Arg): Promise<Result>;
+  evaluateHandle(callback: (capsule: FrameSnapshotCapsule, slot: number) => SnapshotNode | undefined, slot: number): Promise<{
+    asElement(): PlaywrightElementHandle | null;
+    dispose(): Promise<void>;
+  }>;
+  dispose(): Promise<void>;
 }
 
 export interface PlaywrightPage {

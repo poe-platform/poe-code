@@ -27,3 +27,15 @@ Issue #731 is explicitly excluded.
 
 Use failing regressions first, atomic commits, focused local checks, GitHub
 publication, installed-artifact verification and a fresh issue-queue scan.
+
+## Snapshot extraction (#742)
+
+- Retain selected nodes in a non-node browser-side capsule using frame evaluation.
+- Admit aggregate refs and UTF-8 rendering before any content crosses CDP.
+- Avoid locator evaluation and node-handle extraction during capture, including
+  protocol descriptions containing unbounded id/class/other attributes.
+- Acquire native handles only for requested actions; retain stale-ref and deferred
+  disposal semantics. This does not bound subsequent native action traffic (#737).
+- Run `tests/integration/playwright-snapshot-limits.test.mjs` with the same runtime
+  environment as the popup test. Check 40 MiB body, label and value rejection;
+  huge unrelated id/class/data attributes; recovery and retained node identity.

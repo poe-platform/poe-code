@@ -6,6 +6,8 @@ import { Shell } from '../../src/shell/index.js';
 import { agentCommands } from '../../src/plugins/index.js';
 import { MemoryFileSystem } from '../../src/fs/memory/index.js';
 import type { PlaywrightAdapter, PlaywrightPage } from '../../src/playwright/index.js';
+import type { SnapshotNode } from '../../src/playwright/adapter.js';
+import { createSnapshotFrame } from '../helpers/playwright-snapshot.js';
 
 function fixture() {
   const volume = Volume.fromJSON({ '/work/.keep': '' });
@@ -130,16 +132,22 @@ function interactiveFixture(limits = {}) {
   function newPage() {
     let url = 'about:blank';
     const node = { connected: true, name: 'Same' }; dom.push(node);
+    const elements = [0, 1].map(index => {
+      const element = { tagName: 'BUTTON', get textContent() { return node.name; }, get isConnected() { return node.connected; }, getAttribute: () => null };
+      const native = {
+        async evaluate<T>(callback: (node: SnapshotNode) => T) { return callback(element); },
+        async click() { events.push(`click:${pages.indexOf(page)}:${index}`); },
+        async fill(value: string) { events.push(`fill:${pages.indexOf(page)}:${index}:${value}`); },
+        async dispose() { events.push('handle:dispose'); },
+      };
+      return { node: element, native };
+    });
+    const snapshot = createSnapshotFrame(elements);
     const page: PlaywrightPage = {
       async goto(value) { url = value; for (const callback of listeners.get(page)?.get('framenavigated') ?? []) callback(); },
       url: () => url,
       locator: () => { throw new Error('Guest locator evaluation forbidden'); },
-      frames: () => [{ locator: () => ({ elementHandles: async () => [0, 1].map(index => ({
-        async evaluate(callback) { return callback({ tagName: 'BUTTON', textContent: node.name, isConnected: node.connected, getAttribute: () => null }); },
-        async click() { events.push(`click:${pages.indexOf(page)}:${index}`); },
-        async fill(value) { events.push(`fill:${pages.indexOf(page)}:${index}:${value}`); },
-        async dispose() { events.push('handle:dispose'); },
-      })) }) }],
+      frames: () => [snapshot.frame],
       keyboard: { async press(key) { events.push(`press:${key}`); } },
       async screenshot(options) { screenshots++; screenshotOptions = options; return bytes.subarray(0); },
       async close() { pages.splice(pages.indexOf(page), 1); for (const callback of listeners.get(page)?.get('close') ?? []) callback(); },

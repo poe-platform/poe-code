@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createPlaywrightController, type PlaywrightAdapter, type PlaywrightLease, type PlaywrightPage } from '../../src/playwright/index.js';
+import type { SnapshotNode } from '../../src/playwright/adapter.js';
+import { createSnapshotFrame } from '../helpers/playwright-snapshot.js';
 
 test('capacity preflight remains valid when a closed session is reopened concurrently with a new session', async () => {
   const acquired: string[] = [];
@@ -34,16 +36,17 @@ test('cancelled reference actions preserve deferred handle disposal failures', a
   const actionStarted = new Promise<void>(resolve => { startAction = resolve; });
   const actionReleased = new Promise<void>(resolve => { releaseAction = resolve; });
   let disposals = 0;
+  const node = { isConnected: true, tagName: 'BUTTON', textContent: 'Save', getAttribute: () => null };
   const handle = {
-    async evaluate(callback: (node: unknown) => unknown) {
-      return callback({ isConnected: true, tagName: 'BUTTON', textContent: 'Save', getAttribute: () => null });
-    },
+    async evaluate<T>(callback: (node: SnapshotNode) => T) { return callback(node); },
     async click() { startAction(); await actionReleased; },
+    async fill() {},
     async dispose() { disposals++; throw cleanupError; },
   };
+  const snapshot = createSnapshotFrame([{ node, native: handle }]);
   const page = {
     goto: async () => {}, on() {}, off() {},
-    frames: () => [{ locator: () => ({ elementHandles: async () => [handle] }) }],
+    frames: () => [snapshot.frame],
   } as unknown as PlaywrightPage;
   const controller = createPlaywrightController({ adapter: {
     browsers: { chromium: { headed: false } },
@@ -59,11 +62,13 @@ test('cancelled reference actions preserve deferred handle disposal failures', a
   try {
     await run(['open']);
     await run(['snapshot']);
+    assert.equal(snapshot.acquiredElements.length, 0);
     const outcome = run(['click', 'e1']).then(() => undefined, error => error);
     await actionStarted;
     cancellation.abort(new Error('cancelled action'));
     const failure = await outcome;
     assert.equal(disposals, 1);
+    assert.equal(snapshot.disposedCapsules.length, 1);
     assert.ok(failure instanceof AggregateError, 'cancellation must not erase deferred disposal failure');
     assert.equal(failure.errors[0], cancellation.signal.reason);
     assert.ok(failure.errors[1] instanceof AggregateError);

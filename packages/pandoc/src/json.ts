@@ -1,4 +1,4 @@
-import { visit } from "jsonc-parser";
+import { parseStrictJson } from "./strict-json.js";
 import { PandocError } from "./errors.js";
 import type { AdapterContext, Document, ReaderCapability, WriterCapability } from "./types.js";
 
@@ -46,55 +46,14 @@ function exactInteger(token: string, value: number): boolean {
     : coefficient % divisor === 0n && coefficient / divisor === BigInt(value);
 }
 
-function parse(text: string, context: AdapterContext): unknown {
-  const keys: (Set<string> | null)[] = [];
-  let nodes = 0;
-  const node = (): void => {
-    context.checkpoint();
-    context.bound("nodes", ++nodes);
-    context.bound("depth", keys.length);
-  };
-  visit(
-    text,
-    {
-      onObjectBegin: () => {
-        node();
-        keys.push(new Set());
-      },
-      onObjectProperty: (key, offset) => {
-        node();
-        const current = keys.at(-1);
-        if (current?.has(key)) fail("read", `$@${offset}`, `Duplicate object key: ${key}`);
-        current?.add(key);
-      },
-      onObjectEnd: () => {
-        keys.pop();
-      },
-      onArrayBegin: () => {
-        node();
-        keys.push(null);
-      },
-      onArrayEnd: () => {
-        keys.pop();
-      },
-      onLiteralValue: (value, offset, length) => {
-        node();
-        if (
-          typeof value === "number" &&
-          (!Number.isFinite(value) ||
-            (Number.isInteger(value) &&
-              (!Number.isSafeInteger(value) ||
-                !exactInteger(text.slice(offset, offset + length), value))))
-        )
-          fail("read", `$@${offset}`, "Number exceeds exact integer range or is rounded");
-      },
-      onError: (_error, offset) => {
-        fail("read", `$@${offset}`, "Invalid JSON syntax");
-      }
-    },
-    { disallowComments: true, allowTrailingComma: false, allowEmptyContent: false }
-  );
-  return JSON.parse(text) as unknown;
+async function parse(text: string, context: AdapterContext): Promise<unknown> {
+  return parseStrictJson(text, context,
+    (offset, message) => fail("read", `$@${offset}`, message),
+    (token, value, offset) => {
+      if (!Number.isFinite(value) || Number.isInteger(value) &&
+        (!Number.isSafeInteger(value) || !exactInteger(token, value)))
+        fail("read", `$@${offset}`, "Number exceeds exact integer range or is rounded");
+    });
 }
 
 /** Contextual conversion only: text and metadata keys never become constructors. */
@@ -170,7 +129,7 @@ async function translate(
 export const jsonReader: ReaderCapability = {
   format: "json",
   async read(input, context) {
-    const root = record(parse(input.text ?? "", context), "read", "$");
+    const root = record(await parse(input.text ?? "", context), "read", "$");
     if (
       Object.keys(root).length !== 3 ||
       !Object.hasOwn(root, "meta") ||

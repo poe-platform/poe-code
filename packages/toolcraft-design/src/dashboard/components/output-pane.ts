@@ -32,7 +32,7 @@ export function renderOutputPane(
   }
 
   const { rows: visualLines, offset: actualOffset } = selectViewportTail(
-    items, rect.height, scrollOffset, item => {
+    options.conversation && !options.details ? foldCompletedActions(items) : items, rect.height, scrollOffset, item => {
       if (options.conversation && item.role === "reasoning" && !options.details) return [];
       const text = options.details && item.detail ? `${item.text}\n${item.detail}` : item.text;
       const lines = computeVisualLines([text === item.text ? item : { ...item, text }], rect.width);
@@ -103,6 +103,25 @@ export function renderOutputPane(
     buffer.putInRect(textRect, row, line.text, line.style);
   }
   return actualOffset;
+}
+
+function foldCompletedActions(items: OutputItem[]): OutputItem[] {
+  const result: OutputItem[] = [];
+  let completed: OutputItem[] = [];
+  const flush = (): void => {
+    if (completed.length >= 4) {
+      result.push({ role: "action", kind: "status", ts: completed[0]!.ts,
+        text: `${completed.length - 2} earlier actions · d Details` }, ...completed.slice(-2));
+    } else result.push(...completed);
+    completed = [];
+  };
+  for (const item of items) {
+    if (item.role === "reasoning") continue;
+    if (item.role === "action" && item.kind === "success") completed.push(item);
+    else { flush(); result.push(item); }
+  }
+  flush();
+  return result;
 }
 
 export function computeVisualLines(items: OutputItem[], width: number): VisualLine[] {

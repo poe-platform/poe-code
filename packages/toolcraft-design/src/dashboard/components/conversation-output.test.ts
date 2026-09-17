@@ -11,6 +11,39 @@ function rows(items: OutputItem[], details = false) {
 }
 
 describe("concise conversation transcript", () => {
+  it("folds older completed actions while retaining the latest work and agent explanation", () => {
+    const items: OutputItem[] = [
+      { role: "agent", kind: "info", text: "Checking the document boundaries.", ts: 0 },
+      ...Array.from({ length: 10 }, (_, index): OutputItem => ({ role: "action", kind: "success", text: `Read file-${index + 1}.ts`, ts: index + 1 })),
+      { role: "action", kind: "tool", text: "Run tests", ts: 11 }
+    ];
+    expect(rows(items).slice(0, 6)).toEqual([
+      "•  Checking the document boundaries.", "", "·  8 earlier actions · d Details",
+      "✓  Read file-9.ts", "✓  Read file-10.ts", "›  Run tests"
+    ]);
+    const expanded = rows(items, true).join("\n");
+    expect(expanded).toContain("Read file-1.ts");
+    expect(expanded).toContain("Read file-10.ts");
+    expect(expanded).not.toContain("earlier actions");
+  });
+
+  it("never folds errors, cancelled actions, or user messages into completed work", () => {
+    const completed = (prefix: string): OutputItem[] => Array.from({ length: 4 }, (_, index) => ({
+      role: "action", kind: "success", text: `${prefix} ${index + 1}`, ts: index
+    }));
+    const result = rows([
+      ...completed("Read"),
+      { role: "action", kind: "error", text: "Build failed", ts: 5 },
+      { role: "action", kind: "status", text: "Run tests · cancelled", ts: 6 },
+      { role: "user", kind: "info", text: "Review before continuing", ts: 7 },
+      ...completed("Check")
+    ]).join("\n");
+    expect(result.match(/2 earlier actions/g)).toHaveLength(2);
+    expect(result).toContain("!  Build failed");
+    expect(result).toContain("·  Run tests · cancelled");
+    expect(result).toContain("›  Review before continuing");
+  });
+
   it("distinguishes running, completed, and failed actions without relying on color", () => {
     const result = rows([
       { role: "action", kind: "tool", text: "Run tests", ts: 0 },

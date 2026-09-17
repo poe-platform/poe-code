@@ -12,6 +12,27 @@ const attr: Attr = ["", [], []];
 const heading = (text: string, id = ""): Block => ({t: "Header", c: [1, [id, [], []], [{t: "Str", c: text}]]});
 const link = (target: string): Block => ({t: "Para", c: [{t: "Link", c: [attr, [{t: "Str", c: "go"}], [target, ""]]}]});
 const book = (blocks: readonly Block[] = []): Document => ({blocks, metadata: {}, resources: []});
+it("uses the contract ZIP epoch in every local and central EPUB entry", async () => {
+  const {bytes} = await output(book([{t: "Para", c: [{t: "Str", c: "Owned epoch"}]}]));
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let offset = 0;
+  let entries = 0;
+  while (view.getUint32(offset, true) === 0x04034b50) {
+    expect(view.getUint16(offset + 10, true)).toBe(0);
+    expect(view.getUint16(offset + 12, true)).toBe(33); // DOS 1980-01-01.
+    entries++;
+    offset += 30 + view.getUint16(offset + 26, true) + view.getUint16(offset + 28, true) + view.getUint32(offset + 18, true);
+  }
+  let centralEntries = 0;
+  while (view.getUint32(offset, true) === 0x02014b50) {
+    expect(view.getUint16(offset + 12, true)).toBe(0);
+    expect(view.getUint16(offset + 14, true)).toBe(33);
+    centralEntries++;
+    offset += 46 + view.getUint16(offset + 28, true) + view.getUint16(offset + 30, true) + view.getUint16(offset + 32, true);
+  }
+  expect(entries).toBeGreaterThan(0);
+  expect(centralEntries).toBe(entries);
+});
 function checksum(bytes: Uint8Array): number {
   let value = 0xffffffff;
   for(const byte of bytes) {
@@ -101,7 +122,7 @@ it.each(["epub", "epub3"])("writes %s with stored first mimetype, namespace-vali
   const opf = xml(parts.get("EPUB/package.opf")!);
   expect(opf.tags[0]).toMatchObject({name: "package", uri: "http://www.idpf.org/2007/opf", attrs: {version: "3.0", "unique-identifier": "publication-id"}});
   expect(opf.text).toContain("Untitled");
-  expect(opf.text).toContain("2000-01-01T00:00:00Z");
+  expect(opf.text).toContain("1970-01-01T00:00:00Z");
   expect(opf.text).toContain("urn:sha256:");
   expect(opf.tags.filter(t => t.name === "itemref").map(t => t.attrs.idref)).toEqual(["chapter-1", "chapter-2"]);
   const manifest = opf.tags.filter(t => t.name === "item");
@@ -143,6 +164,7 @@ it("packages explicit Unicode cover/image once with declared media type and cove
   const {parts} = await output(doc);
   const opf = xml(parts.get("EPUB/package.opf")!);
   expect(opf.text).toContain("urn:example:original");
+  expect(opf.text).toContain("2026-09-16T00:00:00Z");
   expect(opf.tags.find(t => t.attrs.properties === "cover-image")?.attrs["media-type"]).toBe("image/png");
   expect(opf.tags.filter(t => t.name === "itemref")[0]?.attrs.idref).toBe("cover");
   expect(parts.get("EPUB/resources/" + name)).toEqual(png);

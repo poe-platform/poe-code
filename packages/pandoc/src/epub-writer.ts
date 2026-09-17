@@ -57,7 +57,7 @@ export const epubWriter: WriterCapability = {
     if (!ctx.yes && (suppliedTitle === undefined || suppliedLang === undefined || explicitIdentifier === undefined)) fail("EPUB requires title, language and identifier; supply metadata or use --yes to accept defaults", "E_METADATA");
     const title = suppliedTitle ?? "Untitled";
     const lang = suppliedLang ?? "en";
-    const modified = (await meta("modified")) ?? "2000-01-01T00:00:00Z";
+    const modified = (await meta("modified")) ?? "1970-01-01T00:00:00Z";
     if(!title.trim() || !lang.trim() || explicitIdentifier !== undefined && !explicitIdentifier.trim()) fail("Publication metadata must be nonempty", "E_OPTION");
     const date = new Date(modified);
     if(modified.length !== 20 || !Number.isFinite(date.getTime()) || date.toISOString().replace(".000Z", "Z") !== modified) fail("modified must be a canonical UTC timestamp to seconds", "E_OPTION");
@@ -223,7 +223,7 @@ export const epubWriter: WriterCapability = {
     const zip = createZipCodec({compression: createCompressionCodec(), yieldTurn: async () => ctx.cooperate(), fail: message => fail(message, message.includes("limit") ? "E_LIMIT" : "E_CAPABILITY")}, {rejectDuplicateNames: true, validatePayloads: true});
     const entries: ZipEntry[] = [];
     for(const [name, bytes] of parts) {
-      const entry = await zip.makeZipEntry(name, bytes, {modified: new Date("2000-01-01T00:00:00Z"), mode: 0o100644, directory: false, symlink: false, compression: name === "mimetype" ? "store" : "auto"}, limits, signal);
+      const entry = await zip.makeZipEntry(name, bytes, {modified: new Date("1980-01-01T00:00:00Z"), mode: 0o100644, directory: false, symlink: false, compression: name === "mimetype" ? "store" : "auto"}, limits, signal);
       if(name === "mimetype") {entry.localExtra = new Uint8Array(); entry.centralExtra = new Uint8Array();}
       entries.push(entry);
     }

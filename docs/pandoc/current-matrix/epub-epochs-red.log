@@ -1,0 +1,115 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ❯ packages/pandoc/src/epub-writer.test.ts (21 tests | 3 failed) 256ms
+   × uses the contract ZIP epoch in every local and central EPUB entry 24ms
+   × writes epub with stored first mimetype, namespace-valid package, metadata and spine 14ms
+   × writes epub3 with stored first mimetype, namespace-valid package, metadata and spine 9ms
+   ✓ allocates duplicate headings globally and rewrites forward/backward and note links across chapters 9ms
+   ✓ handles empty and bounded long books deterministically without empty trailing chapters 137ms
+   ✓ declares PNG, original JPEG pixels and original GIF pixels with matching media types 15ms
+   ✓ packages explicit Unicode cover/image once with declared media type and cover spine 8ms
+   ✓ keeps literal percent, spaces and URL syntax hazards in resource identities distinct 6ms
+   ✓ rejects missing fragment 1ms
+   ✓ rejects unknown local target 0ms
+   ✓ rejects duplicate explicit IDs 1ms
+   ✓ rejects remote image 0ms
+   ✓ rejects orphan media 0ms
+   ✓ rejects active media 0ms
+   ✓ rejects invalid modified 0ms
+   ✓ rejects raw scripts 0ms
+   ✓ keeps EPUB2 writing unsupported and obeys publication limits 1ms
+   ✓ rejects fractional modified timestamps outside the recorded EPUB profile 0ms
+   ✓ derives the publication identifier from content and media without ambient time/randomness 7ms
+   ✓ publishes binary EPUB via the adapter into memfs without ambient resource reads 12ms
+   ✓ uses the thin safe-bash adapter for binary EPUB3 stdout 8ms
+FAIL packages/pandoc/src/epub-writer.test.ts > uses the contract ZIP epoch in every local and central EPUB entry
+AssertionError: expected 10273 to be 33 // Object.is equality
+
+- Expected
++ Received
+
+- 33
++ 10273
+
+ ❯ packages/pandoc/src/epub-writer.test.ts:22:47
+     20|   while (view.getUint32(offset, true) === 0x04034b50) {
+     21|     expect(view.getUint16(offset + 10, true)).toBe(0);
+     22|     expect(view.getUint16(offset + 12, true)).toBe(33); // DOS 1980-01…
+       |                                               ^
+     23|     entries++;
+     24|     offset += 30 + view.getUint16(offset + 26, true) + view.getUint16(…
+
+FAIL packages/pandoc/src/epub-writer.test.ts > writes epub with stored first mimetype, namespace-valid package, metadata and spine
+AssertionError: expected 'urn:sha256:2d8fdd676d3b049887ef919704…' to contain '1970-01-01T00:00:00Z'
+
+Expected: "1970-01-01T00:00:00Z"
+Received: "urn:sha256:2d8fdd676d3b049887ef91970420d35667fd33d4c05126e4e47177ad4c04e961Untitleden2000-01-01T00:00:00Z"
+
+ ❯ packages/pandoc/src/epub-writer.test.ts:125:20
+    123|   expect(opf.tags[0]).toMatchObject({name: "package", uri: "http://www…
+    124|   expect(opf.text).toContain("Untitled");
+    125|   expect(opf.text).toContain("1970-01-01T00:00:00Z");
+       |                    ^
+    126|   expect(opf.text).toContain("urn:sha256:");
+    127|   expect(opf.tags.filter(t => t.name === "itemref").map(t => t.attrs.i…
+
+FAIL packages/pandoc/src/epub-writer.test.ts > writes epub3 with stored first mimetype, namespace-valid package, metadata and spine
+AssertionError: expected 'urn:sha256:2d8fdd676d3b049887ef919704…' to contain '1970-01-01T00:00:00Z'
+
+Expected: "1970-01-01T00:00:00Z"
+Received: "urn:sha256:2d8fdd676d3b049887ef91970420d35667fd33d4c05126e4e47177ad4c04e961Untitleden2000-01-01T00:00:00Z"
+
+ ❯ packages/pandoc/src/epub-writer.test.ts:125:20
+    123|   expect(opf.tags[0]).toMatchObject({name: "package", uri: "http://www…
+    124|   expect(opf.text).toContain("Untitled");
+    125|   expect(opf.text).toContain("1970-01-01T00:00:00Z");
+       |                    ^
+    126|   expect(opf.text).toContain("urn:sha256:");
+    127|   expect(opf.tags.filter(t => t.name === "itemref").map(t => t.attrs.i…
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/pandoc/src/epub-writer.test.ts > uses the contract ZIP epoch in every local and central EPUB entry
+AssertionError: expected 10273 to be 33 // Object.is equality
+
+- Expected
++ Received
+
+- 33
++ 10273
+
+ ❯ packages/pandoc/src/epub-writer.test.ts:22:47
+     20|   while (view.getUint32(offset, true) === 0x04034b50) {
+     21|     expect(view.getUint16(offset + 10, true)).toBe(0);
+     22|     expect(view.getUint16(offset + 12, true)).toBe(33); // DOS 1980-01…
+       |                                               ^
+     23|     entries++;
+     24|     offset += 30 + view.getUint16(offset + 26, true) + view.getUint16(…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  packages/pandoc/src/epub-writer.test.ts > writes epub with stored first mimetype, namespace-valid package, metadata and spine
+ FAIL  packages/pandoc/src/epub-writer.test.ts > writes epub3 with stored first mimetype, namespace-valid package, metadata and spine
+AssertionError: expected 'urn:sha256:2d8fdd676d3b049887ef919704…' to contain '1970-01-01T00:00:00Z'
+
+Expected: "1970-01-01T00:00:00Z"
+Received: "urn:sha256:2d8fdd676d3b049887ef91970420d35667fd33d4c05126e4e47177ad4c04e961Untitleden2000-01-01T00:00:00Z"
+
+ ❯ packages/pandoc/src/epub-writer.test.ts:125:20
+    123|   expect(opf.tags[0]).toMatchObject({name: "package", uri: "http://www…
+    124|   expect(opf.text).toContain("Untitled");
+    125|   expect(opf.text).toContain("1970-01-01T00:00:00Z");
+       |                    ^
+    126|   expect(opf.text).toContain("urn:sha256:");
+    127|   expect(opf.tags.filter(t => t.name === "itemref").map(t => t.attrs.i…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 18 passed (21)
+   Start at  23:03:07
+   Duration  1.08s (transform 436ms, setup 48ms, import 697ms, tests 256ms, environment 0ms)
+

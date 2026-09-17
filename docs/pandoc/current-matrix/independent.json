@@ -1,0 +1,845 @@
+{
+  "oracles": {
+    "python": "3.9.6 (default, Apr 30 2025, 02:07:17) \n[Clang 17.0.0 (clang-1700.0.13.5)]",
+    "pypdf": "6.0.0",
+    "PyMuPDF": "1.26.4",
+    "MuPDF": "1.26.7",
+    "pythonExecutable": "docs/pandoc/current-matrix/tools/python/bin/python"
+  },
+  "normalization": "No content normalization. Exact pypdf Matrix and exact MuPDF Matrix with terminal LF required. Same-renderer pixel comparison with previous owned PDF artifacts; no cross-engine PDF byte equality.",
+  "outputs": [
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/commonmark-epub.epub",
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/commonmark-epub3.epub",
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/commonmark-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "Strict pypdf plus independent MuPDF parse/exact text/page/geometry and pinned rendering",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/commonmark-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML/exact ordered text",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/csv-epub.epub",
+      "sha256": "a214e2b3a146fdedd3a681c03f5a70acc7d12e45b2860e6fdf783fe8fb4023f7",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/csv-epub3.epub",
+      "sha256": "a214e2b3a146fdedd3a681c03f5a70acc7d12e45b2860e6fdf783fe8fb4023f7",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/csv-pdf.pdf",
+      "sha256": "41abfae15dbde0f8ba5494f86bb260e739f375cc5fec11d9e8444054d6b28e72",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        52,
+        51.99999237060547,
+        95.19998931884766,
+        67.8399887084961
+      ],
+      "checks": "Strict pypdf plus independent MuPDF parse/exact text/page/geometry and pinned rendering",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/csv-pptx.pptx",
+      "sha256": "8e2fc2b498025c4012a4a08c50d41c6868b404f22785f379b9d796ad02641dc0",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML/exact ordered text",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/epub2-epub.epub",
+      "sha256": "7a1d16c10b7c3b7c9ca2a5c71b9323d9041c2b592d0f003c4baeb9169aca59c0",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Matrix Book"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/epub2-epub3.epub",
+      "sha256": "7a1d16c10b7c3b7c9ca2a5c71b9323d9041c2b592d0f003c4baeb9169aca59c0",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Matrix Book"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/epub2-pdf.pdf",
+      "sha256": "51886318751339fcca1f762118b930939c17c86dc62347ae6dcf4982274b51a3",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "Strict pypdf plus independent MuPDF parse/exact text/page/geometry and pinned rendering",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/epub3-epub.epub",
+      "sha256": "7a1d16c10b7c3b7c9ca2a5c71b9323d9041c2b592d0f003c4baeb9169aca59c0",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Matrix Book"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/epub3-epub3.epub",
+      "sha256": "7a1d16c10b7c3b7c9ca2a5c71b9323d9041c2b592d0f003c4baeb9169aca59c0",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Matrix Book"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/epub3-pdf.pdf",
+      "sha256": "51886318751339fcca1f762118b930939c17c86dc62347ae6dcf4982274b51a3",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "Strict pypdf plus independent MuPDF parse/exact text/page/geometry and pinned rendering",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/gfm-epub.epub",
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/gfm-epub3.epub",
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/gfm-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "Strict pypdf plus independent MuPDF parse/exact text/page/geometry and pinned rendering",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/gfm-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML/exact ordered text",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/html-epub.epub",
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/html-epub3.epub",
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/html-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "Strict pypdf plus independent MuPDF parse/exact text/page/geometry and pinned rendering",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/html-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML/exact ordered text",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/json-epub.epub",
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/json-epub3.epub",
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/json-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "Strict pypdf plus independent MuPDF parse/exact text/page/geometry and pinned rendering",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/json-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML/exact ordered text",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/latex-epub.epub",
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/latex-epub3.epub",
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/latex-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "Strict pypdf plus independent MuPDF parse/exact text/page/geometry and pinned rendering",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/latex-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML/exact ordered text",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/pptx-epub.epub",
+      "sha256": "65ea6fd3cd71d4fbaf8eb2d0ff2a85934114027095fbae8bb2799439edafea2f",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/pptx-epub3.epub",
+      "sha256": "65ea6fd3cd71d4fbaf8eb2d0ff2a85934114027095fbae8bb2799439edafea2f",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/pptx-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "Strict pypdf plus independent MuPDF parse/exact text/page/geometry and pinned rendering",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/pptx-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML/exact ordered text",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rst-epub.epub",
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rst-epub3.epub",
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rst-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "Strict pypdf plus independent MuPDF parse/exact text/page/geometry and pinned rendering",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rst-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML/exact ordered text",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rtf-epub.epub",
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rtf-epub3.epub",
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rtf-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "Strict pypdf plus independent MuPDF parse/exact text/page/geometry and pinned rendering",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rtf-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML/exact ordered text",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/tsv-epub.epub",
+      "sha256": "a214e2b3a146fdedd3a681c03f5a70acc7d12e45b2860e6fdf783fe8fb4023f7",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/tsv-epub3.epub",
+      "sha256": "a214e2b3a146fdedd3a681c03f5a70acc7d12e45b2860e6fdf783fe8fb4023f7",
+      "version": "3.0",
+      "members": 6,
+      "spine": [
+        "EPUB/chapter-1.xhtml"
+      ],
+      "titles": [
+        "Untitled"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/tsv-pdf.pdf",
+      "sha256": "41abfae15dbde0f8ba5494f86bb260e739f375cc5fec11d9e8444054d6b28e72",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        52,
+        51.99999237060547,
+        95.19998931884766,
+        67.8399887084961
+      ],
+      "checks": "Strict pypdf plus independent MuPDF parse/exact text/page/geometry and pinned rendering",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/tsv-pptx.pptx",
+      "sha256": "8e2fc2b498025c4012a4a08c50d41c6868b404f22785f379b9d796ad02641dc0",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML/exact ordered text",
+      "outcome": "pass"
+    }
+  ],
+  "inputs": [
+    {
+      "profile": "epub2",
+      "artifact": "docs/pandoc/matrix-owned/input-epub2.bin",
+      "version": "2.0",
+      "members": 5,
+      "spine": [
+        "Book/chapter.xhtml"
+      ],
+      "titles": [
+        "Matrix"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "profile": "epub3",
+      "artifact": "docs/pandoc/matrix-owned/input-epub3.bin",
+      "version": "3.0",
+      "members": 5,
+      "spine": [
+        "Book/chapter.xhtml"
+      ],
+      "titles": [
+        "Matrix"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/local+central epoch, stored first mimetype, container, OPF metadata/UID/manifest/spine, XHTML body, ordered nav target/label and fragment closure",
+      "outcome": "pass"
+    }
+  ],
+  "rendered": [
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/commonmark-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/commonmark-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/commonmark-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/csv-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/csv-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/csv-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/epub2-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/epub2-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/epub2-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/epub3-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/epub3-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/epub3-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/gfm-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/gfm-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/gfm-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/html-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/html-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/html-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/json-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/json-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/json-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/latex-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/latex-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/latex-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/pptx-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/pptx-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/pptx-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rst-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/rst-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/rst-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rtf-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/rtf-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/rtf-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/tsv-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/tsv-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/tsv-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    }
+  ],
+  "counts": {
+    "outputs": {
+      "total": 46,
+      "pass": 46,
+      "fail": 0,
+      "unsupported": 0,
+      "not-run": 0
+    },
+    "inputs": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "unsupported": 0,
+      "not-run": 0
+    },
+    "rendered": {
+      "total": 12,
+      "pass": 12,
+      "fail": 0,
+      "unsupported": 0,
+      "not-run": 0
+    }
+  }
+}

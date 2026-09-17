@@ -1,3 +1,4 @@
+import { withoutErrorStacks } from "../../tests/helpers/without-error-stacks.js";
 import {createHash} from "node:crypto";
 import {expect,it} from "vitest";
 import oracle from "./__snapshots__/euc-jisx0213-kernel-oracle.json";
@@ -82,12 +83,14 @@ it.each((["strict","ignore","replace"] as const).flatMap(errors=>Array.from({len
 
 it.each(Array.from({length:17},(_,plane)=>plane))("matches every strict Unicode encoding and fault in plane %i",plane=>{
   const hash=createHash("sha256");
-  for(let point=plane*0x10000;point<(plane+1)*0x10000;point++){
-    let row:unknown;
-    try{row=["ok",[...eucJisX0213Codec.encode(string(String.fromCodePoint(point)),"strict",meter())]];}
-    catch(error){row=failure(error);}
-    hash.update(JSON.stringify(row)+"\n");
-  }
+  withoutErrorStacks(() => {
+    for(let point=plane*0x10000;point<(plane+1)*0x10000;point++){
+      let row:unknown;
+      try{row=["ok",[...eucJisX0213Codec.encode(string(String.fromCodePoint(point)),"strict",meter())]];}
+      catch(error){row=failure(error);}
+      hash.update(JSON.stringify(row)+"\n");
+    }
+  });
   expect(hash.digest("hex")).toBe(oracle.strictEncode.planes[plane]);
 });
 

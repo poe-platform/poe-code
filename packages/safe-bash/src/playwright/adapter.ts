@@ -1,3 +1,5 @@
+import type { FrameSnapshotCapsule, FrameSnapshotInput } from './frame-snapshot.js';
+
 export type BrowserEngine = "chromium" | "firefox" | "webkit";
 
 // Deliberately excludes native paths, uploads, eval, and private snapshot APIs.
@@ -32,21 +34,32 @@ export interface PlaywrightElementHandle {
   dispose(): Promise<void>;
 }
 export interface PlaywrightFrame {
+  evaluateHandle?(callback: (input: FrameSnapshotInput) => FrameSnapshotCapsule, input: FrameSnapshotInput): Promise<PlaywrightSnapshotHandle>;
   locator(selector: string): {
     elementHandles?: () => Promise<PlaywrightElementHandle[]>;
     evaluate?: (callback: (node: SnapshotNode) => string) => Promise<string>;
   };
 }
 
+export interface PlaywrightSnapshotHandle {
+  evaluate<Result, Arg>(callback: (capsule: FrameSnapshotCapsule, arg: Arg) => Result, arg: Arg): Promise<Result>;
+  evaluateHandle(callback: (capsule: FrameSnapshotCapsule, slot: number) => SnapshotNode | undefined, slot: number): Promise<{
+    asElement(): PlaywrightElementHandle | null;
+    dispose(): Promise<void>;
+  }>;
+  dispose(): Promise<void>;
+}
+
 export interface PlaywrightPage {
   frames?(): PlaywrightFrame[];
+  evaluate?<Result, Argument>(callback: (argument: Argument) => Result, argument: Argument): Promise<Result>;
   on?(event: 'framenavigated' | 'close', listener: () => void): unknown;
   off?(event: 'framenavigated' | 'close', listener: () => void): unknown;
   goto(url: string, options?: { timeout?: number }): Promise<unknown>;
   url(): string;
   locator(selector: string): PlaywrightLocator;
   readonly keyboard: { press(key: string): Promise<void> };
-  screenshot(options?: { type?: "png" | "jpeg"; fullPage?: boolean; timeout?: number }): Promise<Uint8Array>;
+  screenshot(options?: { type?: "png" | "jpeg"; fullPage?: boolean; timeout?: number; scale?: 'css'; clip?: { x: number; y: number; width: number; height: number } }): Promise<Uint8Array>;
   close(): Promise<void>;
 }
 
@@ -54,8 +67,8 @@ export interface PlaywrightContext {
   newPage(): Promise<PlaywrightPage>;
   pages(): PlaywrightPage[];
   close(): Promise<void>;
-  on(event: "close", listener: () => void): unknown;
-  off(event: "close", listener: () => void): unknown;
+  on(event: "close" | "page", listener: () => void): unknown;
+  off(event: "close" | "page", listener: () => void): unknown;
 }
 
 export interface PlaywrightBrowser {
@@ -80,6 +93,7 @@ export interface PlaywrightBrowserSource {
   // returns a pool resource. It must never terminate a borrowed browser.
   acquireBrowser(options: PlaywrightAcquireOptions): Promise<{
     readonly browser: PlaywrightBrowser;
+    interrupt?(): Promise<void>;
     release(): Promise<void>;
   }>;
 }
@@ -126,11 +140,13 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
       const resource = await source.acquireBrowser(options);
       let context: PlaywrightContext | undefined;
       let closed = false;
+      let contextCloseObserved = false;
+      let browserDisconnectedObserved = false;
       let releasing: Promise<void> | undefined;
       const listeners = new Set<() => void>();
       const detach = () => {
-        resource.browser.off("disconnected", notify);
-        context?.off("close", notify);
+        resource.browser.off("disconnected", onDisconnected);
+        context?.off("close", onContextClosed);
       };
       const notify = () => {
         if (closed) return;
@@ -140,13 +156,30 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
         listeners.clear();
         for (const listener of pending) listener();
       };
+      const onDisconnected = () => { browserDisconnectedObserved = true; notify(); };
+      const onContextClosed = () => { contextCloseObserved = true; notify(); };
       const release = (): Promise<void> => {
         releasing ??= Promise.resolve().then(async () => {
           const errors: unknown[] = [];
+          let contextFailure: { error: unknown } | undefined;
+          try { browserDisconnectedObserved ||= !resource.browser.isConnected(); }
+          catch (error) { errors.push(error); }
+          const interruption = Promise.resolve().then(() => resource.interrupt?.()).catch(error => { errors.push(error); });
           if (context) {
-            try { await context.close(); notify(); } catch (error) { errors.push(error); }
+            try { await context.close(); notify(); } catch (error) { contextFailure = { error }; }
           }
+          await interruption;
           try { await resource.release(); } catch (error) { errors.push(error); }
+          try { browserDisconnectedObserved ||= !resource.browser.isConnected(); }
+          catch (error) { errors.push(error); }
+          if (contextFailure) {
+            const error = contextFailure.error;
+            const expectedClosure = (contextCloseObserved || browserDisconnectedObserved)
+              && error instanceof Error && !(error instanceof AggregateError)
+              && ['Error', 'TargetClosedError'].includes(error.name)
+              && ['Target page, context or browser has been closed', 'browserContext.close: Target page, context or browser has been closed'].includes(error.message);
+            if (!expectedClosure) errors.unshift(error);
+          }
           // Retirement invalidates the local lease even if context closure
           // failed or the host merely returned a borrowed browser to its owner.
           // This notification does not establish remote browser termination.
@@ -157,14 +190,14 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
         return releasing;
       };
       try {
-        resource.browser.on("disconnected", notify);
+        resource.browser.on("disconnected", onDisconnected);
         options.signal.throwIfAborted();
-        if (!resource.browser.isConnected()) notify();
+        if (!resource.browser.isConnected()) onDisconnected();
         if (closed) throw new Error("Playwright browser is closed");
         context = await resource.browser.newContext();
-        context.on("close", notify);
+        context.on("close", onContextClosed);
         options.signal.throwIfAborted();
-        if (!resource.browser.isConnected()) notify();
+        if (!resource.browser.isConnected()) onDisconnected();
         if (closed) throw new Error("Playwright browser closed during context acquisition");
         return {
           context,

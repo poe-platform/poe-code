@@ -179,10 +179,10 @@ unsupported. The limits and defaults are:
 | Limit | Default | Scope |
 | --- | --- | --- |
 | `maxSessions` | 4 | Concurrent controller-managed sessions |
-| `maxTabs` | 16 | Tabs in a controller-managed session |
+| `maxTabs` | 16 | All tabs in a controller-managed session, including page-created popups; overflow retires that session |
 | `actionTimeoutMs` | 30000 | Existing built-in browser action timeouts |
-| `maxSnapshotBytes` | 262144 | Built-in snapshot output |
-| `maxSnapshotRefs` | 1000 | Built-in snapshot handles |
+| `maxSnapshotBytes` | 262144 | Aggregate built-in snapshot UTF-8 output, admitted inside each frame before transfer |
+| `maxSnapshotRefs` | 1000 | Retained built-in snapshot nodes, admitted before native element-handle extraction |
 | `maxArtifactBytes` | 16777216 | Each artifact read/write |
 | `maxCommandBytes` | 16777216 | Aggregate custom-handler text/artifact input/output bytes |
 
@@ -190,6 +190,24 @@ All limits are positive safe integers. These are admission/transfer limits, not
 an isolation or memory ceiling for arbitrary client code. Client handlers must
 honor cancellation and implement their backend's action timeout policy. Opaque,
 uncooperative host work cannot be forcibly preempted by this library.
+
+Built-in snapshots require public frame `evaluateHandle`. They retain nodes in a
+browser-side object and transfer only bounded status and rendered text; they do
+not obtain locator element handles or transfer raw body text, attributes or input
+values. Native element handles are acquired lazily when an action resolves a ref,
+preserving node identity across DOM reordering. The snapshot budget does not bound
+later native action traffic, page-side allocations or arbitrary provider messages.
+
+Built-in screenshots require public page `evaluate` for bounded numeric geometry.
+They capture at CSS-pixel scale with an explicit clip fixed to the observed viewport
+or full-page extent. Raster admission allows at most `floor(maxArtifactBytes / 4)`
+pixels, capped at 4,000,000 for PNG and 1,000,000 for JPEG (dimensions rounded to
+8-pixel blocks for JPEG). Oversized extents are refused, not silently cropped to
+fit the budget. Page growth after measurement cannot enlarge the admitted clip.
+These conservative raster limits reduce native encoder/transport exposure; the
+exact encoded-byte limit is still checked before writing an artifact, because
+encoding overhead can exceed a small budget. Arbitrary custom screenshot providers
+must honor the capture options; this is not a universal codec or host-memory bound.
 
 The only environment variable read by the CLI is exported
 `PLAYWRIGHT_CLI_SESSION`. Selection precedence is explicit `-s`/`--session`, then
@@ -200,3 +218,32 @@ values because it does not select or allocate a session.
 Always dispose the CLI/controller, and separately dispose client-owned resources.
 No cross-process session persistence, privileged host installation or provider-wide
 process killing is implied by configuring a callback.
+
+### Cooperative transport interruption
+
+An acquired browser resource may additionally supply `interrupt(): Promise<void>`.
+The adapter starts this hook alongside context closure, waits for both operations,
+then always calls and awaits the resource's `release()`. Concurrent release calls
+share one completion. Interruption is useful when a broken browser transport would
+otherwise prevent `context.close()` from settling. Hook failures are preserved;
+neither a timeout race nor an abandoned close is treated as completed cleanup.
+
+The hook must affect only the resource owned by that acquisition. For a borrowed
+browser, disconnect only an owned connection, never terminate someone else's
+browser. Omitting the hook preserves the existing context-close-then-release
+behavior. Arbitrary uncooperative host callbacks still have no forced-preemption
+guarantee.
+
+For Cloudflare's session API, an opt-in host can use `acquire(binding)` followed
+by `connect(binding, sessionId)`, retain the owned ID, and use that **connected**
+browser's `close()` in `interrupt`. Its `release` must separately request session
+removal over an out-of-band, deadline-aware service API. Do not substitute a
+`launch()` browser's close: that path sends an in-band browser-close command and
+can stall with the same transport. A partial acquisition also needs host-owned
+cleanup of the retained session ID.
+
+This separates local transport disconnection and draining pending operations from
+remote session removal. A deletion acknowledgment or absence from a session list
+does not prove the remote browser process has exited. See the pinned local-runtime
+qualification and remaining deployment limits in
+`docs/plans/playwright-resource-limits.md`.

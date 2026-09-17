@@ -1,5 +1,6 @@
 import type { PlaywrightAdapter, PlaywrightLease, PlaywrightPage } from './adapter.js';
 import { createSnapshotEngine } from './snapshot.js';
+import { capturePlaywrightScreenshot } from './screenshot.js';
 import { parseInvocation, type PlaywrightInvocation } from './invocation.js';
 import { formatPlaywrightHelp } from './help.js';
 import { registerPlaywrightAbilities, type PlaywrightAbilities, type PlaywrightAbilityRequest } from './abilities.js';
@@ -25,6 +26,7 @@ interface Session {
   detachPage?: () => void;
   unsubscribe?: () => void;
   releasing?: Promise<void>;
+  failure?: Error;
 }
 
 export function createPlaywrightController(options: PlaywrightControllerOptions = {}) {
@@ -80,6 +82,11 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     void tail.then(() => { if (tails.get(name) === tail) tails.delete(name); });
     return operation;
   };
+  const enforceTabLimit = (session: Session) => {
+    if (!session.lease || session.releasing || session.lease.context.pages().length <= maxTabs) return;
+    session.failure = new Error('Playwright tab limit exceeded');
+    void release(session).catch(() => {});
+  };
   const selectPage = async (session: Session, page: PlaywrightPage, check: () => void) => {
     check();
     session.detachPage?.();
@@ -132,7 +139,8 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     };
     const checkSession = (session: Session) => {
       check();
-      if (session.releasing) throw new Error(`Session closed: ${session.name}; reopen explicitly`);
+      enforceTabLimit(session);
+      if (session.releasing) throw session.failure ?? new Error(`Session closed: ${session.name}; reopen explicitly`);
     };
     const execute = async () => {
       check();
@@ -238,6 +246,11 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             });
             session.unsubscribe = unsubscribe;
             if (session.releasing) { unsubscribe(); throw new Error(`Session closed: ${session.name}`); }
+            const context = session.lease.context;
+            const onPage = () => enforceTabLimit(session);
+            session.cleanups.add(async () => { context.off('page', onPage); });
+            context.on('page', onPage);
+            checkSession(session);
             if (session.lease.context.pages().length >= maxTabs) throw new Error('Playwright tab limit exceeded');
             await selectPage(session, await session.lease.context.newPage(), () => checkSession(session));
             session.pages = [...session.lease.context.pages()];
@@ -328,10 +341,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               retained = false;
               await page!.keyboard.press(parsed.value!);
             } else if (parsed.command === 'screenshot') {
-              if (typeof page!.screenshot !== 'function') throw new Error('Screenshot engine unsupported');
-              const bytes = await page!.screenshot({ type: parsed.imageType, fullPage: parsed.fullPage, timeout: actionTimeoutMs });
-              if (!(bytes instanceof Uint8Array)) throw new TypeError('Screenshot must return bytes');
-              if (bytes.byteLength > maxArtifactBytes) throw new Error('Artifact byte limit exceeded');
+              const bytes = await capturePlaywrightScreenshot(page!, { type: parsed.imageType, fullPage: parsed.fullPage, timeout: actionTimeoutMs, maxArtifactBytes, signal: local.signal });
               checkSession(session);
               // Uint8Array constructor copies even when bytes is a Buffer view.
               await invocation.writeArtifact!(new Uint8Array(bytes), parsed.filename);
@@ -350,7 +360,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     work.add(operation);
     let failure: { error: unknown } | undefined;
     try { await operation; }
-    catch (error) { failure = { error: invocation.signal.aborted ? invocation.signal.reason : error }; }
+    catch (error) { failure = { error: invocation.signal.aborted ? invocation.signal.reason : active?.failure ?? error }; }
     finished = true;
     invocation.signal.removeEventListener('abort', abort);
     lifetime.signal.removeEventListener('abort', abort);

@@ -1,18 +1,23 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createSnapshotEngine } from '../../src/playwright/snapshot.js';
-import type { PlaywrightPage } from '../../src/playwright/adapter.js';
+import type { PlaywrightPage, SnapshotNode } from '../../src/playwright/adapter.js';
+import { createSnapshotFrame } from '../helpers/playwright-snapshot.js';
 
 function contentFixture(nodes: Record<string, unknown>[], content = 'Ready\nHere is the information the agent needs to read.') {
   const disposed: number[] = [];
-  const handles = nodes.map((node, index) => ({
-    async evaluate(callback: (element: unknown) => unknown) { return callback(node); },
-    async dispose() { disposed.push(index); },
-  }));
-  const page = { frames: () => [{ locator: (selector: string) => selector === 'body'
-    ? { evaluate: async (callback: (element: unknown) => unknown) => callback({ innerText: content }) }
-    : { elementHandles: async () => handles } }] } as unknown as PlaywrightPage;
-  return { page, handles, disposed };
+  const elements = nodes.map((properties, index) => {
+    const node = { tagName: 'BUTTON', textContent: '', isConnected: true, getAttribute: () => null, ...properties };
+    const native = {
+      async evaluate<T>(callback: (element: SnapshotNode) => T) { return callback(node); },
+      async click() {}, async fill() {},
+      async dispose() { disposed.push(index); },
+    };
+    return { node, native };
+  });
+  const snapshot = createSnapshotFrame(elements, content);
+  const page = { frames: () => [snapshot.frame] } as unknown as PlaywrightPage;
+  return { page, snapshot, disposed };
 }
 
 test('snapshot includes readable headings and noninteractive page text without allocating refs', async () => {
@@ -64,19 +69,26 @@ test('readable content shares the byte limit and retires previously issued refs'
   const engine = createSnapshotEngine({ maxSnapshotBytes: 64, maxSnapshotRefs: 1 });
   await engine.capture(fixture.page);
   await assert.rejects(engine.capture(contentFixture([], '😀'.repeat(20)).page), /byte limit/);
-  assert.deepEqual(fixture.disposed, [0]);
+  assert.deepEqual(fixture.disposed, []);
+  assert.deepEqual(fixture.snapshot.acquiredElements, []);
+  assert.deepEqual(fixture.snapshot.disposedCapsules, fixture.snapshot.capsules);
+  assert.equal(fixture.snapshot.disposedCapsules.length, 1);
   await assert.rejects(engine.resolve('e1'), /stale/);
 });
 
 function fixture() {
   const actions: string[] = [];
-  const nodes = [0, 1, 2].map(index => ({
-    connected: true,
-    async evaluate(fn: (node: unknown) => unknown) { return fn({ isConnected: this.connected, tagName: 'BUTTON', textContent: 'Same', getAttribute: () => null }); },
-    async click() { actions.push(`click:${index}`); }, async fill(value: string) { actions.push(`fill:${index}:${value}`); }, async dispose() { actions.push(`dispose:${index}`); },
-  }));
-  const page = { frames: () => [ { locator: () => ({ elementHandles: async () => nodes.slice(0, 2) }) }, { locator: () => ({ elementHandles: async () => nodes.slice(2) }) } ] } as unknown as PlaywrightPage;
-  return { page, nodes, actions };
+  const nodes = [0, 1, 2].map(index => {
+    const node = { connected: true, get isConnected() { return this.connected; }, tagName: 'BUTTON', textContent: 'Same', getAttribute: () => null };
+    return {
+      node,
+      async evaluate<T>(callback: (node: SnapshotNode) => T) { return callback(node); },
+      async click() { actions.push(`click:${index}`); }, async fill(value: string) { actions.push(`fill:${index}:${value}`); }, async dispose() { actions.push(`dispose:${index}`); },
+    };
+  });
+  const snapshots = [nodes.slice(0, 2), nodes.slice(2)].map(handles => createSnapshotFrame(handles.map(native => ({ node: native.node, native }))));
+  const page = { frames: () => snapshots.map(snapshot => snapshot.frame) } as unknown as PlaywrightPage;
+  return { page, nodes, actions, snapshots };
 }
 
 test('invalidation rejects refs immediately but defers disposal through action settlement', async () => {
@@ -89,11 +101,13 @@ test('invalidation rejects refs immediately but defers disposal through action s
     await engine.invalidate();
     await assert.rejects(engine.resolve('e1'), /stale/);
     assert.deepEqual(current.actions, []);
+    assert.ok(current.snapshots.every(snapshot => snapshot.disposedCapsules.length === 0));
     await handle.click();
   });
-  assert.deepEqual(current.actions, ['click:0', 'dispose:0', 'dispose:1', 'dispose:2']);
+  assert.deepEqual(current.actions, ['click:0', 'dispose:0']);
+  assert.ok(current.snapshots.every(snapshot => snapshot.disposedCapsules.length === 1));
   await engine.invalidate();
-  assert.equal(current.actions.length, 4);
+  assert.equal(current.actions.length, 2);
 });
 
 test('failed actions drain deferred handles and preserve action and disposal errors', async () => {
@@ -104,11 +118,13 @@ test('failed actions drain deferred handles and preserve action and disposal err
   const engine = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 10 });
   await engine.capture(current.page);
   await assert.rejects(engine.withReferences(async () => {
+    await engine.resolve('e1');
     await engine.invalidate();
     throw actionError;
   }), error => error instanceof AggregateError && error.errors[0] === actionError
     && error.errors[1] instanceof AggregateError && error.errors[1].errors.includes(cleanupError));
-  assert.deepEqual(current.actions, ['dispose:1', 'dispose:2']);
+  assert.deepEqual(current.actions, []);
+  assert.ok(current.snapshots.every(snapshot => snapshot.disposedCapsules.length === 1));
 });
 
 test('shared snapshot binds identical elements and frames to distinct handles, without ARIA refs', async () => {
@@ -116,10 +132,11 @@ test('shared snapshot binds identical elements and frames to distinct handles, w
   const engine = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 10 });
   const text = await engine.capture(f.page);
   assert.equal(text, '- button "Same" [ref=e1]\n- button "Same" [ref=e2]\n- button "Same" [ref=e3]\n');
+  assert.ok(f.snapshots.every(snapshot => snapshot.acquiredElements.length === 0));
   await (await engine.resolve('e2')).click();
   await (await engine.resolve('e3')).fill('quoted value');
   assert.deepEqual(f.actions, ['click:1', 'fill:2:quoted value']);
-  f.nodes[1]!.connected = false;
+  f.nodes[1]!.node.connected = false;
   await assert.rejects(engine.resolve('e2'), /stale/);
   await engine.invalidate();
   await assert.rejects(engine.resolve('e1'), /stale/);
@@ -129,7 +146,9 @@ test('snapshot limits fail closed, retire all acquired handles, and never reuse 
   const f = fixture();
   const engine = createSnapshotEngine({ maxSnapshotBytes: 1, maxSnapshotRefs: 10 });
   await assert.rejects(engine.capture(f.page), /limit/);
-  assert.equal(f.actions.filter(a => a.startsWith('dispose:')).length, 2);
+  assert.deepEqual(f.actions, []);
+  assert.equal(f.snapshots[0]!.disposedCapsules.length, 1);
+  assert.ok(f.snapshots.every(snapshot => snapshot.acquiredElements.length === 0));
   await assert.rejects(engine.resolve('e1'), /stale/);
   const refs = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 1 });
   await assert.rejects(refs.capture(f.page), /limit/);
@@ -147,17 +166,25 @@ test('invalid limits and overlapping navigation during capture fail closed', asy
   for (const limits of [{ maxSnapshotBytes: 0, maxSnapshotRefs: 1 }, { maxSnapshotBytes: 1, maxSnapshotRefs: Infinity }]) assert.throws(() => createSnapshotEngine(limits), /limit/i);
   const f = fixture();
   const engine = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 10 });
-  const original = f.nodes[0]!.evaluate.bind(f.nodes[0]);
-  f.nodes[0]!.evaluate = async fn => { await engine.invalidate(); return original(fn); };
+  const frame = f.snapshots[0]!.frame;
+  const original = frame.evaluateHandle.bind(frame);
+  frame.evaluateHandle = async (callback, input) => {
+    const capsule = await original(callback, input);
+    await engine.invalidate();
+    return capsule;
+  };
   await assert.rejects(engine.capture(f.page), /stale/);
   await assert.rejects(engine.resolve('e1'), /stale/);
-  assert.equal(f.actions.filter(a => a.startsWith('dispose:')).length, 3);
+  assert.deepEqual(f.actions, []);
+  assert.equal(f.snapshots[0]!.disposedCapsules.length, 1);
+  for (const snapshot of f.snapshots) assert.deepEqual(snapshot.disposedCapsules, snapshot.capsules);
 });
 
 test('invalidation drains asynchronous disposal and preserves disposal failures for owner cleanup', async () => {
   const f = fixture();
   const engine = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 10 });
   await engine.capture(f.page);
+  await engine.resolve('e1');
   const error = new Error('dispose failed');
   f.nodes[0]!.dispose = async () => { throw error; };
   await assert.rejects(engine.invalidate(), /disposal failed/);
@@ -165,10 +192,16 @@ test('invalidation drains asynchronous disposal and preserves disposal failures 
   await assert.rejects(engine.resolve('e1'), /stale/);
 });
 
-test('failed snapshot capture preserves both its limit error and handle cleanup errors', async () => {
+test('failed snapshot capture preserves both its limit error and capsule cleanup errors', async () => {
   const f = fixture();
   const cleanup = new Error('handle cleanup failed');
-  f.nodes[0]!.dispose = async () => { throw cleanup; };
+  const frame = f.snapshots[0]!.frame;
+  const original = frame.evaluateHandle.bind(frame);
+  frame.evaluateHandle = async (callback, input) => {
+    const capsule = await original(callback, input);
+    capsule.dispose = async () => { throw cleanup; };
+    return capsule;
+  };
   const engine = createSnapshotEngine({ maxSnapshotBytes: 1, maxSnapshotRefs: 10 });
   await assert.rejects(engine.capture(f.page), error => error instanceof AggregateError && error.errors.some((cause: unknown) => cause === cleanup) && error.errors.some((cause: unknown) => cause instanceof Error && cause.message.includes('limit')));
 });

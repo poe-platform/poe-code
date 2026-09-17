@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createPlaywrightController } from '../../src/playwright/index.js';
 import type { PlaywrightAdapter, PlaywrightLease, PlaywrightPage } from '../../src/playwright/index.js';
+import type { SnapshotNode } from '../../src/playwright/adapter.js';
+import { createSnapshotFrame } from '../helpers/playwright-snapshot.js';
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -51,18 +53,18 @@ for (const command of ['click', 'fill', 'custom'] as const) {
       navigation.resolve();
       await Promise.race([loaded.promise, disposed.promise.then(() => { throw new Error('Target page, context or browser has been closed'); })]);
     };
+    const node = { isConnected: true, tagName: 'BUTTON', textContent: 'Save', getAttribute: () => null };
     const handle = {
-      async evaluate(callback: (node: unknown) => unknown) {
-        return callback({ isConnected: true, tagName: 'BUTTON', textContent: 'Save', getAttribute: () => null });
-      },
+      async evaluate<T>(callback: (node: SnapshotNode) => T) { return callback(node); },
       click: action, fill: action,
       async dispose() { disposals++; disposed.resolve(); },
     };
+    const snapshot = createSnapshotFrame([{ node, native: handle }]);
     const page = {
       goto: async () => {}, url: () => 'https://example.test/save',
       on: (event: string, listener: () => void) => { if (event === 'framenavigated') listeners.add(listener); },
       off: (_event: string, listener: () => void) => { listeners.delete(listener); },
-      frames: () => [{ locator: () => ({ elementHandles: async () => [handle] }) }],
+      frames: () => [snapshot.frame],
     } as unknown as PlaywrightPage;
     const controller = createPlaywrightController({
       adapter: { browsers: { chromium: { headed: false } }, async acquire() {
@@ -81,6 +83,7 @@ for (const command of ['click', 'fill', 'custom'] as const) {
     try {
       await run(['open']);
       await run(['snapshot']);
+      assert.equal(snapshot.acquiredElements.length, 0);
       const pending = run(command === 'fill' ? ['fill', 'e1', 'value'] : ['click', 'e1']);
       const outcome = pending.then(() => undefined, error => error);
       await navigation.promise;
@@ -92,6 +95,7 @@ for (const command of ['click', 'fill', 'custom'] as const) {
       else assert.equal(await outcome, undefined);
       assert.equal(prematureDisposals, 0);
       assert.equal(disposals, 1);
+      assert.equal(snapshot.disposedCapsules.length, 1);
       assert.equal(releases, cancel ? 1 : 0);
       if (!cancel) await run(['snapshot']);
     } finally { loaded.resolve(); await controller.dispose(); }
@@ -454,12 +458,41 @@ test('invocation cleanup prevents queued close-all effects and drains its work',
   await f.controller.dispose();
 });
 
+test('screenshots reject oversized producer geometry before capture or artifact writes', async () => {
+  const current = fixture();
+  await current.run(['open']);
+  const page = await current.leases[0]!.lease.context.newPage();
+  let captures = 0;
+  let writes = 0;
+  Object.assign(page, { evaluate: async () => ({ width: 4096, height: 4096 }) });
+  page.screenshot = async () => { captures++; return new Uint8Array([1]); };
+  await assert.rejects(current.run(['screenshot', '--full-page'], { writeArtifact: async () => { writes++; } }), /Screenshot pixel limit exceeded/);
+  assert.equal(captures, 0);
+  assert.equal(writes, 0);
+  assert.equal(current.leases[0]!.releases, 0);
+  await current.run(['goto', 'https://example.test/recovery']);
+  await current.controller.dispose();
+});
+
+test('screenshots fix CSS geometry before calling the native producer', async () => {
+  const current = fixture();
+  await current.run(['open']);
+  const page = await current.leases[0]!.lease.context.newPage();
+  const captures: unknown[] = [];
+  Object.assign(page, { evaluate: async () => ({ width: 8, height: 8 }) });
+  page.screenshot = async options => { captures.push(options); return new Uint8Array([1]); };
+  await current.run(['screenshot'], { writeArtifact: async () => {} });
+  assert.deepEqual(captures, [{ type: 'png', fullPage: false, timeout: 30000, scale: 'css', clip: { x: 0, y: 0, width: 8, height: 8 } }]);
+  await current.controller.dispose();
+});
+
 test('cancellation drains retained-session screenshots without publishing late artifacts', async () => {
   const f = fixture();
   await f.run(['open']);
   const page = await f.leases[0]!.lease.context.newPage();
   const entered = deferred<void>();
   const gate = deferred<Uint8Array>();
+  page.evaluate = async <Result>() => ({ width: 1280, height: 720 }) as Result;
   page.screenshot = async () => { entered.resolve(); return gate.promise; };
   const original = f.leases[0]!.lease.release;
   f.leases[0]!.lease.release = async () => { await original(); gate.resolve(new Uint8Array([1])); };

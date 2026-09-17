@@ -189,3 +189,25 @@ Existing conformance references: CommonMark 0.31.2, GFM 0.29, Pandoc 3.8.3
 EPUB 3.3 and Docutils 0.21.2. These references do not imply full Pandoc parity.
 Current independent applications, exact pins, findings and not-run lanes belong
 in qa-typescript/results.md. README application is still permission-gated.
+
+Current follow-up results are in [qa-current/results.md](qa-current/results.md).
+The public SDK and actual CLI examples were rerun after the screenshot build
+completed; the format/extension matrix and ceilings were checked against public
+formatCapabilities/defaultLimits. Office conversion, Office editing and text
+conversion remain separate acceptance lanes.
+
+For an explicitly resolved PDF image, the verified SDK path is:
+
+```ts
+import {readDocument, writeDocument} from "poe-code/pandoc";
+const document = await readDocument({bytes: htmlBytes}, {from: "html"}, {});
+const pdf = await writeDocument({...document,
+  resources: [{id: "original.jpg", bytes: jpegBytes}]},
+  {to: "pdf", standalone: true}, {});
+```
+
+Here htmlBytes/jpegBytes are owned input bytes; the HTML image target must match
+the resource id, with explicit positive width/height in points. A resolver alone
+does not populate Document.resources. Rich PDF profiles with merged cells or
+unsupported scripts remain rejected; the rendered five-page sample uses the
+documented supported profile. External renderers are QA tools only.

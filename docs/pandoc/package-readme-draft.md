@@ -4,6 +4,12 @@ Proposed contents for packages/pandoc/README.md. Do not apply without explicit
 permission. No README was changed. Package installation is not independently
 published. Links need package-relative adjustment if applied after permission.
 
+Follow-up verification against 405766cba: public SDK conversion, plugin atomic
+MemoryFileSystem output and actual CLI invocations rerun; 1,067 package unit tests
+and package lint passed. Fresh PDF rendered independently in five pages. See
+qa-current/results.md for current execution versus historical reader evidence.
+README application and the missing-README package lint prerequisite remain open.
+
 ````markdown
 # @poe-code/pandoc
 
@@ -198,6 +204,12 @@ Existing conformance references: CommonMark 0.31.2, GFM 0.29, Pandoc 3.8.3
 EPUB 3.3 and Docutils 0.21.2. These references do not imply full Pandoc parity.
 Current independent applications, exact pins, findings and not-run lanes belong
 in qa-typescript/results.md. README application is still permission-gated.
+
+Follow-up evidence: qa-current/results.md. For PDF images, readDocument followed
+by writeDocument with explicit Document.resources bytes is verified. The image
+target must match the resource id and specify positive point dimensions. Providing
+resources.resolve alone does not populate the document's resource bytes. No
+independent word-processor/complete Office-open/TeX success is claimed.
 
 ## Maintained checks
 

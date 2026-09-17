@@ -54,6 +54,40 @@ LaTeX shell escape or remote resources. External tools belong only to this QA la
 
 ## Execution record
 
+### Repeatable public invocation lane
+
+Run package lint and unit routes sequentially with the build/screenshot lane;
+wait for every build to finish before importing public SDK artifacts. Do not
+interpret missing artifacts during a build as format capability findings.
+
+```sh
+npm run lint --workspace=@poe-code/pandoc
+npm run test:unit --workspace=@poe-code/pandoc
+npm run screenshot-poe-code -- bash --pandoc -c 'pandoc --help'
+npm run screenshot-poe-code -- --no-header -o docs/pandoc/qa-current/cli-workflows.png bash --pandoc -c 'pandoc --list-output-formats; pandoc -f invalid -t plain; pandoc --filter forbidden; printf "# Heading\n" | pandoc -f commonmark -t plain; pandoc -f commonmark -t plain missing.md -o output.txt'
+```
+
+Inspect each PNG, then run the individual commands to retain their separate exit
+codes and stdout/stderr. The combined screenshot's final exit code cannot certify
+each earlier command. Include input formats, extensions, missing input and missing
+formats in the individual lane. For `-o`, inspect the published bytes through the
+MemoryFileSystem API; a bare Shell registers no `cat` command automatically.
+The real CLI publication capability gate is an expected rejection, not delivery.
+
+For PDF images, use public readDocument/writeDocument with explicit
+`Document.resources` bytes. A resource resolver alone does not attach an image
+to that document. Keep the rich source and supported-profile reductions separate.
+Render every fresh PDF page, retaining annotations and the artifact hash. For RST,
+run Docutils 0.21.2 with raw_enabled/file_insertion_enabled false and halt_level 2.
+Tools may be provisioned only temporarily in the evidence lane and removed after
+use. Application launches/timeouts and a desktop screenshot with no document are
+not visual passes. Preserve older executed reader results as historical results;
+do not label them fresh executions.
+
+Current follow-up execution against 405766cba is recorded in
+docs/pandoc/qa-current/results.md. No converter source change was warranted by
+this follow-up; therefore no new code regression or TDD claim is made.
+
 Results and current blockers: docs/pandoc/qa-typescript/results.md.
 CLI opt-in original red/green evidence: docs/pandoc/qa-cli-{red,green}.log.
 This procedure remains repeatable; completion is determined per lane by evidence.

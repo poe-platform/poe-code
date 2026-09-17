@@ -1,0 +1,8 @@
+Collecting PyMuPDF==1.26.4
+  Using cached pymupdf-1.26.4-cp39-abi3-macosx_11_0_arm64.whl (22.4 MB)
+Collecting docutils==0.21.2
+  Using cached docutils-0.21.2-py3-none-any.whl (587 kB)
+Installing collected packages: PyMuPDF, docutils
+Successfully installed PyMuPDF-1.26.4 docutils-0.21.2
+WARNING: You are using pip version 21.2.4; however, version 26.0.1 is available.
+You should consider upgrading via the '/Users/kjopek/Workspace/poe-code-5/docs/pandoc/qa-current/.venv/bin/python3 -m pip install --upgrade pip' command.

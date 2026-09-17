@@ -9,7 +9,7 @@ applyPoeTheme();
 export { runBash } from "./sdk/bash.js";
 export type { RunBashOptions, BashPythonOptions } from "./sdk/bash.js";
 export { spawn } from "./sdk/spawn.js";
-export { runPipeline, runPipelineInit } from "./sdk/pipeline.js";
+export { runPipeline, runPipelineInit, runPipelineSequence, createRunQueue } from "./sdk/pipeline.js";
 export { runMaestro } from "@poe-code/maestro";
 export {
   createLogWriter,
@@ -173,6 +173,11 @@ export type {
 } from "./sdk/process-launcher.js";
 export type {
   PipelineRunOptions,
+  PipelineSequenceOptions,
+  PipelineSequenceResult,
+  RunQueue,
+  RunQueueSnapshot,
+  RunQueueItem,
   PipelineFinalizationStatus,
   PipelineRunResult,
   PipelineInitRunOptions,

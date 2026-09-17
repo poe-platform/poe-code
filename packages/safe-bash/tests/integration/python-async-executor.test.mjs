@@ -37,7 +37,12 @@ test('public async executor transport works in workerd without shared-memory glo
     assert.equal(result.exitCode, 7, result.stderr);
     assert.deepEqual(result.bytes, [0, 255, 42]);
     assert.deepEqual(result.phases, ['initializing', 'ready', 'finished']);
-    assert.equal(result.retired, 1);
+    assert.equal(result.retired, 2);
+    assert.equal(result.saturated.exitCode, 1);
+    assert.match(result.saturated.stderr, /capacity exhausted/);
+    assert.deepEqual(result.occupied, { active: 1, capacity: 1, closed: false });
+    assert.equal(result.recovered, 7);
+    assert.deepEqual(result.available, { active: 0, capacity: 1, closed: false });
     context.diagnostic(JSON.stringify(result));
   } finally { await miniflare.dispose(); }
 });

@@ -2624,6 +2624,15 @@ test("Python asynchronous executor public acceptance remains admitted current in
   }
 });
 
+test("Python shared executor admission tests remain admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/commands/python/executor-pool.test.ts", "tests/commands/python/executor-pool-review.test.ts"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
 test("UTF-8 literal workerd acceptance remains admitted current input", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const boundaries = loadBoundaries(root);

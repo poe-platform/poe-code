@@ -43,3 +43,28 @@ This seam does not by itself qualify Cloudflare managed Python or a custom JSPI
 build. Those hosts still need real native-syscall/import/stdio and artifact tests.
 JSPI suspension does not preempt CPU-only loops, and a cooperative AbortSignal
 does not establish the untrusted-execution profile tracked separately in issue 750.
+
+## Shared host admission
+
+`createPythonExecutorPool({ createExecutor, maxConcurrentExecutors })` supplies a
+shared `createExecutor` factory for independent shells and both Python aliases.
+Create one pool in the host and pass its factory to every participating plugin.
+The capacity must be a positive safe integer; there is no implicit host limit.
+
+Admission is immediate: saturation raises the sanitized Python `capacity` failure
+rather than queueing pipeline stages. A reservation starts before factory entry
+and survives until execution settles and the endpoint successfully terminates.
+Successful run completion alone does not release it. Failed retirement retains
+the reservation and remains observable to `dispose`; it is not retried blindly.
+
+`inspect()` reports only `{ active, capacity, closed }`. `dispose()` closes new
+admission and awaits all owned endpoint retirements, even when one fails. Calls
+are idempotent. Each returned endpoint admits at most one run. Disposing a shell
+does not dispose its borrowed pool or sibling endpoints; only the host pool owner
+calls `dispose()`. The underlying host provider remains borrowed as well.
+
+This ledger is shared only by users of that pool instance, not across processes
+or isolates. Hosts with multiple service instances need authoritative distributed
+admission. No environment variables are introduced. Pooling is not a security
+boundary and grants no CPU, memory, egress, package-expansion or native isolation
+guarantee; those require a qualified host implementation.

@@ -395,5 +395,7 @@ export type { PythonPackageOptions, PythonPackageCache, PythonPackageProgress, P
 export { PythonPackageConflictError, createPythonPackageManifestStore } from './manifest.js';
 export type { PythonPackageManifest, PythonPackageManifestStore } from './manifest.js';
 export { createPythonPackageCache } from './cache.js';
+export { createPythonExecutorPool } from './executor-pool.js';
+export type { PythonExecutorPool, PythonExecutorPoolOptions } from './executor-pool.js';
 export { PythonFailure, inspectPythonCapabilities } from './diagnostics.js';
 export type { PythonFailureCategory, PythonDiagnostic, PythonDiagnosticObserver, PythonFileSystemRequirement, PythonCapabilityOptions, PythonCapabilityReport } from './diagnostics.js';

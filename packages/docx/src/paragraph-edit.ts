@@ -21,7 +21,7 @@ import { paragraphProperties } from "./paragraph-properties.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { runElementOpen } from "./run-properties.js";
 import { resolveDocxSelection } from "./simple-selection.js";
-import { UnsupportedEditError } from "./xml-write.js";
+import { appendBodyBlocks, UnsupportedEditError } from "./xml-write.js";
 import { addDocumentStylesPart } from "./styles-part.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 
@@ -155,6 +155,11 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
     } else {
       if (!["body", "tc", "hdr", "ftr", "footnote", "endnote", "comment", "txbxContent"].includes(node.localName) || node.namespace !== w)
         throw new UnsupportedEditError("Block insertion requires a story or cell container.");
+      if (node.localName === "body") {
+        const path = xml[appendBodyBlocks](node, markup);
+        updates.push({before, path, kind: "insert"});
+        continue;
+      }
       const section = node.children.find(c => c.namespace === w && c.localName === "sectPr");
       xml.insertChildren(node, markup + (tableMarkup && node.localName === "tc" ? `<w:p xmlns:w="${w}"/>` : ""), section);
       updates.push({ before, path: [...before.value.path, section ? node.children.indexOf(section) : node.children.length], kind: "insert" });

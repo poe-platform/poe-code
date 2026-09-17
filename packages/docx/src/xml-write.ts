@@ -12,6 +12,7 @@ import {admitEquationFragment,inspectEquationFragment,mathNamespace} from './equ
 import {documentDialects} from './dialect.js';
 import {assertOutsideRevisionRanges} from './revision-markup.js';
 import { collectShapeCarriers, type ShapeCarrierCensus } from "./shape-carriers.js";
+import { activeXmlChildren } from "./xml-active-children.js";
 
 type Token = XmlContent | XmlAttribute;
 interface Span { start: number; end: number; owner: XmlContent; contentStart?: number; contentEnd?: number; empty?: boolean; attributeStart?: number; attributeEnd?: number }
@@ -25,6 +26,9 @@ export const replaceListPropertyXml = Symbol("replace-list-property-xml");
 
 /** Internal read of admitted document siblings; grants no XML mutation authority. */
 export const sourceRootEnvelope = Symbol("source-root-envelope");
+
+/** Internal typed body append; generic XML insertion retains its compatibility guard. */
+export const appendBodyBlocks = Symbol("append-body-blocks");
 
 function unsupported(): never {
   throw new UnsupportedEditError("The XML edit cannot establish faithful preservation.");
@@ -350,6 +354,34 @@ export class DocumentXmlEditor {
       const candidate = parseDocumentXml(this.serialize(), this.#limits, this.#budget);
       if (this.#dialect) validateXmlDialect(candidate.root, this.#dialect, this.#profile, this.#budget);
     } catch (error) { this.#patches.delete(node); throw error; }
+  }
+
+  /** Inserts admitted markup at an owned child boundary, retaining source tokens. */
+  [appendBodyBlocks](body: XmlElement, xml: string): readonly number[] {
+    if (typeof xml !== "string") throw new InputTypeError("Expected XML markup.");
+    const children = activeXmlChildren(this, this.#budget);
+    if (!this.#dialect || this.root.localName !== "document" || body.namespace !== this.root.namespace ||
+      body.localName !== "body" || !children(this.root).includes(body)) unsupported();
+    const sections = children(body).filter(node => node.namespace === body.namespace && node.localName === "sectPr");
+    if (sections.length > 1) unsupported();
+    const section = sections[0], target = section ?? body;
+    let path: readonly number[] | undefined;
+    const locate = (node: XmlElement, current: readonly number[]): void => {
+      this.#budget.charge("work", 1);
+      if (node === target) { path = current; return; }
+      for (const [index, child] of node.children.entries()) {
+        if (path) break;
+        this.#budget.charge("retainedBytes", (current.length + 1) * 8);
+        locate(child, [...current, index]);
+      }
+    };
+    locate(this.root, []);
+    if (!path) unsupported();
+    const insertionPath: readonly number[] = section ? path : [...path, body.children.length];
+    let parent = this.root;
+    for (const index of insertionPath.slice(0, -1)) parent = parent.children[index]!;
+    this.#stageInsertion(parent, xml, section);
+    return insertionPath;
   }
 
   /** Inserts admitted markup at an owned child boundary, retaining source tokens. */

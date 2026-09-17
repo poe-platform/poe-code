@@ -32,9 +32,9 @@ export function twips(value: DocxLength, positive = true): number {
   return result;
 }
 
-export function pageGeometry(page: DocxContent["page"], existing?: XmlElement, w?: string) {
+export function pageGeometry(page: DocxContent["page"], existing?: XmlElement, w?: string, children: (node: XmlElement) => readonly XmlElement[] = node => node.children) {
   const attribute = (element: string, name: string): number | undefined => {
-    const node = existing?.children.find(child => child.namespace === w && child.localName === element);
+    const node = existing && children(existing).find(child => child.namespace === w && child.localName === element);
     const raw = node?.attributes.find(a => a.namespace === w && a.localName === name)?.value;
     return raw === undefined ? undefined : Number(raw);
   };

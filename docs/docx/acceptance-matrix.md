@@ -1,5 +1,11 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 body/section carrier correction](template-body-carriers-20260917.md)
+qualifies 1,536 exact body/terminal-section/geometry/shared-carrier cases plus
+144 built joint model/SDK/Shell workflows. Typed appends preserve inactive native
+branches, section ownership, geometry and existing model handles. Complete
+F01–F07 acceptance and remaining dependencies stay open.
+
 The [2026-09-17 XML/MCE public variant qualification](xml-public-variants-20260917.md)
 retains 138 historical case names and adds 222 independent kind/Shell variants.
 All 360 cases pass within 476 focused checks. Expected opaque/unmatched-profile

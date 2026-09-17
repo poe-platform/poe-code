@@ -6,6 +6,7 @@ import type { DocxOperationArguments, DocxTableInput } from "./operation-types.j
 import type { XmlElement } from "./package-xml.js";
 import { UnsupportedEditError } from "./xml-write.js";
 import { sectionAttribute, sectionChild } from "./section-properties.js";
+import { activeXmlChildren } from "./xml-active-children.js";
 
 /** Resolve explicit stored geometry; no layout engine or host metrics are consulted. */
 export function renderInsertedTable(options: DocxOperationArguments<"tables.add">, location: Location | undefined, root: XmlElement, mainRoot: XmlElement, styles: XmlElement | undefined, budget: DocumentBudget) {
@@ -22,27 +23,29 @@ export function renderInsertedTable(options: DocxOperationArguments<"tables.add"
   }));
   budget.table(options.rows, options.cols);
   const table: DocxTableInput = { kind: "table", rows: block?.rows ?? Array.from({ length: options.rows }, () => Array.from({ length: options.cols }, () => ({ blocks: [] }))), ...block, ...formatting };
-  const width = tableContainerWidth(location, root, mainRoot, options.before);
+  const width = tableContainerWidth(location, root, mainRoot, budget, options.before);
   return renderContent({ version: 1, blocks: [table] }, mainRoot.namespace, budget, styles, width);
 }
 
 /** Stored section or enclosing-cell width shared by insertion and explicit grid growth. */
-export function tableContainerWidth(location: Location | undefined, root: XmlElement, mainRoot: XmlElement, before?: boolean): number {
-  const body = sectionChild(mainRoot, "body")!;
-  const sections = body.children.flatMap(n => n.localName === "p" ? sectionChild(sectionChild(n, "pPr"), "sectPr") ?? [] : n.localName === "sectPr" ? [n] : []);
+export function tableContainerWidth(location: Location | undefined, root: XmlElement, mainRoot: XmlElement, budget: DocumentBudget, before?: boolean): number {
+  const mainChildren = activeXmlChildren(mainRoot, budget);
+  const children = root === mainRoot ? mainChildren : activeXmlChildren(root, budget);
+  const body = sectionChild(mainRoot, "body", mainChildren)!;
+  const sections = mainChildren(body).flatMap(n => n.namespace !== mainRoot.namespace ? [] : n.localName === "p" ? sectionChild(sectionChild(n, "pPr", mainChildren), "sectPr", mainChildren) ?? [] : n.localName === "sectPr" ? [n] : []);
   let section = sections.at(-1);
   if (location?.positions.section) section = sections[location.positions.section - 1];
   // An insertion after a section-ending paragraph belongs to the following section.
   if (location?.kind === "paragraph" && !location.value.range && !before) {
     let node = root; for (const i of location.value.path) node = node.children[i]!;
-    if (sectionChild(sectionChild(node, "pPr"), "sectPr")) section = sections[(location.positions.section ?? 1)];
+    if (sectionChild(sectionChild(node, "pPr", children), "sectPr", children)) section = sections[(location.positions.section ?? 1)];
   }
-  let width = pageGeometry(undefined, section, mainRoot.namespace).width;
-  const columns = sectionChild(section, "cols");
+  let width = pageGeometry(undefined, section, mainRoot.namespace, mainChildren).width;
+  const columns = sectionChild(section, "cols", mainChildren);
   const count = Number(sectionAttribute(columns, "num") ?? 1);
   if (!Number.isSafeInteger(count) || count < 1) throw new UnsupportedEditError("Invalid section column geometry.");
   if (count > 1) {
-    const entries = columns?.children.filter(n => n.namespace === mainRoot.namespace && n.localName === "col") ?? [];
+    const entries = columns ? mainChildren(columns).filter(n => n.namespace === mainRoot.namespace && n.localName === "col") : [];
     if (entries.length) {
       if (entries.length !== count) throw new UnsupportedEditError("Incomplete section column geometry.");
       width = Math.min(...entries.map(n => Number(sectionAttribute(n, "w"))));
@@ -53,15 +56,15 @@ export function tableContainerWidth(location: Location | undefined, root: XmlEle
   for (const index of location?.value.path ?? []) {
     node = node.children[index]!;
     if (node.namespace !== root.namespace) continue;
-    if (node.localName === "tbl") tableMargins = sectionChild(sectionChild(node, "tblPr"), "tblCellMar");
+    if (node.localName === "tbl") tableMargins = sectionChild(sectionChild(node, "tblPr", children), "tblCellMar", children);
     if (node.localName !== "tc") continue;
-    const props = sectionChild(node, "tcPr"), cellWidth = sectionChild(props, "tcW");
+    const props = sectionChild(node, "tcPr", children), cellWidth = sectionChild(props, "tcW", children);
     if (sectionAttribute(cellWidth, "type") !== "dxa") throw new UnsupportedEditError("Nested insertion requires an explicit cell width in twips.");
     width = Number(sectionAttribute(cellWidth, "w"));
-    const margins = sectionChild(props, "tcMar");
+    const margins = sectionChild(props, "tcMar", children);
     for (const edge of ["left", "right"]) {
       const alternate = edge === "left" ? "start" : "end";
-      const margin = sectionChild(margins, edge) ?? sectionChild(margins, alternate) ?? sectionChild(tableMargins, edge) ?? sectionChild(tableMargins, alternate);
+      const margin = sectionChild(margins, edge, children) ?? sectionChild(margins, alternate, children) ?? sectionChild(tableMargins, edge, children) ?? sectionChild(tableMargins, alternate, children);
       if (margin && sectionAttribute(margin, "type") !== "dxa") throw new UnsupportedEditError("Nested insertion requires explicit cell margins in twips.");
       width -= Number(sectionAttribute(margin, "w") ?? 0);
     }

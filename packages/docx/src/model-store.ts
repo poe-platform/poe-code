@@ -2,7 +2,7 @@ import { originalModelDefaults } from "./default-model-styles.js";
 import type { DocumentArchive } from "./archive.js";
 import { InputTypeError, archiveSettings, type ArchiveLimits } from "./archive.js";
 import type { AdmittedModelContext } from "./model-context.js";
-import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { appendBodyBlocks, DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { PackageView, XmlPartView, packageOwnerCheckpoint } from "./package-view.js";
 import { bindXmlElementView, type XmlElementView } from "./xml-element-view.js";
@@ -360,6 +360,17 @@ export class ModelStore {
       list.push({ before, count: children.length });
       insertions.set(node, list);
     };
+    const appendBody = candidate[appendBodyBlocks].bind(candidate);
+    candidate[appendBodyBlocks] = (body, markup) => {
+      const path = appendBody(body, markup);
+      let parent = candidate.root;
+      for (const index of path.slice(0, -1)) parent = parent.children[index]!;
+      const children = fragment(parent, markup);
+      const list = insertions.get(parent) ?? [];
+      list.push({before: parent.children[path.at(-1)!], count: children.length});
+      insertions.set(parent, list);
+      return path;
+    };
     try {
       action(candidate);
       const bytes = candidate.serialize();
@@ -510,17 +521,25 @@ export class ModelStore {
         : this.styles.get_style_id(style, WD_STYLE_TYPE.PARAGRAPH);
     const node = this.node(ref);
     const count = node.children.length;
+    let insertedPath: readonly number[] | undefined;
     this.change(ref.part, (xml) => {
       const parent = this.node(ref);
+      const markup = `<bm:p xmlns:bm="${parent.namespace}">${styleId ? `<bm:pPr><bm:pStyle bm:val="${xmlValue(styleId)}"/></bm:pPr>` : ""}${text ? paragraphTextRun(parent.namespace, text) : ""}</bm:p>`;
+      if (parent.localName === "body") { insertedPath = xml[appendBodyBlocks](parent, markup); return; }
       const section = parent.children.find(
         (child) => child.namespace === parent.namespace && child.localName === "sectPr"
       );
       xml.insertChildren(
         parent,
-        `<bm:p xmlns:bm="${parent.namespace}">${styleId ? `<bm:pPr><bm:pStyle bm:val="${xmlValue(styleId)}"/></bm:pPr>` : ""}${text ? paragraphTextRun(parent.namespace, text) : ""}</bm:p>`,
+        markup,
         section
       );
     });
+    if (insertedPath) {
+      let inserted = this.xml(ref.part).root;
+      for (const index of insertedPath) inserted = inserted.children[index]!;
+      return this.paragraph(this.ref(ref.part, inserted));
+    }
     const parent = this.node(ref);
     const child = parent.children[Math.min(count, parent.children.length - 1)]!;
     const inserted =
@@ -535,6 +554,7 @@ export class ModelStore {
       (child) => child.localName === "sectPr" && child.namespace === parent.namespace
     );
     const insertionIndex = section ? parent.children.indexOf(section) : parent.children.length;
+    let insertedPath: readonly number[] | undefined;
     const markup = renderContent(
       {
         version: 1,
@@ -553,6 +573,7 @@ export class ModelStore {
     ).body;
     this.change(ref.part, (xml) => {
       const owner = this.node(ref);
+      if (owner.localName === "body") { insertedPath = xml[appendBodyBlocks](owner, markup); return; }
       xml.insertChildren(
         owner,
         markup + (owner.localName === "tc" ? `<bm:p xmlns:bm="${owner.namespace}"/>` : ""),
@@ -561,6 +582,11 @@ export class ModelStore {
         )
       );
     });
+    if (insertedPath) {
+      let inserted = this.xml(ref.part).root;
+      for (const index of insertedPath) inserted = inserted.children[index]!;
+      return this.table(this.ref(ref.part, inserted));
+    }
     const node = this.node(ref);
     const table = node.children[insertionIndex]!;
     return this.table(this.ref(ref.part, table));

@@ -16,6 +16,7 @@ import { Settings } from "./settings-model.js";
 import { InlineShapes, insertModelImage } from "./inline-shape-model.js";
 import { Image, type ImageModelInput } from "./image-model.js";
 import { packageAdmitImages } from "./package-view.js";
+import { activeModelChildren } from "./model-active-children.js";
 
 export class DocumentView {
   readonly ref: ModelRef;
@@ -23,7 +24,7 @@ export class DocumentView {
   private boundInlineShapes: InlineShapes | undefined;
   constructor(readonly store: ModelStore) {
     const root = store.xml(store.mainPart).root;
-    const body = root.children.find(
+    const body = activeModelChildren(store, store.mainPart)(root).find(
       (child) => child.namespace === root.namespace && child.localName === "body"
     )!;
     this.ref = store.ref(store.mainPart, body);

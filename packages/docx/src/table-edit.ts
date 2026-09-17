@@ -224,7 +224,7 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
           replacement = insert(table, rows, element(w, "tr", {}, undefined, (repeated ? element(w, "trPr", {}, undefined, element(w, "tblHeader", { val: "1" })) : "") + widths.map(emptyCell).join("")));
         } else { patches.set(rows[position - 1]!, ""); replacement = xml.sourceXml(table, patches); }
       } else {
-        const width = adding ? opts.width ? twips(opts.width) : Math.floor(tableContainerWidth(before, xml.root, editor.xml(main).root) / (columns.length + 1)) : widths[position - 1]!;
+        const width = adding ? opts.width ? twips(opts.width) : Math.floor(tableContainerWidth(before, xml.root, editor.xml(main).root, budget) / (columns.length + 1)) : widths[position - 1]!;
         if (adding && (!Number.isSafeInteger(width) || width < 1)) throw new InvalidValueError("Column insertion requires a positive width.");
         const gridMarkup = adding ? insert(grid, columns, element(w, "gridCol", { w: String(width) })) : xml.sourceXml(grid, new Map([[columns[position - 1]!, ""]]));
         patches.clear(); patches.set(grid, gridMarkup);

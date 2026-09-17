@@ -2,6 +2,48 @@ import { describe, expect, it, vi } from "vitest";
 import { createRunQueue } from "./run-queue.js";
 
 describe("live harness work queue", () => {
+  it("keeps the sequence open for a plan being validated and applies inherited follow-ups", async () => {
+    const queue = createRunQueue({ plans: ["one.md"], afterEachPlan: ["Review"] });
+    let validate!: (value: string) => void;
+    const submitted = queue.enqueueValidatedPlan("two.md", () => new Promise<string>((resolve) => { validate = resolve; }));
+    const executed: string[] = [];
+    const running = queue.run({ async execute(item) {
+      executed.push(item.kind === "plan" ? item.path : item.text);
+      if (executed.length === 2) validate("two.md");
+      return "completed";
+    } });
+    await submitted;
+    expect((await running).status).toBe("completed");
+    expect(executed).toEqual(["one.md", "Review", "two.md", "Review"]);
+  });
+
+  it("cancels while validation is pending and refuses its late result", async () => {
+    const queue = createRunQueue({ plans: [] });
+    const abort = new AbortController();
+    let validate!: (value: string) => void;
+    const submitted = queue.enqueueValidatedPlan("two.md", () => new Promise<string>((resolve) => { validate = resolve; }))
+      .catch((error: unknown) => error);
+    const execute = vi.fn(async () => "completed" as const);
+    const running = queue.run({ execute, signal: abort.signal });
+    abort.abort();
+    expect((await running).status).toBe("cancelled");
+    validate("two.md");
+    expect(await submitted).toEqual(expect.objectContaining({ message: expect.stringContaining("finished") }));
+    expect(execute).not.toHaveBeenCalled();
+    expect(queue.getSnapshot().items).toEqual([]);
+  });
+
+  it("releases rejected validation without failing completed work or adding an invalid plan", async () => {
+    const queue = createRunQueue({ plans: ["one.md"] });
+    let reject!: (error: Error) => void;
+    const submitted = queue.enqueueValidatedPlan("missing.md", () => new Promise<string>((_resolve, fail) => { reject = fail; }))
+      .catch((error: unknown) => error);
+    const running = queue.run({ async execute() { reject(new Error("Plan file not found")); return "completed"; } });
+    expect(await submitted).toEqual(new Error("Plan file not found"));
+    expect((await running).status).toBe("completed");
+    expect(queue.getSnapshot().items).toHaveLength(1);
+  });
+
   it("honors a graceful stop between items without changing completed or pending work", async () => {
     const queue = createRunQueue({ plans: ["one.md", "two.md"], afterEachPlan: ["Review"] });
     let stopped = false;

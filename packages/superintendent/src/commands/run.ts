@@ -660,8 +660,10 @@ export async function runSuperintendentCommand(
         else {
           const resolvedPath = resolveWorkflowPath(input.text, options.cwd, options.homeDir);
           const planPath = options.sourceCwd ? mapSourcePathIntoWorktree(options.sourceCwd, resolvedPath, options.cwd) : resolvedPath;
-          await resolveSuperintendentDoc(planPath, await fs.readFile(planPath, "utf8"), fs);
-          queue.enqueuePlan(planPath);
+          await queue.enqueueValidatedPlan(planPath, async (path) => {
+            await resolveSuperintendentDoc(path, await fs.readFile(path, "utf8"), fs);
+            return path;
+          });
         }
       },
       statsTitle: "Loop",

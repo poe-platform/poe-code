@@ -27,9 +27,13 @@ export function createHarnessDashboard(options: {
     async onSubmit(input) {
       if (disposed) throw new Error("This run has finished.");
       if (input.kind === "plan") {
-        const path = options.validatePlan ? await options.validatePlan(input.text) : input.text;
-        if (disposed) throw new Error("This run has finished.");
-        options.queue.enqueuePlan(path);
+        if (options.validatePlan) {
+          await options.queue.enqueueValidatedPlan(input.text, async (inputPath) => {
+            const path = await options.validatePlan!(inputPath);
+            if (disposed) throw new Error("This run has finished.");
+            return path;
+          });
+        } else options.queue.enqueuePlan(input.text);
       } else {
         options.queue.enqueueMessage(input.text, input.afterPlanId);
       }

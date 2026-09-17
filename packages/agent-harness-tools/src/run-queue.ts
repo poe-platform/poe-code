@@ -32,6 +32,7 @@ export function createRunQueue(options: {
     return text.trim();
   });
   const listeners = new Set<(snapshot: RunQueueSnapshot) => void>();
+  const pendingValidations = new Set<Promise<void>>();
   let nextId = 0;
   let cursor = 0;
   let snapshot: RunQueueSnapshot = Object.freeze({ status: "idle", items: Object.freeze([]) });
@@ -87,6 +88,20 @@ export function createRunQueue(options: {
     return id;
   }
 
+  /** Keep the run open while a submitted plan path is being validated. */
+  async function enqueueValidatedPlan(planPath: string, validate: (path: string) => Promise<string>): Promise<string> {
+    assertAccepting();
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => { release = resolve; });
+    pendingValidations.add(pending);
+    try {
+      return enqueuePlan(await validate(planPath));
+    } finally {
+      pendingValidations.delete(pending);
+      release();
+    }
+  }
+
   async function run(runtime: {
     signal?: AbortSignal;
     /** Stop between items, preserving already completed and still pending work. */
@@ -96,7 +111,7 @@ export function createRunQueue(options: {
     if (snapshot.status === "running") throw new Error("This queue is already running.");
     assertAccepting();
     publish({ status: "running" });
-    while (cursor < snapshot.items.length) {
+    while (cursor < snapshot.items.length || pendingValidations.size > 0) {
       if (runtime.signal?.aborted) {
         publish({ status: "cancelled", activeItemId: undefined });
         return snapshot;
@@ -104,6 +119,20 @@ export function createRunQueue(options: {
       if (runtime.shouldPause?.()) {
         publish({ status: "paused", activeItemId: undefined });
         return snapshot;
+      }
+      if (cursor >= snapshot.items.length) {
+        let onAbort: (() => void) | undefined;
+        const aborted = new Promise<void>((resolve) => {
+          onAbort = resolve;
+          if (runtime.signal?.aborted) resolve();
+          else runtime.signal?.addEventListener("abort", onAbort, { once: true });
+        });
+        try {
+          await Promise.race([...pendingValidations, aborted]);
+        } finally {
+          if (onAbort) runtime.signal?.removeEventListener("abort", onAbort);
+        }
+        continue;
       }
       const pending = snapshot.items[cursor]!;
       const active: RunQueueItem = { ...pending, status: "running" };
@@ -142,6 +171,7 @@ export function createRunQueue(options: {
   return {
     getSnapshot: (): RunQueueSnapshot => snapshot,
     enqueuePlan,
+    enqueueValidatedPlan,
     enqueueMessage,
     onChange(listener: (snapshot: RunQueueSnapshot) => void): () => void {
       listeners.add(listener);

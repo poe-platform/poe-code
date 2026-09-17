@@ -41,6 +41,34 @@ describe("harness dashboard controller", () => {
     view.dispose();
   });
 
+  it("accepts a plan submitted while running even if validation outlasts the last current item", async () => {
+    const queue = createRunQueue({ plans: ["one.md"] });
+    let validate!: (value: string) => void;
+    let finish!: () => void;
+    const view = createHarnessDashboard({
+      title: "Pipeline", agent: "codex", cwd: "/repo", queue,
+      validatePlan: () => new Promise<string>((resolve) => { validate = resolve; })
+    });
+    view.start();
+    const submit = vi.mocked(createDashboard).mock.calls[0]![0]!.onSubmit!;
+    const executed: string[] = [];
+    const running = queue.run({ async execute(item) {
+      if (item.kind === "plan") executed.push(item.path);
+      if (executed.length === 1) await new Promise<void>((resolve) => { finish = resolve; });
+      return "completed";
+    } });
+    const submitted = Promise.resolve(submit({ kind: "plan", text: "two.md" })).catch((error: unknown) => error);
+    finish();
+    await Promise.resolve();
+    await Promise.resolve();
+    validate("/repo/two.md");
+    const result = await submitted;
+    await running;
+    view.dispose();
+    expect(result).toBeUndefined();
+    expect(executed).toEqual(["one.md", "/repo/two.md"]);
+  });
+
   it("clears task context on plan and follow-up transitions and retains pending work on failure", async () => {
     const queue = createRunQueue({ plans: ["one.md", "two.md"], afterEachPlan: ["Review"] });
     const view = createHarnessDashboard({ title: "Pipeline", agent: "codex", cwd: "/repo", queue });

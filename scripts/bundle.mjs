@@ -2,7 +2,7 @@ import * as esbuild from "esbuild";
 import assert from "node:assert/strict";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { copyFile, cp, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { versionGateSnippet } from "./node-version-gate.mjs";
 import { resolveGithubWorkflowAssetCopies } from "./bundle-assets.mjs";
 import { assertSafeBundleOutputs, assertSafeOutputDirectory } from "./guard-package-dist.mjs";
@@ -329,14 +329,6 @@ for (const { dir } of packageJsons) {
   });
 }
 
-// tokenfill is inlined into memory's bundle and resolves its corpus via
-// import.meta.url, so the corpus must sit next to packages/memory/dist/index.js.
-await cp(
-  path.join(rootDir, "packages", "tokenfill", "src", "corpus"),
-  path.join(rootDir, "packages", "memory", "dist", "corpus"),
-  { recursive: true }
-);
-
 // Generate a CJS entry point with a Node.js version gate.
 // Written in ES5 syntax so even ancient Node versions parse it and
 // print a friendly error instead of crashing on modern syntax.
@@ -386,12 +378,7 @@ await Promise.all([
   copyFile(
     path.join(rootDir, "packages", "experiment-loop", "src", "config", "default-run.yaml"),
     path.join(distDir, "default-run.yaml")
-  ),
-  // tokenfill resolves its built-in corpus via import.meta.url, so after
-  // bundling the directory must sit next to dist/index.js.
-  cp(path.join(rootDir, "packages", "tokenfill", "src", "corpus"), path.join(distDir, "corpus"), {
-    recursive: true
-  })
+  )
 ]);
 
 await Promise.all(

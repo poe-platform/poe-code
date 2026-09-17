@@ -188,14 +188,15 @@
     "packages/toolcraft-schema/dist",
     "packages/workspace-resolver/dist",
     "packages/worktree/dist",
+    "!dist/corpus",
+    "!packages/memory/dist/corpus",
     "packages/office-package/dist",
     "packages/office-package/LICENSE",
     "packages/pptx/dist",
     "packages/pptx/LICENSE",
     "packages/pptx/THIRD_PARTY_NOTICES.txt",
     "packages/terminal-pilot/dist",
-    "packages/terminal-pilot-mcp/dist",
-    "packages/tokenfill/dist"
+    "packages/terminal-pilot-mcp/dist"
   ],
   "engines": {
     "node": ">=18.18"
@@ -229,7 +230,8 @@
     "ts-morph": "^27.0.2",
     "turndown": "^7.2.4",
     "yaml": "2.9.0",
-    "saxes": "6.0.0"
+    "saxes": "6.0.0",
+    "tokenfill": "^0.0.14"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
@@ -317,7 +319,6 @@
     "tiny-oauth-test-server": "*",
     "tiny-stdio-mcp-server": "*",
     "tiny-stdio-mcp-test-server": "*",
-    "tokenfill": "*",
     "toolcraft": "*",
     "toolcraft-codemode": "*",
     "toolcraft-design": "*",
@@ -358,5 +359,12 @@
   },
   "bundleDependencies": [
     "gray-matter"
-  ]
+  ],
+  "poeCode": {
+    "bundle": {
+      "external": [
+        "tokenfill"
+      ]
+    }
+  }
 }

@@ -17,3 +17,13 @@ it('keeps sandbox runtimes out of the CLI and SDK import graph', async () => {
   });
   expect(Object.keys(result.metafile!.inputs).filter(file => file.includes('/commands/harness') || file.includes('/sdk/bash'))).toEqual([]);
 });
+
+
+it('ships tokenfill as a separate dependency without its corpus copies', () => {
+  const manifest = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+  expect(manifest.dependencies.tokenfill).toBe('^0.0.14');
+  expect(manifest.devDependencies).not.toHaveProperty('tokenfill');
+  expect(manifest.files).not.toContain('packages/tokenfill/dist');
+  expect(manifest.files).toContain('!dist/corpus');
+  expect(manifest.files).toContain('!packages/memory/dist/corpus');
+});

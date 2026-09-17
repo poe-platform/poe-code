@@ -152,3 +152,8 @@ describe("build-independent publication builtin names", () => {
     ).toEqual([{ external: "other-root", reason: "workspace-not-inlined" }]);
   });
 });
+
+
+it("allows a separately published workspace declared as a runtime dependency", () => {
+  expect(findBundleIssues({name: "poe-code", dependencies: {tokenfill: "^0.0.14"}}, new Set(["tokenfill"]), nodeMetafile("tokenfill"), new Set())).toEqual([]);
+});

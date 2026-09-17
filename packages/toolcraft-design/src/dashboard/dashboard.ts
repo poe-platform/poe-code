@@ -175,7 +175,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
           render();
           return;
         }
-        const edit = editComposer(composer, event);
+        const edit = editComposer(composer, event, Math.max(1, (outputRect?.width ?? 80) - 3));
         if (edit.handled) {
           feedback = undefined;
           composer = edit.state;

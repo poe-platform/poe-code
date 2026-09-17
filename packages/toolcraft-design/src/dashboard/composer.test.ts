@@ -7,6 +7,58 @@ const key = (name: string, flags: Partial<KeypressEvent> = {}): KeypressEvent =>
 });
 
 describe("dashboard queue composer", () => {
+  it("moves vertically through multiline input and restores the column after a shorter line", () => {
+    let state = editComposer(createComposerState("message"), key("paste", { ch: "first row\nx\nthird row" })).state;
+    const up = editComposer(state, key("up"));
+    expect(up.handled).toBe(true);
+    expect(up.state.cursor).toBe(11);
+    state = editComposer(up.state, key("up")).state;
+    expect(state.cursor).toBe(9);
+    state = editComposer(state, key("down")).state;
+    expect(state.cursor).toBe(11);
+    state = editComposer(state, key("down")).state;
+    expect(state.cursor).toBe(state.text.length);
+    expect(editComposer(state, key("down")).handled).toBe(true);
+  });
+
+  it("moves through wrapped input at grapheme boundaries using terminal column widths", () => {
+    let state = editComposer(createComposerState("message"), key("paste", { ch: "ab界👩‍💻\nxy\n123456" })).state;
+    state = editComposer(state, key("left")).state;
+    state = editComposer(state, key("up"), 10).state;
+    expect(state.cursor).toBe("ab界👩‍💻\nxy".length);
+    state = editComposer(state, key("up"), 10).state;
+    expect(state.cursor).toBe(3);
+    state = editComposer(state, key("down"), 10).state;
+    state = editComposer(state, key("down"), 10).state;
+    expect(state.cursor).toBe(state.text.length - 1);
+    const wrapped = { ...createComposerState("message"), text: "abcdefghijklmno", cursor: 13 };
+    expect(editComposer(wrapped, key("up"), 5).state.cursor).toBe(8);
+    expect(editComposer({ ...wrapped, cursor: 8 }, key("down"), 5).state.cursor).toBe(13);
+  });
+
+  it("resets the desired vertical column after ordinary editing or horizontal movement", () => {
+    let state = editComposer(createComposerState("message"), key("paste", { ch: "first row\nx\nthird row" })).state;
+    state = editComposer(state, key("up")).state;
+    state = editComposer(state, key("left")).state;
+    state = editComposer(state, key("up")).state;
+    expect(state.cursor).toBe(0);
+    state = editComposer(state, key("end")).state;
+    state = editComposer(state, key("down")).state;
+    state = editComposer(state, key("z", { ch: "z" })).state;
+    state = editComposer(state, key("down")).state;
+    expect(state.cursor).toBe(state.text.indexOf("third") + 2);
+  });
+
+  it("recalculates the desired column after resizing and keeps tabs intact", () => {
+    let state = { ...createComposerState("message"), text: "abcdefghij\nklmnopqrst", cursor: 19 };
+    state = editComposer(state, key("up"), 12).state;
+    expect(state.cursor).toBe(8);
+    state = editComposer(state, key("down"), 5).state;
+    expect(state.cursor).toBe(14);
+    const tabs = { ...createComposerState("message"), text: "a\tb\n1234", cursor: 7 };
+    expect(editComposer(tabs, key("up"), 10).state.cursor).toBe(2);
+  });
+
   it("queues one message at a time without treating q, p, or f as dashboard commands", () => {
     let state = createComposerState("message", "plan-1");
     state = editComposer(state, key("paste", { ch: "queue a review\nplease verify" })).state;

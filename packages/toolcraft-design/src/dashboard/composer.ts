@@ -1,5 +1,6 @@
 import { parseAnsi } from "./ansi.js";
-import { graphemes } from "./terminal-width.js";
+import { graphemes, graphemeWidth } from "./terminal-width.js";
+import { layoutComposer } from "./composer-layout.js";
 import type { KeypressEvent } from "./terminal.js";
 
 export type DashboardSubmission = {
@@ -16,13 +17,16 @@ export type ComposerState = {
   focused: boolean;
   afterPlanId?: string;
   error?: string;
+  /** Preserve the intended display column across shorter rows during vertical movement. */
+  preferredColumn?: number;
+  preferredWidth?: number;
 };
 
 export function createComposerState(kind: DashboardSubmission["kind"], afterPlanId?: string): ComposerState {
   return { kind, text: "", cursor: 0, focused: true, ...(afterPlanId ? { afterPlanId } : {}) };
 }
 
-export function editComposer(state: ComposerState, event: KeypressEvent): {
+export function editComposer(state: ComposerState, event: KeypressEvent, width = Number.MAX_SAFE_INTEGER): {
   state: ComposerState;
   handled: boolean;
   submit?: DashboardSubmission;
@@ -30,7 +34,23 @@ export function editComposer(state: ComposerState, event: KeypressEvent): {
   const key = event.name ?? event.ch;
   if (!state.focused || (event.ctrl && key === "c")) return { state, handled: false };
   if (key === "escape") return { state: { ...state, focused: false }, handled: true };
-  const next = { ...state, error: undefined };
+  const next: ComposerState = { ...state, error: undefined, preferredColumn: undefined, preferredWidth: undefined };
+  if ((key === "up" || key === "down") && !event.ctrl && !event.meta) {
+    const layout = layoutComposer(state, width);
+    const row = Math.max(0, Math.min(layout.starts.length - 1, layout.cursor.y + (key === "up" ? -1 : 1)));
+    if (row === layout.cursor.y) return { state, handled: true };
+    next.preferredColumn = (state.preferredWidth === width ? state.preferredColumn : undefined) ?? layout.cursor.x;
+    next.preferredWidth = width;
+    next.cursor = layout.starts[row]!;
+    let column = 0;
+    for (const segment of graphemes(state.text.slice(next.cursor, layout.starts[row + 1]))) {
+      const cells = segment === "\t" ? 2 : graphemeWidth(segment);
+      if (segment === "\n" || column + cells > next.preferredColumn) break;
+      next.cursor += segment.length;
+      column += cells;
+    }
+    return { state: next, handled: true };
+  }
   const boundaries = [0];
   if (["left", "right", "backspace", "delete"].includes(key ?? "") || (event.ctrl && (key === "d" || key === "w"))) {
     for (const segment of graphemes(state.text)) boundaries.push(boundaries.at(-1)! + segment.length);

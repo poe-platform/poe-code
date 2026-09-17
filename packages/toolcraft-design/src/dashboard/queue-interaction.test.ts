@@ -28,6 +28,24 @@ function fixture(onSubmit: NonNullable<DashboardOptions["onSubmit"]>) {
 }
 
 describe("dashboard live queue input", () => {
+  it("moves within wrapped input using the displayed width instead of scrolling activity", async () => {
+    await withOutputFormat("terminal", async () => {
+      vi.useFakeTimers();
+      const onSubmit = vi.fn();
+      const ui = fixture(onSubmit);
+      try {
+        for (let index = 0; index < 25; index++) ui.dashboard.appendOutput({ kind: "info", text: `Output ${index}`, ts: 0 });
+        ui.send("\u001b[200~" + "a".repeat(77) + "xyz\u001b[201~");
+        vi.advanceTimersByTime(20);
+        ui.send("\u001b[A");
+        ui.send("X\r");
+        await Promise.resolve();
+        expect(onSubmit).toHaveBeenCalledWith({ kind: "message", text: "aaaX" + "a".repeat(74) + "xyz", afterPlanId: "first" });
+        expect(ui.screen()).not.toContain("History paused");
+      } finally { ui.dashboard.destroy(); }
+    });
+  });
+
   it("freezes the displayed action age while browsing held history and resumes it on Follow", async () => {
     await withOutputFormat("terminal", async () => {
       vi.useFakeTimers();

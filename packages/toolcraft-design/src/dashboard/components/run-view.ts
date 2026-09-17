@@ -2,7 +2,8 @@ import { getTheme } from "../../internal/theme-detect.js";
 import { plainTerminalText } from "../ansi.js";
 import type { ScreenBuffer } from "../buffer.js";
 import type { ComposerState } from "../composer.js";
-import { displayWidth, graphemes, graphemeWidth, truncateToWidth } from "../terminal-width.js";
+import { layoutComposer } from "../composer-layout.js";
+import { displayWidth, truncateToWidth } from "../terminal-width.js";
 import type { CellStyle, DashboardStats, DashboardWorkStatus, OutputItem, Rect } from "../types.js";
 import { renderOutputPane } from "./output-pane.js";
 import { formatElapsed, formatNumber } from "./stats-pane.js";
@@ -22,9 +23,6 @@ export type RunViewOptions = {
   hints?: FooterHint[];
   now?: number;
 };
-
-type DraftLayout = { lines: string[]; cursor: { x: number; y: number } };
-const draftLayouts = new WeakMap<ComposerState, { text: string; cursor: number; width: number; layout: DraftLayout }>();
 
 export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   scrollOffset: number;
@@ -50,7 +48,7 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   const context = [run?.agent, run?.model ?? (run?.agent ? "default model" : undefined), run?.cwd].filter(Boolean).join(" · ");
   put(buffer, { x, y: 1, width, height: 1 }, 0, context, theme.muted);
 
-  const draft = composer ? wrapDraft(composer, Math.max(1, transcriptWidth - 3)) : undefined;
+  const draft = composer ? layoutComposer(composer, Math.max(1, transcriptWidth - 3)) : undefined;
   const inputLines = draft ? Math.min(3, draft.lines.length) : 0;
   const composerHeight = composer ? inputLines + 3 : 0;
   const hint = composer?.focused
@@ -288,28 +286,4 @@ function displayPlanPath(value: string, cwd?: string): string {
 function put(buffer: ScreenBuffer, rect: Rect, row: number, text: string, style: CellStyle): void {
   if (row < 0 || row >= rect.height || rect.y + row >= buffer.height) return;
   buffer.putInRect(rect, row, truncateToWidth(plainTerminalText(text), rect.width), style);
-}
-
-function wrapDraft(state: ComposerState, width: number): DraftLayout {
-  const cached = draftLayouts.get(state);
-  if (cached?.text === state.text && cached.cursor === state.cursor && cached.width === width) return cached.layout;
-  const lines = [""];
-  let column = 0;
-  let offset = 0;
-  let cursor = { x: 0, y: 0 };
-  for (const segment of graphemes(state.text)) {
-    const cells = segment === "\t" ? 2 : graphemeWidth(segment);
-    if (segment !== "\n" && column + cells > width) { lines.push(""); column = 0; }
-    if (offset === state.cursor) cursor = { x: column, y: lines.length - 1 };
-    if (segment === "\n") { lines.push(""); column = 0; }
-    else { lines[lines.length - 1] += segment === "\t" ? "  " : segment; column += cells; }
-    offset += segment.length;
-  }
-  if (offset === state.cursor) {
-    if (column >= width) { lines.push(""); column = 0; }
-    cursor = { x: column, y: lines.length - 1 };
-  }
-  const layout = { lines, cursor };
-  draftLayouts.set(state, { text: state.text, cursor: state.cursor, width, layout });
-  return layout;
 }

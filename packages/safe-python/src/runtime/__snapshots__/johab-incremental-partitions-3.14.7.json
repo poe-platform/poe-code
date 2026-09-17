@@ -1,0 +1,269 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 17.0.0 (clang-1700.6.4.2)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "incremental": {
+    "strict": {
+      "records": 131072,
+      "sha256": "e60191a7ee4155aea065d84814f2186db3dbf798e7479c6f88379b4fcdec35e3",
+      "partitions": [
+        {
+          "block": 0,
+          "records": 8192,
+          "sha256": "9a3328781b6c8cd088ca3d3292d2aeff9e1f809d75e587ee76daa984f839a4f2"
+        },
+        {
+          "block": 1,
+          "records": 8192,
+          "sha256": "3c27a85ce2f14a0194263a08aa4d791b8cd2272dbdf5bc9e5271361d5ff60f82"
+        },
+        {
+          "block": 2,
+          "records": 8192,
+          "sha256": "c19529f6e6570c7b15254b2d75a6e5e0b78b073b92c20bf7647d5855bcf5700d"
+        },
+        {
+          "block": 3,
+          "records": 8192,
+          "sha256": "c853faec559fd943869785dc7e8d2c1192800ca5750f2ccc41bea14219767472"
+        },
+        {
+          "block": 4,
+          "records": 8192,
+          "sha256": "68cd1fec5af6667cc8b69e2faea102c5c784c6d62882af0cc50f40b0a0b6940a"
+        },
+        {
+          "block": 5,
+          "records": 8192,
+          "sha256": "e938b56a7b37619ff2f7f8b5694337868b4e93bfffa63943288ccf5ffe7aaa88"
+        },
+        {
+          "block": 6,
+          "records": 8192,
+          "sha256": "2c3b4853aa31946c097e05515710413053d4e51972d70b8457b5cbeda2c6e3cb"
+        },
+        {
+          "block": 7,
+          "records": 8192,
+          "sha256": "017774d9aca0f660aad3db2b335f306ad3ad66ad1875b5c1c9f256ffc7f632e3"
+        },
+        {
+          "block": 8,
+          "records": 8192,
+          "sha256": "1c0aeae7d49b93eba228f1c6582cfcd57cbc2645e1669d590f39e1f43d79a57e"
+        },
+        {
+          "block": 9,
+          "records": 8192,
+          "sha256": "08869740f0ef06b822deaff9a858cc2a91237d5de7d9623c51c37880f0285fd9"
+        },
+        {
+          "block": 10,
+          "records": 8192,
+          "sha256": "1c0962116516ebd6b177f96200ace90727bc32c37ab674be926411fa25220f5d"
+        },
+        {
+          "block": 11,
+          "records": 8192,
+          "sha256": "80a32cc092ef25141c3b7355d030d8a104e0d71f266b2fd6646d83d7f80d9010"
+        },
+        {
+          "block": 12,
+          "records": 8192,
+          "sha256": "b25de930e763244673e524056ce9bf67b2301fee6b3dccdfbb03d0bdfd6412db"
+        },
+        {
+          "block": 13,
+          "records": 8192,
+          "sha256": "86d808a5cd3077ff38395ca2fa362465299e8a64145bc266782ca40ced602d9d"
+        },
+        {
+          "block": 14,
+          "records": 8192,
+          "sha256": "1963126e5f558c6d7b03b40613341dd66294e89f4731a93f1f168fb144acf900"
+        },
+        {
+          "block": 15,
+          "records": 8192,
+          "sha256": "d01c6de786d571de1593015ff7ca519272a04ed4b01d41d4a4937d0bdb5cbb44"
+        }
+      ]
+    },
+    "ignore": {
+      "records": 131072,
+      "sha256": "e7d3262443fef70bca3d5d518f4f07447cc74ad55028dbafd876b9f5f3f3d7f2",
+      "partitions": [
+        {
+          "block": 0,
+          "records": 8192,
+          "sha256": "9a9f4e0e86b66988f043a26b2b2233317d49031d7e3de854e44a1c4fff458d65"
+        },
+        {
+          "block": 1,
+          "records": 8192,
+          "sha256": "7b72f1acb63fe9d1f110c259d6840cc519ef0ade851a07fea776277ef6214378"
+        },
+        {
+          "block": 2,
+          "records": 8192,
+          "sha256": "7bb00d9188b7aab13376eea1153391c9795d9f50653464236b5c206566b4cf63"
+        },
+        {
+          "block": 3,
+          "records": 8192,
+          "sha256": "257284c10a771277ff90778d663d623968aa77957cbcdb6c319c0243d84d48b5"
+        },
+        {
+          "block": 4,
+          "records": 8192,
+          "sha256": "5ed6725e567ad51f47a647a834aec8dd9c4a91023f808664abd3e9b87838c79b"
+        },
+        {
+          "block": 5,
+          "records": 8192,
+          "sha256": "4cd795170fc61fa6ec7dda1cd54e5bbdde02565d9c4ec7cd9835e76ac94d82a8"
+        },
+        {
+          "block": 6,
+          "records": 8192,
+          "sha256": "6ed9a4c82cd2cc74389039b2799c39b94ef17488789b93bf13f47da6a0832e3f"
+        },
+        {
+          "block": 7,
+          "records": 8192,
+          "sha256": "1fc46cafc1dc4cc57645df9b35e8c0aa27f027ad41f95b9449e50dfbfd8330e0"
+        },
+        {
+          "block": 8,
+          "records": 8192,
+          "sha256": "8e04cc63fc88bc0958dc5162cbed60217cbecf27734b8c579eb014324315844b"
+        },
+        {
+          "block": 9,
+          "records": 8192,
+          "sha256": "aeb8b82584e56d93e9811021f9da537a6c49af24cf90757d0a868d4c79ac893f"
+        },
+        {
+          "block": 10,
+          "records": 8192,
+          "sha256": "a7aef025810975903f17ddc6c3413beca923df1fffe8615fede2cdb53c72d806"
+        },
+        {
+          "block": 11,
+          "records": 8192,
+          "sha256": "4d57963d7f90fcbc1c1a6b8c080c5e7dbc0a7c6ae7ad4169bca5722d687bb1bf"
+        },
+        {
+          "block": 12,
+          "records": 8192,
+          "sha256": "2e06f19268e142eae9d32ca375dfa1adffc6904b3a1c8b96faeddab161dfbd50"
+        },
+        {
+          "block": 13,
+          "records": 8192,
+          "sha256": "e9df29b536da319b0e03860d8d3082b6fa4ae6d972b362db73de60493353edcc"
+        },
+        {
+          "block": 14,
+          "records": 8192,
+          "sha256": "7eb32cff66758c06bc39ce55abb8c11166f3fa8a0ee07a905dfacc26182a0efc"
+        },
+        {
+          "block": 15,
+          "records": 8192,
+          "sha256": "0d6e55becbfbf497fa42f90ce41787e5b4be24a1b00badbc1071cc7dc97e6b70"
+        }
+      ]
+    },
+    "replace": {
+      "records": 131072,
+      "sha256": "825c6bc559d55c48278056999157b2fdd2a85ba87f1b32cce569c1d9a82a1998",
+      "partitions": [
+        {
+          "block": 0,
+          "records": 8192,
+          "sha256": "c2be2fe753dbd141d359837f787f64446adada3547f9b07cea5771fa246613c4"
+        },
+        {
+          "block": 1,
+          "records": 8192,
+          "sha256": "a5762a4c2ca440a50de7e099860f7c0af4972e9174fa9b683293f6aa0f82adbf"
+        },
+        {
+          "block": 2,
+          "records": 8192,
+          "sha256": "30f1765b9e9797add56db1508265384320043e7e58587af44ada9f9ec1c0630a"
+        },
+        {
+          "block": 3,
+          "records": 8192,
+          "sha256": "1909a9d64a671162027c0c3fdf962f090c7cb4e41524b9fcabbdeb5d18b40847"
+        },
+        {
+          "block": 4,
+          "records": 8192,
+          "sha256": "1ba4ac60fcea933969782861b13d7354d876b88236cfb49cf9a5fe932d7f1166"
+        },
+        {
+          "block": 5,
+          "records": 8192,
+          "sha256": "95dd5acd3faedcb3137365f3b45f7db5fb1239aee923862a1e7ab9171e68def1"
+        },
+        {
+          "block": 6,
+          "records": 8192,
+          "sha256": "3bcf122e776884a9ec7775c8ddf3ef70d550e6dbe84fa1e0eb009f3ab802e86f"
+        },
+        {
+          "block": 7,
+          "records": 8192,
+          "sha256": "4c17d31b1df5b57d636edf6c6c00bfcad7f8c5dc393e06cbac4c8d8db1d4668d"
+        },
+        {
+          "block": 8,
+          "records": 8192,
+          "sha256": "ddbefa9883857ffc4d3f272a80b213635e58b7fb61e675da4e7366a0d66aedc5"
+        },
+        {
+          "block": 9,
+          "records": 8192,
+          "sha256": "625d46c6df746f77176a54be9585fdbb83099d249da73853fc56ae46d0322c7b"
+        },
+        {
+          "block": 10,
+          "records": 8192,
+          "sha256": "9e4c766b7d95e866bc4bec63a7c0042360e63797bfd205c95dcac8fa2ae62e49"
+        },
+        {
+          "block": 11,
+          "records": 8192,
+          "sha256": "4399bc9beb281a288079020ce9cfdf32872b0d6363301fdc16b343f838ba7715"
+        },
+        {
+          "block": 12,
+          "records": 8192,
+          "sha256": "1b54412b146ee679debd2874409c147ccef82c3aa6490372bb2113a0d7bd679c"
+        },
+        {
+          "block": 13,
+          "records": 8192,
+          "sha256": "8130e5c667b62578bfe4451c284f327c52d6ab09761e022b4897ad311a92aead"
+        },
+        {
+          "block": 14,
+          "records": 8192,
+          "sha256": "e283e068cccb4b0791b2096df8a9e4f0b3cbabec38c3ab48ca46567c86774952"
+        },
+        {
+          "block": 15,
+          "records": 8192,
+          "sha256": "1267f14f5e80c88e3625ec2184dc3a04ed66cc4a06c219345c32f2c7377fc934"
+        }
+      ]
+    }
+  },
+  "oracleSource": "import hashlib\nimport json\nfrom pathlib import Path\n\nbase = Path('packages/safe-python/src/runtime/__snapshots__')\noracle = json.loads((base / 'johab-kernel-oracle.json').read_text())\nnamespace = {}\nexec(oracle['oracleSource'].split('\\nresult = {', 1)[0], namespace)\nreference = namespace['sys']\nresult = {'reference': {'version': reference.version, 'unicode': namespace['unicodedata'].unidata_version,\n                        'platform': reference.platform, 'byteorder': reference.byteorder}, 'incremental': {}}\nfor errors in ('strict', 'ignore', 'replace'):\n    total = hashlib.sha256()\n    parts = []\n    for block in range(16):\n        part = hashlib.sha256()\n        count = 0\n        for first in range(block * 16, (block + 1) * 16):\n            for second in range(256):\n                for final in (False, True):\n                    row = namespace['split_row'](bytes([first, second]), 1, final, errors)\n                    data = (json.dumps(row, separators=(',', ':'), ensure_ascii=True) + '\\n').encode()\n                    total.update(data)\n                    part.update(data)\n                    count += 1\n        parts.append({'block': block, 'records': count, 'sha256': part.hexdigest()})\n    assert total.hexdigest() == oracle['incremental'][errors]['sha256']\n    assert sum(part['records'] for part in parts) == oracle['incremental'][errors]['records']\n    result['incremental'][errors] = {**oracle['incremental'][errors], 'partitions': parts}\nresult['oracleSource'] = Path(__file__).read_text()\n(base / 'johab-incremental-partitions-3.14.7.json').write_text(json.dumps(result, indent=2) + '\\n')\n"
+}

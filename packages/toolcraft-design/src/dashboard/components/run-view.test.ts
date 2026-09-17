@@ -82,6 +82,34 @@ describe("run dashboard information hierarchy", () => {
     expect(rows.at(-1)).not.toContain("…");
   });
 
+  it.each([true, false])("wraps complete composer and browse shortcuts at 60 columns (editing: %s)", (focused) => {
+    const { rows, result } = screen(60, 20, { composer: { ...createComposerState("message", "first"), focused } });
+    const footer = rows.slice(-2).join("\n");
+    expect(footer).toContain(focused ? "Esc Browse" : "q Quit");
+    expect(footer).toContain(focused ? "Alt+↑↓ Target" : "f Follow");
+    expect(footer).not.toContain("…");
+    expect(result.cursor?.y ?? 0).toBeLessThan(18);
+    expect(result.outputRect.y + result.outputRect.height).toBeLessThan(18);
+  });
+
+  it("wraps custom harness controls without hiding the final shortcuts", () => {
+    const hints = [
+      { key: "i", label: "Message" }, { key: "p", label: "Add plan" }, { key: "v", label: "Tasks & plans" },
+      { key: "Space", label: "Pause" }, { key: "q", label: "Quit" }, { key: "e", label: "Edit" },
+      { key: "l", label: "Log" }, { key: "↑↓", label: "Scroll" }, { key: "F", label: "Follow" }
+    ];
+    const { rows } = screen(80, 24, { hints, composer: { ...createComposerState("message", "first"), focused: false } });
+    const footer = rows.slice(-2).join("\n");
+    for (const hint of hints) expect(footer).toContain(`${hint.key} ${hint.label}`);
+    expect(footer).not.toContain("…");
+  });
+
+  it("shows the return-to-current-work shortcut in the full list", () => {
+    const { text } = screen(80, 24, { showQueue: true, composer: undefined });
+    expect(text).toContain("f Current");
+    expect(text).toContain("q Quit");
+  });
+
   it("marks hidden tasks in the sidebar and keeps the active task visible", () => {
     const { text } = screen(120, 32, { stats: {
       ...stats, run: { ...stats.run, activeTaskId: "task-7", activeStep: "implement",

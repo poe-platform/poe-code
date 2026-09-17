@@ -2,7 +2,7 @@ import { getTheme } from "../../internal/theme-detect.js";
 import { plainTerminalText } from "../ansi.js";
 import type { ScreenBuffer } from "../buffer.js";
 import type { ComposerState } from "../composer.js";
-import { graphemes, graphemeWidth, truncateToWidth } from "../terminal-width.js";
+import { displayWidth, graphemes, graphemeWidth, truncateToWidth } from "../terminal-width.js";
 import type { CellStyle, DashboardStats, DashboardWorkStatus, OutputItem, Rect } from "../types.js";
 import { renderOutputPane } from "./output-pane.js";
 import { formatElapsed, formatNumber } from "./stats-pane.js";
@@ -49,7 +49,20 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   const draft = composer ? wrapDraft(composer, Math.max(1, transcriptWidth - 3)) : undefined;
   const inputLines = draft ? Math.min(3, draft.lines.length) : 0;
   const composerHeight = composer ? inputLines + 3 : 0;
-  const footerY = Math.max(0, buffer.height - 1);
+  const hint = composer?.focused
+    ? composer.kind === "plan" ? "Enter Queue plan  Ctrl+P Message  Esc Browse"
+      : "Enter Queue  Alt+Enter Newline  Ctrl+P Plan  Alt+↑↓ Target  Esc Browse"
+    : options.showQueue ? "↑↓ Scroll  PgUp/PgDn Page  Home/End Jump  f Current  v Activity  i Message  q Quit"
+      : options.hints ? options.hints.map((hint) => `${hint.key} ${hint.label}`).join("  ")
+      : width < 100 ? "i Message  p Plan  v Tasks  d Details  ↑↓ Scroll  f Follow  q Quit"
+      : "i Message  p Add plan  v Tasks & plans  d Details  ↑↓ Scroll  f Follow  q Quit";
+  const footerLines = [""];
+  for (const part of plainTerminalText(hint).split("  ")) {
+    const previous = footerLines.at(-1)!;
+    if (previous && displayWidth(`${previous}  ${part}`) > width) footerLines.push(part);
+    else footerLines[footerLines.length - 1] = previous ? `${previous}  ${part}` : part;
+  }
+  const footerY = Math.max(0, buffer.height - footerLines.length);
   const composerY = Math.max(3, footerY - composerHeight);
   const contentBottom = composer ? composerY - 1 : footerY - 1;
   let outputY = 3;
@@ -118,18 +131,13 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
     else if (options.feedback) put(buffer, rect, composerHeight - 1, options.feedback, theme.success);
     if (composer.focused && !options.submitting) cursor = {
       x: Math.min(buffer.width - 1, x + 3 + draft.cursor.x),
-      y: Math.min(footerY - 1, composerY + 2 + draft.cursor.y - start)
+      y: Math.max(0, Math.min(footerY - 1, composerY + 2 + draft.cursor.y - start))
     };
   }
 
-  const hint = composer?.focused
-    ? composer.kind === "plan" ? "Enter Queue plan  Ctrl+P Message  Esc Browse"
-      : "Enter Queue  Alt+Enter Newline  Ctrl+P Plan  Alt+↑↓ Target  Esc Browse"
-    : options.showQueue ? "↑↓ Scroll  PgUp/PgDn Page  Home/End Jump  v Activity  i Message  q Quit"
-      : options.hints ? options.hints.map((hint) => `${hint.key} ${hint.label}`).join("  ")
-      : width < 100 ? "i Message  p Plan  v Tasks  d Details  ↑↓ Scroll  f Follow  q Quit"
-      : "i Message  p Add plan  v Tasks & plans  d Details  ↑↓ Scroll  f Follow  q Quit";
-  put(buffer, { x, y: footerY, width, height: 1 }, 0, hint, theme.muted);
+  for (const [index, line] of footerLines.entries()) {
+    put(buffer, { x, y: footerY + index, width, height: 1 }, 0, line, theme.muted);
+  }
   return { scrollOffset, workOffset, outputRect, ...(cursor ? { cursor } : {}) };
 }
 

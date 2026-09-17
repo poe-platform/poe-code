@@ -7,14 +7,15 @@ import { closedRecord, encodeLocation, SelectionError, type Location } from "./l
 import { openDocumentLocations, type DocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentPackage } from "./package.js";
-import { findRelationshipPart } from "./relationship-part.js";
+import { relationshipXmlRows } from "./relationship-xml.js";
+import { findRelationshipPart, retainedRelationshipTargets } from "./relationship-part.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { paragraphTextRun, replaceParagraphContent } from "./paragraph-content.js";
-import { relativePartTarget } from "./part-uri.js";
+import { asciiKey, relativePartTarget } from "./part-uri.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { sectionAttribute } from "./section-properties.js";
 import { sectionState, type SectionInfo } from "./sections.js";
-import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { DocumentXmlEditor, editActiveRelationshipXml, UnsupportedEditError } from "./xml-write.js";
 
 type StoryKind = "headers" | "footers";
 type StoryVariant = "default" | "first" | "even";
@@ -125,7 +126,7 @@ export async function editDocumentStories(input: Uint8Array, request: StoryEditR
   const deleted = new Set<string>();
   const relName = findRelationshipPart(graph, "/" + main, budget)?.name ?? relationshipName(main);
   const relMember = archive.members.find(member => member.name === relName);
-  const relXml = new DocumentXmlEditor(relMember?.bytes ?? new TextEncoder().encode(`<Relationships xmlns="${relNamespace}"/>`), {}, undefined, budget);
+  let relXml = new DocumentXmlEditor(relMember?.bytes ?? new TextEncoder().encode(`<Relationships xmlns="${relNamespace}"/>`), {}, undefined, budget);
   const types = new DocumentXmlEditor(archive.members.find(member => member.name === "[Content_Types].xml")!.bytes, {}, undefined, budget);
   const refs = new Map<number, string | null>();
   const newTypes: string[] = [], newRelationships: string[] = [];
@@ -191,13 +192,13 @@ export async function editDocumentStories(input: Uint8Array, request: StoryEditR
   const visit = (node: XmlElement) => { budget.charge("work", 1); for (const a of node.attributes) if (a.namespace === r) used.add(a.value); for (const child of node.children) visit(child); };
   visit(parseDocumentXml(staged.get(main)!, {}, budget).root);
   const candidates = new Set<string>();
-  for (const node of relXml.root.children) {
-    const id = node.attributes.find(a => a.localName === "Id")?.value;
+  for (const {element: node, rId: id} of relationshipXmlRows(relXml.root, budget)) {
     if (!id || !removedIds.has(id) || used.has(id)) continue;
     const edge = graph.relationships("/" + main).find(edge => edge.rId === id)!;
     if (!edge.is_external) candidates.add(edge.target_part.partname);
-    relXml.replaceElement(node, "");
+    relXml[editActiveRelationshipXml](node, null);
   }
+  relXml = new DocumentXmlEditor(relXml.serialize(), {}, undefined, budget);
   if (newRelationships.length) relXml.insertChildren(relXml.root, newRelationships.join(""));
   if (newTypes.length) types.insertChildren(types.root, newTypes.join(""));
   staged.set(relName, relXml.serialize());
@@ -207,9 +208,9 @@ export async function editDocumentStories(input: Uint8Array, request: StoryEditR
     ...[...staged].filter(([name]) => !deleted.has(name) && !archive.members.some(m => m.name === name)).map(([name, bytes]) => ({ name, bytes, directory: false, modified: new Date("1980-01-01T00:00:00Z") }))
   ] });
   const candidateGraph = new DocumentPackage(snapshot(), settings.limits, budget);
+  const retainedTargets = retainedRelationshipTargets(candidateGraph, budget);
   for (const part of candidates) {
-    const incoming = ["/", ...snapshot().members.filter(m => !m.directory && !m.name.endsWith(".rels") && m.name !== "[Content_Types].xml").map(m => "/" + m.name)]
-      .some(owner => candidateGraph.relationships(owner).some(edge => !edge.is_external && edge.target_part.partname === part));
+    const incoming = retainedTargets.has(asciiKey(part));
     if (incoming) continue;
     deleted.add(part.slice(1)); deleted.add(relationshipName(part.slice(1)));
     for (const node of types.root.children) if (node.localName === "Override" && node.attributes.some(a => a.localName === "PartName" && a.value === part)) types.replaceElement(node, "");

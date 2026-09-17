@@ -363,7 +363,7 @@ async function inventory(
       )
         protectedDocument = true;
       if (word && node.localName === "object") object = node;
-      if (node.namespace === office && node.localName === "OLEObject") {
+      if (node.namespace === office && node.localName === "OLEObject" || word && ["objectEmbed", "objectLink"].includes(node.localName)) {
         if (object) matchedObjects.add(object);
         const id = Object.values(documentDialects)
             .map((d) => attribute(node, "id", d.r))

@@ -8,7 +8,7 @@ import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.j
 import { isXmlContentType, parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { normalizePartName, asciiKey } from "./part-uri.js";
 import { SelectionError, closedRecord, encodeLocation, type PartLocation } from "./location-token.js";
-import { MarkupCompatibility } from "./compatibility.js";
+import { MarkupCompatibility, compatibilityProfileForPart } from "./compatibility.js";
 import { UnsupportedEditError } from "./xml-write.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationOptions, type PublicationContext } from "./publication.js";
 import { DocumentBudget } from "./budget.js";
@@ -83,8 +83,8 @@ export async function getDocumentXml(input: Uint8Array, context: ArchiveContext,
   return data;
 }
 
-function opaqueContent(root: XmlElement, budget: DocumentBudget): string {
-  const view = new MarkupCompatibility(root, undefined, budget);
+function opaqueContent(root: XmlElement, budget: DocumentBudget, partname: string): string {
+  const view = new MarkupCompatibility(root, compatibilityProfileForPart(partname), budget);
   const records: unknown[] = [];
   const visit = (node: XmlElement, path: number[]) => {
     budget.charge("work", 1);
@@ -142,7 +142,7 @@ export async function replaceDocumentXmlPart(input: Uint8Array, replacement: Uin
     if (original.root.namespace !== xml.root.namespace || original.root.localName !== xml.root.localName)
       throw new UnsupportedEditError("Replacement must retain the part root expanded name.");
     if (changed) budget.charge("insertedNodes", replacementNodes);
-    if (changed && !unboundCustomItem && opaqueContent(original.root, budget) !== opaqueContent(xml.root, budget))
+    if (changed && !unboundCustomItem && opaqueContent(original.root, budget, partname) !== opaqueContent(xml.root, budget, partname))
       throw new UnsupportedEditError("Replacement changes opaque XML content or its namespace context.");
   }
   for (const part of archive.package.parts) {

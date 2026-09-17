@@ -1,3 +1,5 @@
+import { relationshipXmlRows } from "./relationship-xml.js";
+import { retainedRelationshipTargets } from "./relationship-part.js";
 import {
   archiveSettings,
   InputTypeError,
@@ -16,7 +18,7 @@ import { closedRecord, encodeLocation, type Location } from "./location-token.js
 import { DocumentPackage } from "./package.js";
 import { DocumentArchiveEditor } from "./package-write.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
-import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { DocumentXmlEditor, editActiveRelationshipXml, UnsupportedEditError } from "./xml-write.js";
 import { documentDialects, dialectForNamespace } from "./dialect.js";
 import { relativePartTarget, asciiKey } from "./part-uri.js";
 import { assertDocumentEditable, publishDocumentArchive } from "./publication.js";
@@ -289,12 +291,8 @@ export async function replaceDocumentImage(
                   owner.slice(owner.lastIndexOf("/") + 1) +
                   ".rels",
             xml = editor.xml(relname),
-            node = xml.root.children.find((value) => attribute(value, "Id") === edge.rId)!;
-          xml.setAttribute(
-            node,
-            "Target",
-            relativePartTarget(owner, media) + (edge.fragment === null ? "" : "#" + edge.fragment)
-          );
+            node = relationshipXmlRows(xml.root, budget).find(row => row.rId === edge.rId)!.element;
+          xml[editActiveRelationshipXml](node, {Target: relativePartTarget(owner, media) + (edge.fragment === null ? "" : "#" + edge.fragment)});
         }
     } else {
       for (const item of admitted) {
@@ -445,8 +443,8 @@ export async function replaceDocumentImage(
   for (const name of new Set(unusedRelationships.map((item) => item.name))) {
     const fresh = new DocumentArchiveEditor(candidate, {}, undefined, budget).xml(name);
     for (const item of unusedRelationships.filter((item) => item.name === name)) {
-      const old = fresh.root.children.find((node) => attribute(node, "Id") === item.id);
-      if (old) fresh.replaceElement(old, "");
+      const old = relationshipXmlRows(fresh.root, budget).find(row => row.rId === item.id);
+      if (old) fresh[editActiveRelationshipXml](old.element, null);
     }
     candidate = {
       ...candidate,
@@ -457,23 +455,13 @@ export async function replaceDocumentImage(
   }
   if (admitted.length) {
     const nextGraph = new DocumentPackage(candidate, settings.limits, budget),
-      incoming = new Set<string>();
-    for (const owner of [
-      "/",
-      ...nextGraph.parts
-        .filter((part) => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml")
-        .map((part) => part.partname)
-    ])
-      for (const edge of nextGraph.relationships(owner)) {
-        budget.charge("work", 1);
-        if (!edge.is_external) incoming.add(edge.target_part.partname);
-      }
+      incoming = retainedRelationshipTargets(nextGraph, budget);
     const retired = new Set(
         admitted
           .map((item) => item.target)
           .filter(
             (target) =>
-              !incoming.has(target) &&
+              !incoming.has(asciiKey(target)) &&
               !candidate.members.some(
                 (member) =>
                   member.name ===

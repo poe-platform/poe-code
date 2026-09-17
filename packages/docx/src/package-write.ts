@@ -5,18 +5,18 @@ import { documentXmlSettings, type DocumentXmlLimits } from "./package-xml.js";
 import { DocumentBudget } from "./budget.js";
 import { asciiKey, normalizePartName } from "./part-uri.js";
 
-import { compatibilitySettings, documentCompatibilityProfile, type CompatibilityProfile } from "./compatibility.js";
+import { compatibilityProfileForPart, compatibilitySettings, type CompatibilityProfile } from "./compatibility.js";
 
 export class DocumentArchiveEditor {
-  readonly #profile: CompatibilityProfile;
+  readonly #profile: CompatibilityProfile | undefined;
   readonly #archive: DocumentArchive;
   readonly #editors = new Map<string, DocumentXmlEditor>();
   readonly #limits: DocumentXmlLimits;
   readonly #budget: DocumentBudget;
 
-  constructor(archive: DocumentArchive, limits: DocumentXmlLimits = {}, profile: CompatibilityProfile = documentCompatibilityProfile, budget = new DocumentBudget()) {
+  constructor(archive: DocumentArchive, limits: DocumentXmlLimits = {}, profile?: CompatibilityProfile, budget = new DocumentBudget()) {
     this.#budget = budget;
-    this.#profile = compatibilitySettings(profile);
+    this.#profile = profile === undefined ? undefined : compatibilitySettings(profile);
     if (!archive || !Array.isArray(archive.members) || !(archive.comment instanceof Uint8Array))
       throw new InputTypeError("Expected an owned document archive.");
     this.#limits = documentXmlSettings(limits, budget);
@@ -60,7 +60,7 @@ export class DocumentArchiveEditor {
     if (!member) throw new InvalidValueError("Archive part was not found.");
     const existing = this.#editors.get(member.name);
     if (existing) return existing;
-    const editor = new DocumentXmlEditor(member.bytes, this.#limits, this.#profile, this.#budget);
+    const editor = new DocumentXmlEditor(member.bytes, this.#limits, this.#profile ?? compatibilityProfileForPart("/" + member.name), this.#budget);
     this.#editors.set(member.name, editor);
     return editor;
   }

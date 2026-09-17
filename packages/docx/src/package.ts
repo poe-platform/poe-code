@@ -8,9 +8,10 @@ import {
   type ArchiveMember,
   type DocumentArchive
 } from "./archive.js";
-import { xml, InvalidPackageError } from "./package-xml.js";
+import { xml, parseDocumentXml, InvalidPackageError } from "./package-xml.js";
 import {
   asciiKey,
+  relationshipOwner,
   invalidPackage,
   normalizePartName,
   relativePartTarget,
@@ -18,9 +19,9 @@ import {
 } from "./part-uri.js";
 
 import { parseMediaType } from "./media-type.js";
+import { relationshipXmlRows, relationshipXmlIds } from "./relationship-xml.js";
 
 const contentTypesNamespace = "http://schemas.openxmlformats.org/package/2006/content-types";
-const relationshipsNamespace = "http://schemas.openxmlformats.org/package/2006/relationships";
 const relationshipContentType = "application/vnd.openxmlformats-package.relationships+xml";
 
 export interface PackagePart extends ArchiveMember {
@@ -69,52 +70,6 @@ function required(tag: XmlElement, name: string, allowEmpty = false): string {
   const value = tag.attributes.find(attribute => attribute.name === name);
   if (!value || value.namespace || (!allowEmpty && !value.value)) return invalidPackage();
   return value.value;
-}
-function relationshipOwner(name: string): string | null {
-  if (asciiKey(name) === "/_rels/.rels") return "/";
-  const segments = name.split("/");
-  const filename = segments.pop()!;
-  if (asciiKey(segments.at(-1) ?? "") !== "_rels" || !asciiKey(filename).endsWith(".rels"))
-    return null;
-  segments.pop();
-  return normalizePartName([...segments, filename.slice(0, -5)].join("/"));
-}
-function validId(value: string): boolean {
-  let index = 0;
-  for (const char of value) {
-    const c = char.codePointAt(0)!;
-    const start =
-      char === "_" ||
-      (c >= 65 && c <= 90) ||
-      (c >= 97 && c <= 122) ||
-      (c >= 0xc0 && c <= 0xd6) ||
-      (c >= 0xd8 && c <= 0xf6) ||
-      (c >= 0xf8 && c <= 0x2ff) ||
-      (c >= 0x370 && c <= 0x37d) ||
-      (c >= 0x37f && c <= 0x1fff) ||
-      (c >= 0x200c && c <= 0x200d) ||
-      (c >= 0x2070 && c <= 0x218f) ||
-      (c >= 0x2c00 && c <= 0x2fef) ||
-      (c >= 0x3001 && c <= 0xd7ff) ||
-      (c >= 0xf900 && c <= 0xfdcf) ||
-      (c >= 0xfdf0 && c <= 0xfffd) ||
-      (c >= 0x10000 && c <= 0xeffff);
-    if (
-      !start &&
-      !(
-        index > 0 &&
-        (char === "-" ||
-          char === "." ||
-          (c >= 48 && c <= 57) ||
-          c === 0xb7 ||
-          (c >= 0x300 && c <= 0x36f) ||
-          (c >= 0x203f && c <= 0x2040))
-      )
-    )
-      return false;
-    index++;
-  }
-  return index > 0;
 }
 
 export class DocumentPackage {
@@ -240,47 +195,28 @@ export class DocumentPackage {
       if (asciiKey(part.content_type) !== relationshipContentType) invalidPackage();
       if (owner !== "/" && (!this.byName.has(asciiKey(owner)) || relationshipOwner(owner) !== null))
         invalidPackage();
-      const ids = new Set<string>();
       const relationships: PackageRelationship[] = [];
-      metadataXml(
-        part.partname, part.bytes, budget, parsed,
-        (tag, depth) => {
-          if (tag.namespace !== relationshipsNamespace) invalidPackage();
-          if (depth === 1) {
-            if (tag.localName !== "Relationships") invalidPackage();
-            attributes(tag, []);
-            return;
-          }
-          if (depth !== 2 || tag.localName !== "Relationship") invalidPackage();
-          attributes(tag, ["Id", "Type", "Target", "TargetMode"]);
-          const rId = required(tag, "Id");
-          const reltype = required(tag, "Type");
-          const target_ref = required(tag, "Target", true);
-          if (!validId(rId) || ids.has(rId)) invalidPackage();
-          ids.add(rId);
-          const mode = tag.attributes.find(attribute => attribute.name === "TargetMode")?.value ?? "Internal";
-          if (mode !== "External" && mode !== "Internal") invalidPackage();
-          const is_external = mode === "External";
+      const root = parsed.get(part.bytes) ?? parseDocumentXml(part.bytes, {}, budget).root;
+      const ids = relationshipXmlIds(root, budget);
+      for (const {rId, reltype, target_ref, is_external} of relationshipXmlRows(root, budget, part.partname)) {
+        ids.add(rId);
+        try {
           const resolved = is_external ? null : resolvePartTarget(owner, target_ref);
           const target = resolved ? this.byName.get(asciiKey(resolved.partname)) : undefined;
-          if (!is_external && (!target || relationshipOwner(target.partname) !== null))
-            invalidPackage();
-          relationships.push(
-            Object.freeze({
-              rId,
-              reltype,
-              target_ref,
-              is_external,
-              fragment: resolved?.fragment ?? null,
-              get target_part(): PackagePart {
-                if (!target)
-                  throw new InvalidValueError("External relationships have no package target.");
-                return target;
-              }
-            })
-          );
+          if (!is_external && (!target || relationshipOwner(target.partname) !== null)) invalidPackage();
+          relationships.push(Object.freeze({
+            rId, reltype, target_ref, is_external, fragment: resolved?.fragment ?? null,
+            get target_part(): PackagePart {
+              if (!target) throw new InvalidValueError("External relationships have no package target.");
+              return target;
+            }
+          }));
+        } catch (error) {
+          if (error instanceof InvalidPackageError)
+            throw new InvalidPackageError(error.message, part.partname, `/Relationship[${relationships.length + 1}]`, error.diagnosticCode);
+          throw error;
         }
-      );
+      }
       this.edges.set(asciiKey(owner), Object.freeze(relationships));
       this.reservedIds.set(asciiKey(owner), ids);
     }

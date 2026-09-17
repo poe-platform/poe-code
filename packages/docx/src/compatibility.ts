@@ -1,5 +1,6 @@
 import { InvalidValueError } from "./archive.js";
 import { DocumentBudget } from "./budget.js";
+import { relationshipOwner } from "./part-uri.js";
 import { InvalidXmlError, UnsupportedProfileError, type XmlElement, type XmlContent, type XmlAttribute } from "./package-xml.js";
 
 const mc = "http://schemas.openxmlformats.org/markup-compatibility/2006";
@@ -50,6 +51,22 @@ export const documentCompatibilityProfile: CompatibilityProfile = Object.freeze(
     attributes: Object.freeze((localName === "sectionTitle" || localName === "doNotAllowInsertDeleteSection" ? ["val"] : []).map(name => Object.freeze({ namespace: "http://schemas.microsoft.com/office/word/2012/wordml", localName: name })))
   }))])
 });
+
+export const relationshipNamespace = "http://schemas.openxmlformats.org/package/2006/relationships";
+export const relationshipCompatibilityProfile: CompatibilityProfile = Object.freeze({
+  understoodNamespaces: Object.freeze([relationshipNamespace])
+});
+
+/** Native OPC relationships have a narrower MCE application configuration. */
+export function compatibilityProfileForRoot(root: XmlElement): CompatibilityProfile {
+  return root.namespace === relationshipNamespace && root.localName === "Relationships"
+    ? relationshipCompatibilityProfile : documentCompatibilityProfile;
+}
+
+/** Admitted package roles take precedence over inert payload root spellings. */
+export function compatibilityProfileForPart(partname: string): CompatibilityProfile {
+  return relationshipOwner(partname) === null ? documentCompatibilityProfile : relationshipCompatibilityProfile;
+}
 
 export function compatibilitySettings(profile: CompatibilityProfile): CompatibilityProfile {
   if (!profile || typeof profile !== "object" || Array.isArray(profile) ||
@@ -135,7 +152,7 @@ export class MarkupCompatibility {
   readonly branches: readonly CompatibilityBranch[];
   readonly #editable = new Set<XmlContent | XmlAttribute>();
 
-  constructor(root: XmlElement, profile: CompatibilityProfile = documentCompatibilityProfile, budget = new DocumentBudget()) {
+  constructor(root: XmlElement, profile: CompatibilityProfile = compatibilityProfileForRoot(root), budget = new DocumentBudget()) {
     const settings = compatibilitySettings(profile);
     const understood = new Set(settings.understoodNamespaces);
     const branches: CompatibilityBranch[] = [];

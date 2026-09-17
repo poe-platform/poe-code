@@ -1,0 +1,34 @@
+import { Volume } from "memfs";
+import { expect, it } from "vitest";
+import { Shell, MemoryFileSystem } from "virtual-bash";
+import { docxCommands } from "virtual-bash/commands/docx";
+import { Document, DocumentArchiveEditor, createDocxInspectionCommandEngine, documentCompatibilityProfile, readDocumentArchive, writeArchive, type CompatibilityContent, type CompatibilityProfile } from "./index.js";
+import { textContext, textFixture } from "../tests/fixtures/text.js";
+import { readPackage } from "../tests/assertions.js";
+for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
+it(`archive XML editor uses the native relationship profile; ${kind} strict=${strict}`, async () => {
+  const encode = (text: string) => new TextEncoder().encode(text), parts = readPackage(await textFixture('<w:p/>', {}, strict));
+  const w = strict ? "http://purl.oclc.org/ooxml/wordprocessingml/main" : "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+  const xml = `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:w="${w}"><mc:AlternateContent><mc:Choice Requires="w"><Relationship Id="wrong" Type="urn:wrong" Target="/absent.xml"/></mc:Choice><mc:Fallback><Relationship Id="audit" Type="urn:original:audit" Target="https://example.invalid/audit" TargetMode="External"/></mc:Fallback></mc:AlternateContent></Relationships>`;
+  parts.set("word/_rels/document.xml.rels", encode(xml));
+  if (kind === "dotx") parts.set("[Content_Types].xml", encode(new TextDecoder().decode(parts.get("[Content_Types].xml")).replace("wordprocessingml.document.main+xml", "wordprocessingml.template.main+xml")));
+  const memory = Volume.fromJSON({"/input": ""});
+  await writeArchive({comment: new Uint8Array(), members: [...parts].map(([name, bytes]) => ({name, bytes, directory: false, modified: new Date("2026-01-02T03:04:06Z")}))}, {async write(bytes) {memory.appendFileSync("/input", bytes);}}, {order: "input", compression: "store"}, textContext);
+  const input = new Uint8Array(memory.readFileSync("/input") as Buffer), archive = await readDocumentArchive(input, textContext);
+  expect([...((await Document(input, textContext)).part.rels.keys())]).toEqual(["audit"]);
+  const fs = new MemoryFileSystem(); await fs.writeFile("/input", input);
+  const shell = new Shell({fs}).use(docxCommands({engine: createDocxInspectionCommandEngine({limits: textContext.limits})}));
+  const result = await shell.exec("docx inspect /input --json"); expect(result.exitCode, result.stderr).toBe(0);
+  expect(JSON.parse(result.stdout).data.relationships.filter((edge: {owner: string}) => edge.owner === "/word/document.xml").map((edge: {id: string}) => edge.id)).toEqual(["audit"]);
+  const editor = new DocumentArchiveEditor(archive), relationshipXml = editor.xml("word/_rels/document.xml.rels");
+  const ids: string[] = [];
+  const visit = (nodes: readonly CompatibilityContent[]) => {for (const node of nodes) if ("source" in node) {if (node.source.localName === "Relationship") ids.push(node.attributes.find(attribute => attribute.localName === "Id")!.value); visit(node.content);}};
+  visit(relationshipXml.compatibility.content);
+  expect(ids).toEqual(["audit"]); expect(relationshipXml.serialize()).toEqual(parts.get("word/_rels/document.xml.rels"));
+  ids.length = 0;
+  const explicit = new DocumentArchiveEditor(archive, {}, documentCompatibilityProfile).xml("word/_rels/document.xml.rels");
+  visit(explicit.compatibility.content);
+  expect(ids).toEqual(["wrong"]); expect(explicit.serialize()).toEqual(parts.get("word/_rels/document.xml.rels"));
+  expect(() => new DocumentArchiveEditor(archive, {}, null as unknown as CompatibilityProfile)).toThrowError(expect.objectContaining({code: "usage"}));
+  expect(memory.readFileSync("/input")).toEqual(Buffer.from(input)); expect(await fs.readFile("/input")).toEqual(input);
+});

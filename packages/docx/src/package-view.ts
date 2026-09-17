@@ -3,7 +3,8 @@ import { DocumentPackage, type PackagePart, type PackageRelationship } from "./p
 import { validateDocumentArchive, SemanticValidationError } from "./validation.js";
 import { MissingKeyError, StaleHandleError } from "./model-errors.js";
 import { PublicationError } from "./publication.js";
-import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { DocumentXmlEditor, editActiveRelationshipXml, UnsupportedEditError } from "./xml-write.js";
+import { relationshipXmlRows, relationshipXmlIds, collapseRelationshipScalar } from "./relationship-xml.js";
 import { bindXmlElementView, type XmlElementView } from "./xml-element-view.js";
 import { PackURI } from "./pack-uri.js";
 import { asciiKey, normalizePartName, relativePartTarget } from "./part-uri.js";
@@ -22,6 +23,7 @@ import { modelContext, type DocumentModelContext } from "./model-context.js";
 import type { Length } from "./formatting-values.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import { documentTypes } from "./admission.js";
+import { compatibilityProfileForPart } from "./compatibility.js";
 
 const relNamespace = "http://schemas.openxmlformats.org/package/2006/relationships";
 const relContentType = "application/vnd.openxmlformats-package.relationships+xml";
@@ -32,6 +34,7 @@ const packageRelationships = Symbol("relationships");
 const packageEdges = Symbol("edges");
 const packageRelationshipXml = Symbol("relationshipXml");
 const packageEditRelationships = Symbol("editRelationships");
+const packageNextRelationshipId = Symbol("nextRelationshipId");
 const packageBindXml = Symbol("bindXml");
 const packageReadXml = Symbol("read-xml");
 const packageRename = Symbol("rename");
@@ -319,6 +322,14 @@ export class PackageView {
     const document = parseDocumentXml(bytes, {}, budget);
     return new TextDecoder(document.encoding, { fatal: true }).decode(bytes);
   }
+  [packageNextRelationshipId](owner: PartView | null): string {
+    const member = this.relationshipMember(owner ? this[packageMetadata](owner).partname : "/");
+    const {budget} = archiveSettings(this.#binding.context);
+    const ids = member ? relationshipXmlIds(parseDocumentXml(member.bytes, {}, budget).root, budget) : new Set<string>();
+    let ordinal = 1;
+    while (ids.has(`rId${ordinal}`)) { budget.charge("work", 1); ordinal++; }
+    return `rId${ordinal}`;
+  }
   [packageEditRelationships](owner: PartView | null, rows: readonly RelationshipRow[]): void {
     this.#binding.writable();
     const { archive } = this.current(), settings = archiveSettings(this.#binding.context);
@@ -350,21 +361,18 @@ export class PackageView {
     }
     for (const row of previous) {
       const replacement = pending.get(row.rId);
-      const xml = new DocumentXmlEditor(bytes, {}, undefined, settings.budget);
-      const node = xml.root.children.find(node => node.attributes.some(attribute => attribute.localName === "Id" && attribute.value === row.rId))!;
-      if (!replacement) xml.replaceElement(node, "");
-      else {
-        const values = { Type: replacement.reltype, Target: replacement.target_ref, TargetMode: replacement.is_external ? "External" : null };
-        for (const [localName, value] of Object.entries(values)) {
-          const old = node.attributes.find(attribute => attribute.localName === localName && !attribute.namespace)?.value ?? null;
-          if (old === value) continue;
-          const fieldEditor = new DocumentXmlEditor(bytes, {}, undefined, settings.budget);
-          const fieldNode = fieldEditor.root.children.find(node => node.attributes.some(attribute => attribute.localName === "Id" && attribute.value === row.rId))!;
-          fieldEditor.setQualifiedAttribute(fieldNode, { namespace: "", localName }, value);
-          bytes = fieldEditor.serialize();
-        }
+      const changes: Partial<Record<"Type" | "Target" | "TargetMode", string | null>> = {};
+      if (replacement) {
+        if (replacement.reltype !== row.reltype) changes.Type = replacement.reltype;
+        if (replacement.target_ref !== row.target_ref) changes.Target = replacement.target_ref;
+        if (replacement.is_external !== row.is_external) changes.TargetMode = replacement.is_external ? "External" : null;
       }
-      if (!replacement) bytes = xml.serialize();
+      if (!replacement || Object.keys(changes).length) {
+        const xml = new DocumentXmlEditor(bytes, {}, undefined, settings.budget);
+        const node = relationshipXmlRows(xml.root, settings.budget).find(node => node.rId === row.rId)!.element;
+        xml[editActiveRelationshipXml](node, replacement ? changes : null);
+        bytes = xml.serialize();
+      }
       pending.delete(row.rId);
     }
     for (const row of pending.values()) {
@@ -378,12 +386,15 @@ export class PackageView {
   }
   [packageBindXml](part: PartView): XmlElementView {
     return bindXmlElementView({ budget: archiveSettings(this.#binding.context).budget,
-      read: () => new DocumentXmlEditor(this[packageMetadata](part).bytes, {}, undefined, archiveSettings(this.#binding.context).budget),
+      read: () => {
+        const metadata = this[packageMetadata](part);
+        return new DocumentXmlEditor(metadata.bytes, {}, compatibilityProfileForPart(metadata.partname), archiveSettings(this.#binding.context).budget);
+      },
       resolve: xml => xml.root,
       change: action => {
         this.#binding.writable();
         const metadata = this[packageMetadata](part), { archive } = this.current();
-        const xml = new DocumentXmlEditor(metadata.bytes, {}, undefined, archiveSettings(this.#binding.context).budget);
+        const xml = new DocumentXmlEditor(metadata.bytes, {}, compatibilityProfileForPart(metadata.partname), archiveSettings(this.#binding.context).budget);
         action(xml);
         const bytes = xml.serialize();
         this.commit({ ...archive, members: archive.members.map(member => member.name === metadata.name ? { ...member, bytes } : member) });
@@ -444,12 +455,12 @@ export class PackageView {
       const edges = graph.relationships(owner), member = this.relationshipMember(owner);
       if (!member || !edges.some(edge => !edge.is_external && (owner === from || edge.target_part.partname === from))) continue;
       const xml = new DocumentXmlEditor(member.bytes, {}, undefined, settings.budget);
-      for (const node of xml.root.children) {
-        const edge = edges.find(edge => node.attributes.some(attribute => attribute.localName === "Id" && attribute.value === edge.rId));
+      for (const {element: node, rId} of relationshipXmlRows(xml.root, settings.budget)) {
+        const edge = edges.find(edge => edge.rId === rId);
         if (!edge || edge.is_external || owner !== from && edge.target_part.partname !== from) continue;
         const target = relativePartTarget(owner === from ? to : owner, edge.target_part.partname === from ? to : edge.target_part.partname)
           + (edge.fragment === null ? "" : "#" + edge.fragment);
-        xml.setAttribute(node, "Target", target);
+        xml[editActiveRelationshipXml](node, {Target: target});
       }
       replacements.set(member.name, xml.serialize());
     }
@@ -710,12 +721,13 @@ export class Relationships implements Iterable<string> {
   [Symbol.iterator](): IterableIterator<string> { return this.keys(); }
   get related_parts(): ReadonlyMap<string, PartView> { return new Map([...this.values()].filter(edge => !edge.is_external).map(edge => [edge.rId, edge.target_part])); }
   get xml(): string { return this.#package[packageRelationshipXml](this.#owner); }
-  private nextId(): string { let id = 1; while (this.has(`rId${id}`)) id++; return `rId${id}`; }
   add_relationship(reltype: string, target: PartView | string, rId: string, is_external = false): RelationshipView {
-    if (typeof reltype !== "string" || !reltype || typeof rId !== "string" || !rId || typeof is_external !== "boolean") throw new InputTypeError("Expected relationship metadata.");
+    if (typeof reltype !== "string" || typeof rId !== "string" || !rId || typeof is_external !== "boolean") throw new InputTypeError("Expected relationship metadata.");
+    reltype = collapseRelationshipScalar(reltype);
+    rId = collapseRelationshipScalar(rId);
     if (this.has(rId)) throw new InvalidValueError("Relationship ID is already occupied.");
     let target_ref: string;
-    if (is_external) { if (typeof target !== "string" || !target) throw new InputTypeError("Expected an inert external target string."); target_ref = target; }
+    if (is_external) { if (typeof target !== "string") throw new InputTypeError("Expected an inert external target string."); target_ref = collapseRelationshipScalar(target); }
     else {
       if (!(target instanceof PartView) || target.package !== this.#package) throw new InputTypeError("Expected a target owned by this package.");
       target_ref = relativePartTarget(this.#owner?.partname.toString() ?? "/", target.partname.toString());
@@ -724,13 +736,18 @@ export class Relationships implements Iterable<string> {
     return this.at(rId);
   }
   get_or_add(reltype: string, target_part: PartView): RelationshipView {
+    if (typeof reltype !== "string") throw new InputTypeError("Expected a relationship type.");
+    reltype = collapseRelationshipScalar(reltype);
     if (!(target_part instanceof PartView) || target_part.package !== this.#package) throw new InputTypeError("Expected an owned target part.");
     const found = [...this.values()].find(row => !row.is_external && row.reltype === reltype && row.target_part === target_part);
-    return found ?? this.add_relationship(reltype, target_part, this.nextId());
+    return found ?? this.add_relationship(reltype, target_part, this.#package[packageNextRelationshipId](this.#owner));
   }
   get_or_add_ext_rel(reltype: string, target_ref: string): string {
+    if (typeof reltype !== "string" || typeof target_ref !== "string") throw new InputTypeError("Expected relationship URI strings.");
+    reltype = collapseRelationshipScalar(reltype);
+    target_ref = collapseRelationshipScalar(target_ref);
     const found = [...this.values()].find(row => row.is_external && row.reltype === reltype && row.target_ref === target_ref);
-    return found?.rId ?? this.add_relationship(reltype, target_ref, this.nextId(), true).rId;
+    return found?.rId ?? this.add_relationship(reltype, target_ref, this.#package[packageNextRelationshipId](this.#owner), true).rId;
   }
   part_with_reltype(reltype: string): PartView {
     if (typeof reltype !== "string") throw new InputTypeError("Expected a relationship type.");
@@ -752,8 +769,12 @@ export class Relationships implements Iterable<string> {
     const replacements = new Map<string, RelationshipRow>();
     for (const [id, value] of entries) {
       if (!(value instanceof RelationshipView) || !value.belongsPackage(this.#package) || typeof id !== "string" || id !== value.rId || replacements.has(id)) throw new InputTypeError("Expected matching same-package relationship entries.");
-      replacements.set(id, { rId: id, reltype: value.reltype, is_external: value.is_external,
-        target_ref: value.is_external ? value.target_ref : relativePartTarget(this.#owner?.partname.toString() ?? "/", value.target_part.partname.toString()) });
+      let target_ref = value.target_ref;
+      if (!value.is_external && !value.belongs(this)) {
+        const hash = target_ref.indexOf("#");
+        target_ref = relativePartTarget(this.#owner?.partname.toString() ?? "/", value.target_part.partname.toString()) + (hash < 0 ? "" : target_ref.slice(hash));
+      }
+      replacements.set(id, { rId: id, reltype: value.reltype, is_external: value.is_external, target_ref });
     }
     const rows: RelationshipRow[] = this.rows().map(row => replacements.get(row.rId) ?? row);
     for (const [id, row] of replacements) if (!rows.some(existing => existing.rId === id)) rows.push(row);

@@ -1,5 +1,15 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 native OPC relationship qualification](relationship-mce-native-20260917.md)
+binds 4,836 exact named cases to sixteen requirements across both dialects/kinds,
+root/document owners, relationship MCE/schema/scalars, four encodings, typed
+consumer edits, resource retention and generic XML profile authority. The final
+focused maintained run passes 5,256 tests across 27 files, zero skips; 96 built
+model/SDK/actual Shell workflows and 32 independent projected OPC schema outputs
+also pass. Historical full-run failure and interrupted/failed intermediate checks
+remain explicit. Generic MCE edit refusal and invalid OPC name rejection remain
+contract-defined controls. Native MIME roles and full F01–F07 acceptance stay open.
+
 The [2026-09-17 heading semantics correction](template-heading-semantics-20260917.md)
 qualifies Title and every heading level, custom collisions, stored/display names
 and repeated definition reuse through model/SDK/actual Shell routes. The full

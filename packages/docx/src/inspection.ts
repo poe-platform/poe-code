@@ -9,7 +9,7 @@ import { readFontResources, type FontResourceData } from "./font-resources.js";
 import { archiveSettings, readArchive, InputTypeError, InvalidValueError, type ArchiveContext } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
 import { documentDialects, type DocumentDialect } from "./dialect.js";
-import { MarkupCompatibility, documentCompatibilityProfile, type CompatibilityContent } from "./compatibility.js";
+import { MarkupCompatibility, compatibilityProfileForPart, documentCompatibilityProfile, type CompatibilityContent } from "./compatibility.js";
 import { isXmlContentType, parseDocumentXml, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
 import { LocationIndex } from "./location-index.js";
 import { encodeLocation, type Location, type LocationPayload } from "./location-token.js";
@@ -117,7 +117,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
       if (!documentCompatibilityProfile.understoodNamespaces.includes(node.namespace) && node.namespace !== "http://schemas.openxmlformats.org/markup-compatibility/2006") unknownNamespaces.add(node.namespace);
       for (const attr of node.attributes) if (attr.namespace && attr.namespace !== "http://www.w3.org/2000/xmlns/" && attr.namespace !== "http://schemas.openxmlformats.org/markup-compatibility/2006" && !documentCompatibilityProfile.understoodNamespaces.includes(attr.namespace)) unknownNamespaces.add(attr.namespace);
     }
-    const view = new MarkupCompatibility(root, undefined, budget);
+    const view = new MarkupCompatibility(root, compatibilityProfileForPart(part.partname), budget);
     const settingsProtection = role === "settings" ? activeSettingsProtection(root, view, budget) : new Set<XmlElement>();
     const controlLocks = role === "story" || role === "glossary" ? activeControlLocks(root, view, budget) : new Map<XmlElement, never>();
     compatibility ||= view.branches.length > 0;

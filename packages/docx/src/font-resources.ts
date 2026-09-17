@@ -1,6 +1,6 @@
 import type { AdmittedDocumentArchive } from "./admission.js";
 import type { DocumentBudget } from "./budget.js";
-import { MarkupCompatibility } from "./compatibility.js";
+import { MarkupCompatibility, compatibilityProfileForPart } from "./compatibility.js";
 import { documentDialects } from "./dialect.js";
 import type { DocumentPackage } from "./package.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
@@ -51,7 +51,7 @@ export function readFontResources(archive: AdmittedDocumentArchive, roots: Reado
   const diagnostics: { code: string; part: string; message: string }[] = [];
   const pending: { part: string; path: number[]; attribute: string; value: string }[] = [];
   for (const [part, root] of roots) {
-    const view = new MarkupCompatibility(root, undefined, budget);
+    const view = new MarkupCompatibility(root, compatibilityProfileForPart(part), budget);
     if (root.namespace === a && root.localName === "theme") {
       const elements = child(root, "themeElements"), scheme = child(elements, "fontScheme");
       const colors = (child(elements, "clrScheme")?.children ?? []).filter(n => n.namespace === a && view.canEdit(n)).flatMap(n => n.children.filter(c => c.namespace === a && view.canEdit(c)).map(c => ({ slot: n.localName, kind: c.localName, value: attr(c, "val"), lastColor: attr(c, "lastClr") })));

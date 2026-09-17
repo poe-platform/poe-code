@@ -1,6 +1,6 @@
 import { commentExtensionParts } from "./comment-extension-parts.js";
 import { InvalidPackageError, isXmlContentType, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
-import { MarkupCompatibility, documentCompatibilityProfile, type CompatibilityContent, type CompatibilityProfile } from "./compatibility.js";
+import { MarkupCompatibility, compatibilityProfileForPart, documentCompatibilityProfile, type CompatibilityContent, type CompatibilityProfile } from "./compatibility.js";
 import type { DocumentPackage, PackageRelationship } from "./package.js";
 import { parseDocumentXml } from "./package-xml.js";
 import { DocumentBudget } from "./budget.js";
@@ -119,7 +119,7 @@ export function validatePackageDialect(graph: DocumentPackage, mainEdge: Package
     if (part !== main && !officeXml) {
       if (isXmlContentType(type)) {
         const genericRoot = parsed.get(part.bytes) ?? parseDocumentXml(part.bytes, {}, budget).root;
-        const view = new MarkupCompatibility(genericRoot, documentCompatibilityProfile, budget);
+        const view = new MarkupCompatibility(genericRoot, compatibilityProfileForPart(part.partname), budget);
         budget.charge("work", view.branches.length);
         if (view.branches.some(branch => branch.selected === undefined))
           throw new UnsupportedProfileError("Active alternate content has no eligible choice or fallback.");

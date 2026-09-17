@@ -1,8 +1,11 @@
+import { relationshipXmlRows } from "./relationship-xml.js";
+import { retainedRelationshipTargets } from "./relationship-part.js";
+import { asciiKey } from "./part-uri.js";
 import { archiveSettings, type DocumentArchive } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
 import { inspectDocumentObjects } from "./objects.js";
 import { DocumentArchiveEditor } from "./package-write.js";
-import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { DocumentXmlEditor, editActiveRelationshipXml, UnsupportedEditError } from "./xml-write.js";
 import { documentDialects } from "./dialect.js";
 import { documentCompatibilityProfile } from "./compatibility.js";
 import { DocumentPackage } from "./package.js";
@@ -23,7 +26,8 @@ export async function prepareObjectSanitization(staged: Uint8Array, context: Pub
     let node = xml.root; const ancestors = [node];
     for (const index of item.location.value.path) { node = node.children[index]!; ancestors.push(node); }
     const carrier = ancestors.at(-2)!;
-    if (node.namespace !== "urn:schemas-microsoft-com:office:office" || node.localName !== "OLEObject" || node.children.length || node.content.some(content => content.kind !== "text" || content.text.trim()) || carrier.localName !== "object" || !Object.values(documentDialects).some(d => carrier.namespace === d.w) || carrier.children.length !== 1 || ancestors.at(-3)?.localName !== "r" || ancestors.some(n => ["sdt", "ins", "del", "hyperlink", "fldSimple"].includes(n.localName))) throw new UnsupportedEditError("Only direct inert object carriers without previews or compound owners are supported.");
+    const native = node.namespace === carrier.namespace && ["objectEmbed", "objectLink"].includes(node.localName);
+    if ((!native && (node.namespace !== "urn:schemas-microsoft-com:office:office" || node.localName !== "OLEObject")) || node.children.length || node.content.some(content => content.kind !== "text" || content.text.trim()) || carrier.localName !== "object" || !Object.values(documentDialects).some(d => carrier.namespace === d.w) || carrier.children.length !== 1 || ancestors.at(-3)?.localName !== "r" || ancestors.some(n => ["sdt", "ins", "del", "hyperlink", "fldSimple"].includes(n.localName))) throw new UnsupportedEditError("Only direct inert object carriers without previews or compound owners are supported.");
     let storyIndex = -1;
     ancestors.forEach((ancestor, index) => { if (ancestor.namespace === carrier.namespace && ["body", "hdr", "ftr", "footnote", "endnote", "comment", "txbxContent"].includes(ancestor.localName)) storyIndex = index; });
     if (storyIndex < 0) throw new UnsupportedEditError("Object removal requires an admitted story.");
@@ -54,13 +58,14 @@ export async function prepareObjectSanitization(staged: Uint8Array, context: Pub
     const used = (node: typeof owner.root): boolean => { budget.charge("work", 1); return node.attributes.some(a => Object.values(documentDialects).some(d => a.namespace === d.r) && a.value === reference.id) || node.children.some(used); };
     const current = new DocumentXmlEditor(owner.serialize(), {}, undefined, budget);
     if (!used(current.root)) {
-      const rels = editor.xml(name), edge = rels.root.children.find(node => node.attributes.some(a => a.localName === "Id" && a.value === reference.id));
-      if (edge) rels.replaceElement(edge, "");
+      const rels = editor.xml(name), edge = relationshipXmlRows(rels.root, budget).find(row => row.rId === reference.id);
+      if (edge) rels[editActiveRelationshipXml](edge.element, null);
     }
   }
   result = editor.snapshot();
   const packageView = new DocumentPackage(result, settings.limits, budget);
-  for (const target of targets) if (!["/", ...packageView.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(part => part.partname)].some(owner => packageView.relationships(owner).some(edge => !edge.is_external && edge.target_part.partname === target))) {
+  const retainedTargets = retainedRelationshipTargets(packageView, budget);
+  for (const target of targets) if (!retainedTargets.has(asciiKey(target))) {
     if (packageView.relationships(target).length) { gaps.push("Unreferenced embedded targets with outgoing graphs are retained."); continue; }
     retired.add(target.slice(1));
     const split = target.lastIndexOf("/");

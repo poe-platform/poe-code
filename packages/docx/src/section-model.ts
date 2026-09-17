@@ -1,9 +1,11 @@
+import { editActiveRelationshipXml } from "./xml-write.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
 import { BoundsError } from "./model-errors.js";
 import type { ModelRef, ModelStore } from "./model-store.js";
 import { numericSequence } from "./numeric-index.js";
 import { DocumentPackage } from "./package.js";
-import { findRelationshipPart } from "./relationship-part.js";
+import { relationshipXmlRows } from "./relationship-xml.js";
+import { findRelationshipPart, retainedRelationshipTargets } from "./relationship-part.js";
 import { documentDialects, dialectForNamespace } from "./dialect.js";
 import {
   sectionAttribute,
@@ -14,7 +16,7 @@ import {
 } from "./section-properties.js";
 import { mergeStyleChildren } from "./style-properties.js";
 import { xmlValue } from "./create-content.js";
-import { relativePartTarget } from "./part-uri.js";
+import { asciiKey, relativePartTarget } from "./part-uri.js";
 import {
   isLength,
   Twips,
@@ -325,20 +327,7 @@ class HeaderFooter {
         || node.children.some(referenced);
     };
     const shared = referenced(store.xml(this.section.ref.part).root);
-    const owners = [
-      "/",
-      ...graph.parts.filter((part) => !part.partname.endsWith(".rels")).map((part) => part.partname)
-    ];
-    const otherEdge = owners.some((owner) =>
-      graph
-        .relationships(owner)
-        .some(
-          (candidate) =>
-            candidate !== edge &&
-            !candidate.is_external &&
-            candidate.target_part.partname === edge.target_part.partname
-        )
-    );
+    const otherEdge = retainedRelationshipTargets(graph, store.context.budget, [{owner: store.mainPart, id: id!}]).has(asciiKey(edge.target_part.partname));
     store.transaction(() => {
       store.change(this.section.ref.part, (xml) => xml.replaceElement(this.local()!, ""));
       if (!shared) {
@@ -348,10 +337,8 @@ class HeaderFooter {
           store.mainPart.slice(store.mainPart.lastIndexOf("/") + 1) +
           ".rels";
         store.change(relationshipPart, (xml) => {
-          const relationship = xml.root.children.find((child) =>
-            child.attributes.some((attr) => attr.localName === "Id" && attr.value === id)
-          );
-          if (relationship) xml.replaceElement(relationship, "");
+          const relationship = relationshipXmlRows(xml.root, store.context.budget).find(row => row.rId === id);
+          if (relationship) xml[editActiveRelationshipXml](relationship.element, null);
         });
         if (!otherEdge) {
           const part = edge.target_part.partname,

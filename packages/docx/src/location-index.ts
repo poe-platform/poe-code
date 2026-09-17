@@ -1,6 +1,6 @@
 import { revisionInfo } from "./revision-markup.js";
 import { DocumentBudget } from "./budget.js";
-import { MarkupCompatibility, documentCompatibilityProfile, type CompatibilityContent } from "./compatibility.js";
+import { MarkupCompatibility, compatibilityProfileForPart, documentCompatibilityProfile, type CompatibilityContent } from "./compatibility.js";
 import { documentDialects, type DocumentDialect } from "./dialect.js";
 import { InvalidValueError, type ArchiveLimits, type DocumentArchive } from "./archive.js";
 import { DocumentPackage } from "./package.js";
@@ -107,7 +107,7 @@ export class LocationIndex {
           }
           return result;
         };
-        const compatibility = new MarkupCompatibility(root, documentCompatibilityProfile, budget);
+        const compatibility = new MarkupCompatibility(root, compatibilityProfileForPart(part.partname), budget);
         for (const branch of compatibility.branches) branches.set(branch.alternateContent, branch.selected);
         effective(compatibility.content);
         const census = collectShapeCarriers(root, dialect, budget, branches);

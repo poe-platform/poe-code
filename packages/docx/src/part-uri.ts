@@ -11,6 +11,15 @@ export function asciiKey(value: string): string {
   return result;
 }
 
+export function relationshipOwner(name: string): string | null {
+  if (asciiKey(name) === "/_rels/.rels") return "/";
+  const segments = name.split("/");
+  const filename = segments.pop()!;
+  if (asciiKey(segments.at(-1) ?? "") !== "_rels" || !asciiKey(filename).endsWith(".rels")) return null;
+  segments.pop();
+  return normalizePartName([...segments, filename.slice(0, -5)].join("/"));
+}
+
 function unreserved(char: string): boolean {
   return (
     (char >= "a" && char <= "z") ||

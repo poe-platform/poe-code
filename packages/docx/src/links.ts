@@ -8,13 +8,14 @@ import { closedRecord, encodeLocation, type Location } from "./location-token.js
 import { openDocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentPackage } from "./package.js";
+import { relationshipXmlIds, relationshipXmlRows } from "./relationship-xml.js";
 import { findRelationshipPart } from "./relationship-part.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { paragraphTextRun } from "./paragraph-content.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { runElementOpen } from "./run-properties.js";
 import { resolveDocxSelection } from "./simple-selection.js";
-import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { DocumentXmlEditor, editActiveRelationshipXml, UnsupportedEditError } from "./xml-write.js";
 
 export type LinkEditOperation = "links.add" | "links.set" | "links.remove";
 export type LinkEditRequest = { [K in LinkEditOperation]: { readonly operation: K; readonly options: DocxOperationArguments<K>; readonly input?: PublicationInput } }[LinkEditOperation];
@@ -99,7 +100,7 @@ export async function editDocumentLinks(input: Uint8Array, request: LinkEditRequ
     const relName = findRelationshipPart(graph, part, budget)?.name ?? name.slice(0, split + 1) + "_rels/" + name.slice(split + 1) + ".rels";
     const relMember = members.get(relName);
     let rels = new DocumentXmlEditor(relMember?.bytes ?? new TextEncoder().encode(`<Relationships xmlns="${relationshipsNamespace}"/>`), {}, undefined, budget);
-    const retired = new Set<string>(), reserved = new Set<string>();
+    const retired = new Set<string>(), reserved = relationshipXmlIds(rels.root, budget);
     const references = (root: XmlElement) => {
       const ids = new Set<string>();
       const visit = (node: XmlElement) => {
@@ -110,7 +111,6 @@ export async function editDocumentLinks(input: Uint8Array, request: LinkEditRequ
       visit(root); return ids;
     };
     for (const id of references(xml.root)) reserved.add(id);
-    for (const edge of rels.root.children) reserved.add(attribute(edge, "", "Id")!);
     // Descending paths keep every not-yet-edited input address stable during unwrapping.
     locations.sort((a, b) => {
       const left = a.value.path, right = b.value.path;
@@ -126,14 +126,14 @@ export async function editDocumentLinks(input: Uint8Array, request: LinkEditRequ
       const adding = request.operation === "links.add";
       if (node.namespace !== w || (adding ? node.localName !== "p" : node.localName !== "hyperlink" || parent.namespace !== w || parent.localName !== "p")) throw new UnsupportedEditError("Link insertion requires a paragraph; link edits require a direct paragraph hyperlink.");
       const oldId = attribute(node, r, "id"), anchor = attribute(node, w, "anchor");
-      const oldEdge = rels.root.children.find(e => attribute(e, "", "Id") === oldId);
-      if (oldEdge && (attribute(oldEdge, "", "Type") !== r + "/hyperlink" || attribute(oldEdge, "", "TargetMode") !== "External")) throw new UnsupportedEditError("Unsupported link relationship.");
-      if (!adding && request.operation === "links.set" && attribute(node, w, "docLocation") === undefined && (options.target !== undefined ? attribute(oldEdge, "", "Target") === options.target && anchor === undefined : anchor === options.bookmark && oldId === undefined)) continue;
+      const oldEdge = relationshipXmlRows(rels.root, budget).find(edge => edge.rId === oldId);
+      if (oldEdge && (oldEdge.reltype !== r + "/hyperlink" || !oldEdge.is_external)) throw new UnsupportedEditError("Unsupported link relationship.");
+      if (!adding && request.operation === "links.set" && attribute(node, w, "docLocation") === undefined && (options.target !== undefined ? oldEdge?.target_ref === options.target && anchor === undefined : anchor === options.bookmark && oldId === undefined)) continue;
       let destination = "";
       if (request.operation !== "links.remove") {
         if (options.target !== undefined) {
-          const edge = rels.root.children.find(e => attribute(e, "", "Type") === r + "/hyperlink" && attribute(e, "", "TargetMode") === "External" && attribute(e, "", "Target") === options.target);
-          let id = edge && attribute(edge, "", "Id");
+          const edge = relationshipXmlRows(rels.root, budget).find(edge => edge.reltype === r + "/hyperlink" && edge.is_external && edge.target_ref === options.target);
+          let id = edge?.rId;
           if (!id) {
             let n = 1; while (reserved.has("rId" + n)) { budget.charge("work", 1); n++; }
             id = "rId" + n; reserved.add(id);
@@ -150,7 +150,7 @@ export async function editDocumentLinks(input: Uint8Array, request: LinkEditRequ
       } else if (request.operation === "links.set") {
         const open = runElementOpen({ ...node, attributes: node.attributes.filter(a => !(a.namespace === r && a.localName === "id") && !(a.namespace === w && ["anchor", "docLocation"].includes(a.localName))) });
         // Prefixes are chosen from the existing bindings to avoid shadowing label namespaces.
-        const targetAttribute = options.target !== undefined ? { namespace: r, name: "id", value: attribute(rels.root.children.find(e => attribute(e, "", "Type") === r + "/hyperlink" && attribute(e, "", "TargetMode") === "External" && attribute(e, "", "Target") === options.target)!, "", "Id")! } : { namespace: w, name: "anchor", value: options.bookmark! };
+        const targetAttribute = options.target !== undefined ? { namespace: r, name: "id", value: relationshipXmlRows(rels.root, budget).find(edge => edge.reltype === r + "/hyperlink" && edge.is_external && edge.target_ref === options.target)!.rId } : { namespace: w, name: "anchor", value: options.bookmark! };
         let prefix = [...node.namespaces].find(([p, ns]) => p && ns === targetAttribute.namespace)?.[0];
         if (!prefix) { prefix = "link"; while (node.namespaces.has(prefix)) prefix += "x"; }
         const declaration = node.namespaces.get(prefix) === targetAttribute.namespace ? "" : ` xmlns:${prefix}="${targetAttribute.namespace}"`;
@@ -170,7 +170,13 @@ export async function editDocumentLinks(input: Uint8Array, request: LinkEditRequ
       xml = new DocumentXmlEditor(xml.serialize(), {}, undefined, budget);
     }
     const used = references(xml.root);
-    for (const edge of rels.root.children) if (retired.has(attribute(edge, "", "Id")!) && !used.has(attribute(edge, "", "Id")!)) rels.replaceElement(edge, "");
+    for (const id of retired) if (!used.has(id)) {
+      const edge = relationshipXmlRows(rels.root, budget).find(row => row.rId === id);
+      if (edge) {
+        rels[editActiveRelationshipXml](edge.element, null);
+        rels = new DocumentXmlEditor(rels.serialize(), {}, undefined, budget);
+      }
+    }
     members.set(name, { ...member, bytes: xml.serialize() });
     if (relMember || rels.root.children.length) members.set(relName, { ...(relMember ?? { name: relName, directory: false, modified: new Date("1980-01-01T00:00:00Z") }), bytes: rels.serialize() });
   }

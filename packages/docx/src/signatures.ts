@@ -5,7 +5,9 @@ import { signatureContentTypes, signatureRelationshipTypes } from "./document-pa
 import { encodeLocation, SelectionError, type Location } from "./location-token.js";
 import { asciiKey } from "./part-uri.js";
 import type { DocxOperationArguments } from "./operation-types.js";
-import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { DocumentXmlEditor, editActiveRelationshipXml, UnsupportedEditError } from "./xml-write.js";
+import { relationshipXmlRows } from "./relationship-xml.js";
+import { retainedRelationshipTargets } from "./relationship-part.js";
 import { publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { measurePackageResourceSerialization } from "./ancillary-resources.js";
 import type { DocumentBudget } from "./budget.js";
@@ -93,6 +95,8 @@ export async function stripDocumentSignatures(input: Uint8Array, options: Signat
   if(graph.parts.has(edge.owner) || edge.target !== null && graph.parts.has(edge.target)) throw new UnsupportedEditError("Signature graph has unsupported or shared relationships.");
  }
  const removedRelationships=graph.all.filter(edge=>signatureRelationshipTypes.includes(edge.type) || graph.parts.has(edge.owner));
+ const retainedTargets=retainedRelationshipTargets(archive.package,budget,removedRelationships);
+ if([...graph.parts].some(part=>retainedTargets.has(asciiKey(part)))) throw new UnsupportedEditError("Signature graph has retained inactive relationships.");
  const removed = new Set(graph.parts);
  const ownedRelationshipNames=new Set([...graph.parts].map(owner=>asciiKey(relationshipPart(owner))));
  for(const part of archive.package.parts) if(ownedRelationshipNames.has(asciiKey(part.partname))) removed.add(part.partname);
@@ -121,7 +125,7 @@ export async function stripDocumentSignatures(input: Uint8Array, options: Signat
   const edges=relationshipsByPart.get(asciiKey(partname));
   if(!edges?.size) return member;
   const editor=new DocumentXmlEditor(member.bytes,{},undefined,budget);
-  for(const node of editor.root.children) if(edges.has(node.attributes.find(attribute=>!attribute.namespace && attribute.localName==="Id")!.value)) editor.replaceElement(node,"");
+  for(const row of relationshipXmlRows(editor.root,budget)) if(edges.has(row.rId)) editor[editActiveRelationshipXml](row.element,null);
   return {...member,bytes:editor.serialize()};
  });
  const planned: SignatureMutationData={changed:removedParts.length+removedRelationships.length+removedContentTypes.length>0,dryRun:opts.dryRun ?? false,removedParts,removedRelationships,removedContentTypes,output:opts.dryRun ? null : {path:opts.inPlace ? identity?.path ?? null : opts.output ?? null,bytes:Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER),sha256:"0".repeat(64)}};

@@ -5,7 +5,7 @@ import {
   type XmlContent, type XmlElement, type XmlAttribute
 } from "./package-xml.js";
 
-import { MarkupCompatibility, compatibilitySettings, documentCompatibilityProfile, hasCompatibilityMarkup, type CompatibilityProfile, type ExpandedXmlName } from "./compatibility.js";
+import { MarkupCompatibility, compatibilitySettings, compatibilityProfileForRoot, hasCompatibilityMarkup, type CompatibilityProfile, type ExpandedXmlName } from "./compatibility.js";
 import { dialectForNamespace, validateXmlDialect, type DocumentDialect } from "./dialect.js";
 
 import {admitEquationFragment,inspectEquationFragment,mathNamespace} from './equation-fragments.js';
@@ -13,6 +13,7 @@ import {documentDialects} from './dialect.js';
 import {assertOutsideRevisionRanges} from './revision-markup.js';
 import { collectShapeCarriers, type ShapeCarrierCensus } from "./shape-carriers.js";
 import { activeXmlChildren } from "./xml-active-children.js";
+import { relationshipXmlRows } from "./relationship-xml.js";
 
 type Token = XmlContent | XmlAttribute;
 interface Span { start: number; end: number; owner: XmlContent; contentStart?: number; contentEnd?: number; empty?: boolean; attributeStart?: number; attributeEnd?: number }
@@ -32,6 +33,9 @@ export const appendBodyBlocks = Symbol("append-body-blocks");
 
 /** Internal style-domain authority for active native definitions. */
 export const replaceActiveStyleXml = Symbol("replace-active-style-xml");
+
+/** Internal native relationship authority; generic XML guards remain unchanged. */
+export const editActiveRelationshipXml = Symbol("edit-active-relationship-xml");
 
 function unsupported(): never {
   throw new UnsupportedEditError("The XML edit cannot establish faithful preservation.");
@@ -151,11 +155,11 @@ export class DocumentXmlEditor {
   #shapes: ShapeCarrierCensus | undefined;
   readonly #boxViews = new Map<XmlElement, MarkupCompatibility>();
 
-  constructor(bytes: Uint8Array, limits: DocumentXmlLimits = {}, profile: CompatibilityProfile = documentCompatibilityProfile, budget = new DocumentBudget()) {
+  constructor(bytes: Uint8Array, limits: DocumentXmlLimits = {}, profile: CompatibilityProfile | undefined = undefined, budget = new DocumentBudget()) {
     this.#budget = budget;
-    this.#profile = compatibilitySettings(profile);
     this.#limits = documentXmlSettings(limits, budget);
     this.#document = parseDocumentXml(bytes, this.#limits, budget);
+    this.#profile = compatibilitySettings(profile === undefined ? compatibilityProfileForRoot(this.#document.root) : profile);
     budget.charge("retainedBytes", bytes.length * 8);
     budget.charge("work", bytes.length * 8);
     this.#dialect = dialectForNamespace(this.#document.root.namespace);
@@ -292,6 +296,39 @@ export class DocumentXmlEditor {
     const view = new MarkupCompatibility(node, this.#profile, this.#budget);
     this.#assertEditableSubtree(node, token => view.canEdit(token));
     this.#stageReplacement(node, xml);
+  }
+
+  /** Change native fields in the selected row without reconstructing its carrier. */
+  [editActiveRelationshipXml](node: XmlElement, values: Readonly<Partial<Record<"Type" | "Target" | "TargetMode", string | null>>> | null): void {
+    if (!this.#elements.has(node) || !relationshipXmlRows(this.root, this.#budget).some(row => row.element === node)) unsupported();
+    const span = this.#spans.get(node)!;
+    for (const patched of this.#patches.keys()) {
+      const other = this.#spans.get(patched)!;
+      if (span.start < other.end && other.start < span.end) unsupported();
+    }
+    if (values === null) { this.#stageReplacement(node, ""); return; }
+    const patches: {start: number; end: number; value: string}[] = [];
+    let inserted = 0;
+    for (const [name, value] of Object.entries(values)) {
+      if (!["Type", "Target", "TargetMode"].includes(name) || value !== null && typeof value !== "string") throw new InputTypeError("Expected native relationship fields.");
+      const attribute = node.attributes.find(attribute => !attribute.namespace && attribute.localName === name);
+      if (attribute) {
+        if (attribute.value === value) continue;
+        const field = this.#spans.get(attribute)!;
+        patches.push(value === null
+          ? {start: field.attributeStart!, end: field.attributeEnd!, value: ""}
+          : {start: field.start, end: field.end, value: escapeValue(value, true)});
+      } else if (value !== null) {
+        const offset = span.empty ? span.contentStart! : span.contentStart! - 1;
+        patches.push({start: offset, end: offset, value: ` ${name}="${escapeValue(value, true)}"`});
+        inserted++;
+      }
+    }
+    if (!patches.length) return;
+    let source = this.#source.slice(span.start, span.end);
+    for (const patch of patches.sort((left, right) => right.start - left.start))
+      source = source.slice(0, patch.start - span.start) + patch.value + source.slice(patch.end - span.start);
+    this.#acceptOwnedPatch(node, source, inserted);
   }
 
   /** The list domain validates active references and retains every other token. */

@@ -4505,3 +4505,293 @@ the four changed files on local `main` without reverting incoming edits:
 
 The metadata milestone is included in the local commit with its plan and
 historical evidence. No push, remote-main verification or release is claimed.
+
+## WinZip AES extension: candidate based on main 9ea918c00541722a79c3a4d143d34587bb84dbb1
+
+This section qualifies the live AES candidate, not the earlier ZIP milestones.
+The starting branch was main, with a clean index/worktree. No SafeJS source,
+README, runtime dependency, host-process fallback, branch, commit or push was
+added by this work. The archive SDK and shell command implementation remain in
+packages/safe-bash. Internal conditional imports select vetted Node crypto or an
+empty portable capability module; no root bundle policy was weakened.
+
+### Revalidation and test-first proof
+
+At the base revision, zip-format.ts rejected compression method 99 and extra
+field 0x9901, and ArchiveCommandsOptions had no explicit encryption profile.
+The new SDK control ran against that implementation and failed with local method
+0 instead of 99. The initial authenticated-payload test failed because the AES
+module did not exist. The explicit-profile-without-password control later caught
+a silent plaintext creation (exit 0); selection now requests encryption and
+fails when a legitimate password capability/argument is absent.
+
+A neighboring replacement-member control failed with encryption bit 0 instead
+of 1. prepare removed replacements from selected before assigning encryption.
+Encryption is now bound when encoding a selected member, preserving ciphertext
+of unselected AES neighbors. This correction applies equally to ZipCrypto.
+The retention-boundary control also failed before accounting for overlapping
+collector fragments and their assembled output; its exact admission boundary
+and one-byte refusal now cover that overlap.
+
+### Pinned specifications and approved primitives
+
+- WinZip AES Encryption Specification AE-1 and AE-2, document 1.04, January 30,
+  2009: https://www.winzip.com/en/support/aes-encryption/
+  Retrieved HTML: 81,928 bytes, SHA-256
+  7bd3d0c86dc2cc47b17c11902ca02af94869802b429c1e198f139c672bcf2c1c.
+- PKWARE APPNOTE 6.3.10 FINAL, November 1, 2022, Appendix E and 0x9901 mapping:
+  https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
+  Retrieved bytes: 174,585, SHA-256
+  0b993022a7d320a0bf704e6980bea36fafd17a6066ab994db0a0c16278a50cd6.
+
+Node >=22 is already approved by the package instructions. Node 22.22.2 in this
+run advertises AES-128/192/256 ECB and SHA1. The implementation uses OpenSSL-backed
+AES blocks, PBKDF2-HMAC-SHA1 (1000 iterations), HMAC-SHA1 and timingSafeEqual.
+Counter encoding is the specified little-endian 128-bit counter starting at one,
+not OpenSSL CTR's different big-endian increment. No cipher/hash/KDF was invented.
+The fixed native KDF is synchronous, bounded by the existing argument budget,
+and checked for cancellation on either side; it creates no late asynchronous
+resource. Transformation yields at 64 KiB boundaries using the existing signal
+and yield contract. Entropy remains an explicit invocation-owned host capability.
+
+### Public behavior and authenticated staging
+
+ArchiveCommandsOptions.zip.compression selects store/deflate/bzip2;
+zip.encryption selects zipcrypto or aes-{128,192,256}-ae{1,2}.
+The actual archiveCommands plugin accepts these defaults, and zip accepts
+-Z METHOD --encryption PROFILE. Explicit encryption configuration requests a
+password; -P supplies owned password bytes and the existing no-echo host supplies
+interactive passwords. Native -e alone retains traditional ZipCrypto.
+CLI options override SDK defaults. AE-1 retains/verifies CRC32; AE-2 requires
+zero CRC fields. Both authenticate ciphertext and validate decompressed length.
+Records carry method 99/version 51, matching seven-byte 0x9901 payloads,
+8/12/16-byte salt, two-byte verifier, encrypted compressed bytes and ten-byte tag.
+
+The existing maxBufferedFileBytes policy bounds authenticated staging, with
+conservative overlap admission for creation and extraction; see src/contracts/zip.md
+for exact formulas and exclusions. No decryption occurs before MAC verification,
+and no decoded member bytes leave decodeZipEntry before codec/CRC/size checks.
+unzip -p and extraction negative controls prove no member output and preservation
+of an existing target after authentication failure. Existing VFS staging,
+output ownership, signals, byte-source/sink and cleanup contracts are reused.
+Latency/retention increase: extraction completes member verification before its
+first decoded chunk, and AES creation prepares members before archive headers.
+Archive input/ciphertext retention, codec/crypto workspace, backend storage and
+the existing unzip collector remain separately bounded; this is not an RSS bound
+or an archive-wide transaction.
+
+### Independent vectors, oracles and exclusions
+
+zip-aes-independent.json contains six independently authored STORE archives and
+wire vectors, plus 24 wire SHA-256 controls for lengths 0/1/15/16/17/65535/65536/65537
+at each strength. The author used Python hashlib.pbkdf2_hmac/hmac and LibreSSL
+3.3.6 openssl enc -aes-N-ecb -nopad, with password bytes "password", salt bytes
+0..saltLength-1 and plaintext bytes i % 256. Python struct encoded headers
+independently of product code. bsdtar 3.5.3/libarchive 3.7.4 successfully extracted
+all six independent STORE archives. Native tools ran only as isolated memory/
+stdin/stdout evidence oracles, never in product code or canonical unit tests.
+
+The attempted libarchive writer (--format zip --options zip:encryption=aes128
+or aes256 --passphrase password) failed before producing bytes:
+"archive_read_add_passphrase invoked on archive_write ... not supported".
+These two failed author attempts are not counted as passes.
+
+The attempted 72-case product-writer/native-reader matrix first failed at
+AES-128 AE-1 BZIP2 (buffered, without descriptors), with "bzip2 decompression
+failed: Unknown error: -1". An independently authored Python bz2/OpenSSL
+AES+BZIP2 control produced the same refusal (archive SHA-256
+9871169c63f350b63b1bf856b6000719cf89f083683fe2e6ebe0625647080c03).
+Plain Python ZIP BZIP2 extracted correctly (32,777 bytes).
+Accordingly the 24 AES+BZIP2 native-reader combinations remain excluded/
+Unverified, not passes. Product STORE/DEFLATE oracle qualification is separate.
+Unit controls do exercise AES+BZIP2 through both versions and plain neighbors.
+
+Portable AES is concretely blocked by the approved crypto capability set:
+the playground adapter supplies hashes/randomness, not AES blocks/PBKDF2/HMAC,
+and the portable shell build forbids node:crypto. An initial static primitive
+import failed the playground build; a reflective import fixed that adapter's
+loading but still failed the portable build policy. Conditional capability
+selection fixes loading without bypassing that policy. Portable hosts refuse AES
+rather than using a custom cipher, dependency, host process or unauthenticated
+output. Plain ZIP/ZipCrypto remain supported there.
+
+The WinZip MAC excludes ZIP metadata. Tests refuse tampered inconsistent,
+unsupported or invalid AES headers, but coherent edits to both filename/time/
+comment headers are not cryptographically detectable under this specification.
+This is not a claim of header authentication, all-tool AES+BZIP2 interoperability,
+WinZip application acceptance, FIPS-host availability, secure memory erasure,
+unbounded streaming AES, multi-GB AES, or full repository test/release clearance.
+No native scratch files or temporary logs were retained: host /out could not be
+created because the filesystem root is read-only; logs remained in tool output.
+Direct screenshot capture through /dev/stdout failed when its atomic sibling
+temporary file was refused. The successful capture used isolated memfs
+/out/zip-help.png, streamed and resized in memory, inspected, then discarded.
+
+### Final live-candidate verification
+
+Two final test-first controls caught entropy acquisition before member-budget
+admission (two calls instead of zero) and missing cancellation between empty
+members (two calls instead of one). Admission now precedes entropy and every
+member yields cooperatively. An unknown-size live-source control also established
+that measured size/CRC/compressed size must survive member preparation; those
+measurements now remain intact for descriptors and progress.
+
+| Check | Result |
+| --- | --- |
+| Uncached serial ZIP/unzip command and ZIP plugin suites, final source | 2,026 passed; zero failures, skips or cancellations; 19,188.978291 ms |
+| Maintained selected build, `npm run build:workspaces -- --workspace=virtual-bash`, final source | Exit 0; six-build dependency closure derived from 76 workspaces, 217 edges and ten layers |
+| Normal `npm run build`, before final admission/cancellation fixes | Exit 0; 75 declared builds, including playground and portable bundle; workspace without a build declaration not counted as a pass |
+| Guarded `npm run lint:eslint`, final source | Complete, exit 0; 15,508 configured/linted files, zero errors, four unchanged warnings |
+| Maintained `npm run typecheck --workspace=virtual-bash`, final source/tests | Exit 0; source/tests and 26 current consumer groups pass; three negative controls return expected exit 2; no runtime acceptance implied |
+| Built public SDK, memory VFS | AES-256 AE-2 STORE roundtrip; stdout `secret` |
+| Actual browser engine | Plain ZIP roundtrip succeeds; AES refuses unavailable vetted primitives with exit 2 |
+| Product writer to libarchive reader | 48/48 STORE/DEFLATE combinations: three strengths, two versions, two codecs, descriptors on/off, buffered/live unknown-size sources |
+| Visual CLI capture | Help option readable; AES stdout pipeline produces 322 archive bytes, exit 0 |
+
+The ordered 48-case archive-hash sequence, joined by newlines, has SHA-256
+71222475bcf77ddfa06b542e2210d23b329bc99f25c88e3645e489d2d69db110.
+The inspected resized screenshot was 172,456 bytes, SHA-256
+d0b64b2930d3f7b54cf293b8d7c581326933048e8f03d47e0c97199e6b587112.
+Its actual shell input was `zip --help; printf secret | zip -0
+--encryption=aes-256-ae2 -P password - - | wc -c`.
+
+Intermediate checks overlapping rebuilds failed at module/test-file setup or
+negative consumer checks. Those runs are not passing proof; stable reruns are
+reported separately. This is live candidate evidence, not a frozen committed
+archive, full `npm test`, remote-main delivery or successful release.
+
+### Candidate input identity
+
+Paths below are relative to packages/safe-bash; SHA-256 covers final live inputs
+against base main 9ea918c00541722a79c3a4d143d34587bb84dbb1.
+
+| Path | SHA-256 |
+| --- | --- |
+| package.json | 10b138d01cdebd1ac8870b2fd4af726ca76f7bcca1a343d24374e67c86e7f594 |
+| src/commands/archive/index.ts | 460c6fbd5c6295415b840acfd3524c1ec08cb2d9e45e62d88b970db9935241d5 |
+| src/commands/archive/internal.ts | bd0cbf4a0100f9abc44886539621634b1c38c4a97923e3c407bf2db2d8a54578 |
+| src/commands/archive/zip-format.ts | 28e7bc287ef274fc2e64b2b40fe9091ee4f6ef9a9b9af1cdf48fffc86eca8ae9 |
+| src/commands/archive/zip.ts | 18ee991c5115d674f6a38704e1f5f14c609da3765e8e7d5968342c937367fc3b |
+| src/commands/archive/zip/crypto.ts | 39b11dc783b897d84c64a02ec69bd1d21679cdb659252018528b01d05ad2f1ab |
+| src/commands/archive/zip/aes.ts | b2196b6b326ce636c40fc5a5bdf75b5c6357ebb0028e7e6489d7def444e3f017 |
+| src/commands/archive/zip/aes-primitives.ts | 7e3e2bcdce048724c25c0c8a39378537da3ef253e2f29db863e478569c1e8488 |
+| src/commands/archive/zip/aes-primitives-unavailable.ts | bdc6485d5e5dcef1b89d12dcc10fd7a6c8f765f34fc962d8bc67b3927e7ec1b4 |
+| src/commands/archive/zip/help.ts | 0766b74b99fd34241a44a93dc3586cd0f8a09f0805b11cb0eae8becdd4f113b4 |
+| src/contracts/zip.md | d5bea90d01fb87e16df906249d203a1f586919dc265138903ce79eb59981bd16 |
+| tests/commands/zip-crypto.test.ts | b19af8069dc7a72db2aff189b8919fee370b16dfca43734ccee2266efb4829b1 |
+| tests/commands/zip-help.test.ts | 2b382202824db14f111e43fc1996fc83600511fd9437f033305924afad07e68a |
+| tests/commands/fixtures/zip-aes-independent.json | e07db5740d29c92fb3c7da104038080a93e30fb93970e2738b1a0877728c2551 |
+
+### September 17, 2026 request revalidation
+
+The requested AES implementation was already present as uncommitted edits on
+main at the start of this verification. Those edits were preserved; no product
+code was changed without a newly reproduced gap. All fourteen candidate input
+hashes above still match. The ordered JSON array of [relative path, SHA-256]
+pairs in that table, encoded with compact separators, has SHA-256
+07b08076cc3fa69c9278f4619b37eead3e9a4c1f6ce59f7057d67607ebbc7fe6.
+Base HEAD remains 9ea918c00541722a79c3a4d143d34587bb84dbb1; this is live-tree
+revalidation, not committed or remote delivery.
+
+Fresh uncached Node 22.22.2 checks:
+
+- The focused zip-crypto.test.ts run passed all 176 controls in 1,787.660667 ms.
+- The 30 direct command/plugin ZIP and unzip test files passed all 2,026
+  controls serially in 27,047.401584 ms, with zero failures, cancellations,
+  skips or TODOs. Coverage includes independent vectors, rejection, retention
+  boundaries, cancellation, mixed members and plain/ZipCrypto neighbors.
+- bsdtar 3.5.3/libarchive 3.7.4 independently extracted all six existing STORE
+  vector archives: AES-128/192/256, AE-1/AE-2. Inputs and outputs were passed
+  through memory/stdin/stdout only; every output matched the fixture plaintext.
+- Maintained `npm run typecheck --workspace=virtual-bash` completed with exit 0:
+  source/tests and 26 current consumer groups passed; all three negative
+  consumer controls returned the expected exit 2. Existing built declarations
+  were used; this run performed no build or runtime consumer execution.
+
+This revalidation does not add new qualification for AES+BZIP2 native readers,
+portable AES, metadata authentication, full repository checks, screenshots,
+release publication or remote-main delivery. The concrete portable primitive
+blocker and existing exclusions above remain applicable. No README, SafeJS,
+runtime dependencies, host-process product paths or unrelated edits changed.
+
+### Follow-up revalidation and simplification assessment
+
+The follow-up request was checked against the same main HEAD
+9ea918c00541722a79c3a4d143d34587bb84dbb1 and existing uncommitted implementation.
+All fourteen candidate input hashes still match the table above. No additional
+gap was reproduced and no product code was rewritten for cosmetic simplification;
+the existing codec, authentication, budget and cleanup boundaries were preserved.
+
+Fresh uncached checks in this follow-up:
+
+- Focused crypto suite: 176 passed, zero failures/skips/cancellations,
+  1,994.37925 ms.
+- Serial ZIP/unzip command and ZIP plugin suites: 2,026 passed, zero
+  failures/skips/cancellations/TODOs, 70,193.239959 ms.
+- Independent bsdtar cross-read over stdin/stdout: all six STORE fixtures
+  (three strengths, both AE versions) produced exactly the fixture plaintext.
+- Maintained `npm run typecheck --workspace=virtual-bash`: exit 0;
+  source/tests and 26 current consumer groups passed, with the three negative
+  controls returning expected exit 2. Zero builds/runtime executions; existing
+  built declarations were used.
+
+Only this evidence document changed in the follow-up. The pinned specification,
+authenticated staging policy, metadata-authentication limitation, portable
+primitive blocker and native AES+BZIP2 exclusions remain as recorded above.
+No new build, lint, visual, full repository, committed-archive, remote-main or
+release qualification is claimed; no commit or push was performed.
+
+### User-workflow adversarial verification, September 17, 2026
+
+Base main HEAD remains `9ea918c00541722a79c3a4d143d34587bb84dbb1`.
+The existing uncommitted AES implementation was preserved. This follow-up adds
+12 controls to the existing `tests/commands/zip-crypto.test.ts`; it changes no
+product implementation, README, SafeJS, runtime dependencies or host fallback.
+No product bug was reproduced. The first new test run failed on a test-only
+Buffer-versus-Uint8Array strict comparison; normalizing the expected byte type
+corrected that assertion without changing the bytes or product behavior.
+
+All three strengths and both AE versions now have actual Shell/archiveCommands
+controls that first read the independent valid fixture, then flip bit zero at
+every encrypted-wire byte, including every salt, verifier, payload and tag byte.
+All **342 mutations** failed through both `unzip -p` and overwrite extraction:
+stdout contained zero plaintext bytes, the existing destination bytes survived,
+and its directory contained only the original file. Every possible strict
+archive-prefix truncation was also rejected: **1,110 truncations**. These counts
+are nested checks in 12 tests, not additional top-level test counts. All fixtures
+and destination effects use memory VFS; no native process enters these tests.
+
+Fresh uncached checks on Node 22.22.2:
+
+- New adversarial selection: **12/12 passed**, zero failures/skips/cancellations,
+  7,500.782917 ms for the entire invocation under concurrent host work.
+- The 30 direct ZIP/unzip command/plugin files: **2,038/2,038 passed**, zero
+  failures/skips/cancellations/TODOs, 107,002.569917 ms. Existing controls retain
+  positive, negative, boundary, cancellation and neighboring regression coverage.
+- Independent `/usr/bin/bsdtar` stdin/stdout cross-read: **6/6 STORE fixtures**
+  produced byte-exact plaintext, using explicit C/UTC/PATH environment and no
+  filesystem fixture writes. This does not renew DEFLATE/BZIP2 oracle proof.
+- Maintained `npm run typecheck --workspace=virtual-bash`: **exit 0**, source/tests
+  and 26 current consumer groups passed; three negative consumers returned the
+  expected exit 2. Existing built declarations were used, with zero builds and
+  runtime consumer executions; owned typecheck scratch was cleaned by the runner.
+- Guarded root `npm run lint:eslint`: **exit 0**, complete=true, 15,508 configured
+  subjects linted, zero errors and four warnings in other files. No diagnostics
+  were reported for the edited crypto test. This is ESLint qualification only,
+  not the separate repository lint:types/workflows routes or a release gate.
+
+Revision-specific SHA-256 inputs (paths relative to packages/safe-bash):
+
+| Input | SHA-256 |
+| --- | --- |
+| tests/commands/zip-crypto.test.ts | abe8a2a77d34e5bbc1eb7c4d21a345a64b8710a9e38aba2eaa0b5fbb2ab25b72 |
+| src/commands/archive/zip/aes.ts | b2196b6b326ce636c40fc5a5bdf75b5c6357ebb0028e7e6489d7def444e3f017 |
+| tests/commands/fixtures/zip-aes-independent.json | e07db5740d29c92fb3c7da104038080a93e30fb93970e2738b1a0877728c2551 |
+
+The earlier ordered fourteen-input digest is historical after this test addition.
+The pinned specification, bounded authenticated staging and latency/retention
+policy remain unchanged. Coherent metadata changes are not authenticated by this
+format. Portable vetted primitives remain unavailable; native AES+BZIP2 readers
+remain unqualified. These checks do not establish every possible input or a full
+repository, build, screenshot, committed-archive, remote-main or release gate.
+No commit or push was performed.

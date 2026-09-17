@@ -6,11 +6,12 @@ The same archive options flow through `archiveCommands`, `agentCommands` and the
 ambient credentials, open a terminal, or spawn native tools.
 
 `entropy(length, signal)` must return exactly the requested number of fresh,
-cryptographically secure bytes. ZIP requests 11 bytes per newly encrypted member;
+cryptographically secure bytes. Traditional ZIP requests 11 bytes per encrypted member;
 the twelfth header byte is the CRC high byte, or the DOS time high byte when the
 descriptor flag is set. The callback must cooperate with cancellation. Callback
 work belongs to the command's existing registered cleanup scope. Test entropy
-is deterministic only in fixtures. There is no product entropy fallback.
+is deterministic only in fixtures. AES requests 8/12/16 salt bytes for
+128/192/256-bit encryption. There is no product entropy fallback.
 
 `password({ prompt, maxBytes, signal })` must suppress input echo, return password
 bytes, or return `undefined` on EOF. It must not consume command stdin, log
@@ -30,7 +31,54 @@ raw argv bytes and injected password bytes retain their identity. The low-level
 format API can decode/encode empty password bytes independently of native ZIP's
 command argument restriction.
 
-Traditional ZipCrypto is supported; AES/strong encryption remains refused.
+Traditional ZipCrypto and the separate WinZip AES AE-1/AE-2 profile are supported;
+PKWARE strong encryption remains refused.
+
+`ArchiveCommandsOptions.zip` selects creation defaults: `compression` is `store`,
+`deflate` (the default), or `bzip2`; `encryption` is `zipcrypto` or
+`aes-{128,192,256}-ae{1,2}`. An explicit encryption default requests encryption
+and requires password capability or `-P`; omission preserves unencrypted creation.
+The shell CLI accepts `zip -Z METHOD --encryption PROFILE -P PASSWORD ...`, or
+uses the existing no-echo capability when a password is omitted. `-e` alone still
+selects traditional ZipCrypto. CLI options override SDK creation defaults.
+
+AES uses WinZip encryption specification 1.04 (January 30, 2009) and PKWARE
+APPNOTE 6.3.10 Appendix E: method 99, extraction version 51, matching local and
+central `0x9901` fields, explicit fresh 8/12/16-byte salts, PBKDF2-HMAC-SHA1
+(1000 iterations), two-byte verifier, little-endian-counter AES and a ten-byte
+HMAC-SHA1 authentication code over ciphertext. AE-1 verifies CRC32; AE-2 requires
+zero ZIP CRC fields and relies on authentication plus length validation.
+
+`limits.maxBufferedFileBytes` is also the bounded AES staging policy. Creation
+admits each member's input and compressed content at most
+`floor((maxBufferedFileBytes - 28) / 6)` bytes, allowing overlapping owned buffers.
+Ciphertext retention across members remains subject to `maxArchiveBytes` and
+uncompressed totals to `maxTotalBytes`. Extraction reserves two ciphertext
+lengths, compressed plaintext and two verified-output lengths within the staging
+limit (collector fragments and their assembly overlap). Codec/crypto workspace, archive
+input, VFS storage, and the existing unzip output collector have their own bounds;
+this is not an RSS bound. Defaults therefore deliberately refuse large AES
+members even when a plain streaming member would fit other archive limits.
+
+All ciphertext authentication completes before decryption. All decompression,
+AE-1 CRC and size checks complete before decoded member bytes are yielded,
+including `unzip -p`. This adds latency and memory retention compared with plain
+streaming; creation prepares AES members before serializing archive headers.
+Cancellation is cooperative at native-call and 64 KiB transform boundaries;
+the fixed synchronous native KDF introduces no outstanding asynchronous work.
+Existing VFS/entropy work stays under invocation-owned cleanup. Caller inputs
+are preserved; temporary owned cipher/key arrays are cleared where retained,
+without promising secure erasure of native/collector/garbage-collected copies.
+
+AES requires the existing vetted Node crypto capabilities. Hosts exposing only
+hashes/randomness refuse AES with a capability diagnostic; plain ZIP/ZipCrypto
+remain usable. There is no custom portable cipher or native-process fallback.
+
+The WinZip MAC authenticates ciphertext, not ZIP header metadata. Local/central
+header consistency and supported-field validation reject inconsistent or invalid
+headers; coherent edits to both copies of names/times/comments are not
+cryptographically detectable. Staging is per member, not an archive transaction:
+previously verified neighboring members may already have been published.
 Every member starts fresh keys. Compression precedes encryption, and decryption
 precedes decompression. The 12-byte header's verifier is not authentication.
 Commands validate final CRC and expanded length before publishing encrypted

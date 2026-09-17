@@ -9,6 +9,7 @@ Usage: zip [options] archive [file ...]
   -0          store without compression
   -1 .. -9    select compression effort
   -Z METHOD   select store, deflate, or bzip2 compression
+  --encryption PROFILE  select zipcrypto or aes-{128,192,256}-ae{1,2}
   -n SUFFIXES store matching suffixes (colon-separated)
   -u / -f     update / freshen existing members
   -d / -U     delete / copy selected archive members

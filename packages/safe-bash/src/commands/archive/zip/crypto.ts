@@ -3,6 +3,7 @@ import { yieldTurn } from "../../../contracts/yield.js";
 import { crcTable } from "./crc.js";
 import { fail, type ZipHost } from "../internal.js";
 import { PublicDiagnostic } from "../../../diagnostics.js";
+import type { ZipAes } from "./aes.js";
 
 /** Fixed capability diagnostics may be shown without credential-text filtering. */
 export class ZipHostFailure extends PublicDiagnostic {
@@ -22,6 +23,7 @@ export class ZipHostFailure extends PublicDiagnostic {
 }
 
 export interface ZipEncryption {
+  readonly aes?: ZipAes;
   readonly password: Uint8Array;
   readonly entropy: NonNullable<ZipHost["entropy"]>;
 }

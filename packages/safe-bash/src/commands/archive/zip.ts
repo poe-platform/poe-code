@@ -6,6 +6,7 @@ import { ZipLog } from "./zip/log.js";
 import { parseZipTestCommand, testZipCommand } from "./zip/test-command.js";
 import { inspectZipMoveSource, removeZipSources, type ZipMoveSource } from "./zip/move.js";
 import { readZipPassword, ZipHostFailure, type ZipEncryption } from "./zip/crypto.js";
+import { zipEncryptionProfile, type ZipAes } from "./zip/aes.js";
 import { zipToCrlf, zipFromCrlf } from "./zip/line-endings.js";
 import { parseZipDate, zipDateMatches, zipLatestTime } from "./zip/dates.js";
 import { zipEnvironmentArguments } from "./zip/environment.js";
@@ -33,6 +34,7 @@ interface ZipOptions {
   password: Uint8Array | undefined;
   encrypt: boolean;
   encryption?: ZipEncryption;
+  aes?: ZipAes;
   readonly args: readonly string[];
   readonly action: "add" | "delete" | "update" | "freshen" | "copy";
   readonly archive: string;
@@ -91,7 +93,7 @@ interface ZipOptions {
 
 const defaultStoreSuffixes = [".Z", ".zip", ".zoo", ".arc", ".lzh", ".arj"];
 
-async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions | { information: "help" | "more-help" | "version" | "license" | "options" | "command"; command?: readonly string[]; debug?: boolean }> {
+async function parse(scope: ZipScope, limits: ArchiveLimits, defaults?: ArchiveCommandsOptions["zip"]): Promise<ZipOptions | { information: "help" | "more-help" | "version" | "license" | "options" | "command"; command?: readonly string[]; debug?: boolean }> {
   const context = scope.context;
   const args = zipEnvironmentArguments(context.env, context.args, limits);
   const rawArguments = context.argumentValues ? getCommandArguments(context) : undefined;
@@ -120,7 +122,8 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   }
   let archive: string | undefined;
   let password: Uint8Array | undefined;
-  let encrypt = false;
+  let encrypt = defaults?.encryption !== undefined;
+  let aes = zipEncryptionProfile(defaults?.encryption ?? "zipcrypto");
   let output: string | undefined;
   let action: ZipOptions["action"] = "add";
   let recursive = false;
@@ -174,7 +177,8 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   let zip64: boolean | undefined;
   let metadata: ZipOptions["metadata"] = "default";
   let level = 6;
-  let method: ZipOptions["method"] = "deflate";
+  let method: ZipOptions["method"] = defaults?.compression ?? "deflate";
+  if (method !== "store" && method !== "deflate" && method !== "bzip2") fail("ZIP unsupported compression method");
   let suffixes: readonly string[] = defaultStoreSuffixes;
   let stdinNames = false;
   let literal = false;
@@ -187,6 +191,14 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
     let listOption = false;
     const original = args[index]!;
     checkPath(original, limits);
+    if (!literal && (original === "--encryption" || original.startsWith("--encryption="))) {
+      const value = original === "--encryption" ? args[++index] : original.slice(13);
+      if (value === undefined) fail("ZIP encryption option requires a profile");
+      aes = zipEncryptionProfile(value);
+      encrypt = true;
+      commandOptions.push(...args.slice(startIndex, index + 1));
+      continue;
+    }
     const argument = literal ? original : normalizeZipOption(original);
     if (!literal && argument === "--") {
       if (archive === undefined) throw new ZipFailure(16, "Invalid command arguments", "can't use -- before archive name");
@@ -490,7 +502,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   if (filesync && (action !== "add" || grow)) throw new ZipFailure(16, "Invalid command arguments", "can't use -d, -f, -u, -U, or -g with filesync -FS\n");
   const diagnosticArgs = args.map((value, index) => passwordArguments.has(index - defaultsCount) ? "[redacted]" : zipPublicText(value));
   if (split && (archive === "-" || grow)) throw new ZipFailure(16, "Invalid command arguments", "split output requires a file and cannot grow");
-  return { repair, adjust, split, splitPause, splitVerbose, splitBell, password, encrypt, args: diagnosticArgs, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, verbose, showFiles, debug, displayBytes, displayCounts, displayUsize, displayVolume, dotSize, globalDots, junkPaths, dosNames, fifo, omitDirectories, storeLinks: storeLinks && !dosNames, test, testCommand, difference, grow, tempPath, junkSfx, logPath, logAppend, logInfo, mustMatch, filesync, archiveComment, entryComments, latestTime, toCrlf, fromCrlf, move, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
+  return { repair, adjust, split, splitPause, splitVerbose, splitBell, password, encrypt, ...(aes ? { aes } : {}), args: diagnosticArgs, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, verbose, showFiles, debug, displayBytes, displayCounts, displayUsize, displayVolume, dotSize, globalDots, junkPaths, dosNames, fifo, omitDirectories, storeLinks: storeLinks && !dosNames, test, testCommand, difference, grow, tempPath, junkSfx, logPath, logAppend, logInfo, mustMatch, filesync, archiveComment, entryComments, latestTime, toCrlf, fromCrlf, move, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -682,6 +694,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
     if (dosConvertedNames.has(name)) {
       entry = { ...entry, mode: attributes.directory ? 0o040755 : 0o100644, versionMadeBy: 30, externalAttributes: attributes.directory ? 16 : 0, flags: prior?.comment?.some(byte => byte >= 128) ? (prior.flags ?? 0) & 0x800 : 0 };
     }
+    if (parsed.encryption && !entry.directory) entry.encryption = parsed.encryption;
     selected.set(name, { entry, source, sourceSize });
     if (parsed.entryComments) commentNames.add(name);
   };
@@ -1011,9 +1024,6 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
     }
     if (editComment) comment = await readZipComment(commentInput, limits, context.signal);
   }
-  if (parsed.encryption && parsed.action !== "copy" && parsed.action !== "delete") {
-    for (const entry of entries) if (selected.has(entry.name) && !entry.directory) entry.encryption = parsed.encryption;
-  }
   if (!publication) return { kind: "stream" as const, temporary, archive: { entries, comment }, progress, finishProgress, moves: [...moves.values()] };
   if (entries.some(entry => entry.source)) return { kind: "staged-stream" as const, publication, archive: { entries, comment }, progress, finishProgress, exitCode, moves: [...moves.values()] };
   let latestWarning: string | undefined;
@@ -1058,7 +1068,7 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
     let budget = new Budget(context, limits);
     let log: ZipLog | undefined;
     try {
-      let parsed = await parse(scope, limits);
+      let parsed = await parse(scope, limits, options.zip);
       if ("information" in parsed) {
         if (parsed.debug) await budget.output("sd: Command line read\n");
         if (parsed.information === "command") {
@@ -1093,7 +1103,7 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
       if (parsed.encrypt) {
         if (parsed.password === undefined) parsed.password = await scope.operation(() => readZipPassword(options.zipHost, limits.maxArgumentBytes, context.signal, true));
         if (log) log.password = parsed.password;
-        parsed.encryption = { password: parsed.password, entropy: (length, signal) => scope.operation(() => {
+        parsed.encryption = { ...(parsed.aes ? { aes: parsed.aes } : {}), password: parsed.password, entropy: (length, signal) => scope.operation(() => {
           if (!options.zipHost?.entropy) throw new ZipHostFailure("entropy");
           return options.zipHost.entropy(length, signal);
         }) };

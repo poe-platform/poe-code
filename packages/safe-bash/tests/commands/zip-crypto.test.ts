@@ -8,8 +8,370 @@ import { makeZipEntry, writeZipArchive, readZipArchive, decodeZipEntry, streamZi
 import { settings, type ArchiveCommandsOptions } from "../../src/commands/archive/internal.js";
 import { createUnzipCommand } from "../../src/commands/archive/unzip.js";
 import nativeFixtures from "./fixtures/zip-crypto-infozip.json" with { type: "json" };
+import aesFixtures from "./fixtures/zip-aes-independent.json" with { type: "json" };
+import type { ZipAes } from "../../src/commands/archive/zip/aes.js";
 import { createZipCommand } from "../../src/commands/archive/zip.js";
+import { encryptAesPayload, decryptAesPayload } from "../../src/commands/archive/zip/aes.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
+import { Shell } from "../../src/shell/index.js";
+import { archiveCommands } from "../../src/commands/archive/index.js";
+
+test("WinZip AES authenticates before yielding plaintext", async () => {
+  const signal = new AbortController().signal;
+  const password = Buffer.from("password");
+  const wire = await encryptAesPayload(toByteSource(Buffer.from("secret")), { password, entropy: n => new Uint8Array(n), aes: { strength: 256, version: 2 } }, 1024, signal);
+  const decoded = await decryptAesPayload(wire, password, { strength: 256, version: 2 }, 1024, signal);
+  assert.equal(Buffer.from(decoded).toString(), "secret");
+  wire[wire.length - 1]! ^= 1;
+  await assert.rejects(decryptAesPayload(wire, password, { strength: 256, version: 2 }, 1024, signal), /authentication/);
+});
+
+test("ZIP AES SDK profile writes method 99 and safely cross-reads through unzip -p", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/file", Buffer.from("secret payload"));
+  const diagnostics: Uint8Array[] = [];
+  const context: CommandContext = {
+    command: "zip", args: ["-P", "test", "archive.zip", "file"], cwd: "/", env: {}, fs,
+    signal: new AbortController().signal, stdin: toByteSource(new Uint8Array()),
+    stdout: { async write() {} }, stderr: { async write(bytes) { diagnostics.push(new Uint8Array(bytes)); } },
+  };
+  const result = await createZipCommand({ zip: { compression: "store", encryption: "aes-256-ae2" }, zipHost: { entropy: length => new Uint8Array(length).fill(42) } }).execute(context);
+  assert.equal(result.exitCode, 0, Buffer.concat(diagnostics).toString());
+  const wire = await fs.readFile("/archive.zip");
+  assert.equal(new DataView(wire.buffer, wire.byteOffset, wire.length).getUint16(8, true), 99);
+  const output: Uint8Array[] = [];
+  const read = await createUnzipCommand().execute({ ...context, command: "unzip", args: ["-p", "-P", "test", "archive.zip"], stdout: { async write(bytes) { output.push(new Uint8Array(bytes)); } } });
+  assert.equal(read.exitCode, 0, Buffer.concat(diagnostics).toString());
+  assert.equal(Buffer.concat(output).toString(), "secret payload");
+});
+
+for (const fixture of aesFixtures.fixtures) {
+  const aes = { strength: fixture.strength, version: fixture.version } as ZipAes;
+  test(`AES ${aes.strength} AE-${aes.version} matches independent OpenSSL/Python wire and libarchive-readable archive`, async () => {
+    const signal = new AbortController().signal;
+    const password = Buffer.from(aesFixtures.password);
+    const plain = Buffer.from(aesFixtures.plaintext, "hex");
+    const wire = await encryptAesPayload(toByteSource(plain), { password, aes, entropy: n => Uint8Array.from({ length: n }, (_, i) => i) }, plain.length, signal);
+    assert.equal(Buffer.from(wire).toString("hex"), fixture.wire);
+    assert.deepEqual(await decryptAesPayload(wire, password, aes, plain.length, signal), new Uint8Array(plain));
+    const archive = await readZipArchive(Buffer.from(fixture.archive, "base64"), settings({}), signal);
+    assert.deepEqual(await collectBytes(decodeZipEntry(archive.entries[0]!, settings({}), signal, password), { maxBytes: plain.length, signal }), new Uint8Array(plain));
+    const copied = await readZipArchive(await writeZipArchive(archive, settings({}), signal), settings({}), signal);
+    assert.deepEqual(copied.entries[0]!.data, archive.entries[0]!.data);
+  });
+  for (const part of ["salt", "verifier", "payload", "tag"] as const) {
+    test(`AES ${aes.strength} AE-${aes.version} rejects tampered ${part} without output`, async () => {
+      const signal = new AbortController().signal;
+      const archive = await readZipArchive(Buffer.from(fixture.archive, "base64"), settings({}), signal);
+      const entry = archive.entries[0]!;
+      const offset = part === "salt" ? 0 : part === "verifier" ? aes.strength / 16 : part === "payload" ? aes.strength / 16 + 2 : entry.data.length - 1;
+      entry.data[offset]! ^= 1;
+      let writes = 0;
+      await assert.rejects(async () => { for await (const chunk of decodeZipEntry(entry, settings({}), signal, Buffer.from("password"))) writes += chunk.length; }, /password|authentication/);
+      assert.equal(writes, 0);
+    });
+  }
+  test(`AES ${aes.strength} AE-${aes.version} rejects wrong passwords, truncation and unsupported headers`, async () => {
+    const signal = new AbortController().signal;
+    const password = Buffer.from("password");
+    await assert.rejects(decryptAesPayload(Buffer.from(fixture.wire, "hex"), Buffer.from("wrong"), aes, 1024, signal), /password/);
+    for (const length of [0, aes.strength / 16 + 11, Buffer.from(fixture.wire, "hex").length - 1]) {
+      await assert.rejects(decryptAesPayload(Buffer.from(fixture.wire, "hex").subarray(0, length), password, aes, 1024, signal), /truncated|authentication/);
+    }
+    for (const [offset, value] of [[38, 3], [40, 66], [42, 0], [42, 4], [43, 99]] as const) {
+      const bytes = Buffer.from(fixture.archive, "base64");
+      bytes[offset] = value;
+      await assert.rejects(readZipArchive(bytes, settings({}), signal), /AES|compression/);
+    }
+  });
+}
+
+for (const fixture of aesFixtures.fixtures) {
+  test(`AES ${fixture.strength} AE-${fixture.version} shell rejects every corrupted encrypted byte and preserves extraction targets`, async () => {
+    const fs = createMemoryFileSystem();
+    const shell = new Shell({ fs }).use(archiveCommands());
+    const original = Buffer.from(fixture.archive, "base64");
+    const view = new DataView(original.buffer, original.byteOffset, original.length);
+    const start = 30 + view.getUint16(26, true) + view.getUint16(28, true);
+    const length = view.getUint32(18, true);
+    await fs.mkdir("/destination");
+    const retained = Buffer.from("existing destination bytes");
+    await fs.writeFile("/destination/file", retained);
+    await fs.writeFile("/archive.zip", original);
+    const good = await shell.exec("unzip -p -P password archive.zip");
+    assert.equal(good.exitCode, 0, good.stderr);
+    assert.deepEqual(good.stdoutBytes, new Uint8Array(Buffer.from(aesFixtures.plaintext, "hex")));
+    for (let offset = 0; offset < length; offset++) {
+      const bytes = Buffer.from(original);
+      bytes[start + offset]! ^= 1;
+      await fs.writeFile("/archive.zip", bytes);
+      const piped = await shell.exec("unzip -p -P password archive.zip");
+      assert.notEqual(piped.exitCode, 0, `encrypted byte ${offset}`);
+      assert.equal(piped.stdoutBytes.length, 0, `encrypted byte ${offset}`);
+      const extracted = await shell.exec("unzip -o -P password -d destination archive.zip");
+      assert.notEqual(extracted.exitCode, 0, `extraction byte ${offset}`);
+      assert.deepEqual(await fs.readFile("/destination/file"), new Uint8Array(retained));
+      assert.deepEqual((await fs.readdir("/destination")).map(entry => entry.name), ["file"]);
+    }
+  });
+
+  test(`AES ${fixture.strength} AE-${fixture.version} rejects archive truncation at every byte`, async () => {
+    const original = Buffer.from(fixture.archive, "base64");
+    const limits = settings({}), signal = new AbortController().signal;
+    for (let length = 0; length < original.length; length++) {
+      await assert.rejects(readZipArchive(original.subarray(0, length), limits, signal), `truncated at ${length}`);
+    }
+    assert.equal((await readZipArchive(original, limits, signal)).entries.length, 1);
+  });
+}
+
+for (const boundary of aesFixtures.boundaries) {
+  test(`AES ${boundary.strength} independent ${boundary.size}-byte block/chunk boundary`, async () => {
+    const signal = new AbortController().signal;
+    const aes: ZipAes = { strength: boundary.strength as ZipAes["strength"], version: 2 };
+    const plaintext = Uint8Array.from({ length: boundary.size }, (_, i) => i % 256);
+    const password = Buffer.from("password");
+    const source = (async function* () { for (let offset = 0; offset < plaintext.length; offset += 7) yield plaintext.subarray(offset, offset + 7); })();
+    const wire = await encryptAesPayload(source, { aes, password, entropy: n => Uint8Array.from({ length: n }, (_, i) => i) }, boundary.size, signal);
+    assert.equal(createHash("sha256").update(wire).digest("hex"), boundary.sha256);
+    assert.deepEqual(await decryptAesPayload(wire, password, aes, boundary.size, signal), plaintext);
+    if (boundary.size) await assert.rejects(decryptAesPayload(wire, password, aes, boundary.size - 1, signal), /staging limit/);
+  });
+}
+
+for (const method of ["store", "deflate", "bzip2"] as const) {
+  for (const version of [1, 2] as const) {
+    test(`AES CLI ${method} AE-${version} handles a live source and preserves a plain neighbor`, async () => {
+      const fs = createMemoryFileSystem();
+      const plain = Buffer.from("neighbor");
+      const signal = new AbortController().signal;
+      const limits = settings({});
+      const neighbor = await makeZipEntry("neighbor", plain, { modified: new Date(1980, 0, 1), mode: 0o100644, directory: false, symlink: false }, limits, signal, 0);
+      await fs.writeFile("/archive.zip", await writeZipArchive({ entries: [neighbor], comment: new Uint8Array() }, limits, signal));
+      const output: Uint8Array[] = [], errors: Uint8Array[] = [];
+      const context: CommandContext = { command: "zip", args: ["--encryption=aes-192-ae" + version, "-Z", method, "-P", "password", "archive.zip", "-"], cwd: "/", env: {}, fs, signal,
+        stdin: toByteSource(Buffer.from("secret secret secret".repeat(100))), stdout: { async write(bytes) { output.push(new Uint8Array(bytes)); } }, stderr: { async write(bytes) { errors.push(new Uint8Array(bytes)); } } };
+      const result = await createZipCommand({ zipHost: { entropy: n => new Uint8Array(n) } }).execute(context);
+      assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+      const archive = await readZipArchive(await fs.readFile("/archive.zip"), limits, signal);
+      assert.equal(archive.entries[1]!.aes!.version, version);
+      assert.equal(archive.entries[1]!.aes!.method, method === "store" ? 0 : method === "deflate" ? 8 : 12);
+      output.length = 0;
+      const read = await createUnzipCommand().execute({ ...context, command: "unzip", args: ["-p", "-P", "password", "archive.zip"] });
+      assert.equal(read.exitCode, 0, Buffer.concat(errors).toString());
+      assert.equal(Buffer.concat(output).toString(), "neighbor" + "secret secret secret".repeat(100));
+    });
+  }
+}
+
+test("AES SDK and CLI profiles flow through the actual archive plugin; native -e remains ZipCrypto", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/file", Buffer.from("secret"));
+  const shell = new Shell({ fs }).use(archiveCommands({ zip: { compression: "store", encryption: "aes-128-ae1" }, zipHost: { entropy: n => new Uint8Array(n), async password() { return Buffer.from("password"); } } }));
+  assert.equal((await shell.exec("zip -P password sdk.zip file")).exitCode, 0);
+  assert.equal((await shell.exec("unzip -p -P password sdk.zip")).stdout, "secret");
+  assert.equal((await shell.exec("zip --encryption aes-256-ae2 -P password cli.zip file")).exitCode, 0);
+  const limits = settings({}), signal = new AbortController().signal;
+  assert.equal((await readZipArchive(await fs.readFile("/sdk.zip"), limits, signal)).entries[0]!.aes!.strength, 128);
+  assert.equal((await readZipArchive(await fs.readFile("/cli.zip"), limits, signal)).entries[0]!.aes!.strength, 256);
+  const traditional = new Shell({ fs }).use(archiveCommands({ zipHost: { entropy: n => new Uint8Array(n), async password() { return Buffer.from("password"); } } }));
+  assert.equal((await traditional.exec("zip -e native.zip file")).exitCode, 0);
+  assert.equal((await readZipArchive(await fs.readFile("/native.zip"), limits, signal)).entries[0]!.aes, undefined);
+  const invalid = await shell.exec("zip --encryption=aes-512-ae3 -P password invalid.zip file");
+  assert.notEqual(invalid.exitCode, 0);
+  await assert.rejects(fs.stat("/invalid.zip"), { code: "ENOENT" });
+});
+
+test("an explicit AES profile requests a password rather than silently publishing plaintext", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/file", Buffer.from("secret"));
+  const shell = new Shell({ fs }).use(archiveCommands({ zipHost: { entropy: n => new Uint8Array(n) } }));
+  const missing = await shell.exec("zip --encryption=aes-128-ae2 archive.zip file");
+  assert.notEqual(missing.exitCode, 0);
+  await assert.rejects(fs.stat("/archive.zip"), { code: "ENOENT" });
+});
+
+test("AES profile selection retains its separate value in the CLI command display", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(archiveCommands());
+  const shown = await shell.exec("zip --encryption aes-128-ae2 --show-command");
+  assert.equal(shown.exitCode, 9);
+  assert.ok(shown.stdout.includes("'--encryption'  'aes-128-ae2'"), shown.stdout);
+});
+
+test("AES staged decode admits the exact retention boundary and rejects one byte less without output", async () => {
+  const signal = new AbortController().signal;
+  const archive = await readZipArchive(Buffer.from(aesFixtures.fixtures[5]!.archive, "base64"), settings({}), signal);
+  const entry = archive.entries[0]!;
+  const maximum = entry.data.length * 2 + entry.size * 3;
+  const good = settings({ limits: { maxBufferedFileBytes: maximum } });
+  assert.equal((await collectBytes(decodeZipEntry(entry, good, signal, Buffer.from("password")), { maxBytes: entry.size, signal })).length, entry.size);
+  let output = 0;
+  await assert.rejects(async () => { for await (const chunk of decodeZipEntry(entry, settings({ limits: { maxBufferedFileBytes: maximum - 1 } }), signal, Buffer.from("password"))) output += chunk.length; }, { code: "EFBIG" });
+  assert.equal(output, 0);
+});
+
+test("AE-1 validates CRC before yielding; AE-2 requires zero CRC", async () => {
+  const signal = new AbortController().signal;
+  const bytes = Buffer.from(aesFixtures.fixtures[0]!.archive, "base64");
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+  const central = bytes.indexOf(Buffer.from([80, 75, 1, 2]));
+  view.setUint32(14, 1, true); view.setUint32(central + 16, 1, true);
+  const entry = (await readZipArchive(bytes, settings({}), signal)).entries[0]!;
+  let output = 0;
+  await assert.rejects(async () => { for await (const chunk of decodeZipEntry(entry, settings({}), signal, Buffer.from("password"))) output += chunk.length; }, /CRC32/);
+  assert.equal(output, 0);
+  view.setUint16(38, 2, true); view.setUint16(central + 54, 2, true);
+  await assert.rejects(readZipArchive(bytes, settings({}), signal), /AE-2 CRC/);
+});
+
+test("AES encryption budget and entropy validation fail before archive publication", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/file", Buffer.from(aesFixtures.plaintext, "hex"));
+  const maxBufferedFileBytes = 33 * 6 + 28;
+  for (const [name, limit, entropy, expected] of [
+    ["exact", maxBufferedFileBytes, (n: number) => new Uint8Array(n), 0],
+    ["over", maxBufferedFileBytes - 1, (n: number) => new Uint8Array(n), 1],
+    ["short", maxBufferedFileBytes, (n: number) => new Uint8Array(n - 1), 1],
+  ] as const) {
+    const shell = new Shell({ fs }).use(archiveCommands({ limits: { maxBufferedFileBytes: limit }, zip: { compression: "store", encryption: "aes-256-ae2" }, zipHost: { entropy } }));
+    const result = await shell.exec(`zip -P password ${name}.zip file`);
+    assert.equal(result.exitCode === 0 ? 0 : 1, expected, result.stderr);
+    if (expected === 0) assert.equal((await fs.stat(`/${name}.zip`)).type, "file");
+    else await assert.rejects(fs.stat(`/${name}.zip`), { code: "ENOENT" });
+  }
+});
+
+test("unzip -p and extraction publish no AES member bytes after an authentication failure", async () => {
+  const fs = createMemoryFileSystem();
+  const bytes = Buffer.from(aesFixtures.fixtures[5]!.archive, "base64");
+  const central = bytes.indexOf(Buffer.from([80, 75, 1, 2]));
+  bytes[central - 1]! ^= 1;
+  await fs.writeFile("/archive.zip", bytes);
+  await fs.mkdir("/destination");
+  await fs.writeFile("/destination/file", Buffer.from("original"));
+  const shell = new Shell({ fs }).use(archiveCommands());
+  const piped = await shell.exec("unzip -p -P password archive.zip");
+  assert.notEqual(piped.exitCode, 0);
+  assert.equal(piped.stdout, "");
+  const extracted = await shell.exec("unzip -o -P password -d destination archive.zip");
+  assert.notEqual(extracted.exitCode, 0);
+  assert.equal(Buffer.from(await fs.readFile("/destination/file")).toString(), "original");
+  assert.deepEqual((await fs.readdir("/destination")).map(entry => entry.name), ["file"]);
+});
+
+test("AES pre-abort and cancellation during transformation expose no output and retire the source", async () => {
+  const aes: ZipAes = { strength: 256, version: 2 };
+  const controller = new AbortController();
+  const reason = { stop: "AES" };
+  controller.abort(reason);
+  let calls = 0;
+  await assert.rejects(encryptAesPayload((async function* () { calls++; yield Uint8Array.of(1); })(), { aes, password: Buffer.from("password"), entropy: n => { calls++; return new Uint8Array(n); } }, 1024, controller.signal), error => error === reason);
+  assert.equal(calls, 0);
+  await assert.rejects(decryptAesPayload(Buffer.from(aesFixtures.fixtures[5]!.wire, "hex"), Buffer.from("password"), aes, 1024, controller.signal), error => error === reason);
+  const active = new AbortController();
+  let closed = false;
+  const source = (async function* () { try { yield new Uint8Array(70000); } finally { closed = true; } })();
+  const pending = encryptAesPayload(source, { aes, password: Buffer.from("password"), entropy: n => { setImmediate(() => active.abort(reason)); return new Uint8Array(n); } }, 70000, active.signal);
+  await assert.rejects(pending, error => error === reason);
+  assert.equal(closed, true);
+});
+
+test("AES cancellation while decoding emits no plaintext; invalid staging or inner methods fail closed", async () => {
+  const signal = new AbortController().signal, aes: ZipAes = { strength: 256, version: 2 };
+  const password = Buffer.from("password");
+  await assert.rejects(decryptAesPayload(Buffer.from(aesFixtures.fixtures[5]!.wire, "hex"), password, aes, NaN, signal), /maxBytes/);
+  const controller = new AbortController(), reason = { stop: "decode" };
+  const wire = await encryptAesPayload(toByteSource(new Uint8Array(70000)), { aes, password, entropy: n => new Uint8Array(n) }, 70000, signal);
+  setImmediate(() => controller.abort(reason));
+  await assert.rejects(decryptAesPayload(wire, password, aes, 70000, controller.signal), error => error === reason);
+  const entry = (await readZipArchive(Buffer.from(aesFixtures.fixtures[5]!.archive, "base64"), settings({}), signal)).entries[0]!;
+  entry.aes = { ...entry.aes!, method: 99 };
+  await assert.rejects(collectBytes(decodeZipEntry(entry, settings({}), signal, password), { maxBytes: 1024, signal }), /compression/);
+});
+
+test("AES live writer retains measured progress metadata and reports its staged ciphertext", async () => {
+  const signal = new AbortController().signal, limits = settings({});
+  const entry = await makeZipEntry("file", new Uint8Array(), { modified: new Date(1980, 0, 1), mode: 0o100644, directory: false, symlink: false }, limits, signal, 0);
+  entry.source = toByteSource(Buffer.from("secret"));
+  entry.encryption = { aes: { strength: 256, version: 2 }, password: Buffer.from("password"), entropy: n => new Uint8Array(n) };
+  const retained: number[] = [];
+  const bytes = await writeZipArchive({ entries: [entry], comment: new Uint8Array(), onRetention: counters => retained.push(counters.payloadBytes) }, limits, signal);
+  const archive = await readZipArchive(bytes, limits, signal);
+  assert.equal(Buffer.from(await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal, Buffer.from("password")), { maxBytes: 6, signal })).toString(), "secret");
+  assert.equal(entry.size, 6);
+  assert.equal(entry.compressedSize, 34);
+  assert.ok(retained.some(bytes => bytes >= 34));
+});
+
+test("AES member/work admission precedes entropy acquisition", async () => {
+  const signal = new AbortController().signal, base = settings({});
+  let calls = 0;
+  const entries = await Promise.all(["first", "second"].map(async name => {
+    const entry = await makeZipEntry(name, new Uint8Array(), { modified: new Date(1980, 0, 1), mode: 0o100644, directory: false, symlink: false }, base, signal, 0);
+    entry.encryption = { aes: { strength: 256, version: 2 }, password: Buffer.from("password"), entropy: n => { calls++; return new Uint8Array(n); } };
+    return entry;
+  }));
+  for (const limits of [settings({ limits: { maxMembers: 1 } }), settings({ limits: { maxPatternSteps: 1 } })]) {
+    calls = 0;
+    await assert.rejects(writeZipArchive({ entries, comment: new Uint8Array() }, limits, signal), /member|work/);
+    assert.equal(calls, 0);
+  }
+});
+
+test("AES empty members yield to cancellation before acquiring the next salt", async () => {
+  const controller = new AbortController(), reason = { stop: "empty members" }, limits = settings({});
+  let calls = 0;
+  const entries = await Promise.all(["first", "second"].map(async name => {
+    const entry = await makeZipEntry(name, new Uint8Array(), { modified: new Date(1980, 0, 1), mode: 0o100644, directory: false, symlink: false }, limits, controller.signal, 0);
+    entry.encryption = { aes: { strength: 256, version: 2 }, password: Buffer.from("password"), entropy: n => { calls++; setImmediate(() => controller.abort(reason)); return new Uint8Array(n); } };
+    return entry;
+  }));
+  await assert.rejects(writeZipArchive({ entries, comment: new Uint8Array() }, limits, controller.signal), error => error === reason);
+  assert.equal(calls, 1);
+});
+
+test("AES invocation cleanup drains admitted entropy and preserves an existing archive on cancellation", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/file", Buffer.from("secret"));
+  const old = Buffer.from(aesFixtures.fixtures[5]!.archive, "base64");
+  await fs.writeFile("/archive.zip", old);
+  const controller = new AbortController(), reason = { stop: "entropy" };
+  let release!: () => void, entered!: () => void;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  const entropy = new Promise<Uint8Array>(resolve => { release = () => resolve(new Uint8Array(16)); });
+  let cleanup!: () => void | Promise<void>;
+  const command = createZipCommand({ zip: { encryption: "aes-256-ae2" }, zipHost: { entropy: () => { entered(); return entropy; } } });
+  const context: CommandContext = { command: "zip", args: ["-P", "password", "archive.zip", "file"], cwd: "/", env: {}, fs, signal: controller.signal, stdin: toByteSource(new Uint8Array()), stdout: { async write() {} }, stderr: { async write() {} }, registerCleanup(fn) { cleanup = fn; } };
+  const pending = Promise.resolve(command.execute(context));
+  await started;
+  controller.abort(reason);
+  let drained = false;
+  const closing = Promise.resolve(cleanup()).then(() => { drained = true; });
+  await Promise.resolve(); assert.equal(drained, false);
+  release();
+  await assert.rejects(pending, error => error === reason);
+  await closing;
+  assert.deepEqual(await fs.readFile("/archive.zip"), new Uint8Array(old));
+});
+
+test("ZipCrypto encrypts a replacement member while preserving its unselected AES neighbor", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/file", Buffer.from("replacement"));
+  const limits = settings({}), signal = new AbortController().signal;
+  const aes = (await readZipArchive(Buffer.from(aesFixtures.fixtures[5]!.archive, "base64"), limits, signal)).entries[0]!;
+  const neighbor = { ...aes, name: "neighbor", rawName: Buffer.from("neighbor"), localName: Buffer.from("neighbor") };
+  const file = await makeZipEntry("file", Buffer.from("old"), { modified: new Date(1980, 0, 1), mode: 0o100644, directory: false, symlink: false }, limits, signal, 0);
+  await fs.writeFile("/archive.zip", await writeZipArchive({ entries: [file, neighbor], comment: new Uint8Array() }, limits, signal));
+  const shell = new Shell({ fs }).use(archiveCommands({ zipHost: { entropy: n => new Uint8Array(n) } }));
+  const result = await shell.exec("zip -P password archive.zip file");
+  assert.equal(result.exitCode, 0, result.stderr);
+  const archive = await readZipArchive(await fs.readFile("/archive.zip"), limits, signal);
+  const entry = archive.entries[0]!;
+  assert.equal(entry.flags! & 1, 1);
+  assert.equal(entry.aes, undefined);
+  assert.deepEqual(archive.entries[1]!.data, neighbor.data);
+  assert.equal((await shell.exec("unzip -p -P password archive.zip file")).stdout, "replacement");
+});
 
 test("zip -P creates an encrypted archive instead of rejecting the password option", async () => {
   const fs = createMemoryFileSystem();

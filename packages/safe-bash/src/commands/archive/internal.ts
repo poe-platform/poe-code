@@ -24,7 +24,11 @@ export interface ArchiveCommandsOptions {
   readonly limits?: Partial<ArchiveLimits>;
   /** Explicit trusted host capabilities; neither capability reads shell stdin. */
   readonly zipHost?: ZipHost;
+  /** Defaults for creation; CLI -Z and --encryption override these. */
+  readonly zip?: Readonly<{ compression?: "store" | "deflate" | "bzip2"; encryption?: ZipEncryptionProfile }>;
 }
+
+export type ZipEncryptionProfile = "zipcrypto" | "aes-128-ae1" | "aes-128-ae2" | "aes-192-ae1" | "aes-192-ae2" | "aes-256-ae1" | "aes-256-ae2";
 
 export interface ZipHost {
   /** Resolve a zero-based input disk to an explicit VFS path. No directory discovery. */

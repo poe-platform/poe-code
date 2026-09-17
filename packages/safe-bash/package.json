@@ -4,6 +4,14 @@
   "private": true,
   "description": "Extensible virtual shell with pluggable filesystems and streaming commands",
   "type": "module",
+  "imports": {
+    "#safe-bash-zip-aes-crypto": {
+      "types": "./src/commands/archive/zip/aes-primitives.ts",
+      "workerd": "./dist/commands/archive/zip/aes-primitives-unavailable.js",
+      "browser": "./dist/commands/archive/zip/aes-primitives-unavailable.js",
+      "default": "./dist/commands/archive/zip/aes-primitives.js"
+    }
+  },
   "sideEffects": false,
   "engines": {
     "node": ">=22"

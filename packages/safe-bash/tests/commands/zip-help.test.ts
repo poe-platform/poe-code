@@ -17,6 +17,7 @@ for (const args of [["-h"], ["--help"], ["--hel"], ["-qh"], ["-h", "--unknown"],
     assert.equal(result.exitCode, 0, result.stderr);
     assert.ok(result.stdout.toString().includes("zip [options] archive"), result.stdout.toString());
     assert.ok(result.stdout.toString().includes("bzip2"));
+    assert.ok(result.stdout.toString().includes("--encryption"));
     assert.equal(result.stderr, "");
   });
 }

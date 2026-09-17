@@ -144,10 +144,10 @@ tasks:
 
       Implement a separate WinZip AES extension profile beyond Info-ZIP Zip 3.0 using a pinned AES specification and APPNOTE extra-field definitions. Reuse existing vetted crypto primitives and explicit entropy; add no runtime dependency and do not invent a cipher. Expose an explicit compression/encryption configuration through the actual archive plugin SDK and CLI; do not silently reinterpret native -e as AES. Support required AES strengths and AE-1/AE-2 CRC/authentication semantics with correct 0x9901 extras, salt, verifier, encrypted payload and authentication tag. Require a bounded authenticated staging policy so unauthenticated plaintext is not published or sent through unzip -p; document that this changes latency/retention compared with plain streaming. Test independent known vectors, cross-read with an AES-capable oracle, wrong password, tampered salt/header/payload/tag, truncation, unsupported strengths/version, mixed members and cancellation. If existing approved primitives cannot safely implement the profile, record a concrete blocker rather than adding a dependency or shipping unauthenticated behavior.
     status:
-      reproduce: open
-      implement: open
-      refactor: open
-      test: open
+      reproduce: done
+      implement: done
+      refactor: done
+      test: done
       commit: open
   - id: zip-additional-codecs
     title: "Add LZMA and PPMd format extensions"

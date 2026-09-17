@@ -27,16 +27,7 @@ export class ZipLog {
       this.expected = await this.scope.stat(this.path);
       if (!this.parent || !hasIdentity(this.parent) || this.parent.type !== "directory"
         || this.expected && (this.expected.type !== "file" || this.expected.nlink !== 1 || !hasIdentity(this.expected))) throw new Error("unsafe log identity");
-      for (const name of protectedNames) {
-        if (name === "-") continue;
-        const protectedPath = vfsPath(context.cwd, name);
-        const protectedStat = await this.scope.stat(protectedPath);
-        if (this.path === protectedPath || this.expected && protectedStat && sameIdentity(this.expected, protectedStat)) throw new Error("log alias");
-        if (protectedStat?.type === "directory") {
-          const canonical = await this.scope.operation(() => context.fs.realpath(protectedPath, { signal: context.signal }));
-          if (this.path.startsWith(`${canonical === "/" ? "" : canonical}/`)) throw new Error("log within selected directory");
-        }
-      }
+      await this.protect(protectedNames);
       const capabilities = await this.scope.operation(() => context.fs.capabilitiesFor?.(this.path, { signal: context.signal, create: true }) ?? context.fs.capabilities);
       if (capabilities.atomicFileMutation !== true || !context.fs.writeFileConditional) throw new Error("conditional log writes unavailable");
       this.bytes = append ? this.expected?.size ?? 0 : 0;
@@ -47,6 +38,25 @@ export class ZipLog {
       if (!this.expected) this.expected = await this.scope.operation(() => context.fs.writeFileConditional!(this.path, new Uint8Array(), {
         signal: context.signal, parent: this.parent!, expected: null,
       }));
+    } catch {
+      context.signal.throwIfAborted();
+      this.failed = true;
+      throw new ZipFailure(16, "Invalid command arguments", "ZIP log path is unavailable or unsafe");
+    }
+  }
+  async protect(names: readonly string[]): Promise<void> {
+    const { context } = this.scope;
+    try {
+      for (const name of names) {
+        if (name === "-") continue;
+        const path = vfsPath(context.cwd, name);
+        const stat = await this.scope.stat(path);
+        if (this.path === path || this.expected && stat && sameIdentity(this.expected, stat)) throw new Error("log alias");
+        if (stat?.type === "directory") {
+          const canonical = await this.scope.operation(() => context.fs.realpath(path, { signal: context.signal }));
+          if (this.path.startsWith(`${canonical === "/" ? "" : canonical}/`)) throw new Error("log within selected directory");
+        }
+      }
     } catch {
       context.signal.throwIfAborted();
       this.failed = true;

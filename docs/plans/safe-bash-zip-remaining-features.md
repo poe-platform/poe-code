@@ -108,11 +108,11 @@ tasks:
 
       Add focused zip/volumes.ts and extend zip/zip64.ts, zip-format.ts, zip.ts and unzip.ts for -s split size and related pause/verbose/bell behavior supported by the target build. Define an explicit VFS volume resolver and prompt capability instead of ambient disk discovery. Parse disk numbers, relative offsets and ZIP64 multi-disk locators; write .z01/.z02/final .zip names with correct split signatures. Cover boundaries inside payloads and allowed record boundaries, minimum split sizes, exact rollover, missing/out-of-order/repeated volumes, aliases, descriptor boundaries, encrypted members and copy/recombine. Preflight all destinations and stage every volume; document whether publication is per-volume because a VFS without transactions cannot guarantee all-volume rollback. Prove failures/cancellation leave existing volumes intact where the contract promises it and clean only owned stages.
     status:
-      reproduce: open
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      reproduce: done
+      implement: done
+      refactor: done
+      test: done
+      commit: done
   - id: zip-repair-and-sfx
     title: "Support self-extracting prefixes and explicit repair"
     prompt: |

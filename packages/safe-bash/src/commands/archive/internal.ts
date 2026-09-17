@@ -27,6 +27,10 @@ export interface ArchiveCommandsOptions {
 }
 
 export interface ZipHost {
+  /** Resolve a zero-based input disk to an explicit VFS path. No directory discovery. */
+  readonly volume?: (request: Readonly<{ archive: string; disk: number; disks: number; signal: AbortSignal }>) => string | undefined | Promise<string | undefined>;
+  /** Approve a staged volume transition; false/EOF cancels before publication. */
+  readonly volumePrompt?: (request: Readonly<{ path: string; disk: number; disks: number; signal: AbortSignal }>) => boolean | Promise<boolean>;
   /** Supply cryptographically secure, fresh bytes. Product code never substitutes entropy. */
   readonly entropy?: (length: number, signal: AbortSignal) => Uint8Array | Promise<Uint8Array>;
   /** Host must suppress terminal echo and return owned password bytes, or undefined on EOF. */

@@ -1,5 +1,5 @@
 import { zipGrowRecords } from "./zip/grow.js";
-import { zip64Directory, zip64Fields, stripZip64, zip64Extra, zip64Member, zipEnd, zipDescriptor } from "./zip/zip64.js";
+import { zip64Directory, zip64Fields, zipDiskOffset, zipDiskRecord, stripZip64, zip64Extra, zip64Member, zipEnd, zipDescriptor, type ZipDisks } from "./zip/zip64.js";
 import { crcTable } from "./zip/crc.js";
 import { encryptZipPayload, decryptZipPayload, type ZipEncryption } from "./zip/crypto.js";
 import { collectBytes, readBytes, type ByteSource } from "../../contracts/index.js";
@@ -187,7 +187,7 @@ async function copyBytes(source: Uint8Array, destination: Uint8Array, start: num
   }
 }
 
-export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, signal: AbortSignal, profile: Readonly<{ grow?: boolean; prefix?: boolean }> = {}): Promise<ZipArchive> {
+export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, signal: AbortSignal, profile: Readonly<{ grow?: boolean; prefix?: boolean; disks?: ZipDisks }> = {}): Promise<ZipArchive> {
   const chunkSize = admit(limits, signal);
   number(bytes.length, limits.maxArchiveBytes, "archive byte");
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -199,21 +199,25 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
       const size = view.getUint32(offset + 12, true);
       const start = view.getUint32(offset + 16, true);
       const zip64 = size === 0xffffffff || start === 0xffffffff || offset >= 20 && view.getUint32(offset - 20, true) === 0x07064b50;
-      if (!zip64 && start + size !== offset) continue;
+      if (!zip64 && !profile.disks && start + size !== offset) continue;
       if (end !== -1) fail("ZIP ambiguous end records");
       end = offset;
     }
   }
   if (end === -1) fail("ZIP truncated or missing end of central directory");
-  const { members, centralStart, centralEnd } = zip64Directory(view, end, limits);
+  const { members, centralStart, centralEnd, diskMembers, disk: finalDisk, zip64Disk, zip64DiskMembers } = zip64Directory(view, end, limits, profile.disks);
   number(bytes.length - end - 22, limits.maxTextBytes, "archive comment");
   const entries: ZipEntry[] = [];
   const spans: Array<{ start: number; end: number }> = [];
   const growSpans = new Map<ZipEntry, { start: number; end: number }>();
   let offset = centralStart;
   let total = 0;
+  let finalMembers = 0;
+  let wideDiskMembers = 0;
   for (let index = 0; index < members; index++) {
     await yieldTurn(signal);
+    if (!profile.disks || offset >= profile.disks.starts[finalDisk]!) finalMembers++;
+    if (zip64Disk >= 0 && (!profile.disks || offset >= profile.disks.starts[zip64Disk]! && offset < profile.disks.starts[zip64Disk]! + profile.disks.lengths[zip64Disk]!)) wideDiskMembers++;
     if (offset + 46 > centralEnd || view.getUint32(offset, true) !== 0x02014b50) fail("ZIP truncated or invalid central header");
     const versionMadeBy = view.getUint16(offset + 4, true);
     const version = view.getUint16(offset + 6, true);
@@ -235,6 +239,7 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
     const disk = view.getUint16(offset + 34, true);
     const next = offset + 46 + nameLength + extraLength + commentLength;
     if (next > centralEnd) fail("ZIP truncated central metadata");
+    zipDiskRecord(profile.disks, offset, next);
     number(commentLength, limits.maxTextBytes, "entry comment");
     const rawName = bytes.subarray(offset + 46, offset + 46 + nameLength);
     const centralExtra = bytes.subarray(offset + 46 + nameLength, next - commentLength);
@@ -244,7 +249,7 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
     if (version < 45 && (size === 0xffffffff || compressedSize === 0xffffffff || local === 0xffffffff || disk === 65535)) fail("ZIP64 unsupported member extraction version");
     const resolved = zip64Fields(centralMetadata.zip64, [size, compressedSize, local, disk === 65535 ? 0xffffffff : disk]);
     [size, compressedSize, local] = resolved as [number, number, number, number];
-    if (resolved[3]) fail("ZIP multi-disk member is unsupported");
+    local = zipDiskOffset(profile.disks, resolved[3]!, local);
     number(size, limits.maxEntryBytes, "entry byte");
     number(compressedSize, limits.maxArchiveBytes, "compressed entry byte");
     if (flags & 1 && compressedSize < 12) fail("ZIP truncated encryption header");
@@ -257,6 +262,7 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
     const localNameLength = view.getUint16(local + 26, true);
     const localExtraLength = view.getUint16(local + 28, true);
     const payloadStart = local + 30 + localNameLength + localExtraLength;
+    zipDiskRecord(profile.disks, local, payloadStart);
     let payloadEnd = payloadStart + compressedSize;
     if (payloadEnd > centralStart) fail("ZIP truncated or overlapping local payload");
     const localName = bytes.subarray(local + 30, local + 30 + localNameLength);
@@ -285,6 +291,7 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
         if (compressed === BigInt(compressedSize) && expanded === BigInt(size)) matches.push(descriptor + length);
       }
       if (matches.length !== 1) fail("ZIP truncated, ambiguous or mismatched data descriptor");
+      zipDiskRecord(profile.disks, payloadEnd, matches[0]!);
       payloadEnd = matches[0]!;
     }
     const host = versionMadeBy >>> 8;
@@ -307,8 +314,11 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
     offset = next;
   }
   if (offset !== centralEnd) fail("ZIP central directory size or member count mismatch");
+  if (diskMembers !== 65535 && diskMembers !== finalMembers) fail("ZIP inconsistent per-disk member count");
+  if (zip64DiskMembers >= 0 && zip64DiskMembers !== wideDiskMembers) fail("ZIP64 inconsistent per-disk member count");
   spans.sort((first, second) => first.start - second.start);
-  let covered = profile.prefix ? spans[0]?.start ?? centralStart : 0;
+  if (profile.disks && view.getUint32(0, true) !== 0x08074b50) fail("ZIP missing split signature");
+  let covered = profile.disks ? 4 : profile.prefix ? spans[0]?.start ?? centralStart : 0;
   for (const span of spans) {
     if (span.start !== covered) fail("ZIP overlapping spans, gaps or self-extracting prefix are unsupported");
     covered = span.end;

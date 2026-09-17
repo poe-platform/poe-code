@@ -170,3 +170,60 @@ glob matcher with case-sensitive literals, bracket ranges, no-wild and directory
 controls. It does not introduce general regex syntax, dependencies or unbounded
 matching. Negation and attached values are invalid. Other build profiles require
 separate qualification; a build omitting the option is not applicable to that cell.
+
+## Split volumes
+
+`-s SIZE` / `--split-size=SIZE` writes `.z01`, `.z02`, ... and the final `.zip`.
+Sizes accept integer kmgt units; bare numbers below 1024 mean MiB, otherwise
+bytes. The minimum is 64 KiB. `-s0` or `-s-` recombines to a separate `-O` file.
+Split inputs require a separate output for modification/copy; without an explicit
+size, copies retain splitting using the largest non-final input volume size
+(at least 64 KiB). Output names require a `.zip` suffix. Stale volumes from an
+earlier, larger set are not removed.
+
+`zipHost.volume({ archive, disk, disks, signal })` resolves each preceding input
+disk, numbered from zero, to an explicitly authorized VFS path. The named archive
+is the final disk. Returning `undefined` refuses a missing disk. The command never
+discovers files on ambient disk or scans VFS directories for volumes. Paths must
+resolve to regular, single-link files with known backing identities; duplicate
+paths and backing aliases are refused. Counts and disk-relative offsets, including
+ZIP64 member disk extras and locators referring to a preceding disk, are checked.
+The format has no identity tag on every payload-only disk: CRC/length validation
+detects reordered content, but this is not cryptographic volume authentication.
+
+`-sp` enables descriptors and requires explicit
+`zipHost.volumePrompt({ path, disk, disks, signal })` when splitting. It approves
+transitions to each subsequent owned staged volume. False/EOF refuses publication.
+The trusted host must cooperate with cancellation; no stdin or terminal fallback
+is used. `-sb` rings before these prompts; `-sv` reports the actual volume number,
+path and byte count through the existing bounded output sink. These are VFS stage
+approvals, not a removable-media protocol. Callback work and publication cleanup
+remain enrolled in the invocation scope.
+
+The first volume carries the split signature. Payloads (including encrypted
+payloads) may cross disks; local/central headers, descriptors and individual end
+records must fit within one disk. Output partitions individual end records and
+never inserts unreferenced padding. Oversized records and volume counts exceeding
+`maxMembers` or reaching the legacy 65,535 disk sentinel are refused. STORE,
+DEFLATE, BZIP2, traditional encryption and ZIP64 reuse the existing codecs.
+Split input/output use bounded archive buffers and the existing file/source
+limits; this does not promise memory proportional to one volume or process RSS.
+
+All destinations are preflighted and every output volume is staged before the
+first publication. Input/source aliases, non-files, hardlinks and symlink targets
+are protected. Before publication starts, failure/cancellation leaves every
+existing destination intact. Publication is **per-volume**, with conditional
+backing-identity checks and the final `.zip` published last. After a successful
+volume publication, a later failure/cancellation can leave a partial new set;
+the VFS has no all-volume transaction/rollback contract. Cleanup removes only
+owned stages, never existing or stale destination volumes. `-m` removes sources
+only after the entire publication succeeds. `-T` validates a staged single-disk
+encoding through virtual command invocation before any split destination changes.
+Log destinations are checked against every input and output volume before log
+truncation/start. Stored symlinks are protected as entries; `-y` does not require
+their targets to exist.
+
+The CLI and SDK share the command parser and archive options. The current CLI has
+no volume resolver/prompt binding; multi-volume reads and `-sp` require an SDK
+host configuration. Named writes still require owned VFS staging, which the
+current real adapter does not supply. No host-process fallback is introduced.

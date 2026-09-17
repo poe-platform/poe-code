@@ -110,6 +110,7 @@ export interface ZipPublication {
 }
 
 export interface ZipStaging {
+  readonly stagingPrefix?: string;
   readonly reservedPath?: string;
   readonly parent: string;
   readonly parentStat: FileStat;
@@ -122,7 +123,7 @@ export interface ZipStaging {
 /** Own a temporary archive through acquisition, writing, consumption and cleanup. */
 export async function stageZip(scope: ZipScope, prepared: ZipStaging, consume: (staging: FileStaging) => Promise<void>): Promise<void> {
   const { fs, signal } = scope.context;
-  const capabilities = await scope.operation(() => fs.capabilitiesFor?.(prepared.parent, { signal, create: true }) ?? fs.capabilities);
+  const capabilities = await scope.operation(() => fs.capabilitiesFor?.(prepared.parent, { signal }) ?? fs.capabilities);
   if (capabilities.atomicFileStaging !== true || !fs.createStagedFile || !fs.removeStagedFile) fail("ZIP temporary path requires atomic owned file staging");
   if (prepared.source && (capabilities.atomicFileMutation !== true || !fs.writeFileConditional)) fail("ZIP temporary path requires atomic conditional writes");
   let staging: FileStaging | undefined;
@@ -135,7 +136,7 @@ export async function stageZip(scope: ZipScope, prepared: ZipStaging, consume: (
   }, { maxOperations: 16 });
   try {
     for (let attempt = 0; attempt < Math.min(64, scope.limits.maxMembers); attempt++) {
-      const path = `${prepared.parent === "/" ? "" : prepared.parent}/.zip-${attempt + 1}`;
+      const path = `${prepared.parent === "/" ? "" : prepared.parent}/.${prepared.stagingPrefix ?? "zip"}-${attempt + 1}`;
       checkPath(path, scope.limits);
       checkPath(`${path}/archive.zip`, scope.limits);
       if (path === prepared.reservedPath) continue;

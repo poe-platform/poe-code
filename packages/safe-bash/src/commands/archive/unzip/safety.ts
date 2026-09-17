@@ -3,6 +3,7 @@ import { retainFileSystemCleanup } from "poe-code/safe-fs/core";
 import { checkPath, display, fail, hasIdentity, sameIdentity, type ArchiveLimits } from "../internal.js";
 
 export class Extraction {
+  inputVolumes: readonly { path: string; stat: FileStat }[] = [];
   private readonly pending = new Set<Promise<unknown>>();
   private readonly publications = new Set<Promise<void>>();
   private readonly readers = new Set<() => Promise<void>>();
@@ -144,6 +145,7 @@ export class Extraction {
   async destination(path: string, archivePath: string, archiveStat: FileStat): Promise<FileStat | undefined> {
     const stat = await this.stat(path);
     if (path === archivePath || (stat && sameIdentity(stat, archiveStat))) fail("entry would overwrite input archive");
+    if (this.inputVolumes.some(volume => path === volume.path || stat && sameIdentity(stat, volume.stat))) fail("entry would overwrite input archive volume");
     if (stat && stat.type !== "file") fail(`unsafe non-regular destination: ${display(path)}`);
     if (stat && (!hasIdentity(stat) || !hasIdentity(archiveStat))) fail("cannot overwrite file with unknown input-archive backing identity");
     return stat;

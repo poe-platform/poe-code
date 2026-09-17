@@ -141,7 +141,7 @@ test("zip show-options lists only implemented options and validates later errors
   assert.match(result.stdout.toString(), /show-files/);
   assert.match(result.stdout.toString(), /password\s+req/u);
   assert.match(result.stdout.toString(), /encrypt/u);
-  assert.doesNotMatch(result.stdout.toString(), /split-size/);
+  assert.match(result.stdout.toString(), /split-size/);
   assert.equal((await execute("zip", await fixture(), ["-so", "--unknown"])).exitCode, 16);
 });
 

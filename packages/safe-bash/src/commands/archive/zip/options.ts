@@ -7,6 +7,7 @@ export class ZipFailure extends Error {
 export const reservedZipShortOptions = new Set(["mm"]);
 
 export const zipLongOptions: Readonly<Record<string, string>> = {
+  "split-size": "s", "split-pause": "sp", "split-verbose": "sv", "split-bell": "sb",
   fifo: "FI", "DOS-names": "k", regex: "RE",
   password: "P", encrypt: "e",
   "difference-archive": "DF", grow: "g", "temp-path": "b", "junk-sfx": "J",
@@ -25,8 +26,7 @@ export const zipLongOptions: Readonly<Record<string, string>> = {
 // implementation must not make native-ambiguous prefixes uniquely resolvable.
 const reservedOptions = [
   "adjust-sfx", "fix", "fixfix",
-  "split-size", "split-pause",
-  "split-verbose", "split-bell", "show-unicode", "show-just-unicode",
+  "show-unicode", "show-just-unicode",
 ];
 
 export function normalizeZipOption(argument: string): string {
@@ -42,7 +42,7 @@ export function normalizeZipOption(argument: string): string {
   const short = matched === undefined ? undefined : zipLongOptions[matched];
   if (!short) throw new ZipFailure(16, "Invalid command arguments", `unsupported option: --${name}`);
   if (negate && !zipNegatableOptions.has(short)) throw new ZipFailure(16, "Invalid command arguments", `option ${matched} is not negatable`);
-  if (equal >= 0 && short !== "P" && short !== "i" && short !== "x" && short !== "n" && short !== "Z" && short !== "t" && short !== "tt" && short !== "O" && short !== "ds" && short !== "b" && short !== "lf" && short !== "TT") {
+  if (equal >= 0 && short !== "s" && short !== "P" && short !== "i" && short !== "x" && short !== "n" && short !== "Z" && short !== "t" && short !== "tt" && short !== "O" && short !== "ds" && short !== "b" && short !== "lf" && short !== "TT") {
     throw new ZipFailure(16, "Invalid command arguments", `option '${matched}' does not allow a value`);
   }
   if (short === "version") return "--version";

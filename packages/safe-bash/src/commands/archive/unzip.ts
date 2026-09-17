@@ -7,6 +7,7 @@ import { decodeZipEntry, readZipArchive, type ZipEntry } from "./zip-format.js";
 import { Answers, parseArguments, Selection } from "./unzip/arguments.js";
 import { Extraction } from "./unzip/safety.js";
 import { readZipPassword } from "./zip/crypto.js";
+import { resolveZipVolumes } from "./zip/volumes.js";
 
 function filtered(name: string): string {
   let output = "";
@@ -87,7 +88,9 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       if (archiveStat.type !== "file") fail("input archive is not a regular file");
       const bytes = await collectBytes(bounded(extraction.input(archivePath), limits.maxArchiveBytes, context.signal, limits.chunkSize), { signal: context.signal, maxBytes: limits.maxArchiveBytes });
       if (!parsed.pipe && !parsed.quiet) await budget.output(`Archive:  ${filtered(archive)}\n`);
-      const zip = await readZipArchive(bytes, limits, context.signal);
+      const resolved = await resolveZipVolumes({ context, limits, operation: action => extraction.operation(async () => action()), stat: path => extraction.stat(path), input: path => extraction.input(path) }, archivePath, bytes, options.zipHost);
+      extraction.inputVolumes = resolved.volumes ?? [];
+      const zip = await readZipArchive(resolved.bytes, limits, context.signal, resolved.disks ? { disks: resolved.disks } : {});
       if (!parsed.pipe && !parsed.quiet) await comment(zip.comment, budget);
       if (!zip.entries.length) {
         await budget.output(`warning [${filtered(archive)}]:  zipfile is empty\n`, true);

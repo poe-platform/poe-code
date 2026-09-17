@@ -14,6 +14,9 @@ Usage: zip [options] archive [file ...]
   -d / -U     delete / copy selected archive members
   -FS         synchronize selected members with filesystem sources
   -O FILE     write to a separate output archive
+  -s SIZE     split into .z01/.z02/.../.zip volumes (minimum 64k; 0 recombines)
+  -sp         approve volume transitions using an explicit host prompt
+  -sv / -sb   report split volumes / ring before a split-pause prompt
   -m          remove archived sources after successful publication
   -D / -y     omit directory entries / store symlinks
   -i / -x     include / exclude matching names

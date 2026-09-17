@@ -3299,3 +3299,372 @@ full repository test run, new native-build qualification or remote release.
 Repository `npm run lint:eslint` also passed: 15,501 configured inputs
 linted, zero errors and four warnings. `git diff --check` passed. The commit
 includes this validation record and marks the FIFO/name task commit stage done.
+
+## Split-volume implementation — 2026-09-16
+
+Base: current main, HEAD `fdba816493d8a7777ea553ac7e3bba72bbbe0afd`.
+Root and package AGENTS.md were read. The worktree started clean. This section
+qualifies the live, uncommitted inputs below, not an immutable candidate commit.
+SafeJS, README, dependency declarations and root CLI/SDK sources were preserved.
+
+### Reproduction and failing controls
+
+Before product changes, the memory-only `zip-volumes.test.ts` invoked
+`zip -q -0 -s 64k archive.zip file` on 150,000 deterministic bytes.
+It failed in 0.483 s: status **16**, expected **0**. Current source explicitly
+refused multi-disk archives/locators/members. This reproduces the original gap;
+historical split exclusions above did not substitute for current validation.
+
+Additional fast failing controls exposed and then verified fixes for records
+straddling disks, native bare-number size semantics, pause descriptor flags,
+a source symlink targeting an output volume, cooperative stage retirement,
+wide per-disk sentinel counts, locators pointing to a preceding disk, default
+split copy, four-byte signature output accounting, and extraction overwriting
+a preceding input volume. Neighboring tests caught a missing unresolved-final-
+disk rejection and the now-stale assertion that show-options omits split-size.
+The structural rejection stayed enforced; the option inventory was updated.
+Fixture-only mistakes (nonexistent `fs.exists`, treating readdir entries as
+strings, a scratch-relative import, and a noUncheckedIndexedAccess error) were
+corrected; failed attempts are not counted as passes.
+
+### Qualified behavior and ownership
+
+`zip/volumes.ts` implements integer split-size admission, split names/signatures,
+VFS input resolution, record-preserving partitioning, disk-relative central
+offsets, ZIP64 offsets/locators and staged publication. Existing STORE, DEFLATE,
+BZIP2, ZipCrypto, ByteSource/ByteSink, signals and limits remain in use.
+No runtime dependency or native product fallback was added.
+
+`zipHost.volume` is a trusted explicit VFS-path resolver for preceding zero-based
+disks; the named archive is final. Missing, repeated, out-of-order structural
+sets, aliases and unsafe backing entries are refused. Payload CRC/length checks
+cover changed/reordered content. ZIP64 four-byte disk extras and locators whose
+end record resides on a preceding disk have positive and negative controls.
+Unzip protects every resolved input volume from destination replacement,
+including renamed destinations through the existing extraction checks.
+
+`-s` and `--split-size` accept kmgt units, a 64 KiB minimum, zero or `-` for
+recombination. Bare values below 1024 mean MiB; other bare values mean bytes.
+Files use `.z01/.z02/.../.zip` and an initial `50 4b 07 08` signature.
+Payloads cross disks; complete local/central headers, descriptors and end records
+do not. Exact rollover produces no empty trailing disk or unreferenced padding.
+Copies preserve splitting unless `-s0` explicitly recombines. A separate
+`-O` is required for split input modification/copy.
+
+`-sp` enables descriptors and requires the explicit trusted `volumePrompt`
+capability for staged transitions; `-sv` reports volume/path/size and `-sb`
+rings before prompts. False refuses publication; callbacks borrow the command
+signal and must cooperate with cancellation. No ambient terminal/stdin discovery
+is introduced. Shell and direct SDK dispatch use the same parser/options.
+Virtual `-T` validates a separately owned staged single-disk encoding first,
+including custom test invocation; there is no native test fallback.
+
+Every output destination is preflighted, including actual source targets reached
+through symlinks, and every volume is staged before the first publication.
+Split stages use distinct owned prefixes so acquiring more than 64 volumes does
+not depend on exhausting one shared 64-attempt staging-name pool. A parent
+capability probe now queries the directory without pretending to create a file
+over it; an actual Shell root-directory control reproduced that mismatch.
+
+Publication is **per-volume**, conditionally checked, final `.zip` last.
+Before first publication, stage faults, destination faults, rejected prompts,
+budget failure and cancellation preserve every existing destination. A controlled
+second-publication failure proves the documented weaker outcome: first volume
+changed, later volumes intact, every owned stage retired. There is no VFS
+all-volume rollback/transaction promise. Unrelated staging-like directories and
+their content survive. Registered cleanup waits for cooperative stage retirement.
+Shell output accounting charges all staged volume bytes, including the signature.
+Sources are removed only after whole-set success through the existing move path.
+
+### Isolated native oracle proof and defect
+
+Downloaded the same pinned Zip source archive documented earlier:
+`f6cfe48f6bc5bf2d505a0e0eb265ce4cb238db89`, source tar SHA-256
+`82631795a124b0dff92979286c74095be5e5f45ceb4183935985ed2839f26490`.
+The earlier explicit `unix/Makefile zip` flags built successfully with no patches.
+Binary SHA-256: `f175f1aca8767e1f583dcde7a45e08393b5ed117798d733e437870e6141c4f8d`.
+Native invocations used an explicit binary path, scratch cwd and
+`env -i PATH=/usr/bin:/bin LC_ALL=C TZ=UTC`; product tests used memory VFS only.
+
+Native `zip -q -0 -s64k native.zip file` on bytes `i % 251`, length 150,000,
+produced lengths **65,536 / 65,536 / 19,090**. A compact fixture retains the
+actual native prefix/tail and volume lengths, with deterministic payload recipe,
+rather than huge repeated encoded payloads. Native volume SHA-256 identities:
+
+| Volume | SHA-256 |
+| --- | --- |
+| native.z01 | `90de43d6280aade31abf2d2c9e70eeabfdcb2865e90436aaa627cdffef76a350` |
+| native.z02 | `30aa9462dce97629a67892b7b5d0b70fa9a5c8bcc4006fb48666ca30e26a4c10` |
+| native.zip | `d1d89eec240cf76c5ef229cdcb5379e0f637c8d42cc8698d43b60a60c220c58c` |
+
+The fixture positively extracts and recombines with the product through explicit
+VFS resolution. Independently, the pinned native tool recombined four product
+**two-volume**, 70,000-byte STORE profiles: ZIP32, forced ZIP64, ZipCrypto and
+descriptors. Python 3.9 zipfile extracted all four, including password validation,
+with byte equality and payload SHA-256
+`9dc177c2fde29dea8e7c29f7ddf147b7c449c99d049c62f3aac0a5933ecf76a3`.
+A native-generated two-volume control also recombined/extracted successfully.
+
+Do not count the initial **three-volume** native recombination attempts as
+passes: the pinned tool returned 0 but produced only 131,149 bytes for plain
+product recombination, 131,177 for forced ZIP64, and 131,149 for encryption;
+Python raised EOFError. The same native tool truncated its **own** 150,000-byte
+three-volume archive into 131,164 bytes and failed Python extraction identically.
+This establishes a native-oracle defect for that cohort. Product three-volume
+round trips and the native fixture cross-read pass; native three-volume
+recombination remains unqualified. No oracle source or product code was patched
+to hide that defect.
+
+### Executed Markdown visual QA
+
+1. In memory VFS, place a 70,000-byte file; configure explicit resolver and
+   cooperative approving prompt. Run `zip -0 -s64k -sp -sv -sb archive.zip file`.
+   Expect two volumes, descriptor flag, a transition prompt/bell, accurate
+   65,536/4,608-byte split reports and status 0.
+2. Run `unzip -t archive.zip`. Expect file OK and status 0.
+3. Run `zip -s0 archive.zip -O joined.zip`, then `unzip -t joined.zip`.
+   Expect copying/OK, both status 0.
+4. Render actual Shell dispatch through the maintained general `npm run screenshot`
+   command and inspect the PNG. All expected commands, progress, reports and
+   statuses were visible and legible; bell bytes were checked separately in
+   byte-level controls because the renderer drops control characters.
+   The root poe-code launcher is not the memory-VFS capability host.
+
+Screenshot SHA-256:
+`db9f72443c472110c47203e427c036d77b5f323edf7c56c3d91cc2a1391af715`.
+The first render failed because a scratch import ascended one directory too far;
+the corrected render exited 0 and was visually inspected. This is ad hoc QA,
+not a screenshot test. Scratch rendering/capture files are not maintained QA
+scripts and are purged after evidence recording.
+
+### Revision identities
+
+Paths are repository-relative; this table excludes the evidence file itself.
+
+| Input | SHA-256 |
+| --- | --- |
+| `packages/safe-bash/src/commands/archive/internal.ts` | `59f10ef05672d7bab0b44ea4bd38c037f16e3ba76e841959e5863a57536d4276` |
+| `packages/safe-bash/src/commands/archive/unzip.ts` | `29556be83943aa0f46f2a40ac800f0fd1c95cfc326272ec5ed2c64995e38763e` |
+| `packages/safe-bash/src/commands/archive/unzip/safety.ts` | `fc8237058c8f43a3d962c77a23dd8cea3cd461df73929b3a5b1e22522444c213` |
+| `packages/safe-bash/src/commands/archive/zip-format.ts` | `efb49a79900b43273d541ff68f8efe48597ef2a8158af0cd2c0008f911dd7ca7` |
+| `packages/safe-bash/src/commands/archive/zip.ts` | `a1233b166760681267353ea7a293e796fbcdac0f2e1922e99baf36072a260a4d` |
+| `packages/safe-bash/src/commands/archive/zip/volumes.ts` | `85c81c26f114b010095fe0893422fe8a0c2db4f69fe0f9d263a82a747f7286cc` |
+| `packages/safe-bash/src/commands/archive/zip/zip64.ts` | `7d03f4df10c221e215fa779327fa97ff7b52236d561c871584187654ae0e028b` |
+| `packages/safe-bash/src/commands/archive/zip/safety.ts` | `cca749587878acb89eeb7cf9e0ccb5c597feca535b8acae122401c8c34ee6a71` |
+| `packages/safe-bash/src/commands/archive/zip/options.ts` | `16220a853f3c19afcca96fe0d2fd12f159bfe56484cc8492d7b768936d780d5b` |
+| `packages/safe-bash/src/commands/archive/zip/help.ts` | `13785329cf85c2c6b7d0538cdb4e0700f6e8b760d4fcc1a3577839056bf6754e` |
+| `packages/safe-bash/src/commands/archive/zip/log.ts` | `5a79566f257bbfdffa99b15833e231532523d50f1b89f02c536bc4f3a812b074` |
+| `packages/safe-bash/tests/commands/zip-volumes.test.ts` | `9a93f3634564457473f81f84f003a9c23ad816ad2a106379847b38afdeb3e26e` |
+| `packages/safe-bash/tests/commands/zip-help.test.ts` | `f69d1b055bbaafc18639c53f0fd654b5a2c6d052174f4243729d0d86d957bfce` |
+| `packages/safe-bash/tests/commands/fixtures/zip-volumes-infozip.json` | `c7ecc9d153c337a3f13065dd933c8885577c38100d464ce3c17a54966bd4cb28` |
+| `packages/safe-bash/scripts/integration-inputs.test.mjs` | `88fc80b6a33781c778eb63df6e6db96681a0c42f3223131ba1eb52e2960fa512` |
+| `packages/safe-bash/src/contracts/zip.md` | `ebfd51e25da2f4cce51b06f27e3a5fb6cdfdee5c4d8537d3774f5708ed49ffed` |
+
+### Exclusions and qualification limits
+
+This is a bounded VFS profile, not universally complete Info-ZIP/media parity.
+Input and output retain archive buffers under existing source/entry/archive
+limits; there is no one-volume memory or RSS guarantee. Oversized records,
+65,535-plus output disks, SFX/recovery plus splitting, removable-media changes,
+opaque/uncooperative host cancellation, transactions/all-volume rollback and
+cryptographic volume authentication are not claimed. Stale excess volumes are
+not deleted. The native file format cannot distinguish otherwise valid,
+identical payload-only volumes by a per-volume identity tag.
+
+Explicit-size pause, verbose and bell behavior is qualified; lone `-sp`,
+native diagnostic byte-for-byte parity, the separate legacy `-dv` progress
+presentation, arbitrary option cross-products and other native build/OS profiles
+are not newly qualified. Existing ASCII DOS-name, bounded glob, traditional-
+encryption and other recorded restrictions remain. Named real-adapter staging,
+deployed S3/WebDAV services, new CLI prompt/resolver bindings, full repository
+gates, a full fresh compatibility-matrix sweep and release publication are not
+inferred from these focused checks.
+
+Absolute `/out` creation freshly failed with Read-only file system. Task-owned
+scratch used ignored repository `out/zip-volumes-oracle` and is purged after
+inspection. No commit, push, remote-main verification, issue closure or release
+was requested or performed. Final validation results follow below.
+
+### Independent review and final controls
+
+The independent stress reviewer reproduced destructive logfile aliases to
+preceding input volumes and generated output volumes. Failing memory-VFS tests
+preceded the fix: logfile protection now checks the complete resolved input and
+actual destination sets before opening the log. Existing archive bytes survive
+rejected direct and symlink aliases. The reviewer also reproduced needless
+grouping of ZIP64 end records and incorrect dereferencing of stored `-y`
+dangling symlinks; both received failing tests and focused fixes.
+
+Persisted boundary controls qualify individual ZIP64 end-record rollover:
+65,332-byte payload produces volume lengths 65,536/42 (end record before
+locator rollover); 65,312-byte payload produces 65,536/22 (locator before legacy
+EOCD rollover). Both parse and pass actual virtual `unzip -t` through the explicit
+resolver. Comment lengths 65,450, 65,500 and 65,514 produce final volumes of
+65,472, 65,522 and exactly 65,536 bytes. Stored dangling symlink bytes round-trip
+without resolving a nonexistent target. These are memory-only unit controls.
+
+Final checks on the identities above:
+
+- Focused split-volume tests: **86/86**, no failures, skips or cancellations.
+- ZIP/unzip neighboring controls: **1,838/1,838**, no failures, skips or
+  cancellations; selected test concurrency was one.
+- Selected maintained build closure:
+  `npm run build:workspaces -- --workspace=virtual-bash` passed, six declared
+  build tasks selected from the maintained workspace dependency graph.
+- `npm run typecheck --workspace=virtual-bash` passed all 26 current consumer
+  groups; the three negative consumer validators returned expected exit 2.
+  This establishes type acceptance, not runtime/provider qualification.
+- Integration input-runner tests: **109/109**; maintained workspace
+  `npm run test:runner --workspace=virtual-bash`: **522/522**.
+- Final screenshot rerender exited 0, was inspected and retained the exact
+  SHA-256 recorded above. Split reports, prompt, test and recombine statuses
+  remained legible and successful.
+- Root guarded `npm run lint:eslint` completed with exit 0, zero errors and
+  four existing unrelated warnings. The final receipt reports complete coverage;
+  no guard, ownership or input-drift exclusion was added for this work.
+- `git diff --check` passed. Task-owned ignored scratch was purged after
+  recording checks and revision identities; unrelated `out` contents survive.
+
+These focused gates do not replace the excluded full repository gate.
+
+### Current-main revalidation, 2026-09-16
+
+The implementation request was revalidated against main at
+`fdba816493d8a7777ea553ac7e3bba72bbbe0afd` plus the existing uncommitted
+working-tree changes. Split-volume implementation, fixtures and controls were
+already present before this revalidation. The six SHA-256 identities above for
+`volumes.ts`, `zip64.ts`, `zip-format.ts`, `zip.ts`, `unzip.ts` and
+`zip-volumes.test.ts` were recomputed and match exactly. This is working-tree
+proof, not proof that these changes are committed or delivered on remote main.
+
+Fresh uncached checks:
+
+- `node --import tsx --test packages/safe-bash/tests/commands/zip-volumes.test.ts`:
+  86/86 pass, zero failures, skips, cancellations or TODOs.
+- `node --import tsx --test --test-concurrency=1 packages/safe-bash/tests/commands/zip*.test.ts packages/safe-bash/tests/commands/unzip.test.ts packages/safe-bash/tests/plugins/zip-commands.test.ts packages/safe-bash/tests/plugins/zip-safety.test.ts`:
+  1,838/1,838 pass, zero failures, skips, cancellations or TODOs.
+- `git diff --check`: exit 0.
+
+The stated missing split-volume support is not reproducible on this candidate;
+no product code was changed during this revalidation. Positive, negative,
+boundary, cancellation and neighboring regression controls were rerun, including
+the memory-VFS Shell/SDK parity control. Existing edits, SafeJS and README were
+preserved. No new dependencies, native fallback, scratch files, commit or push
+were introduced. Build, typecheck, lint, native-oracle capture and screenshots
+were not rerun in this documentation-only revalidation; their earlier receipts
+remain historical. All exclusions above, including explicit host capabilities
+and per-volume rather than transactional publication, still apply.
+
+### Repeat-request verification, 2026-09-17 UTC
+
+Fresh verification of the repeated original request began at approximately
+02:29 UTC (2026-09-16 local time), on the same main HEAD
+`fdba816493d8a7777ea553ac7e3bba72bbbe0afd` and pre-existing dirty candidate.
+The six source/test SHA-256 identities listed in the preceding revalidation
+were recomputed and still match. The same uncached commands passed again:
+focused volume controls **86/86**, neighboring ZIP/unzip controls
+**1,838/1,838**, zero failures, skips, cancellations or TODOs; neighboring
+execution took 30.083 seconds. `git diff --check` passed before this entry.
+
+No missing split-volume implementation was reproduced, so no product changes
+or speculative refactor were made. Only this receipt was appended; all existing
+edits were preserved. This repeat run qualifies positive, negative, boundary,
+cancellation and neighboring regression controls on the working tree, including
+explicit resolver/prompt capabilities, encrypted payloads, copy/recombine,
+owned stage cleanup and the per-volume publication limitation. It does not
+renew historical native-oracle, screenshot, build, typecheck or lint receipts,
+prove remote delivery, or remove any exclusions recorded above. No commit,
+push or release was performed.
+
+### User-workflow edge review, 2026-09-17 UTC
+
+Review at 02:35 UTC used main HEAD
+`fdba816493d8a7777ea553ac7e3bba72bbbe0afd` plus the pre-existing dirty
+candidate. Split support was present; initial focused controls passed 86/86.
+Additional memory-VFS workflows reproduced two stale-input defects before
+fixing product code:
+
+- A later resolver callback replaced a previously read `.z01` file with a
+  same-length file of different identity. Both recombine and extraction
+  incorrectly succeeded from cached bytes (two failing assertions).
+- A resolver callback replaced the final `.zip` file with a same-length file.
+  Extraction incorrectly succeeded from the cached final volume. Recombine
+  already rejected this case through its separate original-archive check
+  (one failing assertion and one passing neighboring control).
+
+`resolveZipVolumes` now captures the final volume stat before invoking resolver
+callbacks, checks it after resolution, and rechecks every previously read
+volume after all resolver callbacks and reads. It uses existing scope operations,
+signal and identity/size/mtime/ctime checks. No dependencies, host discovery,
+fallback, format changes or new host capabilities were introduced.
+
+Six additional controls cover both commands: preceding-volume replacement,
+final-volume replacement and cancellation during the new revalidation pass.
+They prove rejection before extraction directory creation or recombine
+publication, preservation of an existing destination, preservation of input
+bytes on cancellation, no generated volume stages, and preservation of the
+replacement files owned by the resolver. Earlier positive, negative, minimum-size,
+exact-rollover, descriptor, encrypted, copy/recombine and neighboring controls
+remain active. Canonical fixtures remain memory-only.
+
+Fresh final checks:
+
+- Focused volume controls: **92/92**, zero failures, skips, cancellations or TODOs.
+- ZIP/unzip neighboring command/plugin controls: **1,844/1,844**, zero failures,
+  skips, cancellations or TODOs; uncached, test concurrency one, 40.858 seconds.
+- Maintained selected build closure:
+  `npm run build:workspaces -- --workspace=virtual-bash`: exit 0, six builds.
+- `npm run typecheck --workspace=virtual-bash`: exit 0, source/tests and all
+  26 current consumer groups passed; three negative validators returned their
+  expected exit 2. This is type acceptance, not runtime/provider qualification.
+- Root guarded `npm run lint:eslint`: exit 0, complete receipt, zero errors and
+  four warnings in unchanged files. No lint exclusions or waivers were added.
+- `git diff --check`: exit 0. Task-owned scratch logs/rendering files were
+  purged after recording results; unrelated `out` contents were preserved.
+- Ad hoc screenshot: actual memory-VFS Shell dispatch created three volumes,
+  tested the archive successfully and rejected recombine after resolver mutation
+  with `ZIP input volume changed while reading`, exit 2. The maintained
+  `npm run screenshot` renderer exited 0; the PNG was visually inspected and
+  all commands, split sizes, statuses and the diagnostic were legible.
+  SHA-256: `6cc1baecbb3ecefd273484513a4101b1c1c2772161e6f7efce8e9cd1f4adcb35`.
+
+Final working-tree identities:
+
+| Input | SHA-256 |
+| --- | --- |
+| `packages/safe-bash/src/commands/archive/zip/volumes.ts` | `2f1296efab88b6fd9fa46b7b71b2ac07ce7040c55c1c9afdade9639fb7ccd371` |
+| `packages/safe-bash/tests/commands/zip-volumes.test.ts` | `daeab4def93ddd75103b4bbe33b5446eb97c281b58486d39b7654ddfc1a2ceaf` |
+
+These checks detect observable stat changes during resolution; they do not
+establish a coherent cross-volume snapshot, a lease, an ABA defense or detection
+of changes a provider does not expose through identity/metadata. Publication
+remains per-volume: without VFS transactions, completed publications cannot be
+rolled back as one archive. Existing explicit resolver/prompt and target-profile
+exclusions still apply. No fresh external oracle capture, full repository unit
+gate or deployed provider qualification was performed. README, SafeJS and all
+unrelated edits were preserved. This is local dirty-candidate proof; no commit,
+push or release was performed.
+
+## Commit validation, 2026-09-16
+
+The complete maintained `npm run test:unit --workspace=virtual-bash` route
+executed all 1,176 discovered TypeScript test files. Runner controls passed
+522/522. The workspace suite reported 40,798 tests: 39,974 passed, 823 skipped,
+zero assertion failures and one cancellation from a public cleanup timeout.
+This run was not a green full-suite result.
+
+The cleanup refusal assertion compared large runtime manifest objects, producing
+oversized diffs. Two bounded-message regression checks failed before replacing
+that comparison with the equivalent boolean identity assertion. This test-only
+fix was committed separately as `ef6beb446`. Subsequent cleanup runs also
+encountered intermittent delays in other cases; idle sleep inhibition alone did
+not eliminate them. The final complete cleanup-file rerun passed 22/22 with
+zero failures, cancellations or skips, in 59.240 seconds. The full workspace
+suite was not repeated after the diagnostic fix.
+
+The selected maintained build closure passed:
+`npm run build:workspaces -- --workspace=virtual-bash`.
+Workspace typechecking passed, including all 26 current consumer groups and
+expected negative validators. Repository guarded ESLint passed before and after
+the test-only fix, with zero errors and four warnings in unchanged files.
+`git diff --check` passed. These are local checks; no push or release was requested.

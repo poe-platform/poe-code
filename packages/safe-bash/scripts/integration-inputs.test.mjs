@@ -2401,6 +2401,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/zip-atomic-ownership.test.ts"));
   assert.ok(files.includes("tests/commands/zip-format.test.ts"));
   assert.ok(files.includes("tests/commands/zip-crypto.test.ts"));
+  assert.ok(files.includes("tests/commands/zip-volumes.test.ts"));
   assert.ok(files.includes("tests/commands/zip-review.test.ts"));
   assert.ok(files.includes("tests/commands/zip.test.ts"));
   assert.ok(files.includes("tests/commands/zip-help.test.ts"));

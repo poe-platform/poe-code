@@ -135,6 +135,7 @@ jobs:
       - name: Publish Safe Bash with provenance
         run: npm publish "$RUNNER_TEMP/safe-npm/safe-bash" --provenance --access public
       - name: Verify the published versions
+        timeout-minutes: 15
         env:
           VERSION: ${{ steps.version.outputs.next }}
         shell: bash
@@ -142,13 +143,13 @@ jobs:
           set -euo pipefail
           for PACKAGE in safe-fs safe-js safe-bash; do
             VERIFIED=false
-            for ATTEMPT in {1..12}; do
-              if ACTUAL=$(curl --fail --silent --show-error --header "Cache-Control: no-cache" "https://registry.npmjs.org/@poe-platform%2F$PACKAGE/$VERSION") &&
+            for ATTEMPT in {1..60}; do
+              if ACTUAL=$(curl --fail --silent --show-error --connect-timeout 10 --max-time 30 --header "Cache-Control: no-cache" "https://registry.npmjs.org/@poe-platform%2F$PACKAGE/$VERSION") &&
                 node --input-type=module -e 'import assert from "node:assert/strict"; assert.equal(JSON.parse(process.argv[1]).version, process.argv[2]);' "$ACTUAL" "$VERSION"; then
                 VERIFIED=true
                 break
               fi
-              if [ "$ATTEMPT" -lt 12 ]; then sleep 10; fi
+              if [ "$ATTEMPT" -lt 60 ]; then sleep 10; fi
             done
             if [ "$VERIFIED" != true ]; then
               echo "Registry verification failed for @poe-platform/$PACKAGE@$VERSION" >&2

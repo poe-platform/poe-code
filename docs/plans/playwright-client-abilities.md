@@ -78,3 +78,18 @@ contract separately alongside this plan.
 - Captured and inspected full, selected-capability and command-specific help
   screenshots from the actual shell plugin. Temporary captures/probe dependencies
   stay under `out/playwright-abilities` and are removed after release verification.
+
+## Release verifier follow-up
+
+Feature commit `11205a7c1` reached remote main. Scoped run `35166484415` passed
+builds, package checks, installed-tarball checks and all three publish steps for
+0.1.641, but failed only registry verification: the SafeFS version endpoint
+returned 404 on all twelve attempts over approximately two minutes. A separate
+npm lookup still returned 404 for Safe Bash shortly afterward. Publication is
+not considered verified on the basis of the publish-step exit status alone.
+
+Increase the existing verification window to sixty ten-second attempts, bound
+individual requests with connection/transfer timeouts, and cap the step at fifteen
+minutes. Keep exact version assertions and failure on exhaustion. Validate this
+workflow-only correction with `npm run lint:workflows`, not unit tests, and commit
+it separately before monitoring the resulting release through registry acceptance.

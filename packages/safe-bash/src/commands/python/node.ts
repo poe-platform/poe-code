@@ -26,7 +26,7 @@ export function createNodePythonWorker(options: NodePythonWorkerOptions): Python
       } catch (error) { parentPort.postMessage({type:'error', message:String(error)}); }
     });
     });
-  `, {eval:true, workerData:{runner:import.meta.resolve('poe-code/safe-bash/commands/python/worker'),
+  `, {eval:true, workerData:{runner:new URL('./worker.js', import.meta.url).href,
     runtimeModuleURL, indexURL:options.indexURL ?? (runtimeModuleURL.startsWith('file:') ? fileURLToPath(new URL('.',runtimeModuleURL)) : new URL('.',runtimeModuleURL).href)}});
   return {
     postMessage(message) { worker.postMessage(message); },

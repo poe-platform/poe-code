@@ -947,6 +947,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/python/worker.test.ts"));
   assert.ok(files.includes("tests/commands/python/reply.test.ts"));
   for (const integration of [
+    "tests/integration/pyodide-runtime/public-package.test.mjs",
     "tests/integration/pyodide-runtime/public-command-parity.test.mjs",
     "tests/integration/pyodide-runtime/public-documents.test.mjs",
     "tests/integration/pyodide-runtime/public-lifecycle.test.mjs",

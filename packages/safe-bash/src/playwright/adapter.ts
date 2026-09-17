@@ -52,13 +52,14 @@ export interface PlaywrightSnapshotHandle {
 
 export interface PlaywrightPage {
   frames?(): PlaywrightFrame[];
+  evaluate?<Result, Argument>(callback: (argument: Argument) => Result, argument: Argument): Promise<Result>;
   on?(event: 'framenavigated' | 'close', listener: () => void): unknown;
   off?(event: 'framenavigated' | 'close', listener: () => void): unknown;
   goto(url: string, options?: { timeout?: number }): Promise<unknown>;
   url(): string;
   locator(selector: string): PlaywrightLocator;
   readonly keyboard: { press(key: string): Promise<void> };
-  screenshot(options?: { type?: "png" | "jpeg"; fullPage?: boolean; timeout?: number }): Promise<Uint8Array>;
+  screenshot(options?: { type?: "png" | "jpeg"; fullPage?: boolean; timeout?: number; scale?: 'css'; clip?: { x: number; y: number; width: number; height: number } }): Promise<Uint8Array>;
   close(): Promise<void>;
 }
 

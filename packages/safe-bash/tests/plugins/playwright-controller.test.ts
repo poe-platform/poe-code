@@ -458,12 +458,41 @@ test('invocation cleanup prevents queued close-all effects and drains its work',
   await f.controller.dispose();
 });
 
+test('screenshots reject oversized producer geometry before capture or artifact writes', async () => {
+  const current = fixture();
+  await current.run(['open']);
+  const page = await current.leases[0]!.lease.context.newPage();
+  let captures = 0;
+  let writes = 0;
+  Object.assign(page, { evaluate: async () => ({ width: 4096, height: 4096 }) });
+  page.screenshot = async () => { captures++; return new Uint8Array([1]); };
+  await assert.rejects(current.run(['screenshot', '--full-page'], { writeArtifact: async () => { writes++; } }), /Screenshot pixel limit exceeded/);
+  assert.equal(captures, 0);
+  assert.equal(writes, 0);
+  assert.equal(current.leases[0]!.releases, 0);
+  await current.run(['goto', 'https://example.test/recovery']);
+  await current.controller.dispose();
+});
+
+test('screenshots fix CSS geometry before calling the native producer', async () => {
+  const current = fixture();
+  await current.run(['open']);
+  const page = await current.leases[0]!.lease.context.newPage();
+  const captures: unknown[] = [];
+  Object.assign(page, { evaluate: async () => ({ width: 8, height: 8 }) });
+  page.screenshot = async options => { captures.push(options); return new Uint8Array([1]); };
+  await current.run(['screenshot'], { writeArtifact: async () => {} });
+  assert.deepEqual(captures, [{ type: 'png', fullPage: false, timeout: 30000, scale: 'css', clip: { x: 0, y: 0, width: 8, height: 8 } }]);
+  await current.controller.dispose();
+});
+
 test('cancellation drains retained-session screenshots without publishing late artifacts', async () => {
   const f = fixture();
   await f.run(['open']);
   const page = await f.leases[0]!.lease.context.newPage();
   const entered = deferred<void>();
   const gate = deferred<Uint8Array>();
+  page.evaluate = async <Result>() => ({ width: 1280, height: 720 }) as Result;
   page.screenshot = async () => { entered.resolve(); return gate.promise; };
   const original = f.leases[0]!.lease.release;
   f.leases[0]!.lease.release = async () => { await original(); gate.resolve(new Uint8Array([1])); };

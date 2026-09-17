@@ -1,5 +1,6 @@
 import type { PlaywrightAdapter, PlaywrightLease, PlaywrightPage } from './adapter.js';
 import { createSnapshotEngine } from './snapshot.js';
+import { capturePlaywrightScreenshot } from './screenshot.js';
 import { parseInvocation, type PlaywrightInvocation } from './invocation.js';
 import { formatPlaywrightHelp } from './help.js';
 import { registerPlaywrightAbilities, type PlaywrightAbilities, type PlaywrightAbilityRequest } from './abilities.js';
@@ -340,10 +341,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               retained = false;
               await page!.keyboard.press(parsed.value!);
             } else if (parsed.command === 'screenshot') {
-              if (typeof page!.screenshot !== 'function') throw new Error('Screenshot engine unsupported');
-              const bytes = await page!.screenshot({ type: parsed.imageType, fullPage: parsed.fullPage, timeout: actionTimeoutMs });
-              if (!(bytes instanceof Uint8Array)) throw new TypeError('Screenshot must return bytes');
-              if (bytes.byteLength > maxArtifactBytes) throw new Error('Artifact byte limit exceeded');
+              const bytes = await capturePlaywrightScreenshot(page!, { type: parsed.imageType, fullPage: parsed.fullPage, timeout: actionTimeoutMs, maxArtifactBytes, signal: local.signal });
               checkSession(session);
               // Uint8Array constructor copies even when bytes is a Buffer view.
               await invocation.writeArtifact!(new Uint8Array(bytes), parsed.filename);

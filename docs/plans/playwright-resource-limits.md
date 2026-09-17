@@ -39,3 +39,13 @@ publication, installed-artifact verification and a fresh issue-queue scan.
 - Run `tests/integration/playwright-snapshot-limits.test.mjs` with the same runtime
   environment as the popup test. Check 40 MiB body, label and value rejection;
   huge unrelated id/class/data attributes; recovery and retained node identity.
+
+## Screenshot production (#744)
+
+- Measure bounded numeric geometry with page evaluation, without locator handles.
+- Admit conservative CSS-pixel raster limits and pass an explicit fixed clip so
+  later resizing or high DPR cannot enlarge the native capture.
+- Preserve exact encoded-byte validation, cancellation and owned VFS writes.
+- Run `tests/integration/playwright-screenshot-limits.test.mjs` with the native
+  runtime environment above. Check tiny success, encoding-overhead rejection,
+  2048/4096 full-page refusal before capture, DPR, resize races and recovery.

@@ -710,16 +710,19 @@ export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimi
     const member = zip64Member(entry.size, entry.data.length, localLength, forceZip64 || entry.zip64 === true, allowZip64 && (forceZip64 || entry.zip64 !== false), wide && descriptor);
     const originalCentralExtra = entry.centralExtra ?? timestampExtra(entry.modified);
     const originalCentralMetadata = extras(originalCentralExtra, rawName, comment, true, limits);
+    const record = forceZip64 ? undefined : zipGrowRecords.get(entry);
     const localValues = descriptor && wide
       ? (entry.method === 12 || entry.method === 14) && !entry.source ? [entry.size, entry.data.length] : [0, 0]
       : [entry.size, entry.data.length].filter(value => forceZip64 || entry.zip64 === true || value >= 0xffffffff);
-    const localExtraSize = originalLocalExtra.length - (originalLocalMetadata.zip64 ? originalLocalMetadata.zip64.length + 4 : 0) + (localValues.length ? 4 + localValues.length * 8 : 0);
+    const localExtraSize = record ? originalLocalExtra.length : originalLocalExtra.length - (originalLocalMetadata.zip64 ? originalLocalMetadata.zip64.length + 4 : 0) + (localValues.length ? 4 + localValues.length * 8 : 0);
     const centralExtraSize = originalCentralExtra.length - (originalCentralMetadata.zip64 ? originalCentralMetadata.zip64.length + 4 : 0) + (member.values.length ? 4 + member.values.length * 8 : 0);
     number(localExtraSize, Math.min(limits.maxPaxBytes, 65535), "extra field");
     number(centralExtraSize, Math.min(limits.maxPaxBytes, 65535), "extra field");
-    const retainedSize = 76 + 2 * rawName.length + localExtraSize + centralExtraSize + comment.length;
-    number(length + retainedSize + entry.data.length + (descriptor ? wide ? 24 : 16 : 0), limits.maxArchiveBytes, "archive byte");
-    const localExtra = localValues.length ? zip64Extra(localValues, stripZip64(originalLocalExtra)) : stripZip64(originalLocalExtra);
+    const retainedSize = record
+      ? record.length + 46 + rawName.length + centralExtraSize + comment.length
+      : 76 + 2 * rawName.length + localExtraSize + centralExtraSize + comment.length + entry.data.length + (descriptor ? wide ? 24 : 16 : 0);
+    number(length + retainedSize, limits.maxArchiveBytes, "archive byte");
+    const localExtra = record ? originalLocalExtra : localValues.length ? zip64Extra(localValues, stripZip64(originalLocalExtra)) : stripZip64(originalLocalExtra);
     const centralExtra = member.values.length ? zip64Extra(member.values, stripZip64(originalCentralExtra)) : stripZip64(originalCentralExtra);
     const localMetadata = extras(localExtra, rawName, comment, false, limits);
     const centralMetadata = extras(centralExtra, rawName, comment, true, limits);
@@ -749,7 +752,6 @@ export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimi
     }
     metadataBytes += 76 + 2 * rawName.length + localExtra.length + centralExtra.length + comment.length;
     number(metadataBytes, limits.maxArchiveBytes, "metadata byte");
-    const record = zipGrowRecords.get(entry);
     const localSize = record?.length ?? 30 + rawName.length + localExtra.length + entry.data.length + (descriptor ? wide ? 24 : 16 : 0);
     length += localSize + 46 + rawName.length + centralExtra.length + comment.length;
     number(length, limits.maxArchiveBytes, "archive byte");
@@ -789,7 +791,7 @@ export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimi
     item.offset = localLength;
     refreshCentral(item, entry.size, entry.data.length, localLength);
     await yieldTurn(signal);
-    const record = zipGrowRecords.get(entry);
+    const record = forceZip64 ? undefined : zipGrowRecords.get(entry);
     if (record) {
       yield* wireChunks(record, chunkSize, signal);
       localLength += record.length;
@@ -896,11 +898,13 @@ export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimi
     }
   }
   let centralSize = 0;
-  for (const item of encoded) {
+  for (const [index, item] of encoded.entries()) {
     await yieldTurn(signal);
     const { entry, rawName, wide, flags, centralExtra, comment, date, time, offset } = item;
     const member = zip64Member(entry.size, item.compressedSize, offset, forceZip64 || entry.zip64 === true, allowZip64 && (forceZip64 || entry.zip64 !== false), wide && Boolean(flags & 8));
-    const version = entry.method === 14 ? 63 : entry.method === 99 ? 51 : entry.method === 12 ? 46 : wide || member.wide ? 45 : entry.method === 8 || flags & 9 ? 20 : 10;
+    const record = forceZip64 ? undefined : zipGrowRecords.get(archive.entries[index]!);
+    const version = record ? new DataView(record.buffer, record.byteOffset, record.byteLength).getUint16(4, true)
+      : entry.method === 14 ? 63 : entry.method === 99 ? 51 : entry.method === 12 ? 46 : wide || member.wide ? 45 : entry.method === 8 || flags & 9 ? 20 : 10;
     const central = 0;
     const bytes = new Uint8Array(46 + rawName.length + centralExtra.length + comment.length);
     const view = new DataView(bytes.buffer);

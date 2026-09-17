@@ -3,7 +3,7 @@ import { archiveCommands } from "../../src/commands/archive/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { archiveBytes, execute, fixture, modified } from "./zip-standard-flags.helpers.js";
-import { readZipArchive } from "../../src/commands/archive/zip-format.js";
+import { readZipArchive, writeZipArchive } from "../../src/commands/archive/zip-format.js";
 import { settings } from "../../src/commands/archive/internal.js";
 
 async function sources() {
@@ -16,6 +16,75 @@ async function sources() {
 async function names(fs: Awaited<ReturnType<typeof fixture>>, path: string) {
   return (await readZipArchive(await fs.readFile(path), settings({}), new AbortController().signal)).entries.map(entry => entry.name);
 }
+for (const descriptor of [false, true]) for (const field of ["size", "compressed-size", "offset"] as const) test(`grow central-only ZIP64 ${field} descriptor=${descriptor} admits exact output budget`, async () => {
+  const limits = settings({});
+  const signal = new AbortController().signal;
+  const initial = await readZipArchive(await archiveBytes([{ name: "a", body: Buffer.from("old") }]), limits, signal);
+  const original = Buffer.from(await writeZipArchive(initial, limits, signal, descriptor));
+  const central = original.indexOf(Buffer.from([80, 75, 1, 2]));
+  const end = original.lastIndexOf(Buffer.from([80, 75, 5, 6]));
+  original.writeUInt16LE(45, 4);
+  original.writeUInt16LE(45, central + 6);
+  original.writeUInt32LE(0xffffffff, central + (field === "size" ? 24 : field === "compressed-size" ? 20 : 42));
+  const extra = Buffer.alloc(12);
+  extra.writeUInt16LE(1, 0);
+  extra.writeUInt16LE(8, 2);
+  extra.writeBigUInt64LE(field === "offset" ? 0n : 3n, 4);
+  const insertion = central + 46 + original.readUInt16LE(central + 28) + original.readUInt16LE(central + 30);
+  const bytes = Buffer.concat([original.subarray(0, insertion), extra, original.subarray(insertion)]);
+  bytes.writeUInt16LE(original.readUInt16LE(central + 30) + extra.length, central + 30);
+  bytes.writeUInt32LE(original.readUInt32LE(end + 12) + extra.length, end + extra.length + 12);
+  const retained = await readZipArchive(bytes, limits, signal, { grow: true });
+  const output = await writeZipArchive(retained, limits, signal);
+  const exact = await writeZipArchive(retained, { ...limits, maxArchiveBytes: output.length }, signal);
+  assert.deepEqual(exact, output);
+  assert.deepEqual(Buffer.from(output.subarray(0, central)), bytes.subarray(0, central));
+  await assert.rejects(writeZipArchive(retained, { ...limits, maxArchiveBytes: output.length - 1 }, signal), /archive byte limit/);
+  const controller = new AbortController();
+  const reason = new Error("cancel retained ZIP64 budget");
+  controller.abort(reason);
+  await assert.rejects(writeZipArchive(retained, limits, controller.signal), error => error === reason);
+  const fs = await fixture(output);
+  assert.equal((await execute("unzip", fs, ["-tqq", "sample.zip"])).exitCode, 0);
+  assert.equal((await execute("unzip", fs, ["-p", "sample.zip", "a"])).stdout.toString(), "old");
+});
+test("grow central-only ZIP64 empty members do not retain unused local extras", async () => {
+  const limits = settings({});
+  const signal = new AbortController().signal;
+  const original = Buffer.from(await archiveBytes(Array.from({ length: 10 }, (_, index) => ({ name: `a${index}`, body: Buffer.alloc(0) }))));
+  const central = original.indexOf(Buffer.from([80, 75, 1, 2]));
+  const end = original.lastIndexOf(Buffer.from([80, 75, 5, 6]));
+  const pieces: Buffer[] = [];
+  let cursor = 0;
+  let position = central;
+  for (let index = 0; index < 10; index++) {
+    const nameLength = original.readUInt16LE(position + 28);
+    const extraLength = original.readUInt16LE(position + 30);
+    const commentLength = original.readUInt16LE(position + 32);
+    original.writeUInt16LE(45, original.readUInt32LE(position + 42) + 4);
+    original.writeUInt16LE(45, position + 6);
+    original.writeUInt32LE(0xffffffff, position + 24);
+    original.writeUInt16LE(extraLength + 12, position + 30);
+    const insertion = position + 46 + nameLength + extraLength;
+    const extra = Buffer.alloc(12);
+    extra.writeUInt16LE(1, 0);
+    extra.writeUInt16LE(8, 2);
+    pieces.push(original.subarray(cursor, insertion), extra);
+    cursor = insertion;
+    position = insertion + commentLength;
+  }
+  pieces.push(original.subarray(cursor));
+  const bytes = Buffer.concat(pieces);
+  bytes.writeUInt32LE(original.readUInt32LE(end + 12) + 120, end + 120 + 12);
+  const retained = await readZipArchive(bytes, limits, signal, { grow: true });
+  const output = await writeZipArchive(retained, limits, signal);
+  assert.deepEqual(await writeZipArchive(retained, { ...limits, maxArchiveBytes: output.length }, signal), output);
+  assert.deepEqual(Buffer.from(output.subarray(0, central)), bytes.subarray(0, central));
+  await assert.rejects(writeZipArchive(retained, { ...limits, maxArchiveBytes: output.length - 1 }, signal), /archive byte limit/);
+  const fs = await fixture(output);
+  assert.equal((await execute("unzip", fs, ["-tqq", "sample.zip"])).exitCode, 0);
+  assert.equal((await readZipArchive(output, limits, signal)).entries.length, 10);
+});
 for (const flag of ["-DF", "--difference-archive"]) test(`zip ${flag} writes only changed and new members`, async () => {
   const fs = await sources();
   const before = await fs.readFile("/work/sample.zip");
@@ -354,6 +423,51 @@ test("temp path stdout spools inside VFS and cleans before completion", async ()
   const archive = await readZipArchive(result.stdout, settings({}), new AbortController().signal);
   assert.deepEqual(archive.entries.map(entry => entry.name), ["b"]);
   assert.deepEqual(await fs.readdir("/scratch"), []);
+});
+for (const version of [10, 20, 45, 46]) test(`grow preserves admitted STORE extraction version ${version}`, async () => {
+  const bytes = Buffer.from(await archiveBytes([{ name: "a", body: Buffer.from("old") }]));
+  const central = bytes.indexOf(Buffer.from([80, 75, 1, 2]));
+  bytes.writeUInt16LE(version, 4);
+  bytes.writeUInt16LE(version, central + 6);
+  const fs = await fixture(bytes);
+  await fs.writeFile("/work/b", Buffer.from("new"));
+  assert.equal((await execute("unzip", fs, ["-tqq", "sample.zip"])).exitCode, 0);
+  const result = await execute("zip", fs, ["-qg", "sample.zip", "b"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const updated = Buffer.from(await fs.readFile("/work/sample.zip"));
+  assert.deepEqual(updated.subarray(0, central), bytes.subarray(0, central));
+  const checked = await execute("unzip", fs, ["-tqq", "sample.zip"]);
+  assert.equal(checked.exitCode, 0, checked.stderr);
+  assert.deepEqual((await execute("unzip", fs, ["-p", "sample.zip", "a"])).stdout, Buffer.from("old"));
+  assert.deepEqual((await execute("unzip", fs, ["-p", "sample.zip", "b"])).stdout, Buffer.from("new"));
+});
+test("forcing ZIP64 rebuilds retained classic local records without losing grow ownership", async () => {
+  const bytes = await archiveBytes([{ name: "a", body: Buffer.from("old") }]);
+  const limits = settings({});
+  const signal = new AbortController().signal;
+  const archive = await readZipArchive(bytes, limits, signal, { grow: true });
+  const wide = await writeZipArchive(archive, limits, signal, false, true);
+  assert.deepEqual(await writeZipArchive(archive, { ...limits, maxArchiveBytes: wide.length }, signal, false, true), wide);
+  await assert.rejects(writeZipArchive(archive, { ...limits, maxArchiveBytes: wide.length - 1 }, signal, false, true), /archive byte limit/);
+  const controller = new AbortController();
+  const reason = new Error("retained ZIP64 cancellation");
+  controller.abort(reason);
+  await assert.rejects(writeZipArchive(archive, limits, controller.signal, false, true), error => error === reason);
+  const fs = await fixture(wide);
+  const checked = await execute("unzip", fs, ["-tqq", "sample.zip"]);
+  assert.equal(checked.exitCode, 0, checked.stderr);
+  assert.deepEqual((await execute("unzip", fs, ["-p", "sample.zip", "a"])).stdout, Buffer.from("old"));
+  assert.deepEqual(await writeZipArchive(archive, limits, signal), bytes);
+});
+for (const version of [9, 47]) test(`grow refuses unsupported STORE extraction version ${version} without publication`, async () => {
+  const bytes = Buffer.from(await archiveBytes([{ name: "a", body: Buffer.from("old") }]));
+  const central = bytes.indexOf(Buffer.from([80, 75, 1, 2]));
+  bytes.writeUInt16LE(version, 4);
+  bytes.writeUInt16LE(version, central + 6);
+  const fs = await fixture(bytes);
+  await fs.writeFile("/work/b", Buffer.from("new"));
+  assert.equal((await execute("zip", fs, ["-qg", "sample.zip", "b"])).exitCode, 2);
+  assert.deepEqual(Buffer.from(await fs.readFile("/work/sample.zip")), bytes);
 });
 for (const flags of [["-g", "-fd"], ["-g", "-fz"], ["-g", "-fz-"]]) test(`grow retained descriptor records remain valid with ${flags}`, async () => {
   const fs = await sources();

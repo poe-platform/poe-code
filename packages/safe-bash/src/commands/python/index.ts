@@ -5,7 +5,7 @@ import { openCommandFile } from '../../contracts/filesystem-descriptor.js';
 import { encodePythonReply } from './reply.js';
 import { parsePythonInvocation, PythonInvocationError } from './invocation.js';
 import { parsePythonInstallation, pythonInstallationHelp } from './installation.js';
-import { createPythonPackageEnvironment, type PythonPackageOptions, type PythonPackageStart } from './provisioning.js';
+import { createPythonPackageEnvironment, pythonDocumentPackages, type PythonPackageOptions, type PythonPackageStart, type PythonPackageEnvironment } from './provisioning.js';
 import { readBytes, writeBytes } from '../../contracts/io.js';
 import { createOutputOperation, type OutputOperation } from '../../contracts/output.js';
 import { inheritYieldCheckpoint, yieldTurn } from '../../contracts/yield.js';
@@ -31,6 +31,7 @@ export interface PythonCommandsOptions {
   readonly requirements?: readonly string[];
   readonly packageProfile?: 'documents';
   readonly provisioning?: PythonPackageOptions;
+  readonly environment?: PythonPackageEnvironment;
   /** Host UI lifecycle; never written to guest stdout/stderr. */
   readonly onProgress?: (event: PythonInitializationProgress) => void;
   readonly onDiagnostic?: PythonDiagnosticObserver;
@@ -56,6 +57,7 @@ export interface PythonWorkerStart {
 export function createPythonCommands(options: PythonCommandsOptions): readonly CommandDefinition[] {
   if (typeof options?.createWorker !== 'function') throw new PythonFailure('executor-unavailable');
   if (options.onDiagnostic !== undefined && typeof options.onDiagnostic !== 'function') throw new TypeError('Python onDiagnostic must be a function');
+  if (options.environment && options.provisioning) throw new TypeError('A borrowed Python environment cannot be combined with provisioning options');
   const maxTransferBytes = options.maxTransferBytes ?? 65536;
   const maxOpenFiles = options.maxOpenFiles ?? 256;
   const maxConcurrentWorkers = options.maxConcurrentWorkers ?? 4;
@@ -66,12 +68,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
   for (const size of [maxTransferBytes, maxOpenFiles]) if (!Number.isSafeInteger(size) || size < 1 || size > 1048576) throw new RangeError('Invalid Python resource limit');
   const runtimeMount = options.runtimeMount ?? '/.pyodide-runtime';
   if (!runtimeMount.startsWith('/') || runtimeMount === '/' || runtimeMount.slice(1).includes('/') || runtimeMount.includes('\0') || runtimeMount.split('/').some(part => part === '..' || part === '.')) throw new TypeError('Python runtime mount must be an absolute top-level canonical path');
-  const environment = createPythonPackageEnvironment({
-    ...options.provisioning,
-    requirements: [...(options.provisioning?.requirements ?? []), ...(options.packages ?? [])],
-    requirementFiles: [...(options.provisioning?.requirementFiles ?? []), ...(options.requirements ?? [])],
-    ...(options.packageProfile ? { profile: options.packageProfile } : {}),
-  });
+  const environment = options.environment ?? createPythonPackageEnvironment(options.provisioning);
   const execute = async (context: CommandContext) => {
     let installation;
     try {
@@ -208,7 +205,8 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
       };
       options.onProgress?.({ phase: 'initializing', command: context.command });
       const preparation = environment.prepare({ fs: context.fs, cwd: context.cwd, signal,
-        ...(installation ? { requirements: installation.packages, requirementFiles: installation.requirements } : {}),
+        requirements: [...(options.packages ?? []), ...(options.packageProfile ? pythonDocumentPackages : []), ...(installation?.packages ?? [])],
+        requirementFiles: [...(options.requirements ?? []), ...(installation?.requirements ?? [])],
       }).then(value => { packages = value; });
       pending.add(preparation);
       try { await preparation; } finally { pending.delete(preparation); }
@@ -308,14 +306,21 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
 }
 
 export function pythonCommands(options: PythonCommandsOptions): VirtualShellPlugin {
-  const commands = createPythonCommands(options);
-  return { name: 'python-commands', setup(host) {
+  if (typeof options?.createWorker !== 'function') throw new PythonFailure('executor-unavailable');
+  if (options?.environment && options.provisioning) throw new TypeError('A borrowed Python environment cannot be combined with provisioning options');
+  const { provisioning, ...configuration } = options;
+  const environment = options.environment ?? createPythonPackageEnvironment(provisioning);
+  const commands = createPythonCommands({ ...configuration, environment });
+  return { name: 'python-commands', ...(options.environment ? {} : { dispose: environment.dispose }), setup(host) {
     if (!options.replace) for (const command of commands) if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`);
     for (const command of commands) host.commands.register(command, { replace: options.replace ?? false });
   } };
 }
 
 export { createPythonPackageEnvironment, pythonDocumentPackages } from './provisioning.js';
-export type { PythonPackageOptions, PythonPackageCache, PythonPackageProgress, PythonPackageStart, PythonPackageContext } from './provisioning.js';
+export type { PythonPackageOptions, PythonPackageCache, PythonPackageProgress, PythonPackageStart, PythonPackageContext, PythonPackageEnvironment, PythonPackagePrepareContext } from './provisioning.js';
+export { PythonPackageConflictError, createPythonPackageManifestStore } from './manifest.js';
+export type { PythonPackageManifest, PythonPackageManifestStore } from './manifest.js';
+export { createPythonPackageCache } from './cache.js';
 export { PythonFailure, inspectPythonCapabilities } from './diagnostics.js';
 export type { PythonFailureCategory, PythonDiagnostic, PythonDiagnosticObserver, PythonFileSystemRequirement, PythonCapabilityOptions, PythonCapabilityReport } from './diagnostics.js';

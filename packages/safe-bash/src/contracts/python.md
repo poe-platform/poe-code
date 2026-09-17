@@ -77,6 +77,14 @@ start messages may supply `invocation.command`; omission uses `python`.
   profile, and installer transport/cache policy. The complete configuration and
   supported `python -m pip install` options are documented in
   [package environments](../../docs/python-packages.md).
+- `environment` borrows a host-owned `PythonPackageEnvironment` instead of
+  creating a private one. It cannot be combined with `provisioning`. Closing a
+  shell retires its sessions/workers, not that borrowed environment or its cache.
+  The owner awaits `environment.dispose()` after all its consumers are finished.
+  Shared artifact caches do not implicitly share requirements: durable/shared
+  manifests use an explicit `manifestStore` and tenant/environment `scope` with
+  conditional publication. Stale revisions report `PythonPackageConflictError`
+  to the host diagnostic callback and remain retryable without lost updates.
 
 All application filesystem requests use the invocation's scoped caller
 filesystem. Retained acquisitions use `openCommandFile` for shell file-output
@@ -250,7 +258,7 @@ not forced cancellation of an arbitrary backend promise that never settles.
 
 `pythonCommands({ createWorker, runtimeMount?, maxTransferBytes?, maxOpenFiles?,
 maxConcurrentWorkers?, maxInputChunkBytes?,
-onProgress?, packages?, requirements?, packageProfile?, provisioning?, replace? })` registers both `python` and `python3`. Registration
+onProgress?, onDiagnostic?, packages?, requirements?, packageProfile?, provisioning?, environment?, replace? })` registers both `python` and `python3`. Registration
 creates no interpreter. Each command creates and terminates its own dedicated
 worker; interpreter instances are not pooled. `onProgress` reports `initializing`,
 `ready`, and `finished` for the host UI, separately from guest output streams.

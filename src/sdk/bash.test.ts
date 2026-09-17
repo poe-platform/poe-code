@@ -65,6 +65,18 @@ it('preserves package environment and transport configuration without provisioni
   expect(provisioning.transport).not.toHaveBeenCalled();
 });
 
+it('borrows the same host package environment across fresh SDK shells', async () => {
+  const environment = { prepare: vi.fn(), dispatch: vi.fn(), finish: vi.fn(), dispose: vi.fn() };
+  const createWorker = vi.fn();
+  for (const source of ['echo ready', 'python -c pass']) {
+    await runBash({ source, fs: {} as never, python: { createWorker, environment } });
+    expect((state.python as { environment: unknown }).environment).toBe(environment);
+  }
+  expect(environment.prepare).not.toHaveBeenCalled();
+  expect(environment.dispose).not.toHaveBeenCalled();
+  expect(createWorker).not.toHaveBeenCalled();
+});
+
 it('forwards explicit trusted Python admission to the Node worker', async () => {
   const { createNodePythonWorker } = await import('poe-code/safe-bash/commands/python/node');
   await runBash({ source: 'python -V', fs: {} as never, python: { runtimeModuleURL: 'file:///runtime.mjs', trustedPython: true } });

@@ -101,7 +101,7 @@ test('content cache corruption fails integrity checks before replay',async()=>{
 test('invalid package options and malformed manifests fail clearly',async()=>{
  assert.throws(()=>createPythonPackageEnvironment({maxDownloadBytes:0}),/positive integer/);
  assert.throws(()=>createPythonPackageEnvironment({profile:'unknown' as never}),/Unknown Python package profile/);
- const env=createPythonPackageEnvironment({cache:{async get(){return new TextEncoder().encode('bad json');},async set(){}}});await assert.rejects(env.prepare(context()),/environment manifest/);
+ const env=createPythonPackageEnvironment({scope:'test',manifestStore:{async get(){return {revision:'1',bytes:new TextEncoder().encode('bad json')};},async compareAndSet(){return false;}}});await assert.rejects(env.prepare(context()),/environment manifest/);
  const bad=createPythonPackageEnvironment({requirements:['--upgrade']});await assert.rejects(bad.prepare(context()),/Unsupported requirement/);
 });
 test('cancelled preparation sessions retire even before the caller assigns its start result',async()=>{
@@ -113,10 +113,10 @@ test('decoded compressed downloads do not report a misleading encoded content le
  const env=createPythonPackageEnvironment({transport:compressed,authorize:()=>true,onProgress:event=>events.push(event)});const ctx=context();const start=await env.prepare(ctx);await env.dispatch('package-open',[start.session,'https://example.org/compressed'],ctx);
  assert.deepEqual(events,[{phase:'download',url:'https://example.org/compressed',bytes:bytes.length}]);
 });
-test('cancellation during manifest read prevents publishing an installed environment',async()=>{
- const controller=new AbortController();const reason=new Error('cancel manifest read');let reads=0;let writes=0;
- const cache={async get(){if(++reads===2)controller.abort(reason);return undefined;},async set(){writes++;}};
- const env=createPythonPackageEnvironment({cache});const ctx={...context(),signal:controller.signal};const start=await env.prepare(ctx);
+test('cancellation before conditional manifest publication preserves the installed environment',async()=>{
+ const controller=new AbortController();const reason=new Error('cancel manifest commit');let writes=0;
+ const manifestStore={async get(){return undefined;},async compareAndSet(_scope:string,_revision:string|undefined,_bytes:Uint8Array,{signal}:{signal:AbortSignal}){controller.abort(reason);signal.throwIfAborted();writes++;return true;}};
+ const env=createPythonPackageEnvironment({manifestStore,scope:'test'});const ctx={...context(),signal:controller.signal};const start=await env.prepare(ctx);
  await assert.rejects(env.dispatch('package-commit',[start.session,['demo==1']],ctx),error=>error===reason);
  assert.equal(writes,0);
 });
@@ -176,11 +176,12 @@ test('cancellation while receiving a redirect disposes it without authorizing an
 });
 test('preparation binds prior requirements and conflict detection to the same manifest snapshot',async()=>{
  const oldManifest=Buffer.from('["old==1"]');const newManifest=Buffer.from('["new==1"]');let writes=0;
- const cache={async get(){return oldManifest;},async set(){writes++;}};
+ const snapshot={revision:'old',bytes:oldManifest};
+ const manifestStore={async get(){return snapshot;},async compareAndSet(_scope:string,revision:string|undefined){if(revision!==snapshot.revision)return false;writes++;return true;}};
  const base=context();await base.fs.writeFile('/requirements.txt',new TextEncoder().encode('extra==1'));
  const readFile=base.fs.readFile.bind(base.fs);
- base.fs.readFile=async(...args:Parameters<typeof base.fs.readFile>)=>{newManifest.copy(oldManifest);return readFile(...args);};
- const ctx=base;const env=createPythonPackageEnvironment({cache,requirementFiles:['/requirements.txt']});const start=await env.prepare(ctx);
+ base.fs.readFile=async(...args:Parameters<typeof base.fs.readFile>)=>{newManifest.copy(oldManifest);snapshot.revision='new';return readFile(...args);};
+ const ctx=base;const env=createPythonPackageEnvironment({manifestStore,scope:'test',requirementFiles:['/requirements.txt']});const start=await env.prepare(ctx);
  assert.deepEqual(start.requirements,['old==1','extra==1']);
  await assert.rejects(env.dispatch('package-commit',[start.session,['old==1','extra==1']],ctx),/changed.*retry/i);
  assert.equal(writes,0);
@@ -234,8 +235,8 @@ test('empty download fragments do not accumulate retained chunks or emit byte pr
 });
 test('oversized external manifest and cache metadata are rejected before decoding',async()=>{
  const ctx=context();const oversized=new TextEncoder().encode('[]        ');
- await assert.rejects(createPythonPackageEnvironment({maxDownloadBytes:4,cache:{async get(){return oversized;},async set(){}}}).prepare(ctx),/manifest exceeds maxDownloadBytes/);
- let calls=0;const env=createPythonPackageEnvironment({maxDownloadBytes:4,cache:{async get(){return ++calls===1?undefined:oversized;},async set(){}}});const start=await env.prepare(ctx);
+ await assert.rejects(createPythonPackageEnvironment({maxDownloadBytes:4,scope:'test',manifestStore:{async get(){return {revision:'1',bytes:oversized};},async compareAndSet(){return false;}}}).prepare(ctx),/manifest exceeds maxDownloadBytes/);
+ const env=createPythonPackageEnvironment({maxDownloadBytes:4,cache:{async get(){return oversized;},async set(){}}});const start=await env.prepare(ctx);
  await assert.rejects(env.dispatch('package-open',[start.session,'https://example.org/metadata'],ctx),/metadata exceeds maxDownloadBytes/);
 });
 test('oversized manifest commits preserve the last usable environment and allow retry',async()=>{

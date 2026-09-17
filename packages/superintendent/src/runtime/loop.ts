@@ -100,6 +100,8 @@ export type LoopCallbacks = {
   onLoopComplete?: (state: SuperintendentRunResult) => void;
   onStateChange?: (state: LoopState) => void;
   shouldPause?: () => boolean;
+  /** Await a live resume while retaining the current round's results and next role. */
+  onPause?: () => Promise<void>;
   shouldStop?: () => boolean;
 };
 
@@ -783,7 +785,11 @@ async function readInterruptionReason(
   }
 
   if (options.callbacks.shouldPause?.() === true) {
-    return "paused";
+    if (!options.callbacks.onPause) return "paused";
+    await options.callbacks.onPause();
+    await assertDocumentActive(options);
+    if (options.signal?.aborted) return "aborted";
+    if (options.callbacks.shouldStop?.() === true) return "stopped";
   }
 
   return undefined;

@@ -812,6 +812,40 @@ describe("runLoop", () => {
     expect(runOwnerReviewMock).not.toHaveBeenCalled();
   });
 
+  it("resumes the same round after a live pause without rerunning the builder or spending another round", async () => {
+    const docPath = "/repo/docs/plans/feature.md";
+    const { fs } = createFs({ [docPath]: createDocument({ withInspectors: false, maxRounds: 1 }) });
+    let paused = false;
+    const onPause = vi.fn(async () => { paused = false; });
+    runBuilderMock.mockImplementation(async () => {
+      paused = true;
+      return { summary: "Builder result survives pause", log: "builder log" };
+    });
+    runSuperintendentMock.mockResolvedValue({ summary: "Ready", transition: { action: "request_review", summary: "Ready for review" } });
+    runOwnerReviewMock.mockResolvedValue({ transition: { action: "approve_completion" } });
+    const result = await runLoop({
+      docPath, cwd: "/repo", homeDir: "/home/test", fs, runners,
+      callbacks: { shouldPause: () => paused, onPause }
+    });
+    expect(onPause).toHaveBeenCalledTimes(1);
+    expect(result).toMatchObject({ stopReason: "completed", round: 1 });
+    expect(runBuilderMock).toHaveBeenCalledTimes(1);
+    expect(runSuperintendentMock).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ builder: expect.objectContaining({ summary: "Builder result survives pause" }) }), expect.anything());
+    expect(runOwnerReviewMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("honors a graceful stop requested while a live pause is waiting", async () => {
+    const docPath = "/repo/docs/plans/feature.md";
+    const { fs } = createFs({ [docPath]: createDocument({ withInspectors: false }) });
+    let stopped = false;
+    const result = await runLoop({
+      docPath, cwd: "/repo", homeDir: "/home/test", fs, runners,
+      callbacks: { shouldPause: () => true, shouldStop: () => stopped, onPause: async () => { stopped = true; } }
+    });
+    expect(result.stopReason).toBe("stopped");
+    expect(runBuilderMock).not.toHaveBeenCalled();
+  });
+
   it("stops after the current agent run when shouldStop becomes true", async () => {
     const docPath = "/repo/docs/plans/feature.md";
     const { fs, rawFs } = createFs({ [docPath]: createDocument() });

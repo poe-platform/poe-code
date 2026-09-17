@@ -25,6 +25,7 @@ interface Session {
   detachPage?: () => void;
   unsubscribe?: () => void;
   releasing?: Promise<void>;
+  failure?: Error;
 }
 
 export function createPlaywrightController(options: PlaywrightControllerOptions = {}) {
@@ -80,6 +81,11 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     void tail.then(() => { if (tails.get(name) === tail) tails.delete(name); });
     return operation;
   };
+  const enforceTabLimit = (session: Session) => {
+    if (!session.lease || session.releasing || session.lease.context.pages().length <= maxTabs) return;
+    session.failure = new Error('Playwright tab limit exceeded');
+    void release(session).catch(() => {});
+  };
   const selectPage = async (session: Session, page: PlaywrightPage, check: () => void) => {
     check();
     session.detachPage?.();
@@ -132,7 +138,8 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     };
     const checkSession = (session: Session) => {
       check();
-      if (session.releasing) throw new Error(`Session closed: ${session.name}; reopen explicitly`);
+      enforceTabLimit(session);
+      if (session.releasing) throw session.failure ?? new Error(`Session closed: ${session.name}; reopen explicitly`);
     };
     const execute = async () => {
       check();
@@ -238,6 +245,11 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             });
             session.unsubscribe = unsubscribe;
             if (session.releasing) { unsubscribe(); throw new Error(`Session closed: ${session.name}`); }
+            const context = session.lease.context;
+            const onPage = () => enforceTabLimit(session);
+            session.cleanups.add(async () => { context.off('page', onPage); });
+            context.on('page', onPage);
+            checkSession(session);
             if (session.lease.context.pages().length >= maxTabs) throw new Error('Playwright tab limit exceeded');
             await selectPage(session, await session.lease.context.newPage(), () => checkSession(session));
             session.pages = [...session.lease.context.pages()];
@@ -350,7 +362,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     work.add(operation);
     let failure: { error: unknown } | undefined;
     try { await operation; }
-    catch (error) { failure = { error: invocation.signal.aborted ? invocation.signal.reason : error }; }
+    catch (error) { failure = { error: invocation.signal.aborted ? invocation.signal.reason : active?.failure ?? error }; }
     finished = true;
     invocation.signal.removeEventListener('abort', abort);
     lifetime.signal.removeEventListener('abort', abort);

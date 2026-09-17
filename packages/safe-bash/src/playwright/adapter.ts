@@ -54,8 +54,8 @@ export interface PlaywrightContext {
   newPage(): Promise<PlaywrightPage>;
   pages(): PlaywrightPage[];
   close(): Promise<void>;
-  on(event: "close", listener: () => void): unknown;
-  off(event: "close", listener: () => void): unknown;
+  on(event: "close" | "page", listener: () => void): unknown;
+  off(event: "close" | "page", listener: () => void): unknown;
 }
 
 export interface PlaywrightBrowser {

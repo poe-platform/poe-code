@@ -179,7 +179,7 @@ unsupported. The limits and defaults are:
 | Limit | Default | Scope |
 | --- | --- | --- |
 | `maxSessions` | 4 | Concurrent controller-managed sessions |
-| `maxTabs` | 16 | Tabs in a controller-managed session |
+| `maxTabs` | 16 | All tabs in a controller-managed session, including page-created popups; overflow retires that session |
 | `actionTimeoutMs` | 30000 | Existing built-in browser action timeouts |
 | `maxSnapshotBytes` | 262144 | Built-in snapshot output |
 | `maxSnapshotRefs` | 1000 | Built-in snapshot handles |

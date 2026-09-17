@@ -1,0 +1,54 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+Sourcemap for "/Users/kjopek/Workspace/poe-code-5/packages/pandoc/dist/public/chunks/chunk-VSIKCHWS.js" points to missing source files
+ ❯ scripts/pandoc-public.test.ts (4 tests | 1 failed) 7945ms
+   ✓ publishes the SDK and explicit plugin from the root package with their type closures 4ms
+   × ships portable public entries without loading Office engines for text conversion 1778ms
+   ✓ resolves SDK and plugin public declaration imports for a TypeScript consumer  2988ms
+   ✓ runs conversion and explicit registration from packaged public entries, preserving collisions  3174ms
+FAIL scripts/pandoc-public.test.ts > ships portable public entries without loading Office engines for text conversion
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ scripts/pandoc-public.test.ts:70:30
+     68|   for (const route of ["./pandoc", "./safe-bash/commands/pandoc"]) awa…
+     69|   expect(artifacts.existsSync(path.resolve(root, manifest.exports["./p…
+     70|   expect(presentationEngine).toBe(false);
+       |                              ^
+     71|   expect(optionalImports.size).toBeGreaterThan(0);
+     72|   for (const file of optionalImports) await inspect(file);
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  scripts/pandoc-public.test.ts > ships portable public entries without loading Office engines for text conversion
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ scripts/pandoc-public.test.ts:70:30
+     68|   for (const route of ["./pandoc", "./safe-bash/commands/pandoc"]) awa…
+     69|   expect(artifacts.existsSync(path.resolve(root, manifest.exports["./p…
+     70|   expect(presentationEngine).toBe(false);
+       |                              ^
+     71|   expect(optionalImports.size).toBeGreaterThan(0);
+     72|   for (const file of optionalImports) await inspect(file);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  21:54:37
+   Duration  8.66s (transform 2.92s, setup 96ms, import 476ms, tests 7.95s, environment 0ms)
+

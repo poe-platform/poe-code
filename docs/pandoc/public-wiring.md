@@ -32,10 +32,11 @@ registration fails before replacement unless `replace: true` is supplied.
 Root bundling publishes a portable ESM graph for both converter entries. Shared
 canonical filesystem contracts stay external through `poe-code/safe-fs/core`,
 preserving runtime class identity. No private engine is loaded dynamically and no
-native Pandoc or process fallback is supplied. The current built-in PPTX adapter
-statically includes the presentation engine in ordinary text imports; the current
-public graph test explicitly requires it. DOCX remains absent. Separate text-only
-Office-bundle isolation is not delivered. EPUB shares archive/compression codecs with Office packages;
+native Pandoc or process fallback is supplied. The built-in PPTX adapter loads
+from a separate portable chunk only when its reader or writer executes. Ordinary
+text imports exclude the presentation engine; DOCX remains absent. The public
+graph check verifies the static text graph and then the optional PPTX graph.
+EPUB shares archive/compression codecs with Office packages;
 those shared codecs are included along with the converter's existing PDF support.
 The original export change did not add Office format capabilities; the later
 PPTX adapter now supplies bounded built-in read/write support. Historical
@@ -47,10 +48,17 @@ consumers inspect maintained build artifacts, copy the runtime graph into memfs,
 resolve exports and types, convert original text, and exercise collision and
 replacement through the real command registry. They do not invoke native build
 executables. Graph checks reject native/dynamic imports, ambient fetch/require
-calls and DOCX engine sources, and verify PPTX engine inclusion. These checks are not a host JavaScript
+calls and DOCX engine sources. Dynamic imports must name relative literal chunks;
+PPTX engine inclusion is confined to the optional graph. These checks are not a host JavaScript
 security boundary.
 
 ## Verification
+
+Current text import isolation results are recorded in
+[the scoped evidence](text-office-isolation.md). Scoped builds, unit/public
+consumers, package output and repository lint pass. Full `npm test` fails outside
+Pandoc and auxiliary package lint reports missing package READMEs. The historical
+results below do not certify a current passing integration gate.
 
 Initial original checks reproduced missing public SDK export/type resolution and
 missing portable SDK/plugin graph. Integration validation results are recorded

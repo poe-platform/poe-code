@@ -14,13 +14,14 @@ it("publishes the SDK and explicit plugin from the root package with their type 
   expect(manifest.files).toContain("packages/pandoc/dist/**/*.d.ts");
   expect(manifest.files).toContain("packages/pandoc/dist/public");
 });
-it("ships a complete portable public runtime graph with the verified presentation engine", async () => {
+it("ships portable public entries without loading Office engines for text conversion", async () => {
   const options = bundling.resolvePandocBuild(root);
   expect(options).toMatchObject({platform: "browser", bundle: true, splitting: true, write: false, external: ["poe-code/safe-fs/core"]});
   const manifest = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
   const artifacts = new Volume();
   const visited = new Set<string>();
   let presentationEngine = false;
+  const optionalImports = new Set<string>();
   async function inspect(file: string): Promise<void> {
     if (visited.has(file)) return;
     visited.add(file);
@@ -34,12 +35,27 @@ it("ships a complete portable public runtime graph with the verified presentatio
     artifacts.mkdirSync(path.dirname(file), {recursive: true});
     artifacts.writeFileSync(file, contents);
     const imports = ts.preProcessFile(contents, true, false).importedFiles.map(item => item.fileName);
+    const syntax = ts.createSourceFile(file, contents, ts.ScriptTarget.ES2022, true, ts.ScriptKind.JS);
+    function visit(node: ts.Node): void {
+      if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
+        const argument = node.arguments[0];
+        expect(argument && ts.isStringLiteral(argument)).toBe(true);
+        if (argument && ts.isStringLiteral(argument)) {
+          expect(argument.text.startsWith(".")).toBe(true);
+          optionalImports.add(path.resolve(path.dirname(file), argument.text));
+          const index = imports.indexOf(argument.text);
+          if (index !== -1) imports.splice(index, 1);
+        }
+      }
+      ts.forEachChild(node, visit);
+    }
+    visit(syntax);
     const scanner = ts.createScanner(ts.ScriptTarget.ES2022, true, ts.LanguageVariant.Standard, contents);
     const forbidden: string[] = [];
     let previous: ts.SyntaxKind | undefined;
     let previousText = "";
     for (let token = scanner.scan(); token !== ts.SyntaxKind.EndOfFileToken; token = scanner.scan()) {
-      if (token === ts.SyntaxKind.OpenParenToken && (previous === ts.SyntaxKind.ImportKeyword || previous === ts.SyntaxKind.Identifier && ["fetch", "require"].includes(previousText))) forbidden.push(previousText);
+      if (token === ts.SyntaxKind.OpenParenToken && previous === ts.SyntaxKind.Identifier && ["fetch", "require"].includes(previousText)) forbidden.push(previousText);
       previous = token;
       previousText = scanner.getTokenText();
     }
@@ -51,6 +67,9 @@ it("ships a complete portable public runtime graph with the verified presentatio
   }
   for (const route of ["./pandoc", "./safe-bash/commands/pandoc"]) await inspect(path.resolve(root, manifest.exports[route].import));
   expect(artifacts.existsSync(path.resolve(root, manifest.exports["./pandoc"].import))).toBe(true);
+  expect(presentationEngine).toBe(false);
+  expect(optionalImports.size).toBeGreaterThan(0);
+  for (const file of optionalImports) await inspect(file);
   expect(presentationEngine).toBe(true);
 });
 it("resolves SDK and plugin public declaration imports for a TypeScript consumer", () => {

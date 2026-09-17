@@ -1,0 +1,15 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Missing expected exception.
+    at file:///Users/kjopek/Workspace/poe-code-5/[eval1]:16:10 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: /Command already registered/,
+  operator: 'throws',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

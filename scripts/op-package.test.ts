@@ -28,7 +28,8 @@ it("ships the opt-in op plugin through poe-code without a public op package or b
   expect(op.private).toBe(true);
   expect(op.bin).toBeUndefined();
   expect(op.scripts.prepack).toBeUndefined();
-  expect(root.files).toContain("packages/op/dist/**/*.d.ts");
+  // The shell build owns its referenced op declarations under dist/internal/op.
+  expect(root.files).toContain("packages/safe-bash/dist");
   expect(lock.packages[""].dependencies["@kayahr/text-encoding"]).toBe(root.dependencies["@kayahr/text-encoding"]);
   expect(lock.packages["packages/safe-bash"].devDependencies[op.name]).toBe("*");
   expect(lock.packages["packages/op"].bin).toBeUndefined();

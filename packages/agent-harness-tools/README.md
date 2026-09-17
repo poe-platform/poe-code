@@ -138,6 +138,8 @@ await queue.run({
 
 `execute` returns `completed`, `failed`, `cancelled`, or `paused`. Only completed work advances the queue. Failures, cancellation, and partial plans retain the pending entries in the final snapshot. Exceptions retain their original identity and mark the active entry failed (or cancelled when the signal is aborted).
 
+Pass `shouldPause` to request a graceful stop between items. The current item finishes, completed entries keep their status, and later entries remain pending in a paused snapshot.
+
 Messages run in insertion order immediately after their target plan, before the next plan. `enqueueMessage(text, planId?)` defaults to the active plan, including while its messages run. Before execution it defaults to the first plan. A plan that the queue has already passed cannot receive new messages. `afterEachPlan` applies to initial and subsequently appended plans.
 
 Snapshots and their entries are immutable. `onChange` returns an unsubscribe function. A queue can run once; create another queue for a later run. Duplicate paths are compared relative to `cwd`, which defaults to the current directory. The caller validates plan contents before accepting them and supplies the same agent configuration to its plan and message executors.

@@ -2,6 +2,17 @@ import { describe, expect, it, vi } from "vitest";
 import { createRunQueue } from "./run-queue.js";
 
 describe("live harness work queue", () => {
+  it("honors a graceful stop between items without changing completed or pending work", async () => {
+    const queue = createRunQueue({ plans: ["one.md", "two.md"], afterEachPlan: ["Review"] });
+    let stopped = false;
+    const result = await queue.run({
+      shouldPause: () => stopped,
+      async execute() { stopped = true; return "completed"; }
+    });
+    expect(result.status).toBe("paused");
+    expect(result.items.map((item) => item.status)).toEqual(["completed", "pending", "pending", "pending"]);
+  });
+
   it("runs messages after their plan and before the next plan, including additions during execution", async () => {
     const queue = createRunQueue({ plans: ["first.md", "second.md"] });
     const [first, second] = queue.getSnapshot().items;

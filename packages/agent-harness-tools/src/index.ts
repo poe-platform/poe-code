@@ -74,5 +74,6 @@ export {
 export { skillPlanConfigSection } from "./skill-config.js";
 export { createHarnessDashboard, type HarnessDashboard } from "./harness-dashboard.js";
 export { mapSourcePathIntoWorktree } from "./worktree-path.js";
+export { formatRunQueueSummary } from "./run-queue-summary.js";
 export * from "./execution-env.js";
 export * from "./workspace-transfer.js";

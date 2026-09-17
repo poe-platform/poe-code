@@ -89,6 +89,8 @@ export function createRunQueue(options: {
 
   async function run(runtime: {
     signal?: AbortSignal;
+    /** Stop between items, preserving already completed and still pending work. */
+    shouldPause?: () => boolean;
     execute(item: RunQueueItem): Promise<RunQueueOutcome>;
   }): Promise<RunQueueSnapshot> {
     if (snapshot.status === "running") throw new Error("This queue is already running.");
@@ -97,6 +99,10 @@ export function createRunQueue(options: {
     while (cursor < snapshot.items.length) {
       if (runtime.signal?.aborted) {
         publish({ status: "cancelled", activeItemId: undefined });
+        return snapshot;
+      }
+      if (runtime.shouldPause?.()) {
+        publish({ status: "paused", activeItemId: undefined });
         return snapshot;
       }
       const pending = snapshot.items[cursor]!;

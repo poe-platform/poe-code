@@ -64,6 +64,12 @@ export function createFormatRegistry(
     .map((item) =>
       Object.freeze({
         ...item,
+        ...(item.aliases === undefined ? {} : {
+          aliases: Object.freeze({
+            ...(item.aliases.read === undefined ? {} : { read: Object.freeze([...item.aliases.read]) }),
+            ...(item.aliases.write === undefined ? {} : { write: Object.freeze([...item.aliases.write]) })
+          })
+        }),
         suffixes: Object.freeze([...item.suffixes]),
         extensions: Object.freeze({ ...item.extensions }),
         options: Object.freeze({

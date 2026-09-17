@@ -310,6 +310,8 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
   const bridge = promiseAdoptionBridges.get(value);
   if (bridge !== undefined) {
     if (bridge.settled || bridge.owner === undefined) return undefined;
+    if (promiseStates.get(bridge.source)?.status !== "pending")
+      throw new SnapshotNotReadyError("Cannot snapshot a promise adoption awaiting settlement delivery.");
     return {kind: "promise-adoption", owner: encode(bridge.owner), source: encode(bridge.source)};
   }
   const adoptionResolver = isSandboxClosure(value) ? promiseAdoptionResolvers.get(value) : undefined;

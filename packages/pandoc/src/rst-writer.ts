@@ -18,7 +18,7 @@ class RstWriter {
   private readonly targets = new Set<string>();
   constructor(private readonly context: AdapterContext) {}
   fail(message: string, path: string): never {
-    throw new PandocError("E_CAPABILITY", this.context.operation ?? "write", message, "rst", path);
+    throw new PandocError("E_UNSUPPORTED_FEATURE", this.context.operation ?? "write", message, "rst", path);
   }
   loss(message: string, path: string): void {
     if(!this.context.lossy) this.fail(message, path);

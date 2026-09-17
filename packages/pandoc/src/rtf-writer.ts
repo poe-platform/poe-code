@@ -17,7 +17,7 @@ class RtfWriter {
   private readonly imageTargets = new Set<string>();
   private readonly lists = new Map<object, ListSpec>();
   constructor(private readonly context: AdapterContext) {}
-  fail(message: string, code: "E_CAPABILITY" | "E_RESOURCE" | "E_OPTION" = "E_CAPABILITY"): never {
+  fail(message: string, code: "E_UNSUPPORTED_FEATURE" | "E_RESOURCE" | "E_OPTION" = "E_UNSUPPORTED_FEATURE"): never {
     throw new PandocError(code, this.context.operation ?? "write", message, "rtf");
   }
   add(text: string): void {

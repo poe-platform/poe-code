@@ -31,7 +31,7 @@ it("maps five article heading levels and uses deterministic safe labels and forw
   const result = await latex(blocks);
   expect(result).toMatchObject({text: expect.stringContaining("\\hyperref[pc-61-5f-25]{go}")});
   for(const command of ["section", "subsection", "subsubsection", "paragraph", "subparagraph"]) expect(result).toMatchObject({text: expect.stringContaining(`\\${command}{Heading}`)});
-  await expect(latex([{t: "Header", c: [6, a, [s("deep")]]}])).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(latex([{t: "Header", c: [6, a, [s("deep")]]}])).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
   expect(await latex([{t: "Header", c: [6, a, [s("deep")]]}], {lossy: true})).toMatchObject({diagnostics: [expect.objectContaining({location: "$.blocks[0]"})]});
   expect(await latex(blocks)).toEqual(result);
 });
@@ -51,15 +51,15 @@ it("preserves typed math but rejects executable raw content and math breakouts b
   expect(await latex([p({t: "Math", c: ["InlineMath", "x_{1}+\\alpha"]}, {t: "Math", c: ["DisplayMath", "\\frac{a}{b}"]})])).toMatchObject({text: "\\(x_{1}+\\alpha\\)\\[\\frac{a}{b}\\]\n"});
   const publish = vi.fn(async () => {});
   for(const node of [{t: "RawBlock", c: ["latex", "\\input{secret}"]}, {t: "Para", c: [{t: "Math", c: ["InlineMath", "x\\)\\input{secret}\\(y"]}]}] as Block[]) {
-    await expect(writeDocument({blocks: [node], metadata: {}, resources: []}, {to: "latex"}, {output: {publish}})).rejects.toMatchObject({code: "E_CAPABILITY"});
+    await expect(writeDocument({blocks: [node], metadata: {}, resources: []}, {to: "latex"}, {output: {publish}})).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
   }
   expect(publish).not.toHaveBeenCalled();
-  await expect(latex([{t: "RawBlock", c: ["latex", "\\write18{x}"]}], {rawContent: "retain"})).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(latex([{t: "RawBlock", c: ["latex", "\\write18{x}"]}], {rawContent: "retain"})).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
 });
 it("uses context-specific image and URL escaping and rejects unsafe paths", async () => {
   expect(await latex([p({t: "Image", c: [a, [s("alt")], ["images/a b_1.png", ""]]}, {t: "Link", c: [a, [s("web")], ["https://example.test/a?q=1&b=2#x", ""]]})])).toMatchObject({text: expect.stringContaining("\\includegraphics{\\detokenize{images/a b_1.png}}")});
   expect(await latex([p({t: "Link", c: [a, [s("web")], ["https://example.test/a%20b#x", ""]]})])).toMatchObject({text: expect.stringContaining("a\\%20b\\#x")});
-  for(const path of ["x}\\input{secret}", "a%20.png", "../secret.png", "|command", "https://host/a.png"]) await expect(latex([p({t: "Image", c: [a, [], [path, ""]]})])).rejects.toMatchObject({code: "E_CAPABILITY"});
+  for(const path of ["x}\\input{secret}", "a%20.png", "../secret.png", "|command", "https://host/a.png"]) await expect(latex([p({t: "Image", c: [a, [], [path, ""]]})])).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
 });
 function table(rows: readonly Row[], head: readonly Row[] = []): Block {
   return {t: "Table", c: [a, [[s("Caption")], []], [["AlignLeft", {t: "ColWidth", c: 0.5}], ["AlignRight", {t: "ColWidthDefault"}]], [a, head], [[a, 0, [], rows]], [a, []]]};
@@ -77,11 +77,11 @@ it("writes longtable headers and spans with complete row slots", async () => {
 });
 it("reports explicit loss for unsupported citations, attributes and nested tables", async () => {
   const blocks = [p({t: "Cite", c: [[{citationId: "x", citationPrefix: [], citationSuffix: [], citationMode: "NormalCitation", citationNoteNum: 0, citationHash: 0}], [s("citation")]]})];
-  await expect(latex(blocks)).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(latex(blocks)).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
   expect(await latex(blocks, {lossy: true})).toMatchObject({diagnostics: [expect.objectContaining({message: expect.stringContaining("citation")})]});
-  await expect(latex([p({t: "Span", c: [["", [], [["style", "x"]]], [s("x")]]})])).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(latex([p({t: "Span", c: [["", [], [["style", "x"]]], [s("x")]]})])).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
   const nested = table([[a, [[a, "AlignDefault", 1, 1, [table([[a, [cell("a"), cell("b")]]])]], cell("other")]]]);
-  await expect(latex([nested])).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(latex([nested])).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
   expect(await latex([nested], {lossy: true})).toMatchObject({diagnostics: [expect.objectContaining({message: expect.stringContaining("Nested table")})]});
 });
 it("uses a fixed standalone preamble, escaped metadata and finite language options", async () => {
@@ -91,7 +91,7 @@ it("uses a fixed standalone preamble, escaped metadata and finite language optio
   expect(result).toMatchObject({text: expect.stringContaining("\\title{A \\& B}")});
   expect(result).toMatchObject({text: expect.stringContaining("\\end{document}\n")});
   await expect(latex([], {standalone: true, metadata: {lang: {t: "MetaString", c: "english]\\input{x}"}}})).rejects.toMatchObject({code: "E_OPTION"});
-  await expect(latex([p(s("\0"))])).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(latex([p(s("\0"))])).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
 });
 it("publishes LaTeX via the thin adapter using only memfs and SDK options", async () => {
   const fs = Volume.fromJSON({"/out.tex": "original"});
@@ -103,13 +103,13 @@ it("publishes LaTeX via the thin adapter using only memfs and SDK options", asyn
   expect(writeFile).toHaveBeenCalledOnce();
 });
 it("rejects TeX superscript preprocessing in math and keeps note text near its owning block", async () => {
-  await expect(latex([p({t: "Math", c: ["InlineMath", "^^5cinput{secret}"]})])).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(latex([p({t: "Math", c: ["InlineMath", "^^5cinput{secret}"]})])).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
   expect(await latex([p(s("one"), {t: "Note", c: [p(s("note"))]}), p(s("two"))])).toMatchObject({
     text: "one\\protect\\footnotemark[1]\n\n\\footnotetext[1]{note\n\n}\ntwo\n"});
 });
 it("rejects table section/row attributes that would introduce alignment tokens outside cells", async () => {
   const block = table([[ ["row", [], []], [cell("one"), cell("two")] ]]);
-  await expect(latex([block])).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(latex([block])).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
   expect(await latex([block], {lossy: true})).toMatchObject({diagnostics: [expect.objectContaining({message: expect.stringContaining("table row")})]});
 });
 function structure(text: string): void {
@@ -141,7 +141,7 @@ it("emits balanced owned standalone structure and enforces output budgets/cancel
   expect(publish).not.toHaveBeenCalled();
 });
 it("honors explicit raw rejection in lossy mode", async () => {
-  await expect(latex([{t: "RawBlock", c: ["latex", "\\unknown"]}], {lossy: true, rawContent: "reject"})).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(latex([{t: "RawBlock", c: ["latex", "\\unknown"]}], {lossy: true, rawContent: "reject"})).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
 });
 it.each([0, -1, 2])("rejects invalid column width %s", async width => {
     const block = table([[a, [cell("a"), cell("b")]]]);
@@ -151,11 +151,11 @@ it.each([0, -1, 2])("rejects invalid column width %s", async width => {
 });
 it("rejects floats inside notes", async () => {
   const figure: Block = {t: "Figure", c: [a, [null, []], [p(s("figure"))]]};
-  await expect(latex([p({t: "Note", c: [figure]})])).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(latex([p({t: "Note", c: [figure]})])).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
 });
 it("rejects nested floats", async () => {
   const figure: Block = {t: "Figure", c: [a, [null, []], [p(s("figure"))]]};
-  await expect(latex([{t: "Figure", c: [a, [null, []], [figure]]}])).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(latex([{t: "Figure", c: [a, [null, []], [figure]]}])).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
 });
 it("does not resolve forward links to row identifiers dropped by lossy projection", async () => {
   const result = await latex([p({t: "Link", c: [a, [s("row link")], ["#row", ""]]}), table([[ ["row", [], []], [cell("a"), cell("b")] ]])], {lossy: true});

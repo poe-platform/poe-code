@@ -50,3 +50,8 @@
   Final serialization now ends with one LF while preserving internal paragraph
   separators and code-line representation. Package tests pass 965/965 and
   lint/typecheck pass; selected build is recorded with this improvement.
+- Publication feature classification: five original tests failed before
+  implementation. LaTeX/RST/RTF writer feature failures, JSON document-field
+  projection and the PPTX unsupported-block branch now report
+  `E_UNSUPPORTED_FEATURE`; actual PPTX dependency/geometry gates are unchanged.
+  Maintained package tests pass 970/970, lint/typechecks/build pass.

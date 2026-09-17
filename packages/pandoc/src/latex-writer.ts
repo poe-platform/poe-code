@@ -22,7 +22,7 @@ class LatexWriter {
   private listDepth = 0;
   private heading = 0;
   constructor(private readonly context: AdapterContext) {}
-  fail(message: string, path?: string, code: "E_CAPABILITY" | "E_OPTION" = "E_CAPABILITY"): never {
+  fail(message: string, path?: string, code: "E_UNSUPPORTED_FEATURE" | "E_OPTION" = "E_UNSUPPORTED_FEATURE"): never {
     throw new PandocError(code, this.context.operation ?? "write", message, "latex", path);
   }
   loss(message: string, path: string): void {

@@ -197,7 +197,7 @@ export const jsonWriter: WriterCapability = {
       Object.hasOwn(document, "direction")
     )
       throw new PandocError(
-        "E_CAPABILITY",
+        "E_UNSUPPORTED_FEATURE",
         "write",
         "Pandoc JSON cannot represent resources, language or direction document fields",
         "json",

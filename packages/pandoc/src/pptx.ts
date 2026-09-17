@@ -23,7 +23,7 @@ function engineContext(context: AdapterContext): PresentationContext & Required<
     relationshipLimits: {maxBytes: l.binaryBytes, maxParts: l.parts, maxRelationships: l.references}
   };
 }
-function fail(context: AdapterContext, message: string, code: "E_OPTION" | "E_CAPABILITY" | "E_RESOURCE" = "E_CAPABILITY"): never {
+function fail(context: AdapterContext, message: string, code: "E_OPTION" | "E_CAPABILITY" | "E_RESOURCE" | "E_UNSUPPORTED_FEATURE" = "E_CAPABILITY"): never {
   throw new PandocError(code, context.operation ?? "convert", message, "pptx");
 }
 function loss(context: AdapterContext, message: string): void {
@@ -276,7 +276,7 @@ export const pptxWriter: WriterCapability = {
                 y += h + 500000;
                 break;
               }
-              default: fail(context, `Unsupported PPTX block: ${block.t}`);
+              default: fail(context, `Unsupported PPTX block: ${block.t}`, "E_UNSUPPORTED_FEATURE");
             }
           }
         };

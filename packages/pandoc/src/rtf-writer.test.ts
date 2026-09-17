@@ -46,7 +46,7 @@ it("writes safe hyperlink fields and rejects active field injection", async () =
   expect(await rtf([p({t: "Link", c: [a, [s("web")], ["https://example.test/a", ""]]})]))
     .toContain('{\\field{\\*\\fldinst HYPERLINK "https://example.test/a"}{\\fldrslt web}}');
   for(const url of ['x"}\\object', "javascript:alert(1)", "file:///secret", "x\nINCLUDETEXT"])
-    await expect(rtf([p({t: "Link", c: [a, [], [url, ""]]})])).rejects.toMatchObject({code: "E_CAPABILITY"});
+    await expect(rtf([p({t: "Link", c: [a, [], [url, ""]]})])).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
 });
 it("keeps nested list numbering and continuation paragraphs at their own indentation", async () => {
   const text = await rtf([{t: "OrderedList", c: [[3, "Decimal", "OneParen"], [[p(s("outer")),
@@ -83,7 +83,7 @@ it("applies heading properties explicitly and keeps table terminators within tab
 it("rejects raw objects, embedded font resources, controls and undeclared resources before publication", async () => {
   const publish = vi.fn(async () => {});
   for(const blocks of [[{t: "RawBlock", c: ["rtf", "{\\object\\objdata 00}"]}], [p(s("\0"))]] as Block[][])
-    await expect(rtf(blocks, {}, {output: {publish}})).rejects.toMatchObject({code: "E_CAPABILITY"});
+    await expect(rtf(blocks, {}, {output: {publish}})).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
   await expect(rtf([], {resources: [{id: "font.ttf", bytes: new Uint8Array([0, 1, 0, 0])}]})).rejects.toMatchObject({code: "E_RESOURCE"});
   expect(publish).not.toHaveBeenCalled();
 });
@@ -159,11 +159,11 @@ it("validates progressive JPEG scan sequences with separately authored DC and AC
 it("rejects merged/nested tables and list levels beyond the supported RTF profile", async () => {
   const table = (blocks: readonly Block[], span = 1): Block => ({t: "Table", c: [a,[null,[]],Array.from({length: span}, () => ["AlignLeft",{t:"ColWidthDefault"}] as const),
     [a,[]],[[a,0,[],[[a,[[a,"AlignDefault",1,span,blocks]]]]]],[a,[]]]});
-  await expect(rtf([table([p(s("x"))],2)])).rejects.toMatchObject({code: "E_CAPABILITY"});
-  await expect(rtf([table([table([p(s("x"))])])])).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(rtf([table([p(s("x"))],2)])).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
+  await expect(rtf([table([table([p(s("x"))])])])).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
   let nested: Block = p(s("x"));
   for(let i = 0; i < 10; i++) nested = {t: "BulletList", c: [[p(s("item")),nested]]};
-  await expect(rtf([nested])).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(rtf([nested])).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
 });
 it("accepts the exact ASCII output-byte limit and balances syntax independently of the reader", async () => {
   const blocks = [p(s("\\{}😀"), {t: "Superscript", c: [s("1")]}, {t: "Subscript", c: [s("2")]}, image("x"))];

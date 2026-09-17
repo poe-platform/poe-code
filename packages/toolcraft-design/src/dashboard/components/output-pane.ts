@@ -1,5 +1,7 @@
 import { selectViewportTail } from "../../viewport.js";
 import { getTheme } from "../../internal/theme-detect.js";
+import { supportsColor } from "../../internal/color-support.js";
+import { parse, render, type MdNode } from "../../terminal-markdown/index.js";
 import { hasAnsi, parseAnsi, type StyledSegment } from "../ansi.js";
 import { ScreenBuffer } from "../buffer.js";
 import { formatElapsed } from "../elapsed.js";
@@ -18,6 +20,16 @@ export type VisualLine = {
   prefixStyle: CellStyle;
   segments?: StyledSegment[];
 };
+
+const agentLines = new WeakMap<OutputItem, {
+  text: string;
+  width: number;
+  theme: ReturnType<typeof getTheme>;
+  color: boolean;
+  budget: number;
+  complete: boolean;
+  lines: VisualLine[];
+}>();
 
 export function renderOutputPane(
   buffer: ScreenBuffer,
@@ -42,7 +54,9 @@ export function renderOutputPane(
         label += ` · ${elapsed >= 3_600_000 ? duration : duration.slice(3)}`;
       }
       const text = options.details && item.detail ? item.role === "plan" ? item.detail : `${label}\n${item.detail}` : label;
-      const lines = computeVisualLines([text === item.text ? item : { ...item, text }], rect.width);
+      const agentReply = options.conversation && item.role === "agent"
+        ? renderAgentLines(item, rect.width, rect.height + scrollOffset + 4) : undefined;
+      const lines = agentReply?.lines ?? computeVisualLines([text === item.text ? item : { ...item, text }], rect.width);
       if (!options.conversation) return lines;
       const prose = item.role === "agent" || item.role === "user";
       if (prose) {
@@ -56,7 +70,7 @@ export function renderOutputPane(
           : item.kind === "error" ? "!" : "·";
       for (let index = 0; index < lines.length; index++) {
         const line = lines[index]!;
-        line.prefix = index === 0 ? prefix : "";
+        line.prefix = index === 0 && agentReply?.complete !== false ? prefix : "";
         line.prefixStyle = style;
         line.style = style;
       }
@@ -112,6 +126,47 @@ export function renderOutputPane(
   return actualOffset;
 }
 
+function renderAgentLines(item: OutputItem, width: number, budget: number): { lines: VisualLine[]; complete: boolean } {
+  const theme = getTheme();
+  const color = supportsColor();
+  const cached = agentLines.get(item);
+  if (cached?.text === item.text && cached.width === width && cached.theme === theme && cached.color === color
+    && (cached.complete || cached.budget >= budget)) {
+    return { lines: cached.lines.map((line) => ({ ...line })), complete: cached.complete };
+  }
+  let lines: VisualLine[];
+  let complete = true;
+  try {
+    const ast = parse(item.text).ast;
+    const options = { width: Math.max(1, width - TEXT_OFFSET), showFrontmatter: true };
+    let text: string;
+    if (ast.type !== "root" || containsFootnotes(ast)) text = render(ast, options);
+    else {
+      const fragments: string[] = [];
+      let rows = 0;
+      let index = ast.children.length - 1;
+      for (; index >= 0 && rows < budget; index--) {
+        const fragment = render(ast.children[index]!, options);
+        fragments.push(fragment);
+        rows += fragment.split("\n").length - 1;
+      }
+      complete = index < 0;
+      text = fragments.reverse().join("");
+    }
+    lines = computeVisualLines([{ ...item, text }], width, true);
+  } catch {
+    // A partially streamed document can contain invalid frontmatter or syntax.
+    lines = computeVisualLines([item], width);
+  }
+  agentLines.set(item, { text: item.text, width, theme, color, budget, complete, lines });
+  return { lines: lines.map((line) => ({ ...line })), complete };
+}
+
+function containsFootnotes(node: MdNode): boolean {
+  return node.type === "footnoteDefinition" || node.type === "footnoteReference"
+    || ("children" in node && node.children.some(containsFootnotes));
+}
+
 function foldCompletedActions(items: OutputItem[]): OutputItem[] {
   const result: OutputItem[] = [];
   let completed: OutputItem[] = [];
@@ -131,7 +186,7 @@ function foldCompletedActions(items: OutputItem[]): OutputItem[] {
   return result;
 }
 
-export function computeVisualLines(items: OutputItem[], width: number): VisualLine[] {
+export function computeVisualLines(items: OutputItem[], width: number, preformatted = false): VisualLine[] {
   if (width <= 0) {
     return [];
   }
@@ -143,8 +198,8 @@ export function computeVisualLines(items: OutputItem[], width: number): VisualLi
   for (const item of items) {
     const itemStyle = getItemStyle(item.kind);
 
-    if (hasAnsi(item.text) || hasCursorControls(item.text)) {
-      const styledLines = parseAnsi(item.text, hasAnsi(item.text) ? {} : itemStyle);
+    if (preformatted || hasAnsi(item.text) || hasCursorControls(item.text)) {
+      const styledLines = parseAnsi(item.text, preformatted || hasAnsi(item.text) ? {} : itemStyle);
       let firstRow = true;
       for (const styledLine of styledLines) {
         const rows = hardWrapSegments(styledLine.segments, textWidth);

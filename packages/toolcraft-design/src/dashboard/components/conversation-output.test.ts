@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { ScreenBuffer } from "../buffer.js";
 import type { OutputItem } from "../types.js";
-import { renderOutputPane } from "./output-pane.js";
+import { computeVisualLines, renderOutputPane } from "./output-pane.js";
 import { getTheme } from "../../internal/theme-detect.js";
+import * as markdown from "../../terminal-markdown/index.js";
 
 function rows(items: OutputItem[], details = false, now?: number) {
   const buffer = new ScreenBuffer(80, 15);
@@ -11,6 +12,95 @@ function rows(items: OutputItem[], details = false, now?: number) {
 }
 
 describe("concise conversation transcript", () => {
+  it("reuses formatted replies while typing and reflows them after a resize or text update", () => {
+    const parseMarkdown = vi.spyOn(markdown, "parse");
+    const item: OutputItem = { role: "agent", kind: "info", text: "The **checks passed**.", ts: 0 };
+    try {
+      expect(rows([item])).toEqual(rows([item]));
+      expect(parseMarkdown).toHaveBeenCalledTimes(1);
+      const buffer = new ScreenBuffer(40, 15);
+      renderOutputPane(buffer, { x: 0, y: 0, width: 40, height: 15 }, [item], 0, { conversation: true });
+      expect(parseMarkdown).toHaveBeenCalledTimes(2);
+      item.text = "The **review is complete**.";
+      expect(rows([item])[0]).toBe("•  The review is complete.");
+      expect(parseMarkdown).toHaveBeenCalledTimes(3);
+    } finally { parseMarkdown.mockRestore(); }
+  });
+
+  it("formats only the visible tail of long replies and can still scroll to their beginning", () => {
+    const renderMarkdown = vi.spyOn(markdown, "render");
+    const text = Array.from({ length: 100 }, (_, index) => `## Section ${index}\n\nThe **checks passed**.`).join("\n\n");
+    const item: OutputItem = { role: "agent", kind: "info", text, ts: 0 };
+    try {
+      const tail = rows([item]).join("\n");
+      expect(tail).toContain("Section 99");
+      expect(tail).not.toContain("•  Section");
+      expect(renderMarkdown).toHaveBeenCalled();
+      expect(renderMarkdown.mock.calls.reduce((count, [node]) => count + (node.type === "root" ? node.children.length : 1), 0)).toBeLessThan(20);
+      const buffer = new ScreenBuffer(80, 15);
+      const offset = renderOutputPane(buffer, { x: 0, y: 0, width: 80, height: 15 }, [item], 10000, { conversation: true });
+      expect(offset).toBeGreaterThan(0);
+      expect(Array.from({ length: 80 }, (_, x) => buffer.get(x, 0).ch).join("")).toContain("•  Section 0");
+    } finally { renderMarkdown.mockRestore(); }
+  });
+
+  it.each([
+    Array.from({ length: 25 }, (_, index) => `## Review ${index}\n\n- **Read** the source\n- Check formatting\n\n\`\`\`ts\n  verify(${index});\n\`\`\``).join("\n\n"),
+    "Earlier result[^first].\n\n" + "More review text.\n\n".repeat(20) + "Final result[^last].\n\n[^first]: First source.\n[^last]: Last source."
+  ])("matches complete Markdown rendering while scrolling at different widths", (text) => {
+    for (const width of [20, 60]) {
+      const formatted = markdown.renderMarkdown(text, { width: width - 3, showFrontmatter: true });
+      const full = computeVisualLines([{ role: "agent", kind: "info", text: formatted, ts: 0 }], width, true);
+      while (full.at(-1)?.text.trim() === "") full.pop();
+      full.push({ text: "", prefix: "", style: {}, prefixStyle: {} });
+      for (const offset of [0, 7, 10000]) {
+        const buffer = new ScreenBuffer(width, 6);
+        const actualOffset = renderOutputPane(buffer, { x: 0, y: 0, width, height: 6 }, [
+          { role: "agent", kind: "info", text, ts: 0 }
+        ], offset, { conversation: true });
+        const expectedOffset = Math.min(offset, full.length - 6);
+        expect(actualOffset).toBe(expectedOffset);
+        const start = full.length - 6 - expectedOffset;
+        const expected = new ScreenBuffer(width, 6);
+        for (const [y, line] of full.slice(start, start + 6).entries()) {
+          expected.putInRect({ x: 0, y: 0, width, height: 6 }, y, start + y === 0 ? "•" : "");
+          expected.putInRect({ x: 3, y: 0, width: width - 3, height: 6 }, y, line.text);
+        }
+        const screen = (value: ScreenBuffer) => Array.from({ length: 6 }, (_, y) =>
+          Array.from({ length: width }, (_, x) => value.get(x, y).ch).join(""));
+        expect(screen(buffer)).toEqual(screen(expected));
+      }
+    }
+  });
+
+  it("renders agent Markdown and keeps queued user text literal", () => {
+    const text = "## Review\n\nThe **checks passed** in `validation.ts`.\n\n- [x] Read the plan\n- [ ] Verify formatting";
+    const rendered = rows([{ role: "agent", kind: "info", text, ts: 0 }]).join("\n");
+    expect(rendered).toContain("•  Review");
+    expect(rendered).toContain("The checks passed in validation.ts.");
+    expect(rendered).not.toContain("**");
+    expect(rendered).not.toContain("##");
+    expect(rendered).not.toContain("`");
+    expect(rendered).toContain("Read the plan");
+    expect(rendered).toContain("Verify formatting");
+    expect(rows([{ role: "user", kind: "info", text: "Keep **literal** syntax", ts: 0 }])[0]).toBe("›  Keep **literal** syntax");
+  });
+
+  it("preserves code indentation and link destinations in formatted replies without color", () => {
+    const rendered = rows([{ role: "agent", kind: "info", ts: 0,
+      text: "```ts\nfunction verify() {\n  return true;\n}\n```\n\nRead [the plan](docs/plans/release.md)." }]).join("\n");
+    expect(rendered).toContain("     return true;");
+    expect(rendered).toContain("docs/plans/release.md");
+    expect(rendered).not.toContain("```");
+  });
+
+  it("keeps malformed streamed Markdown readable without interrupting the dashboard", () => {
+    const text = "---\ntitle: [unfinished\n---\nStill reviewing the plan.";
+    const rendered = rows([{ role: "agent", kind: "info", text, ts: 0 }]).join("\n");
+    expect(rendered).toContain("title: [unfinished");
+    expect(rendered).toContain("Still reviewing the plan.");
+  });
+
   it("shows elapsed time only for a live running action", () => {
     const items: OutputItem[] = [
       { role: "action", kind: "tool", text: "Run npm test", detail: "npm test --workspace=docx", ts: 1000 },

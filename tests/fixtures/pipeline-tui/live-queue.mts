@@ -83,7 +83,9 @@ dashboard.onCommand((command) => {
 });
 if (process.argv.includes("burst")) {
   burstTimer = setInterval(() => {
-    const text = "The focused validation checks are passing. I am reviewing document structure, package exports, and round-trip fidelity.\n\n";
+    const text = process.argv.includes("markdown")
+      ? "## Validation\n\nThe **checks passed**. Review `src/validation.ts`.\n\n- [x] Read the plan\n- [ ] Verify formatting\n\n"
+      : "The focused validation checks are passing. I am reviewing document structure, package exports, and round-trip fidelity.\n\n";
     dashboard.appendOutput({ id: "streaming-progress", kind: "info", role: "agent", ts: Date.now(), text: text.repeat(130) + `Streaming update ${++burstSequence}` });
   }, 16);
 }
@@ -143,6 +145,15 @@ await queue.run({
     sync();
     dashboard.appendOutput({ kind: "info", role: "agent", ts: Date.now(), text:
       "The ZIP64 member checks are passing. I’m inspecting the document validation paths before starting the remaining tasks." });
+    if (process.argv.includes("markdown")) {
+      dashboard.appendOutput({ kind: "info", role: "agent", ts: Date.now(), text: [
+        "## Validation update", "",
+        "The **ZIP64 member checks passed**. The remaining work is in `src/validation.ts`.", "",
+        "- [x] Preserve member payloads", "- [ ] Verify document formatting", "- [ ] Review TypeScript declarations", "",
+        "Run the focused checks with:", "", "```sh", "npm test --workspace=docx", "```", "",
+        "See [the release plan](docs/plans/docx-release.md) for the remaining tasks."
+      ].join("\n") });
+    }
     if (process.argv.includes("actions")) {
       const commands = [
         "cat package.json", "head -75 packages/docx/src/run-format-command.test.ts",

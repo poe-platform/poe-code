@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { spawnSync, type SpawnSyncReturns } from "node:child_process";
-import { cp, glob, mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { cp, mkdir, mkdtemp, rm } from "node:fs/promises";
+import { join } from "node:path";
 import { test } from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import { ShellLimitError } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
 
@@ -182,42 +182,16 @@ if (process.argv[2]?.startsWith("guarded:")) {
     });
   }
 
-  test("env shebang moved built public-package consumer", { timeout: 10000 }, async () => {
+  test("moved root package cannot expose the private shell", { timeout: 10000 }, async () => {
     await mkdir(author, { recursive: true });
     const scratch = await mkdtemp(join(author, ".consumer-"));
     try {
-      const repository = join(root, "../..");
-      const manifest: { files: string[] } = JSON.parse(await readFile(join(repository, "package.json"), "utf8"));
       const destination = join(scratch, "node_modules/poe-code");
       await mkdir(destination, { recursive: true });
-      await cp(join(repository, "package.json"), join(destination, "package.json"));
-      const copied: string[] = [];
-      // Move the published shell and filesystem artifacts used by this consumer.
-      const published: string[] = [];
-      for await (const path of glob(manifest.files.filter(path => !path.startsWith("!")
-        && ["packages/safe-bash/", "packages/safe-js/", "packages/safe-fs/", "packages/office-package/"].some(prefix => path.startsWith(prefix))), {
-        cwd: repository, exclude: manifest.files.filter(path => path.startsWith("!")).map(path => path.slice(1)),
-      })) published.push(path);
-      published.sort((left, right) => left.length - right.length);
-      for (const path of published) {
-        if (copied.some(parent => path === parent || path.startsWith(`${parent}/`))) continue;
-        const target = join(destination, path);
-        await mkdir(dirname(target), { recursive: true });
-        await cp(join(repository, path), target, { recursive: true });
-        copied.push(path);
-      }
+      await cp(join(root, "../../package.json"), join(destination, "package.json"));
       const child = spawnSync(process.execPath, ["--input-type=module", "-e", `
         import assert from 'node:assert/strict';
-        import { Shell, createMemoryFileSystem, agentCommands } from 'poe-code/safe-bash';
-        assert.equal(import.meta.resolve('poe-code/safe-bash'), ${JSON.stringify(pathToFileURL(join(destination, "packages/safe-bash/dist/index.js")).href)});
-        const fs = createMemoryFileSystem();
-        await fs.writeFile('/program', Buffer.from('#!/usr/bin/env -S -i V=ok bash\\nprintf "%s:%s" "$V" "$1"'), { mode: 0o755 });
-        const shell = new Shell({ fs }).use(agentCommands());
-        try {
-          const result = await shell.exec('/program "literal space"');
-          assert.equal(result.exitCode, 0); assert.equal(result.stderr, '');
-          assert.equal(result.stdout, 'ok:literal space');
-        } finally { await shell.dispose(); }
+        await assert.rejects(import('poe-code/safe-bash'), { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' });
       `], { cwd: scratch, timeout: 4000, killSignal: "SIGKILL", maxBuffer: 256 * 1024 });
       settled(child);
       assert.equal(child.status, 0, child.stderr.toString());

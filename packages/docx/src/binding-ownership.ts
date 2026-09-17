@@ -2,14 +2,14 @@ import type { DocumentBudget } from "./budget.js";
 import { customXmlDataNamespaces, customXmlRelationshipNamespaces } from "./custom-xml-namespaces.js";
 import { documentPartRole } from "./document-part-roles.js";
 import type { DocumentPackage } from "./package.js";
-import { parseDocumentXml, type XmlElement } from "./package-xml.js";
+import { isXmlContentType, parseDocumentXml, type XmlElement } from "./package-xml.js";
 
 export interface BindingDeclaration { readonly part: string; readonly path: readonly number[]; readonly storeItemId: string | null; readonly xpath: string | null; readonly prefixMappings: string | null; readonly supportedStory: boolean }
 export interface BindingStore { readonly item: string; readonly properties: string; readonly storeItemId: string | null }
 export function readDocumentBindingOwnership(graph: DocumentPackage, budget: DocumentBudget): { readonly declarations: readonly BindingDeclaration[]; readonly stores: readonly BindingStore[] } {
   budget.charge("work", 1); const declarations: BindingDeclaration[] = [], stores: BindingStore[] = [], roots = new Map<string, XmlElement>();
   for (const part of graph.parts) {
-    budget.charge("work", 1); const type = part.content_type.toLowerCase(); if (type === "application/vnd.openxmlformats-package.relationships+xml" || !type.endsWith("+xml") && !["application/xml", "text/xml"].includes(type)) continue;
+    budget.charge("work", 1); const type = part.content_type.toLowerCase(); if (type === "application/vnd.openxmlformats-package.relationships+xml" || !isXmlContentType(type)) continue;
     const root = parseDocumentXml(part.bytes, {}, budget).root; roots.set(part.partname, root);
     const role = documentPartRole(type, root); if (role !== "story" && role !== "glossary" && role !== "settings") continue;
     const visit = (node: XmlElement, path: readonly number[], parent?: XmlElement, grandparent?: XmlElement): void => {

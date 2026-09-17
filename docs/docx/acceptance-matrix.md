@@ -1,5 +1,11 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 native binding qualification](native-media-bindings-20260917.md)
+records 288 exact binding cases in the joint 915-pass run, zero skips, with
+48 built SDK/Shell workflows and 72 expected guard refusals. Active aliases
+update together; inactive aliases and bound raw XML retain required refusal.
+Other consumers and complete F01–F07 acceptance remain open.
+
 The [2026-09-17 revision identity qualification](native-media-revisions-20260917.md)
 records 192 exact native/inactive main/header cases inside 288 focused passes,
 zero skips, and 24 built SDK/actual Shell workflows. MIME parameters no longer

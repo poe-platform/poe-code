@@ -49,3 +49,43 @@ publication, installed-artifact verification and a fresh issue-queue scan.
 - Run `tests/integration/playwright-screenshot-limits.test.mjs` with the native
   runtime environment above. Check tiny success, encoding-overhead rejection,
   2048/4096 full-page refusal before capture, DPR, resize races and recovery.
+
+## Cloudflare transport retirement (#737)
+
+- The pinned local runtime is `@cloudflare/playwright@1.3.6` with
+  `miniflare@4.20260708.1`. Payload expansion, not raw POST size alone, can exceed
+  the 32 MiB CDP WebSocket message cap; the local proxy does not forward its error.
+- Add an optional acquired-resource `interrupt` hook. Start it alongside context
+  closure, drain both operations, and always await the existing host release hook.
+- Use public `acquire` then `connect` for an owned Cloudflare session. Connected
+  browser close disconnects the local transport; keep remote deletion separate.
+- Qualify the real CLI with 512 KiB zero / 8 MiB printable controls and the 6 MiB
+  zero payload, preserving native timeout diagnostics and settling disposal.
+- Record local disconnection, original-operation settlement, deletion response and
+  session-list absence separately. Do not claim process exit from the latter two.
+- Local binding DELETE support does not establish deployed binding support or a
+  hard process-termination deadline. Production hosts must provide and qualify
+  their own out-of-band session-retirement implementation; no ambient credentials,
+  private SDK transport access, provider-wide killing or raised message cap.
+
+### Maintained local qualification
+
+Run `node --test packages/safe-bash/tests/integration/playwright-cloudflare.test.mjs`
+with `SAFE_BASH_CF_RUNTIME_ROOT` pointing to an isolated installation of the pinned
+Cloudflare/Miniflare packages and `esbuild@0.25.10`, with native Chromium prerequisites.
+Optional `SAFE_BASH_TEST_ROOT` selects a built or installed package's module root
+(for npm artifacts, `dist/safe-bash/`), as a filesystem path or file URL.
+
+This esbuild-based fixture explicitly uses compatibility date `2026-07-08`,
+`nodejs_compat`, and the `EVAL` unsafe-evaluation binding. It qualifies this local
+profile only. Trying the issue's `2025-01-01` date and its four flags with this
+bare-esbuild fixture fails at startup on unavailable `node:os`, before any browser
+test. That is not a passing legacy-profile test or evidence that the consumer's
+Wrangler-polyfilled build fails. Preserve the distinction; deployed and legacy
+consumer qualification are still outside this local result.
+
+The fixture checks the real CLI, original native context-close settlement, local
+disconnect, service deletion response, independent session-list absence and shell
+disposal. Release HTTP requests receive one shared five-second cancellation signal;
+this is cooperative transport cancellation, not forced preemption of an arbitrary
+host promise. The outer native test also cancels its dispatch on its own deadline.

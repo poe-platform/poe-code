@@ -93,6 +93,7 @@ export interface PlaywrightBrowserSource {
   // returns a pool resource. It must never terminate a borrowed browser.
   acquireBrowser(options: PlaywrightAcquireOptions): Promise<{
     readonly browser: PlaywrightBrowser;
+    interrupt?(): Promise<void>;
     release(): Promise<void>;
   }>;
 }
@@ -163,9 +164,11 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
           let contextFailure: { error: unknown } | undefined;
           try { browserDisconnectedObserved ||= !resource.browser.isConnected(); }
           catch (error) { errors.push(error); }
+          const interruption = Promise.resolve().then(() => resource.interrupt?.()).catch(error => { errors.push(error); });
           if (context) {
             try { await context.close(); notify(); } catch (error) { contextFailure = { error }; }
           }
+          await interruption;
           try { await resource.release(); } catch (error) { errors.push(error); }
           try { browserDisconnectedObserved ||= !resource.browser.isConnected(); }
           catch (error) { errors.push(error); }

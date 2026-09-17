@@ -218,3 +218,32 @@ values because it does not select or allocate a session.
 Always dispose the CLI/controller, and separately dispose client-owned resources.
 No cross-process session persistence, privileged host installation or provider-wide
 process killing is implied by configuring a callback.
+
+### Cooperative transport interruption
+
+An acquired browser resource may additionally supply `interrupt(): Promise<void>`.
+The adapter starts this hook alongside context closure, waits for both operations,
+then always calls and awaits the resource's `release()`. Concurrent release calls
+share one completion. Interruption is useful when a broken browser transport would
+otherwise prevent `context.close()` from settling. Hook failures are preserved;
+neither a timeout race nor an abandoned close is treated as completed cleanup.
+
+The hook must affect only the resource owned by that acquisition. For a borrowed
+browser, disconnect only an owned connection, never terminate someone else's
+browser. Omitting the hook preserves the existing context-close-then-release
+behavior. Arbitrary uncooperative host callbacks still have no forced-preemption
+guarantee.
+
+For Cloudflare's session API, an opt-in host can use `acquire(binding)` followed
+by `connect(binding, sessionId)`, retain the owned ID, and use that **connected**
+browser's `close()` in `interrupt`. Its `release` must separately request session
+removal over an out-of-band, deadline-aware service API. Do not substitute a
+`launch()` browser's close: that path sends an in-band browser-close command and
+can stall with the same transport. A partial acquisition also needs host-owned
+cleanup of the retained session ID.
+
+This separates local transport disconnection and draining pending operations from
+remote session removal. A deletion acknowledgment or absence from a session list
+does not prove the remote browser process has exited. See the pinned local-runtime
+qualification and remaining deployment limits in
+`docs/plans/playwright-resource-limits.md`.

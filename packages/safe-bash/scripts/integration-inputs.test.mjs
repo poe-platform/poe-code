@@ -2645,6 +2645,16 @@ test("Python Docker host acceptance remains admitted current input", () => {
   }
 });
 
+test("S3 namespace cleanup tests remain admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/fs/s3/namespace.test.ts", "tests/fs/s3/namespace-review.test.ts", "tests/integration/python-s3-namespace.test.mjs",
+    "tests/plugins/qualified-current-release/current-s3-namespace.ts"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
 test("UTF-8 literal workerd acceptance remains admitted current input", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const boundaries = loadBoundaries(root);

@@ -4,6 +4,7 @@ import {Shell} from "../../src/shell/index.js";
 import {FsError, type FileSystem} from "../../src/contracts/index.js";
 import {pandocCommands} from "../../src/commands/pandoc/index.js";
 import {fixture} from "./pandoc-fixture.js";
+import {convert} from "@poe-code/pandoc";
 
 function override(fs: FileSystem, changes: Partial<FileSystem>): FileSystem {
   return new Proxy(fs, {get(target, key) {
@@ -16,6 +17,89 @@ function deferred<T>() {
   const promise = new Promise<T>(yes => {resolve = yes;});
   return {promise, resolve};
 }
+
+test("pandoc actual command matches SDK bytes with seeded chunks and a reused buffer", async () => {
+  const {shell} = fixture();
+  const bytes = new TextEncoder().encode("é😀\r\n" + "**original** [dangling] < & ".repeat(16));
+  const expected = await convert([{bytes}], {from: "commonmark", to: "html"}, {yield: async () => {}});
+  assert.equal(expected.kind, "text");
+  try {
+    for (const initialSeed of [1, 0x12345678]) {
+      let seed = initialSeed;
+      const buffer = new Uint8Array(13);
+      const stdin = {async *[Symbol.asyncIterator]() {
+        for (let offset = 0; offset < bytes.length;) {
+          seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5;
+          const count = Math.min(1 + (seed >>> 0) % buffer.length, bytes.length - offset);
+          buffer.set(bytes.subarray(offset, offset + count));
+          yield buffer.subarray(0, count);
+          offset += count;
+        }
+        buffer.fill(255);
+      }};
+      const result = await shell.exec("pandoc -f commonmark -t html", {stdin});
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, expected.kind === "text" ? expected.text : "binary unexpectedly returned");
+    }
+  } finally {await shell.dispose();}
+});
+
+test("pandoc closes stdout before its first write without acquiring input", async () => {
+  const {shell} = fixture();
+  const consumer = new AbortController();
+  consumer.abort(new FsError("EPIPE"));
+  let acquired = 0, writes = 0;
+  const write = async () => {writes++; assert.fail("closed stdout written");};
+  try {
+    const result = await shell.exec("pandoc -f commonmark -t plain", {
+      stdin: {async *[Symbol.asyncIterator]() {acquired++; yield Uint8Array.of(65);}},
+      stdout: {write, ownedOutput: {consumerClosed: consumer.signal, write}}
+    });
+    assert.equal(result.exitCode, 141, result.stderr);
+    assert.equal(acquired, 0);
+    assert.equal(writes, 0);
+  } finally {await shell.dispose();}
+});
+
+test("pandoc actual command waits for a gated sink and never succeeds after rejection", async () => {
+  const {shell} = fixture();
+  const entered = deferred<void>(), release = deferred<void>();
+  let writes = 0, settled = false;
+  const execution = shell.exec("pandoc -f commonmark -t plain b.md", {stdout: {async write() {
+    writes++; entered.resolve(); await release.promise; throw new FsError("EIO");
+  }}}).then(value => {settled = true; return value;}, error => {settled = true; throw error;});
+  // Attach observation before opening a rejecting gate.
+  const outcome = execution.then(result => result.exitCode, () => -1);
+  try {
+    await entered.promise;
+    assert.equal(settled, false);
+    release.resolve();
+    assert.notEqual(await outcome, 0);
+    assert.equal(writes, 1);
+  } finally {release.resolve(); await outcome; await shell.dispose();}
+});
+
+test("pandoc rejects capped adversarial declarations before output publication", async () => {
+  const {fs, volume, shell: initial} = fixture();
+  const shell = new Shell({fs, cwd: "/work"}).use(pandocCommands({limits: {work: 512, depth: 4}}));
+  const cases = [
+    ["commonmark", "[".repeat(1024) + "missing" + "]".repeat(1024)],
+    ["html", '<p title="' + "&amp;".repeat(512) + '">x</p>'],
+    ["json", "[".repeat(16) + "0" + "]".repeat(16)],
+    ["latex", String.raw`\newcommand{\a}{\a}\a`],
+    ["rst", "|a|\n\n.. |a| replace:: |a|"],
+    ["rtf", String.raw`{\rtf1\bin2147483647 x}`]
+  ];
+  try {
+    for (const [from, source] of cases) {
+      volume.writeFileSync("/work/adversarial", source!);
+      const result = await shell.exec(`pandoc -f ${from} -t plain adversarial -o out`);
+      assert.notEqual(result.exitCode, 0, from);
+      assert.equal(result.stdout, "");
+      assert.equal(volume.readFileSync("/work/out", "utf8"), "Keep");
+    }
+  } finally {await shell.dispose(); await initial.dispose();}
+});
 
 test("pandoc refuses unknown existing output identity before reading or writing", async () => {
   const {fs, volume, shell: initial} = fixture();

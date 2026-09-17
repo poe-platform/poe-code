@@ -73,3 +73,14 @@ now cooperate while advancing. Token nodes, slots and source/raw ownership are
 reserved before growth. Reuse the already parsed optional list-label token.
 Both new regressions and all 47 existing reader units pass; the final maintained
 unit/lint/build evidence above includes this change. See `adversarial-latex-*`.
+
+Actual safe-bash command: both canonical command files pass all 28 tests with no
+cancelled/skipped tests. New cases exercise fixed xorshift seeds and reused stdin
+buffers, stdout consumer closure before first write/input acquisition, a gated
+rejecting sink, and no-write parser-budget failures. Existing cooperative deferred
+read/publication tests drain admitted acquisition on cancellation and preserve
+the destination. The adapter stays thin; conversion remains in packages/pandoc.
+The maintained virtual-bash typecheck (including consumers) passed. Guarded root
+ESLint completed with zero errors and 14 warnings; its bulky raw receipt was
+summarized after inspection, preserving its hash and counts in JSON evidence.
+See `adversarial-command-{focused,typecheck}.log` and `adversarial-root-eslint.json`.

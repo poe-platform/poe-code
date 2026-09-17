@@ -101,7 +101,10 @@ Additional substantive discrepancies validated against current source:
   entries alone do not prove the contract errors are implemented.
 - Strict plain output currently silently strips ordinary formatting, emits inline
   `[note: …]` rather than numbered endnotes, and has no I_PROJECTION. Literal
-  prose probe returns no diagnostics. Required projection classification remains open.
+  prose probe returns no diagnostics. A fresh original Note AST returns
+  `Before[note: Original note]after` with no diagnostics in strict mode:
+  [projection edge probes](final-audit-projection-edges.json). Required projection
+  classification remains open.
 - Contract specifies independently parsed inputs with namespaced IDs. Current
   CommonMark file/stdin test intentionally joins input text before parsing; registry
   defaults one joined operand, while explicit document readers concatenate ASTs.
@@ -125,6 +128,13 @@ Additional substantive discrepancies validated against current source:
   shaping and merged cells. Contract requires between-row pagination/oversize-row
   failure, safe internal link annotations and a broader font profile. Rendered
   supported reductions do not certify those rejected requirements.
+  Font embedding explicitly uses `subset: false`; independent serialization
+  evidence hashes the full packaged font. Required stable font subsets are absent.
+  A fresh strict PDF Span probe carrying an ID, class, unavailable font-family
+  and 48pt font-size succeeds with no diagnostics; pdf-writer.ts unwraps Span
+  children without inspecting those attributes. The probe establishes silent
+  attribute omission, not visual verification of the requested font or size:
+  [original projection edges](final-audit-projection-edges.json).
 
 ## Budgets, loss and host boundaries
 
@@ -199,22 +209,50 @@ reproductions: [4,809 checks in 16 files](final-audit-timeout-reproduction.log),
 [421 codec checks](final-audit-codec-reproduction.log), and
 [208 worker-start case checks](final-audit-worker-reproduction.log).
 The frontmatter repair has its own red/green/scoped lint evidence.
-A fresh full maintained rerun starts after these source/check changes and build
-completion; its result remains a separate integration gate.
+A fresh full maintained rerun after these source/check changes and build
+completion finished with exit 1: [complete rerun](final-audit-full-test-rerun.log).
+Native Bash completed 1,174 discovered active files: 39,845 tests, 38,985 passed,
+37 failed, 823 explicitly skipped, zero cancelled/todo. Its runner checks and
+preceding op/Python-spawn native stages ran; later declared workspace stages and
+npm posttest did not run after this failure. Skips and unreached tasks do not
+count as passes. Full integration acceptance remains open.
+The shared phase of that rerun passes 2,854 files / 129,707 tests, with two
+explicit skips in each denominator. Native stages are not included in that count.
+All 37 native Bash failures reach the same committed-archive integration failure: the guarded
+compiler expects sibling Pandoc/PDF package metadata/declarations, while the
+archive verifier stages neither that SDK closure nor its package metadata.
+The first missing Pandoc metadata read becomes JSON.parse(undefined) in
+packages/safe-bash/scripts/build.mjs:311. Three existing synthetic archive
+controls independently reproduce the same failure, 0 passes / 3 failures:
+[focused archive reproduction](final-audit-archive-reproduction.log). This is an
+observed integration dependency failure, not a pre-existing-issue dismissal.
+Archive admission/staging and authenticated dependency closure need a coherent
+repair; skipping controls, adding ambient source reads, or pretending the public
+memfs runtime checks qualify this archive lane would not resolve it.
 
 The actual public CLI `node dist/bin.cjs pipeline validate
 docs/plans/pandoc-typescript-safe-bash.md` succeeds after acceptance status
-corrections: [validation](final-audit-pipeline.log). Validation does not execute
+corrections: [final validation](final-audit-pipeline-final.log). Validation does not execute
 the pipeline, run inherited steps, finalize it, commit automatically or release.
 
 Atomic task history and exact paths: [Git commit inventory](final-audit-commits.json).
-The inventory records 77 nonempty commits at its capture, including SDK wiring,
+The inventory records 79 nonempty commits at its capture, including SDK wiring,
 expanded readers/writers, independent engine work, failing-first regressions,
 portable exports, concurrency/budget fixes and separate QA evidence improvements.
 It describes actual Git paths, not implied sole ownership of every historical path.
 No history was squashed/reverted and no co-author or ignored file was added.
 
-This audit's first local commit is `3cf560ff7`: original frontmatter reproduction,
+Runner review confirms test membership/build closure come from maintained
+workspace declarations, with UNCACHED execution and native npm event hooks.
+Before children start, testWorkspaces clears git rev-parse --local-env-vars in a
+cloned child environment. taskEnvironment retains caller-supplied Bash profiles
+only for the actual virtual-bash test:unit event. Parent environment and global/
+private Git configuration were not modified; unavailable optional profiles are
+not synthesized or counted as passes.
+
+This audit's local commits include `77929a926` (acceptance gates/contract audit)
+and `42712b7d5` (current presentation graph qualification).
+Its first local commit is `3cf560ff7`: original frontmatter reproduction,
 memfs test fix, maintained scoped lint and its dedicated audit procedure/evidence.
 The pending main plan status edits and untracked public-wiring logs were present
 before this work and are excluded from task-owned commits. Audited acceptance

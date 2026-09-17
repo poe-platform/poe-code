@@ -1,0 +1,19 @@
+{
+  "provenance": "Fresh original programmatic ASTs, built public SDK, explicit manual QA only; no native tool or file fixture",
+  "rows": [
+    {
+      "name": "strict PDF styling",
+      "to": "pdf",
+      "kind": "binary",
+      "length": 142088,
+      "diagnostics": []
+    },
+    {
+      "name": "strict plain note projection",
+      "to": "plain",
+      "kind": "text",
+      "text": "Before[note: Original note]after\n",
+      "diagnostics": []
+    }
+  ]
+}

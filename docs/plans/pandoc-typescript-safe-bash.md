@@ -1704,3 +1704,10 @@ maintained check outcomes: [audit evidence](../pandoc/final-acceptance-audit.md)
 Existing pending task-status edits and public-wiring captures are separate work;
 only the audit's own plan annotation belongs to its local commit. No push,
 remote-main verification or publication is performed.
+
+The fresh full maintained test rerun exits 1: shared tests pass, but 37 native
+Bash archive/cleanup controls fail at unstaged Pandoc SDK metadata admission.
+Later workspace stages and npm posttest are not reached. Build, repository lint
+and final pipeline validation pass separately; integration acceptance stays open.
+The executed audit retains this dependency repair and strict PDF attribute/font
+subsetting and plain-note projection evidence; it does not finalize the pipeline.

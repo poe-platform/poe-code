@@ -40,3 +40,20 @@ Paths: `packages/toolcraft-design/scripts/scripts.test.ts`, this procedure and
 Only the test changes: use memfs through mocked filesystem reads for the original
 frontmatter example, preserving actual demo loading, argument parsing and rendering.
 No production CLI visual behavior changes, so new screenshots are unnecessary.
+
+## Executed audit outcome
+
+Build, repository lint, Pandoc scoped checks and actual CLI pipeline validation
+pass. The fresh full npm test exits 1: the shared phase passes, but native Bash
+has 37 failures caused by a missing staged Pandoc SDK metadata/declaration
+closure. Three focused existing archive controls reproduce that failure. Later
+workspace stages and npm posttest are not reached; full integration remains open.
+Retain the archive dependency repair, all five expanded profile acceptance gaps,
+README permission, sibling Office APIs/QA and independent coverage/renderers as
+unresolved. The audit procedure is executed; the original final-acceptance task
+is open, no unresolved work is archived, and no push/publication is authorized.
+
+Owned result paths: `docs/pandoc/final-acceptance-audit.md`,
+`final-audit-commits.json`, `final-audit-full-test-rerun.log`,
+`final-audit-archive-reproduction.log`, `final-audit-projection-edges.json`
+(all under `docs/pandoc`), this procedure and only the main plan audit footer.

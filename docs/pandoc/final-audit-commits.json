@@ -1,6 +1,42 @@
 {
-  "head": "3cf560ff71cd0709c12a507392b92a614ad4b28e",
+  "head": "42712b7d56967d0806e1275b6463cde6342292fe",
   "commits": [
+    {
+      "hash": "42712b7d56967d0806e1275b6463cde6342292fe",
+      "subject": "docs(pandoc): qualify current presentation bundle behavior",
+      "paths": [
+        "docs/pandoc/final-acceptance-audit.md",
+        "docs/pandoc/final-audit-pipeline-final.log",
+        "docs/pandoc/public-wiring.md",
+        "docs/plans/pandoc-final-acceptance.md",
+        "docs/plans/pandoc-typescript-safe-bash.md"
+      ]
+    },
+    {
+      "hash": "77929a926476805455f911ed468d6702499dd1dc",
+      "subject": "docs(pandoc): retain unresolved final acceptance gates",
+      "paths": [
+        "docs/pandoc/contract.md",
+        "docs/pandoc/final-acceptance-audit.md",
+        "docs/pandoc/final-audit-build.log",
+        "docs/pandoc/final-audit-cli-edges.json",
+        "docs/pandoc/final-audit-codec-reproduction.log",
+        "docs/pandoc/final-audit-commits.json",
+        "docs/pandoc/final-audit-full-test.log",
+        "docs/pandoc/final-audit-lint.log",
+        "docs/pandoc/final-audit-package-lint.log",
+        "docs/pandoc/final-audit-pandoc-lint.log",
+        "docs/pandoc/final-audit-pandoc-unit.log",
+        "docs/pandoc/final-audit-pipeline-before.log",
+        "docs/pandoc/final-audit-pipeline.log",
+        "docs/pandoc/final-audit-public-unit.log",
+        "docs/pandoc/final-audit-public.json",
+        "docs/pandoc/final-audit-reader-matrix.json",
+        "docs/pandoc/final-audit-timeout-reproduction.log",
+        "docs/pandoc/final-audit-worker-reproduction.log",
+        "docs/plans/pandoc-typescript-safe-bash.md"
+      ]
+    },
     {
       "hash": "3cf560ff71cd0709c12a507392b92a614ad4b28e",
       "subject": "test(pandoc): remove archived-plan dependency from integration check",

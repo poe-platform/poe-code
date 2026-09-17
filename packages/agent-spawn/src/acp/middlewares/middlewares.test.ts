@@ -514,7 +514,8 @@ describe("acp/middlewares/spawnLog", () => {
         event: "tool_start",
         id: "cmd-1",
         kind: "exec",
-        title: command
+        title: command,
+        input: { command }
       }
     ]);
     const content = await fs.readFile(ctx.logFile!, "utf8");
@@ -523,7 +524,8 @@ describe("acp/middlewares/spawnLog", () => {
       event: "tool_start",
       id: "cmd-1",
       kind: "exec",
-      title: "[redacted]"
+      title: "[redacted]",
+      input: "[redacted]"
     });
   });
 

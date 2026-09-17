@@ -138,6 +138,7 @@ export interface ToolStartEvent {
   kind: string;
   title: string;
   id?: string;
+  input?: unknown;
   _meta?: Record<string, unknown>;
 }
 
@@ -152,6 +153,7 @@ export interface ToolCompleteEvent {
   kind: string;
   path: string;
   id?: string;
+  status?: "completed" | "failed" | "cancelled";
   _meta?: Record<string, unknown>;
 }
 

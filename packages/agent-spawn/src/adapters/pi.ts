@@ -175,6 +175,7 @@ export async function* adaptPi(lines: AsyncIterable<string>): AsyncGenerator<Acp
         id: event.toolCallId,
         kind: tracked?.kind ?? toolKind(event.toolName),
         path: toolCompletePath(event.toolName, event.args, event.result, tracked),
+        ...(typeof event.isError === "boolean" ? { status: event.isError ? "failed" : "completed" } : {}),
         ...(event.isError === true ? { _meta: { failed: true } } : {})
       };
       continue;

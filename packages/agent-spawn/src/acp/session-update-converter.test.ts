@@ -90,7 +90,8 @@ describe("session-update-converter", () => {
         event: "tool_complete",
         kind: "exec",
         path: "",
-        id: "tc-1"
+        id: "tc-1",
+        status: "completed"
       }]);
     });
 
@@ -120,7 +121,8 @@ describe("session-update-converter", () => {
           event: "tool_complete",
           kind: "read",
           path: "",
-          id: "tc-1"
+          id: "tc-1",
+          status: "completed"
         }
       ]);
     });

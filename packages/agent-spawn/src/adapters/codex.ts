@@ -28,6 +28,11 @@ type CodexItem = {
   tool?: unknown;
   arguments?: unknown;
   result?: unknown;
+  status?: unknown;
+  exit_code?: unknown;
+  changes?: unknown;
+  query?: unknown;
+  message?: unknown;
 };
 
 export async function* adaptCodex(
@@ -82,7 +87,7 @@ export async function* adaptCodex(
       continue;
     }
 
-    if (eventType === "turn.failed") {
+    if (eventType === "turn.failed" || eventType === "error") {
       const message = extractErrorMessage(event) ?? "Turn failed";
       yield { event: "error", message };
       continue;
@@ -94,18 +99,32 @@ export async function* adaptCodex(
     const itemType = item.type;
     if (!isNonEmptyString(itemType)) continue;
 
-    if (eventType === "item.started") {
-      if (!isNonEmptyString(item.id)) continue;
+    if (isNonEmptyString(item.id) && (eventType === "item.started" || (eventType === "item.completed" && !toolKindById.has(item.id)))) {
 
       let kind: string | undefined;
       let title: string | undefined;
+      let input: unknown;
 
       if (itemType === "command_execution") {
         kind = "exec";
         title = truncate(isNonEmptyString(item.command) ? item.command : "", 80);
+        input = { command: item.command };
       } else if (itemType === "file_edit") {
         kind = "edit";
         title = isNonEmptyString(item.path) ? item.path : "";
+      } else if (itemType === "file_change") {
+        kind = "edit";
+        title = Array.isArray(item.changes)
+          ? item.changes.flatMap((change: unknown) => {
+              if (!change || typeof change !== "object") return [];
+              const file = (change as { path?: unknown }).path;
+              return isNonEmptyString(file) ? [file] : [];
+            }).join(", ")
+          : "files";
+      } else if (itemType === "web_search") {
+        kind = "search";
+        title = isNonEmptyString(item.query) ? item.query : "web";
+        input = { query: item.query };
       } else if (itemType === "thinking") {
         kind = "think";
         title = "thinking...";
@@ -114,17 +133,22 @@ export async function* adaptCodex(
         const tool = isNonEmptyString(item.tool) ? item.tool : "unknown";
         kind = "other";
         title = `${server}.${tool}`;
+        input = item.arguments;
       }
 
       if (kind && title !== undefined) {
         toolTitleById.set(item.id, title);
         toolKindById.set(item.id, kind);
-        yield { event: "tool_start", id: item.id, kind, title };
+        yield { event: "tool_start", id: item.id, kind, title, ...(input !== undefined ? { input } : {}) };
       }
-      continue;
+      if (eventType === "item.started") continue;
     }
 
     if (eventType === "item.completed") {
+      if (itemType === "error" && isNonEmptyString(item.message)) {
+        yield { event: "error", message: item.message };
+        continue;
+      }
       if (itemType === "agent_message") {
         if (!isNonEmptyString(item.text)) continue;
         yield { event: "agent_message", text: item.text };
@@ -146,7 +170,7 @@ export async function* adaptCodex(
 
       if (!isNonEmptyString(item.id)) continue;
 
-      if (itemType === "command_execution" || itemType === "file_edit" || itemType === "mcp_tool_call") {
+      if (toolKindById.has(item.id)) {
         const kindFromStart = toolKindById.get(item.id);
         const kind =
           kindFromStart ??
@@ -166,7 +190,12 @@ export async function* adaptCodex(
         toolTitleById.delete(item.id);
         toolKindById.delete(item.id);
 
-        yield { event: "tool_complete", id: item.id, kind, path };
+        const status = item.status === "declined" || item.status === "cancelled"
+          ? "cancelled"
+          : item.status === "failed" || (typeof item.exit_code === "number" && item.exit_code !== 0)
+            ? "failed"
+            : item.status === "completed" || item.exit_code === 0 ? "completed" : undefined;
+        yield { event: "tool_complete", id: item.id, kind, path, ...(status ? { status } : {}) };
       }
     }
   }

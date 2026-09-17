@@ -28,8 +28,7 @@ export function createToolRenderState(): ToolRenderState {
 export function toRenderKind(kind: ConvertibleToolKind | undefined | null): string {
   if (kind === "execute") return "exec";
   if (kind === "write" || kind === "edit") return "edit";
-  if (kind === "read") return "read";
-  return "other";
+  return kind ?? "other";
 }
 
 function toToolTitle(title: string, locations?: Array<{ path: string }> | null): string {
@@ -111,19 +110,21 @@ export function sessionUpdateToEvents(
     state.toolCallKinds.set(update.toolCallId, renderKind);
     state.toolCallTitles.set(update.toolCallId, title);
 
-    if (state.startedToolCalls.has(update.toolCallId)) {
-      return [];
-    }
-
-    state.startedToolCalls.add(update.toolCallId);
-    return [
-      {
+    const events: AcpEvent[] = [];
+    if (!state.startedToolCalls.has(update.toolCallId)) {
+      state.startedToolCalls.add(update.toolCallId);
+      events.push({
         event: "tool_start",
         kind: renderKind,
         title,
-        id: update.toolCallId
-      }
-    ];
+        id: update.toolCallId,
+        ...(update.rawInput !== undefined ? { input: update.rawInput } : {})
+      });
+    }
+    if (update.status === "completed" || update.status === "failed" || update.status === "cancelled") {
+      events.push({ event: "tool_complete", kind: renderKind, path: extractToolOutputText(update), id: update.toolCallId, status: update.status });
+    }
+    return events;
   }
 
   if (update.sessionUpdate === "tool_call_update") {
@@ -150,7 +151,8 @@ export function sessionUpdateToEvents(
         event: "tool_start",
         kind: renderKind,
         title: toolTitle,
-        id: update.toolCallId
+        id: update.toolCallId,
+        ...(update.rawInput !== undefined ? { input: update.rawInput } : {})
       });
     }
 
@@ -161,7 +163,8 @@ export function sessionUpdateToEvents(
           event: "tool_start",
           kind: renderKind,
           title: toolTitle,
-          id: update.toolCallId
+          id: update.toolCallId,
+          ...(update.rawInput !== undefined ? { input: update.rawInput } : {})
         });
       }
 
@@ -169,7 +172,8 @@ export function sessionUpdateToEvents(
         event: "tool_complete",
         kind: renderKind,
         path: extractToolOutputText(update),
-        id: update.toolCallId
+        id: update.toolCallId,
+        status
       });
     }
 

@@ -8,7 +8,8 @@ const reserved = new Set([
   ...forbiddenTex, "begin", "end", "input", "include", "newcommand", "renewcommand", "providecommand",
   "documentclass", "title", "author", "date", "maketitle", "section", "subsection", "subsubsection", "chapter", "part", "paragraph", "subparagraph",
   "emph", "textit", "textbf", "texttt", "textsc", "underline", "item", "caption", "label", "ref", "eqref", "pageref", "href", "url", "includegraphics", "multicolumn", "hline", "par", "verb", "footnote",
-  "LaTeX", "TeX", "ae", "AE", "oe", "OE", "aa", "AA", "o", "O", "ss", "l", "L", "textendash", "textemdash", "ldots", "textbackslash", "textasciitilde", "textasciicircum", "copyright"
+  "LaTeX", "TeX", "ae", "AE", "oe", "OE", "aa", "AA", "o", "O", "ss", "l", "L", "textendash", "textemdash", "ldots", "dots", "textbackslash", "textasciitilde", "textasciicircum", "copyright", "pounds", "euro", "textless", "textgreater",
+  "c", "v", "u", "H", "r", "newline"
 ]);
 function simpleName(name: string): boolean {return name.length > 0 && name.length <= 64 && [...name].every(c => c >= "a" && c <= "z" || c >= "A" && c <= "Z");}
 function includePath(name: string, base: string | undefined, context: AdapterContext): {id: string; identity: string} {

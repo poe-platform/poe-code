@@ -87,6 +87,15 @@ it("keeps group-local macro definitions local and supports renewal/provision", a
   await expect(read("{\\newcommand{\\local}{x}}\\local")).rejects.toMatchObject({code: "E_CAPABILITY"});
   await expect(read("\\newcommand{\\section}{bad}")).rejects.toMatchObject({code: "E_CAPABILITY"});
 });
+it("rejects replacing supported Unicode, accent and line-break commands under every loss policy", async () => {
+  for (const name of ["dots", "pounds", "euro", "textless", "textgreater", "c", "v", "u", "H", "r", "newline"]) {
+    for (const definition of ["newcommand", "renewcommand", "providecommand"]) {
+      for (const policy of [{}, {rawContent: "retain"}, {lossy: true}]) {
+        await expect(json(`\\${definition}{\\${name}}{replacement}`, policy)).rejects.toMatchObject({code: "E_CAPABILITY"});
+      }
+    }
+  }
+});
 it("supports nested optional argument groups and escaped math dollars", async () => {
   const doc = await read("\\section[{a]b}]{Title}$\\$x$\\'e!");
   expect(doc.blocks[0]?.t === "Header" && doc.blocks[0].c[1][2]).toEqual([["short-title", "{a]b}"]]);

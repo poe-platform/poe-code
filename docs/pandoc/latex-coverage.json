@@ -228,6 +228,14 @@
       "preservedRaw": "same",
       "lossy": "same",
       "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.reserved-builtins",
+      "originalTest": "rejects replacing supported Unicode, accent and line-break commands under every loss policy",
+      "strict": "E_CAPABILITY",
+      "preservedRaw": "E_CAPABILITY",
+      "lossy": "E_CAPABILITY",
+      "status": "passing-original-profile"
     }
   ],
   "unsupportedProfiles": {

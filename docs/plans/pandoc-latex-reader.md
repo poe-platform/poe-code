@@ -22,3 +22,10 @@ observe successful input expansion, strict unknown-command failure, complete raw
 command/argument preservation with W_RAW_CONTENT, and missing-include failure with
 empty content. Inspect the resulting screenshot for readable diagnostics/statuses.
 No QA script or host fixture was added.
+
+September 16 follow-up: audit the existing reader against the requested bounded
+profile. Add an original failing test for replacement of supported Unicode,
+accent and line-break commands under strict, preserved-raw and lossy policies;
+complete the reserved macro names. Verify package tests, lint/typechecks and the
+selected workspace build before committing this correction locally. Preserve
+the unrelated plan and public-wiring evidence. No push or release authorized.

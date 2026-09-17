@@ -35,10 +35,11 @@ export async function editDocumentLists(input: Uint8Array, request: ListEditRequ
   budget.check("matches", selected.length);
   let archive = document.snapshot();
   assertDocumentEditable(archive, { ...settings, budget });
-  const main = document.list("story", { scope: "body" })[0]!.value.part.slice(1);
-  const dialect = dialectForNamespace(parseDocumentXml(archive.members.find(m => m.name === main)!.bytes, {}, budget).root.namespace)!;
-  const { w, r } = documentDialects[dialect];
   const packageGraph = new DocumentPackage(archive, settings.limits, budget);
+  const mainPart = packageGraph.getPart(document.list("story", { scope: "body" })[0]!.value.part);
+  const main = mainPart.name;
+  const dialect = dialectForNamespace(parseDocumentXml(mainPart.bytes, {}, budget).root.namespace)!;
+  const { w, r } = documentDialects[dialect];
   const edges = packageGraph.relationships("/" + main);
   const numberingEdges = edges.filter(e => e.reltype === r + "/numbering");
   const stylesEdges = edges.filter(e => e.reltype === r + "/styles");
@@ -56,7 +57,7 @@ export async function editDocumentLists(input: Uint8Array, request: ListEditRequ
   for (const before of selected) {
     await budget.checkpoint();
     budget.charge("work", 1);
-    const part = before.value.part.slice(1);
+    const part = packageGraph.getPart(before.value.part).name;
     let xml = editors.get(part);
     if (!xml) { xml = new DocumentXmlEditor(archive.members.find(m => m.name === part)!.bytes, {}, undefined, budget); editors.set(part, xml); graph.project(xml.root); }
     let node = xml.root, parent = node;

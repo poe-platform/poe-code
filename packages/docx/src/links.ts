@@ -83,15 +83,16 @@ export async function editDocumentLinks(input: Uint8Array, request: LinkEditRequ
   budget.check("matches", selected.length);
   let archive = document.snapshot();
   assertDocumentEditable(archive, { ...settings, budget });
-  const main = document.list("story", { scope: "body" })[0]!.value.part.slice(1);
-  const dialect = dialectForNamespace(parseDocumentXml(archive.members.find(m => m.name === main)!.bytes, {}, budget).root.namespace)!;
+  const graph = new DocumentPackage(archive, settings.limits, budget);
+  const mainPart = graph.getPart(document.list("story", { scope: "body" })[0]!.value.part), main = mainPart.name;
+  const dialect = dialectForNamespace(parseDocumentXml(mainPart.bytes, {}, budget).root.namespace)!;
   const { w, r } = documentDialects[dialect];
   const members = new Map(archive.members.map(m => [m.name, m]));
   const grouped = new Map<string, Location[]>();
   for (const location of selected) grouped.set(location.value.part, [...grouped.get(location.value.part) ?? [], location]);
   const updates: { before: Location; path: readonly number[]; kind: LinkEditData["changes"][number]["kind"]; locationKind: "link" | "paragraph" }[] = [];
   for (const [part, locations] of grouped) {
-    const name = part.slice(1), member = members.get(name)!;
+    const name = graph.getPart(part).name, member = members.get(name)!;
     let xml = new DocumentXmlEditor(member.bytes, {}, undefined, budget);
     const split = name.lastIndexOf("/");
     const relName = name.slice(0, split + 1) + "_rels/" + name.slice(split + 1) + ".rels";

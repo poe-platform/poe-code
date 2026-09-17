@@ -93,3 +93,10 @@ implementation and whole API acceptance tasks remain pending.
 The [numbering continuation record](mce-numbering-continuation-20260916.md)
 adds exact F05/F18 read/edit/preserve/reject cases. Complete-family acceptance
 remains open; the bounded capability labels below do not certify whole families.
+
+## Current canonical editing evidence
+
+The [canonical editing record](canonical-editing-routes-20260917.md) adds exact
+F01/F02/F03/F04/F07 cross-family cases for canonical member identity, typed XML
+editor input and unchanged protection retention. Other consumers and full-family
+acceptance remain open; these named cases do not certify complete families.

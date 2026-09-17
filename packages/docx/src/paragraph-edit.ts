@@ -46,10 +46,10 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
   let archive = document.snapshot();
   assertDocumentEditable(archive, { ...settings, budget });
   const body = document.list("story", { scope: "body" })[0]!;
-  const main = body.value.part.slice(1);
-  const dialect = dialectForNamespace(parseDocumentXml(archive.members.find(m => m.name === main)!.bytes, {}, budget).root.namespace)!;
-  const w = documentDialects[dialect].w;
   const graph = new DocumentPackage(archive, settings.limits, budget);
+  const mainPart = graph.getPart(body.value.part), main = mainPart.name;
+  const dialect = dialectForNamespace(parseDocumentXml(mainPart.bytes, {}, budget).root.namespace)!;
+  const w = documentDialects[dialect].w;
   const stylesEdge = graph.relationships("/" + main).find(edge => edge.reltype === documentDialects[dialect].r + "/styles");
   const styles = stylesEdge && !stylesEdge.is_external ? parseDocumentXml(stylesEdge.target_part.bytes, {}, budget).root : undefined;
   let styleId: string | undefined;

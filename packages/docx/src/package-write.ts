@@ -3,6 +3,7 @@ import { InputTypeError, InvalidValueError, type DocumentArchive } from "./archi
 import { DocumentXmlEditor } from "./xml-write.js";
 import { documentXmlSettings, type DocumentXmlLimits } from "./package-xml.js";
 import { DocumentBudget } from "./budget.js";
+import { asciiKey, normalizePartName } from "./part-uri.js";
 
 import { compatibilitySettings, documentCompatibilityProfile, type CompatibilityProfile } from "./compatibility.js";
 
@@ -47,12 +48,20 @@ export class DocumentArchiveEditor {
   }
 
   xml(name: string): DocumentXmlEditor {
-    const existing = this.#editors.get(name);
-    if (existing) return existing;
-    const member = this.#archive.members.find(member => member.name === name && !member.directory);
+    if (typeof name !== "string") throw new InputTypeError("Expected an XML member name.");
+    let member = this.#archive.members.find(member => member.name === name && !member.directory);
+    if (!member) {
+      const key = asciiKey(normalizePartName(name.startsWith("/") ? name : "/" + name));
+      member = this.#archive.members.find(candidate => {
+        this.#budget.charge("work", 1 + candidate.name.length);
+        return !candidate.directory && asciiKey(candidate.name) !== "[content_types].xml" && asciiKey(normalizePartName("/" + candidate.name)) === key;
+      });
+    }
     if (!member) throw new InvalidValueError("Archive part was not found.");
+    const existing = this.#editors.get(member.name);
+    if (existing) return existing;
     const editor = new DocumentXmlEditor(member.bytes, this.#limits, this.#profile, this.#budget);
-    this.#editors.set(name, editor);
+    this.#editors.set(member.name, editor);
     return editor;
   }
 

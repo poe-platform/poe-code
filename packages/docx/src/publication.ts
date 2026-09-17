@@ -221,12 +221,11 @@ export function assertDocumentEditable(archive: DocumentArchive, { limits, budge
   }
   if (controlSource) for (const sourcePart of sourcePackage!.parts) {
     if (!sourcePart.content_type.toLowerCase().startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.") || !sourcePart.content_type.toLowerCase().endsWith("+xml")) continue;
-    const member = controlSource.members.find(member => "/" + member.name === sourcePart.partname)!;
-    const source = new DocumentXmlEditor(member.bytes, {}, undefined, budget);
+    const source = new DocumentXmlEditor(sourcePart.bytes, {}, undefined, budget);
     const role = documentPartRole(sourcePart.content_type, source.root);
     if (role === "settings" && source.root.children.some(node => node.namespace === source.root.namespace && ["documentProtection", "writeProtection"].includes(node.localName))) throw new UnsupportedEditError("Protected document settings do not authorize publication.");
     if (role !== "story" && role !== "glossary") continue;
-    const candidate = archive.members.find(part => part.name === member.name);
+    const candidate = archive.members.find(part => part.name === sourcePart.name);
     const current = candidate ? new DocumentXmlEditor(candidate.bytes, {}, undefined, budget) : undefined;
     const visit = (node: XmlElement, path: readonly number[]) => {
       budget.charge("work", 1);
@@ -245,7 +244,7 @@ export function assertDocumentEditable(archive: DocumentArchive, { limits, budge
     if (signatureContentTypes.includes(type)) throw new UnsupportedEditError("Signed package publication is not supported.");
     if (!type.endsWith("+xml") && type !== "application/xml" && type !== "text/xml") continue;
     const current = controlSource ? new DocumentXmlEditor(part.bytes, {}, undefined, budget) : undefined;
-    const originalPart = controlSource?.members.find(member => "/" + member.name === part.partname);
+    const originalPart = sourcePackage?.parts.find(member => member.partname === part.partname);
     const original = originalPart ? new DocumentXmlEditor(originalPart.bytes, {}, undefined, budget) : undefined;
     const root = current?.root ?? parseDocumentXml(part.bytes, {}, budget).root;
     const role = documentPartRole(type, root); if (role !== "story" && role !== "glossary" && role !== "settings") continue;

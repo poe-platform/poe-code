@@ -1,28 +1,144 @@
 {
   "schemaVersion": 1,
-  "policy": "Primary documents pinned by published version and successful retrieval hash where available. Research bytes remain outside worktree; no specification fixtures or implementation imported.",
+  "policy": "Primary documents pinned by published version, verified internal identity and retained-byte SHA-256. Research bytes and inspection tools remain outside worktree; no specification fixture, artwork or implementation imported.",
   "specifications": [
     {
       "id": "pdf-1.7",
       "url": "https://opensource.adobe.com/dc-acrobat-sdk-docs/pdfstandards/pdfreference1.7old.pdf",
       "bytes": 32453129,
       "sha256": "4aa598e7e2cc88867565fae793db38c140a10ca2b5551dccdb45e2124282ce29",
-      "retrieved": true
+      "retrieved": true,
+      "researchFile": "/tmp/poe-pandoc-investigation-20260912/pdf-1.7.research",
+      "fixturesImported": false,
+      "title": "PDF Reference, sixth edition, Adobe Portable Document Format Version 1.7",
+      "publication": "Edition 1.0, October 2006",
+      "rights": "Adobe Systems Incorporated copyright 1985\u20132006; all rights reserved. Document reproduction subject to its copyright/license notice; no document payload or artwork imported.",
+      "identityVerification": "pypdf 6.0.0 first three pages; title/version, printed edition date, rights and 1310-page document identity checked. Research only, not a converter test."
     },
     {
       "id": "epub-3.3",
       "url": "https://www.w3.org/TR/2023/REC-epub-33-20230525/",
       "bytes": 1505709,
       "sha256": "3d304b2c32c7c257b309f079cb8b8e8889517031a4f1be90d4f7b8edf9672339",
-      "retrieved": true
+      "retrieved": true,
+      "researchFile": "/tmp/poe-pandoc-investigation-20260912/epub-3.3.research",
+      "fixturesImported": false,
+      "title": "EPUB 3.3 W3C Recommendation, 25 May 2023",
+      "rights": "W3C Software and Document Notice and License (2015), linked as the permissive document license in the Recommendation footer.",
+      "rightsUrl": "https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document",
+      "identityVerification": "Versioned Recommendation title/footer and exact retained-byte SHA-256 checked."
     },
     {
       "id": "rst-0.21.2",
       "url": "https://docutils.sourceforge.io/0.21.2/docs/ref/rst/restructuredtext.html",
       "bytes": 191185,
       "sha256": "6484dafed50c14a5bb82084565361973448e0ea8ba56be428596c794e77f2dc5",
-      "retrieved": true
+      "retrieved": true,
+      "researchFile": "/tmp/poe-pandoc-investigation-20260912/rst-0.21.2.research",
+      "fixturesImported": false,
+      "rights": "Docutils reference document explicitly placed in the public domain. Embedded CSS can carry its own public-domain or BSD-2-Clause notice; no document/example/CSS payload imported.",
+      "identityVerification": "Versioned 0.21.2 URL, exact retained-byte SHA-256 and document Copyright table checked."
     },
+    {
+      "id": "rst-directives-0.21.2",
+      "url": "https://docutils.sourceforge.io/0.21.2/docs/ref/rst/directives.html",
+      "bytes": 155959,
+      "sha256": "6ce5536a31fef650a990c89fddc8404d853089cff9c066ff4490b538fc9052e0",
+      "retrieved": true,
+      "researchFile": "/tmp/poe-pandoc-investigation-20260912/rst-directives-0.21.2.research",
+      "fixturesImported": false,
+      "rights": "Docutils reference document explicitly placed in the public domain. Embedded CSS can carry its own public-domain or BSD-2-Clause notice; no document/example/CSS payload imported.",
+      "identityVerification": "Versioned 0.21.2 URL, exact retained-byte SHA-256 and document Copyright table checked."
+    },
+    {
+      "id": "rst-roles-0.21.2",
+      "url": "https://docutils.sourceforge.io/0.21.2/docs/ref/rst/roles.html",
+      "bytes": 38178,
+      "sha256": "642e06450c7d635d19105f332b255aa9a3a6f2c16eb1d7e1d6e85a4603ba1137",
+      "retrieved": true,
+      "researchFile": "/tmp/poe-pandoc-investigation-20260912/rst-roles-0.21.2.research",
+      "fixturesImported": false,
+      "rights": "Docutils reference document explicitly placed in the public domain. Embedded CSS can carry its own public-domain or BSD-2-Clause notice; no document/example/CSS payload imported.",
+      "identityVerification": "Versioned 0.21.2 URL, exact retained-byte SHA-256 and document Copyright table checked."
+    },
+    {
+      "id": "epub-2.0.1-opf",
+      "title": "Open Packaging Format 2.0.1 v1.0.1",
+      "publication": "Recommended Specification, 4 September 2010; draft filename is retained by the original publisher even though the internal title declares Recommended Specification.",
+      "url": "https://raw.githubusercontent.com/w3c/epub-specs/29c4f0f652f74826af4a2563f02819902b8f1460/archive/epub201/OPF_2.0.1_draft.htm",
+      "archiveRepository": "w3c/epub-specs",
+      "archiveCommit": "29c4f0f652f74826af4a2563f02819902b8f1460",
+      "publisher": "International Digital Publishing Forum; archived by W3C",
+      "originalUrl": "http://www.idpf.org/doc_library/epub/OPF_2.0.1_draft.htm",
+      "bytes": 199032,
+      "sha256": "33db2e188d08b98331db044e601e39258b3490b4619216cd230f52d1b2981189",
+      "retrieved": true,
+      "researchFile": "/tmp/poe-pandoc-investigation-20260912/OPF_2.0.1_draft.htm.research",
+      "fixturesImported": false,
+      "rights": "Copyright 2010 International Digital Publishing Forum; all rights reserved. Document prohibits reproduction/dissemination with changes without written permission. No payload imported.",
+      "identityVerification": "Internal recommended-specification title/date/rights inspected in HTML for OPF/OPS; OCF OLE metadata and textutil text extraction inspected outside unit tests. Exact archive-byte SHA-256 checked."
+    },
+    {
+      "id": "epub-2.0.1-ops",
+      "title": "Open Publication Structure 2.0.1 v1.0.1",
+      "publication": "Recommended Specification, 4 September 2010; draft filename is retained by the original publisher even though the internal title declares Recommended Specification.",
+      "url": "https://raw.githubusercontent.com/w3c/epub-specs/29c4f0f652f74826af4a2563f02819902b8f1460/archive/epub201/OPS_2.0.1_draft.htm",
+      "archiveRepository": "w3c/epub-specs",
+      "archiveCommit": "29c4f0f652f74826af4a2563f02819902b8f1460",
+      "publisher": "International Digital Publishing Forum; archived by W3C",
+      "originalUrl": "http://www.idpf.org/doc_library/epub/OPS_2.0.1_draft.htm",
+      "bytes": 297530,
+      "sha256": "7f1b7a41ba2308b2362851286a9dbd05a56e8a277ca6ab617eff90de57056ecb",
+      "retrieved": true,
+      "researchFile": "/tmp/poe-pandoc-investigation-20260912/OPS_2.0.1_draft.htm.research",
+      "fixturesImported": false,
+      "rights": "Copyright 2010 International Digital Publishing Forum; all rights reserved. Document prohibits reproduction/dissemination with changes without written permission. No payload imported.",
+      "identityVerification": "Internal recommended-specification title/date/rights inspected in HTML for OPF/OPS; OCF OLE metadata and textutil text extraction inspected outside unit tests. Exact archive-byte SHA-256 checked."
+    },
+    {
+      "id": "epub-2.0.1-ocf",
+      "title": "Open Container Format 2.0.1 v1.0.1",
+      "publication": "Recommended Specification, 4 September 2010; draft filename is retained by the original publisher even though the internal title declares Recommended Specification.",
+      "url": "https://raw.githubusercontent.com/w3c/epub-specs/29c4f0f652f74826af4a2563f02819902b8f1460/archive/epub201/OCF_2.0.1_draft.doc",
+      "archiveRepository": "w3c/epub-specs",
+      "archiveCommit": "29c4f0f652f74826af4a2563f02819902b8f1460",
+      "publisher": "International Digital Publishing Forum; archived by W3C",
+      "originalUrl": "http://www.idpf.org/doc_library/epub/OCF_2.0.1_draft.doc",
+      "bytes": 211456,
+      "sha256": "aa64a61ca430257f1aa22fe555bb1281053a9cf3741b2d645c27d77a8a0d09d9",
+      "retrieved": true,
+      "researchFile": "/tmp/poe-pandoc-investigation-20260912/OCF_2.0.1_draft.doc.research",
+      "fixturesImported": false,
+      "rights": "Copyright 2010 International Digital Publishing Forum; all rights reserved. Document prohibits reproduction/dissemination with changes without written permission. No payload imported.",
+      "identityVerification": "Internal recommended-specification title/date/rights inspected in HTML for OPF/OPS; OCF OLE metadata and textutil text extraction inspected outside unit tests. Exact archive-byte SHA-256 checked."
+    },
+    {
+      "id": "rtf-1.9.1",
+      "title": "Rich Text Format (RTF) Specification, Version 1.9.1",
+      "publication": "Microsoft Corporation, 19 March 2008; applies to Office Word 2007; 278 pages.",
+      "url": "https://officeprotocoldoc.z19.web.core.windows.net/files/Archive_References/%5BMSFT-RTF%5D.pdf",
+      "publisher": "Microsoft Corporation",
+      "authoritativeReference": "https://learn.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxrtfcp/85c0b884-a960-4d1a-874e-53eeee527ca6",
+      "publisherLink": "https://go.microsoft.com/fwlink/?LinkId=120924",
+      "publisherLinkResolution": "HTTP 308 Location points to the selected Microsoft archive PDF; requested the Location explicitly because the research Python urllib does not follow 308 automatically.",
+      "bytes": 8023509,
+      "sha256": "ddb1aa7edfd8e17ed2c49696f9ab19f8d20027cbd7d31753c9a0c8d0a68d02f7",
+      "retrieved": true,
+      "researchFile": "/tmp/poe-pandoc-investigation-20260912/rtf-1.9.1-primary.research",
+      "fixturesImported": false,
+      "rights": "Copyright 2008 Microsoft Corporation; all rights reserved. First-page copyright and License Agreement govern use; no reproduction rights inferred from parser or mirror licenses, and no payload imported.",
+      "identityVerification": "pypdf 6.0.0 first three pages: version 1.9.1, 19 March 2008, copyright/license notice and 278-page identity verified. Exact vendor-archive SHA-256 checked. Research only, not a converter test."
+    }
+  ],
+  "requiredVersions": {
+    "pdf": "Adobe PDF Reference sixth edition, PDF 1.7, Edition 1.0, October 2006 (printed edition date verified); ISO 32000-1:2008 for clarification",
+    "epub": "EPUB 3.3 W3C Recommendation 25 May 2023; EPUB 2.0.1 OPF/OCF/OPS reader admission",
+    "rtf": "Microsoft Rich Text Format Specification 1.9.1, 19 March 2008",
+    "rst": "Docutils 0.21.2 reStructuredText markup, directives and roles reference"
+  },
+  "retrievalLimitations": [],
+  "licensePolicy": "Microsoft/Adobe/W3C/Docutils document rights are not parser/fixture import permissions. No primary document payload imported; future fixture imports must record actual fixture license separately.",
+  "retrievalAttempts": [
     {
       "id": "rtf-1.9.1",
       "url": "https://download.microsoft.com/download/2/f/5/2f599e18-07ee-4ec5-a1e7-f4eaaee2e5bd/Word2007RTFSpec9.doc",
@@ -46,31 +162,12 @@
       "url": "https://idpf.org/epub/20/spec/OCF_2.0.1_draft.doc",
       "retrieved": false,
       "error": "HTTP Error 403: Forbidden"
-    },
-    {
-      "id": "rst-directives-0.21.2",
-      "url": "https://docutils.sourceforge.io/0.21.2/docs/ref/rst/directives.html",
-      "bytes": 155959,
-      "sha256": "6ce5536a31fef650a990c89fddc8404d853089cff9c066ff4490b538fc9052e0",
-      "retrieved": true
-    },
-    {
-      "id": "rst-roles-0.21.2",
-      "url": "https://docutils.sourceforge.io/0.21.2/docs/ref/rst/roles.html",
-      "bytes": 38178,
-      "sha256": "642e06450c7d635d19105f332b255aa9a3a6f2c16eb1d7e1d6e85a4603ba1137",
-      "retrieved": true
     }
   ],
-  "requiredVersions": {
-    "pdf": "Adobe PDF Reference sixth edition, PDF 1.7, November 2006; ISO 32000-1:2008 for clarification",
-    "epub": "EPUB 3.3 W3C Recommendation 25 May 2023; EPUB 2.0.1 OPF/OCF/OPS reader admission",
-    "rtf": "Microsoft Word 2007 Rich Text Format Specification 1.9.1, 2008",
-    "rst": "Docutils 0.21.2 reStructuredText markup, directives and roles reference"
+  "unselectedMirror": {
+    "url": "https://raw.githubusercontent.com/erdomke/RtfPipe/9851ab97d693037073d567d74346184ae2f3d4b3/docu/Word2007RTFSpec9.pdf",
+    "sha256": "9743ff6d744c255bdc8fa6f1119939bd1195c9534665df950e30331aae7df86f",
+    "reason": "Research lead only; not the selected primary pin. The Microsoft archive was subsequently retrieved directly. Mirror byte identity is not asserted and mirror/parser licenses do not license Microsoft specification text."
   },
-  "retrievalLimitations": [
-    "Microsoft RTF 1.9.1 download and candidate documentation URLs returned 404. Version selected; primary bytes/hash not verified.",
-    "Legacy IDPF EPUB2 OPF/OCF URLs returned 403. EPUB2 primary bytes/hash not verified."
-  ],
-  "licensePolicy": "Microsoft/Adobe/W3C/Docutils document rights are not parser/fixture import permissions. No primary document payload imported; future fixture imports must record actual fixture license separately."
+  "validationEvidence": "docs/pandoc/primary-specification-validation.json"
 }

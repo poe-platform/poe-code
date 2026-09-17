@@ -1,7 +1,8 @@
 # Pinned Pandoc corpus inventory
 
 This is the `map-upstream-corpus` task only. Conversion code and the thin safe-bash
-adapter are separate implementation tasks; this inventory does not modify them. The research checkout is detached at
+adapter are separate implementation tasks; this inventory does not modify them.
+The research checkout is detached at
 `c9a9a5eed7185783b69043e019c067370dc09615` outside the worktree.
 
 [upstream-cases.json](upstream-cases.json) assigns reserved original test IDs to
@@ -86,25 +87,34 @@ layout, pagination or PDF-object test suite to port. The 69 independent missing
 cases include font licensing/metrics/subsetting, searchable Unicode, clipping,
 page geometry and wrapping, row pagination, page budgets, object references,
 xref offsets, stream lengths, annotations and deterministic bytes. These are
-original obligations; none has been executed or passed.
+original obligations; none has been mapped to executed passing evidence in this ledger.
 
-[primary-specifications.json](primary-specifications.json) pins published PDF,
-EPUB, RTF and RST versions. PDF 1.7, EPUB3.3 and versioned Docutils markup/role/
-directive documents have retrieval hashes. RTF 1.9.1 primary URLs returned 404,
-and legacy EPUB2 URLs returned 403; their primary bytes remain unverified.
+[primary-specifications.json](primary-specifications.json) pins primary PDF 1.7,
+EPUB 3.3, EPUB 2.0.1 OPF/OPS/OCF, RTF 1.9.1 and Docutils 0.21.2 markup/directive/role
+references by version, identity and retained-byte hash, with actual document
+rights recorded. EPUB2 documents come from W3C's archive at an exact commit;
+their internal titles declare Recommended Specification despite draft filenames.
+RTF 1.9.1 was recovered directly from Microsoft's archive through the authoritative
+reference's `LinkId=120924` redirect. Earlier failed URLs are retained as retrieval
+history. A PDF mirror was a research lead; its bytes are not the primary pin.
+The Adobe document's printed edition date is October 2006, correcting the earlier
+November label. All research payloads and document-inspection tools remain
+outside the worktree. No fixture or specification payload was imported.
 
 ## Acceptance status
 
-The metadata assignment is a broad initial inventory, not whole-corpus runtime
+The metadata assignment is a complete registration inventory, not whole-corpus runtime
 acceptance. The second declaration/discovery review now matches every selected
 leaf registration, finite helper expansion and exact command opening-line/ordinal.
 It removed one falsely discovered Markdown writer group label; the group’s twelve
 children remain assigned. It also corrected 43 GFM section labels that had
 incorrectly treated headings inside fixture bodies as specification sections.
 Extension/disabled example annotations are now explicit. These corrections
-change reserved IDs only; no implemented tests were remapped. Native plain uppercase behavior is explicitly adapted to
+change reserved IDs only; no implemented tests were remapped. Native plain
+uppercase behavior is explicitly adapted to
 the contract’s literal-content projection. Unmapped cases remain planned even
-though the converter workspace now exists. RTF and EPUB2 primary-document retrieval remains incomplete.
+though the converter workspace now exists. Primary-document retrieval and
+identity/hash/rights verification are complete for the pinned references.
 Primary-source verification is recorded separately; runtime contract acceptance
 remains open. Only implemented original tests with maintained run
 evidence may transition rows to passing. Planned rejections must identify the

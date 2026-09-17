@@ -63,3 +63,18 @@ all CommonMark JSON example ordinals/sections/lines and GFM text example
 ordinals/sections/lines exactly, including extension/disabled opening annotations.
 Correct reserved locators without importing example text or claiming additional
 passing evidence.
+
+Primary references: recover EPUB2 OPF/OPS/OCF from W3C's archive at the recorded
+exact commit and read internal version/status/date/rights (draft filenames are
+not draft status). Resolve Microsoft's authoritative RTF reference LinkId=120924;
+request the HTTP 308 Location explicitly and verify the primary PDF's first-page
+version, second-page date and page count with pypdf 6.0.0. Verify Adobe's printed
+edition date as October 2006. Keep all inspection tools and bytes in the external
+research directory; no unit test invokes them. Record successful byte hashes,
+document rights, old failed attempts and the unselected mirror separately.
+
+Outcome: map-upstream-corpus registration/specification inventory is complete.
+All 5,100 rows are assigned (5,087 planned, 13 justified not-applicable); zero rows
+count as passing converter evidence. This does not complete format implementation,
+runtime conformance, application QA or whole-contract acceptance. Do not stage
+the pre-existing primary-plan edits or public-wiring evidence.

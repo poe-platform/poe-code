@@ -21,6 +21,7 @@ import { admitDocumentModel } from "./model-admission.js";
 import { modelContext, type DocumentModelContext } from "./model-context.js";
 import type { Length } from "./formatting-values.js";
 import { activeXmlChildren } from "./xml-active-children.js";
+import { documentTypes } from "./admission.js";
 
 const relNamespace = "http://schemas.openxmlformats.org/package/2006/relationships";
 const relContentType = "application/vnd.openxmlformats-package.relationships+xml";
@@ -124,7 +125,7 @@ export class PackageView {
     if (!part) {
       part = metadata.content_type.startsWith("image/") ? new ImagePartView(this, metadata.partname)
         : metadata.content_type === "application/vnd.openxmlformats-package.core-properties+xml" ? new CorePropertiesPartView(this, metadata.partname)
-        : metadata.content_type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml" ? new DocumentPartView(this, metadata.partname)
+        : Object.values(documentTypes).includes(asciiKey(metadata.content_type)) ? new DocumentPartView(this, metadata.partname)
         : metadata.content_type === "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml" ? new NumberingPart(this, metadata.partname)
         : xmlType(metadata.content_type) ? new XmlPartView(this, metadata.partname) : new PartView(this, metadata.partname);
     }
@@ -502,7 +503,7 @@ export class XmlPartView extends PartView {
 
 export class DocumentPartView extends XmlPartView {
   static override async load(partname: string | PackURI, content_type: string, blob: Uint8Array, owner: PackageView): Promise<DocumentPartView> {
-    if (content_type !== "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml") throw new InputTypeError("Expected the document content type.");
+    if (typeof content_type !== "string" || !Object.values(documentTypes).includes(asciiKey(content_type))) throw new InputTypeError("Expected a macro-free document or template content type.");
     return await super.load(partname, content_type, blob, owner) as DocumentPartView;
   }
   get numbering_part(): NumberingPart {

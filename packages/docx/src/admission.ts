@@ -23,10 +23,11 @@ export interface AdmittedDocumentArchive extends DocumentArchive {
   readonly package: DocumentPackage;
 }
 
-const documentTypes = {
+/** Internal shared recognition of admitted macro-free main-part content types. */
+export const documentTypes: Readonly<Record<AdmittedDocumentArchive["kind"], string>> = Object.freeze({
   docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
   dotx: "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml"
-};
+});
 export const macroTypes: ReadonlySet<string> = new Set([
   "application/vnd.ms-word.document.macroenabled.main+xml",
   "application/vnd.ms-word.template.macroenabledtemplate.main+xml",

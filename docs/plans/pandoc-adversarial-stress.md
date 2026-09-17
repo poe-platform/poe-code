@@ -84,3 +84,34 @@ The maintained virtual-bash typecheck (including consumers) passed. Guarded root
 ESLint completed with zero errors and 14 warnings; its bulky raw receipt was
 summarized after inspection, preserving its hash and counts in JSON evidence.
 See `adversarial-command-{focused,typecheck}.log` and `adversarial-root-eslint.json`.
+
+## Separate measurement lane
+
+Run `npm run test:stress --workspace=@poe-code/pandoc`. This explicit test lane
+is outside the unit file patterns. Generators cap at 2048 units; sizes double
+from 256. Per-input envelopes are `64 * UTF8 bytes + 4096` CPU work reservations
+and `256 * UTF8 bytes + 65536` retained-byte reservations. Search-heavy inputs
+must reject at the envelope rather than take an unbounded fallback. Doubling
+permits at most fourfold accounted growth plus the fixed allowance. Logs include
+actual process CPU microseconds as diagnostics, not portable timing thresholds.
+Reservations model conversion ownership; they do not guarantee total heap or RSS.
+Use fake immediate cooperative schedulers. No timeout races, sleeps, downloaded
+fixtures, filesystem scratch mutations or external executable oracles are used.
+
+The initial config merge concatenated the root include patterns and accidentally
+selected unrelated tests. That run was stopped and is not acceptance evidence.
+The corrected configuration replaces the include inventory. The final lane ran
+exactly one file/nine tests and passed. RST bracket searches hit the work envelope;
+all other measurements completed within their documented reservations. See
+`adversarial-growth.log`. Canonical units also verify that lexical media aliases
+cause one memfs read/extraction, rather than duplicate retained resources.
+
+## Acceptance and limits
+
+All exercised original cases settle with the expected bounded success or error;
+gated cleanup drains, no-write failures and sticky sink failures are verified.
+Cancellation evidence comes from parser/engine/acquisition checkpoints, never a
+wall-clock Promise.race timeout. No native converter fallback was introduced.
+This is deterministic coverage and accounting evidence, not an all-input safety
+proof or total-process memory guarantee. DOCX/XLSX remain disabled, so enabled
+Office stress coverage applies to PPTX. No push or release is authorized.

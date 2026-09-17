@@ -18,9 +18,10 @@
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
-    "lint": "eslint src conformance && npm run typecheck",
+    "lint": "eslint src conformance stress && npm run typecheck",
     "test": "cd ../.. && vitest run packages/pandoc",
     "test:unit": "cd ../.. && vitest run packages/pandoc",
+    "test:stress": "cd ../.. && vitest run --config packages/pandoc/stress/vitest.config.mjs",
     "pretest:conformance": "cd ../.. && npm run build:workspaces -- --workspace=@poe-code/pandoc",
     "test:conformance": "node conformance/commonmark.mjs",
     "pretest:conformance:rst": "cd ../.. && npm run build:workspaces -- --workspace=@poe-code/pandoc",

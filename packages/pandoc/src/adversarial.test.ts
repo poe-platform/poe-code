@@ -130,6 +130,23 @@ it("refuses escaping expansion before publication", async () => {
   expect(publish).not.toHaveBeenCalled();
 });
 
+it("deduplicates lexical media aliases before extraction and destination writes", async () => {
+  const volume = Volume.fromJSON({ "/book/p.png": "original pixels" });
+  const readFile = vi.fn(async (path: string) => new Uint8Array(volume.readFileSync(path) as Buffer));
+  const writeFile = vi.fn(async (path: string, bytes: Uint8Array) => { volume.writeFileSync(path, bytes, { flag: "wx" }); });
+  const files = {
+    readFile, writeFile,
+    lstat: async (path: string) => ({ type: volume.lstatSync(path).isDirectory() ? "directory" : "file" }),
+    mkdir: async (path: string) => { volume.mkdirSync(path, { recursive: true }); }
+  };
+  const result = await convert([{ bytes: encode("![a](p.png) ![b](./p.png)"), base: "/book" }],
+    { from: "commonmark", to: "html", extractMedia: "/media" }, { resourceFiles: files, yield: immediate });
+  expect(result).toMatchObject({ kind: "text", text: expect.stringContaining('src="/media/p.png"') });
+  expect(readFile).toHaveBeenCalledTimes(1);
+  expect(writeFile).toHaveBeenCalledTimes(1);
+  expect(volume.readFileSync("/media/p.png", "utf8")).toBe("original pixels");
+});
+
 it.each([1, 0x12345678])("rejects malformed UTF-8 at randomized reused-buffer boundaries %s", async seed => {
   for (const bytes of [Uint8Array.of(0xf0,0x90,0x80), Uint8Array.of(0xed,0xa0,0x80), Uint8Array.of(0xe2,0x28,0xa1)]) {
     const publish = vi.fn(immediate);

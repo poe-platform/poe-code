@@ -8,3 +8,8 @@ timers. Inspect dynamic imports with the existing lightweight syntax scanner and
 entries through native Node resolution, avoiding Vitest transformation of the
 large generated graph. Validate strict compilation, focused tests and lint,
 then complete the maintained test route before delivery.
+
+Preserve the original literal-only dynamic import assertion in the fast token
+scanner: require a string or substitution-free template followed by the argument
+separator or closing parenthesis. The focused public artifact suite passes all
+three cases after this coverage correction.

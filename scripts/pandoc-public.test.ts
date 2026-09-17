@@ -47,9 +47,18 @@ it("ships portable public entries without loading Office engines for text conver
     const forbidden: string[] = [];
     let previous: ts.SyntaxKind | undefined;
     let previousText = "";
+    let dynamicArgument: "literal" | "end" | undefined;
     for (let token = scanner.scan(); token !== ts.SyntaxKind.EndOfFileToken; token = scanner.scan()) {
+      if (dynamicArgument === "literal") {
+        expect([ts.SyntaxKind.StringLiteral, ts.SyntaxKind.NoSubstitutionTemplateLiteral]).toContain(token);
+        dynamicArgument = "end";
+      } else if (dynamicArgument === "end") {
+        expect([ts.SyntaxKind.CloseParenToken, ts.SyntaxKind.CommaToken]).toContain(token);
+        dynamicArgument = undefined;
+      }
       if (token === ts.SyntaxKind.OpenParenToken) {
         if (previous === ts.SyntaxKind.Identifier && ["fetch", "require"].includes(previousText)) forbidden.push(previousText);
+        if (previous === ts.SyntaxKind.ImportKeyword) dynamicArgument = "literal";
       }
       previous = token;
       previousText = scanner.getTokenText();

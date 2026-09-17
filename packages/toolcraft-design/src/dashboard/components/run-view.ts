@@ -137,41 +137,57 @@ function renderWorkList(buffer: ScreenBuffer, rect: Rect, stats: DashboardStats,
   const theme = getTheme().styles;
   const queue = stats.run?.queue ?? [];
   const tasks = stats.run?.tasks ?? [];
-  const lines: Array<{ text: string; style: CellStyle; parent?: string }> = [];
-  lines.push({ text: `PLANS · ${queue.filter((item) => item.kind === "plan").length}`, style: { bold: true } });
-  let planNumber = 0;
-  let parentPlan: string | undefined;
-  let currentLine = 0;
-  const activeMessage = queue.some((item) => item.kind === "message" && item.status === "running");
-  for (const item of queue) {
-    if (activeMessage ? item.kind === "message" && item.status === "running" : item.id === stats.run?.activePlanId) {
-      currentLine = lines.length;
+  const activeMessage = queue.findIndex((item) => item.kind === "message" && item.status === "running");
+  let currentLine = 1 + (activeMessage >= 0 ? activeMessage : queue.findIndex((item) => item.id === stats.run?.activePlanId));
+  let totalLines = queue.length + 3;
+  let completed = 0;
+  for (const task of tasks) {
+    if (task.status === "completed") completed++;
+    if (requestedOffset === undefined && activeMessage < 0 && task.id === stats.run?.activeTaskId) {
+      const step = task.steps?.findIndex((step) => step.name === stats.run?.activeStep) ?? -1;
+      currentLine = totalLines + (step >= 0 ? step + 1 : 0);
     }
-    if (item.kind === "plan") parentPlan = displayPlanPath(item.path, stats.run?.cwd);
-    const text = item.kind === "plan" ? `${++planNumber}. ${parentPlan}` : `  └ ${item.text}`;
-    lines.push({ text: `${marker(item.status)} ${text}`, style: tone(item.status), ...(item.kind === "message" ? { parent: `After ${parentPlan}` } : {}) });
-  }
-  lines.push({ text: "", style: {} }, { text: `TASKS · ${tasks.filter((task) => task.status === "completed").length}/${tasks.length}`, style: { bold: true } });
-  for (const [index, task] of tasks.entries()) {
-    const currentTask = !activeMessage && task.id === stats.run?.activeTaskId;
-    if (currentTask) currentLine = lines.length;
-    const active = task.id === stats.run?.activeTaskId && stats.status === "running";
-    const status = active ? "running" : task.status;
-    lines.push({ text: `${marker(status)} ${index + 1}. ${task.title}`, style: tone(status) });
-    for (const step of task.steps ?? []) {
-      if (currentTask && step.name === stats.run?.activeStep) currentLine = lines.length;
-      const status = active && step.name === stats.run?.activeStep ? "running" : step.status;
-      lines.push({ text: `    ${marker(status)} ${step.name}`, style: tone(status), parent: `${index + 1}. ${task.title}` });
-    }
+    totalLines += 1 + (task.steps?.length ?? 0);
   }
   const capacity = Math.max(0, rect.height - 2);
-  const offset = Math.max(0, Math.min(requestedOffset ?? Math.max(0, currentLine - 1), lines.length - capacity));
-  if (offset > 0) put(buffer, rect, 0, `↑ earlier · ${lines[offset]?.parent ?? "tasks and plans"}`, theme.muted);
-  for (let row = 0; row < capacity; row++) {
-    const line = lines[offset + row];
-    if (line) put(buffer, rect, row + 1, line.text, line.style);
+  const offset = Math.max(0, Math.min(requestedOffset ?? Math.max(0, currentLine - 1), totalLines - capacity));
+  const end = offset + capacity;
+  let parent: string | undefined;
+  function paint(line: number, text: string, style: CellStyle): void {
+    if (line >= offset && line < end) put(buffer, rect, line - offset + 1, text, style);
   }
-  if (offset + capacity < lines.length) put(buffer, rect, rect.height - 1, "↓ more tasks and plans", theme.muted);
+  paint(0, `PLANS · ${queue.filter((item) => item.kind === "plan").length}`, { bold: true });
+  let planNumber = 0;
+  let parentPlan: string | undefined;
+  for (let index = 0; index < Math.min(queue.length, end - 1); index++) {
+    const item = queue[index]!;
+    if (item.kind === "plan") { planNumber++; parentPlan = item.path; }
+    if (index + 1 < offset) continue;
+    const text = item.kind === "plan" ? `${planNumber}. ${displayPlanPath(item.path, stats.run?.cwd)}` : `  └ ${item.text}`;
+    paint(index + 1, `${marker(item.status)} ${text}`, tone(item.status));
+    if (index + 1 === offset && item.kind === "message" && parentPlan) parent = `After ${displayPlanPath(parentPlan, stats.run?.cwd)}`;
+  }
+  paint(queue.length + 2, `TASKS · ${completed}/${tasks.length}`, { bold: true });
+  let line = queue.length + 3;
+  for (const [index, task] of tasks.entries()) {
+    if (line >= end) break;
+    const next = line + 1 + (task.steps?.length ?? 0);
+    if (next <= offset) { line = next; continue; }
+    const title = `${index + 1}. ${task.title}`;
+    const active = task.id === stats.run?.activeTaskId && stats.status === "running";
+    const status = active ? "running" : task.status;
+    paint(line, `${marker(status)} ${title}`, tone(status));
+    for (let stepIndex = Math.max(0, offset - line - 1); stepIndex < (task.steps?.length ?? 0) && line + stepIndex + 1 < end; stepIndex++) {
+      const step = task.steps![stepIndex]!;
+      const name = step.name;
+      const status = active && name === stats.run?.activeStep ? "running" : step.status;
+      paint(line + stepIndex + 1, `    ${marker(status)} ${name}`, tone(status));
+      if (line + stepIndex + 1 === offset) parent = title;
+    }
+    line = next;
+  }
+  if (offset > 0) put(buffer, rect, 0, `↑ earlier · ${parent ?? "tasks and plans"}`, theme.muted);
+  if (end < totalLines) put(buffer, rect, rect.height - 1, "↓ more tasks and plans", theme.muted);
   return offset;
 }
 

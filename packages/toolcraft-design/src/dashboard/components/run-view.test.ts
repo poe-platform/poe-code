@@ -194,6 +194,41 @@ describe("run dashboard information hierarchy", () => {
     expect(result.workOffset).toBeLessThan(999);
   });
 
+  it("formats only visible task titles and steps in a large work list", () => {
+    let titleReads = 0;
+    let stepReads = 0;
+    const tasks = Array.from({ length: 3000 }, (_, index) => ({
+      id: `task-${index}`, status: "pending" as const,
+      get title() { titleReads++; return `Task ${index + 1}`; },
+      steps: ["implement", "verify"].map((name) => ({
+        status: "pending" as const, get name() { stepReads++; return name; }
+      }))
+    }));
+    const { text } = screen(80, 24, { showQueue: true, workOffset: 4500, composer: undefined,
+      stats: { ...stats, run: { ...stats.run, tasks } }
+    });
+    expect(text).toContain("implement");
+    expect(text).toContain("verify");
+    expect(titleReads).toBeLessThan(30);
+    expect(stepReads).toBeLessThan(30);
+  });
+
+  it("formats only visible messages in a large queue", () => {
+    let reads = 0;
+    const { text } = screen(80, 24, { showQueue: true, workOffset: 1500, composer: undefined,
+      stats: { ...stats, run: { ...stats.run, queue: [
+        { kind: "plan", id: "first", path: "docs/plans/release.md", status: "running" },
+        ...Array.from({ length: 3000 }, (_, index) => ({
+          kind: "message" as const, id: `message-${index}`, afterPlanId: "first", status: "pending" as const,
+          get text() { reads++; return `Follow-up ${index + 1}`; }
+        }))
+      ] } }
+    });
+    expect(text).toContain("Follow-up 1499");
+    expect(text).toContain("After docs/plans/release.md");
+    expect(reads).toBeLessThan(20);
+  });
+
   it("keeps a multiline draft and its cursor visible at the end of long input", () => {
     const composer = createComposerState("message", "first");
     composer.text = "Follow-up line\n".repeat(20) + "Check the final result";

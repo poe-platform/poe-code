@@ -70,6 +70,20 @@ function summarizeCommand(source: string): string {
     }
     const program = typeof tokens[0] === "string" ? basename(tokens[0]) : "command";
     if (command.includes("\n")) return `Run ${program} script`;
+    let directory: string | undefined;
+    if (tokens[0] === "cd") {
+      const targetIndex = tokens[1] === "--" ? 2 : 1;
+      const target = tokens[targetIndex];
+      const connector = tokens[targetIndex + 1];
+      if (typeof target === "string" && target.length > 0 && target !== "-"
+        && (targetIndex === 2 || !target.startsWith("-"))
+        && connector && typeof connector === "object" && "op" in connector && connector.op === "&&"
+        && tokens.length > targetIndex + 2) {
+        directory = target;
+        tokens = tokens.slice(targetIndex + 2);
+      }
+    }
+    const location = directory ? ` · ${directory}` : "";
     const groups: string[][][] = [[[]]];
     for (let index = 0; index < tokens.length; index++) {
       const token = tokens[index]!;
@@ -81,7 +95,7 @@ function summarizeCommand(source: string): string {
       else if ("op" in token && [">", ">>", ">&"].includes(token.op) && groups.length === 1 && pipeline.length === 1) {
         const action = summarizeWords(words);
         const redirectOnly = tokens.slice(index + 1).every((next) => typeof next === "string" || ("op" in next && [">", ">>", ">&"].includes(next.op)));
-        return redirectOnly && action.startsWith("Run ") ? action : `Run ${command}`;
+        return !directory && redirectOnly && action.startsWith("Run ") ? action : `Run ${command}`;
       } else return `Run ${command}`;
     }
     const actions = groups.filter((group) => group[0]!.length > 0).map((pipeline) => {
@@ -96,9 +110,9 @@ function summarizeCommand(source: string): string {
       return previewOnly && ["Read ", "Search ", "List files"].some((verb) => action.startsWith(verb)) ? action : `Run ${command}`;
     });
     if (actions.length > 1 && actions.every((action) => action.startsWith("Read "))) {
-      return `Read ${actions.map((action) => action.slice(5)).join(", ")}`;
+      return `Read ${actions.map((action) => action.slice(5)).join(", ")}${location}`;
     }
-    if (actions.length === 1) return actions[0]!.startsWith("Run ") ? `Run ${command}` : actions[0]!;
+    if (actions.length === 1) return actions[0]!.startsWith("Run ") ? `Run ${command}` : actions[0]! + location;
     return actions.length > 1 ? `Run ${command}` : "Run command";
   } catch {
     return `Run ${source}`;

@@ -52,6 +52,27 @@ describe("concise dashboard tool actions", () => {
   });
 
   it.each([
+    ["cd packages/docx && cat src/validation.ts", "Read src/validation.ts · packages/docx"],
+    ["/bin/zsh -lc 'cd packages/docx && rg -n TODO src | head -30'", "Search TODO in src · packages/docx"],
+    ["cd 'package with spaces' && rg --files", "List files · package with spaces"],
+    ["cd -- -workspace && cat one.ts && cat two.ts", "Read one.ts, two.ts · -workspace"]
+  ])("shows the useful action and working directory: %s", (title, label) => {
+    expect(summarizeToolAction({ kind: "exec", title })).toEqual({ label, detail: title });
+  });
+
+  it.each([
+    "cd packages/docx || cat src/validation.ts",
+    "cd packages/docx; cat src/validation.ts",
+    "cd packages/docx && npm test",
+    "cd packages/docx && cat src/validation.ts > copy.ts",
+    "cd packages/docx && cat src/validation.ts && npm test",
+    "cd && cat src/validation.ts",
+    "cd - && cat src/validation.ts"
+  ])("retains directory changes with ambiguous or general actions: %s", (title) => {
+    expect(summarizeToolAction({ kind: "exec", title })).toEqual({ label: `Run ${title}`, detail: title });
+  });
+
+  it.each([
     "cat package.json && npm test",
     "rg TODO src; sed -i.bak s/old/new/ src/config.ts",
     "cat one.md || printf '%s' fallback",

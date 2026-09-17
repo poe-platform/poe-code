@@ -154,7 +154,9 @@ await queue.run({
         "sed -f scripts/check.sed packages/docx/src/validation.ts",
         "cat package.json && npm test",
         "rg --regexp TODO --regexp FIXME packages/docx/src",
-        "rg --file patterns.txt packages/docx/src"
+        "rg --file patterns.txt packages/docx/src",
+        "cd packages/docx && cat src/validation.ts",
+        "cd packages/docx && rg -n TODO src | head -30"
       ];
       for (const command of commands) {
         const summary = summarizeToolAction({ kind: "exec", title: command });

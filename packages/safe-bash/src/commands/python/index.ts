@@ -9,6 +9,7 @@ import { createPythonPackageEnvironment, type PythonPackageOptions, type PythonP
 import { readBytes, writeBytes } from '../../contracts/io.js';
 import { createOutputOperation, type OutputOperation } from '../../contracts/output.js';
 import { inheritYieldCheckpoint, yieldTurn } from '../../contracts/yield.js';
+import { PythonFailure, isPythonFailureCategory, reportPythonFailure, type PythonDiagnosticObserver, type PythonFailureCategory } from './diagnostics.js';
 
 class PythonInputChunkError extends RangeError {}
 
@@ -32,6 +33,7 @@ export interface PythonCommandsOptions {
   readonly provisioning?: PythonPackageOptions;
   /** Host UI lifecycle; never written to guest stdout/stderr. */
   readonly onProgress?: (event: PythonInitializationProgress) => void;
+  readonly onDiagnostic?: PythonDiagnosticObserver;
   readonly runtimeMount?: string;
   readonly maxTransferBytes?: number;
   readonly maxOpenFiles?: number;
@@ -52,7 +54,8 @@ export interface PythonWorkerStart {
 }
 
 export function createPythonCommands(options: PythonCommandsOptions): readonly CommandDefinition[] {
-  if (typeof options?.createWorker !== 'function') throw new TypeError('Python requires an explicit interpreter worker factory');
+  if (typeof options?.createWorker !== 'function') throw new PythonFailure('executor-unavailable');
+  if (options.onDiagnostic !== undefined && typeof options.onDiagnostic !== 'function') throw new TypeError('Python onDiagnostic must be a function');
   const maxTransferBytes = options.maxTransferBytes ?? 65536;
   const maxOpenFiles = options.maxOpenFiles ?? 256;
   const maxConcurrentWorkers = options.maxConcurrentWorkers ?? 4;
@@ -85,7 +88,8 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
     }
     context.signal.throwIfAborted();
     if (activeWorkers >= maxConcurrentWorkers) {
-      await writeBytes(context.stderr, new TextEncoder().encode('python: worker capacity exhausted\n'), context.signal);
+      const failure = reportPythonFailure('capacity', undefined, options.onDiagnostic);
+      await writeBytes(context.stderr, new TextEncoder().encode('python: ' + failure.message + '\n'), context.signal);
       return { exitCode: 1 };
     }
     const controller = new AbortController();
@@ -131,13 +135,15 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
         finish();
       }, reason => {
         // A failed termination cannot establish retirement: retain its capacity slot.
-        fail(reason);
+        fail(reportPythonFailure('cleanup', reason, options.onDiagnostic));
       });
       return closing;
     };
     const aborted = (): void => { rejectRun?.(signal.reason); };
     context.registerCleanup?.(close);
     let primary: { reason: unknown } | undefined;
+    let ready = false;
+    const filesystemDiagnostics = new Set<PythonFailureCategory>();
     let result = 1;
     try {
       signal.throwIfAborted();
@@ -146,8 +152,9 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
       const outputContext = { signal, ...(context.registerCleanup ? { registerCleanup: context.registerCleanup } : {}) };
       stdoutOperation = createOutputOperation(outputContext, context.stdout);
       stderrOperation = createOutputOperation(outputContext, context.stderr);
-      if (typeof SharedArrayBuffer !== 'function') throw new Error('Python worker filesystem requires SharedArrayBuffer');
-      const shared = new SharedArrayBuffer(8 + maxTransferBytes * 6 + 65536);
+      let shared: SharedArrayBuffer;
+      try { shared = new SharedArrayBuffer(8 + maxTransferBytes * 6 + 65536); }
+      catch (reason) { throw reportPythonFailure('transport-unavailable', reason, options.onDiagnostic); }
       const control = new Int32Array(shared, 0, 2);
       const payload = new Uint8Array(shared, 8);
       const reply = (value: unknown, status: number): void => {
@@ -159,9 +166,11 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
           bytes = encodePythonReply({ code: 'EFBIG' }, payload.length); status = 2;
         }
         payload.set(bytes);
-        Atomics.store(control, 1, bytes.length);
-        Atomics.store(control, 0, status);
-        Atomics.notify(control, 0);
+        try {
+          Atomics.store(control, 1, bytes.length);
+          Atomics.store(control, 0, status);
+          Atomics.notify(control, 0);
+        } catch (reason) { throw reportPythonFailure('transport-unavailable', reason, options.onDiagnostic); }
       };
       const dispatch = async (request: { op: string; args: unknown[] }): Promise<unknown> => {
         signal.throwIfAborted();
@@ -204,74 +213,95 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
       pending.add(preparation);
       try { await preparation; } finally { pending.delete(preparation); }
       signal.throwIfAborted();
-      endpoint = options.createWorker();
+      try { endpoint = options.createWorker(); }
+      catch (reason) { throw reportPythonFailure(reason instanceof PythonFailure ? reason.category : 'startup', reason, options.onDiagnostic); }
       signal.throwIfAborted();
       result = await new Promise<number>((resolve, reject) => {
         let settled = false;
         const fail = (reason: unknown): void => { settled = true; reject(reason); };
         rejectRun = fail;
         signal.addEventListener('abort', aborted, { once: true });
-        unsubscribe = endpoint!.subscribe(value => {
+        const transportFailure = (reason: unknown): void => { fail(reportPythonFailure('transport-unavailable', reason, options.onDiagnostic)); };
+        try { unsubscribe = endpoint!.subscribe(value => {
           if (closed || settled) return;
-          if (typeof value !== 'object' || value === null) { fail(new TypeError('Invalid Python worker message')); return; }
+          if (typeof value !== 'object' || value === null) { transportFailure(new TypeError('Invalid Python worker message')); return; }
           const message = value as Record<string, unknown>;
           if (message.type === 'ready') {
+            ready = true;
             try { options.onProgress?.({ phase: 'ready', command: context.command }); }
             catch (error) { fail(error); }
             return;
           }
           if (message.type === 'exit') {
-            if (pending.size) { fail(new TypeError('Python worker exited with an outstanding request')); return; }
+            if (pending.size) { transportFailure(new TypeError('Python worker exited with an outstanding request')); return; }
             try {
               const status = validateExitCode(message.exitCode as number);
               settled = true;
               resolve(status);
-            } catch (error) { fail(error); }
+            } catch (error) { transportFailure(error); }
             return;
           }
           if (message.type === 'error') {
-            settled = true;
-            const diagnostic = 'python: ' + (typeof message.message === 'string' ? message.message : 'Python worker failed') + '\n';
-            const work = writeBytes(stderrOperation!.output, new TextEncoder().encode(diagnostic), signal).then(
-              () => { pending.delete(work); resolve(1); },
-              error => { pending.delete(work); reject(error); },
-            );
-            pending.add(work);
+            fail(reportPythonFailure(isPythonFailureCategory(message.category) ? message.category : ready ? 'runtime' : 'startup', message.message, options.onDiagnostic));
             return;
           }
-          if (typeof message.op !== 'string' || !Array.isArray(message.args) || pending.size) { fail(new TypeError('Invalid concurrent Python worker request')); return; }
+          if (typeof message.op !== 'string' || !Array.isArray(message.args) || pending.size) { transportFailure(new TypeError('Invalid concurrent Python worker request')); return; }
           const work = dispatch({ op: message.op, args: message.args }).then(
             value => { pending.delete(work); reply(value, 1); },
-            error => {
-              pending.delete(work);
-              if (signal.aborted) { fail(signal.reason); return; }
+            async error => {
+              if (signal.aborted) { pending.delete(work); fail(signal.reason); return; }
               if (typeof message.op === 'string' && message.op.startsWith('package-')) {
-                reply({code:'EPACKAGE', message:error instanceof Error ? error.message : String(error)}, 2);
+                const failure = reportPythonFailure('runtime-assets', error, options.onDiagnostic);
+                pending.delete(work);
+                reply({code:'EPACKAGE', message:failure.message}, 2);
                 return;
               }
-              if (typeof error !== 'object' || error === null || !('code' in error) || typeof error.code !== 'string') { fail(error); return; }
+              if (typeof error !== 'object' || error === null || !('code' in error) || typeof error.code !== 'string') { pending.delete(work); fail(error); return; }
+              if (error.code === 'ENOTSUP') {
+                const category: PythonFailureCategory = message.op === 'open' ? 'filesystem-open'
+                  : message.op === 'read' ? 'filesystem-read'
+                    : message.op === 'write' || message.op === 'ftruncate' ? 'filesystem-write'
+                      : message.op === 'readdir' ? 'filesystem-directory' : 'filesystem-operation';
+                if (!filesystemDiagnostics.has(category)) {
+                  filesystemDiagnostics.add(category);
+                  const failure = reportPythonFailure(category, error, options.onDiagnostic);
+                  await writeBytes(stderrOperation!.output, new TextEncoder().encode('python: ' + failure.message + '\n'), signal);
+                }
+              }
+              pending.delete(work);
               reply({ code: error.code }, 2);
             },
           );
           pending.add(work);
-          void work.catch(fail);
-        }, fail);
+          void work.catch(reason => { pending.delete(work); fail(reason); });
+        }, transportFailure); }
+        catch (reason) { transportFailure(reason); }
         if (settled) return;
         const start: PythonWorkerStart = { type: 'start', shared, invocation: { command: context.command, args: [...context.args], cwd: context.cwd, env: { ...context.env } }, runtimeMount, maxTransferBytes, ...(packages ? {packages} : {}), installOnly: !!installation };
         signal.throwIfAborted();
-        endpoint!.postMessage(start);
+        try { endpoint!.postMessage(start); }
+        catch (reason) { transportFailure(reason); }
       });
     } catch (reason) {
-      if (!signal.aborted && (reason instanceof PythonInputChunkError || (reason instanceof Error && 'code' in reason && reason.code === 'EPACKAGE'))) {
+      if (!signal.aborted && reason instanceof PythonInputChunkError) {
         try { await writeBytes(stderrOperation!.output, new TextEncoder().encode('python: ' + reason.message + '\n'), signal); }
         catch (error) { primary = {reason:error}; }
+      } else if (!signal.aborted && typeof reason === 'object' && reason !== null && 'code' in reason && reason.code === 'EPACKAGE') {
+        primary = { reason: reportPythonFailure('runtime-assets', reason, options.onDiagnostic) };
       } else primary = { reason };
     }
-    try { await close(); } catch (reason) { primary ??= { reason }; }
+    try { await close(); } catch (reason) {
+      primary ??= { reason };
+    }
     try { options.onProgress?.({ phase: 'finished', command: context.command }); }
     catch (reason) { primary ??= { reason }; }
     context.signal.throwIfAborted();
-    if (primary) throw primary.reason;
+    if (primary) {
+      if (!(primary.reason instanceof PythonFailure)) throw primary.reason;
+      const failure = primary.reason;
+      await writeBytes(context.stderr, new TextEncoder().encode('python: ' + failure.message + '\n'), context.signal);
+      return { exitCode: 1 };
+    }
     return { exitCode: result };
   };
   return ['python', 'python3'].map(name => ({ name, description: 'Python with an explicit synchronous interpreter worker and canonical filesystem', execute }));
@@ -287,3 +317,5 @@ export function pythonCommands(options: PythonCommandsOptions): VirtualShellPlug
 
 export { createPythonPackageEnvironment, pythonDocumentPackages } from './provisioning.js';
 export type { PythonPackageOptions, PythonPackageCache, PythonPackageProgress, PythonPackageStart, PythonPackageContext } from './provisioning.js';
+export { PythonFailure, inspectPythonCapabilities } from './diagnostics.js';
+export type { PythonFailureCategory, PythonDiagnostic, PythonDiagnosticObserver, PythonFileSystemRequirement, PythonCapabilityOptions, PythonCapabilityReport } from './diagnostics.js';

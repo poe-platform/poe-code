@@ -147,7 +147,7 @@ test('initialization without native isolation hooks fails closed and restores th
     postMessage(message) { messages.push(message); },
   });
   assert.equal(wasm.instantiate, instantiate);
-  assert.deepEqual(messages, [{ type: 'error', message: 'Error: Python native syscall isolation ABI unavailable' }]);
+  assert.deepEqual(messages, [{ type: 'error', category: 'runtime-abi', message: 'Error: Python native syscall isolation ABI unavailable' }]);
 });
 
 test('rejected initialization restores the Wasm loader before another invocation', async () => {
@@ -160,6 +160,192 @@ test('rejected initialization restores the Wasm loader before another invocation
       postMessage(message) { messages.push(message); },
     });
     assert.equal(wasm.instantiate, instantiate);
-    assert.deepEqual(messages, [{ type: 'error', message: 'Error: loader rejected' }]);
+    assert.deepEqual(messages, [{ type: 'error', category: 'runtime-assets', message: 'Error: loader rejected' }]);
   }
+});
+
+test('unavailable worker shared-memory operations are classified as transport failures', async () => {
+  const messages: unknown[] = [];
+  await runPythonWorker({
+    start: { shared: new SharedArrayBuffer(4), invocation: { args: ['-c', 'pass'], cwd: '/', env: {} }, runtimeMount: '/.pyodide-runtime', maxTransferBytes: 64 },
+    async loadRuntime() { throw new Error('must not load'); },
+    postMessage(message) { messages.push(message); },
+  });
+  assert.equal((messages[0] as { category: string }).category, 'transport-unavailable');
+});
+
+test('worker transport preserves postMessage failure details without mistaking backend errno', () => {
+  const failure = new Error('private transport configuration');
+  const request = createPythonWorkerRequest(new SharedArrayBuffer(1024), () => { throw failure; }, code => new Error(code));
+  assert.throws(() => request('stat', '/'), error => {
+    assert.equal((error as { category: string }).category, 'transport-unavailable');
+    assert.equal((error as Error).cause, failure);
+    return true;
+  });
+});
+
+test('worker RPC classifies an unavailable Atomics.wait and retains its cause', () => {
+  const wait = Atomics.wait;
+  const failure = new TypeError('Atomics.wait cannot be called in this context');
+  const messages: unknown[] = [];
+  let waits = 0;
+  Atomics.wait = () => { waits++; throw failure; };
+  try {
+    const request = createPythonWorkerRequest(new SharedArrayBuffer(1024), message => messages.push(message), code => new Error(code));
+    assert.throws(() => request('stat', '/'), error => {
+      assert.equal((error as { category: string }).category, 'transport-unavailable');
+      assert.equal((error as Error).cause, failure);
+      return true;
+    });
+    assert.equal(waits, 1);
+    assert.deepEqual(messages, [{ op: 'stat', args: ['/'] }]);
+  } finally { Atomics.wait = wait; }
+});
+
+for (const stream of ['stdout', 'stderr'] as const) {
+  test(`startup ${stream} classifies a missing Atomics.wait as transport, not runtime assets`, async () => {
+    const wait = Atomics.wait;
+    const instantiate = wasm.instantiate;
+    const messages: unknown[] = [];
+    Atomics.wait = undefined as never;
+    try {
+      await runPythonWorker({
+        start: { shared: new SharedArrayBuffer(1024), invocation: { args: ['-c', 'pass'], cwd: '/', env: {} }, runtimeMount: '/.pyodide-runtime', maxTransferBytes: 64 },
+        async loadRuntime(configuration) {
+          configuration[stream]('loading');
+          throw new Error('startup output must fail first');
+        },
+        postMessage(message) { messages.push(message); },
+      });
+      assert.equal(wasm.instantiate, instantiate);
+      assert.equal(messages.length, 2);
+      assert.deepEqual(messages[0], { op: stream, args: [Array.from(new TextEncoder().encode('loading\n'))] });
+      const diagnostic = messages[1] as { type: string; category: string; message: string };
+      assert.equal(diagnostic.type, 'error');
+      assert.equal(diagnostic.category, 'transport-unavailable');
+      assert.match(diagnostic.message, /^TypeError: .*Atomics.wait/);
+    } finally { Atomics.wait = wait; }
+  });
+}
+
+for (const version of ['0.27.7', '314.0.5']) {
+  test(`runtime version ${version} is classified as ABI failure after native hooks succeed`, async () => {
+    const instantiate = wasm.instantiate;
+    const messages: unknown[] = [];
+    const imports = { env: { _emscripten_system: () => 1, __syscall_socket: () => 1 } };
+    const mockedInstantiate = (async () => ({})) as typeof wasm.instantiate;
+    wasm.instantiate = mockedInstantiate;
+    try {
+      await runPythonWorker({
+        start: { shared: new SharedArrayBuffer(1024), invocation: { args: ['-c', 'pass'], cwd: '/', env: {} }, runtimeMount: '/.pyodide-runtime', maxTransferBytes: 64 },
+        async loadRuntime() {
+          await wasm.instantiate(new Uint8Array(), imports);
+          return { version } as never;
+        },
+        postMessage(message) { messages.push(message); },
+      });
+      assert.equal(imports.env._emscripten_system(), -52);
+      assert.equal(imports.env.__syscall_socket(), -52);
+      assert.equal(wasm.instantiate, mockedInstantiate);
+      assert.deepEqual(messages, [{ type: 'error', category: 'runtime-abi', message: 'Error: Python worker requires Pyodide 314.0.6' }]);
+    } finally { wasm.instantiate = instantiate; }
+  });
+}
+
+for (const missing of ['_emscripten_system', '__syscall_socket']) {
+  test(`runtime missing only ${missing} is classified as ABI failure`, async () => {
+    const instantiate = wasm.instantiate;
+    const messages: unknown[] = [];
+    const imports: WasmImports = { env: { _emscripten_system: () => 0, __syscall_socket: () => 0 } };
+    delete imports.env![missing];
+    const mockedInstantiate = (async () => ({})) as typeof wasm.instantiate;
+    wasm.instantiate = mockedInstantiate;
+    try {
+      await runPythonWorker({
+        start: { shared: new SharedArrayBuffer(1024), invocation: { args: ['-c', 'pass'], cwd: '/', env: {} }, runtimeMount: '/.pyodide-runtime', maxTransferBytes: 64 },
+        async loadRuntime() {
+          await wasm.instantiate(new Uint8Array(), imports);
+          return { version: '314.0.6' } as never;
+        },
+        postMessage(message) { messages.push(message); },
+      });
+      assert.equal(wasm.instantiate, mockedInstantiate);
+      assert.deepEqual(messages, [{ type: 'error', category: 'runtime-abi', message: 'Error: Python native syscall isolation ABI unavailable' }]);
+    } finally { wasm.instantiate = instantiate; }
+  });
+}
+
+for (const missing of ['native loader', 'finalization']) {
+  test(`pinned runtime missing ${missing} ABI is not classified as an asset failure`, async () => {
+    const instantiate = wasm.instantiate;
+    const messages: unknown[] = [];
+    const mockedInstantiate = (async () => ({})) as typeof wasm.instantiate;
+    wasm.instantiate = mockedInstantiate;
+    try {
+      await runPythonWorker({
+        start: { shared: new SharedArrayBuffer(1024), invocation: { args: ['-c', 'pass'], cwd: '/', env: {} }, runtimeMount: '/.pyodide-runtime', maxTransferBytes: 64 },
+        async loadRuntime() {
+          await wasm.instantiate(new Uint8Array(), { env: { _emscripten_system: () => 0, __syscall_socket: () => 0 } });
+          return {
+            version: '314.0.6',
+            _module: missing === 'native loader' ? {} : { LDSO: { loadedLibsByName: {} } },
+            runPython() { return JSON.stringify({ EIO: 5 }); },
+          } as never;
+        },
+        postMessage(message) { messages.push(message); },
+      });
+      assert.equal(wasm.instantiate, mockedInstantiate);
+      assert.deepEqual(messages, [{ type: 'error', category: 'runtime-abi', message: `Error: Python runtime ${missing} ABI unavailable` }]);
+    } finally { wasm.instantiate = instantiate; }
+  });
+}
+
+test('runtime asset rejection after intercepted Wasm imports preserves the loader diagnostic', async () => {
+  const instantiate = wasm.instantiate;
+  const messages: unknown[] = [];
+  const failure = new Error('private runtime.wasm asset failed after native ABI imports');
+  const mockedInstantiate = (async () => ({})) as typeof wasm.instantiate;
+  wasm.instantiate = mockedInstantiate;
+  try {
+    await runPythonWorker({
+      start: { shared: new SharedArrayBuffer(1024), invocation: { args: ['-c', 'pass'], cwd: '/', env: {} }, runtimeMount: '/.pyodide-runtime', maxTransferBytes: 64 },
+      async loadRuntime() {
+        await wasm.instantiate(new Uint8Array(), { env: { _emscripten_system: () => 0, __syscall_socket: () => 0 } });
+        throw failure;
+      },
+      postMessage(message) { messages.push(message); },
+    });
+    assert.equal(wasm.instantiate, mockedInstantiate);
+    assert.deepEqual(messages, [{ type: 'error', category: 'runtime-assets', message: String(failure) }]);
+  } finally { wasm.instantiate = instantiate; }
+});
+
+test('worker exit notification failure is classified as transport rather than startup', async () => {
+  const shared = new SharedArrayBuffer(1024);
+  const control = new Int32Array(shared, 0, 2);
+  const payload = new Uint8Array(shared, 8);
+  const failure = new Error('private exit transport failure');
+  const messages: unknown[] = [];
+  let loads = 0;
+  await runPythonWorker({
+    start: { shared, invocation: { args: ['-c'], cwd: '/', env: {} }, runtimeMount: '/.pyodide-runtime', maxTransferBytes: 64 },
+    async loadRuntime() { loads++; throw new Error('invalid invocation must not load'); },
+    postMessage(message) {
+      const reply = message as { op?: string; type?: string };
+      if (reply.op) {
+        assert.equal(reply.op, 'stderr');
+        payload.set(new TextEncoder().encode('null'));
+        Atomics.store(control, 1, 4);
+        Atomics.store(control, 0, 1);
+        return;
+      }
+      messages.push(message);
+      if (reply.type === 'exit') throw failure;
+    },
+  });
+  assert.equal(loads, 0);
+  assert.deepEqual(messages, [
+    { type: 'exit', exitCode: 2 },
+    { type: 'error', category: 'transport-unavailable', message: String(failure) },
+  ]);
 });

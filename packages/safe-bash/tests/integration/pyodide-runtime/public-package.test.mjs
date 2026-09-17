@@ -10,6 +10,37 @@ if (!['@poe-platform/safe-bash', 'poe-code'].includes(packageName)) throw new Er
 const shellSpecifier = packageName === 'poe-code' ? 'poe-code/safe-bash' : packageName;
 const fsSpecifier = packageName === 'poe-code' ? 'poe-code/safe-fs/core' : '@poe-platform/safe-fs/core';
 
+test(`${packageName} public Python startup diagnostics recover after failed runtime loading`, { timeout: 45000 }, async context => {
+  const source = `
+    import assert from 'node:assert/strict';
+    import { Shell, pythonCommands, inspectPythonCapabilities } from ${JSON.stringify(shellSpecifier)};
+    import { createNodePythonWorker } from ${JSON.stringify(shellSpecifier + '/commands/python/node')};
+    import { MemoryFileSystem } from ${JSON.stringify(fsSpecifier)};
+    assert.equal(inspectPythonCapabilities({}).failures[0].category, 'executor-unavailable');
+    const events = [];
+    let attempts = 0;
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(pythonCommands({
+      maxConcurrentWorkers: 1,
+      createWorker: () => createNodePythonWorker({ trustedPython: true, runtimeModuleURL: ++attempts === 1
+        ? 'https://user:password@example.test/runtime?token=secret' : import.meta.resolve('pyodide/pyodide.mjs') }),
+      onDiagnostic(event) { events.push(event); },
+    }));
+    try {
+      const failed = await shell.exec('python -c pass');
+      assert.equal(failed.exitCode, 1);
+      assert.equal(failed.stderr, 'python: Python runtime or package assets could not be loaded.\\n');
+      assert.equal(events[0].failure.category, 'runtime-assets');
+      assert.ok(events[0].cause);
+      assert.equal((await shell.exec('python3 -c pass')).exitCode, 0);
+    } finally { await shell.dispose(); await shell.dispose(); }
+    console.log('public Python diagnostics and recovery passed');
+  `;
+  const result = await promisify(execFile)(process.execPath, ['--input-type=module', '--eval', source], {
+    cwd: consumer, signal: context.signal, timeout: 40000, maxBuffer: 1024 * 1024,
+  });
+  assert.match(result.stdout, /diagnostics and recovery passed/);
+});
+
 for (const storageProfile of ['memory', 'quota']) test(`${packageName} public Node Python on ${storageProfile} executes and awaits worker termination`, { timeout: 45000 }, async context => {
   const source = `
     import assert from 'node:assert/strict';

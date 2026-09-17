@@ -43,6 +43,35 @@ describe("concise dashboard tool actions", () => {
     expect(summarizeToolAction({ kind: "exec", title: "cat input.md > output.md" }).label).toBe("Run cat input.md > output.md");
   });
 
+  it.each([
+    "cat package.json && npm test",
+    "rg TODO src; sed -i.bak s/old/new/ src/config.ts",
+    "cat one.md || printf '%s' fallback",
+    "rg --files src; npm run build"
+  ])("keeps mixed shell actions explicit: %s", (title) => {
+    expect(summarizeToolAction({ kind: "exec", title })).toEqual({ label: `Run ${title}`, detail: title });
+  });
+
+  it.each([
+    ["rg --regexp TODO --regexp FIXME src", "Search TODO, FIXME in src"],
+    ["rg --regexp=TODO src", "Search TODO in src"],
+    ["rg -eTODO src", "Search TODO in src"],
+    ["rg -neTODO src", "Search TODO in src"],
+    ["rg --file patterns.txt src", "Search using patterns.txt in src"],
+    ["rg --file=patterns.txt src", "Search using patterns.txt in src"],
+    ["grep -fpatterns.txt -eTODO src", "Search TODO, patterns from patterns.txt in src"],
+    ["rg -- '-needle' src", "Search -needle in src"],
+    ["rg -g '*.ts' --encoding utf8 TODO src", "Search TODO in src"]
+  ])("retains the actual search patterns and scope: %s", (title, label) => {
+    expect(summarizeToolAction({ kind: "exec", title })).toEqual({ label, detail: title });
+  });
+
+  it.each([
+    "grep -r TODO src", "grep -rn TODO src", "grep -E TODO src", "grep --color TODO src", "rg -r replacement TODO src"
+  ])("preserves search operands after command-specific flags: %s", (title) => {
+    expect(summarizeToolAction({ kind: "exec", title }).label).toBe("Search TODO in src");
+  });
+
   it("bounds labels and sanitizes terminal controls while retaining details", () => {
     const title = "\u001b[31m" + "very long command ".repeat(1000) + "\u001b[0m";
     const summary = summarizeToolAction({ kind: "other", title });

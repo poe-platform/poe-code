@@ -96,7 +96,7 @@ function summarizeCommand(source: string): string {
       return `Read ${actions.map((action) => action.slice(5)).join(", ")}`;
     }
     if (actions.length === 1) return actions[0]!.startsWith("Run ") ? `Run ${command}` : actions[0]!;
-    return actions.length > 1 ? `${actions[0]} (+${actions.length - 1} commands)` : "Run command";
+    return actions.length > 1 ? `Run ${command}` : "Run command";
   } catch {
     return `Run ${source}`;
   }
@@ -120,23 +120,64 @@ function summarizeWords(words: string[]): string {
     if (args.length > 0) return `Read ${args.join(", ")}`;
   }
   if (command === "rg" || command === "grep") {
-    const operands: string[] = [];
-    let query: string | undefined;
-    for (let index = 1; index < words.length; index++) {
-      const word = words[index]!;
-      if (word === "-e" || word === "--regexp") { query = words[++index]; continue; }
-      if (["-g", "--glob", "-t", "--type", "-T", "--type-not", "-A", "-B", "-C", "--context", "-m", "--max-count", "--max-depth"].includes(word)) { index++; continue; }
-      if (!word.startsWith("-")) operands.push(word);
-    }
-    if (words.includes("--files")) return `List files${operands.length > 0 ? ` in ${operands.join(", ")}` : ""}`;
-    query ??= operands.shift();
-    if (query) return `Search ${query}${operands.length > 0 ? ` in ${operands.join(", ")}` : ""}`;
+    return summarizeSearch(words) ?? `Run ${words.join(" ")}`;
   }
   if (command === "ls") {
     const paths = words.slice(1).filter((word) => !word.startsWith("-"));
     return `List files${paths.length ? ` in ${paths.join(", ")}` : ""}`;
   }
   return `Run ${words.join(" ")}`;
+}
+
+function summarizeSearch(words: string[]): string | undefined {
+  const operands: string[] = [];
+  const queries: string[] = [];
+  const files: string[] = [];
+  const grep = basename(words[0]!) === "grep";
+  const shortArguments = grep ? "efABCmDd" : "efgtTABCmMjErd";
+  let options = true;
+  let list = false;
+  for (let index = 1; index < words.length; index++) {
+    const word = words[index]!;
+    if (options && word === "--") { options = false; continue; }
+    if (!options || !word.startsWith("-") || word === "-") { operands.push(word); continue; }
+    if (word === "--files") { list = true; continue; }
+    if (word.startsWith("--")) {
+      const equals = word.indexOf("=");
+      const name = equals < 0 ? word : word.slice(0, equals);
+      if (grep && name === "--color") continue;
+      if (["--regexp", "--file", "--glob", "--iglob", "--type", "--type-not", "--after-context", "--before-context", "--context",
+        "--max-count", "--max-depth", "--max-columns", "--threads", "--encoding", "--include", "--exclude", "--exclude-dir",
+        "--exclude-from", "--ignore-file", "--type-add", "--type-clear", "--replace", "--pre", "--pre-glob", "--sort", "--sortr",
+        "--color", "--colors", "--engine", "--label", "--devices", "--directories", "--binary-files"].includes(name)) {
+        const value = equals < 0 ? words[++index] : word.slice(equals + 1);
+        if (value === undefined) return undefined;
+        if (name === "--regexp") queries.push(value);
+        if (name === "--file") files.push(value);
+      }
+      continue;
+    }
+    for (let flag = 1; flag < word.length; flag++) {
+      const name = word[flag]!;
+      if (!shortArguments.includes(name)) continue;
+      const value = word.slice(flag + 1) || words[++index];
+      if (value === undefined) return undefined;
+      if (name === "e") queries.push(value);
+      if (name === "f") files.push(value);
+      break;
+    }
+  }
+  const scope = operands.length > 0 ? ` in ${operands.join(", ")}` : "";
+  if (list) return `List files${scope}`;
+  if (queries.length === 0 && files.length === 0) {
+    const query = operands.shift();
+    if (query === undefined) return undefined;
+    queries.push(query);
+  }
+  if (queries.some((query) => query.length === 0)) return undefined;
+  const query = queries.join(", ");
+  const patterns = files.length > 0 ? `${query ? ", patterns from" : "using"} ${files.join(", ")}` : "";
+  return `Search ${query}${patterns}${operands.length > 0 ? ` in ${operands.join(", ")}` : ""}`;
 }
 
 function summarizeSed(words: string[]): string | undefined {

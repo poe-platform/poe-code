@@ -1,5 +1,5 @@
 import { commentExtensionParts } from "./comment-extension-parts.js";
-import { InvalidPackageError, type XmlElement } from "./package-xml.js";
+import { InvalidPackageError, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
 import { MarkupCompatibility, documentCompatibilityProfile, type CompatibilityContent, type CompatibilityProfile } from "./compatibility.js";
 import type { DocumentPackage, PackageRelationship } from "./package.js";
 import { parseDocumentXml } from "./package-xml.js";
@@ -50,6 +50,9 @@ export function validateXmlDialect(
   budget = new DocumentBudget()
 ): MarkupCompatibility {
   const view = new MarkupCompatibility(root, profile, budget);
+  budget.charge("work", view.branches.length);
+  if (view.branches.some(branch => branch.selected === undefined))
+    throw new UnsupportedProfileError("Active alternate content has no eligible choice or fallback.");
   const stack: CompatibilityContent[] = [...view.content];
   while (stack.length) {
     budget.charge("work", 1);

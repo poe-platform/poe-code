@@ -14,6 +14,7 @@ import { assertDocumentEditable, publishDocumentArchive, type PublicationOptions
 import { DocumentBudget } from "./budget.js";
 import { DocumentPackage } from "./package.js";
 import { displayXml } from "./xml-display.js";
+import { documentDialects } from "./dialect.js";
 
 export interface XmlOptions { readonly part: string; readonly raw?: boolean; readonly pretty?: boolean }
 export interface XmlData {
@@ -146,7 +147,7 @@ export async function replaceDocumentXmlPart(input: Uint8Array, replacement: Uin
   }
   if (changed && embeddedFontState(archive.package, budget) !== embeddedFontState(graph, budget))
     throw new UnsupportedEmbeddedFontMutationError();
-  const originalMain = archive.package.relationships("/").find(edge => !edge.is_external && edge.target_part.partname === "/" + archive.mainPart)!;
+  const originalMain = archive.package.relationships("/").find(edge => edge.reltype === `${documentDialects[archive.dialect].r}/officeDocument`)!;
   const mainEdges = graph.relationships("/").filter(edge => edge.reltype === originalMain.reltype);
   if (mainEdges.length !== 1 || mainEdges[0]!.is_external || mainEdges[0]!.target_part.partname !== "/" + archive.mainPart)
     throw new UnsupportedEditError("XML replacement cannot rebind the main document part.");

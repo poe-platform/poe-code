@@ -284,9 +284,12 @@ export class TabStops implements Iterable<TabStop> {
     if (!validateDocxValue("{position: Length; alignment?: WD_TAB_ALIGNMENT; leader?: WD_TAB_LEADER}", value)) throw new TypeError("Expected valid tab stop properties.");
     const view = readView(this.owner), activeProps = child(view.root, "pPr", view.children), activeTabs = activeProps && child(activeProps, "tabs", view.children);
     const activeStop = activeTabs && view.children(activeTabs).filter(node => node.namespace === activeTabs.namespace && node.localName === "tab")[index];
-    if (!activeStop || !view.xml.compatibility.canEdit(activeStop)) throw new UnsupportedEditError("The tab stop is inside preserved compatibility content.");
-    const xml = editor(this.owner), props = child(xml.root, "pPr")!, tabs = child(props, "tabs")!;
-    const node = tabs.children.filter(c => c.namespace === tabs.namespace && c.localName === "tab")[index]!;
+    if (!activeStop) throw new UnsupportedEditError("The tab stop is inside preserved compatibility content.");
+    // The owning domain validates the complete change. A style definition may
+    // be selected through MCE while its native tab properties remain editable.
+    const xml = editor(this.owner), props = child(xml.root, "pPr"), tabs = props && child(props, "tabs");
+    const node = tabs?.children.filter(c => c.namespace === tabs.namespace && c.localName === "tab")[index];
+    if (!props || !tabs || !node || !xml.compatibility.canEdit(node)) throw new UnsupportedEditError("The tab stop is inside preserved compatibility content.");
     const values: Record<string, string | null> = {};
     if (patch.position !== undefined) values.pos = String(paragraphUnits(value.position));
     if (patch.alignment !== undefined) values.val = Object.keys(alignments).find(key => alignments[key as keyof typeof alignments] === value.alignment!.name)!;

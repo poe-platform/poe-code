@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { Document, ParagraphStyle, DocumentBudget, Twips, WD_ALIGN_PARAGRAPH, applyStyleModelBatch, createDocxInspectionCommandEngine, editDocumentStyles, inspectDocumentStyles, readArchive } from "./index.js";
 import { textContext, textFixture, w } from "../tests/fixtures/text.js";
+import { readPackage } from "../tests/assertions.js";
 
 const mc = "http://schemas.openxmlformats.org/markup-compatibility/2006";
 const pPr = '<w:jc w:val="center"/><w:keepNext/><w:tabs><w:tab w:pos="720" w:val="right" w:leader="dot"/></w:tabs>';
@@ -155,24 +156,40 @@ for (const strict of [false, true]) for (const kind of ["metadata", "latent cont
 
 for (const strict of [false, true]) it.each(fixtures.filter(fixture => fixture.name !== "direct control"))(
   `retains ${strict ? "Strict" : "Transitional"} style $name on protected formatting edits`,
-  async ({ xml }) => {
+  async ({ name, xml }) => {
     const input = await textFixture('<w:p/>', { styles: { kind: "styles", xml: `<w:styles xmlns:w="${w}" xmlns:mc="${mc}" xmlns:f="urn:original:future" mc:Ignorable="f" mc:ProcessContent="f:pass">${xml}</w:styles>` } }, strict);
-    const doc = await Document(input, textContext), selected = doc.styles.at("Original") as ParagraphStyle;
-    const before = doc.styles.element.serialize(), format = selected.paragraph_format, font = selected.font, tabs = format.tab_stops, tab = tabs.at(0);
-    for (const action of [
-      () => { format.alignment = WD_ALIGN_PARAGRAPH.LEFT; },
-      () => { font.bold = false; },
-      () => { tab.position = Twips(1440); },
-      () => { tabs.remove(0); },
-      () => { tabs.clear_all(); },
-      () => { tabs.add_tab_stop(Twips(1440)); },
-      () => { tab.element.set_attribute({ namespaceURI: tab.element.namespace, localName: "pos" }, "1440"); }
-    ]) {
-      expect(action).toThrowError(expect.objectContaining({ code: "unsupported-edit" }));
-      expect(doc.styles.element.serialize()).toEqual(before);
-      expect(format.alignment?.name).toBe("CENTER");
-      expect(font.bold).toBe(true);
-      expect(tab.position.twips).toBe(720);
+    for (const action of ["alignment", "bold", "position", "remove", "clear", "add", "raw"] as const) {
+      const doc = await Document(input, textContext), selected = doc.styles.at("Original") as ParagraphStyle;
+      const before = doc.styles.element.serialize(), format = selected.paragraph_format, font = selected.font, tabs = format.tab_stops, tab = tabs.at(0);
+      const edit = () => {
+        if (action === "alignment") format.alignment = WD_ALIGN_PARAGRAPH.LEFT;
+        else if (action === "bold") font.bold = false;
+        else if (action === "position") tab.position = Twips(1440);
+        else if (action === "remove") tabs.remove(0);
+        else if (action === "clear") tabs.clear_all();
+        else if (action === "add") tabs.add_tab_stop(Twips(1440));
+        else tab.element.set_attribute({ namespaceURI: tab.element.namespace, localName: "pos" }, "1440");
+      };
+      if (name !== "selected definition" || action === "raw") {
+        expect(edit).toThrowError(expect.objectContaining({ code: "unsupported-edit" }));
+        expect(doc.styles.element.serialize()).toEqual(before);
+        expect(format.alignment?.name).toBe("CENTER"); expect(font.bold).toBe(true); expect(tab.position.twips).toBe(720);
+      } else {
+        edit();
+        const memory = Volume.fromJSON({"/output": ""}); await doc.save({async write(bytes) {memory.appendFileSync("/output", bytes);}});
+        const output = new Uint8Array(memory.readFileSync("/output") as Buffer), original = readPackage(input), saved = readPackage(output);
+        for (const [part, bytes] of original) if (part !== "word/styles.xml") expect(saved.get(part), part).toEqual(bytes);
+        const namespace = strict ? "http://purl.oclc.org/ooxml/wordprocessingml/main" : w;
+        const originalStyle = new TextDecoder().decode(original.get("word/styles.xml")), actualStyle = new TextDecoder().decode(saved.get("word/styles.xml"));
+        const fallback = originalStyle.slice(originalStyle.indexOf("<mc:Fallback>"), originalStyle.indexOf("</mc:Fallback>") + "</mc:Fallback>".length);
+        expect(actualStyle).toContain(fallback); expect(actualStyle).toContain(`<w:styles xmlns:w="${namespace}"`);
+        const reopened = (await Document(output, textContext)).styles.at("Original") as ParagraphStyle;
+        expect(reopened.paragraph_format.alignment?.name).toBe(action === "alignment" ? "LEFT" : "CENTER");
+        expect(reopened.font.bold).toBe(action !== "bold"); expect(reopened.font.italic).toBe(false); expect(reopened.font.color.rgb?.toString()).toBe("123456");
+        const stops = [...reopened.paragraph_format.tab_stops];
+        expect(stops.map(stop => stop.position.twips)).toEqual(action === "remove" || action === "clear" ? [] : action === "position" ? [1440] : action === "add" ? [720, 1440] : [720]);
+        if (stops.length) {expect(stops[0]!.alignment.name).toBe("RIGHT"); expect(stops[0]!.leader.name).toBe("DOTS");}
+      }
     }
   }
 );

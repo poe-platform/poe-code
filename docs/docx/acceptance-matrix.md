@@ -271,3 +271,13 @@ zero skips, with the corrected typed guard context separately rerun. Built QA
 passes 64 combined all-heading/insertion/relationship workflows. Original and
 intermediate failures remain qualified in the receipt. This closes the named
 style-type dependency; other native variants and full F01–F07 remain open.
+
+## Current selected style tab mutation evidence
+
+The [native tab record](native-style-tab-carriers-20260917.md) binds 72 original
+public setter cases and the reconciled 101-case style-carrier file. The original
+matrix had 36 failures and 36 controls; the focused run now passes 302 tests,
+zero skips. Twelve built chained-setter workflows retain other stops, inactive
+branches and raw XML guards. Every historical protected-formatting action is
+retained with its contract-defined result. The failed full baseline remains
+recorded; this is a named dependency closure, not complete F01–F07 acceptance.

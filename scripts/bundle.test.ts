@@ -194,6 +194,14 @@ it.each([
       expect(volume.existsSync(path.join(root, "dist/metafile.json"))).toBe(false);
     } else {
       await import("./bundle.mjs");
+      const converterBuild = build.mock.calls.findIndex(([options]) =>
+        options.outdir === path.join(root, "packages/pandoc/dist/public")
+      );
+      const cliBuild = build.mock.calls.findIndex(([options]) =>
+        Array.isArray(options.entryPoints) && options.entryPoints.includes(path.join(root, "src/index.ts"))
+      );
+      expect(converterBuild).toBeGreaterThanOrEqual(0);
+      expect(converterBuild).toBeLessThan(cliBuild);
       for (const entry of ["sdk", "command"]) {
         expect(volume.existsSync(path.join(root, `packages/pandoc/dist/public/${entry}.js`))).toBe(true);
       }
@@ -297,10 +305,22 @@ it.each(["workerd", "node"])("preserves the previous SafeJS bundle when %s compi
     [path.join(root, "dist/metafile.json")]: "{}"
   });
   volume.mkdirSync(path.join(root, "src/providers"), { recursive: true });
+  volume.mkdirSync(path.join(root, "packages/pandoc/dist"), { recursive: true });
   addNativeFixture(root, volume);
   const failure = new Error("SafeJS compilation failed");
   const build = vi.fn(async (options: BuildOptions) => {
     if (options.outdir === path.join(root, "packages/safe-js/dist") && options.conditions?.includes(profile)) throw failure;
+    if (options.outdir === path.join(root, "packages/pandoc/dist/public")) {
+      const entries = Object.entries(options.entryPoints as Record<string, string>);
+      return {
+        metafile: { outputs: Object.fromEntries(entries.map(([name, entryPoint]) => [
+          path.join(options.outdir!, `${name}.js`), { entryPoint, imports: [] }
+        ])) },
+        outputFiles: entries.map(([name]) => ({
+          path: path.join(options.outdir!, `${name}.js`), contents: new TextEncoder().encode("export {};")
+        }))
+      };
+    }
     return { metafile: { outputs: {} } };
   });
   vi.doMock("node:fs/promises", () => createFsFromVolume(volume).promises);
@@ -330,6 +350,7 @@ it.each(["workerd", "node"])("preserves the previous SafeJS bundle when %s compi
     expect(producer.splitting).toBe(false);
   }
   for (const [options] of build.mock.calls.slice(0, -1)) {
+    if (options.outdir === path.join(root, "packages/pandoc/dist/public")) continue;
     expect(options.alias!["@poe-code/safe-fs"]).toBe("poe-code/safe-fs");
     expect(options.alias!["@poe-code/safe-fs/node"]).toBe("poe-code/safe-fs/node");
     expect(options.external).toContain("poe-code/safe-fs");

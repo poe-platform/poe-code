@@ -11,7 +11,7 @@ type Pending = { id: string; started: boolean; mode: Test262Variant["mode"]; res
 type Worker = { process: ChildProcess; ready: Promise<void>; rejectReady: (error: Error) => void;
   startupTimer?: ReturnType<typeof setTimeout>; exit: Promise<void>; retired: boolean; pending?: Pending; stderr: string };
 
-export function createTest262Executor(options: { timeoutMs: number; budget?: BudgetOptions }) {
+export function createTest262Executor(options: { timeoutMs: number; budget?: BudgetOptions; sourceRoot?: string }) {
   if (!Number.isFinite(options.timeoutMs) || options.timeoutMs <= 0) throw new Error("Test262 wall timeout must be positive and finite");
   let worker: Worker | undefined;
   let closed = false;
@@ -108,7 +108,8 @@ export function createTest262Executor(options: { timeoutMs: number; budget?: Bud
           active.pending = { id, started: false, mode: input.mode, resolve, timer };
           try {
             active.process.send({ type: "execute", id, filename: input.filename, source: input.source, mode: input.mode,
-              harness: [...input.harness], timeoutMs: options.timeoutMs, budget: options.budget }, error => {
+              harness: [...input.harness], timeoutMs: options.timeoutMs, budget: options.budget,
+              ...(options.sourceRoot === undefined ? {} : {sourceRoot:options.sourceRoot}) }, error => {
               if (error) retire(active, error);
             });
           } catch (error) { retire(active, error instanceof Error ? error : new Error(String(error))); }

@@ -1,7 +1,10 @@
+import {createRootedSourceResolver} from "../../src/modules/source-files.js";
 import { beforeEach, expect, it, vi } from "vitest";
 import { executeTest262 } from "./execute.js";
 import { executeWorkerRequest } from "./worker.js";
 
+vi.mock("../../src/modules/source-files.js", () => ({createRootedSourceResolver:vi.fn()}));
+vi.mock("node:fs/promises", () => ({realpath:vi.fn(async value => value)}));
 vi.mock("./execute.js", () => ({ executeTest262: vi.fn() }));
 beforeEach(() => vi.clearAllMocks());
 const request = { type: "execute", id: "variant-1", filename: "sample.js", source: "0", mode: "strict", harness: [["assert.js", "0"]], timeoutMs: 3000 };
@@ -35,4 +38,13 @@ it("reports execution exceptions independently of guest negatives", async () => 
   vi.mocked(executeTest262).mockRejectedValue(new Error("worker failure"));
   await executeWorkerRequest(request, message => messages.push(message));
   expect(messages.at(-1)).toEqual({ type: "error", id: "variant-1", message: "worker failure" });
+});
+
+it("supplies only an explicitly requested fixture root to module resolution",async()=>{
+  const resolver=vi.fn();
+  vi.mocked(createRootedSourceResolver).mockResolvedValue(resolver);
+  vi.mocked(executeTest262).mockResolvedValue({kind:"test",results:[{mode:"strict",status:"passed"}]});
+  await executeWorkerRequest({...request,sourceRoot:"/corpus/test"},()=>{});
+  expect(createRootedSourceResolver).toHaveBeenCalledWith("/corpus/test");
+  expect(executeTest262).toHaveBeenCalledWith("/corpus/test/sample.js","0",expect.objectContaining({sourceResolver:resolver}));
 });

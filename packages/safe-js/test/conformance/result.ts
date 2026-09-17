@@ -26,7 +26,7 @@ export function classifyScriptOutcome(
   }
   if (outcome.status === "host-error") return { status: "failed", reason: "host-error", detail };
   let type: unknown;
-  if (outcome.phase === "parse" && outcome.error instanceof Error) {
+  if (outcome.phase !== "runtime" && outcome.error instanceof Error) {
     const constructor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(outcome.error), "constructor")?.value;
     type = typeof constructor === "function" ? Object.getOwnPropertyDescriptor(constructor, "name")?.value : undefined;
   } else if (outcome.error !== null && typeof outcome.error === "object") {

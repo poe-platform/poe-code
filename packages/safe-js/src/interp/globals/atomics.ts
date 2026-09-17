@@ -58,8 +58,9 @@ export function createAtomicsGlobal(budget: Budget): SandboxObject {
             const expected=storage.Native===BigInt64Array?await sandboxBigInt(args[2],budget,context):await sandboxNumber(args[2],budget,context);
             const timeout=await sandboxNumber(args[3],budget,context);
             // SafeJS runs on a host event-loop agent that cannot suspend.
-            if (name === "wait") throw new TypeError("The sandbox agent cannot block in Atomics.wait.");
+            if (name === "wait" && runResources.getStore()?.canBlock !== true) throw new TypeError("The sandbox agent cannot block in Atomics.wait.");
             const pending=await waitForAtomicValue(view as Int32Array | BigInt64Array,index,expected,timeout,budget);
+            if (name === "wait") return pending.async ? await pending.value : pending.value;
             if (!pending.async) return allocateProducedSandboxValue({async:false,value:pending.value},budget);
             const capability=createPendingPromiseCapability(budget,context);
             const order = (atomicWaitOrders.get(budget) ?? 0) + 1;

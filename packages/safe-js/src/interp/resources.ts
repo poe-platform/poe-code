@@ -5,6 +5,8 @@ export type RunResources = {
   signal: AbortSignal;
   functionSourceText?: boolean;
   hostDataMetadata?: boolean;
+  // Explicit host authority for suspending a guest agent, never the host event loop.
+  canBlock?: boolean;
   // Cancellation is catchable; suspended references survive until disposal.
   referenceReleases: Set<() => void>;
   reportError?: (reason: unknown) => void;

@@ -57,3 +57,13 @@ export function snapshotSharedArrayBufferStorage(value: SharedArrayBuffer, copie
   copies.set(storage.block,copy);
   return copy;
 }
+
+// Explicit transport admission, used only when a host grants shared storage to an agent.
+export function receiveSharedArrayBufferStorage(value: SharedArrayBuffer, budget: Budget): SharedArrayBuffer {
+  const byteLength = Reflect.apply(readByteLength, value, []) as number;
+  const maxByteLength = readMaxByteLength === undefined ? byteLength : Reflect.apply(readMaxByteLength, value, []) as number;
+  budget.allocateArrayLength(maxByteLength);
+  budget.provisionDataUsage(byteLength + 1)();
+  sharedBlocks.set(value, {});
+  return value;
+}

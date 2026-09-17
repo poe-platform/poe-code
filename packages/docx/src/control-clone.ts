@@ -7,6 +7,7 @@ import type { XmlElement } from "./package-xml.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { admitControlPng } from "./control-picture.js";
 import { containsRevision } from "./revision-markup.js";
+import { commentExtensionParts } from "./comment-extension-parts.js";
 
 const word = ["http://schemas.openxmlformats.org/wordprocessingml/2006/main", "http://purl.oclc.org/ooxml/wordprocessingml/main"];
 const relationships = ["http://schemas.openxmlformats.org/officeDocument/2006/relationships", "http://purl.oclc.org/ooxml/officeDocument/relationships"];
@@ -98,7 +99,7 @@ export class ControlClonePlanner {
     if (stack.length) throw new UnsupportedEditError("Bookmarks cross the template boundary.");
     const markers = all.filter(node => node.namespace === item.namespace && ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName));
     if (markers.length) {
-      if (this.#package.parts.some(part => ["commentsextended", "commentsids", "commentsextensible", "people"].some(name => part.content_type.toLowerCase().includes(name)))) throw new UnsupportedEditError("Modern comments cannot be cloned.");
+      if (this.#package.parts.some(part => commentExtensionParts.some(role => part.content_type.toLowerCase() === role.contentType.toLowerCase()))) throw new UnsupportedEditError("Modern comments cannot be cloned.");
       const edges = this.#package.relationships(owner).filter(edge => edge.reltype.endsWith("/comments"));
       if (edges.length !== 1 || edges[0]!.is_external) throw new UnsupportedEditError("A classic comment part is required.");
       const comments = this.#source.get(edges[0]!.target_part.partname)!;
@@ -161,7 +162,7 @@ export class ControlClonePlanner {
     if (ends.length !== starts.length || ends.some(end => !starts.some(start => attribute(start, "id") === attribute(end, "id")))) throw new UnsupportedEditError("Bookmarks cross the template boundary.");
     const commentMarkers = all.filter(node => node.namespace === item.namespace && ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName));
     if (commentMarkers.length) {
-      if (this.#package.parts.some(part => ["commentsExtended", "commentsIds", "commentsExtensible", "people"].some(name => part.content_type.includes(name)))) throw new UnsupportedEditError("Modern comments cannot be cloned.");
+      if (this.#package.parts.some(part => commentExtensionParts.some(role => part.content_type.toLowerCase() === role.contentType.toLowerCase()))) throw new UnsupportedEditError("Modern comments cannot be cloned.");
       const edges = this.#package.relationships(owner).filter(edge => edge.reltype.endsWith("/comments")); if (edges.length !== 1 || edges[0]!.is_external) throw new UnsupportedEditError("A classic comment part is required.");
       const part = edges[0]!.target_part.partname, comments = this.#source.get(part)!;
       for (const id of new Set(commentMarkers.map(node => number(attribute(node, "id"))))) {

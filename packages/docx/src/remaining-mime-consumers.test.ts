@@ -203,7 +203,7 @@ for (const strict of [false, true]) for (const uppercase of [false, true]) for (
   `refuses modern comment cloning via ${route}; uppercase MIME=${uppercase}; strict=${strict}`, async () => {
     const repeat = '<w:sdt xmlns:v="http://schemas.microsoft.com/office/word/2012/wordml"><w:sdtPr><w:id w:val="1"/><v:repeatingSection/></w:sdtPr><w:sdtContent><w:sdt><w:sdtPr><w:id w:val="7"/><v:repeatingSectionItem/></w:sdtPr><w:sdtContent><w:p><w:commentRangeStart w:id="3"/><w:r><w:t>Retained range</w:t></w:r><w:commentRangeEnd w:id="3"/><w:r><w:commentReference w:id="3"/></w:r></w:p></w:sdtContent></w:sdt></w:sdtContent></w:sdt>';
     const base = await addParts(await textFixture(repeat, { comments: { kind: "comments", xml: `<w:comments xmlns:w="${w}"><w:comment w:id="3" w:author="Reviewer"><w:p><w:r><w:t>Review note</w:t></w:r></w:p></w:comment></w:comments>` } }, strict), {
-      "word/thread.xml": { bytes: new TextEncoder().encode('<v:commentsEx xmlns:v="http://schemas.microsoft.com/office/word/2012/wordml"/>'), type: "application/vnd.ms-word.commentsExtended+xml" }
+      "word/thread.xml": { bytes: new TextEncoder().encode('<v:commentsEx xmlns:v="http://schemas.microsoft.com/office/word/2012/wordml"/>'), type: "application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtended+xml" }
     });
     const input = uppercase ? await uppercaseTypes(base) : base, original = input.slice(), volume = Volume.fromJSON({ "/input": Buffer.from(input), "/out": "", "/err": "" });
     const stdout = { async write(bytes: Uint8Array) { volume.appendFileSync("/out", bytes); } };

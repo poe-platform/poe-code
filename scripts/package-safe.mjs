@@ -274,7 +274,17 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       return value;
     };
     const exports = {};
+    const imports = {};
     const workspaceTarget = value => typeof value === "string" ? value.replace("./dist/", `./packages/${name}/dist/`) : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).map(([key, item]) => [key, workspaceTarget(item)])) : value;
+    const importTarget = (value, types = false) => {
+      if (value && typeof value === "object") return Object.fromEntries(Object.entries(value)
+        .map(([condition, target]) => [condition, importTarget(target, types || condition === "types")]));
+      if (typeof value !== "string") return value;
+      if (!value.startsWith("./")) throw new Error(`Unsupported package import target: ${value}`);
+      const built = types && value.startsWith("./src/") && value.endsWith(".ts")
+        ? "./dist/" + value.slice(6, -3) + ".d.ts" : value;
+      return enqueueExport(workspaceTarget(built));
+    };
     if (name === "safe-js") {
       for (const [key, value] of Object.entries(root.exports)) {
         if (key === "./safe-js" || key.startsWith("./safe-js/")) exports[key === "./safe-js" ? "." : "." + key.slice("./safe-js".length)] = enqueueExport(value);
@@ -343,6 +353,10 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
             for (const profile of ["node", "browser"]) pending.push(path.join(rootDir, "packages/safe-fs/dist/platform", profile + (declaration ? ".d.ts" : ".js")));
             return specifier;
           }
+          if (specifier.startsWith("#") && Object.hasOwn(source.imports ?? {}, specifier)) {
+            if (!Object.hasOwn(imports, specifier)) imports[specifier] = importTarget(source.imports[specifier]);
+            return specifier;
+          }
           let publicName = publicSpecifier(specifier);
           if (declaration) {
             const workspace = workspaces.find(({ pkg }) => pkg.private && (publicName === pkg.name || publicName.startsWith(pkg.name + "/")));
@@ -388,6 +402,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       repository: { type: "git", url: "git+https://github.com/poe-platform/poe-code.git", directory: `packages/${name}` },
       publishConfig: { access: "public" }, dependencies,
     };
+    if (Object.keys(imports).length) manifest.imports = imports;
     if (name === "safe-fs") manifest.imports = { "#safe-fs-platform": { types: { browser: "./dist/safe-fs/platform/browser.d.ts", default: "./dist/safe-fs/platform/node.d.ts" }, browser: "./dist/safe-fs/platform/browser.js", default: "./dist/safe-fs/platform/node.js" } };
     if (name === "safe-fs" && nativeAssets) manifest.imports[nativeAssets.registry.specifier] = nativeImportMapping(nativeAssets.registry,
       artifactPath(rootDir, path.join(rootDir, "packages/safe-fs/dist")));

@@ -47,6 +47,31 @@ function optionalLeftovers() {
   return { volume, data, excluded, options: { rootDir: "/repo", version: "0.1.0", files, bundle } };
 }
 
+it("preserves conditional private imports and ships their runtime and declaration targets", async () => {
+  const { volume, options } = optionalLeftovers();
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify({
+    ...bashManifest, imports: { "#capability": {
+      types: "./src/capability.ts", browser: "./dist/unavailable.js", default: "./dist/capability.js"
+    } }
+  }));
+  volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'export { value } from "#capability";');
+  volume.writeFileSync("/repo/packages/safe-bash/dist/capability.js", "export const value = 1;");
+  volume.writeFileSync("/repo/packages/safe-bash/dist/capability.d.ts", "export declare const value: number;");
+  volume.writeFileSync("/repo/packages/safe-bash/dist/unavailable.js", "export {};");
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const manifest = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8"));
+  expect(manifest.imports).toEqual({ "#capability": {
+    types: "./dist/safe-bash/capability.d.ts",
+    browser: "./dist/safe-bash/unavailable.js",
+    default: "./dist/safe-bash/capability.js"
+  } });
+  for (const target of Object.values(manifest.imports["#capability"]) as string[]) {
+    expect(volume.existsSync("/output/safe-bash/" + target.slice(2))).toBe(true);
+  }
+  expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/index.js", "utf8"))
+    .toContain('from "#capability"');
+});
+
 describe("scoped safe package artifacts", () => {
   it("ships the Playwright chunk and controller without adding it to the default entry", async () => {
     const { volume, options } = optionalLeftovers();

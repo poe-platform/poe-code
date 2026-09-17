@@ -2,8 +2,270 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { setup } from "./helpers.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
-import { FsError, type ReadDirectoryOptions } from "../../src/contracts/index.js";
+import { FsError, type FsOptions, type ReadDirectoryOptions } from "../../src/contracts/index.js";
 import { ShellLimitError } from "../../src/shell/index.js";
+
+function probingFileSystem(probe: (method: string, path: string, options?: FsOptions) => void) {
+  return new Proxy(new MemoryFileSystem(), {
+    get(target, key) {
+      const value = Reflect.get(target, key);
+      if (typeof value !== "function") return value;
+      return (...args: unknown[]) => {
+        probe(String(key), args[0] as string, args[1] as FsOptions | undefined);
+        return Reflect.apply(value, target, args);
+      };
+    },
+  });
+}
+
+test("unquoted URL glob retains its original argument when colon pathname probes are invalid", async () => {
+  const probes: string[] = [];
+  const fs = probingFileSystem((method, path) => {
+    if (["stat", "readdir"].includes(method) && path.includes(":")) {
+      probes.push(`${method}:${path}`);
+      throw new FsError("EINVAL", { path, syscall: method });
+    }
+  });
+  const { shell } = setup({ fs });
+  const url = "https://browser-test.example/page?size=2";
+  try {
+    const result = await shell.exec(`args ${url}`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, JSON.stringify([url]));
+    assert.deepEqual(probes, ["readdir:/https:/browser-test.example"]);
+    probes.length = 0;
+    const quoted = await shell.exec(`args '${url}' "${url}" /missing-*`);
+    assert.equal(quoted.exitCode, 0);
+    assert.equal(quoted.stderr, "");
+    assert.equal(quoted.stdout, JSON.stringify([url, url, "/missing-*"]));
+    assert.deepEqual(probes, []);
+  } finally { await shell.dispose(); }
+});
+
+const invalidProbeCases = [
+  { name: "ordinary directory read", pattern: "bad:/*", method: "readdir" },
+  { name: "ordinary final stat", pattern: "bad?", method: "stat" },
+  { name: "recursive root stat", pattern: "bad:/**", method: "stat" },
+  { name: "recursive directory walk", pattern: "**/leaf?", method: "readdir" },
+  { name: "recursive wildcard segment", pattern: "**/bad:/*", method: "readdir" },
+  { name: "recursive final lstat", pattern: "**/bad?", method: "lstat" },
+  { name: "recursive final directory stat", pattern: "**/bad?/", method: "stat" },
+] as const;
+
+for (const { name, pattern, method: rejectedMethod } of invalidProbeCases) {
+  for (const code of ["EINVAL", "ENOENT", "ENOTDIR", "EACCES", "EIO", "EPERM"] as const) {
+    test(`${name} treats only unmatched pathname errors as nonmatches: ${code}`, async () => {
+      let probes = 0;
+      const fs = probingFileSystem((method, path, options) => {
+        if (method === rejectedMethod && path === "/work/bad:") {
+          assert(options?.signal);
+          probes++;
+          throw new FsError(code, { path, syscall: method, message: "probe rejected" });
+        }
+      });
+      await fs.mkdir("/work/bad:", { recursive: true });
+      await fs.writeFile("/work/bad:/leaf1", new Uint8Array());
+      const { shell } = setup({ fs, cwd: "/work" });
+      try {
+        const result = await shell.exec(`shopt -s globstar; args ${pattern}`);
+        assert(probes > 0);
+        if (code === "EIO" || code === "EPERM") {
+          assert.equal(result.exitCode, 1);
+          assert.equal(result.stdout, "");
+          assert(result.stderr.includes("probe rejected"), result.stderr);
+        } else {
+          assert.equal(result.exitCode, 0);
+          assert.equal(result.stderr, "");
+          assert.equal(result.stdout, JSON.stringify([pattern]));
+        }
+      } finally { await shell.dispose(); }
+    });
+  }
+
+  for (const reason of [new FsError("EINVAL", { message: "cancelled glob" }), false]) {
+    test(`${name} does not swallow cancellation with ${typeof reason} reason`, async () => {
+      const controller = new AbortController();
+      let probes = 0;
+      const fs = probingFileSystem((method, path, options) => {
+        if (method === rejectedMethod && path === "/work/bad:") {
+          assert(options?.signal);
+          probes++;
+          controller.abort(reason);
+          throw new FsError("EINVAL", { path, syscall: method });
+        }
+      });
+      await fs.mkdir("/work/bad:", { recursive: true });
+      await fs.writeFile("/work/bad:/leaf1", new Uint8Array());
+      const { shell } = setup({ fs, cwd: "/work" });
+      let commands = 0;
+      shell.use(async (context, next) => { if (context.command === "args") commands++; return next(); });
+      try {
+        await assert.rejects(shell.exec(`shopt -s globstar; args ${pattern}`, { signal: controller.signal }), error => Object.is(error, reason));
+        assert(probes > 0);
+        assert.equal(commands, 0);
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+test("unmatched expansion does not relax actual file access restrictions", async () => {
+  const rejected: string[] = [];
+  const fs = probingFileSystem((method, path) => {
+    if (["stat", "readdir", "readFile"].includes(method) && path.includes(":")) {
+      rejected.push(method);
+      throw new FsError("EINVAL", { path, syscall: method, message: "restricted pathname" });
+    }
+  });
+  await fs.writeFile("/bad:", new TextEncoder().encode("private"));
+  const { shell } = setup({ fs });
+  try {
+    const result = await shell.exec("pass < 'bad:'");
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert(result.stderr.includes("restricted pathname"), result.stderr);
+    assert(rejected.length > 0);
+    assert.throws(() => fs.stat("/bad:"), error => error instanceof FsError && error.code === "EINVAL");
+    assert.throws(() => fs.readdir("/bad:"), error => error instanceof FsError && error.code === "EINVAL");
+  } finally { await shell.dispose(); }
+});
+
+const siblingProbeCases = [
+  { name: "ordinary directory read", pattern: "*/leaf?", method: "readdir", sibling: "good/leaf1" },
+  { name: "ordinary final stat", pattern: "bad?", method: "stat", sibling: "bad1" },
+  { name: "recursive root stat", pattern: "*/**/leaf?", method: "stat", sibling: "good/leaf1" },
+  { name: "recursive directory walk", pattern: "**/leaf?", method: "readdir", sibling: "good/leaf1" },
+  { name: "recursive wildcard segment", pattern: "**/bad:/*", method: "readdir", sibling: "good/bad:/leaf1" },
+  { name: "recursive final lstat", pattern: "**/bad?", method: "lstat", sibling: "good/bad1" },
+  { name: "recursive final directory stat", pattern: "**/bad?/", method: "stat", sibling: "good/bad1/" },
+] as const;
+
+for (const { name, pattern, method: rejectedMethod, sibling } of siblingProbeCases) {
+  for (const reason of [new FsError("EINVAL"), Object.assign(new Error("invalid pathname"), { code: "EINVAL" }), { code: "EINVAL" }]) {
+    test(`${name} retains matching siblings after ${reason.constructor.name} EINVAL`, async () => {
+      let probes = 0;
+      const fs = probingFileSystem((method, path) => {
+        if (method === rejectedMethod && path === "/work/bad:") { probes++; throw reason; }
+      });
+      await fs.mkdir("/work/bad:", { recursive: true });
+      await fs.writeFile("/work/bad:/leaf1", new Uint8Array());
+      if (sibling.endsWith("/")) await fs.mkdir(`/work/${sibling}`, { recursive: true });
+      else {
+        await fs.mkdir(`/work/${sibling.slice(0, sibling.lastIndexOf("/") + 1)}`, { recursive: true });
+        await fs.writeFile(`/work/${sibling}`, new Uint8Array());
+      }
+      const { shell } = setup({ fs, cwd: "/work" });
+      try {
+        const result = await shell.exec(`shopt -s globstar; args ${pattern}`);
+        assert(probes > 0);
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, "");
+        assert.equal(result.stdout, JSON.stringify([sibling]));
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+for (const { name, pattern, method: rejectedMethod } of invalidProbeCases) {
+  for (const reason of [new Error("provider failure"), { code: "EIO" }, Object.assign(new Error("provider failure"), { code: "EPERM" })]) {
+    test(`${name} preserves plain and own-code provider failures: ${"code" in reason ? reason.code : "no code"}`, async () => {
+      const seen: unknown[] = [];
+      let probes = 0;
+      let commands = 0;
+      const fs = probingFileSystem((method, path) => {
+        if (method === rejectedMethod && path === "/work/bad:") { probes++; throw reason; }
+      });
+      await fs.mkdir("/work/bad:", { recursive: true });
+      await fs.writeFile("/work/bad:/leaf1", new Uint8Array());
+      const { shell } = setup({ fs, cwd: "/work", onInternalError(error) { seen.push(error); } });
+      shell.use(async (context, next) => { if (context.command === "args") commands++; return next(); });
+      try {
+        const result = await shell.exec(`shopt -s globstar; args ${pattern}`);
+        assert(probes > 0);
+        assert.equal(result.exitCode, 1);
+        assert.equal(result.stdout, "");
+        assert.notEqual(result.stderr, "");
+        assert(seen.includes(reason));
+        assert.equal(commands, 0);
+      } finally { await shell.dispose(); }
+    });
+  }
+
+  for (const reason of [0, null, { code: "EINVAL" }]) {
+    test(`${name} preserves additional cancellation reason ${JSON.stringify(reason)}`, async () => {
+      const controller = new AbortController();
+      let probes = 0;
+      let commands = 0;
+      const fs = probingFileSystem((method, path, options) => {
+        if (method === rejectedMethod && path === "/work/bad:") {
+          assert(options?.signal);
+          probes++;
+          controller.abort(reason);
+          throw { code: "EINVAL" };
+        }
+      });
+      await fs.mkdir("/work/bad:", { recursive: true });
+      await fs.writeFile("/work/bad:/leaf1", new Uint8Array());
+      const { shell } = setup({ fs, cwd: "/work" });
+      shell.use(async (context, next) => { if (context.command === "args") commands++; return next(); });
+      try {
+        await assert.rejects(shell.exec(`shopt -s globstar; args ${pattern}`, { signal: controller.signal }), error => Object.is(error, reason));
+        assert(probes > 0);
+        assert.equal(commands, 0);
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+test("URL-shaped arguments still glob when real pathname matches exist", async () => {
+  const { shell, fs } = setup();
+  await fs.mkdir("/https:/browser-test.example", { recursive: true });
+  await fs.writeFile("/https:/browser-test.example/pageXsize=2", new Uint8Array());
+  const url = "https://browser-test.example/page?size=2";
+  try {
+    const result = await shell.exec(`args ${url} '${url}' "${url}"`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, JSON.stringify(["https:/browser-test.example/pageXsize=2", url, url]));
+  } finally { await shell.dispose(); }
+});
+
+test("unmatched URL expansion preserves exact separators, query and fragment bytes", async () => {
+  const probes: string[] = [];
+  const fs = probingFileSystem((method, path) => {
+    if (method === "readdir" && path.includes(":")) { probes.push(path); throw { code: "EINVAL" }; }
+  });
+  const { shell } = setup({ fs });
+  const urls = ["https://browser-test.example//page?size=2%20two#part", "https://browser-test.example/page[12]?size=2"];
+  try {
+    const result = await shell.exec(`args ${urls.join(" ")}`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, JSON.stringify(urls));
+    assert.equal(probes.length, urls.length);
+  } finally { await shell.dispose(); }
+});
+
+for (const pattern of ["bad?", "**/bad?"]) test(`invalid nonmatch cannot bypass subsequent actual redirection access: ${pattern}`, async () => {
+  const accesses: string[] = [];
+  const fs = probingFileSystem((method, path) => {
+    if ((method === "stat" || method === "lstat") && path === "/work/bad:") throw new FsError("EINVAL", { path, syscall: method });
+    if (method === "access" && path === `/work/${pattern}`) {
+      accesses.push(path);
+      throw new FsError("EINVAL", { path, syscall: method, message: "read access refused" });
+    }
+  });
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/bad:", new Uint8Array());
+  const { shell } = setup({ fs, cwd: "/work" });
+  try {
+    const result = await shell.exec(`shopt -s globstar; pass < ${pattern}`);
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert(result.stderr.includes("read access refused"), result.stderr);
+    assert.deepEqual(accesses, [`/work/${pattern}`]);
+  } finally { await shell.dispose(); }
+});
 
 async function fixture() {
   const result = setup({ cwd: "/tree" });

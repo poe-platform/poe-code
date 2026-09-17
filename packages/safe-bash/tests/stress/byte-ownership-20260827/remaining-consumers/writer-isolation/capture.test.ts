@@ -63,6 +63,24 @@ const sandbox = (sourceRoot = root) => {
     symlinkSync(peerRoot, join(directory, "node_modules/poe-code"), "dir");
     symlinkSync(dirname(fileURLToPath(import.meta.resolve("tsx/package.json"))), join(directory, "node_modules/tsx"), "dir");
     const manifest = JSON.parse(readFileSync(join(sourceRoot, "package.json"), "utf8"));
+    const copyPrivateTargets = (value: unknown): void => {
+      if (value === null) return;
+      if (typeof value === "object") {
+        for (const target of Object.values(value)) copyPrivateTargets(target);
+        return;
+      }
+      assert.equal(typeof value, "string", "fixture private import target must be declared");
+      const target = value as string;
+      if (!target.startsWith("./dist/")) return;
+      const path = target.slice(2);
+      assert.equal(relative(sourceRoot, resolve(sourceRoot, path)), path, "fixture private import target must be canonical");
+      assert.equal(isHeldInputPath("src/" + path.slice("dist/".length), boundaries), false);
+      const stat = lstatSync(join(sourceRoot, path));
+      assert.ok(stat.isFile() && stat.nlink === 1, "fixture private import target must be regular and not a link");
+      mkdirSync(dirname(join(directory, path)), { recursive: true });
+      cpSync(join(sourceRoot, path), join(directory, path));
+    };
+    for (const target of Object.values(manifest.imports ?? {})) copyPrivateTargets(target);
     if (manifest.devDependencies?.["@poe-platform/op"] !== undefined) {
       assert.equal(manifest.devDependencies["@poe-platform/op"], "*");
       const entry = fileURLToPath(import.meta.resolve("@poe-platform/op"));

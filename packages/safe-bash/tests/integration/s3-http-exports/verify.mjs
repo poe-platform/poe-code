@@ -89,6 +89,16 @@ export function committedPeerImports(committedFiles, compiler) {
   return [...imports].sort();
 }
 
+function nodeImportTarget(value) {
+  if (value === null || typeof value === "string") return value;
+  assert.ok(value && typeof value === "object" && !Array.isArray(value), "Unsupported private import target");
+  for (const [condition, target] of Object.entries(value)) {
+    if (!["node", "import", "default"].includes(condition)) continue;
+    const selected = nodeImportTarget(target);
+    if (selected !== undefined) return selected;
+  }
+}
+
 export function bindPackedConsumer(consumer, packedFiles, peer, declarations, ts, fileSystem, dependencies = []) {
   assertArchiveDependencyArtifacts(dependencies, fileSystem);
   const facts = Object.hasOwn(peer, "profile") ? capturePeerRuntimeFacts(peer, consumer) : undefined;
@@ -136,8 +146,20 @@ export function bindPackedConsumer(consumer, packedFiles, peer, declarations, ts
     for (const specifier of imports) {
       if (isBuiltin(specifier)) { edges[specifier] = specifier.startsWith("node:") ? specifier : `node:${specifier}`; continue; }
       const nativeEdge = facts?.nativeEdges.find(edge => edge.importer === peerLocal && edge.specifier === specifier);
-      if (specifier.startsWith("#")) assert.ok(nativeEdge, `Unbound runtime dependency: ${specifier}`);
-      const target = nativeEdge ? `node_modules/poe-code/${nativeEdge.target}` : specifier.startsWith(".") ? relative(consumer, resolve(consumer, dirname(local), specifier)) : binding.entries[specifier] ?? dependencyEntries[specifier];
+      let privateTarget;
+      if (specifier.startsWith("#") && local.startsWith("node_modules/virtual-bash/")) {
+        const manifestPath = "node_modules/virtual-bash/package.json";
+        const manifestBytes = readRegularInput(consumer, manifestPath, 300000, fileSystem);
+        assert.equal(digest(manifestBytes), binding.files[manifestPath], "Runtime package metadata drift");
+        const imports = JSON.parse(manifestBytes).imports ?? {};
+        assert.ok(Object.hasOwn(imports, specifier), `Unbound runtime dependency: ${specifier}`);
+        const selected = nodeImportTarget(imports[specifier]);
+        assert.ok(typeof selected === "string" && selected.startsWith("./"), "Unbound runtime private import target");
+        assertLiteralInputPath(selected.slice(2));
+        privateTarget = "node_modules/virtual-bash/" + selected.slice(2);
+      }
+      if (specifier.startsWith("#")) assert.ok(nativeEdge || privateTarget, `Unbound runtime dependency: ${specifier}`);
+      const target = privateTarget ?? (nativeEdge ? `node_modules/poe-code/${nativeEdge.target}` : specifier.startsWith(".") ? relative(consumer, resolve(consumer, dirname(local), specifier)) : binding.entries[specifier] ?? dependencyEntries[specifier]);
       assert.equal(typeof target, "string", `Unbound runtime dependency: ${specifier}`);
       if (facts?.nativeAssets.some(asset => target === `node_modules/poe-code/${asset.path}`)) assert.ok(nativeEdge, "Native peer assets require an authenticated private edge");
       if (admitted) assert.equal(target, `node_modules/poe-code/${admitted[specifier]}`, `Runtime edge differs from authenticated peer binding: ${local}`);

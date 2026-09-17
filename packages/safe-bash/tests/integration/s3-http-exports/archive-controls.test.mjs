@@ -914,6 +914,30 @@ for (const route of ["poe-code/safe-fs", "poe-code/safe-fs/core", "poe-code/priv
   }
 });
 
+test("packed runtime binds conditional private imports to authenticated package files", () => {
+  const prefix = "node_modules/virtual-bash/";
+  const files = {
+    [prefix + "package.json"]: JSON.stringify({ imports: { "#crypto": { types: "./src/crypto.ts", browser: "./dist/unavailable.js", default: "./dist/crypto.js" } } }),
+    [prefix + "dist/index.js"]: 'export { value } from "#crypto";',
+    [prefix + "dist/fs/s3/http/index.js"]: "export {};",
+    [prefix + "dist/crypto.js"]: "export const value = 1;",
+    "node_modules/poe-code/package.json": "{}",
+  };
+  const io = createFsFromVolume(Volume.fromJSON(Object.fromEntries(Object.entries(files).map(([path, bytes]) => ["/consumer/" + path, bytes]))));
+  const packed = Object.keys(files).filter(path => path.startsWith(prefix)).map(path => path.slice(prefix.length));
+  const peer = { entries: {}, files: [{ path: "package.json", sha256: digest("{}") }] };
+  const bind = () => verifier.bindPackedConsumer("/consumer", packed, peer, { publicEntries: new Map(), declarations: new Map() }, ts, io);
+  const binding = bind();
+  assert.equal(binding.edges[prefix + "dist/index.js"]["#crypto"], prefix + "dist/crypto.js");
+  assert.deepEqual(binding.edges[prefix + "dist/crypto.js"], {});
+  for (const target of ["./dist/missing.js", "../poe-code/package.json", "./dist/../crypto.js", "poe-code/private", null]) {
+    io.writeFileSync("/consumer/" + prefix + "package.json", JSON.stringify({ imports: { "#crypto": target } }));
+    assert.throws(bind, /Unbound runtime|private import|literal|outside authenticated/);
+  }
+  io.writeFileSync("/consumer/" + prefix + "package.json", "{}");
+  assert.throws(bind, /Unbound runtime dependency/);
+});
+
 test("peer snapshot accepts unchanged committed inputs without a peer", () => {
   const committed = new Map([["package.json", Buffer.from("committed")]]);
   const fixture = syntheticDist([["package.json", "committed"]]);

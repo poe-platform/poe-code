@@ -392,3 +392,12 @@ native core values survive with their byte form and unrelated members intact.
 Forty-eight built SDK/Shell workflows cover set/removal; sixteen model workflows
 pass. Historical failures and the zero-credit interrupted baseline remain.
 Property MCE carriers and complete F01–F07 acceptance remain open.
+
+## Current property compatibility evidence
+
+The [property MCE record](property-mce-carriers-20260917.md) qualifies 416 new
+exact cases in a passing 1,356-test maintained run. The built campaign executes
+480 SDK/Shell workflows in all four XML byte forms, with model round-trips,
+240 expected inner-branch removal refusals and 48 inactive-ID reservations.
+Outer carriers, inactive XML and relationships survive exact-byte assertions.
+Bookmark/property interactions and complete F01–F07 acceptance remain open.

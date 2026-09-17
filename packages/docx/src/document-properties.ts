@@ -3,14 +3,14 @@ import { archiveSettings, InputTypeError, InvalidValueError, type ArchiveContext
 import { readDocumentArchive } from "./admission.js";
 import { validateDocxInvocation } from "./command.js";
 import { documentDialects } from "./dialect.js";
-import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { DocumentXmlEditor, editActivePropertyXml, UnsupportedEditError } from "./xml-write.js";
 import { SelectionError, closedRecord } from "./location-token.js";
 import { encodeLocation, type Location } from "./location-token.js";
 import { xmlValue } from "./create-content.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { validateDocumentArchive, SemanticValidationError } from "./validation.js";
 import { normalizeDocxPropertyOptions } from "./command-properties.js";
-import { customPropertyFormatId, normalizePropertyDate, propertyDeclaration, propertyGroupDefinition, propertyNumberFits, serializePropertyScalar, readPropertyParts, type PropertyGroup, type PropertyPart, type PropertyValue, type StoredProperty, type PropertyType } from "./property-values.js";
+import { customPropertyFormatId, normalizePropertyDate, propertyAttribute, propertyDeclaration, propertyGroupDefinition, propertyNumberFits, serializePropertyScalar, readPropertyParts, readPropertyNodes, type PropertyGroup, type PropertyPart, type PropertyValue, type StoredProperty, type PropertyType } from "./property-values.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { measurePackageResourceSerialization } from "./ancillary-resources.js";
 
@@ -103,14 +103,23 @@ export async function editDocumentProperties(input: Uint8Array, options: Propert
     if (!partName) { const created = createPropertyPart(archive, group, budget); staged = created.archive; partName = created.name; }
     const member = staged.members.find(m => "/" + m.name === partName)!, editor = new DocumentXmlEditor(member.bytes, {}, undefined, budget);
     if (selected) {
-      const target = editor.root.children[selected.part.root.children.indexOf(selected.property.node)]!;
-      if (operation === "properties.remove") editor.replaceElement(target, "");
-      else { const valueNode = group === "custom" ? target.children[0]! : target; editor.replaceScalarText(valueNode, serializePropertyScalar(value!, valueNode.localName)); }
+      const target = readPropertyNodes(editor.root, group, archive.dialect, budget)[selected.part.properties.indexOf(selected.property)]!;
+      editor[editActivePropertyXml](target.node, operation === "properties.remove" ? null : serializePropertyScalar(value!, target.valueNode!.localName));
     } else {
       const declaration = propertyDeclaration(group, requested.key, archive.dialect);
       let markup: string;
       if (group === "custom") {
-        const used = new Set(active?.properties.map(p => Number(p.id)) ?? []); let id = 2; while (used.has(id)) { budget.charge("work", 1); id++; }
+        const used = new Set<number>(), pending = active ? [active.root] : [];
+        while (pending.length) {
+          const node = pending.pop()!;
+          budget.charge("work", node.children.length + 1);
+          budget.charge("retainedBytes", node.children.length * 8 + 16);
+          pending.push(...node.children);
+          if (node.namespace !== documentDialects[archive.dialect].cus || node.localName !== "property") continue;
+          const stored = Number(propertyAttribute(node, "pid"));
+          if (Number.isSafeInteger(stored) && stored >= 2) used.add(stored);
+        }
+        let id = 2; while (used.has(id)) { budget.charge("work", 1); id++; }
         const variant = { string: "lpwstr", boolean: "bool", integer: "i8", number: "r8", date: "filetime" }[type!], vocab = documentDialects[archive.dialect];
         markup = `<p:property xmlns:p="${vocab.cus}" fmtid="${customPropertyFormatId}" pid="${id}" name="${xmlValue(requested.key)}"><v:${variant} xmlns:v="${vocab.vt}">${xmlValue(String(value))}</v:${variant}></p:property>`;
       } else {

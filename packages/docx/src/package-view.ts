@@ -636,7 +636,7 @@ export class CoreProperties {
   get element(): XmlElementView { return this.#part.element; }
   [coreRead](name: string): string | number | Date | null {
     const xml = new DocumentXmlEditor(this.#part.blob, {}, undefined, this.#budget), key = coreKey(name), declaration = corePropertyKeys[key]!;
-    const properties = readPropertyNodes(xml.root, "core", "transitional");
+    const properties = readPropertyNodes(xml.root, "core", "transitional", this.#budget);
     const value = properties.find(property => property.name === key);
     if (declaration.type === "integer") {
       const raw = value?.node.text ?? "";

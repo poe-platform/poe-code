@@ -2,14 +2,15 @@ import { parseMediaType } from "./media-type.js";
 import { InvalidValueError } from "./archive.js";
 import type { AdmittedDocumentArchive } from "./admission.js";
 import { documentDialects, type DocumentDialect } from "./dialect.js";
-import { parseDocumentXml, type XmlElement } from "./package-xml.js";
+import { parseDocumentXml, type XmlElement, type XmlContent } from "./package-xml.js";
 import { validateDocxValue } from "./operation-schema.js";
 import type { DocumentBudget } from "./budget.js";
+import { MarkupCompatibility, type CompatibilityContent } from "./compatibility.js";
 
 export type PropertyGroup = "core" | "extended" | "custom";
 export type PropertyType = "string" | "boolean" | "integer" | "number" | "date";
 export interface PropertyValue { readonly name: string; readonly type: PropertyType; readonly value: string | boolean | number | null; readonly writable: boolean; readonly cached: boolean }
-export interface StoredProperty { readonly node: XmlElement; readonly valueNode: XmlElement | null; readonly name: string | null; readonly storedType: { namespace: string; localName: string } | null; readonly id: string | null; readonly value: PropertyValue | null }
+export interface StoredProperty { readonly node: XmlElement; readonly valueNode: XmlElement | null; readonly valueContent: readonly XmlContent[] | null; readonly name: string | null; readonly storedType: { namespace: string; localName: string } | null; readonly id: string | null; readonly value: PropertyValue | null }
 export interface PropertyPart { readonly name: string; readonly group: PropertyGroup; readonly root: XmlElement; readonly properties: readonly StoredProperty[]; readonly owned: boolean; readonly ambiguous: boolean; readonly safeCustom: boolean }
 export const corePropertyNamespace = "http://schemas.openxmlformats.org/package/2006/metadata/core-properties";
 export const customPropertyFormatId = "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}";
@@ -61,12 +62,24 @@ function lexicalValue(raw: string, type: PropertyType, variant: string, group: P
   if (!Number.isFinite(value) || type === "integer" && !Number.isSafeInteger(value) || group === "core" && value <= 0 || group === "extended" && value < 0 || group === "custom" && !propertyNumberFits(value, variant)) return null;
   return value;
 }
-export function readPropertyNodes(root: XmlElement, group: PropertyGroup, dialect: DocumentDialect): StoredProperty[] {
+export function readPropertyNodes(root: XmlElement, group: PropertyGroup, dialect: DocumentDialect, budget: DocumentBudget): StoredProperty[] {
   const vocab = documentDialects[dialect];
-  return root.children.map(node => {
+  const content = new Map<XmlElement, readonly CompatibilityContent[]>();
+  const collect = (items: readonly CompatibilityContent[]): void => {
+    for (const item of items) if ("source" in item) {
+      budget.charge("work", item.content.length + 1);
+      budget.charge("retainedBytes", 96 + item.content.length * 8);
+      content.set(item.source, item.content);
+      collect(item.content);
+    }
+  };
+  collect(new MarkupCompatibility(root, undefined, budget).content);
+  const children = (node: XmlElement): readonly XmlElement[] => (content.get(node) ?? []).filter(item => "source" in item).map(item => item.source);
+  return children(root).map(node => {
     let name: string | null = null, type: PropertyType | null = null, cached = false;
     const custom = group === "custom" && node.namespace === vocab.cus && node.localName === "property";
-    const valueNode = group === "custom" ? custom && node.children.length === 1 && node.children[0]!.namespace === vocab.vt ? node.children[0]! : null : node;
+    const values = children(node);
+    const valueNode = group === "custom" ? custom && values.length === 1 && values[0]!.namespace === vocab.vt ? values[0]! : null : node;
     if (custom) { name = propertyAttribute(node, "name"); type = valueNode ? customPropertyType(valueNode.localName) : null; }
     else if (group !== "custom") {
       for (const key of Object.keys(group === "core" ? corePropertyKeys : extendedPropertyKeys)) { const entry = propertyDeclaration(group, key, dialect)!; if (entry.namespace === node.namespace && entry.localName === node.localName) { name = key; type = entry.type; cached = entry.cached; break; } }
@@ -75,9 +88,11 @@ export function readPropertyNodes(root: XmlElement, group: PropertyGroup, dialec
       const nativeNamespace = group === "core" ? [corePropertyNamespace, dc, terms].includes(node.namespace) : node.namespace === vocab.ep;
       if (name === null && nativeNamespace && !knownSpelling) name = node.localName;
     }
-    const raw = valueNode?.content.filter(n => n.kind === "text" || n.kind === "cdata").map(n => n.text).join("") ?? "";
-    const value = type && name && valueNode ? valueNode.children.length ? null : lexicalValue(raw, type, valueNode.localName, group) : null;
-    return { node, valueNode, name, storedType: valueNode ? { namespace: valueNode.namespace, localName: valueNode.localName } : null, id: custom ? propertyAttribute(node, "pid") : null, value: type && name ? { name, type, value, writable: !cached && value !== null, cached } : null };
+    const projected = valueNode ? content.get(valueNode) ?? [] : [];
+    const valueContent = projected.some(item => "source" in item) ? null : projected.filter((item): item is Exclude<XmlContent, XmlElement> => !("source" in item));
+    const raw = valueContent?.filter(n => n.kind === "text" || n.kind === "cdata").map(n => n.text).join("") ?? "";
+    const value = type && name && valueNode && valueContent ? lexicalValue(raw, type, valueNode.localName, group) : null;
+    return { node, valueNode, valueContent, name, storedType: valueNode ? { namespace: valueNode.namespace, localName: valueNode.localName } : null, id: custom ? propertyAttribute(node, "pid") : null, value: type && name ? { name, type, value, writable: !cached && value !== null, cached } : null };
   });
 }
 function validCustomId(value: string | null): boolean { return !!value && [...value].every(c => "0123456789".includes(c)) && Number.isSafeInteger(Number(value)) && Number(value) >= 2; }
@@ -89,7 +104,7 @@ export function readPropertyParts(archive: AdmittedDocumentArchive, budget: Docu
       if (parseMediaType(part.content_type) !== definition.contentType) continue;
       const root = roots?.get(part.partname) ?? parseDocumentXml(part.bytes, {}, budget).root;
       if (root.namespace !== definition.namespace || root.localName !== definition.root) continue;
-      const owned = declarations.some(edge => !edge.is_external && edge.target_part.partname === part.partname), properties = readPropertyNodes(root, group, archive.dialect);
+      const owned = declarations.some(edge => !edge.is_external && edge.target_part.partname === part.partname), properties = readPropertyNodes(root, group, archive.dialect, budget);
       budget.charge("work", properties.length); budget.charge("retainedBytes", properties.length * 128);
       const ids = new Set<number>(), names = new Set<string>(); let safeCustom = true;
       if (group === "custom") for (const property of properties) {

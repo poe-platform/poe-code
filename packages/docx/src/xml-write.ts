@@ -14,6 +14,7 @@ import {assertOutsideRevisionRanges} from './revision-markup.js';
 import { collectShapeCarriers, type ShapeCarrierCensus } from "./shape-carriers.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import { relationshipXmlRows } from "./relationship-xml.js";
+import { propertyGroupDefinition, readPropertyNodes } from "./property-values.js";
 
 type Token = XmlContent | XmlAttribute;
 interface Span { start: number; end: number; owner: XmlContent; contentStart?: number; contentEnd?: number; empty?: boolean; attributeStart?: number; attributeEnd?: number }
@@ -36,6 +37,9 @@ export const replaceActiveStyleXml = Symbol("replace-active-style-xml");
 
 /** Internal native relationship authority; generic XML guards remain unchanged. */
 export const editActiveRelationshipXml = Symbol("edit-active-relationship-xml");
+
+/** Internal property-domain authority over selected native declarations. */
+export const editActivePropertyXml = Symbol("edit-active-property-xml");
 
 function unsupported(): never {
   throw new UnsupportedEditError("The XML edit cannot establish faithful preservation.");
@@ -398,7 +402,35 @@ export class DocumentXmlEditor {
     if (!this.#elements.has(node) || this.#patches.has(node) || node.children.length) unsupported();
     if (this.#guardCompatibility && (!this.#canEdit(node) || node.content.some(token => !this.#canEdit(token)))) unsupported();
     this.assertShapeEditAllowed(node);
-    if (node.text === text) return;
+    this.#stageScalarText(node, text);
+  }
+
+  /** Resolve native property ownership before editing within its physical MCE carrier. */
+  [editActivePropertyXml](node: XmlElement, value: string | null): void {
+    if (value !== null && typeof value !== "string") throw new InputTypeError("Expected scalar property text or removal.");
+    if (!this.#elements.has(node) || this.#patches.size) unsupported();
+    for (const dialect of ["strict", "transitional"] as const) for (const group of ["core", "extended", "custom"] as const) {
+      const definition = propertyGroupDefinition(group, dialect);
+      if (this.root.namespace !== definition.namespace || this.root.localName !== definition.root) continue;
+      const property = readPropertyNodes(this.root, group, dialect, this.#budget).find(property => property.node === node);
+      if (!property?.value?.writable || !property.valueNode || !property.valueContent) unsupported();
+      if (value === null) {
+        if (property.valueNode.children.length || node !== property.valueNode &&
+          (node.children.length !== 1 || node.children[0] !== property.valueNode)) unsupported();
+        const view = new MarkupCompatibility(node, this.#profile, this.#budget);
+        this.#assertEditableSubtree(node, token => view.canEdit(token));
+        this.#stageReplacement(node, "");
+      } else this.#stageScalarText(property.valueNode, value, property.valueContent);
+      return;
+    }
+    unsupported();
+  }
+
+  #stageScalarText(node: XmlElement, text: string, content: readonly XmlContent[] = node.content): void {
+    const length = content.reduce((size, token) => size + (token.kind === "text" || token.kind === "cdata" ? token.text.length : 0), 0);
+    this.#budget.charge("retainedBytes", length * 2 + content.length * 16);
+    this.#budget.charge("work", length + content.length);
+    if (content.filter(token => token.kind === "text" || token.kind === "cdata").map(token => token.text).join("") === text) return;
     const span = this.#spans.get(node)!;
     const maximum = span.end - span.start + text.length * 6 + node.name.length + 3;
     this.#budget.charge("retainedBytes", maximum * 8);
@@ -406,7 +438,7 @@ export class DocumentXmlEditor {
     this.#budget.charge("insertedNodes", text.length ? 1 : 0);
     const chunks: string[] = [];
     let offset = span.contentStart!, replaced = false;
-    for (const token of node.content) {
+    for (const token of content) {
       if (token.kind !== "text" && token.kind !== "cdata") continue;
       const scalar = this.#spans.get(token)!;
       const start = scalar.start - (token.kind === "cdata" ? 9 : 0);

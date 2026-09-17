@@ -60,7 +60,7 @@ export function updateBookmarkReferences(
     for (const group of ["core", "extended", "custom"] as const) {
       const definition = propertyGroupDefinition(group, rootDialect);
       if (type !== definition.contentType || root.namespace !== definition.namespace || root.localName !== definition.root) continue;
-      for (const property of readPropertyNodes(root, group, rootDialect)) {
+      for (const property of readPropertyNodes(root, group, rootDialect, budget)) {
         budget.charge("work", 1);
         if (property.valueNode && property.value !== null && property.value.value !== null) {
           budget.charge("retainedBytes", 8); literalProperties.add(property.valueNode);

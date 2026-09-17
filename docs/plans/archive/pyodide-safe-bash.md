@@ -635,9 +635,9 @@ tasks:
     status:
       implement: done
       test: done
-finalization: pending
+finalization: completed
 name: pyodide-safe-bash
-state: active
+state: archived
 ---
 
 # Python inside safe-bash, powered by Pyodide
@@ -666,16 +666,16 @@ verification suite. A test status of `open` keeps that task's full acceptance
 requirements unfinished; it does not mean no tests exist. Preserve the original
 requirements and working baseline when continuing these tasks.
 
-| Task | Implemented or recorded evidence | Remaining acceptance |
-| --- | --- | --- |
-| Runtime/filesystem proof | Dedicated interpreter worker and shared-memory RPC; ordinary synchronous Python uses canonical async storage. | Full backend/deployment preservation proof remains open. |
-| Document-library proof | Recorded DOCX/XLSX/PDF workflows on memory and delayed canonical storage; separate browser fixtures. | Quota-backed priority workflows and complete document/library coverage remain open. |
-| Filesystem bridge | [PythonFileSystem](../../packages/safe-fs/src/python/filesystem.ts), flag/stat translation and [worker mount integration](../../packages/safe-bash/src/commands/python/worker.ts); maintained filesystem tests. | Backend descriptor/metadata fidelity, unsupported flags and required wrapper workflows. |
-| Python commands | [Command plugin](../../packages/safe-bash/src/commands/python/index.ts), [launcher](../../packages/safe-bash/src/commands/python/execution.ts), [SDK](../../src/sdk/bash.ts), [CLI](../../src/cli/commands/bash.ts); launcher and public parity suites. | Interactive TTY and complete CPython/platform parity. |
-| Packages | [Provisioning](../../packages/safe-bash/src/commands/python/provisioning.ts), explicit requirements/local wheels/document profile, bounded cache and offline reconstruction; installer/provisioning tests. | Full native/package/workflow qualification and platform-specific limitations. |
-| Lifecycle | Fresh workers, immediate bounded concurrency admission, bounded streaming and worker termination; admission/worker/public lifecycle suites. | Complete host/network confinement, hard resource bounds and all-provider cleanup qualification. |
-| Bash/artifact verification | Maintained public command-parity, document and lifecycle integration suites exist. | Fresh integrated acceptance, required quota workflow and the broader original matrix. |
-| Usage documentation | [Usage guide](../../packages/safe-bash/docs/pyodide.md), [package guide](../../packages/safe-bash/docs/python-packages.md), options, recipes and compatibility matrices. Historical finalization QA supports closing this task. | Update documentation as remaining capabilities are implemented; full feature acceptance stays open. |
+| Task                       | Implemented or recorded evidence                                                                                                                                                                                                                        | Remaining acceptance                                                                                |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Runtime/filesystem proof   | Dedicated interpreter worker and shared-memory RPC; ordinary synchronous Python uses canonical async storage.                                                                                                                                           | Full backend/deployment preservation proof remains open.                                            |
+| Document-library proof     | Recorded DOCX/XLSX/PDF workflows on memory and delayed canonical storage; separate browser fixtures.                                                                                                                                                    | Quota-backed priority workflows and complete document/library coverage remain open.                 |
+| Filesystem bridge          | [PythonFileSystem](../../packages/safe-fs/src/python/filesystem.ts), flag/stat translation and [worker mount integration](../../packages/safe-bash/src/commands/python/worker.ts); maintained filesystem tests.                                         | Backend descriptor/metadata fidelity, unsupported flags and required wrapper workflows.             |
+| Python commands            | [Command plugin](../../packages/safe-bash/src/commands/python/index.ts), [launcher](../../packages/safe-bash/src/commands/python/execution.ts), [SDK](../../src/sdk/bash.ts), [CLI](../../src/cli/commands/bash.ts); launcher and public parity suites. | Interactive TTY and complete CPython/platform parity.                                               |
+| Packages                   | [Provisioning](../../packages/safe-bash/src/commands/python/provisioning.ts), explicit requirements/local wheels/document profile, bounded cache and offline reconstruction; installer/provisioning tests.                                              | Full native/package/workflow qualification and platform-specific limitations.                       |
+| Lifecycle                  | Fresh workers, immediate bounded concurrency admission, bounded streaming and worker termination; admission/worker/public lifecycle suites.                                                                                                             | Complete host/network confinement, hard resource bounds and all-provider cleanup qualification.     |
+| Bash/artifact verification | Maintained public command-parity, document and lifecycle integration suites exist.                                                                                                                                                                      | Fresh integrated acceptance, required quota workflow and the broader original matrix.               |
+| Usage documentation        | [Usage guide](../../packages/safe-bash/docs/pyodide.md), [package guide](../../packages/safe-bash/docs/python-packages.md), options, recipes and compatibility matrices. Historical finalization QA supports closing this task.                         | Update documentation as remaining capabilities are implemented; full feature acceptance stays open. |
 
 The September 13 usage finalization QA recorded a successful normal build,
 68 passing public integration test entries, one retained quota TODO, no unexpected
@@ -727,7 +727,7 @@ errors. Required quota support and full deployment/contract qualification remain
 open; these scoped checks do not change readiness or finalization.
 
 - The public lifecycle suite retains `required Python quota mount supports reads,
-  bounded writes and recovery` as a TODO because canonical quota storage refuses
+bounded writes and recovery` as a TODO because canonical quota storage refuses
   descriptor open with ENOTSUP. This is an unfinished required workflow.
 - Complete canonical backend/metadata/descriptor fidelity is not established.
   General no-follow opens, retained directory descriptors and descriptor-relative
@@ -828,14 +828,14 @@ or weakening capabilities. This must be proved before broad implementation.
 These are researched candidates; no Pyodide runtime/package smoke test has been
 run while writing this plan. Installation/import alone will not qualify them.
 
-| Workflow | Candidate and loading route | Required proof |
-| --- | --- | --- |
-| Word | python-docx via micropip, with matching Pyodide lxml | Create/edit/reopen DOCX with text, tables and images |
-| Excel read/edit | openpyxl via micropip | XLSX round trips with values, formulas and styles |
-| Excel creation | XlsxWriter via micropip | Formatted workbooks/charts readable by openpyxl |
-| PDF manipulation | pypdf via micropip | Extract, merge, split and reopen PDFs |
-| PDF generation | fpdf2 via micropip, matching Pillow/font dependencies | Multi-page PDF with font/image and extractable text |
-| PDF rendering | PyMuPDF if provided by the pinned runtime | Render pages and inspect output |
+| Workflow         | Candidate and loading route                           | Required proof                                       |
+| ---------------- | ----------------------------------------------------- | ---------------------------------------------------- |
+| Word             | python-docx via micropip, with matching Pyodide lxml  | Create/edit/reopen DOCX with text, tables and images |
+| Excel read/edit  | openpyxl via micropip                                 | XLSX round trips with values, formulas and styles    |
+| Excel creation   | XlsxWriter via micropip                               | Formatted workbooks/charts readable by openpyxl      |
+| PDF manipulation | pypdf via micropip                                    | Extract, merge, split and reopen PDFs                |
+| PDF generation   | fpdf2 via micropip, matching Pillow/font dependencies | Multi-page PDF with font/image and extractable text  |
+| PDF rendering    | PyMuPDF if provided by the pinned runtime             | Render pages and inspect output                      |
 
 Official documentation establishes a plausible installation path: Pyodide can
 install pure-Python wheels and provides builds of lxml, Pillow and PyMuPDF in its
@@ -846,6 +846,7 @@ fpdf2 is a generation candidate. These libraries do not by themselves establish
 Excel calculation or Word-to-PDF rendering support.
 
 Sources:
+
 - [Pyodide package loading](https://pyodide.org/en/stable/usage/loading-packages.html)
 - [Pyodide package list](https://pyodide.org/en/stable/usage/packages-in-pyodide.html)
 - [python-docx installation](https://python-docx.readthedocs.io/en/latest/user/install.html)

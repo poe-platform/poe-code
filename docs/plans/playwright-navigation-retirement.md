@@ -23,6 +23,11 @@ standard controller and virtual CLI must complete open, snapshot, fill, form
 submit, another snapshot and screenshot in the same named session. The next
 document holds an image response; the main response is also gated to verify that
 click retains Playwright's normal navigation waiting rather than returning early.
+The form click also navigates a child frame while the main response remains
+gated. This deterministically invalidates refs during the actual native click,
+rather than depending on the transport race at main-frame commit. Run against
+the old published 0.1.642 artifact as a negative control: both paths must fail
+with the disposed click handle; the fixed artifact must pass both paths.
 No external page is contacted and screenshots stay in the virtual filesystem.
 
 For visual QA, inspect the final Saved page and its Continue button in a captured

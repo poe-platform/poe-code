@@ -37,6 +37,68 @@ function fixture(maxSessions = 2) {
   return { controller, adapter, events, leases, run };
 }
 
+for (const command of ['click', 'fill', 'custom'] as const) {
+  for (const cancel of [false, true]) test(`${command} keeps a navigating target alive until ${cancel ? 'cancellation' : 'the action settles'}`, async () => {
+    const cancellation = new AbortController();
+    const navigation = deferred<void>();
+    const loaded = deferred<void>();
+    const disposed = deferred<void>();
+    const listeners = new Set<() => void>();
+    let disposals = 0;
+    let releases = 0;
+    const action = async () => {
+      for (const listener of listeners) listener();
+      navigation.resolve();
+      await Promise.race([loaded.promise, disposed.promise.then(() => { throw new Error('Target page, context or browser has been closed'); })]);
+    };
+    const handle = {
+      async evaluate(callback: (node: unknown) => unknown) {
+        return callback({ isConnected: true, tagName: 'BUTTON', textContent: 'Save', getAttribute: () => null });
+      },
+      click: action, fill: action,
+      async dispose() { disposals++; disposed.resolve(); },
+    };
+    const page = {
+      goto: async () => {}, url: () => 'https://example.test/save',
+      on: (event: string, listener: () => void) => { if (event === 'framenavigated') listeners.add(listener); },
+      off: (_event: string, listener: () => void) => { listeners.delete(listener); },
+      frames: () => [{ locator: () => ({ elementHandles: async () => [handle] }) }],
+    } as unknown as PlaywrightPage;
+    const controller = createPlaywrightController({
+      adapter: { browsers: { chromium: { headed: false } }, async acquire() {
+        return { context: { newPage: async () => page, pages: () => [page], close: async () => {}, on() {}, off() {} },
+          onClosed: () => () => {}, release: async () => { releases++; loaded.resolve(); } };
+      } },
+      ...(command === 'custom' ? { abilities: { open: true as const, snapshot: true as const, click: {
+        scope: 'session' as const,
+        async execute(request: import('../../src/playwright/index.js').PlaywrightAbilityRequest) {
+          await (await request.browserSession!.resolveTarget('e1')).click();
+          if (!cancel) await request.browserSession!.selectPage(page);
+        },
+      } } } : {}),
+    });
+    const run = (args: string[]) => controller.run({ args, env: {}, signal: cancellation.signal, write: async () => {} });
+    try {
+      await run(['open']);
+      await run(['snapshot']);
+      const pending = run(command === 'fill' ? ['fill', 'e1', 'value'] : ['click', 'e1']);
+      const outcome = pending.then(() => undefined, error => error);
+      await navigation.promise;
+      await new Promise(resolve => setImmediate(resolve));
+      const prematureDisposals = disposals;
+      if (cancel) cancellation.abort(new Error('cancelled navigating action'));
+      else loaded.resolve();
+      if (cancel) assert.equal(await outcome, cancellation.signal.reason);
+      else assert.equal(await outcome, undefined);
+      assert.equal(prematureDisposals, 0);
+      assert.equal(disposals, 1);
+      assert.equal(releases, cancel ? 1 : 0);
+      if (!cancel) await run(['snapshot']);
+    } finally { loaded.resolve(); await controller.dispose(); }
+    assert.equal(releases, 1);
+  });
+}
+
 test('SDK help needs no adapter, artifact sink or valid session environment', async () => {
   const controller = createPlaywrightController();
   try {

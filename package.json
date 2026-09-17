@@ -893,6 +893,12 @@
         "default": "./packages/safe-fs/dist/platform/node.d.ts"
       },
       "default": null
+    },
+    "#safe-bash-zip-aes-crypto": {
+      "types": "./packages/safe-bash/dist/commands/archive/zip/aes-primitives.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/archive/zip/aes-primitives-unavailable.js",
+      "browser": "./packages/safe-bash/dist/commands/archive/zip/aes-primitives-unavailable.js",
+      "default": "./packages/safe-bash/dist/commands/archive/zip/aes-primitives.js"
     }
   },
   "bundleDependencies": [

@@ -8,7 +8,7 @@ import { crc32, inflateRawSync, deflateSync } from "node:zlib";
 import path from "node:path";
 import { SaxesParser } from "saxes";
 import { Volume } from "memfs";
-import { Presentation, Inches, readNotes, createPresentation, addLayout, mutateAnimations, readLayouts, CategoryChartData, addOleObject } from "pptx";
+import { Presentation, Inches, readNotes, createPresentation, addLayout, mutateAnimations, readLayouts, CategoryChartData, addOleObject, mutateTextParagraphs } from "pptx";
 
 // Independent classic ZIP inspector: no engine packaging or XML APIs.
 function inspectZip(bytes: Uint8Array) {
@@ -277,6 +277,33 @@ it("retains mixed list nesting, numbering starts and continuation paragraphs", a
   expect(list.c[1]).toHaveLength(2);
   expect(list.c[1][0]!.find(b => b.t === "BulletList")?.c).toHaveLength(2);
   expect(list.c[1][1]).toHaveLength(2);
+});
+it("retains adjacent numbered list restarts instead of merging their items", async () => {
+  const list = (start: number, text: string): Block => ({t: "OrderedList", c: [[start, "Decimal", "Period"], [[para(text)]]]});
+  const bytes = await write([heading, list(3, "Apple"), list(1, "Pear")]);
+  expect(texts(bytes)).toEqual([["Orchard", "Apple", "Pear"]]);
+  const slideXml = inspectZip(bytes).find(p => p.name === "ppt/slides/slide1.xml")!.payload;
+  expect(elements(slideXml, "buAutoNum").map(({type, startAt}) => ({type, startAt}))).toEqual([
+    {type: "arabicPeriod", startAt: "3"}, {type: "arabicPeriod", startAt: "1"}
+  ]);
+  const doc = await readDocument({bytes}, {from: "pptx"}, context);
+  const slide = doc.blocks[0]!;
+  if (slide.t !== "Div") throw new Error("Expected slide");
+  const lists = slide.c[1].filter(b => b.t === "OrderedList");
+  expect(lists.map(b => b.c[0][0])).toEqual([3, 1]);
+  expect(lists.map(b => b.c[1].length)).toEqual([1, 1]);
+});
+it("rejects numbered list delimiters outside the supported decimal-period profile", async () => {
+  const list: Block = {t: "OrderedList", c: [[1, "Decimal", "OneParen"], [[para("Apple")]]]};
+  await expect(write([heading, list])).rejects.toMatchObject({code: "E_CAPABILITY"});
+});
+it("rejects unsupported source numbering and diagnoses an explicit decimal projection", async () => {
+  const bytes = await deck("# Inventory\n\n1. Apple");
+  const original = (await mutateTextParagraphs(bytes, {select: {kind: "slide", position: {coordinateSystem: "one-based", value: 1}}, shape: "Pandoc paragraph 3", paragraph: 0,
+    bullet: {kind: "numbered", scheme: "romanUcPeriod", startAt: 1}}, ec)).bytes;
+  await expect(readDocument({bytes: original}, {from: "pptx"}, context)).rejects.toMatchObject({code: "E_CAPABILITY"});
+  const result = await convert([{bytes: original}], {from: "pptx", to: "json", lossy: true}, context);
+  expect(result.diagnostics).toContainEqual(expect.objectContaining({code: "W_PRESENTATION_LOSS", message: expect.stringContaining("romanUcPeriod")}));
 });
 it("rejects authored charts and embedded objects without native activation", async () => {
   const model = await Presentation();

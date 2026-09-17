@@ -1,5 +1,7 @@
 # PPTX conversion adapter
 
+Task remains open until presentation-application QA is verified.
+
 Status: implementation and public API/conversion gates pass; interactive
 presentation-application QA remains open. Registry bindings are enabled for the
 bounded conversion profile. Native editing remains with `pptx`.
@@ -72,3 +74,28 @@ notes or presentation-application signoff is claimed. To close QA, open the
 authored decks in PowerPoint or LibreOffice, inspect each slide and notes, check
 for repair dialogs, and record application/version and screenshots under
 `docs/pandoc`. See `docs/pandoc/pptx-verification.md` for actual check results.
+
+## Numbering revalidation, 2026-09-16
+
+Original tests reproduced three numbering losses before the fix: adjacent
+decimal list restarts merged, parenthesized writer markers became periods, and
+Roman reader markers became decimal without a diagnostic. Preserve explicit
+numbering restarts; the supported writer profile is decimal with period/default
+delimiter. Other source numbering requires explicit lossy mode and reports
+`W_PRESENTATION_LOSS`. Explicit numbering starts are compared within each nested
+level; omitted starts continue the active sequence.
+
+The public API gate remains available, and existing registry bindings remain
+enabled after conversion checks pass. Maintained scope verification: Pandoc
+workspace tests (47 files, 1,066 tests), lint/source and test typechecks, and the
+selected Pandoc workspace build dependency closure passed. The final additional
+independent XML assertion is verified by the focused conversion suite.
+
+QA follow-up: inspect `docs/pandoc/pptx-qa-numbering.pptx` in PowerPoint or
+LibreOffice. Independent XML inspection verifies `arabicPeriod` starts 3 and 1;
+Quick Look displays both as 1. This is a renderer discrepancy, not a verified
+application numbering pass. Check actual rendered starts and marker spacing,
+repair warnings and notes before closing the task. A fresh LibreOffice open
+request succeeded, but GUI inspection timed out; opening was not verified.
+Evidence and the inspected preview are under `docs/pandoc`, described in
+`pptx-numbering-verification.md`. No push or release is authorized.

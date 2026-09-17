@@ -1,0 +1,5 @@
+{
+  "exit": 1,
+  "stdout": "",
+  "stderr": "execution error: Error: TypeError: windows.filter is not a function. (In 'windows.filter(function(w) {return /LibreOffice|soffice/i.test(w.kCGWindowOwnerName || \"\");})', 'windows.filter' is undefined) (-2700)\n"
+}

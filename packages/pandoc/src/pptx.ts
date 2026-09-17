@@ -249,6 +249,7 @@ export const pptxWriter: WriterCapability = {
                 break;
               case "OrderedList":
                 if (!["Decimal", "DefaultStyle"].includes(block.c[0][1])) fail(context, "Only decimal numbered lists are supported");
+                if (!["Period", "DefaultDelim"].includes(block.c[0][2])) fail(context, "Only period-delimited numbered lists are supported");
                 for (const [i, item] of block.c[1].entries()) await blocks(item, bullet ? level + 1 : level, {kind: "numbered", scheme: "arabicPeriod", startAt: block.c[0][0] + i});
                 break;
               case "Table": {
@@ -326,7 +327,7 @@ export const pptxReader: ReaderCapability = {
       for (const [i, slide] of [...model.slides].entries()) {
         await context.cooperate();
         const visible: Block[] = [];
-        let activeList: {levels: {kind: "bullet" | "numbered"; items: Block[][]}[]} | undefined;
+        let activeList: {levels: {kind: "bullet" | "numbered"; items: Block[][]; nextNumber?: number}[]} | undefined;
         for (const shape of slide.shapes) {
           if (shape instanceof Picture) {
             activeList = undefined;
@@ -388,6 +389,8 @@ export const pptxReader: ReaderCapability = {
               item.push({t: "Para", c: inlines}); continue;
             }
             if (bullet && bullet.kind !== "none") {
+              if (bullet.kind === "numbered" && bullet.scheme !== "arabicPeriod")
+                loss(context, `Numbering scheme ${bullet.scheme} on slide ${i + 1} cannot be converted without decimal-period projection`);
               const kind = bullet.kind === "numbered" ? "numbered" : "bullet";
               const level = format?.level ?? 0;
               if (!activeList) {
@@ -395,7 +398,9 @@ export const pptxReader: ReaderCapability = {
                 activeList = {levels: []};
               }
               if (level > activeList.levels.length) fail(context, "List nesting skips a level");
-              if (!activeList.levels[level] || activeList.levels[level]!.kind !== kind) {
+              const previous = activeList.levels[level];
+              const restart = bullet.kind === "numbered" && bullet.startAt !== undefined && previous?.nextNumber !== bullet.startAt;
+              if (!previous || previous.kind !== kind || restart) {
                 const items: Block[][] = [];
                 const root: Block = kind === "bullet" ? {t: "BulletList", c: items} : {t: "OrderedList", c: [[bullet.kind === "numbered" ? bullet.startAt ?? 1 : 1, "Decimal", "Period"], items]};
                 if (level === 0) visible.push(root);
@@ -408,6 +413,10 @@ export const pptxReader: ReaderCapability = {
               }
               activeList.levels.length = level + 1;
               activeList.levels[level]!.items.push([{t: "Plain", c: inlines}]);
+              if (bullet.kind === "numbered") {
+                const state = activeList.levels[level]!;
+                state.nextNumber = (bullet.startAt ?? state.nextNumber ?? 1) + 1;
+              }
             } else {
               activeList = undefined;
               const title = shape.name === "Pandoc slide title" || (shape.is_placeholder && [1, 3].includes(shape.placeholder_format.type));

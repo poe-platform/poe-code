@@ -2,6 +2,7 @@ export { GASLIGHT_CONFIG_EXAMPLE, loadGaslightConfig, parseGaslightConfig } from
 export { ingestGaslight } from "./ingest.js";
 export { runGaslightDaemon } from "./daemon.js";
 export { runGaslight } from "./run.js";
+export { createGaslightDashboardObserver } from "./dashboard.js";
 export type {
   GaslightDaemonEvent,
   GaslightDaemonOptions,

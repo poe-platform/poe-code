@@ -1,4 +1,5 @@
 import os from "node:os";
+import { mapSourcePathIntoWorktree } from "@poe-code/agent-harness-tools";
 import {
   loadGaslightConfig,
   runGaslightDaemon as runWorkspaceGaslightDaemon,
@@ -73,7 +74,9 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
       return await runWorkspaceGaslight({
         ...workspaceOptions,
         agent: selectedAgent,
-        cwd: worktreeCwd
+        cwd: worktreeCwd,
+        sourceCwd: cwd,
+        ...(options.configPath ? { configPath: mapSourcePathIntoWorktree(cwd, options.configPath, worktreeCwd) } : {})
       });
     }
   });

@@ -47,10 +47,13 @@ followups:
 ```sh
 poe-code gaslight docs/plans/feature.md --agent claude-code --model <model-id>
 poe-code gaslight docs/plans/feature.md --archive
+poe-code gaslight docs/plans/feature.md --tui --after-plan "Review the API" --after-plan "Verify the tests"
 ```
 
 Omit the plan path to pick one interactively from your plans directory.
 After a successful session, the CLI lists every completed plan and shows its archive destination when applicable.
+
+With `--tui`, type a message and press Enter to queue it after the selected plan's configured rounds. Messages resume that plan's agent conversation. Alt+Up/Down changes the target; Ctrl+P switches to appending another plan. Esc then `v` shows the complete plan and message order. The repeatable `--after-plan` flag applies to every initial and subsequently added plan. Ctrl+C cancels the run.
 
 The CLI also honors `{ "gaslight": { "archive": true } }`; use `--archive` or `--no-archive` for a one-off override.
 
@@ -89,7 +92,9 @@ const result = await runGaslight({
 
 ## Run options
 
-- `planPaths`: Required plan paths, resolved from `cwd`.
+- `planPaths`: Plan paths, resolved from `cwd`. Supply these or a live `queue`.
+- `queue`: A `createRunQueue()` instance from `@poe-code/agent-harness-tools` (also exported by `poe-code`). Append plans and targeted messages during execution; `queue.onChange()` reports ordered snapshots.
+- `afterEachPlan`: Messages to run after every plan's configured rounds. Use with `planPaths`; when supplying `queue`, configure its `afterEachPlan` instead.
 - `agent`: Agent identifier. Required unless configured in `gaslight.yaml`.
 - `model`: Optional model override.
 - `mode`: Optional spawn mode: `yolo`, `auto`, `edit`, or `read`. When omitted, `agent-spawn` uses `auto`.
@@ -104,7 +109,7 @@ const result = await runGaslight({
 - `fs`: Injectable filesystem for tests and custom hosts.
 - `spawn`: Injectable agent spawn function for tests and custom hosts.
 
-After all rounds for a plan finish successfully, Gaslight leaves the plan file in place unless `archive` is enabled. The run result contains each round's prompt, summary, and thread id, plus summed token and cost usage when the agent reports usage.
+After all rounds for a plan finish successfully, Gaslight leaves the plan file in place unless `archive` is enabled. The run result contains each round's prompt, summary, and thread id, plus summed token and cost usage when the agent reports usage. When live queued work is used, `messages` contains the additional follow-up results and `queue` contains the final ordered state.
 
 ## Ingest options
 

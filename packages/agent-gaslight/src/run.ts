@@ -2,7 +2,7 @@ import { promises as nodeFs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawn as defaultSpawn, type SpawnUsage } from "@poe-code/agent-spawn";
-import { archivePlan as archivePlanShared } from "@poe-code/agent-harness-tools";
+import { archivePlan as archivePlanShared, createRunQueue, mapSourcePathIntoWorktree } from "@poe-code/agent-harness-tools";
 import { UserError } from "@poe-code/user-error";
 import { loadGaslightConfig } from "./config.js";
 import type {
@@ -125,15 +125,16 @@ function resolveOptionalPrompt(value: string | undefined, label: string): string
 }
 
 function resolvePlanPaths(options: GaslightOptions, cwd: string, homeDir: string): string[] {
-  if (options.planPaths.length === 0) {
+  const inputs = options.planPaths ?? [];
+  if (inputs.length === 0) {
     throw new Error("Provide at least one plan path.");
   }
-  for (const planPath of options.planPaths) {
+  for (const planPath of inputs) {
     if (planPath.trim().length === 0) {
       throw new Error("plan paths must be non-empty strings.");
     }
   }
-  const planPaths = options.planPaths.map((planPath) => planPath.trim());
+  const planPaths = inputs.map((planPath) => mapSourcePathIntoWorktree(options.sourceCwd ?? cwd, planPath.trim(), cwd));
   const seen = new Map<string, string>();
   for (const planPath of planPaths) {
     const resolvedPath = resolvePlanPath(cwd, homeDir, planPath);
@@ -157,7 +158,12 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
   const inlineSetup = resolveOptionalPrompt(options.setup, "setup");
   const inlineTeardown = resolveOptionalPrompt(options.teardown, "teardown");
   validateInlineConfig(options.prompt, options.followups);
-  const planPaths = resolvePlanPaths(options, cwd, homeDir);
+  if (options.queue && (options.planPaths || options.afterEachPlan)) {
+    throw new Error("Supply a queue or planPaths and afterEachPlan, not both.");
+  }
+  const planPaths = resolvePlanPaths({ ...options, planPaths: options.queue
+    ? options.queue.getSnapshot().items.flatMap((item) => item.kind === "plan" ? [item.path] : [])
+    : options.planPaths }, cwd, homeDir);
   for (const planPath of planPaths) {
     await requirePlan(fs, resolvePlanPath(cwd, homeDir, planPath), planPath);
   }
@@ -185,9 +191,32 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
   const shouldArchive = options.archive ?? config.archive ?? false;
   const rounds: GaslightRound[] = [];
   const plans: GaslightPlanResult[] = [];
+  const messages: NonNullable<GaslightResult["messages"]> = [];
   let usage: SpawnUsage | undefined;
+  let followupThreadId: string | undefined;
+  const queue = options.queue ?? createRunQueue({ plans: planPaths, afterEachPlan: options.afterEachPlan, cwd });
 
-  for (const [planIndex, planPath] of planPaths.entries()) {
+  const snapshot = await queue.run({ signal: options.signal, async execute(item) {
+    if (item.kind === "message") {
+      const target = queue.getSnapshot().items.find((entry) => entry.id === item.afterPlanId);
+      if (!target || target.kind !== "plan") throw new Error("Queued follow-up has no target plan.");
+      const result = await spawn(agent, {
+        prompt: item.text, cwd, mode,
+        ...(model ? { model } : {}),
+        ...(followupThreadId ? { resumeThreadId: followupThreadId } : {}),
+        ...(options.signal ? { signal: options.signal } : {})
+      });
+      usage = addUsage(usage, result.usage);
+      if (options.signal?.aborted) return "cancelled";
+      if (result.exitCode !== 0) throw new Error(`Gaslight follow-up failed: ${summarize(result.stderr, result.stdout) || `exit code ${result.exitCode}`}`);
+      followupThreadId = result.threadId;
+      messages.push({ planPath: target.path, prompt: item.text, summary: summarize(result.stdout, result.stderr), ...(result.threadId ? { threadId: result.threadId } : {}) });
+      return "completed";
+    }
+    const planPath = mapSourcePathIntoWorktree(options.sourceCwd ?? cwd, item.path, cwd);
+    const queuedPlans = queue.getSnapshot().items.filter((entry) => entry.kind === "plan");
+    const planIndex = queuedPlans.findIndex((entry) => entry.id === item.id);
+    await requirePlan(fs, resolvePlanPath(cwd, homeDir, planPath), planPath);
     const planStartedAt = Date.now();
     const prompts = [
       ...(config.setup ? [config.setup] : []),
@@ -200,6 +229,7 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
     let resumeThreadId: string | undefined;
 
     for (const [index, prompt] of prompts.entries()) {
+      if (options.signal?.aborted) return "cancelled";
       const round = index + 1;
       options.onEvent?.({
         type: "round.started",
@@ -208,7 +238,7 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
         prompt,
         planPath,
         planIndex: planIndex + 1,
-        totalPlans: planPaths.length
+        totalPlans: queue.getSnapshot().items.filter((entry) => entry.kind === "plan").length
       });
       const result = await spawn(agent, {
         prompt,
@@ -219,13 +249,18 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
         ...(options.signal ? { signal: options.signal } : {})
       });
 
+      if (options.signal?.aborted) {
+        usage = addUsage(usage, result.usage);
+        return "cancelled";
+      }
+
       if (result.exitCode !== 0) {
         const completed = planRounds.length;
         const noun = completed === 1 ? "round" : "rounds";
         const prefix =
-          planPaths.length === 1
+          queuedPlans.length === 1
             ? `Gaslight round ${round}`
-            : `Gaslight plan ${planIndex + 1}/${planPaths.length} (${planPath}) round ${round}`;
+            : `Gaslight plan ${planIndex + 1}/${queuedPlans.length} (${planPath}) round ${round}`;
         throw new Error(
           `${prefix} failed after ${completed} completed ${noun}: ${summarize(result.stderr, result.stdout) || `exit code ${result.exitCode}`}`
         );
@@ -248,8 +283,9 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
         summary,
         planPath,
         planIndex: planIndex + 1,
-        totalPlans: planPaths.length
+        totalPlans: queue.getSnapshot().items.filter((entry) => entry.kind === "plan").length
       });
+      followupThreadId = result.threadId;
 
       if (round < prompts.length) {
         if (!result.threadId) {
@@ -280,7 +316,9 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
       durationMs: Date.now() - planStartedAt,
       ...(planUsage ? { usage: planUsage } : {})
     });
-  }
+    return "completed";
+  } });
 
-  return { rounds, plans, durationMs: Date.now() - startedAt, ...(usage ? { usage } : {}) };
+  return { rounds, plans, durationMs: Date.now() - startedAt, ...(usage ? { usage } : {}),
+    ...(options.queue || options.afterEachPlan ? { messages, queue: snapshot } : {}) };
 }

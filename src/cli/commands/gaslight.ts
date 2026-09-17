@@ -1,8 +1,9 @@
 import path from "node:path";
 import { Option, type Command } from "commander";
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
-import { formatPlanReadinessLabel } from "@poe-code/agent-harness-tools";
-import { spawn, SPAWN_MODES, type SpawnOptions, type SpawnResult } from "@poe-code/agent-spawn";
+import { createHarnessDashboard, createRunQueue, formatPlanReadinessLabel, formatRunQueueSummary, mapSourcePathIntoWorktree } from "@poe-code/agent-harness-tools";
+import { createGaslightDashboardObserver } from "@poe-code/agent-gaslight";
+import { createDashboardAgentRunner, spawn, SPAWN_MODES, type SpawnOptions, type SpawnResult } from "@poe-code/agent-spawn";
 import { discoverAllPlans } from "@poe-code/plan-browser";
 import { readMergedDocumentReadonly, resolveScope } from "@poe-code/poe-code-config/core";
 import { cancel, intro, isCancel, multiselect, outro, select, withSpinner } from "toolcraft-design";
@@ -14,6 +15,8 @@ import {
   runGaslight,
   runGaslightDaemon,
   type GaslightDaemonEvent,
+  type GaslightOptions,
+  type GaslightConfig,
   type GaslightEvent,
   type GaslightIngestEvent
 } from "../../sdk/gaslight.js";
@@ -38,6 +41,8 @@ import {
 } from "./activity-timeout-options.js";
 import { addSkillOptions, resolveSkillOptions, type SkillCliOptions } from "./skill-options.js";
 import { gaslightConfigScope } from "../../services/config.js";
+import { registerDashboardQuitCommands, shouldUseInteractiveDashboard } from "./dashboard-loop-shared.js";
+import { dashboardTuiDescription } from "./help-guidance.js";
 
 const DEFAULT_AGENT = "claude-code";
 
@@ -49,6 +54,60 @@ interface GaslightCommandOptions extends ActivityTimeoutCliOptions, SkillCliOpti
   mode?: "read" | "edit" | "yolo" | "auto";
   plans?: string[];
   worktree?: boolean;
+  tui?: boolean;
+  afterPlan?: string[];
+}
+
+async function runGaslightWithDashboard(
+  options: GaslightOptions,
+  config: GaslightConfig,
+  container: CliContainer,
+  spawnSettings: Pick<SpawnOptions, "skills" | "activityTimeoutMs">
+) {
+  const queue = createRunQueue({ plans: options.planPaths ?? [], afterEachPlan: options.afterEachPlan, cwd: options.cwd });
+  let activeCwd = options.cwd ?? container.env.cwd;
+  const view = createHarnessDashboard({
+    title: "Gaslight", agent: options.agent!, model: options.model, cwd: activeCwd, queue,
+    async validatePlan(input) {
+      const plan = mapSourcePathIntoWorktree(container.env.cwd, input, activeCwd);
+      const absolute = plan.startsWith("~/") ? path.join(container.env.homeDir, plan.slice(2)) : path.resolve(activeCwd, plan);
+      try {
+        if (!(await container.fs.stat(absolute)).isFile()) throw new ValidationError(`Not a plan file: ${input}`);
+      } catch (error) {
+        if (hasOwnErrorCode(error, "ENOENT")) throw new ValidationError(`Plan file not found: ${input}`);
+        throw error;
+      }
+      return plan;
+    }
+  });
+  const abortController = new AbortController();
+  let finishCleanup!: () => void;
+  const cleanupComplete = new Promise<void>((resolve) => { finishCleanup = resolve; });
+  const requestCancellation = () => {
+    abortController.abort();
+    view.updateRun({ phase: "Cancelling", activity: undefined });
+  };
+  registerDashboardQuitCommands({ dashboard: view.dashboard, abortController, requestCancellation, cleanupComplete });
+  const runAgent = createDashboardAgentRunner({ spawn: sdkSpawn, onOutput: view.dashboard.appendOutput, onActivity: (activity) => view.updateRun({ activity }), onUsage: view.addUsage });
+  view.start();
+  process.on("SIGINT", requestCancellation);
+  process.on("SIGTERM", requestCancellation);
+  try {
+    return await runGaslight({
+      ...options, planPaths: undefined, afterEachPlan: undefined, queue, signal: abortController.signal,
+      onEvent: createGaslightDashboardObserver(view, config),
+      spawn: (agent, input) => {
+        activeCwd = input.cwd ?? activeCwd;
+        view.updateRun({ cwd: activeCwd });
+        return runAgent({ ...input, ...spawnSettings, agent });
+      }
+    });
+  } finally {
+    process.off("SIGINT", requestCancellation);
+    process.off("SIGTERM", requestCancellation);
+    view.dispose();
+    finishCleanup();
+  }
 }
 
 async function resolveGaslightCommandConfig(
@@ -384,6 +443,8 @@ export function registerGaslightCommand(program: Command, container: CliContaine
     .option("--no-archive", "Leave plans in place after gaslight rounds succeed (default)")
     .option("--config <path>", "gaslight.yaml variant to use")
     .option("--model <model>", "Model to run")
+    .option("--tui", dashboardTuiDescription("Gaslight"))
+    .option("--after-plan <message>", "Queue a message after each completed plan (repeatable)", (value: string, previous: string[]) => [...previous, value], [])
     .option("--plans <paths...>", "Markdown plans to run sequentially")
     .addOption(new Option("--mode <mode>", "Spawn mode").choices([...SPAWN_MODES]));
 
@@ -422,7 +483,10 @@ export function registerGaslightCommand(program: Command, container: CliContaine
         [
           "Dry run: would run Gaslight.",
           "Plans:",
-          ...planPaths.map((planPath) => `- ${planPath}`),
+          ...planPaths.flatMap((planPath) => [
+            `- ${planPath}`,
+            ...(options.afterPlan ?? []).map((message) => `  Then message: ${message}`)
+          ]),
           `Agent: ${agent}`,
           model ? `Model: ${model}` : undefined,
           gaslightConfig.path ? `Config: ${gaslightConfig.path}` : undefined,
@@ -435,8 +499,9 @@ export function registerGaslightCommand(program: Command, container: CliContaine
       );
       return;
     }
-    const result = await runGaslight({
+    const runOptions: GaslightOptions = {
       planPaths,
+      ...(options.afterPlan?.length ? { afterEachPlan: options.afterPlan } : {}),
       agent,
       ...(model ? { model } : {}),
       ...(options.config ? { configPath: options.config } : {}),
@@ -457,22 +522,34 @@ export function registerGaslightCommand(program: Command, container: CliContaine
           ...pickActivityTimeoutOptions(options),
           ...(skills ? { skills } : {})
         })
-    });
+    };
+    const result = shouldUseInteractiveDashboard(options.tui === true)
+      ? await runGaslightWithDashboard(runOptions, gaslightConfig, container, { ...pickActivityTimeoutOptions(options), ...(skills ? { skills } : {}) })
+      : await runGaslight(runOptions);
+    if (result.queue?.status === "cancelled") {
+      process.exitCode = 130;
+      outro(`Gaslight run cancelled.\n${formatRunQueueSummary(result.queue)}`);
+      return;
+    }
     const finished =
-      planPaths.length > 1
-        ? `${planPaths.length} plans · ${result.rounds.length} rounds finished`
+      result.plans.length > 1
+        ? `${result.plans.length} plans · ${result.rounds.length} rounds finished`
         : `${result.rounds.length} rounds finished`;
     const finishedWithDuration =
       result.durationMs === undefined
         ? finished
         : `${finished} · ${formatDuration(result.durationMs)} total`;
-    const lastThreadId = result.rounds.at(-1)?.threadId;
+    const lastCompletedItem = result.queue?.items.filter((item) => item.status === "completed").at(-1);
+    const lastThreadId = lastCompletedItem?.kind === "plan"
+      ? result.rounds.at(-1)?.threadId
+      : result.messages?.at(-1)?.threadId ?? result.rounds.at(-1)?.threadId;
     const resumeCommand = lastThreadId
       ? buildResumeCommand(agent, lastThreadId, container.env.cwd)
       : undefined;
     outro(
       [
         finishedWithDuration,
+        result.messages?.length ? `${result.messages.length} queued message${result.messages.length === 1 ? "" : "s"} finished` : undefined,
         formatCompletedPlans(result),
         formatUsage(result.usage),
         resumeCommand ? `Resume: ${resumeCommand}` : undefined

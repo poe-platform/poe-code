@@ -1,4 +1,5 @@
 import type { SpawnMode, SpawnOptions, SpawnResult, SpawnUsage } from "@poe-code/agent-spawn";
+import type { RunQueue, RunQueueSnapshot } from "@poe-code/agent-harness-tools";
 import type {
   AgentTraceFileSystem,
   AgentTraceSource,
@@ -47,6 +48,8 @@ export interface GaslightResult {
   plans: GaslightPlanResult[];
   durationMs: number;
   usage?: SpawnUsage;
+  messages?: Array<GaslightRound & { planPath: string }>;
+  queue?: RunQueueSnapshot;
 }
 
 export interface GaslightPlanResult {
@@ -58,12 +61,17 @@ export interface GaslightPlanResult {
 }
 
 export interface GaslightOptions {
-  planPaths: string[];
+  planPaths?: string[];
+  /** Supply a live queue instead of planPaths to add work during execution. */
+  queue?: RunQueue;
+  afterEachPlan?: readonly string[];
   agent?: string;
   model?: string;
   mode?: SpawnMode;
   archive?: boolean;
   cwd?: string;
+  /** Original workspace when executing in a worktree; absolute plan paths follow it. */
+  sourceCwd?: string;
   homeDir?: string;
   configPath?: string;
   setup?: string;

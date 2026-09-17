@@ -1,5 +1,13 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 native object qualification](native-object-carriers-20260917.md)
+records 308 exact native-carrier/profile cases within 1,197 focused passes, zero
+skips, and 64 built SDK/actual Shell workflows. Native DrawingML/MCE and
+Transitional VML preview ownership, MIME parameter roles, inert extraction,
+dirty-part retention and named expected refusals pass. A separately captured
+112-case test-context rerun supersedes its broad-run row. Complete F01–F07 and
+remaining consumers stay open.
+
 The [2026-09-17 native repeat clone qualification](native-media-clone-20260917.md)
 records 888 exact native-role/raster cases inside 1,028 focused passes, zero skips,
 and 168 built SDK/Shell workflows. Retained IDs/names/classic comments, modern

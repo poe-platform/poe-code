@@ -5,6 +5,7 @@ import { DocxUsageError } from "./argument-json.js";
 import { measurePackageResourceSerialization } from "./ancillary-resources.js";
 import { DocumentBudget } from "./budget.js";
 import { documentDialects } from "./dialect.js";
+import { MarkupCompatibility, compatibilityProfileForPart, type CompatibilityContent } from "./compatibility.js";
 import {
   closedRecord,
   decodeLocation,
@@ -14,7 +15,8 @@ import {
 } from "./location-token.js";
 import { openDocumentLocations } from "./locations.js";
 import { DocumentPackage, type PackagePart, type PackageRelationship } from "./package.js";
-import { parseDocumentXml, type XmlElement } from "./package-xml.js";
+import { isXmlContentType, parseDocumentXml, type XmlElement } from "./package-xml.js";
+import { parseMediaType } from "./media-type.js";
 import type { InspectionReference, InspectionWarning } from "./inspection.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { docxOperationSchemas } from "./operation-schema.js";
@@ -314,7 +316,7 @@ async function inventory(
       kind: "objects",
       role: edge
         ? role(edge.reltype)
-        : target?.contentType.toLowerCase().includes("oleobject")
+        : target && parseMediaType(target.contentType).includes("oleobject")
           ? "ole"
           : "unknown",
       status,
@@ -323,7 +325,7 @@ async function inventory(
       owners: [],
       graphParts,
       security: {
-        macro: target?.contentType.toLowerCase().includes("macroenabled") ? "declared" : "unknown",
+        macro: target && parseMediaType(target.contentType).includes("macroenabled") ? "declared" : "unknown",
         protected: "unknown",
         content: "opaque"
       }
@@ -341,14 +343,24 @@ async function inventory(
   let protectedDocument = false;
   const matchedObjects = new WeakSet<XmlElement>();
   for (const part of graph.parts) {
-    const mime = part.content_type.toLowerCase();
+    const mime = parseMediaType(part.content_type);
     if (
-      !(mime.endsWith("+xml") || mime === "application/xml" || mime === "text/xml") ||
-      mime.endsWith("relationships+xml")
+      !isXmlContentType(mime) ||
+      mime === "application/vnd.openxmlformats-package.relationships+xml"
     )
       continue;
     await budget.checkpoint(1);
     const root = parseDocumentXml(part.bytes, {}, budget).root;
+    const projected = new Map<XmlElement, readonly XmlElement[]>();
+    const collectProjection = (content: readonly CompatibilityContent[]): void => {
+      for (const item of content) if ("source" in item) {
+        budget.charge("work", item.content.length + 1);
+        budget.charge("retainedBytes", 96 + item.content.length * 8);
+        projected.set(item.source, item.content.filter(child => "source" in child).map(child => child.source));
+        collectProjection(item.content);
+      }
+    };
+    collectProjection(new MarkupCompatibility(root, compatibilityProfileForPart(part.partname), budget).content);
     const visit = async (
       node: XmlElement,
       path: readonly number[],
@@ -377,7 +389,7 @@ async function inventory(
           for (const child of current.children) collect(child);
         };
         if (object) collect(object);
-        const shapeId = attribute(node, "ShapeID"),
+        const shapeId = word ? attribute(node, "shapeId", node.namespace) : attribute(node, "ShapeID"),
           matching = shapeId ? shapes.filter((shape) => attribute(shape, "id") === shapeId) : [];
         if (matching.length === 1) {
           const scan = async (current: XmlElement): Promise<void> => {
@@ -403,6 +415,39 @@ async function inventory(
             "ambiguous-object-preview",
             "Preview shape ownership cannot be verified; no association is invented."
           );
+        }
+        if (word && object) {
+          const dialect = Object.values(documentDialects).find(d => d.w === node.namespace)!;
+          let candidates: XmlElement[] = [object];
+          const ancestry: readonly (readonly [string, readonly string[]])[] = [
+            [dialect.w, ["drawing"]], [dialect.wp, ["inline", "anchor"]],
+            [dialect.a, ["graphic"]], [dialect.a, ["graphicData"]],
+            [dialect.pic, ["pic"]], [dialect.pic, ["blipFill"]], [dialect.a, ["blip"]]
+          ];
+          for (const [namespace, names] of ancestry) {
+            const next: XmlElement[] = [];
+            for (const candidate of candidates) {
+              // Active carriers use their inherited MCE scope. Stored inactive
+              // objects still expose direct native preview bindings as inert data.
+              const children = projected.get(candidate) ?? candidate.children;
+              budget.charge("work", children.length);
+              for (const child of children) {
+                if (child.namespace !== namespace || !names.includes(child.localName) ||
+                  child.namespace === dialect.a && child.localName === "graphicData" && attribute(child, "uri") !== dialect.pic) continue;
+                budget.charge("retainedBytes", 8); next.push(child);
+              }
+            }
+            candidates = next;
+          }
+          for (const blip of candidates) {
+            budget.charge("work", blip.attributes.length);
+            const ids = blip.attributes.filter(a => a.namespace === dialect.r && ["embed", "link"].includes(a.localName));
+            for (const id of ids.length ? ids.map(a => a.value) : [undefined]) {
+              const image = await binding(part.partname, id, true);
+              budget.charge("retainedBytes", 128);
+              previews.push({ relationshipId: id ?? null, status: image.status, resource: image.resource });
+            }
+          }
         }
         await add(part.partname, path, resolved.edge, resolved.status, resolved.resource, previews);
       }
@@ -438,7 +483,7 @@ async function inventory(
     if (
       !inventoried.has(part.partname) &&
       part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml" &&
-      (part.content_type.toLowerCase().includes("oleobject") ||
+      (parseMediaType(part.content_type).includes("oleobject") ||
         part.partname.toLowerCase().startsWith("/word/embeddings/"))
     )
       await add(part.partname, [], undefined, "internal", await resource(part), []);

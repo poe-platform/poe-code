@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import childProcess from "node:child_process";
 import { syncBuiltinESMExports } from "node:module";
+import { once } from "node:events";
 import { test } from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
 import { tmpdir } from "node:os";
@@ -233,15 +234,31 @@ test("process harness hard-kills a synchronous infinite loop", async () => {
   assert.throws(() => process.kill(result.pid!, 0), error => error instanceof Error && "code" in error && error.code === "ESRCH");
 });
 
-test("Bash waits for a no-write upstream even after the consumer exits", async () => {
-  const result = await isolatedSpawn("/bin/bash", ["--noprofile", "--norc", "-c", "sleep 30 | { printf consumed >&2; :; }"], {
+test("Bash waits for a no-write upstream even after the consumer exits", async context => {
+  const mockedSpawn = context.mock.method(childProcess, "spawn");
+  context.mock.timers.enable({ apis: ["setTimeout"] });
+  syncBuiltinESMExports();
+  const outcome = isolatedSpawn("/bin/bash", ["--noprofile", "--norc", "-c", "sleep 30 | { printf consumed >&2; :; }"], {
     cwd: tmpdir(), env: { PATH: "/usr/bin:/bin", HOME: tmpdir(), LANG: "C", LC_ALL: "C", TZ: "UTC" },
     timeout: 200, maxBuffer: 1024,
   });
-  assert.match(result.error?.message ?? "", /hard deadline/u);
-  assert.equal(result.signal, "SIGKILL");
-  assert.equal(result.stdout.length, 0);
-  assert.equal(result.stderr.toString(), "consumed");
+  try {
+    const child = mockedSpawn.mock.calls[0]!.result!;
+    // Child startup is independent of the deadline being exercised.
+    await once(child.stderr!, "data", { signal: AbortSignal.timeout(2000) });
+    context.mock.timers.tick(200);
+    const result = await outcome;
+    assert.match(result.error?.message ?? "", /hard deadline/u);
+    assert.equal(result.signal, "SIGKILL");
+    assert.equal(result.stdout.length, 0);
+    assert.equal(result.stderr.toString(), "consumed");
+  } finally {
+    context.mock.timers.tick(200);
+    await outcome;
+    context.mock.timers.reset();
+    mockedSpawn.mock.restore();
+    syncBuiltinESMExports();
+  }
 });
 
 test("process harness applies one combined stdout/stderr byte ceiling", async () => {

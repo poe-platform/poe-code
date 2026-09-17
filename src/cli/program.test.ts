@@ -508,7 +508,7 @@ describe("createProgram", () => {
     it("collapses forwarded command rows instead of dumping every flag inline", async () => {
       const output = await renderHelp(["superintendent", "--help"]);
 
-      expect(output).toContain("run [docs...] [+8 options]");
+      expect(output).toContain("run [docs...] [+9 options]");
       expect(output).not.toContain("--runner-sync");
     });
 

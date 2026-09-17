@@ -1,10 +1,12 @@
 import { describe, it, expect } from "vitest";
+import { createFsFromVolume, Volume } from "memfs";
 import {
   agent,
   AuthenticationError,
   isUserError,
   UserError,
   createLogWriter,
+  createRunQueue,
   createStateStore,
   createSupervisor,
   codeReviewGroup,
@@ -31,12 +33,15 @@ import {
   runCodeReview,
   runCodeReviewAgentMcp,
   runRalph,
+  runSuperintendentSequence,
   systemPromptPlugin,
   waitForReady,
   type AgentPlugin,
   type AutomationDefinition,
   type ProcessSpec,
-  type SupervisorOptions
+  type SupervisorOptions,
+  type SuperintendentSequenceOptions,
+  type SuperintendentSequenceResult
 } from "./index.js";
 
 describe("entrypoint module", () => {
@@ -130,6 +135,52 @@ describe("entrypoint module", () => {
 
   it("re-exports runExperiment", () => {
     expect(typeof runExperiment).toBe("function");
+  });
+
+  it("runs a live Superintendent queue through the public SDK", async () => {
+    const doc = [
+      "---", "kind: superintendent", "version: 1",
+      "builder:", "  agent: codex:chosen-model", "  mode: edit", "  prompt: Build the feature",
+      "superintendent:", "  agent: claude-code", "  prompt: Review",
+      "owner:", "  agent: claude-code", "  prompt: Approve",
+      "status:", "  state: in_progress", "  round: 0", "  review_turn: 0",
+      "---", "## Task Board", "- [ ] Build the feature"
+    ].join("\n");
+    const queue = createRunQueue({ plans: ["first.md"], cwd: "/repo" });
+    const calls: string[] = [];
+    const options: SuperintendentSequenceOptions = {
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFsFromVolume(Volume.fromJSON({
+        "/repo/first.md": doc,
+        "/repo/second.md": doc
+      })).promises as unknown as SuperintendentSequenceOptions["fs"],
+      queue,
+      runPlan: async ({ docPath }) => {
+        calls.push(docPath);
+        if (calls.length === 1) {
+          queue.enqueueMessage("Review API");
+          queue.enqueueMessage("Verify tests");
+          queue.enqueuePlan("second.md");
+        }
+        return {
+          state: "completed", round: 1, reviewTurn: 0,
+          maxRounds: 100, maxReviewTurns: 5, stopReason: "completed"
+        };
+      },
+      runAgent: async ({ agent, prompt, cwd, mode }) => {
+        expect({ agent, cwd, mode }).toEqual({ agent: "codex:chosen-model", cwd: "/repo", mode: "edit" });
+        calls.push(prompt.split("\n\n").at(-1)!);
+        return { stdout: "Verified", stderr: "", exitCode: 0 };
+      }
+    };
+
+    const result: SuperintendentSequenceResult = await runSuperintendentSequence(options);
+
+    expect(calls).toEqual(["/repo/first.md", "Review API", "Verify tests", "/repo/second.md"]);
+    expect(result.status).toBe("completed");
+    expect(result.plans).toHaveLength(2);
+    expect(result.messages).toHaveLength(2);
   });
 
   it("re-exports the generic skill installer", () => {

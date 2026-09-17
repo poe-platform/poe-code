@@ -326,7 +326,7 @@ test("capabilities are immutable, detached, conservative, and omit unknown exten
   const capabilities = {
     readOnly: false, append: true, symlinks: true, hardlinks: true, permissions: true, timestamps: true,
     atomicRename: true, atomicResize: true, streamingRead: true, streamingWrite: true, nativeExec: true, customWrites: true,
-    atomicFileMutation: true, atomicFileStaging: true, atomicDirectoryMetadata: true,
+    atomicFileMutation: true, atomicEntryRemoval: true, atomicFileStaging: true, atomicDirectoryMetadata: true,
   };
   const fixture = createFixture(true, capabilities);
   const filesystem = createReadOnlyFileSystem(fixture.filesystem);

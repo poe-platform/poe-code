@@ -41,6 +41,7 @@ type ClaudeContentBlock = {
   input?: unknown;
   tool_use_id?: unknown;
   content?: unknown;
+  is_error?: unknown;
 };
 
 const TITLE_KEYS: Record<string, string[]> = {
@@ -215,7 +216,8 @@ export async function* adaptClaude(
           event: "tool_complete",
           id: item.tool_use_id,
           kind,
-          path
+          path,
+          ...(typeof item.is_error === "boolean" ? { status: item.is_error ? "failed" : "completed" } : {})
         };
       }
     }

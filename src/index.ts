@@ -9,7 +9,7 @@ applyPoeTheme();
 export { runBash } from "./sdk/bash.js";
 export type { RunBashOptions, BashPythonOptions } from "./sdk/bash.js";
 export { spawn } from "./sdk/spawn.js";
-export { runPipeline, runPipelineInit } from "./sdk/pipeline.js";
+export { runPipeline, runPipelineInit, runPipelineSequence, createRunQueue } from "./sdk/pipeline.js";
 export { runMaestro } from "@poe-code/maestro";
 export {
   createLogWriter,
@@ -17,8 +17,10 @@ export {
   createSupervisor,
   waitForReady
 } from "./sdk/process-launcher.js";
-export { runRalph } from "./sdk/ralph.js";
-export { runExperiment, readExperimentJournal } from "./sdk/experiment.js";
+export { runRalph, runRalphSequence } from "./sdk/ralph.js";
+export { runExperiment, runExperimentSequence, readExperimentJournal } from "./sdk/experiment.js";
+export { runSuperintendentSequence } from "@poe-code/superintendent";
+export type { SuperintendentSequenceOptions, SuperintendentSequenceResult } from "@poe-code/superintendent";
 export { installSkill } from "./skills.js";
 export type {
   InstallSkillOptions,
@@ -173,6 +175,11 @@ export type {
 } from "./sdk/process-launcher.js";
 export type {
   PipelineRunOptions,
+  PipelineSequenceOptions,
+  PipelineSequenceResult,
+  RunQueue,
+  RunQueueSnapshot,
+  RunQueueItem,
   PipelineFinalizationStatus,
   PipelineRunResult,
   PipelineInitRunOptions,
@@ -185,7 +192,7 @@ export type {
   MaestroEvent,
   Logger as MaestroLogger
 } from "@poe-code/maestro";
-export type { RalphRunOptions, RalphRunResult } from "./sdk/ralph.js";
+export type { RalphRunOptions, RalphRunResult, RalphSequenceOptions, RalphSequenceResult } from "./sdk/ralph.js";
 export type { AutomationDefinition } from "@poe-code/github-workflows";
 export type {
   CodeReviewAgentMcpConfig,
@@ -209,6 +216,9 @@ export type {
 } from "agent-code-review";
 export type {
   ExperimentRunOptions,
+  ExperimentSequenceOptions,
+  ExperimentSequenceResult,
+  ExperimentPlanSummary,
   ExperimentRunResult,
   ExperimentJournalOptions
 } from "./sdk/experiment.js";

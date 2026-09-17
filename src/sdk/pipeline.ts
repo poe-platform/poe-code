@@ -5,15 +5,19 @@ import {
   includePipelineInitialization,
   cancelPipelineInitialization,
   runPipeline as runWorkspacePipeline,
+  runPipelineSequence as runWorkspaceSequence,
   type AgentRunUsage,
   type PipelineFileSystem,
   type PipelineRunOptions as WorkspacePipelineRunOptions,
-  type PipelineRunResult
+  type PipelineRunResult,
+  type PipelineSequenceOptions as WorkspaceSequenceOptions,
+  type PipelineSequenceResult
 } from "@poe-code/pipeline";
 import { buildPipelineInitPrompt } from "../cli/commands/pipeline-init.js";
 import pipelineSkillPlan from "../templates/pipeline/SKILL_plan.md";
 import { spawn as sdkSpawn } from "./spawn.js";
 import { runWithOptionalWorktree } from "./worktree.js";
+import { mapSourcePathIntoWorktree } from "@poe-code/agent-harness-tools";
 import type { WorktreeExecutionOptions } from "./types.js";
 
 export type {
@@ -33,13 +37,18 @@ export type {
   StepMode,
   TaskProgress,
   TaskCompletion,
+  PlanProgress,
   PlanSummary
 } from "@poe-code/pipeline";
 export { resolvePlanDirectory } from "@poe-code/pipeline";
 export type PipelineRunOptions = WorkspacePipelineRunOptions & {
   worktree?: WorktreeExecutionOptions;
 };
-export type { PipelineRunResult };
+export type PipelineSequenceOptions = WorkspaceSequenceOptions & {
+  worktree?: WorktreeExecutionOptions;
+};
+export type { PipelineRunResult, PipelineSequenceResult };
+export { createRunQueue, type RunQueue, type RunQueueSnapshot, type RunQueueItem } from "@poe-code/agent-harness-tools";
 
 export interface PipelineInitSource {
   absolutePath: string;
@@ -157,13 +166,8 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
   return await runPipelineDirect(options);
 }
 
-async function runPipelineDirect(options: PipelineRunOptions): Promise<PipelineRunResult> {
-  assertNotAborted(options.signal);
-  let initialization: { durationMs: number; usage?: AgentRunUsage } | undefined;
-  const userRunAgent =
-    options.runAgent ??
-    (async (input: PipelineAgentRunnerInput) => {
-      return await sdkSpawn.autonomous(input.agent, {
+const runDefaultPipelineAgent: PipelineAgentRunner = async (input) => {
+  return await sdkSpawn.autonomous(input.agent, {
         captureSession: false,
         prompt: input.prompt,
         cwd: input.cwd,
@@ -175,8 +179,42 @@ async function runPipelineDirect(options: PipelineRunOptions): Promise<PipelineR
         ...(input.hooks ? { hooks: input.hooks } : {}),
         ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
         ...(input.signal ? { signal: input.signal } : {})
-      });
+  });
+};
+
+export async function runPipelineSequence(options: PipelineSequenceOptions): Promise<PipelineSequenceResult> {
+  const { worktree, ...sequenceOptions } = options;
+  const execute = async (cwd: string): Promise<PipelineSequenceResult> => {
+    const runAgent = options.runAgent ?? runDefaultPipelineAgent;
+    const runPlan = options.runPlan ?? runPipelineDirect;
+    return runWorkspaceSequence({
+      ...sequenceOptions,
+      cwd,
+      runAgent,
+      ...(options.planDirectory ? { planDirectory: mapSourcePathIntoWorktree(options.cwd, options.planDirectory, cwd) } : {}),
+      runPlan: (planOptions) => runPlan({
+        ...planOptions,
+        ...(planOptions.plan ? { plan: mapSourcePathIntoWorktree(options.cwd, planOptions.plan, cwd) } : {})
+      })
     });
+  };
+  if (!isWorktreeEnabled(options.worktree)) return execute(options.cwd);
+  const wrapped = await runWithOptionalWorktree({
+    cwd: options.cwd,
+    selectedAgent: options.agent,
+    ...(options.model ? { selectedModel: options.model } : {}),
+    worktree,
+    signal: options.signal,
+    isSuccessful: (result: PipelineSequenceResult) => result.status === "completed",
+    run: ({ worktreeCwd }) => execute(worktreeCwd)
+  });
+  return wrapped.value;
+}
+
+async function runPipelineDirect(options: PipelineRunOptions): Promise<PipelineRunResult> {
+  assertNotAborted(options.signal);
+  let initialization: { durationMs: number; usage?: AgentRunUsage } | undefined;
+  const userRunAgent = options.runAgent ?? runDefaultPipelineAgent;
 
   if (options.plan) {
     const planFs = options.fs ?? fsPromises;

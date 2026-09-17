@@ -93,6 +93,9 @@ function updateSessionFromEvent(
   if (path) {
     toolCall.path = path;
   }
+  if (event.status === "completed" || event.status === "failed" || event.status === "cancelled") {
+    toolCall.status = event.status;
+  }
 }
 
 function createSessionCapture(retainSession: boolean): AcpMiddleware {

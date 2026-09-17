@@ -2,9 +2,7 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { Command } from "commander";
 import {
-  acp,
   cancel,
-  createDashboard,
   isCancel,
   promptText,
   select,
@@ -16,9 +14,11 @@ import {
   formatAgentSpecifier,
   allAgents
 } from "@poe-code/agent-defs";
-import { resolveLoopAgent } from "@poe-code/agent-harness-tools";
+import { createHarnessDashboard, createRunQueue, formatRunQueueSummary, mapSourcePathIntoWorktree, resolveLoopAgent, resolveWorkflowPath } from "@poe-code/agent-harness-tools";
+import { createDashboardAgentRunner } from "@poe-code/agent-spawn";
 import {
   discoverDocs,
+  createRalphDashboardCallbacks,
   parseFrontmatter,
   writeFrontmatter,
   type RalphFrontmatter
@@ -43,14 +43,14 @@ import { isDecimalIntegerLiteral } from "./decimal-integer.js";
 import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import {
   runRalph as sdkRunRalph,
+  runRalphSequence as sdkRunRalphSequence,
   type RalphRunOptions,
-  type RalphRunResult
+  type RalphSequenceOptions,
+  type RalphSequenceResult
 } from "../../sdk/ralph.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import {
-  createDashboardLineBuffer,
   formatDashboardDuration,
-  formatDashboardTimestamp,
   registerDashboardQuitCommands,
   shouldUseInteractiveDashboard
 } from "./dashboard-loop-shared.js";
@@ -67,10 +67,9 @@ const DEFAULT_RALPH_ITERATIONS = 3;
 
 type RalphDashboardRunOptions = {
   agent: string | string[];
-  docPath: string;
   cwd: string;
-  maxIterations: number;
-  runOptions: RalphRunOptions;
+  container: CliContainer;
+  runOptions: RalphSequenceOptions;
   runtimeOptions: RuntimeCliOptions;
 };
 
@@ -92,174 +91,51 @@ function formatRalphConfigSummary(options: {
   ].join(" · ");
 }
 
-function formatRalphCurrentAction(
-  iteration: number,
-  totalIterations: number,
-  currentAgent: string
-): string {
-  return `Iteration ${iteration}/${totalIterations} · ${currentAgent}`;
-}
-
-function formatRalphStageLabel(iteration: number): string {
-  return `iteration:${iteration}`;
-}
-
-function createRalphDashboardRunAgent(options: {
-  appendOutput: (kind: "tool" | "error", message: string) => void;
-  activeStage: () => string;
-  runtimeOptions: RuntimeCliOptions;
-}): NonNullable<RalphRunOptions["runAgent"]> {
-  return async (input) => {
-    const errorBuffer = createDashboardLineBuffer((line) => {
-      options.appendOutput("error", `[${options.activeStage()}] ${line}`);
-    });
-
-    try {
-      const result = await acp.withAcpWriter(
-        (line) => {
-          options.appendOutput("tool", `[${options.activeStage()}] ${line}`);
-        },
-        async () =>
-          await sdkSpawn.autonomous(input.agent, {
-            prompt: input.prompt,
-            cwd: input.cwd,
-            model: input.model,
-            ...(input.hooks ? { hooks: input.hooks } : {}),
-            ...options.runtimeOptions,
-            ...(input.runtimeConfigCwd ? { runtimeConfigCwd: input.runtimeConfigCwd } : {}),
-            ...(input.signal ? { signal: input.signal } : {}),
-            useStdin: true,
-            tee: {
-              stderr: {
-                write(chunk: string) {
-                  errorBuffer.push(chunk);
-                }
-              }
-            }
-          })
-      );
-
-      errorBuffer.flush();
-      return result;
-    } catch (error) {
-      errorBuffer.flush();
-      throw error;
+async function runRalphWithDashboard(options: RalphDashboardRunOptions): Promise<RalphSequenceResult> {
+  const queue = createRunQueue({ plans: options.runOptions.docs ?? [], afterEachPlan: options.runOptions.afterEachPlan, cwd: options.cwd });
+  let activeCwd = options.cwd;
+  const view = createHarnessDashboard({
+    title: "Ralph", agent: formatRalphAgentSummary(options.agent), cwd: activeCwd, queue,
+    async validatePlan(input) {
+      const plan = mapSourcePathIntoWorktree(options.cwd, input, activeCwd);
+      const absolute = resolveWorkflowPath(plan, activeCwd, options.container.env.homeDir);
+      const content = await options.container.fs.readFile(absolute, "utf8");
+      parseFrontmatter(content);
+      return plan;
     }
-  };
-}
-
-function dashboardStatusForResult(result: RalphRunResult): "done" | "error" {
-  return result.stopReason === "failed" ? "error" : "done";
-}
-
-async function runRalphWithDashboard(options: RalphDashboardRunOptions): Promise<RalphRunResult> {
-  const dashboard = createDashboard({
-    title: "Ralph",
-    statsTitle: "Run",
-    rightPaneWidth: 32,
-    hints: [
-      { key: "q", label: "Quit" },
-      { key: "↑↓", label: "Scroll" },
-      { key: "F", label: "Follow" }
-    ]
   });
   const abortController = new AbortController();
-  const startedAt = Date.now();
-  let iterations = 0;
-  let currentAction: string | undefined;
-  let currentStage = "ralph";
-  let status: "running" | "done" | "error" = "running";
-
-  const syncStats = (): void => {
-    dashboard.updateStats({
-      status,
-      iterations,
-      tokensIn: 0,
-      tokensOut: 0,
-      elapsedMs: Math.max(0, Date.now() - startedAt),
-      ...(currentAction ? { currentAction } : {})
-    });
-  };
-
-  const appendOutput = (
-    kind: "info" | "success" | "error" | "tool" | "status",
-    message: string
-  ): void => {
-    dashboard.appendOutput({
-      kind,
-      text: `${formatDashboardTimestamp(Date.now())} ${message}`,
-      ts: Date.now()
-    });
-  };
-
-  const requestCancellation = (): void => {
-    if (abortController.signal.aborted) {
-      return;
-    }
-
+  let finishCleanup!: () => void;
+  const cleanupComplete = new Promise<void>((resolve) => { finishCleanup = resolve; });
+  const requestCancellation = () => {
     abortController.abort();
-    currentAction = "Cancelling";
-    appendOutput("status", "Cancellation requested");
-    syncStats();
+    view.updateRun({ phase: "Cancelling", activity: undefined });
   };
-
-  registerDashboardQuitCommands({
-    abortController,
-    dashboard,
-    requestCancellation
+  registerDashboardQuitCommands({ dashboard: view.dashboard, abortController, requestCancellation, cleanupComplete });
+  const runAgent = createDashboardAgentRunner({
+    spawn: sdkSpawn, onOutput: view.dashboard.appendOutput,
+    onActivity: (activity) => view.updateRun({ activity }), onUsage: view.addUsage,
+    maxTimeoutRetries: 3
   });
-  dashboard.start();
-  syncStats();
-  appendOutput("info", `Config · ${formatRalphConfigSummary(options)}`);
-
-  const intervalId = global.setInterval(() => {
-    syncStats();
-  }, 1_000);
-  const sigintHandler = () => {
-    requestCancellation();
-  };
-  process.on("SIGINT", sigintHandler);
-
+  view.start();
+  process.on("SIGINT", requestCancellation);
+  process.on("SIGTERM", requestCancellation);
   try {
-    const result = await sdkRunRalph({
-      ...options.runOptions,
-      runAgent: createRalphDashboardRunAgent({
-        appendOutput,
-        activeStage: () => currentStage,
-        runtimeOptions: options.runtimeOptions
-      }),
+    return await sdkRunRalphSequence({
+      ...options.runOptions, docs: undefined, afterEachPlan: undefined, queue,
       signal: abortController.signal,
-      onIterationStart(iteration, totalIterations, currentAgent) {
-        currentStage = formatRalphStageLabel(iteration);
-        currentAction = formatRalphCurrentAction(iteration, totalIterations, currentAgent);
-        appendOutput("status", `Iteration ${iteration}/${totalIterations} (${currentAgent})`);
-        syncStats();
-      },
-      onIterationComplete(iteration, durationMs, success) {
-        iterations = Math.max(iterations, iteration);
-        appendOutput(
-          success ? "success" : "error",
-          `Iteration ${iteration} ${success ? "done" : "failed"} in ${formatDashboardDuration(durationMs)}`
-        );
-        syncStats();
+      ...createRalphDashboardCallbacks(view),
+      runAgent: (input) => {
+        activeCwd = input.cwd;
+        view.updateRun({ cwd: activeCwd, agent: input.agent, model: input.model });
+        return runAgent({ ...input, ...options.runtimeOptions });
       }
     });
-
-    status = dashboardStatusForResult(result);
-    iterations = result.iterationsCompleted;
-    syncStats();
-    return result;
-  } catch (error) {
-    status = "error";
-    currentAction = undefined;
-    appendOutput("error", error instanceof Error ? error.message : String(error));
-    syncStats();
-    throw error;
   } finally {
-    global.clearInterval(intervalId);
-    process.off("SIGINT", sigintHandler);
-    dashboard.stop();
-    dashboard.destroy();
+    process.off("SIGINT", requestCancellation);
+    process.off("SIGTERM", requestCancellation);
+    view.dispose();
+    finishCleanup();
   }
 }
 
@@ -857,6 +733,7 @@ export function registerRalphCommand(program: Command, container: CliContainer):
     .option("-C, --cwd <path>", "Working directory for the Ralph agent loop")
     .option("--archive", "Archive the doc after successful completion")
     .option("--no-archive", "Leave the completed doc in place")
+    .option("--after-plan <message>", "Queue a message after every plan (repeatable)", (value: string, previous: string[]) => [...previous, value], [])
     .option("--tui", dashboardTuiDescription("Ralph"))
     .option("--no-tui", "Disable the live dashboard for this Ralph run");
 
@@ -870,6 +747,7 @@ export function registerRalphCommand(program: Command, container: CliContainer):
       {
         agent?: string;
         iterations?: string;
+        afterPlan?: string[];
         cwd?: string;
         archive?: boolean;
         tui?: boolean;
@@ -883,6 +761,7 @@ export function registerRalphCommand(program: Command, container: CliContainer):
     try {
       const commandConfig = await resolveRalphCommandConfig(container, { readOnly: flags.dryRun });
       const providedDocs: Array<string | undefined> = docArgs.length > 0 ? docArgs : [undefined];
+      const prepared: RalphRunOptions[] = [];
       for (const docArg of providedDocs) {
         const docPath = await resolveDocPath({
           container,
@@ -935,50 +814,49 @@ export function registerRalphCommand(program: Command, container: CliContainer):
           );
           continue;
         }
-        const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
-        const result = useDashboard
-          ? await runRalphWithDashboard({
-              agent,
-              docPath,
-              cwd: runCwd,
-              maxIterations,
-              runOptions,
-              runtimeOptions
-            })
-          : await sdkRunRalph({
-              ...runOptions,
-              onIterationStart(iteration, total, currentAgent) {
-                resources.logger.info(`Iteration ${iteration}/${total} (${currentAgent})`);
-              },
-              onIterationComplete(iteration, durationMs, success) {
-                const status = success ? "done" : "failed";
-                resources.logger.info(
-                  `Iteration ${iteration} ${status} in ${formatDashboardDuration(durationMs)}`
-                );
-              }
-            });
-
-        const summary = [
-          `Iterations: ${result.iterationsCompleted}/${maxIterations}`,
-          `Doc: ${result.docPath}`,
-          `Duration: ${formatDashboardDuration(result.totalDurationMs)}`
-        ].join("\n   ");
-
-        if (result.stopReason === "cancelled") {
-          process.exitCode = 130;
-          resources.logger.warn("Ralph run cancelled.");
-          resources.logger.resolved("Run summary", summary);
-          return;
+        prepared.push(runOptions);
+      }
+      if (flags.dryRun || prepared.length === 0) {
+        if (options.afterPlan?.length) resources.logger.dryRun(`After every plan: ${options.afterPlan.join(" → ")}`);
+        return;
+      }
+      const first = prepared[0]!;
+      const sequenceOptions: RalphSequenceOptions = {
+        ...first,
+        docs: prepared.map((entry) => entry.docPath),
+        afterEachPlan: options.afterPlan,
+        runPlan(input) {
+          const configured = prepared.find((entry) => mapSourcePathIntoWorktree(first.cwd, entry.docPath, input.cwd) === input.docPath);
+          return sdkRunRalph({
+            ...input,
+            ...(configured ? { agent: configured.agent, maxIterations: configured.maxIterations } : {}),
+            worktree: false
+          });
+        },
+        onIterationStart(iteration, total, currentAgent) {
+          resources.logger.info(`Iteration ${iteration}/${total} (${currentAgent})`);
+        },
+        onIterationComplete(iteration, durationMs, success) {
+          resources.logger.info(`Iteration ${iteration} ${success ? "done" : "failed"} in ${formatDashboardDuration(durationMs)}`);
         }
-
-        if (result.stopReason === "failed") {
-          process.exitCode = 1;
-          resources.logger.error("Agent run failed.");
-          resources.logger.resolved("Run summary", summary);
-          return;
-        }
-
-        resources.logger.resolved("Run summary", summary);
+      };
+      const result = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui)
+        ? await runRalphWithDashboard({
+            agent: first.agent!, cwd: first.cwd, container,
+            runOptions: sequenceOptions, runtimeOptions
+          })
+        : await sdkRunRalphSequence(sequenceOptions);
+      for (const plan of result.plans) {
+        resources.logger.info(`${plan.docPath} · ${plan.iterationsCompleted} iteration${plan.iterationsCompleted === 1 ? "" : "s"} · ${formatDashboardDuration(plan.totalDurationMs)}`);
+      }
+      if (result.queue.items.length > 1) resources.logger.resolved("Queue", formatRunQueueSummary(result.queue));
+      if (result.status === "cancelled") {
+        process.exitCode = 130;
+        resources.logger.warn("Ralph run cancelled.");
+      } else if (result.status === "failed") {
+        process.exitCode = 1;
+        resources.logger.error("Agent run failed.");
+      } else {
         resources.logger.success("Ralph run finished.");
       }
     } finally {

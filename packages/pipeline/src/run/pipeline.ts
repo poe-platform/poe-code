@@ -212,6 +212,17 @@ async function runResolvedPipeline(
   let lastGoodStepsConfig: ResolvedStepsConfig | undefined;
   const pipelineStartTime = Date.now();
 
+  function publishPlanProgress(plan: PipelinePlan): void {
+    options.onPlanProgress?.({
+      planPath,
+      tasks: plan.tasks.map(({ id, title, status }) => ({
+        id,
+        title,
+        status: typeof status === "string" ? status : { ...status }
+      }))
+    }, { logDir: runLogDir, ...(plan.mcp ? { mcpServers: structuredClone(plan.mcp) } : {}) });
+  }
+
   async function readResolvedPlanFromContent(
     content: string
   ): Promise<{ plan: PipelinePlan; stepsConfig: ResolvedStepsConfig }> {
@@ -336,6 +347,7 @@ async function runResolvedPipeline(
     ...(resolvedSetup ? { setup: resolvedSetup } : {}),
     ...(initialResolvedTeardown ? { teardown: initialResolvedTeardown } : {})
   });
+  publishPlanProgress(initialPlan);
 
   const initialSelectionComplete = selectNextExecution(initialPlan, options.task).kind === "completed";
   const initialFinalizationPending = initialPlan.tasks.every((task) => isTaskDone(task.status)) &&
@@ -394,6 +406,7 @@ async function runResolvedPipeline(
       }
 
       const totalTasks = plan.tasks.length;
+      publishPlanProgress(plan);
       const planVars = await resolvePipelineVars(
         plan.vars ?? {},
         options.cwd,
@@ -412,6 +425,7 @@ async function runResolvedPipeline(
       const selection = selectNextExecution(plan, options.task);
 
       if (selection.kind === "completed") {
+        let archivedPath: string | undefined;
         const fullPlanComplete = plan.tasks.every((task) => isTaskDone(task.status));
         const shouldFinalize = fullPlanComplete && (
           runsCompleted > 0 || plan.finalization === "pending" || plan.finalization === "teardown_completed"
@@ -449,7 +463,7 @@ async function runResolvedPipeline(
           }
           if (options.archive !== false) {
             const id = planIdFromArchivePath(absolutePlanPath);
-            await archivePlanShared({
+            archivedPath = await archivePlanShared({
               cwd,
               homeDir,
               planDirectory: path.dirname(absolutePlanPath),
@@ -474,6 +488,7 @@ async function runResolvedPipeline(
         return {
           stopReason: runsCompleted === 0 && !shouldFinalize ? "nothing_to_run" : "completed",
           planPath,
+          ...(archivedPath ? { archivedPath } : {}),
           runsCompleted,
           totalDurationMs: Date.now() - pipelineStartTime,
           metrics
@@ -629,6 +644,7 @@ async function runResolvedPipeline(
             cachedTask.status = newStatus;
           }
         }
+        publishPlanProgress(lastGoodPlan);
       }
 
       runsCompleted += 1;

@@ -396,13 +396,15 @@ No frontmatter here.
       })
     });
 
-    await archivePlan({
+    const archivedPath = await archivePlan({
       cwd,
       homeDir,
       planDirectory,
       id: "second",
       fs
     });
+
+    expect(archivedPath).toBe("/repo/.poe-code/plans/archive/second.md");
 
     await expect(readSortedDirectory(rawFs, resolvedPlanDirectory)).resolves.toEqual([
       "01-first.md",

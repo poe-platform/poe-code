@@ -185,13 +185,14 @@ export async function discoverPlans(options: DiscoverPlansOptions): Promise<Plan
     .map(({ updatedAt: _updatedAt, ...plan }) => plan);
 }
 
-export const archivePlan = async (options: ArchivePlanOptions): Promise<void> => {
+export const archivePlan = async (options: ArchivePlanOptions): Promise<string> => {
   const taskList = await openPlanList(options);
   const plans = taskList.list(PLAN_LIST_NAME);
 
-  await plans.fire(options.id, "archive", {
+  const archived = await plans.fire(options.id, "archive", {
     ...(options.metadataPatch ? { metadataPatch: options.metadataPatch } : {})
   });
+  return archived.sourcePath!;
 };
 
 export function openPlanList(options: OpenPlanListOptions): Promise<TaskList> {

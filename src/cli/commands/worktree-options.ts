@@ -1,6 +1,6 @@
-import path from "node:path";
 import type { Command } from "commander";
 import type { WorktreeExecutionOptions } from "../../sdk/types.js";
+export { mapSourcePathIntoWorktree } from "@poe-code/agent-harness-tools";
 
 export type WorktreeCliOptions = {
   worktree?: boolean;
@@ -19,19 +19,4 @@ export function pickWorktreeOptions(options: Record<string, unknown>): WorktreeE
 
 export function isWorktreeRequested(options: Record<string, unknown>): boolean {
   return options.worktree === true;
-}
-
-export function mapSourcePathIntoWorktree(
-  sourceCwd: string,
-  sourcePath: string,
-  worktreeCwd: string
-): string {
-  if (!path.isAbsolute(sourcePath)) {
-    return sourcePath;
-  }
-  const relativePath = path.relative(sourceCwd, sourcePath);
-  if (relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath))) {
-    return path.join(worktreeCwd, relativePath);
-  }
-  return sourcePath;
 }

@@ -17,5 +17,7 @@ export {
 } from "./frontmatter/frontmatter.js";
 export { discoverDocs } from "./discovery/discovery.js";
 export { runRalph } from "./run/ralph.js";
+export { runRalphSequence, type RalphSequenceOptions, type RalphSequenceResult } from "./run/sequence.js";
+export { createRalphDashboardCallbacks } from "./run/dashboard.js";
 export { interpolateVariables } from "./variables/variables.js";
 export type { VariableMap } from "./variables/variables.js";

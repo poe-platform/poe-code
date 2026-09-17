@@ -3,9 +3,7 @@ import { readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import type { Command } from "commander";
 import {
-  acp,
   cancel,
-  createDashboard,
   getTheme,
   isCancel,
   renderTable,
@@ -20,6 +18,10 @@ import {
 import { resolvePlanDirectory } from "@poe-code/pipeline";
 import {
   resolveLoopAgent,
+  createHarnessDashboard,
+  createRunQueue,
+  formatRunQueueSummary,
+  mapSourcePathIntoWorktree,
   resolveWorkflowPath,
   skillPlanConfigSection
 } from "@poe-code/agent-harness-tools";
@@ -29,9 +31,10 @@ import {
   type SkillScope
 } from "@poe-code/agent-skill-config";
 import { installSkillFile } from "./install-skill-file.js";
-import { discoverExperimentDocs, parseExperimentFrontmatter } from "@poe-code/experiment-loop";
+import { createExperimentDashboardCallbacks, discoverExperimentDocs, parseExperimentFrontmatter } from "@poe-code/experiment-loop";
 import { isFrontmatterKindError } from "@poe-code/frontmatter";
 import type { ExperimentFrontmatter } from "@poe-code/experiment-loop";
+import { createDashboardAgentRunner } from "@poe-code/agent-spawn";
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
 import {
@@ -43,6 +46,9 @@ import {
 import { dashboardTuiDescription } from "./help-guidance.js";
 import {
   runExperiment as sdkRunExperiment,
+  runExperimentSequence as sdkRunExperimentSequence,
+  type ExperimentSequenceOptions,
+  type ExperimentSequenceResult,
   readExperimentJournal as sdkReadExperimentJournal,
   appendExperimentJournalEntry as sdkAppendExperimentJournalEntry
 } from "../../sdk/experiment.js";
@@ -55,11 +61,8 @@ import {
   resolveScope,
   type ConfigDocument
 } from "@poe-code/poe-code-config/core";
-import type { ExperimentRunOptions } from "@poe-code/experiment-loop";
 import {
-  createDashboardLineBuffer,
   formatDashboardDuration,
-  formatDashboardTimestamp,
   registerDashboardQuitCommands,
   shouldUseInteractiveDashboard
 } from "./dashboard-loop-shared.js";
@@ -87,9 +90,8 @@ let experimentTemplatesCache: { skillPlan: string; runYaml: string } | null = nu
 
 type ExperimentDashboardRunOptions = {
   agent: string | string[];
-  docPath: string;
-  maxExperiments?: number;
-  runOptions: Parameters<typeof sdkRunExperiment>[0];
+  container: CliContainer;
+  runOptions: ExperimentSequenceOptions;
   runtimeOptions: RuntimeCliOptions;
 };
 
@@ -223,220 +225,50 @@ function formatMaxExperimentsLabel(maxExperiments: number | undefined): string {
   return maxExperiments === undefined ? "unlimited" : String(maxExperiments);
 }
 
-function formatExperimentConfigSummary(options: {
-  agent: string | string[];
-  docPath: string;
-  maxExperiments?: number;
-}): string {
-  return [
-    `Agent: ${formatExperimentAgentSummary(options.agent)}`,
-    `Max experiments: ${formatMaxExperimentsLabel(options.maxExperiments)}`,
-    `Doc: ${options.docPath}`
-  ].join(" · ");
-}
-
-function formatExperimentCurrentAction(
-  index: number,
-  maxExperiments: number | undefined,
-  currentAgent: string
-): string {
-  const progress =
-    maxExperiments === undefined ? `Experiment ${index}` : `Experiment ${index}/${maxExperiments}`;
-  return `${progress} · ${currentAgent}`;
-}
-
-function formatExperimentScores(scores: Record<string, number> | undefined): string {
-  if (!scores) {
-    return "-";
-  }
-
-  return Object.entries(scores)
-    .map(([name, value]) => `${name}=${value}`)
-    .join(", ");
-}
-
-function formatExperimentStageLabel(index: number): string {
-  return `experiment:${index}`;
-}
-
-function createExperimentDashboardRunAgent(options: {
-  appendOutput: (kind: "tool" | "error", message: string) => void;
-  activeStage: () => string;
-  runtimeOptions: RuntimeCliOptions;
-}): NonNullable<ExperimentRunOptions["runAgent"]> {
-  return async (input) => {
-    const errorBuffer = createDashboardLineBuffer((line) => {
-      options.appendOutput("error", `[${options.activeStage()}] ${line}`);
-    });
-
-    try {
-      const result = await acp.withAcpWriter(
-        (line) => {
-          options.appendOutput("tool", `[${options.activeStage()}] ${line}`);
-        },
-        async () =>
-          await sdkSpawn.autonomous(input.agent, {
-            prompt: input.prompt,
-            cwd: input.cwd,
-            model: input.model,
-            ...options.runtimeOptions,
-            ...(input.signal ? { signal: input.signal } : {}),
-            worktree: false,
-            useStdin: true,
-            tee: {
-              stderr: {
-                write(chunk: string) {
-                  errorBuffer.push(chunk);
-                }
-              }
-            }
-          })
-      );
-
-      errorBuffer.flush();
-      return result;
-    } catch (error) {
-      errorBuffer.flush();
-      throw error;
+async function runExperimentWithDashboard(options: ExperimentDashboardRunOptions): Promise<ExperimentSequenceResult> {
+  const queue = createRunQueue({ plans: options.runOptions.docs ?? [], afterEachPlan: options.runOptions.afterEachPlan, cwd: options.runOptions.cwd });
+  let activeCwd = options.runOptions.cwd;
+  const view = createHarnessDashboard({
+    title: "Experiment", agent: formatExperimentAgentSummary(options.agent), cwd: activeCwd, queue,
+    async validatePlan(input) {
+      const plan = mapSourcePathIntoWorktree(options.runOptions.cwd, input, activeCwd);
+      const absolute = resolveWorkflowPath(plan, activeCwd, options.container.env.homeDir);
+      parseExperimentFrontmatter(await options.container.fs.readFile(absolute, "utf8"));
+      return plan;
     }
-  };
-}
-
-async function runExperimentWithDashboard(
-  options: ExperimentDashboardRunOptions
-): Promise<Awaited<ReturnType<typeof sdkRunExperiment>>> {
-  const dashboard = createDashboard({
-    title: "Experiment",
-    statsTitle: "Run",
-    rightPaneWidth: 32,
-    hints: [
-      { key: "q", label: "Quit" },
-      { key: "↑↓", label: "Scroll" },
-      { key: "F", label: "Follow" }
-    ]
   });
   const abortController = new AbortController();
-  const startedAt = Date.now();
-  let iterations = 0;
-  let currentExperimentIndex = 0;
-  let currentAction: string | undefined;
-  let status: "running" | "done" | "error" = "running";
-
-  const syncStats = (): void => {
-    dashboard.updateStats({
-      status,
-      iterations,
-      tokensIn: 0,
-      tokensOut: 0,
-      elapsedMs: Math.max(0, Date.now() - startedAt),
-      ...(currentAction ? { currentAction } : {})
-    });
-  };
-
-  const appendOutput = (
-    kind: "info" | "success" | "error" | "tool" | "status",
-    message: string
-  ): void => {
-    dashboard.appendOutput({
-      kind,
-      text: `${formatDashboardTimestamp(Date.now())} ${message}`,
-      ts: Date.now()
-    });
-  };
-
-  const requestCancellation = (): void => {
-    if (abortController.signal.aborted) {
-      return;
-    }
-
+  let finishCleanup!: () => void;
+  const cleanupComplete = new Promise<void>((resolve) => { finishCleanup = resolve; });
+  const requestCancellation = () => {
     abortController.abort();
-    currentAction = "Cancelling";
-    appendOutput("status", "Cancellation requested");
-    syncStats();
+    view.updateRun({ phase: "Cancelling", activity: undefined });
   };
-
-  registerDashboardQuitCommands({
-    abortController,
-    dashboard,
-    requestCancellation
+  registerDashboardQuitCommands({ dashboard: view.dashboard, abortController, requestCancellation, cleanupComplete });
+  const runAgent = createDashboardAgentRunner({
+    spawn: sdkSpawn, onOutput: view.dashboard.appendOutput,
+    onActivity: (activity) => view.updateRun({ activity }), onUsage: view.addUsage,
+    maxTimeoutRetries: 3,
   });
-  dashboard.start();
-  syncStats();
-  appendOutput("info", `Config · ${formatExperimentConfigSummary(options)}`);
-
-  const intervalId = global.setInterval(() => {
-    syncStats();
-  }, 1_000);
-  const sigintHandler = () => {
-    requestCancellation();
-  };
-  process.on("SIGINT", sigintHandler);
-
-  const runAgent = createExperimentDashboardRunAgent({
-    appendOutput,
-    activeStage: () => formatExperimentStageLabel(currentExperimentIndex),
-    runtimeOptions: options.runtimeOptions
-  });
-
+  view.start();
+  process.on("SIGINT", requestCancellation);
+  process.on("SIGTERM", requestCancellation);
   try {
-    const runOptions: Parameters<typeof sdkRunExperiment>[0] = {
-      ...options.runOptions,
+    return await sdkRunExperimentSequence({
+      ...options.runOptions, docs: undefined, afterEachPlan: undefined, queue,
       signal: abortController.signal,
-      runAgent,
-      onExperimentStart(index, currentAgent) {
-        currentExperimentIndex = index;
-        currentAction = formatExperimentCurrentAction(index, options.maxExperiments, currentAgent);
-        appendOutput(
-          "status",
-          options.maxExperiments === undefined
-            ? `Experiment ${index} (${currentAgent})`
-            : `Experiment ${index}/${options.maxExperiments} (${currentAgent})`
-        );
-        syncStats();
-      },
-      onBaselineCollected(baseline) {
-        const entries = Object.entries(baseline)
-          .map(([name, value]) => `${name}=${value}`)
-          .join(", ");
-        appendOutput("info", `Baseline collected: ${entries}`);
-      },
-      onCommit(commitHash) {
-        appendOutput("info", `Committed ${commitHash.slice(0, 7)}`);
-      },
-      onMetricResult(metric, result) {
-        const score = result.score === null ? "-" : String(result.score);
-        const metricStatus = result.passed ? "passed" : "failed";
-        appendOutput("info", `${metric.name}: ${score} (${metricStatus})`);
-      },
-      onReset(targetHash) {
-        appendOutput("info", `Reset to ${targetHash.slice(0, 7)}`);
-      },
-      onExperimentComplete(index, entry) {
-        iterations = Math.max(iterations, index);
-        appendOutput(
-          entry.status === "keep" ? "success" : "error",
-          `Experiment ${index} ${entry.status} in ${formatDashboardDuration(entry.durationMs)} · scores: ${formatExperimentScores(entry.scores)}`
-        );
-        syncStats();
+      ...createExperimentDashboardCallbacks(view),
+      runAgent: (input) => {
+        activeCwd = input.cwd;
+        view.updateRun({ cwd: activeCwd, agent: input.agent, model: input.model });
+        return runAgent({ ...input, ...options.runtimeOptions });
       }
-    };
-    const result = await sdkRunExperiment(runOptions);
-
-    status = "done";
-    iterations = result.experimentsCompleted;
-    syncStats();
-    return result;
-  } catch (error) {
-    status = "error";
-    currentAction = undefined;
-    appendOutput("error", error instanceof Error ? error.message : String(error));
-    syncStats();
-    throw error;
+    });
   } finally {
-    global.clearInterval(intervalId);
-    process.off("SIGINT", sigintHandler);
-    dashboard.stop();
-    dashboard.destroy();
+    process.off("SIGINT", requestCancellation);
+    process.off("SIGTERM", requestCancellation);
+    view.dispose();
+    finishCleanup();
   }
 }
 
@@ -715,6 +547,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
     .argument("[docs...]", "Experiment doc paths to run sequentially")
     .option("--agent <agent>", "Override the agent from frontmatter")
     .option("--max-experiments <n>", "Limit the number of experiments to run")
+    .option("--after-plan <message>", "Queue a message after every plan (repeatable)", (value: string, previous: string[]) => [...previous, value], [])
     .option("--tui", dashboardTuiDescription("the experiment"))
     .option("--no-tui", "Disable the live dashboard for this experiment run");
 
@@ -728,6 +561,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
       {
         agent?: string;
         maxExperiments?: string;
+        afterPlan?: string[];
         tui?: boolean;
       } & RuntimeCliOptions &
         WorktreeCliOptions
@@ -741,6 +575,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
         readonly: flags.dryRun
       });
       const providedDocs: Array<string | undefined> = docArgs.length > 0 ? docArgs : [undefined];
+      const prepared: Parameters<typeof sdkRunExperiment>[0][] = [];
       for (const docArg of providedDocs) {
         const docPath = await resolveDocPath({
           container,
@@ -772,6 +607,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
           );
           continue;
         }
+
         const runOptions: Parameters<typeof sdkRunExperiment>[0] = {
           agent,
           cwd: container.env.cwd,
@@ -811,32 +647,38 @@ export function registerExperimentCommand(program: Command, container: CliContai
             );
           }
         };
-        const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
-        const result = useDashboard
-          ? await runExperimentWithDashboard({
-              agent,
-              docPath,
-              maxExperiments,
-              runOptions,
-              runtimeOptions
-            })
-          : await sdkRunExperiment(runOptions);
-
-        const summary = [
-          `Experiments: ${result.experimentsCompleted}`,
-          `Kept: ${result.experimentsKept}`,
-          `Doc: ${result.docPath}`,
-          `Duration: ${formatDashboardDuration(result.totalDurationMs)}`
-        ].join("\n   ");
-
-        if (result.stopReason === "cancelled") {
-          process.exitCode = 130;
-          resources.logger.warn("Experiment run cancelled.");
-          resources.logger.resolved("Run summary", summary);
-          return;
-        }
-
-        resources.logger.resolved("Run summary", summary);
+        prepared.push(runOptions);
+      }
+      if (flags.dryRun || prepared.length === 0) {
+        if (options.afterPlan?.length) resources.logger.dryRun(`After every plan: ${options.afterPlan.join(" → ")}`);
+        return;
+      }
+      const first = prepared[0]!;
+      const sequenceOptions: ExperimentSequenceOptions = {
+        ...first, docs: prepared.map((entry) => entry.docPath), afterEachPlan: options.afterPlan,
+        runPlan(input) {
+          const configured = prepared.find((entry) => mapSourcePathIntoWorktree(first.cwd, entry.docPath, input.cwd) === input.docPath);
+          return sdkRunExperiment({
+            ...input,
+            ...(configured ? { agent: configured.agent } : {}),
+            worktree: false
+          });
+        },
+      };
+      const result = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui)
+        ? await runExperimentWithDashboard({ agent: first.agent!, container, runOptions: sequenceOptions, runtimeOptions })
+        : await sdkRunExperimentSequence(sequenceOptions);
+      for (const plan of result.plans) {
+        resources.logger.info(`${plan.docPath} · ${plan.experimentsCompleted} experiment${plan.experimentsCompleted === 1 ? "" : "s"} · ${plan.experimentsKept} kept · ${formatDashboardDuration(plan.totalDurationMs)}`);
+      }
+      if (result.queue.items.length > 1) resources.logger.resolved("Queue", formatRunQueueSummary(result.queue));
+      if (result.status === "cancelled") {
+        process.exitCode = 130;
+        resources.logger.warn("Experiment run cancelled.");
+      } else if (result.status === "failed") {
+        process.exitCode = 1;
+        resources.logger.error("Queued experiment follow-up failed.");
+      } else {
         resources.logger.success("Experiment run finished.");
       }
     } finally {

@@ -14,7 +14,9 @@ const {
   runGaslightDaemonMock,
   runGaslightMock,
   selectMock,
-  spawnPrettyMock
+  spawnPrettyMock,
+  spawnStreamMock,
+  createDashboardMock
 } = vi.hoisted(() => ({
   ingestGaslightMock: vi.fn(),
   loadGaslightConfigMock: vi.fn(),
@@ -24,7 +26,9 @@ const {
   runGaslightDaemonMock: vi.fn(),
   runGaslightMock: vi.fn(),
   selectMock: vi.fn(),
-  spawnPrettyMock: vi.fn()
+  spawnPrettyMock: vi.fn(),
+  spawnStreamMock: vi.fn(),
+  createDashboardMock: vi.fn()
 }));
 
 vi.mock("../../sdk/gaslight.js", () => ({
@@ -36,13 +40,14 @@ vi.mock("../../sdk/gaslight.js", () => ({
 }));
 
 vi.mock("../../sdk/spawn.js", () => ({
-  spawn: { pretty: spawnPrettyMock }
+  spawn: Object.assign(spawnStreamMock, { pretty: spawnPrettyMock })
 }));
 
 vi.mock("toolcraft-design", async (importOriginal) => {
   const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
+    createDashboard: createDashboardMock,
     intro: introMock,
     multiselect: multiselectMock,
     outro: outroMock,
@@ -94,6 +99,80 @@ function withInteractiveStdin<T>(run: () => Promise<T>): Promise<T> {
 }
 
 describe("gaslight command", () => {
+  it("previews every follow-up after every selected plan without starting a run", async () => {
+    const logger = vi.fn();
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer(vi.fn(), logger));
+    await program.parseAsync(["node", "cli", "--yes", "--dry-run", "gaslight", "docs/plans/a.md", "docs/plans/b.md", "--agent", "codex", "--after-plan", "Review", "--after-plan", "Verify"]);
+    expect(logger.mock.calls.map(([message]) => message).join("\n")).toContain([
+      "- docs/plans/a.md", "  Then message: Review", "  Then message: Verify",
+      "- docs/plans/b.md", "  Then message: Review", "  Then message: Verify"
+    ].join("\n"));
+    expect(runGaslightMock).not.toHaveBeenCalled();
+  });
+
+  it("passes repeatable after-plan messages without a TUI and reports completed queued work", async () => {
+    runGaslightMock.mockResolvedValueOnce({ rounds: [], plans: [{ planPath: "docs/plans/a.md", rounds: [] }, { planPath: "docs/plans/b.md", rounds: [] }], messages: [{ prompt: "Review", summary: "Done", planPath: "docs/plans/a.md", threadId: "latest-thread" }], durationMs: 0 });
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+    await program.parseAsync(["node", "cli", "--yes", "gaslight", "docs/plans/a.md", "--agent", "codex", "--after-plan", "Review", "--after-plan", "Verify"]);
+    expect(runGaslightMock).toHaveBeenCalledWith(expect.objectContaining({ afterEachPlan: ["Review", "Verify"] }));
+    expect(outroMock.mock.calls.at(-1)?.[0]).toContain("2 plans");
+    expect(outroMock.mock.calls.at(-1)?.[0]).toContain("1 queued message finished");
+    expect(outroMock.mock.calls.at(-1)?.[0]).toContain("latest-thread");
+  });
+
+  it("accepts follow-ups and more plans in the shared TUI using the same spawn settings", async () => {
+    const dashboard = { start: vi.fn(), stop: vi.fn(), destroy: vi.fn(), appendOutput: vi.fn(), updateStats: vi.fn(), onCommand: vi.fn() };
+    createDashboardMock.mockReturnValueOnce(dashboard);
+    spawnStreamMock.mockReturnValueOnce({ events: (async function* () {})(), result: Promise.resolve({ stdout: "Done", stderr: "", exitCode: 0, threadId: "thread" }) });
+    const originalTty = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
+    Object.defineProperty(process.stdout, "isTTY", { configurable: true, value: true });
+    onTestFinished(() => { if (originalTty) Object.defineProperty(process.stdout, "isTTY", originalTty); else Reflect.deleteProperty(process.stdout, "isTTY"); });
+    runGaslightMock.mockImplementationOnce(async (options) => {
+      const submit = createDashboardMock.mock.calls[0]![0].onSubmit;
+      await submit({ kind: "message", text: "Review the result" });
+      await submit({ kind: "plan", text: "docs/plans/b.md" });
+      expect(options.queue.getSnapshot().items.map((item) => item.kind === "plan" ? item.path : item.text)).toEqual(["docs/plans/a.md", "Review the result", "docs/plans/b.md"]);
+      await options.spawn("codex", { prompt: "Review the result", cwd: "/repo", model: "chosen", mode: "read", signal: options.signal, resumeThreadId: "previous" });
+      return { rounds: [], plans: [], durationMs: 0 };
+    });
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+    await withInteractiveStdin(() => program.parseAsync(["node", "cli", "--yes", "gaslight", "docs/plans/a.md", "--agent", "codex", "--model", "chosen", "--mode", "read", "--tui"]));
+    expect(spawnStreamMock).toHaveBeenCalledWith("codex", expect.objectContaining({ model: "chosen", mode: "read", resumeThreadId: "previous", signal: expect.any(AbortSignal) }));
+    expect(dashboard.start).toHaveBeenCalledTimes(1);
+    expect(dashboard.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it("resumes the last executed plan after earlier queued messages finish", async () => {
+    runGaslightMock.mockResolvedValueOnce({ rounds: [{ threadId: "last-plan-thread" }], plans: [], messages: [{ threadId: "earlier-message-thread" }], durationMs: 0,
+      queue: { status: "completed", items: [{ kind: "message", id: "m", afterPlanId: "p1", text: "Review", status: "completed" }, { kind: "plan", id: "p2", path: "b.md", status: "completed" }] } });
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+    await program.parseAsync(["node", "cli", "--yes", "gaslight", "docs/plans/a.md", "--agent", "codex"]);
+    expect(outroMock.mock.calls.at(-1)?.[0]).toContain("last-plan-thread");
+    expect(outroMock.mock.calls.at(-1)?.[0]).not.toContain("earlier-message-thread");
+  });
+
+  it("reports pending work when a live queue is cancelled", async () => {
+    const originalExitCode = process.exitCode;
+    onTestFinished(() => { process.exitCode = originalExitCode; });
+    runGaslightMock.mockResolvedValueOnce({ rounds: [], plans: [], messages: [], durationMs: 0,
+      queue: { status: "cancelled", items: [
+        { kind: "plan", id: "p1", path: "a.md", status: "cancelled" },
+        { kind: "message", id: "m1", afterPlanId: "p1", text: "Review", status: "pending" },
+        { kind: "plan", id: "p2", path: "b.md", status: "pending" }
+      ] }
+    });
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+    await program.parseAsync(["node", "cli", "--yes", "gaslight", "docs/plans/a.md", "--agent", "codex"]);
+    expect(process.exitCode).toBe(130);
+    expect(outroMock.mock.calls.at(-1)?.[0]).toContain("Gaslight run cancelled.");
+    expect(outroMock.mock.calls.at(-1)?.[0]).toContain("0/2 plans · 0/1 messages · 2 pending");
+  });
+
   beforeEach(() => {
     ingestGaslightMock.mockReset().mockResolvedValue({
       outputPath: ".poe-code/codex-gaslight.yaml",

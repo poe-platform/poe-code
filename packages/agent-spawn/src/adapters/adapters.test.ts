@@ -135,7 +135,8 @@ describe("adaptPi", () => {
         event: "tool_complete",
         id: "tool-1",
         kind: "exec",
-        path: "pwd"
+        path: "pwd",
+        status: "completed"
       },
       {
         event: "tool_start",
@@ -148,7 +149,8 @@ describe("adaptPi", () => {
         event: "tool_complete",
         id: "tool-2",
         kind: "read",
-        path: "src/index.ts"
+        path: "src/index.ts",
+        status: "completed"
       },
       {
         event: "tool_start",
@@ -162,6 +164,7 @@ describe("adaptPi", () => {
         id: "tool-3",
         kind: "edit",
         path: "out.txt",
+        status: "failed",
         _meta: { failed: true }
       },
       {
@@ -239,7 +242,8 @@ describe("adaptPi", () => {
       event: "tool_complete",
       id: "tool-1",
       kind: "exec",
-      path: "echo ok"
+      path: "echo ok",
+      status: "completed"
     });
     expect(events).toContainEqual({
       event: "spawn_result",
@@ -678,7 +682,7 @@ describe("adaptCodex", () => {
 
     expect(events).toEqual([
       { event: "session_start", threadId: "thread_abc123" },
-      { event: "tool_start", id: "item_1", kind: "exec", title: "ls -la" },
+      { event: "tool_start", id: "item_1", kind: "exec", title: "ls -la", input: { command: "ls -la" } },
       { event: "tool_complete", id: "item_1", kind: "exec", path: "ls -la" },
       { event: "tool_start", id: "item_2", kind: "edit", title: "src/config.ts" },
       { event: "tool_complete", id: "item_2", kind: "edit", path: "src/config.ts" },
@@ -742,7 +746,8 @@ describe("adaptCodex", () => {
         event: "tool_start",
         id: "c",
         kind: "exec",
-        title: "echo hi"
+        title: "echo hi",
+        input: { command: "echo hi" }
       },
       {
         event: "tool_start",
@@ -760,7 +765,8 @@ describe("adaptCodex", () => {
         event: "tool_start",
         id: "m",
         kind: "other",
-        title: "fs.read"
+        title: "fs.read",
+        input: { path: "/tmp/a" }
       }
     ]);
   });
@@ -785,10 +791,11 @@ describe("adaptCodex", () => {
         event: "tool_start",
         id: "x",
         kind: "exec",
-        title: "echo hi"
+        title: "echo hi",
+        input: { command: "echo hi" }
       },
       { event: "tool_start", id: "y", kind: "edit", title: "src/app.ts" },
-      { event: "tool_start", id: "z", kind: "other", title: "fs.read" },
+      { event: "tool_start", id: "z", kind: "other", title: "fs.read", input: { path: "/tmp/a" } },
       { event: "agent_message", text: "done" },
       { event: "tool_complete", id: "x", kind: "exec", path: "echo hi" },
       { event: "tool_complete", id: "y", kind: "edit", path: "src/app.ts" },
@@ -949,7 +956,7 @@ describe("adaptCursor", () => {
       { event: "session_start", threadId: "session-1" },
       { event: "reasoning", text: "thinking" },
       { event: "agent_message", text: "done" },
-      { event: "tool_start", kind: "edit", title: "src/a.ts", id: "call-1" },
+      { event: "tool_start", kind: "edit", title: "src/a.ts", id: "call-1", input: { path: "src/a.ts" } },
       { event: "tool_complete", kind: "edit", path: "src/a.ts", id: "call-1" },
       { event: "usage", inputTokens: 10, outputTokens: 4, cachedTokens: 3, _meta: { cacheWriteTokens: 2 } },
       { event: "spawn_result", exitCode: 0, threadId: "session-1", usage: { inputTokens: 10, outputTokens: 4, cachedTokens: 3 } }
@@ -1075,7 +1082,7 @@ describe("adaptOpenCode", () => {
         title: "echo hello",
         input: { command: "echo hello" }
       },
-      { event: "tool_complete", id: "call_1", kind: "exec", path: "hello\n" }
+      { event: "tool_complete", id: "call_1", kind: "exec", path: "hello\n", status: "completed" }
     ]);
   });
 
@@ -1117,7 +1124,7 @@ describe("adaptOpenCode", () => {
     expect(events).toEqual([
       { event: "session_start", threadId: "ses_1" },
       { event: "tool_start", id: "call_1", kind: "exec", title: "echo hi", input: { command: "echo hi" } },
-      { event: "tool_complete", id: "call_1", kind: "exec", path: "{\"ok\":true}" }
+      { event: "tool_complete", id: "call_1", kind: "exec", path: "{\"ok\":true}", status: "completed" }
     ]);
   });
 

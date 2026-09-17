@@ -54,6 +54,7 @@ export {
   supportsMcpAtSpawn,
   supportsSpawnMode
 } from "./configs/index.js";
+export { createDashboardAgentRunner } from "./acp/dashboard-runner.js";
 export type { SpawnableAgent } from "./configs/index.js";
 export { serializeGooseMcpArgs, serializeOpenCodeMcpEnv, toJsonMcpServers } from "./configs/mcp.js";
 export {
@@ -120,6 +121,7 @@ export type {
   ContentChunk,
   ErrorEvent,
   KnownAcpEvent,
+  PlanEvent,
   ReasoningEvent,
   SessionStartEvent,
   SessionUpdate,

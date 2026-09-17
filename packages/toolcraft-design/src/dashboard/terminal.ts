@@ -1,5 +1,6 @@
 import readline from "node:readline";
 import { PassThrough } from "node:stream";
+import { createInputParser, type TerminalInputEvent } from "../terminal/input.js";
 import { cellToAnsi } from "./buffer.js";
 import { graphemeWidth } from "./terminal-width.js";
 import type { Cell } from "./types.js";
@@ -63,14 +64,12 @@ export function createTerminalDriver(opts?: {
   const stdin = (opts?.stdin ?? process.stdin) as TerminalInput;
   const stdout = (opts?.stdout ?? process.stdout) as TerminalOutput;
   const resizeListeners = new Set<() => void>();
-  const keypressListeners = new Set<(chunk: Buffer | string) => void>();
+  const keypressListeners = new Map<(chunk: Buffer | string) => void, () => void>();
   let rawMode = false;
   let altScreen = false;
   let lineWrapEnabled = true;
   let cursorHidden = false;
   let destroyed = false;
-
-  readline.emitKeypressEvents(stdin);
 
   function enterRawMode(): void {
     if (destroyed || rawMode) {
@@ -217,13 +216,23 @@ export function createTerminalDriver(opts?: {
       return () => {};
     }
 
-    const listener = (chunk: Buffer | string) => {
-      for (const event of parseKeypressChunk(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))) {
-        handler(event);
+    const dispatch = (event: TerminalInputEvent): void => {
+      if (event.type === "paste") {
+        handler({ name: "paste", ch: event.text, ctrl: false, meta: false, shift: false });
+      } else if (event.type === "key") {
+        handler({
+          ...(event.ch !== undefined ? { ch: event.ch } : { name: event.name === "enter" ? "return" : event.name }),
+          ctrl: event.ctrl,
+          meta: event.alt,
+          shift: event.shift
+        });
       }
     };
-
-    keypressListeners.add(listener);
+    const parser = createInputParser({ onEvent: dispatch });
+    const listener = (chunk: Buffer | string) => {
+      for (const event of parser.feed(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))) dispatch(event);
+    };
+    keypressListeners.set(listener, parser.destroy);
     stdin.on("data", listener);
 
     return () => {
@@ -231,6 +240,7 @@ export function createTerminalDriver(opts?: {
         return;
       }
 
+      parser.destroy();
       stdin.off("data", listener);
     };
   }
@@ -240,7 +250,8 @@ export function createTerminalDriver(opts?: {
       return;
     }
 
-    for (const listener of keypressListeners) {
+    for (const [listener, cleanup] of keypressListeners) {
+      cleanup();
       stdin.off("data", listener);
     }
     keypressListeners.clear();
@@ -297,56 +308,6 @@ export function parseKeypress(data: Buffer): KeypressEvent | undefined {
   stream.destroy();
 
   return event;
-}
-
-function parseKeypressChunk(data: Buffer): KeypressEvent[] {
-  const events: KeypressEvent[] = [];
-  const input = data.toString("utf8");
-  let index = 0;
-
-  while (index < input.length) {
-    const sequence = nextKeySequence(input, index);
-    if (sequence.length === 0) {
-      break;
-    }
-
-    const event = parseKeypress(Buffer.from(sequence));
-    if (event !== undefined) {
-      events.push(event);
-    }
-    index += sequence.length;
-  }
-
-  return events;
-}
-
-function nextKeySequence(input: string, index: number): string {
-  const character = input[index];
-  if (character === undefined) {
-    return "";
-  }
-
-  if (character !== "\u001b") {
-    return character;
-  }
-
-  const next = input[index + 1];
-  if (next === undefined) {
-    return character;
-  }
-
-  if (next !== "[") {
-    return input.slice(index, index + 2);
-  }
-
-  for (let cursor = index + 2; cursor < input.length; cursor += 1) {
-    const code = input.charCodeAt(cursor);
-    if ((code >= 0x40 && code <= 0x7e) || input[cursor] === "~") {
-      return input.slice(index, cursor + 1);
-    }
-  }
-
-  return input.slice(index);
 }
 
 function toKeypressEvent(str: string | undefined, key: ReadlineKey | undefined): KeypressEvent | undefined {

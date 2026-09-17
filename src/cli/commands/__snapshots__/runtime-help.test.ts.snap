@@ -8,29 +8,31 @@ Usage: poe-code experiment run [options] [docs...]
 Run an experiment doc through the autonomous experiment loop.
 
 Arguments:
-  docs                   Experiment doc paths to run sequentially
+  docs                    Experiment doc paths to run sequentially
 
 Options:
-  --agent <agent>        Override the agent from frontmatter
-  --max-experiments <n>  Limit the number of experiments to run
-  --tui                  Show a live dashboard while the experiment is running
-                         (q quit, Ctrl+C force quit)
-  --no-tui               Disable the live dashboard for this experiment run
-  --worktree             Run in a managed git worktree and reconcile successful
-                         output
-  --runtime <runtime>    Override runtime backend: host | docker (choices:
-                         "host", "docker")
-  --runtime-image <ref>  Override Docker runtime image
-  --detach               Run as a detached runtime job
-  --runner-sync <mode>   Override runner workspace sync: both | upload | none
-                         (choices: "both", "upload", "none")
-  -h, --help             Display help for command
+  --agent <agent>         Override the agent from frontmatter
+  --max-experiments <n>   Limit the number of experiments to run
+  --after-plan <message>  Queue a message after every plan (repeatable)
+                          (default: [])
+  --tui                   Show a live dashboard while the experiment is running
+                          (q quit, Ctrl+C force quit)
+  --no-tui                Disable the live dashboard for this experiment run
+  --worktree              Run in a managed git worktree and reconcile successful
+                          output
+  --runtime <runtime>     Override runtime backend: host | docker (choices:
+                          "host", "docker")
+  --runtime-image <ref>   Override Docker runtime image
+  --detach                Run as a detached runtime job
+  --runner-sync <mode>    Override runner workspace sync: both | upload | none
+                          (choices: "both", "upload", "none")
+  -h, --help              Display help for command
 
 Global Options:
-  -y, --yes              Accept defaults without prompting.
-  --dry-run              Simulate commands without writing changes.
-  --verbose              Show verbose logs.
-  -V, --version          Output the version number.
+  -y, --yes               Accept defaults without prompting.
+  --dry-run               Simulate commands without writing changes.
+  --verbose               Show verbose logs.
+  -V, --version           Output the version number.
 "
 `;
 
@@ -42,32 +44,34 @@ Usage: poe-code ralph run [options] [docs...]
 Run the selected markdown doc through repeated agent iterations.
 
 Arguments:
-  docs                   Markdown doc paths to run sequentially
+  docs                    Markdown doc paths to run sequentially
 
 Options:
-  --agent <name>         Override the agent from frontmatter
-  --iterations <n>       Override iterations from frontmatter
-  -C, --cwd <path>       Working directory for the Ralph agent loop
-  --archive              Archive the doc after successful completion
-  --no-archive           Leave the completed doc in place
-  --tui                  Show a live dashboard while Ralph is running (q quit,
-                         Ctrl+C force quit)
-  --no-tui               Disable the live dashboard for this Ralph run
-  --worktree             Run in a managed git worktree and reconcile successful
-                         output
-  --runtime <runtime>    Override runtime backend: host | docker (choices:
-                         "host", "docker")
-  --runtime-image <ref>  Override Docker runtime image
-  --detach               Run as a detached runtime job
-  --runner-sync <mode>   Override runner workspace sync: both | upload | none
-                         (choices: "both", "upload", "none")
-  -h, --help             Display help for command
+  --agent <name>          Override the agent from frontmatter
+  --iterations <n>        Override iterations from frontmatter
+  -C, --cwd <path>        Working directory for the Ralph agent loop
+  --archive               Archive the doc after successful completion
+  --no-archive            Leave the completed doc in place
+  --after-plan <message>  Queue a message after every plan (repeatable)
+                          (default: [])
+  --tui                   Show a live dashboard while Ralph is running (q quit,
+                          Ctrl+C force quit)
+  --no-tui                Disable the live dashboard for this Ralph run
+  --worktree              Run in a managed git worktree and reconcile successful
+                          output
+  --runtime <runtime>     Override runtime backend: host | docker (choices:
+                          "host", "docker")
+  --runtime-image <ref>   Override Docker runtime image
+  --detach                Run as a detached runtime job
+  --runner-sync <mode>    Override runner workspace sync: both | upload | none
+                          (choices: "both", "upload", "none")
+  -h, --help              Display help for command
 
 Global Options:
-  -y, --yes              Accept defaults without prompting.
-  --dry-run              Simulate commands without writing changes.
-  --verbose              Show verbose logs.
-  -V, --version          Output the version number.
+  -y, --yes               Accept defaults without prompting.
+  --dry-run               Simulate commands without writing changes.
+  --verbose               Show verbose logs.
+  -V, --version           Output the version number.
 "
 `;
 
@@ -174,6 +178,7 @@ Options:
   --runner-sync <value>     Override runner workspace sync: both, upload, or none (values: both,
                             upload, none)
   --tui                     Show a live dashboard while Superintendent is running
+  --after-plan <value...>   Queue a message after every completed plan (repeatable)
   --worktree                Run in a managed git worktree and reconcile successful output
 
 Global Options: -v, --verbose

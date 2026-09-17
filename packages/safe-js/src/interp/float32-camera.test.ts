@@ -14,8 +14,8 @@ describe("Float32Array camera workflows", () => {
 
   const batches = fixture.cases.flatMap((entry) => {
     const entries = [];
-    for (let offset = 0; offset < entry.fixture.points.length; offset += 2) {
-      const points = entry.fixture.points.slice(offset, offset + 2);
+    for (let offset = 0; offset < entry.fixture.points.length; offset++) {
+      const points = entry.fixture.points.slice(offset, offset + 1);
       const trace = entry.expected.trace.flatMap((event) => {
         const [stage, sample] = event.stage?.split(":") ?? [];
         if (sample === undefined) return [event];

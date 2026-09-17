@@ -53,6 +53,10 @@ Pass `resumeThreadId` to continue a prior provider thread/session. Declarative a
 
 `spawnAutonomous(streamSpawn, options)` drives a streaming ACP spawn to completion, renders events through the design-system ACP writer, and retries activity timeouts. It is shared by SDK autonomous spawn flows and loop runners.
 
+For a live conversation dashboard, `createDashboardAgentRunner({ spawn, onOutput, onActivity, onUsage })` connects your normal streaming spawn function to the design system. Tool starts and completions update one entry in place, with concise Read, Search, List files, and Edit labels. Full command details stay available separately. The runner preserves spawn settings, reconciles streamed usage with final totals, and accepts `maxTimeoutRetries` for autonomous loops.
+
+`streamAcpEventsToDashboard` also accepts an event stream directly. Structured input and failure states are retained across adapters; action summaries are presentation only and never execute shell text. Codex todo lists and ACP plan updates appear as an agent checklist with completion markers, separate from harness tasks and queued plan files. Long checklists stay compact, with the full list available in Details and replay output.
+
 ## ACP middlewares
 
 Pass `middlewares` to `spawnStreaming` or `spawnAcp` to wrap the ACP session lifecycle. A middleware receives a mutable `SpawnContext` with session id, agent id, prompt/model/mode/cwd, accumulated events, usage, optional event stream, and any log file selected by the middleware. Middlewares must call `next()` at most once.

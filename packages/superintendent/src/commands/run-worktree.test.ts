@@ -293,4 +293,28 @@ describe("superintendent run worktree mode", () => {
     );
     expect(spawnMock.mock.calls[0]![1]).not.toHaveProperty("mode");
   });
+
+  it("preserves the worktree when a queued follow-up fails", async () => {
+    const fs = createFs({
+      "/repo/plan.md": createDoc("codex"),
+      "/repo/.poe-code/worktrees/sup-wt/plan.md": createDoc("codex")
+    });
+    const deps = {
+      fs,
+      exec: vi.fn(async (command: string) => ({
+        stdout: command === "git rev-parse HEAD" ? "new-head\n" : " M src/feature.ts\0", stderr: ""
+      }))
+    };
+    const { runSuperintendentCommand } = await import("./run.js");
+    const result = await runSuperintendentCommand({
+      cwd: "/repo", homeDir: "/home/test", docs: ["plan.md"], afterEachPlan: ["Review", "Verify"],
+      assumeYes: true, useDashboard: false, fs, worktree: true, worktreeDeps: deps as never,
+      runLoop: async () => ({ state: "completed", round: 1, reviewTurn: 0, maxRounds: 2, maxReviewTurns: 5, stopReason: "completed" }),
+      executeAgent: async () => ({ stdout: "", stderr: "Review failed", exitCode: 1 })
+    });
+    expect(result.queue?.status).toBe("failed");
+    expect(worktreeMocks.reconcileWorktree).not.toHaveBeenCalled();
+    expect(worktreeMocks.updateWorktreeEntry).toHaveBeenCalled();
+    expect(spawnMock).not.toHaveBeenCalled();
+  });
 });

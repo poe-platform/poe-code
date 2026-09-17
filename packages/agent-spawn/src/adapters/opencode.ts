@@ -127,7 +127,7 @@ export async function* adaptOpenCode(
 
       const kind = guessToolKind(part.tool);
       const status = state.status;
-      const terminal = status === "completed" || status === "failed";
+      const terminal = status === "completed" || status === "failed" || status === "cancelled";
 
       if (!toolKindById.has(part.callID)) {
         toolKindById.set(part.callID, kind);
@@ -158,7 +158,8 @@ export async function* adaptOpenCode(
           event: "tool_complete",
           id: part.callID,
           kind: kindFromStart,
-          path: safeStringify(state.output)
+          path: safeStringify(state.output),
+          status
         };
       }
 

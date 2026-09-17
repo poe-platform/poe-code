@@ -55,6 +55,7 @@ export type RalphStopReason = "completed" | "max_iterations" | "cancelled" | "fa
 export interface RalphRunResult {
   stopReason: RalphStopReason;
   docPath: string;
+  archivedPath?: string;
   iterationsCompleted: number;
   totalDurationMs: number;
 }

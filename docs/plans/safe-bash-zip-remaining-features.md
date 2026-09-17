@@ -172,7 +172,7 @@ tasks:
       reproduce: done
       implement: done
       test: done
-      commit: open
+      commit: done
   - id: zip-delivery
     title: "Deliver verified changes and monitor GitHub publication"
     prompt: |
@@ -180,7 +180,7 @@ tasks:
 
       When execution and delivery of this pipeline are authorized, deliver its atomic verified commits on main using normal hooks, no force push and no unrelated staging. This planning request itself does not authorize running the pipeline or pushing. Revalidate after concurrent-main integration; preserve SafeJS and other workers. Verify delivered ancestry and monitor all required GitHub publication workflows, following successors only after confirming they contain the delivered changes. Inspect docs/development/NPM_PUBLISHING.md and the actual scoped-package publication contract; if a new optional package lacks GitHub trusted-publisher bootstrap, report the exact external blocker and approved recovery route, never substitute local/token publishing. Confirm registry versions and provenance, then smoke test installed artifacts with a compact ZIP create/extract/password example. Record local SHA, remote-main evidence, workflow URL/conclusion and each actual published version separately. A push or green build alone is not verified publication.
     status:
-      release: open
+      release: done
 finalization: pending
 ---
 

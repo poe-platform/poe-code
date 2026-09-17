@@ -49,7 +49,6 @@ import {
   type PipelineSequenceOptions,
   type PipelineSequenceResult,
   type PipelineInitSource,
-  type PipelineRunOptions,
   type PipelineRunResult,
   type PlanSummary,
   type TaskCompletion,

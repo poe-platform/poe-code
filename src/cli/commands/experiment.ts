@@ -61,7 +61,6 @@ import {
   resolveScope,
   type ConfigDocument
 } from "@poe-code/poe-code-config/core";
-import type { ExperimentRunOptions } from "@poe-code/experiment-loop";
 import {
   formatDashboardDuration,
   registerDashboardQuitCommands,

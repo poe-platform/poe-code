@@ -118,3 +118,12 @@ model, SDK and actual shell routes preserve original members and relationship
 graphs. Shared replacement followed by a separate layout operation is qualified;
 combined shared resizing retains its explicit contract-defined rejection.
 Full-family acceptance and independently spelled relationship members remain open.
+
+## Shared replacement sizing refusal
+
+The [shared sizing record](shared-image-sizing-20260917.md) retains all 160
+SDK/actual-shell dialect/kind/owner/spelling/sizing combinations with the explicit
+§6.5 usage-rejection oracle and unchanged publication sentinels. An uncommitted
+guard removal and its mistaken positive oracle were withdrawn; all historical
+execution logs remain qualified as history. No required case was removed, and
+successful combined shared resizing is not claimed as conformance.

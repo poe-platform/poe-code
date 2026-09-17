@@ -240,6 +240,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
       const continuation = () => {newPage(); for (const h of headers) drawRow(h.cells, h.height);};
       // Start headers with at least one body line, avoiding a header-only page.
       if (preparedRows.length > headerCount) room(headerHeight + Math.max(...preparedRows[headerCount]!.cells.map(cell => (cell[0]?.height ?? 0) + 8)));
+      else room(headerHeight);
       for (let r = 0; r < preparedRows.length; r++) {
         const row = preparedRows[r]!;
         if (r < headerCount) {drawRow(row.cells, row.height); continue;}

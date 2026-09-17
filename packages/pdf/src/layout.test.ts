@@ -60,6 +60,15 @@ it("contains large images with their intrinsic aspect ratio", async () => {
   const {boxes} = await inspect([{kind: "image", bytes, media: "png", width: 400, height: 300, fit: "contain"}]);
   expect(boxes[0]).toMatchObject({kind: "image", width: 100, height: 100});
 });
+it("moves a header-only table as a whole when the remaining page cannot fit it", async () => {
+  const {boxes, pdf} = await inspect([p("a\nb\nc\nd\ne"), {
+    kind: "table", widths: [1], headerRows: 2,
+    rows: [[p("header one")], [p("header two")]]
+  }]);
+  expect(pdf.getPageCount()).toBe(2);
+  expect(boxes.filter(b => b.kind === "cell").map(b => b.page)).toEqual([2, 2]);
+  for (const b of boxes) expect(b.y + b.height).toBeLessThanOrEqual(110.00001);
+});
 it("keeps headings with images and declared table headers", async () => {
   const bytes = Uint8Array.from([137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,1,0,0,0,1,8,2,0,0,0,144,119,83,222,0,0,0,12,73,68,65,84,120,156,99,80,104,56,0,0,2,36,1,97,221,20,154,144,0,0,0,0,73,69,78,68,174,66,96,130]);
   const heading = {...p("heading"), keepWithNext: true};

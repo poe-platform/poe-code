@@ -1,5 +1,11 @@
 # DOCX acceptance matrix
 
+The [2026-09-17 duplicate ZIP member qualification](public-duplicate-members-20260917/evidence.json)
+records 96 exact passing expected-rejection cases with admitted controls through
+model/SDK/actual Shell, both dialects/kinds, stored/deflated and ZIP32/ZIP64.
+Root relationship and ordinary data-member collisions fail before publication.
+No product change was necessary; this closes these variants only, not F01.
+
 The [2026-09-17 native OPC relationship qualification](relationship-mce-native-20260917.md)
 binds 4,836 exact named cases to sixteen requirements across both dialects/kinds,
 root/document owners, relationship MCE/schema/scalars, four encodings, typed

@@ -22,7 +22,7 @@ import { renderContent, xmlValue } from "./create-content.js";
 import { documentDialects, dialectForNamespace } from "./dialect.js";
 import { runElementOpen } from "./run-properties.js";
 import { DocumentPackage } from "./package.js";
-import { relativePartTarget } from "./part-uri.js";
+import { asciiKey, normalizePartName, relativePartTarget } from "./part-uri.js";
 import {
   bindDocumentStyles,
   styleOwnerCheckpoints,
@@ -236,7 +236,7 @@ export class ModelStore {
   }
   deletePart(part: string): void {
     this.writable();
-    const name = part.startsWith("/") ? part.slice(1) : part;
+    const name = this.memberName(part);
     this.archive = this.snapshot();
     this.archive = {
       ...this.archive,
@@ -257,8 +257,19 @@ export class ModelStore {
       }))
     };
   }
+  private memberName(part: string): string {
+    const name = part.startsWith("/") ? part.slice(1) : part;
+    const key = asciiKey(name) === "[content_types].xml" ? "/[content_types].xml" : asciiKey(normalizePartName("/" + name));
+    for (const member of this.archive.members) {
+      this.context.budget.charge("work", 1 + member.name.length);
+      if (member.directory) continue;
+      const candidate = asciiKey(member.name) === "[content_types].xml" ? "/[content_types].xml" : asciiKey(normalizePartName("/" + member.name));
+      if (key === candidate) return member.name;
+    }
+    return name;
+  }
   xml(part: string): DocumentXmlEditor {
-    part = part.startsWith("/") ? part : "/" + part;
+    part = "/" + this.memberName(part);
     let xml = this.editors.get(part);
     if (!xml) {
       const member = this.archive.members.find((member) => "/" + member.name === part);
@@ -269,7 +280,7 @@ export class ModelStore {
     return xml;
   }
   ref(part: string, node: XmlElement): ModelRef {
-    part = part.startsWith("/") ? part : "/" + part;
+    part = "/" + this.memberName(part);
     for (const handle of this.handles.values())
       if (handle.ref.part === part && handle.node === node) return handle.ref;
     this.context.budget.charge("retainedBytes", 192);
@@ -303,6 +314,7 @@ export class ModelStore {
   }
   change(part: string, action: (xml: DocumentXmlEditor) => void): void {
     this.writable();
+    part = "/" + this.memberName(part);
     const old = this.xml(part);
     const candidate = new DocumentXmlEditor(old.serialize(), {}, undefined, this.context.budget);
     // Callbacks resolve against the current owner editor; publication occurs only after successful serialization.
@@ -436,7 +448,8 @@ export class ModelStore {
     return this.styles.get_style_id(value, WD_STYLE_TYPE.TABLE);
   }
   part(part: string): XmlPartView {
-    const view = this.package.parts.find((view) => view.partname.toString() === part);
+    const name = normalizePartName(part.startsWith("/") ? part : "/" + part);
+    const view = this.package.parts.find((view) => asciiKey(view.partname.toString()) === asciiKey(name));
     if (!(view instanceof XmlPartView)) throw new StaleHandleError("The XML part is detached.");
     return view;
   }
@@ -575,7 +588,7 @@ export class ModelStore {
       return;
     }
     this.writable();
-    const name = part.startsWith("/") ? part.slice(1) : part;
+    const name = this.memberName(part);
     this.archive = this.snapshot();
     const found = this.archive.members.find((member) => member.name === name);
     if (found) {

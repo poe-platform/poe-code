@@ -1,4 +1,4 @@
-import { archiveSettings, InputTypeError, InvalidValueError, ResourceLimitError, type ArchiveContext, type DocumentArchive } from "./archive.js";
+import { archiveSettings, InputTypeError, InvalidValueError, ResourceLimitError, type ArchiveContext, type ArchiveMember, type DocumentArchive } from "./archive.js";
 import { DocumentPackage, type PackagePart, type PackageRelationship } from "./package.js";
 import { validateDocumentArchive, SemanticValidationError } from "./validation.js";
 import { MissingKeyError, StaleHandleError } from "./model-errors.js";
@@ -111,6 +111,13 @@ export class PackageView {
       this.#cached = { version, archive, graph: new DocumentPackage(archive, settings.limits, settings.budget) };
     }
     return this.#cached;
+  }
+  private relationshipMember(owner: string): ArchiveMember | undefined {
+    const { archive, graph } = this.current();
+    const key = asciiKey("/" + relationshipName(owner));
+    archiveSettings(this.#binding.context).budget.charge("work", graph.parts.length + archive.members.length);
+    const part = graph.parts.find(part => asciiKey(part.partname) === key);
+    return part && archive.members.find(member => member.name === part.name);
   }
   [packageRegister](part: PartView, name: string): void {
     name = normalizePartName(name);
@@ -247,7 +254,7 @@ export class PackageView {
     if (relationship) {
       const owner = this[packageMetadata](relationship.owner).partname;
       const relName = relationshipName(owner);
-      const existing = members.find(member => member.name === relName);
+      const existing = this.relationshipMember(owner);
       if (!existing) {
         settings.budget.charge("insertedNodes", 1);
         overrides += `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="/${xmlValue(relName)}" ContentType="${relContentType}"/>`;
@@ -306,8 +313,7 @@ export class PackageView {
   }
   [packageEdges](owner: PartView | null): readonly PackageRelationship[] { return this.current().graph.relationships(owner ? this[packageMetadata](owner).partname : "/"); }
   [packageRelationshipXml](owner: PartView | null): string {
-    const name = relationshipName(owner ? this[packageMetadata](owner).partname : "/");
-    const bytes = this.current().archive.members.find(member => member.name === name)?.bytes ?? new TextEncoder().encode(`<Relationships xmlns="${relNamespace}"/>`);
+    const bytes = this.relationshipMember(owner ? this[packageMetadata](owner).partname : "/")?.bytes ?? new TextEncoder().encode(`<Relationships xmlns="${relNamespace}"/>`);
     const budget = archiveSettings(this.#binding.context).budget;
     budget.charge("work", bytes.length); budget.charge("retainedBytes", bytes.length);
     const document = parseDocumentXml(bytes, {}, budget);
@@ -317,7 +323,7 @@ export class PackageView {
     this.#binding.writable();
     const { archive } = this.current(), settings = archiveSettings(this.#binding.context);
     const name = relationshipName(owner ? this[packageMetadata](owner).partname : "/");
-    const existing = archive.members.find(member => member.name === name);
+    const existing = this.relationshipMember(owner ? this[packageMetadata](owner).partname : "/");
     let bytes = existing?.bytes ?? new TextEncoder().encode(`<Relationships xmlns="${relNamespace}"/>`);
     const previous = this[packageEdges](owner);
     const pending = new Map(rows.map(row => [row.rId, row]));
@@ -420,14 +426,22 @@ export class PackageView {
     const { archive, graph } = this.current(), settings = archiveSettings(this.#binding.context);
     if (graph.parts.some(existing => asciiKey(existing.partname) === asciiKey(to))) throw new InvalidValueError("The part name is already occupied.");
     const replacements = new Map<string, Uint8Array>();
+    const ownedRelationships = this.relationshipMember(from);
+    const renamedParts = new Map([[asciiKey(from), to]]);
+    if (ownedRelationships) renamedParts.set(asciiKey(normalizePartName("/" + ownedRelationships.name)), "/" + relationshipName(to));
     const types = archive.members.find(member => asciiKey(member.name) === "[content_types].xml")!;
     const typeEditor = new DocumentXmlEditor(types.bytes, {}, undefined, settings.budget);
     let override = false;
-    for (const node of typeEditor.root.children) if (node.attributes.some(attribute => attribute.localName === "PartName" && asciiKey(attribute.value) === asciiKey(from))) { typeEditor.setAttribute(node, "PartName", to); override = true; }
+    for (const node of typeEditor.root.children) {
+      const value = node.attributes.find(attribute => attribute.localName === "PartName")?.value;
+      if (value === undefined) continue;
+      const destination = renamedParts.get(asciiKey(normalizePartName(value)));
+      if (destination) { typeEditor.setAttribute(node, "PartName", destination); if (destination === to) override = true; }
+    }
     if (!override) typeEditor.insertChildren(typeEditor.root, `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="${xmlValue(to)}" ContentType="${xmlValue(metadata.content_type)}"/>`);
     replacements.set(types.name, typeEditor.serialize());
     for (const owner of ["/", ...graph.parts.filter(part => asciiKey(part.content_type) !== relContentType).map(part => part.partname)]) {
-      const edges = graph.relationships(owner), member = archive.members.find(member => member.name === relationshipName(owner));
+      const edges = graph.relationships(owner), member = this.relationshipMember(owner);
       if (!member || !edges.some(edge => !edge.is_external && (owner === from || edge.target_part.partname === from))) continue;
       const xml = new DocumentXmlEditor(member.bytes, {}, undefined, settings.budget);
       for (const node of xml.root.children) {
@@ -440,7 +454,7 @@ export class PackageView {
       replacements.set(member.name, xml.serialize());
     }
     const members = archive.members.map(member => ({ ...member,
-      name: member.name === from.slice(1) ? to.slice(1) : member.name === relationshipName(from) ? relationshipName(to) : member.name,
+      name: member.name === metadata.name ? to.slice(1) : member === ownedRelationships ? relationshipName(to) : member.name,
       bytes: replacements.get(member.name) ?? member.bytes
     }));
     this.commit({ ...archive, members }, { from, to });

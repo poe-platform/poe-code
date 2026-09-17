@@ -1,5 +1,9 @@
 # DOCX acceptance matrix
 
+The [2026-09-16 canonical OPC follow-up](opc-canonical-parts-20260916.md) adds
+exact current URI/relationship/XML evidence for F01/F02/F04/F06/F07. It does not
+close these complete families or replace the historical bounded matrix below.
+
 Verified 2026-09-15. Levels below are the actual discovery-declared bounded
 subsets, corroborated by maintained DOCX checks and linked feature evidence;
 they do not certify every schema node or every document. Read returns snapshots,

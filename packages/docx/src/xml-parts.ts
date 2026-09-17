@@ -38,7 +38,9 @@ function selector(part: string): string {
   return normalizePartName(part);
 }
 function selected(archive: AdmittedDocumentArchive, name: string): ArchiveMember {
-  const matches = archive.members.filter(member => !member.directory && asciiKey("/" + member.name) === asciiKey(name));
+  const matches = archive.members.filter(member => !member.directory && asciiKey(
+    asciiKey(member.name) === "[content_types].xml" ? "/[Content_Types].xml" : normalizePartName("/" + member.name)
+  ) === asciiKey(name));
   if (!matches.length) throw new SelectionError("missing-selection");
   if (matches.length !== 1) throw new SelectionError("ambiguous-selection");
   const member = matches[0]!;
@@ -75,7 +77,8 @@ export async function getDocumentXml(input: Uint8Array, context: ArchiveContext,
     for (let offset = 0; offset < xml.bytes.length; offset += 8192) chunks.push(String.fromCharCode(...xml.bytes.subarray(offset, offset + 8192)));
     content = btoa(chunks.join(""));
   }
-  const data: XmlData = { part: "/" + member.name, encoding: options.pretty ? "utf-8" : "base64", content, pretty: options.pretty ?? false, bytes: xml.bytes.length, sha256: await digest(xml.bytes, budget) };
+  const partname = asciiKey(member.name) === "[content_types].xml" ? "/[Content_Types].xml" : archive.package.getPart(name).partname;
+  const data: XmlData = { part: partname, encoding: options.pretty ? "utf-8" : "base64", content, pretty: options.pretty ?? false, bytes: xml.bytes.length, sha256: await digest(xml.bytes, budget) };
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify(data)).length);
   return data;
 }
@@ -118,21 +121,22 @@ export async function replaceDocumentXmlPart(input: Uint8Array, replacement: Uin
   catch (error) {
     if (!allowEmpty || !(error instanceof SelectionError) || error.code !== "missing-selection") throw error;
   }
+  const partname = member === undefined ? name : asciiKey(member.name) === "[content_types].xml" ? "/[Content_Types].xml" : archive.package.getPart(name).partname;
   assertDocumentEditable(archive, settings);
   const changed = member !== undefined && (member.bytes.length !== xml.bytes.length || member.bytes.some((byte, index) => byte !== xml.bytes[index]));
   const ownership = readDocumentBindingOwnership(archive.package, budget);
   const bindingIds = new Set(ownership.declarations.flatMap(declaration => declaration.storeItemId === null ? [] : [declaration.storeItemId.toLowerCase()]));
   const bindingParts = new Set(ownership.declarations.map(declaration => declaration.part));
   for (const store of ownership.stores) if (store.storeItemId !== null && bindingIds.has(store.storeItemId.toLowerCase())) { bindingParts.add(store.item); bindingParts.add(store.properties); }
-  if (changed && bindingParts.has("/" + member!.name)) throw new UnsupportedEditError("Raw replacement of binding declarations or referenced stores is unsupported; use controls bind.");
-  const unboundCustomItem = member !== undefined && ["/", ...archive.package.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(part => part.partname)].some(owner => archive.package.relationships(owner).some(edge => !edge.is_external && ["http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml", "http://purl.oclc.org/ooxml/officeDocument/relationships/customXml"].includes(edge.reltype) && edge.target_part.partname === "/" + member!.name));
+  if (changed && bindingParts.has(partname)) throw new UnsupportedEditError("Raw replacement of binding declarations or referenced stores is unsupported; use controls bind.");
+  const unboundCustomItem = member !== undefined && ["/", ...archive.package.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(part => part.partname)].some(owner => archive.package.relationships(owner).some(edge => !edge.is_external && ["http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml", "http://purl.oclc.org/ooxml/officeDocument/relationships/customXml"].includes(edge.reltype) && edge.target_part.partname === partname));
   const candidate = { ...archive, members: archive.members.map(entry => entry === member ? { ...entry, bytes: xml.bytes } : entry) };
   const graph = new DocumentPackage(candidate, settings.limits, budget);
   if (member) {
     const original = parseDocumentXml(member.bytes, {}, budget);
-    if (changed) await assertDiagramXmlReplacement(archive, original.root, xml.root, owned, "/" + member.name, budget);
-    if (changed) await assertEquationXmlReplacement(archive, original.root, xml.root, owned, "/" + member.name, budget,xml.bytes);
-    const originalPart = archive.package.parts.find(part => part.partname === "/" + member.name);
+    if (changed) await assertDiagramXmlReplacement(archive, original.root, xml.root, owned, partname, budget);
+    if (changed) await assertEquationXmlReplacement(archive, original.root, xml.root, owned, partname, budget,xml.bytes);
+    const originalPart = archive.package.parts.find(part => part.partname === partname);
     if (changed && originalPart) assertSettingsXmlReplacement(originalPart.content_type, member.bytes, xml.bytes, budget);
     if (changed) await assertDiagramGraphReplacement(archive, graph, owned, name, budget);
     if (original.root.namespace !== xml.root.namespace || original.root.localName !== xml.root.localName)
@@ -149,11 +153,11 @@ export async function replaceDocumentXmlPart(input: Uint8Array, replacement: Uin
     throw new UnsupportedEmbeddedFontMutationError();
   const originalMain = archive.package.relationships("/").find(edge => edge.reltype === `${documentDialects[archive.dialect].r}/officeDocument`)!;
   const mainEdges = graph.relationships("/").filter(edge => edge.reltype === originalMain.reltype);
-  if (mainEdges.length !== 1 || mainEdges[0]!.is_external || mainEdges[0]!.target_part.partname !== "/" + archive.mainPart)
+  if (mainEdges.length !== 1 || mainEdges[0]!.is_external || mainEdges[0]!.target_part.partname !== originalMain.target_part.partname)
     throw new UnsupportedEditError("XML replacement cannot rebind the main document part.");
   const sourceSha256 = await digest(owned, budget);
   const location = (generation: number): PartLocation => {
-    const value = { version: 1 as const, sourceSha256, generation, part: "/" + member!.name, story: "/" + member!.name, path: [], range: null };
+    const value = { version: 1 as const, sourceSha256, generation, part: partname, story: partname, path: [], range: null };
     return { kind: "part", token: encodeLocation(value), value, positions: {} };
   };
   const changes = changed ? [{ kind: "replace" as const, before: location(0), after: location(1) }] : [];

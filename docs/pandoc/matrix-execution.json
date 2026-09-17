@@ -1,0 +1,3971 @@
+{
+  "sourceCommit": "c9a9a5eed7185783b69043e019c067370dc09615",
+  "inventory": {
+    "total": 4211,
+    "pass": 0,
+    "fail": 0,
+    "unsupported": 0,
+    "notRun": 4211,
+    "reason": "No originalLocalTestId mapping claimed by this owned execution."
+  },
+  "oracle": {
+    "executable": "docs/pandoc/matrix-oracle-tools/pandoc-3.10.1-arm64/bin/pandoc",
+    "version": "pandoc 3.10.1\nFeatures: +server +lua\nScripting engine: Lua 5.4\nUser data directory: /Users/kjopek/.local/share/pandoc\nCopyright (C) 2006-2025 John MacFarlane. Web:  https://pandoc.org\nThis is free software; see the source for copying conditions. There is no\nwarranty, not even for merchantability or fitness for a particular purpose.\n",
+    "sha256": "e4688048ef1782760376ed20c422dfe26d3d257cbe382fea2f2394cf11ffeb0f",
+    "artifactURL": "https://github.com/jgm/pandoc/releases/download/3.10.1/pandoc-3.10.1-arm64-macOS.zip",
+    "artifactSha256": "8607160694a70ed9aa63776caa44acef3afb729c379c7c283724b7e27455bfda",
+    "sourceRelationship": "Official release binary; not built from research clone HEAD.",
+    "help": "pandoc [OPTIONS] [FILES]\n  -f FORMAT, -r FORMAT  --from=FORMAT, --read=FORMAT\n  -t FORMAT, -w FORMAT  --to=FORMAT, --write=FORMAT\n  -o FILE               --output=FILE\n                        --data-dir=DIRECTORY\n  -M KEY[=VALUE]        --metadata=KEY[=VALUE]\n                        --metadata-file=FILE\n  -d FILE               --defaults=FILE\n                        --file-scope[=true|false]\n                        --sandbox[=true|false]\n  -s[true|false]        --standalone[=true|false]\n                        --template=FILE\n  -V KEY[=VALUE]        --variable=KEY[=VALUE]\n                        --variable-json=KEY[:JSON]\n                        --wrap=auto|none|preserve\n                        --ascii[=true|false]\n                        --toc[=true|false], --table-of-contents[=true|false]\n                        --toc-depth=NUMBER\n                        --lof[=true|false], --list-of-figures[=true|false]\n                        --lot[=true|false], --list-of-tables[=true|false]\n  -N[true|false]        --number-sections[=true|false]\n                        --number-offset=NUMBERS\n                        --top-level-division=section|chapter|part\n                        --extract-media=PATH\n                        --resource-path=SEARCHPATH\n  -H FILE               --include-in-header=FILE\n  -B FILE               --include-before-body=FILE\n  -A FILE               --include-after-body=FILE\n                        --no-highlight\n                        --highlight-style=STYLE|FILE\n                        --syntax-definition=FILE\n                        --syntax-highlighting=none|default|idiomatic|<stylename>|<themepath>\n                        --dpi=NUMBER\n                        --eol=crlf|lf|native\n                        --columns=NUMBER\n  -p[true|false]        --preserve-tabs[=true|false]\n                        --tab-stop=NUMBER\n                        --pdf-engine=PROGRAM\n                        --pdf-engine-opt=STRING\n                        --reference-doc=FILE\n                        --self-contained[=true|false]\n                        --embed-resources[=true|false]\n                        --link-images[=true|false]\n                        --request-header=NAME=VALUE\n                        --no-check-certificate[=true|false]\n                        --abbreviations=FILE\n                        --typst-input=KEY=VALUE\n                        --indented-code-classes=STRING\n                        --default-image-extension=extension\n  -F PROGRAM            --filter=PROGRAM\n  -L SCRIPTPATH         --lua-filter=SCRIPTPATH\n                        --shift-heading-level-by=NUMBER\n                        --base-header-level=NUMBER\n                        --track-changes=accept|reject|all\n                        --strip-comments[=true|false]\n                        --reference-links[=true|false]\n                        --reference-location=block|section|document\n                        --figure-caption-position=above|below\n                        --table-caption-position=above|below\n                        --markdown-headings=setext|atx\n                        --list-tables[=true|false]\n                        --listings[=true|false]\n  -i[true|false]        --incremental[=true|false]\n                        --slide-level=NUMBER\n                        --section-divs[=true|false]\n                        --html-q-tags[=true|false]\n                        --email-obfuscation=none|javascript|references\n                        --id-prefix=STRING\n  -T STRING             --title-prefix=STRING\n  -c URL                --css=URL\n                        --epub-subdirectory=DIRNAME\n                        --epub-cover-image=FILE\n                        --epub-title-page[=true|false]\n                        --epub-metadata=FILE\n                        --epub-embed-font=FILE\n                        --split-level=NUMBER\n                        --chunk-template=PATHTEMPLATE\n                        --epub-chapter-level=NUMBER\n                        --ipynb-output=all|none|best\n  -C                    --citeproc\n                        --bibliography=FILE\n                        --csl=FILE\n                        --citation-abbreviations=FILE\n                        --natbib\n                        --biblatex\n                        --mathml\n                        --webtex[=URL]\n                        --mathjax[=URL]\n                        --katex[=URL]\n                        --gladtex\n                        --trace[=true|false]\n                        --dump-args[=true|false]\n                        --ignore-args[=true|false]\n                        --verbose\n                        --quiet\n                        --fail-if-warnings[=true|false]\n                        --log=FILE\n                        --bash-completion\n                        --list-input-formats\n                        --list-output-formats\n                        --list-extensions[=FORMAT]\n                        --list-highlight-languages\n                        --list-highlight-styles\n  -D FORMAT             --print-default-template=FORMAT\n                        --print-default-data-file=FILE\n                        --print-highlight-style=STYLE|FILE\n  -v                    --version\n  -h                    --help\n",
+    "inputFormats": "asciidoc\nbiblatex\nbibtex\nbits\ncommonmark\ncommonmark_x\ncreole\ncsljson\ncsv\ndjot\ndocbook\ndocx\ndokuwiki\nendnotexml\nepub\nfb2\ngfm\nhaddock\nhtml\nipynb\njats\njira\njson\nlatex\nman\nmarkdown\nmarkdown_github\nmarkdown_mmd\nmarkdown_phpextra\nmarkdown_strict\nmdoc\nmediawiki\nmuse\nnative\nodt\nopml\norg\npod\npptx\nris\nrst\nrtf\nt2t\ntextile\ntikiwiki\ntsv\ntwiki\ntypst\nvimwiki\nxlsx\nxml\n",
+    "outputFormats": "ansi\nasciidoc\nasciidoc_legacy\nasciidoctor\nbbcode\nbbcode_fluxbb\nbbcode_hubzilla\nbbcode_phpbb\nbbcode_steam\nbbcode_xenforo\nbeamer\nbiblatex\nbibtex\nchunkedhtml\ncommonmark\ncommonmark_x\ncontext\ncsljson\ndjot\ndocbook\ndocbook4\ndocbook5\ndocx\ndokuwiki\ndzslides\nepub\nepub2\nepub3\nfb2\ngfm\nhaddock\nhtml\nhtml4\nhtml5\nicml\nipynb\njats\njats_archiving\njats_articleauthoring\njats_publishing\njira\njson\nlatex\nman\nmarkdown\nmarkdown_github\nmarkdown_mmd\nmarkdown_phpextra\nmarkdown_strict\nmarkua\nmediawiki\nms\nmuse\nnative\nodt\nopendocument\nopml\norg\npdf\nplain\npptx\nrevealjs\nrst\nrtf\ns5\nslideous\nslidy\nt2t\ntei\ntexinfo\ntextile\ntypst\nvimdoc\nxml\nxwiki\nzimwiki\n"
+  },
+  "readerAST": [
+    {
+      "id": "commonmark",
+      "argv": [
+        "--sandbox",
+        "--from",
+        "commonmark",
+        "--to",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "expected": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix"
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix"
+              }
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm",
+      "argv": [
+        "--sandbox",
+        "--from",
+        "gfm",
+        "--to",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "expected": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix"
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix"
+              }
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "outcome": "pass"
+    },
+    {
+      "id": "html",
+      "argv": [
+        "--sandbox",
+        "--from",
+        "html",
+        "--to",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "expected": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix"
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix"
+              }
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "outcome": "pass"
+    },
+    {
+      "id": "json",
+      "argv": [
+        "--sandbox",
+        "--from",
+        "json",
+        "--to",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "expected": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix"
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix"
+              }
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "outcome": "pass"
+    },
+    {
+      "id": "latex",
+      "argv": [
+        "--sandbox",
+        "--from",
+        "latex",
+        "--to",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "expected": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix"
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix"
+              }
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "outcome": "pass"
+    },
+    {
+      "id": "rst",
+      "argv": [
+        "--sandbox",
+        "--from",
+        "rst",
+        "--to",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "expected": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix"
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix"
+              }
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf",
+      "argv": [
+        "--sandbox",
+        "--from",
+        "rtf",
+        "--to",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "expected": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix"
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix"
+              }
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "outcome": "pass"
+    },
+    {
+      "id": "csv",
+      "argv": [
+        "--sandbox",
+        "--from",
+        "csv",
+        "--to",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "expected": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "Matrix"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  []
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  "AlignDefault",
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        "AlignDefault",
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "Matrix"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  []
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "outcome": "fail",
+      "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    {\n      c: [\n        [\n          '',\n...\n          [\n+           'AlignDefault',\n            {\n-             t: 'AlignDefault'\n-           },\n-           {\n              t: 'ColWidthDefault'\n            }\n          ]\n        ],\n        [\n...\n                  ],\n+                 'AlignDefault',\n-                 {\n-                   t: 'AlignDefault'\n-                 },\n                  1,\n                  1,\n                  [\n                    {\n                      c: [\n"
+    },
+    {
+      "id": "tsv",
+      "argv": [
+        "--sandbox",
+        "--from",
+        "tsv",
+        "--to",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "expected": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "Matrix"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  []
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  "AlignDefault",
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        "AlignDefault",
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "Matrix"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  []
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "outcome": "fail",
+      "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    {\n      c: [\n        [\n          '',\n...\n          [\n+           'AlignDefault',\n            {\n-             t: 'AlignDefault'\n-           },\n-           {\n              t: 'ColWidthDefault'\n            }\n          ]\n        ],\n        [\n...\n                  ],\n+                 'AlignDefault',\n-                 {\n-                   t: 'AlignDefault'\n-                 },\n                  1,\n                  1,\n                  [\n                    {\n                      c: [\n"
+    },
+    {
+      "id": "epub2",
+      "argv": [
+        "--sandbox",
+        "--from",
+        "epub",
+        "--to",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "expected": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {
+          "identifier": {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "urn:owned:matrix"
+              }
+            ]
+          },
+          "language": {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "en"
+              }
+            ]
+          },
+          "title": {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix Book"
+              }
+            ]
+          }
+        },
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Span",
+                "c": [
+                  [
+                    "chapter.xhtml",
+                    [],
+                    []
+                  ],
+                  []
+                ]
+              }
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix"
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Div",
+            "c": [
+              [
+                "Book/chapter.xhtml",
+                [
+                  "epub-chapter"
+                ],
+                [
+                  [
+                    "data-epub-source",
+                    "Book/chapter.xhtml"
+                  ],
+                  [
+                    "data-epub-item-id",
+                    "chapter"
+                  ],
+                  [
+                    "data-epub-linear",
+                    "yes"
+                  ],
+                  [
+                    "lang",
+                    "en"
+                  ]
+                ]
+              ],
+              [
+                {
+                  "t": "Para",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "Matrix"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ],
+        "metadata": {
+          "identifier": {
+            "t": "MetaString",
+            "c": "urn:owned:matrix"
+          },
+          "title": {
+            "t": "MetaString",
+            "c": "Matrix Book"
+          },
+          "language": {
+            "t": "MetaString",
+            "c": "en"
+          },
+          "epub-toc": {
+            "t": "MetaList",
+            "c": [
+              {
+                "t": "MetaMap",
+                "c": {
+                  "label": {
+                    "t": "MetaString",
+                    "c": "Matrix"
+                  },
+                  "target": {
+                    "t": "MetaString",
+                    "c": "#Book/chapter.xhtml"
+                  },
+                  "children": {
+                    "t": "MetaList",
+                    "c": []
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "resources": [],
+        "language": "en"
+      },
+      "outcome": "fail",
+      "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    {\n      c: [\n+       [\n+         'Book/chapter.xhtml',\n+         [\n+           'epub-chapter'\n+         ],\n+         [\n-       {\n-         c: [\n            [\n+             'data-epub-source',\n+             'Book/chapter.xhtml'\n-             'chapter.xhtml',\n-             [],\n-             []\n            ],\n+           [\n+             'data-epub-item-id',\n+             'chapter'\n+           ],\n+           [\n+             'data-epub-linear',\n+             'yes'\n+           ],\n+           [\n+             'lang',\n+             'en'\n+           ]\n-           []\n          ],\n+       ],\n+       [\n+         {\n+           c: [\n+             {\n+               c: 'Matrix',\n+               t: 'Str'\n+             }\n+           ],\n+           t: 'Para'\n+         }\n+       ]\n-         t: 'Span'\n-       }\n      ],\n+     t: 'Div'\n-     t: 'Para'\n    },\n-   {\n-     c: [\n-       {\n-         c: 'Matrix',\n-         t: 'Str'\n-       }\n-     ],\n-     t: 'Para'\n-   }\n  ]\n"
+    },
+    {
+      "id": "epub3",
+      "argv": [
+        "--sandbox",
+        "--from",
+        "epub",
+        "--to",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "expected": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {
+          "identifier": {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "urn:owned:matrix"
+              }
+            ]
+          },
+          "language": {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "en"
+              }
+            ]
+          },
+          "title": {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix Book"
+              }
+            ]
+          }
+        },
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Span",
+                "c": [
+                  [
+                    "chapter.xhtml",
+                    [],
+                    []
+                  ],
+                  []
+                ]
+              }
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix"
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Div",
+            "c": [
+              [
+                "Book/chapter.xhtml",
+                [
+                  "epub-chapter"
+                ],
+                [
+                  [
+                    "data-epub-source",
+                    "Book/chapter.xhtml"
+                  ],
+                  [
+                    "data-epub-item-id",
+                    "chapter"
+                  ],
+                  [
+                    "data-epub-linear",
+                    "yes"
+                  ],
+                  [
+                    "lang",
+                    "en"
+                  ]
+                ]
+              ],
+              [
+                {
+                  "t": "Para",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "Matrix"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ],
+        "metadata": {
+          "identifier": {
+            "t": "MetaString",
+            "c": "urn:owned:matrix"
+          },
+          "title": {
+            "t": "MetaString",
+            "c": "Matrix Book"
+          },
+          "language": {
+            "t": "MetaString",
+            "c": "en"
+          },
+          "epub-toc": {
+            "t": "MetaList",
+            "c": [
+              {
+                "t": "MetaMap",
+                "c": {
+                  "label": {
+                    "t": "MetaString",
+                    "c": "Matrix"
+                  },
+                  "target": {
+                    "t": "MetaString",
+                    "c": "#Book/chapter.xhtml"
+                  },
+                  "children": {
+                    "t": "MetaList",
+                    "c": []
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "resources": [],
+        "language": "en"
+      },
+      "outcome": "fail",
+      "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    {\n      c: [\n+       [\n+         'Book/chapter.xhtml',\n+         [\n+           'epub-chapter'\n+         ],\n+         [\n-       {\n-         c: [\n            [\n+             'data-epub-source',\n+             'Book/chapter.xhtml'\n-             'chapter.xhtml',\n-             [],\n-             []\n            ],\n+           [\n+             'data-epub-item-id',\n+             'chapter'\n+           ],\n+           [\n+             'data-epub-linear',\n+             'yes'\n+           ],\n+           [\n+             'lang',\n+             'en'\n+           ]\n-           []\n          ],\n+       ],\n+       [\n+         {\n+           c: [\n+             {\n+               c: 'Matrix',\n+               t: 'Str'\n+             }\n+           ],\n+           t: 'Para'\n+         }\n+       ]\n-         t: 'Span'\n-       }\n      ],\n+     t: 'Div'\n-     t: 'Para'\n    },\n-   {\n-     c: [\n-       {\n-         c: 'Matrix',\n-         t: 'Str'\n-       }\n-     ],\n-     t: 'Para'\n-   }\n  ]\n"
+    },
+    {
+      "id": "pptx",
+      "argv": [
+        "--sandbox",
+        "--from",
+        "pptx",
+        "--to",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "expected": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Header",
+            "c": [
+              2,
+              [
+                "slide-1",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Slide 1"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Matrix"
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Div",
+            "c": [
+              [
+                "slide-1",
+                [
+                  "slide"
+                ],
+                [
+                  [
+                    "data-pptx-order",
+                    "structural"
+                  ]
+                ]
+              ],
+              [
+                {
+                  "t": "Para",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "Matrix"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "outcome": "fail",
+      "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    {\n      c: [\n-       2,\n        [\n          'slide-1',\n+         [\n+           'slide'\n+         ],\n+         [\n+           [\n+             'data-pptx-order',\n+             'structural'\n+           ]\n+         ]\n-         [],\n-         []\n        ],\n        [\n          {\n+           c: [\n+             {\n+               c: 'Matrix',\n+               t: 'Str'\n+             }\n+           ],\n+           t: 'Para'\n-           c: 'Slide 1',\n-           t: 'Str'\n          }\n        ]\n      ],\n+     t: 'Div'\n-     t: 'Header'\n    },\n-   {\n-     c: [\n-       {\n-         c: 'Matrix',\n-         t: 'Str'\n-       }\n-     ],\n-     t: 'Para'\n-   }\n  ]\n"
+    }
+  ],
+  "pairs": [
+    {
+      "id": "commonmark->commonmark",
+      "from": "commonmark",
+      "to": "commonmark",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->epub",
+      "from": "commonmark",
+      "to": "epub",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/commonmark-epub.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "commonmark->epub3",
+      "from": "commonmark",
+      "to": "epub3",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/commonmark-epub3.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "commonmark->gfm",
+      "from": "commonmark",
+      "to": "gfm",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->html",
+      "from": "commonmark",
+      "to": "html",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<p>Matrix</p>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->html5",
+      "from": "commonmark",
+      "to": "html5",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<p>Matrix</p>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->json",
+      "from": "commonmark",
+      "to": "json",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"Matrix\"}]}]}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->latex",
+      "from": "commonmark",
+      "to": "latex",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n\n",
+      "outcome": "fail",
+      "code": "ERR_ASSERTION",
+      "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'Matrix\\n\\n'\n- 'Matrix\\n'\n           ^\n",
+      "representability": "representable assertion or conversion failure"
+    },
+    {
+      "id": "commonmark->pdf",
+      "from": "commonmark",
+      "to": "pdf",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/commonmark-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "commonmark->plain",
+      "from": "commonmark",
+      "to": "plain",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->pptx",
+      "from": "commonmark",
+      "to": "pptx",
+      "kind": "binary",
+      "diagnostics": [
+        {
+          "code": "W_LAYOUT_UNMEASURED",
+          "operation": "convert",
+          "format": "pptx",
+          "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+        }
+      ],
+      "artifact": "docs/pandoc/matrix-owned/commonmark-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "commonmark->rst",
+      "from": "commonmark",
+      "to": "rst",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->rtf",
+      "from": "commonmark",
+      "to": "rtf",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\\rtf1\\ansi\\ansicpg1252\\uc1{\\fonttbl{\\f0\\fnil ;}}\n{\\colortbl;}\n{\\stylesheet{\\s0\\fs24 Normal;}{\\s1\\sbasedon0\\snext0\\b\\fs38 Heading 1;}{\\s2\\sbasedon0\\snext0\\b\\fs36 Heading 2;}{\\s3\\sbasedon0\\snext0\\b\\fs34 Heading 3;}{\\s4\\sbasedon0\\snext0\\b\\fs32 Heading 4;}{\\s5\\sbasedon0\\snext0\\b\\fs30 Heading 5;}{\\s6\\sbasedon0\\snext0\\b\\fs28 Heading 6;}}\n{\\pard\\plain\\s0\\li0\\fi0\\ltrpar Matrix\\par}\n}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->commonmark",
+      "from": "gfm",
+      "to": "commonmark",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->epub",
+      "from": "gfm",
+      "to": "epub",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/gfm-epub.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "gfm->epub3",
+      "from": "gfm",
+      "to": "epub3",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/gfm-epub3.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "gfm->gfm",
+      "from": "gfm",
+      "to": "gfm",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->html",
+      "from": "gfm",
+      "to": "html",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<p>Matrix</p>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->html5",
+      "from": "gfm",
+      "to": "html5",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<p>Matrix</p>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->json",
+      "from": "gfm",
+      "to": "json",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"Matrix\"}]}]}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->latex",
+      "from": "gfm",
+      "to": "latex",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n\n",
+      "outcome": "fail",
+      "code": "ERR_ASSERTION",
+      "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'Matrix\\n\\n'\n- 'Matrix\\n'\n           ^\n",
+      "representability": "representable assertion or conversion failure"
+    },
+    {
+      "id": "gfm->pdf",
+      "from": "gfm",
+      "to": "pdf",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/gfm-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "gfm->plain",
+      "from": "gfm",
+      "to": "plain",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->pptx",
+      "from": "gfm",
+      "to": "pptx",
+      "kind": "binary",
+      "diagnostics": [
+        {
+          "code": "W_LAYOUT_UNMEASURED",
+          "operation": "convert",
+          "format": "pptx",
+          "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+        }
+      ],
+      "artifact": "docs/pandoc/matrix-owned/gfm-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "gfm->rst",
+      "from": "gfm",
+      "to": "rst",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->rtf",
+      "from": "gfm",
+      "to": "rtf",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\\rtf1\\ansi\\ansicpg1252\\uc1{\\fonttbl{\\f0\\fnil ;}}\n{\\colortbl;}\n{\\stylesheet{\\s0\\fs24 Normal;}{\\s1\\sbasedon0\\snext0\\b\\fs38 Heading 1;}{\\s2\\sbasedon0\\snext0\\b\\fs36 Heading 2;}{\\s3\\sbasedon0\\snext0\\b\\fs34 Heading 3;}{\\s4\\sbasedon0\\snext0\\b\\fs32 Heading 4;}{\\s5\\sbasedon0\\snext0\\b\\fs30 Heading 5;}{\\s6\\sbasedon0\\snext0\\b\\fs28 Heading 6;}}\n{\\pard\\plain\\s0\\li0\\fi0\\ltrpar Matrix\\par}\n}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->commonmark",
+      "from": "html",
+      "to": "commonmark",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->epub",
+      "from": "html",
+      "to": "epub",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/html-epub.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "html->epub3",
+      "from": "html",
+      "to": "epub3",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/html-epub3.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "html->gfm",
+      "from": "html",
+      "to": "gfm",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->html",
+      "from": "html",
+      "to": "html",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<p>Matrix</p>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->html5",
+      "from": "html",
+      "to": "html5",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<p>Matrix</p>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->json",
+      "from": "html",
+      "to": "json",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"Matrix\"}]}]}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->latex",
+      "from": "html",
+      "to": "latex",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n\n",
+      "outcome": "fail",
+      "code": "ERR_ASSERTION",
+      "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'Matrix\\n\\n'\n- 'Matrix\\n'\n           ^\n",
+      "representability": "representable assertion or conversion failure"
+    },
+    {
+      "id": "html->pdf",
+      "from": "html",
+      "to": "pdf",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/html-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "html->plain",
+      "from": "html",
+      "to": "plain",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->pptx",
+      "from": "html",
+      "to": "pptx",
+      "kind": "binary",
+      "diagnostics": [
+        {
+          "code": "W_LAYOUT_UNMEASURED",
+          "operation": "convert",
+          "format": "pptx",
+          "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+        }
+      ],
+      "artifact": "docs/pandoc/matrix-owned/html-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "html->rst",
+      "from": "html",
+      "to": "rst",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->rtf",
+      "from": "html",
+      "to": "rtf",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\\rtf1\\ansi\\ansicpg1252\\uc1{\\fonttbl{\\f0\\fnil ;}}\n{\\colortbl;}\n{\\stylesheet{\\s0\\fs24 Normal;}{\\s1\\sbasedon0\\snext0\\b\\fs38 Heading 1;}{\\s2\\sbasedon0\\snext0\\b\\fs36 Heading 2;}{\\s3\\sbasedon0\\snext0\\b\\fs34 Heading 3;}{\\s4\\sbasedon0\\snext0\\b\\fs32 Heading 4;}{\\s5\\sbasedon0\\snext0\\b\\fs30 Heading 5;}{\\s6\\sbasedon0\\snext0\\b\\fs28 Heading 6;}}\n{\\pard\\plain\\s0\\li0\\fi0\\ltrpar Matrix\\par}\n}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->commonmark",
+      "from": "json",
+      "to": "commonmark",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->epub",
+      "from": "json",
+      "to": "epub",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/json-epub.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "json->epub3",
+      "from": "json",
+      "to": "epub3",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/json-epub3.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "json->gfm",
+      "from": "json",
+      "to": "gfm",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->html",
+      "from": "json",
+      "to": "html",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<p>Matrix</p>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->html5",
+      "from": "json",
+      "to": "html5",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<p>Matrix</p>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->json",
+      "from": "json",
+      "to": "json",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"Matrix\"}]}]}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->latex",
+      "from": "json",
+      "to": "latex",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n\n",
+      "outcome": "fail",
+      "code": "ERR_ASSERTION",
+      "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'Matrix\\n\\n'\n- 'Matrix\\n'\n           ^\n",
+      "representability": "representable assertion or conversion failure"
+    },
+    {
+      "id": "json->pdf",
+      "from": "json",
+      "to": "pdf",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/json-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "json->plain",
+      "from": "json",
+      "to": "plain",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->pptx",
+      "from": "json",
+      "to": "pptx",
+      "kind": "binary",
+      "diagnostics": [
+        {
+          "code": "W_LAYOUT_UNMEASURED",
+          "operation": "convert",
+          "format": "pptx",
+          "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+        }
+      ],
+      "artifact": "docs/pandoc/matrix-owned/json-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "json->rst",
+      "from": "json",
+      "to": "rst",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->rtf",
+      "from": "json",
+      "to": "rtf",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\\rtf1\\ansi\\ansicpg1252\\uc1{\\fonttbl{\\f0\\fnil ;}}\n{\\colortbl;}\n{\\stylesheet{\\s0\\fs24 Normal;}{\\s1\\sbasedon0\\snext0\\b\\fs38 Heading 1;}{\\s2\\sbasedon0\\snext0\\b\\fs36 Heading 2;}{\\s3\\sbasedon0\\snext0\\b\\fs34 Heading 3;}{\\s4\\sbasedon0\\snext0\\b\\fs32 Heading 4;}{\\s5\\sbasedon0\\snext0\\b\\fs30 Heading 5;}{\\s6\\sbasedon0\\snext0\\b\\fs28 Heading 6;}}\n{\\pard\\plain\\s0\\li0\\fi0\\ltrpar Matrix\\par}\n}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->commonmark",
+      "from": "latex",
+      "to": "commonmark",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->epub",
+      "from": "latex",
+      "to": "epub",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/latex-epub.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "latex->epub3",
+      "from": "latex",
+      "to": "epub3",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/latex-epub3.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "latex->gfm",
+      "from": "latex",
+      "to": "gfm",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->html",
+      "from": "latex",
+      "to": "html",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<p>Matrix</p>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->html5",
+      "from": "latex",
+      "to": "html5",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<p>Matrix</p>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->json",
+      "from": "latex",
+      "to": "json",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"Matrix\"}]}]}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->latex",
+      "from": "latex",
+      "to": "latex",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n\n",
+      "outcome": "fail",
+      "code": "ERR_ASSERTION",
+      "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'Matrix\\n\\n'\n- 'Matrix\\n'\n           ^\n",
+      "representability": "representable assertion or conversion failure"
+    },
+    {
+      "id": "latex->pdf",
+      "from": "latex",
+      "to": "pdf",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/latex-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "latex->plain",
+      "from": "latex",
+      "to": "plain",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->pptx",
+      "from": "latex",
+      "to": "pptx",
+      "kind": "binary",
+      "diagnostics": [
+        {
+          "code": "W_LAYOUT_UNMEASURED",
+          "operation": "convert",
+          "format": "pptx",
+          "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+        }
+      ],
+      "artifact": "docs/pandoc/matrix-owned/latex-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "latex->rst",
+      "from": "latex",
+      "to": "rst",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->rtf",
+      "from": "latex",
+      "to": "rtf",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\\rtf1\\ansi\\ansicpg1252\\uc1{\\fonttbl{\\f0\\fnil ;}}\n{\\colortbl;}\n{\\stylesheet{\\s0\\fs24 Normal;}{\\s1\\sbasedon0\\snext0\\b\\fs38 Heading 1;}{\\s2\\sbasedon0\\snext0\\b\\fs36 Heading 2;}{\\s3\\sbasedon0\\snext0\\b\\fs34 Heading 3;}{\\s4\\sbasedon0\\snext0\\b\\fs32 Heading 4;}{\\s5\\sbasedon0\\snext0\\b\\fs30 Heading 5;}{\\s6\\sbasedon0\\snext0\\b\\fs28 Heading 6;}}\n{\\pard\\plain\\s0\\li0\\fi0\\ltrpar Matrix\\par}\n}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->commonmark",
+      "from": "rst",
+      "to": "commonmark",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->epub",
+      "from": "rst",
+      "to": "epub",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/rst-epub.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "rst->epub3",
+      "from": "rst",
+      "to": "epub3",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/rst-epub3.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "rst->gfm",
+      "from": "rst",
+      "to": "gfm",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->html",
+      "from": "rst",
+      "to": "html",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<p>Matrix</p>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->html5",
+      "from": "rst",
+      "to": "html5",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<p>Matrix</p>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->json",
+      "from": "rst",
+      "to": "json",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"Matrix\"}]}]}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->latex",
+      "from": "rst",
+      "to": "latex",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n\n",
+      "outcome": "fail",
+      "code": "ERR_ASSERTION",
+      "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'Matrix\\n\\n'\n- 'Matrix\\n'\n           ^\n",
+      "representability": "representable assertion or conversion failure"
+    },
+    {
+      "id": "rst->pdf",
+      "from": "rst",
+      "to": "pdf",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/rst-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "rst->plain",
+      "from": "rst",
+      "to": "plain",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->pptx",
+      "from": "rst",
+      "to": "pptx",
+      "kind": "binary",
+      "diagnostics": [
+        {
+          "code": "W_LAYOUT_UNMEASURED",
+          "operation": "convert",
+          "format": "pptx",
+          "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+        }
+      ],
+      "artifact": "docs/pandoc/matrix-owned/rst-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "rst->rst",
+      "from": "rst",
+      "to": "rst",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->rtf",
+      "from": "rst",
+      "to": "rtf",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\\rtf1\\ansi\\ansicpg1252\\uc1{\\fonttbl{\\f0\\fnil ;}}\n{\\colortbl;}\n{\\stylesheet{\\s0\\fs24 Normal;}{\\s1\\sbasedon0\\snext0\\b\\fs38 Heading 1;}{\\s2\\sbasedon0\\snext0\\b\\fs36 Heading 2;}{\\s3\\sbasedon0\\snext0\\b\\fs34 Heading 3;}{\\s4\\sbasedon0\\snext0\\b\\fs32 Heading 4;}{\\s5\\sbasedon0\\snext0\\b\\fs30 Heading 5;}{\\s6\\sbasedon0\\snext0\\b\\fs28 Heading 6;}}\n{\\pard\\plain\\s0\\li0\\fi0\\ltrpar Matrix\\par}\n}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->commonmark",
+      "from": "rtf",
+      "to": "commonmark",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->epub",
+      "from": "rtf",
+      "to": "epub",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/rtf-epub.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "rtf->epub3",
+      "from": "rtf",
+      "to": "epub3",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/rtf-epub3.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "rtf->gfm",
+      "from": "rtf",
+      "to": "gfm",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->html",
+      "from": "rtf",
+      "to": "html",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<p>Matrix</p>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->html5",
+      "from": "rtf",
+      "to": "html5",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<p>Matrix</p>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->json",
+      "from": "rtf",
+      "to": "json",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"Matrix\"}]}]}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->latex",
+      "from": "rtf",
+      "to": "latex",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n\n",
+      "outcome": "fail",
+      "code": "ERR_ASSERTION",
+      "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'Matrix\\n\\n'\n- 'Matrix\\n'\n           ^\n",
+      "representability": "representable assertion or conversion failure"
+    },
+    {
+      "id": "rtf->pdf",
+      "from": "rtf",
+      "to": "pdf",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/rtf-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "rtf->plain",
+      "from": "rtf",
+      "to": "plain",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->pptx",
+      "from": "rtf",
+      "to": "pptx",
+      "kind": "binary",
+      "diagnostics": [
+        {
+          "code": "W_LAYOUT_UNMEASURED",
+          "operation": "convert",
+          "format": "pptx",
+          "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+        }
+      ],
+      "artifact": "docs/pandoc/matrix-owned/rtf-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "rtf->rst",
+      "from": "rtf",
+      "to": "rst",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->rtf",
+      "from": "rtf",
+      "to": "rtf",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\\rtf1\\ansi\\ansicpg1252\\uc1{\\fonttbl{\\f0\\fnil ;}}\n{\\colortbl;}\n{\\stylesheet{\\s0\\fs24 Normal;}{\\s1\\sbasedon0\\snext0\\b\\fs38 Heading 1;}{\\s2\\sbasedon0\\snext0\\b\\fs36 Heading 2;}{\\s3\\sbasedon0\\snext0\\b\\fs34 Heading 3;}{\\s4\\sbasedon0\\snext0\\b\\fs32 Heading 4;}{\\s5\\sbasedon0\\snext0\\b\\fs30 Heading 5;}{\\s6\\sbasedon0\\snext0\\b\\fs28 Heading 6;}}\n{\\pard\\plain\\s0\\li0\\fi0\\ltrpar Matrix\\par}\n}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->commonmark",
+      "from": "csv",
+      "to": "commonmark",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Pipe tables are unavailable",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "csv->epub",
+      "from": "csv",
+      "to": "epub",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/csv-epub.epub",
+      "sha256": "d8a029271f6c1d6c91e1e6c2632bd9d7404e748441bae5cf377b6f600a8407c0",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "csv->epub3",
+      "from": "csv",
+      "to": "epub3",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/csv-epub3.epub",
+      "sha256": "d8a029271f6c1d6c91e1e6c2632bd9d7404e748441bae5cf377b6f600a8407c0",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "csv->gfm",
+      "from": "csv",
+      "to": "gfm",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "| Matrix |\n| --- |\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->html",
+      "from": "csv",
+      "to": "html",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<table>\n<colgroup><col></colgroup>\n<thead>\n<tr><th scope=\"col\">Matrix</th></tr>\n</thead>\n<tbody>\n</tbody>\n</table>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->html5",
+      "from": "csv",
+      "to": "html5",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<table>\n<colgroup><col></colgroup>\n<thead>\n<tr><th scope=\"col\">Matrix</th></tr>\n</thead>\n<tbody>\n</tbody>\n</table>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->json",
+      "from": "csv",
+      "to": "json",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"Table\",\"c\":[[\"\",[],[]],[null,[]],[[{\"t\":\"AlignDefault\"},{\"t\":\"ColWidthDefault\"}]],[[\"\",[],[]],[[[\"\",[],[]],[[[\"\",[],[]],{\"t\":\"AlignDefault\"},1,1,[{\"t\":\"Plain\",\"c\":[{\"t\":\"Str\",\"c\":\"Matrix\"}]}]]]]]],[[[\"\",[],[]],0,[],[]]],[[\"\",[],[]],[]]]}]}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->latex",
+      "from": "csv",
+      "to": "latex",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "\\begin{longtable}{>{\\raggedright\\arraybackslash}p{\\dimexpr1.000000\\linewidth-2\\tabcolsep\\relax}}\nMatrix\\par  \\\\\n\\endfirsthead\nMatrix\\par  \\\\\n\\endhead\n\\endfoot\n\\endlastfoot\n\\end{longtable}\n\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->pdf",
+      "from": "csv",
+      "to": "pdf",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/csv-pdf.pdf",
+      "sha256": "41abfae15dbde0f8ba5494f86bb260e739f375cc5fec11d9e8444054d6b28e72",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "csv->plain",
+      "from": "csv",
+      "to": "plain",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->pptx",
+      "from": "csv",
+      "to": "pptx",
+      "kind": "binary",
+      "diagnostics": [
+        {
+          "code": "W_LAYOUT_UNMEASURED",
+          "operation": "convert",
+          "format": "pptx",
+          "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+        }
+      ],
+      "artifact": "docs/pandoc/matrix-owned/csv-pptx.pptx",
+      "sha256": "8e2fc2b498025c4012a4a08c50d41c6868b404f22785f379b9d796ad02641dc0",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "csv->rst",
+      "from": "csv",
+      "to": "rst",
+      "kind": "text",
+      "diagnostics": [],
+      "text": ".. list-table::\n   :header-rows: 1\n\n   * - Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->rtf",
+      "from": "csv",
+      "to": "rtf",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\\rtf1\\ansi\\ansicpg1252\\uc1{\\fonttbl{\\f0\\fnil ;}}\n{\\colortbl;}\n{\\stylesheet{\\s0\\fs24 Normal;}{\\s1\\sbasedon0\\snext0\\b\\fs38 Heading 1;}{\\s2\\sbasedon0\\snext0\\b\\fs36 Heading 2;}{\\s3\\sbasedon0\\snext0\\b\\fs34 Heading 3;}{\\s4\\sbasedon0\\snext0\\b\\fs32 Heading 4;}{\\s5\\sbasedon0\\snext0\\b\\fs30 Heading 5;}{\\s6\\sbasedon0\\snext0\\b\\fs28 Heading 6;}}\n{\\trowd\\cellx8640\\intbl {\\pard\\plain\\s0\\li0\\fi0\\ltrpar\\intbl\\ql Matrix\\par}\n\\cell \\row}\n}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->commonmark",
+      "from": "tsv",
+      "to": "commonmark",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Pipe tables are unavailable",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "tsv->epub",
+      "from": "tsv",
+      "to": "epub",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/tsv-epub.epub",
+      "sha256": "d8a029271f6c1d6c91e1e6c2632bd9d7404e748441bae5cf377b6f600a8407c0",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "tsv->epub3",
+      "from": "tsv",
+      "to": "epub3",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/tsv-epub3.epub",
+      "sha256": "d8a029271f6c1d6c91e1e6c2632bd9d7404e748441bae5cf377b6f600a8407c0",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "tsv->gfm",
+      "from": "tsv",
+      "to": "gfm",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "| Matrix |\n| --- |\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->html",
+      "from": "tsv",
+      "to": "html",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<table>\n<colgroup><col></colgroup>\n<thead>\n<tr><th scope=\"col\">Matrix</th></tr>\n</thead>\n<tbody>\n</tbody>\n</table>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->html5",
+      "from": "tsv",
+      "to": "html5",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<table>\n<colgroup><col></colgroup>\n<thead>\n<tr><th scope=\"col\">Matrix</th></tr>\n</thead>\n<tbody>\n</tbody>\n</table>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->json",
+      "from": "tsv",
+      "to": "json",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"Table\",\"c\":[[\"\",[],[]],[null,[]],[[{\"t\":\"AlignDefault\"},{\"t\":\"ColWidthDefault\"}]],[[\"\",[],[]],[[[\"\",[],[]],[[[\"\",[],[]],{\"t\":\"AlignDefault\"},1,1,[{\"t\":\"Plain\",\"c\":[{\"t\":\"Str\",\"c\":\"Matrix\"}]}]]]]]],[[[\"\",[],[]],0,[],[]]],[[\"\",[],[]],[]]]}]}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->latex",
+      "from": "tsv",
+      "to": "latex",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "\\begin{longtable}{>{\\raggedright\\arraybackslash}p{\\dimexpr1.000000\\linewidth-2\\tabcolsep\\relax}}\nMatrix\\par  \\\\\n\\endfirsthead\nMatrix\\par  \\\\\n\\endhead\n\\endfoot\n\\endlastfoot\n\\end{longtable}\n\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->pdf",
+      "from": "tsv",
+      "to": "pdf",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/tsv-pdf.pdf",
+      "sha256": "41abfae15dbde0f8ba5494f86bb260e739f375cc5fec11d9e8444054d6b28e72",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "tsv->plain",
+      "from": "tsv",
+      "to": "plain",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->pptx",
+      "from": "tsv",
+      "to": "pptx",
+      "kind": "binary",
+      "diagnostics": [
+        {
+          "code": "W_LAYOUT_UNMEASURED",
+          "operation": "convert",
+          "format": "pptx",
+          "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+        }
+      ],
+      "artifact": "docs/pandoc/matrix-owned/tsv-pptx.pptx",
+      "sha256": "8e2fc2b498025c4012a4a08c50d41c6868b404f22785f379b9d796ad02641dc0",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "tsv->rst",
+      "from": "tsv",
+      "to": "rst",
+      "kind": "text",
+      "diagnostics": [],
+      "text": ".. list-table::\n   :header-rows: 1\n\n   * - Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->rtf",
+      "from": "tsv",
+      "to": "rtf",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\\rtf1\\ansi\\ansicpg1252\\uc1{\\fonttbl{\\f0\\fnil ;}}\n{\\colortbl;}\n{\\stylesheet{\\s0\\fs24 Normal;}{\\s1\\sbasedon0\\snext0\\b\\fs38 Heading 1;}{\\s2\\sbasedon0\\snext0\\b\\fs36 Heading 2;}{\\s3\\sbasedon0\\snext0\\b\\fs34 Heading 3;}{\\s4\\sbasedon0\\snext0\\b\\fs32 Heading 4;}{\\s5\\sbasedon0\\snext0\\b\\fs30 Heading 5;}{\\s6\\sbasedon0\\snext0\\b\\fs28 Heading 6;}}\n{\\trowd\\cellx8640\\intbl {\\pard\\plain\\s0\\li0\\fi0\\ltrpar\\intbl\\ql Matrix\\par}\n\\cell \\row}\n}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub2->commonmark",
+      "from": "epub",
+      "to": "commonmark",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Markdown cannot represent attributes",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "epub2->epub",
+      "from": "epub",
+      "to": "epub",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/epub2-epub.epub",
+      "sha256": "731e34fbe39c013ea6e27db1a4aa48a78cacc920cd357c52f74aad748eca8ba5",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "epub2->epub3",
+      "from": "epub",
+      "to": "epub3",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/epub2-epub3.epub",
+      "sha256": "731e34fbe39c013ea6e27db1a4aa48a78cacc920cd357c52f74aad748eca8ba5",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "epub2->gfm",
+      "from": "epub",
+      "to": "gfm",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Markdown cannot represent attributes",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "epub2->html",
+      "from": "epub",
+      "to": "html",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<div id=\"Book/chapter.xhtml\" class=\"epub-chapter\" data-epub-source=\"Book/chapter.xhtml\" data-epub-item-id=\"chapter\" data-epub-linear=\"yes\" lang=\"en\"><p>Matrix</p>\n</div>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub2->html5",
+      "from": "epub",
+      "to": "html5",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<div id=\"Book/chapter.xhtml\" class=\"epub-chapter\" data-epub-source=\"Book/chapter.xhtml\" data-epub-item-id=\"chapter\" data-epub-linear=\"yes\" lang=\"en\"><p>Matrix</p>\n</div>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub2->json",
+      "from": "epub",
+      "to": "json",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Pandoc JSON cannot represent resources, language or direction document fields",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "epub2->latex",
+      "from": "epub",
+      "to": "latex",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Unsupported LaTeX attributes",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "epub2->pdf",
+      "from": "epub",
+      "to": "pdf",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/epub2-pdf.pdf",
+      "sha256": "51886318751339fcca1f762118b930939c17c86dc62347ae6dcf4982274b51a3",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "epub2->plain",
+      "from": "epub",
+      "to": "plain",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub2->pptx",
+      "from": "epub",
+      "to": "pptx",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Unsupported PPTX block: Div",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "epub2->rst",
+      "from": "epub",
+      "to": "rst",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Div projected to contained blocks",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "epub2->rtf",
+      "from": "epub",
+      "to": "rtf",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Attributed RTF Div unsupported; use paragraph/run attributes",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "epub3->commonmark",
+      "from": "epub",
+      "to": "commonmark",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Markdown cannot represent attributes",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "epub3->epub",
+      "from": "epub",
+      "to": "epub",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/epub3-epub.epub",
+      "sha256": "731e34fbe39c013ea6e27db1a4aa48a78cacc920cd357c52f74aad748eca8ba5",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "epub3->epub3",
+      "from": "epub",
+      "to": "epub3",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/epub3-epub3.epub",
+      "sha256": "731e34fbe39c013ea6e27db1a4aa48a78cacc920cd357c52f74aad748eca8ba5",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "epub3->gfm",
+      "from": "epub",
+      "to": "gfm",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Markdown cannot represent attributes",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "epub3->html",
+      "from": "epub",
+      "to": "html",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<div id=\"Book/chapter.xhtml\" class=\"epub-chapter\" data-epub-source=\"Book/chapter.xhtml\" data-epub-item-id=\"chapter\" data-epub-linear=\"yes\" lang=\"en\"><p>Matrix</p>\n</div>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub3->html5",
+      "from": "epub",
+      "to": "html5",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<div id=\"Book/chapter.xhtml\" class=\"epub-chapter\" data-epub-source=\"Book/chapter.xhtml\" data-epub-item-id=\"chapter\" data-epub-linear=\"yes\" lang=\"en\"><p>Matrix</p>\n</div>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub3->json",
+      "from": "epub",
+      "to": "json",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Pandoc JSON cannot represent resources, language or direction document fields",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "epub3->latex",
+      "from": "epub",
+      "to": "latex",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Unsupported LaTeX attributes",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "epub3->pdf",
+      "from": "epub",
+      "to": "pdf",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/epub3-pdf.pdf",
+      "sha256": "51886318751339fcca1f762118b930939c17c86dc62347ae6dcf4982274b51a3",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "epub3->plain",
+      "from": "epub",
+      "to": "plain",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub3->pptx",
+      "from": "epub",
+      "to": "pptx",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Unsupported PPTX block: Div",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "epub3->rst",
+      "from": "epub",
+      "to": "rst",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Div projected to contained blocks",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "epub3->rtf",
+      "from": "epub",
+      "to": "rtf",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Attributed RTF Div unsupported; use paragraph/run attributes",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "pptx->commonmark",
+      "from": "pptx",
+      "to": "commonmark",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Markdown cannot represent attributes",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "pptx->epub",
+      "from": "pptx",
+      "to": "epub",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/pptx-epub.epub",
+      "sha256": "fb11147a40fa7b15bea080a3f8968169e480ac21395925a97a211a9a608c0074",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "pptx->epub3",
+      "from": "pptx",
+      "to": "epub3",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/pptx-epub3.epub",
+      "sha256": "fb11147a40fa7b15bea080a3f8968169e480ac21395925a97a211a9a608c0074",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "pptx->gfm",
+      "from": "pptx",
+      "to": "gfm",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Markdown cannot represent attributes",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "pptx->html",
+      "from": "pptx",
+      "to": "html",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<div id=\"slide-1\" class=\"slide\" data-pptx-order=\"structural\"><p>Matrix</p>\n</div>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->html5",
+      "from": "pptx",
+      "to": "html5",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "<div id=\"slide-1\" class=\"slide\" data-pptx-order=\"structural\"><p>Matrix</p>\n</div>\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->json",
+      "from": "pptx",
+      "to": "json",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"Div\",\"c\":[[\"slide-1\",[\"slide\"],[[\"data-pptx-order\",\"structural\"]]],[{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"Matrix\"}]}]]}]}\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->latex",
+      "from": "pptx",
+      "to": "latex",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Unsupported LaTeX attributes",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "pptx->pdf",
+      "from": "pptx",
+      "to": "pdf",
+      "kind": "binary",
+      "diagnostics": [],
+      "artifact": "docs/pandoc/matrix-owned/pptx-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "pptx->plain",
+      "from": "pptx",
+      "to": "plain",
+      "kind": "text",
+      "diagnostics": [],
+      "text": "Matrix\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->pptx",
+      "from": "pptx",
+      "to": "pptx",
+      "kind": "binary",
+      "diagnostics": [
+        {
+          "code": "W_LAYOUT_UNMEASURED",
+          "operation": "convert",
+          "format": "pptx",
+          "message": "Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used."
+        }
+      ],
+      "artifact": "docs/pandoc/matrix-owned/pptx-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "outcome": "not-run",
+      "reason": "Await independent container/PDF/deck validation."
+    },
+    {
+      "id": "pptx->rst",
+      "from": "pptx",
+      "to": "rst",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Div projected to contained blocks",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    },
+    {
+      "id": "pptx->rtf",
+      "from": "pptx",
+      "to": "rtf",
+      "outcome": "fail",
+      "code": "E_CAPABILITY",
+      "message": "Attributed RTF Div unsupported; use paragraph/run attributes",
+      "representability": "nonrepresentable case; contract requires E_UNSUPPORTED_FEATURE"
+    }
+  ],
+  "commands": [
+    {
+      "id": "commonmark->commonmark",
+      "command": "pandoc --yes -f commonmark -t commonmark input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->epub",
+      "command": "pandoc --yes -f commonmark -t epub input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->epub3",
+      "command": "pandoc --yes -f commonmark -t epub3 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->gfm",
+      "command": "pandoc --yes -f commonmark -t gfm input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->html",
+      "command": "pandoc --yes -f commonmark -t html input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->html5",
+      "command": "pandoc --yes -f commonmark -t html5 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->json",
+      "command": "pandoc --yes -f commonmark -t json input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->latex",
+      "command": "pandoc --yes -f commonmark -t latex input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->pdf",
+      "command": "pandoc --yes -f commonmark -t pdf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->plain",
+      "command": "pandoc --yes -f commonmark -t plain input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->pptx",
+      "command": "pandoc --yes -f commonmark -t pptx input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->rst",
+      "command": "pandoc --yes -f commonmark -t rst input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->rtf",
+      "command": "pandoc --yes -f commonmark -t rtf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->commonmark",
+      "command": "pandoc --yes -f gfm -t commonmark input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->epub",
+      "command": "pandoc --yes -f gfm -t epub input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->epub3",
+      "command": "pandoc --yes -f gfm -t epub3 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->gfm",
+      "command": "pandoc --yes -f gfm -t gfm input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->html",
+      "command": "pandoc --yes -f gfm -t html input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->html5",
+      "command": "pandoc --yes -f gfm -t html5 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->json",
+      "command": "pandoc --yes -f gfm -t json input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->latex",
+      "command": "pandoc --yes -f gfm -t latex input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->pdf",
+      "command": "pandoc --yes -f gfm -t pdf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->plain",
+      "command": "pandoc --yes -f gfm -t plain input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->pptx",
+      "command": "pandoc --yes -f gfm -t pptx input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->rst",
+      "command": "pandoc --yes -f gfm -t rst input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->rtf",
+      "command": "pandoc --yes -f gfm -t rtf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->commonmark",
+      "command": "pandoc --yes -f html -t commonmark input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->epub",
+      "command": "pandoc --yes -f html -t epub input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->epub3",
+      "command": "pandoc --yes -f html -t epub3 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->gfm",
+      "command": "pandoc --yes -f html -t gfm input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->html",
+      "command": "pandoc --yes -f html -t html input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->html5",
+      "command": "pandoc --yes -f html -t html5 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->json",
+      "command": "pandoc --yes -f html -t json input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->latex",
+      "command": "pandoc --yes -f html -t latex input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->pdf",
+      "command": "pandoc --yes -f html -t pdf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->plain",
+      "command": "pandoc --yes -f html -t plain input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->pptx",
+      "command": "pandoc --yes -f html -t pptx input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->rst",
+      "command": "pandoc --yes -f html -t rst input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->rtf",
+      "command": "pandoc --yes -f html -t rtf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->commonmark",
+      "command": "pandoc --yes -f json -t commonmark input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->epub",
+      "command": "pandoc --yes -f json -t epub input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->epub3",
+      "command": "pandoc --yes -f json -t epub3 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->gfm",
+      "command": "pandoc --yes -f json -t gfm input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->html",
+      "command": "pandoc --yes -f json -t html input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->html5",
+      "command": "pandoc --yes -f json -t html5 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->json",
+      "command": "pandoc --yes -f json -t json input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->latex",
+      "command": "pandoc --yes -f json -t latex input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->pdf",
+      "command": "pandoc --yes -f json -t pdf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->plain",
+      "command": "pandoc --yes -f json -t plain input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->pptx",
+      "command": "pandoc --yes -f json -t pptx input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->rst",
+      "command": "pandoc --yes -f json -t rst input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->rtf",
+      "command": "pandoc --yes -f json -t rtf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->commonmark",
+      "command": "pandoc --yes -f latex -t commonmark input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->epub",
+      "command": "pandoc --yes -f latex -t epub input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->epub3",
+      "command": "pandoc --yes -f latex -t epub3 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->gfm",
+      "command": "pandoc --yes -f latex -t gfm input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->html",
+      "command": "pandoc --yes -f latex -t html input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->html5",
+      "command": "pandoc --yes -f latex -t html5 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->json",
+      "command": "pandoc --yes -f latex -t json input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->latex",
+      "command": "pandoc --yes -f latex -t latex input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->pdf",
+      "command": "pandoc --yes -f latex -t pdf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->plain",
+      "command": "pandoc --yes -f latex -t plain input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->pptx",
+      "command": "pandoc --yes -f latex -t pptx input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->rst",
+      "command": "pandoc --yes -f latex -t rst input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->rtf",
+      "command": "pandoc --yes -f latex -t rtf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->commonmark",
+      "command": "pandoc --yes -f rst -t commonmark input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->epub",
+      "command": "pandoc --yes -f rst -t epub input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->epub3",
+      "command": "pandoc --yes -f rst -t epub3 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->gfm",
+      "command": "pandoc --yes -f rst -t gfm input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->html",
+      "command": "pandoc --yes -f rst -t html input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->html5",
+      "command": "pandoc --yes -f rst -t html5 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->json",
+      "command": "pandoc --yes -f rst -t json input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->latex",
+      "command": "pandoc --yes -f rst -t latex input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->pdf",
+      "command": "pandoc --yes -f rst -t pdf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->plain",
+      "command": "pandoc --yes -f rst -t plain input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->pptx",
+      "command": "pandoc --yes -f rst -t pptx input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->rst",
+      "command": "pandoc --yes -f rst -t rst input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->rtf",
+      "command": "pandoc --yes -f rst -t rtf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->commonmark",
+      "command": "pandoc --yes -f rtf -t commonmark input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->epub",
+      "command": "pandoc --yes -f rtf -t epub input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->epub3",
+      "command": "pandoc --yes -f rtf -t epub3 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->gfm",
+      "command": "pandoc --yes -f rtf -t gfm input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->html",
+      "command": "pandoc --yes -f rtf -t html input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->html5",
+      "command": "pandoc --yes -f rtf -t html5 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->json",
+      "command": "pandoc --yes -f rtf -t json input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->latex",
+      "command": "pandoc --yes -f rtf -t latex input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->pdf",
+      "command": "pandoc --yes -f rtf -t pdf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->plain",
+      "command": "pandoc --yes -f rtf -t plain input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->pptx",
+      "command": "pandoc --yes -f rtf -t pptx input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->rst",
+      "command": "pandoc --yes -f rtf -t rst input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->rtf",
+      "command": "pandoc --yes -f rtf -t rtf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->commonmark",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "csv->epub",
+      "command": "pandoc --yes -f csv -t epub input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->epub3",
+      "command": "pandoc --yes -f csv -t epub3 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->gfm",
+      "command": "pandoc --yes -f csv -t gfm input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->html",
+      "command": "pandoc --yes -f csv -t html input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->html5",
+      "command": "pandoc --yes -f csv -t html5 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->json",
+      "command": "pandoc --yes -f csv -t json input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->latex",
+      "command": "pandoc --yes -f csv -t latex input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->pdf",
+      "command": "pandoc --yes -f csv -t pdf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->plain",
+      "command": "pandoc --yes -f csv -t plain input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->pptx",
+      "command": "pandoc --yes -f csv -t pptx input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->rst",
+      "command": "pandoc --yes -f csv -t rst input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->rtf",
+      "command": "pandoc --yes -f csv -t rtf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->commonmark",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "tsv->epub",
+      "command": "pandoc --yes -f tsv -t epub input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->epub3",
+      "command": "pandoc --yes -f tsv -t epub3 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->gfm",
+      "command": "pandoc --yes -f tsv -t gfm input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->html",
+      "command": "pandoc --yes -f tsv -t html input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->html5",
+      "command": "pandoc --yes -f tsv -t html5 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->json",
+      "command": "pandoc --yes -f tsv -t json input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->latex",
+      "command": "pandoc --yes -f tsv -t latex input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->pdf",
+      "command": "pandoc --yes -f tsv -t pdf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->plain",
+      "command": "pandoc --yes -f tsv -t plain input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->pptx",
+      "command": "pandoc --yes -f tsv -t pptx input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->rst",
+      "command": "pandoc --yes -f tsv -t rst input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->rtf",
+      "command": "pandoc --yes -f tsv -t rtf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub2->commonmark",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "epub2->epub",
+      "command": "pandoc --yes -f epub -t epub input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub2->epub3",
+      "command": "pandoc --yes -f epub -t epub3 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub2->gfm",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "epub2->html",
+      "command": "pandoc --yes -f epub -t html input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub2->html5",
+      "command": "pandoc --yes -f epub -t html5 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub2->json",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "epub2->latex",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "epub2->pdf",
+      "command": "pandoc --yes -f epub -t pdf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub2->plain",
+      "command": "pandoc --yes -f epub -t plain input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub2->pptx",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "epub2->rst",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "epub2->rtf",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "epub3->commonmark",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "epub3->epub",
+      "command": "pandoc --yes -f epub -t epub input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub3->epub3",
+      "command": "pandoc --yes -f epub -t epub3 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub3->gfm",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "epub3->html",
+      "command": "pandoc --yes -f epub -t html input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub3->html5",
+      "command": "pandoc --yes -f epub -t html5 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub3->json",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "epub3->latex",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "epub3->pdf",
+      "command": "pandoc --yes -f epub -t pdf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub3->plain",
+      "command": "pandoc --yes -f epub -t plain input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub3->pptx",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "epub3->rst",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "epub3->rtf",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "pptx->commonmark",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "pptx->epub",
+      "command": "pandoc --yes -f pptx -t epub input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->epub3",
+      "command": "pandoc --yes -f pptx -t epub3 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->gfm",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "pptx->html",
+      "command": "pandoc --yes -f pptx -t html input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->html5",
+      "command": "pandoc --yes -f pptx -t html5 input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->json",
+      "command": "pandoc --yes -f pptx -t json input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->latex",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "pptx->pdf",
+      "command": "pandoc --yes -f pptx -t pdf input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->plain",
+      "command": "pandoc --yes -f pptx -t plain input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->pptx",
+      "command": "pandoc --yes -f pptx -t pptx input -o result",
+      "status": 0,
+      "stdout": "",
+      "stderr": "W_LAYOUT_UNMEASURED: Text is preserved within authored-content and geometry limits; text fit is unmeasured and may overflow. No rendering engine is used.\n",
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->rst",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    },
+    {
+      "id": "pptx->rtf",
+      "outcome": "fail",
+      "message": "Nonrepresentable features require contract status 5\n\n3 !== 5\n"
+    }
+  ],
+  "normalization": "None; no content, ID, span, link, list-order or warning normalization.",
+  "counts": {
+    "readerAST": {
+      "total": 12,
+      "pass": 7,
+      "fail": 5,
+      "unsupported": 0,
+      "not-run": 0
+    },
+    "pairs": {
+      "total": 156,
+      "pass": 82,
+      "fail": 28,
+      "unsupported": 0,
+      "not-run": 46
+    },
+    "commands": {
+      "total": 156,
+      "pass": 135,
+      "fail": 21,
+      "unsupported": 0,
+      "not-run": 0
+    }
+  }
+}

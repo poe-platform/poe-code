@@ -1,0 +1,553 @@
+{
+  "sourceCommit": "c9a9a5eed7185783b69043e019c067370dc09615",
+  "productCommit": "c1ee16883",
+  "files": [
+    {
+      "path": "docs/pandoc/matrix-command.png",
+      "bytes": 160955,
+      "sha256": "337db054f731f5b6f031e1ad14c85ad4ab80a0de7c94a57591e12ff99c2f036a",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-commonmark.log",
+      "bytes": 2616,
+      "sha256": "4ea6f602e56033ecb5b826625ee7bed33e2707448fd85931e497547949d5e4e8",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-execution.json",
+      "bytes": 117011,
+      "sha256": "be7f73bda57a3423e70744c4b5ab773b365a775017ad995794cbdd642f353c76",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-final.json",
+      "bytes": 135716,
+      "sha256": "bbd281a930fdbdd8ba20a7f5db7eaa8eed848aed6eb981a6cb18ad63211f782d",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-independent.json",
+      "bytes": 16633,
+      "sha256": "c983300901b094f538eef7700848f907de9152b83000222f71fd084b8c30237a",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-lossy-representable.json",
+      "bytes": 13546,
+      "sha256": "6a88b95466515bb847a62d73e48eb92ae299e9f5de3dfa3f5bd5517c259559d5",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-option-denial.json",
+      "bytes": 48868,
+      "sha256": "68afd4b4cfbd123bca8d29489c82f6b6aff1d451c92af49fda08e570228952d7",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-oracle-install.log",
+      "bytes": 523,
+      "sha256": "a39552e7be45771891dcecf93490053ca9f4dcb3873cc0f4881d09e03ecdb495",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-pdf-contact.png",
+      "bytes": 20133,
+      "sha256": "053e392bca670b65a9fe117858db63fda55b1111f1ec5c21def2126bf188e860",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-post-fix-first.json",
+      "bytes": 133756,
+      "sha256": "f69659a29eb22987cff1e0b4c6dea204b122dd30ab356348f4276b49c65c948a",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-rst.log",
+      "bytes": 828,
+      "sha256": "8fa2aa1cf037db9cc08832f786af62a5dc00f0bf9b57a12a798f40a802f3547e",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-safe-bash-final.log",
+      "bytes": 5145,
+      "sha256": "7984304394a731305fc54d3fbc47af4e150830a1157e3dc52a3f8deab27a4b07",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-screenshot.log",
+      "bytes": 690,
+      "sha256": "57938481568de559bde27e77b3122577df83d0aaf2b4ed7d9daab8852bd052c0",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-semantic-native.json",
+      "bytes": 18422,
+      "sha256": "711c7b9675e976c677db4aaf31752c98e426600187b699980e85047a0d55abaa",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-source-binding.json",
+      "bytes": 90486,
+      "sha256": "b93c93c9a2cd67b6684977cb8f249e1e177461950064b33c1e3a3de47f66a1cf",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-summary.md",
+      "bytes": 6989,
+      "sha256": "58b3720d0cb110dc8ecc65a7b5f3ea4e6cd218e3a5a528aeade70a7e97d9bf7f",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/commonmark-epub.epub",
+      "bytes": 2017,
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/commonmark-epub3.epub",
+      "bytes": 2017,
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/commonmark-pdf.pdf",
+      "bytes": 142063,
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/commonmark-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/commonmark-pptx.pptx",
+      "bytes": 4996,
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/csv-epub.epub",
+      "bytes": 2059,
+      "sha256": "d8a029271f6c1d6c91e1e6c2632bd9d7404e748441bae5cf377b6f600a8407c0",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/csv-epub3.epub",
+      "bytes": 2059,
+      "sha256": "d8a029271f6c1d6c91e1e6c2632bd9d7404e748441bae5cf377b6f600a8407c0",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/csv-pdf.pdf",
+      "bytes": 142123,
+      "sha256": "41abfae15dbde0f8ba5494f86bb260e739f375cc5fec11d9e8444054d6b28e72",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/csv-pdf.pdf.png",
+      "bytes": 4136,
+      "sha256": "4961b4c6548f5b625739e23e01e5470ffe43c0b690a7672792c81e5864c2bb19",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/csv-pptx.pptx",
+      "bytes": 4992,
+      "sha256": "8e2fc2b498025c4012a4a08c50d41c6868b404f22785f379b9d796ad02641dc0",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/epub2-epub.epub",
+      "bytes": 2041,
+      "sha256": "731e34fbe39c013ea6e27db1a4aa48a78cacc920cd357c52f74aad748eca8ba5",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/epub2-epub3.epub",
+      "bytes": 2041,
+      "sha256": "731e34fbe39c013ea6e27db1a4aa48a78cacc920cd357c52f74aad748eca8ba5",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/epub2-pdf.pdf",
+      "bytes": 142121,
+      "sha256": "51886318751339fcca1f762118b930939c17c86dc62347ae6dcf4982274b51a3",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/epub2-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/epub3-epub.epub",
+      "bytes": 2041,
+      "sha256": "731e34fbe39c013ea6e27db1a4aa48a78cacc920cd357c52f74aad748eca8ba5",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/epub3-epub3.epub",
+      "bytes": 2041,
+      "sha256": "731e34fbe39c013ea6e27db1a4aa48a78cacc920cd357c52f74aad748eca8ba5",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/epub3-pdf.pdf",
+      "bytes": 142121,
+      "sha256": "51886318751339fcca1f762118b930939c17c86dc62347ae6dcf4982274b51a3",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/epub3-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/gfm-epub.epub",
+      "bytes": 2017,
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/gfm-epub3.epub",
+      "bytes": 2017,
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/gfm-pdf.pdf",
+      "bytes": 142063,
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/gfm-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/gfm-pptx.pptx",
+      "bytes": 4996,
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/html-epub.epub",
+      "bytes": 2017,
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/html-epub3.epub",
+      "bytes": 2017,
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/html-pdf.pdf",
+      "bytes": 142063,
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/html-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/html-pptx.pptx",
+      "bytes": 4996,
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/input-commonmark.bin",
+      "bytes": 6,
+      "sha256": "76a2171c057b730faadfe35296593f0fddc52736d2427a9f55ac8b3d375e3bf5",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/input-csv.bin",
+      "bytes": 6,
+      "sha256": "76a2171c057b730faadfe35296593f0fddc52736d2427a9f55ac8b3d375e3bf5",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/input-docx.docx",
+      "bytes": 10363,
+      "sha256": "c98ea5a9e52ba983c1aa6f8da34f72e23dbc52a0adcccc8e67ddaa1f1828414e",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/input-epub2.bin",
+      "bytes": 1687,
+      "sha256": "88aae00601b7d26b9236c703718332a34bca0805cc2a9604e3891234e044b535",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/input-epub2.epub",
+      "bytes": 1687,
+      "sha256": "88aae00601b7d26b9236c703718332a34bca0805cc2a9604e3891234e044b535",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/input-epub3.bin",
+      "bytes": 1669,
+      "sha256": "86b85ffcc606989b5aec20312f4a3f9a90ec52d7208e877258f5191d9fbbac2e",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/input-epub3.epub",
+      "bytes": 1669,
+      "sha256": "86b85ffcc606989b5aec20312f4a3f9a90ec52d7208e877258f5191d9fbbac2e",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/input-gfm.bin",
+      "bytes": 6,
+      "sha256": "76a2171c057b730faadfe35296593f0fddc52736d2427a9f55ac8b3d375e3bf5",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/input-html.bin",
+      "bytes": 13,
+      "sha256": "bd9ca6c6603b637a8c55ab07a9ee9eee0316ef45326af243ce65bb561d5c7dc7",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/input-json.bin",
+      "bytes": 98,
+      "sha256": "82f59a9a1800ce8ebbd5f63c02ad9df821b4d68e35d7eff95e9ebba131082666",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/input-latex.bin",
+      "bytes": 6,
+      "sha256": "76a2171c057b730faadfe35296593f0fddc52736d2427a9f55ac8b3d375e3bf5",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/input-pptx.bin",
+      "bytes": 27553,
+      "sha256": "f4b3fd00ecefa3dfbb927837e4239449466e877d0729f8ae82aafb4640f2e861",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/input-pptx.pptx",
+      "bytes": 27553,
+      "sha256": "f4b3fd00ecefa3dfbb927837e4239449466e877d0729f8ae82aafb4640f2e861",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/input-rst.bin",
+      "bytes": 6,
+      "sha256": "76a2171c057b730faadfe35296593f0fddc52736d2427a9f55ac8b3d375e3bf5",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/input-rtf.bin",
+      "bytes": 19,
+      "sha256": "7d2e28caba3e87c281fdfd5a97e6a4b273331b1fed7288f7da5d7dcbc2cb0f54",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/input-tsv.bin",
+      "bytes": 6,
+      "sha256": "76a2171c057b730faadfe35296593f0fddc52736d2427a9f55ac8b3d375e3bf5",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/json-epub.epub",
+      "bytes": 2017,
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/json-epub3.epub",
+      "bytes": 2017,
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/json-pdf.pdf",
+      "bytes": 142063,
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/json-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/json-pptx.pptx",
+      "bytes": 4996,
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/latex-epub.epub",
+      "bytes": 2017,
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/latex-epub3.epub",
+      "bytes": 2017,
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/latex-pdf.pdf",
+      "bytes": 142063,
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/latex-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/latex-pptx.pptx",
+      "bytes": 4996,
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/pptx-epub.epub",
+      "bytes": 2054,
+      "sha256": "fb11147a40fa7b15bea080a3f8968169e480ac21395925a97a211a9a608c0074",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/pptx-epub3.epub",
+      "bytes": 2054,
+      "sha256": "fb11147a40fa7b15bea080a3f8968169e480ac21395925a97a211a9a608c0074",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/pptx-pdf.pdf",
+      "bytes": 142063,
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/pptx-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/pptx-pptx.pptx",
+      "bytes": 4996,
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/rst-epub.epub",
+      "bytes": 2017,
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/rst-epub3.epub",
+      "bytes": 2017,
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/rst-pdf.pdf",
+      "bytes": 142063,
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/rst-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/rst-pptx.pptx",
+      "bytes": 4996,
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/rtf-epub.epub",
+      "bytes": 2017,
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/rtf-epub3.epub",
+      "bytes": 2017,
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/rtf-pdf.pdf",
+      "bytes": 142063,
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/rtf-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/rtf-pptx.pptx",
+      "bytes": 4996,
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/tsv-epub.epub",
+      "bytes": 2059,
+      "sha256": "d8a029271f6c1d6c91e1e6c2632bd9d7404e748441bae5cf377b6f600a8407c0",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/tsv-epub3.epub",
+      "bytes": 2059,
+      "sha256": "d8a029271f6c1d6c91e1e6c2632bd9d7404e748441bae5cf377b6f600a8407c0",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/tsv-pdf.pdf",
+      "bytes": 142123,
+      "sha256": "41abfae15dbde0f8ba5494f86bb260e739f375cc5fec11d9e8444054d6b28e72",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/tsv-pdf.pdf.png",
+      "bytes": 4136,
+      "sha256": "4961b4c6548f5b625739e23e01e5470ffe43c0b690a7672792c81e5864c2bb19",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/pandoc/matrix-owned/tsv-pptx.pptx",
+      "bytes": 4992,
+      "sha256": "8e2fc2b498025c4012a4a08c50d41c6868b404f22785f379b9d796ad02641dc0",
+      "classification": "Explicit integration/oracle evidence; excluded from unit inputs by location, no discovery changes"
+    },
+    {
+      "path": "docs/plans/pandoc-conformance-matrix.md",
+      "bytes": 7416,
+      "sha256": "bec5467bb0731322fdde747f897544f4e923e3c8239c55bd42719fd4d2f205ba",
+      "classification": "Manual QA procedure"
+    }
+  ],
+  "toolCleanup": "Isolated official Pandoc release and Python environment removed after capture. No ignored executable/tool files staged."
+}

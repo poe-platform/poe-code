@@ -12,8 +12,10 @@ them and unrelated work; validate gaps with original failing tests.
 - Current maintained gates pass: 49 PDF tests, 1,063 Pandoc tests, both package
   lint/typechecks, selected Pandoc build closure. No new full-repository unit
   result is claimed; the historical limitation below remains historical.
-- Refresh pinned independent parser/renderer QA against all current readers,
-  including PPTX. Keep evidence in docs/pandoc and procedure in docs/plans.
+- Refreshed pinned independent parser/renderer QA against all eleven current
+  readers, including PPTX; both parsers pass. Viewed four rendered pages.
+  Evidence: docs/pandoc/serialization-current-evidence.md; procedure remains
+  docs/plans/pandoc-pdf-serialization-qa.md.
 - Local commits only; no push or release authorized.
 
 Own serialization in packages/pdf using pinned pdf-lib 1.17.1 object primitives;

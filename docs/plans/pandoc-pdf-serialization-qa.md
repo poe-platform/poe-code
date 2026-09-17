@@ -29,9 +29,10 @@ Runtime serialization and unit tests never use them.
    using the SDK awaited binary sink to docs/pandoc/serialization-qa.pdf.
 3. Generate representable plain prose inputs for commonmark, gfm, html, json,
    latex, rst and rtf; two-column CSV/TSV; an original EPUB using the writer.
-   Assert case membership equals available reader registry membership (currently
-   ten). Convert each through the SDK to PDF and inspect with both oracles.
-   Plain/html5/office readers are unavailable and are not counted as passes.
+   Generate original PPTX prose through the SDK writer as well. Assert case
+   membership equals available reader registry membership (currently eleven).
+   Convert each through the SDK to PDF and inspect with both oracles.
+   Unavailable readers are not counted as passes.
 4. With pypdf strict=True: traverse every xref object; resolve page-tree Kids and
    Parent identities, Count and MediaBox; verify title/author Unicode, no clock
    metadata, flat outline destinations; verify URI annotation strings/rectangles;
@@ -63,3 +64,8 @@ all ten reader pairs, all four rendered screenshot inspections pass. Detailed
 results and original inputs are under docs/pandoc. Repository-wide lint passes;
 full unit run was stopped after an unrelated missing toolcraft-design markdown
 fixture failure. Scoped PDF/Pandoc gates pass; global unit validation is incomplete.
+
+Re-executed 2026-09-16 against the current checkout: all eleven reader pairs,
+including PPTX, pass both independent parsers. All four newly rendered page
+screenshots were viewed. Current scoped tests/lint/build pass; no fresh global
+unit result claimed. See docs/pandoc/serialization-current-evidence.md.

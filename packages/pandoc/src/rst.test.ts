@@ -91,6 +91,16 @@ it("maps code, image and admonition directives without executing content", async
   expect(JSON.stringify(doc.blocks[1])).toContain("plot.png");
   expect(JSON.stringify(doc.blocks[2])).toContain("Strong");
 });
+it("uses the directive blank line to separate options from literal body fields", async () => {
+  for (const prefix of [".. code:: rst", ".. code:: rst\n   :number-lines: 3"]) {
+    const block = (await read(`${prefix}\n\n   :name: literal\n   :file: also literal\n\n   body`)).blocks[0];
+    expect(block?.t === "CodeBlock" && block.c[1]).toBe(":name: literal\n:file: also literal\n\nbody");
+  }
+  const raw = await json(".. raw:: html\n\n   :file: inert text", {rawContent: "retain"});
+  expect(raw.kind === "text" && JSON.parse(raw.text).blocks).toEqual([{t: "RawBlock", c: ["html", ":file: inert text"]}]);
+  expect((await read(".. note::\n\n   :author: Ada")).blocks[0]?.t === "Div").toBe(true);
+  expect(JSON.stringify((await read(".. note::\n\n   :author: Ada")).blocks)).toContain("DefinitionList");
+});
 it("preserves unknown directive bodies/options and roles under explicit raw policy", async () => {
   const source = ".. mystery:: argument\n   :option: value\n\n   body\n\n   nested\n     child";
   await expect(read(source)).rejects.toMatchObject({code: "E_CAPABILITY"});

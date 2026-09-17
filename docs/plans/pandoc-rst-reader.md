@@ -29,3 +29,14 @@ memfs only. Final maintained package tests (733), lint/typechecks and selected
 workspace build pass. Screenshots were inspected; evidence records the existing
 GFM destination-writer limitation. The verified atomic reader improvement is ready
 for a local Conventional Commit on main. No push/release is authorized.
+
+Follow-up audit: reproduce directive body fields being interpreted as header
+options, then preserve the separating blank line during option parsing. Verify
+code/raw literal fields and admonition field lists with original tests; rerun
+maintained package tests, lint/typechecks and the selected workspace build closure.
+Keep the safe-bash adapter thin and retain the existing resource denial tests.
+
+Follow-up QA: run the built createPandocCommand with explicit byte stdin for a
+code directive containing field-shaped literal text and an admonition containing
+a field list; capture and inspect terminal HTML output. Separately inspect the
+number-lines destination rejection. Store screenshots/evidence under docs/pandoc.

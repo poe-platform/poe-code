@@ -121,7 +121,8 @@ class RstReader {
     this.context.charge("directives", 1);
     const name = declaration.slice(0, separator).trim().toLowerCase();
     const argument = declaration.slice(separator + 2).trim();
-    let body = dedent(trimLines(lines.slice(i + 1, end)));
+    // A blank line ends the directive header; subsequent fields are body data.
+    let body = dedent(lines.slice(i + 1, end));
     const options = new Map<string, string>();
     while (body.length && field(body[0]!.text)) {
       const option = field(body[0]!.text)!;

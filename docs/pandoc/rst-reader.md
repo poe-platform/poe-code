@@ -3,7 +3,7 @@
 The built-in `rst` reader is original TypeScript in packages/pandoc. The SDK and
 existing thin safe-bash command use the same reader. There is no Python/docutils,
 Pandoc executable, shell, network or ambient filesystem runtime fallback. RST
-output remains unavailable; this work implements input only.
+output is documented separately; this document describes input only.
 
 ## Pinned syntax reference
 
@@ -88,6 +88,11 @@ their existing policies. `failIfWarnings` remains available. Unknown constructs
 never succeed by dropping their body. `parsed-literal`, `contents`, `role`,
 `default-role`, dynamic/date/unicode substitutions, document transforms, math
 directives and custom table directives are not in the allowlist.
+
+A blank line ends a directive's option header. Field-shaped text after that
+separator belongs to the body: code/raw directives preserve it literally, and
+admonitions parse it as a field list. Raw `file`/`url` header options still fail
+before resource access.
 
 ## Role allowlist
 

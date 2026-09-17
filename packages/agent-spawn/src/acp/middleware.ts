@@ -7,6 +7,7 @@ export interface SessionToolCall {
   title?: string;
   input?: unknown;
   path?: string;
+  status?: "completed" | "failed" | "cancelled";
 }
 
 export interface SessionResult {

@@ -11,7 +11,7 @@ import {
   prependSystemPrompt
 } from "./system-prompt.js";
 import { resolveTemplate, type TemplateContext } from "./templates.js";
-import { parseWorkflowCall, type WorkflowTransition } from "./workflow-tool.js";
+import { isWorkflowToolName, parseWorkflowCall, type WorkflowTransition } from "./workflow-tool.js";
 
 export type SuperintendentResult = {
   summary: string;
@@ -20,6 +20,7 @@ export type SuperintendentResult = {
 };
 
 type ToolCallLike = {
+  status?: unknown;
   name?: unknown;
   tool?: unknown;
   title?: unknown;
@@ -154,7 +155,7 @@ function readTransitionFromToolCalls(value: unknown): WorkflowTransition | undef
   for (const entry of value) {
     const toolCall = readToolCall(entry);
 
-    if (!toolCall || !isWorkflowToolName(readToolCallName(toolCall))) {
+    if (!toolCall || toolCall.status === "failed" || toolCall.status === "cancelled" || !isWorkflowToolName(readToolCallName(toolCall))) {
       continue;
     }
 
@@ -258,12 +259,6 @@ function readStructuredToolResult(value: unknown): unknown {
     .find((item): item is string => item !== undefined);
 
   return text === undefined ? undefined : parseJsonValue(text);
-}
-
-function isWorkflowToolName(name: string | undefined): boolean {
-  if (!name) return false;
-  if (name === "workflow_transition") return true;
-  return name.startsWith("mcp__") && name.endsWith("__workflow_transition");
 }
 
 function parseJsonValue(value: unknown): unknown {

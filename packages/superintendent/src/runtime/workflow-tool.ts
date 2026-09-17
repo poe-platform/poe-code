@@ -5,6 +5,13 @@ export type WorkflowTransition =
   | { action: "approve_completion" }
   | { action: "request_changes"; feedback: string };
 
+export function isWorkflowToolName(name: string | undefined): boolean {
+  if (!name) return false;
+  return name === "workflow_transition"
+    || (name.startsWith("mcp__") && name.endsWith("__workflow_transition"))
+    || (name.endsWith(".workflow_transition") && name.length > ".workflow_transition".length);
+}
+
 type McpToolProperty = {
   type: "string";
   description: string;

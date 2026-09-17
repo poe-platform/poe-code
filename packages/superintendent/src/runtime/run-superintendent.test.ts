@@ -240,12 +240,12 @@ describe("runSuperintendent", () => {
     });
   });
 
-  it("extracts the transition from a Claude-Code-namespaced MCP tool call in sessionResult", async () => {
+  it.each(["mcp__superintendent-tools__workflow_transition", "superintendent-tools.workflow_transition"])("extracts the transition from the namespaced MCP tool %s", async (title) => {
     autonomousMock.mockResolvedValue({
       sessionResult: {
         toolCalls: [
           {
-            title: "mcp__superintendent-tools__workflow_transition",
+            title,
             input: {
               action: "request_review",
               summary: "Ready for owner review"
@@ -274,6 +274,13 @@ describe("runSuperintendent", () => {
     await expect(runSuperintendent(document, {}, { defaultCwd: "/repo/docs/plans" })).resolves.toEqual({
       summary: "Continue with the next batch of tasks"
     });
+  });
+
+  it.each(["failed", "cancelled"])("ignores a %s workflow action", async (status) => {
+    autonomousMock.mockResolvedValue({ toolCalls: [{ title: "superintendent-tools.workflow_transition", status, input: { action: "request_review", summary: "Not recorded" } }] });
+    const { runSuperintendent } = await import("./run-superintendent.js");
+    const result = await runSuperintendent(document, {}, { defaultCwd: "/repo" });
+    expect(result.transition).toBeUndefined();
   });
 
   it("prepends a system prompt ahead of the resolved plan prompt", async () => {

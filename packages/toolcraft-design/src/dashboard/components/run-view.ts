@@ -68,10 +68,12 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   const tasks = run?.tasks ?? [];
   const completed = tasks.filter((task) => task.status === "completed").length;
   const taskCount = tasks.length > 0 ? `${completed}/${tasks.length} tasks` : `${stats.iterationsLabel ?? "Iterations"} ${stats.iterations}`;
-  const phase = truncateToWidth(plainTerminalText(run?.phase ?? stats.currentAction ?? stats.status), Math.max(8, transcriptWidth - taskCount.length - 7));
+  const step = run?.activeStep ? truncateToWidth(plainTerminalText(run.activeStep), Math.max(8, Math.floor(transcriptWidth / 4))) : undefined;
+  const progressLabel = [step, taskCount].filter(Boolean).join(" · ");
+  const phase = truncateToWidth(plainTerminalText(run?.phase ?? stats.currentAction ?? stats.status), Math.max(8, transcriptWidth - progressLabel.length - 7));
   const statusMarker = { running: "●", error: "!", paused: "Ⅱ", idle: "○", done: "✓" }[stats.status];
   put(buffer, { x, y: outputY++, width: transcriptWidth, height: 1 }, 0,
-    `${statusMarker} ${phase} · ${taskCount}${run?.activity ? ` · ${run.activity}` : ""}`, stats.status === "error" ? theme.error : { bold: true });
+    `${statusMarker} ${phase} · ${progressLabel}${run?.activity ? ` · ${run.activity}` : ""}`, stats.status === "error" ? theme.error : { bold: true });
   outputY++;
   const outputRect: Rect = { x, y: outputY, width: transcriptWidth, height: Math.max(0, contentBottom - outputY) };
   let scrollOffset = options.scrollOffset;
@@ -125,6 +127,7 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
       : "Enter Queue  Alt+Enter Newline  Ctrl+P Plan  Alt+↑↓ Target  Esc Browse"
     : options.showQueue ? "↑↓ Scroll  PgUp/PgDn Page  Home/End Jump  v Activity  i Message  q Quit"
       : options.hints ? options.hints.map((hint) => `${hint.key} ${hint.label}`).join("  ")
+      : width < 100 ? "i Message  p Plan  v Tasks  d Details  ↑↓ Scroll  f Follow  q Quit"
       : "i Message  p Add plan  v Tasks & plans  d Details  ↑↓ Scroll  f Follow  q Quit";
   put(buffer, { x, y: footerY, width, height: 1 }, 0, hint, theme.muted);
   return { scrollOffset, workOffset, outputRect, ...(cursor ? { cursor } : {}) };

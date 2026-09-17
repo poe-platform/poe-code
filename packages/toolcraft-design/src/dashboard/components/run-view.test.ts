@@ -66,6 +66,22 @@ describe("run dashboard information hierarchy", () => {
     expect(result.cursor?.x).toBeLessThan(80);
   });
 
+  it("keeps the current step and task progress visible beside a long task title at 80 columns", () => {
+    const { rows } = screen(80, 24, { stats: {
+      ...stats, run: { ...stats.run, phase: "Preserve document formatting and validate all package relationships", activeStep: "implement" }
+    } });
+    const phase = rows.find((row) => row.includes("●"))!;
+    expect(phase).toContain("implement");
+    expect(phase).toContain("7/30 tasks");
+  });
+
+  it("keeps quit and detail controls legible in the compact browse footer", () => {
+    const { rows } = screen(80, 24, { composer: { ...createComposerState("message", "first"), focused: false } });
+    expect(rows.at(-1)).toContain("d Details");
+    expect(rows.at(-1)).toContain("q Quit");
+    expect(rows.at(-1)).not.toContain("…");
+  });
+
   it("marks hidden tasks in the sidebar and keeps the active task visible", () => {
     const { text } = screen(120, 32, { stats: {
       ...stats, run: { ...stats.run, activeTaskId: "task-7", activeStep: "implement",

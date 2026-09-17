@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as docx from "./index.js";
 import { paragraph, run, textContext, textFixture, w } from "../tests/fixtures/text.js";
+import { readPackage, xmlStructure } from "../tests/assertions.js";
 
 const w14 = "http://schemas.microsoft.com/office/word/2010/wordml";
 const w15 = "http://schemas.microsoft.com/office/word/2012/wordml";
@@ -15,7 +16,7 @@ const metadata = [
 ] as const;
 const context: docx.PublicationContext = { ...textContext, encoding: { order: "input", compression: "store" } };
 const comment = (id: number, pid: string, text: string, author = "Mira") => `<w:comment w:id="${id}" w:author="${author}"><w:p x:paraId="${pid}">${run(text)}</w:p></w:comment>`;
-async function fixture(options: { paragraphId?: string; thread?: string; extra?: string; authors?: string; comments?: string; body?: string } = {}) {
+async function fixture(options: { paragraphId?: string; thread?: string; extra?: string; authors?: string; comments?: string; body?: string; strict?: boolean; uppercaseMime?: boolean } = {}) {
   const contents = [options.thread ?? '<m:commentEx m:paraId="000000A1" m:done="1"/><m:commentEx m:paraId="000000B2" m:paraIdParent="000000A1" m:done="0"/>',
     '<m:commentId m:paraId="000000A1" m:durableId="00000011"/><m:commentId m:paraId="000000B2" m:durableId="00000022"/>',
     options.extra ?? '<m:commentExtensible m:durableId="00000011" m:dateUtc="2026-01-02T03:04:05Z"/><m:commentExtensible m:durableId="00000022"/>',
@@ -23,13 +24,19 @@ async function fixture(options: { paragraphId?: string; thread?: string; extra?:
   const bytes = await textFixture(options.body ?? paragraph("Coastal survey"), {
     comments: { kind: "comments", xml: `<w:comments xmlns:w="${w}" xmlns:x="${w14}" xmlns:newer="urn:future:annotation" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x newer">${options.comments ?? comment(4, options.paragraphId ?? "000000A1", "Check depth") + comment(9, "000000B2", "Depth confirmed")}</w:comments>` },
     ...Object.fromEntries(metadata.map(([name, kind, ns, root], i) => [name, { kind, xml: `<m:${root} xmlns:m="${ns}" xmlns:newer="urn:future:annotation">${contents[i]!.split("000000A1").join(options.paragraphId ?? "000000A1")}</m:${root}>` }]))
-  });
+  }, options.strict);
   const archive = await docx.readArchive(bytes, textContext);
   const member = archive.members.find(m => m.name === "word/_rels/document.xml.rels")!;
   const editor = new docx.DocumentXmlEditor(member.bytes);
   for (const [name, , , , rel] of metadata) editor.setAttribute(editor.root.children.find(n => n.attributes.some(a => a.localName === "Id" && a.value === name))!, "Type", rel);
+  const types = archive.members.find(m => m.name === "[Content_Types].xml")!, typeEditor = new docx.DocumentXmlEditor(types.bytes);
+  if (options.uppercaseMime) for (const node of typeEditor.root.children) {
+    if (node.attributes.some(attribute => attribute.localName === "PartName" && metadata.some(([name]) => attribute.value === `/word/${name}.xml`))) {
+      typeEditor.setAttribute(node, "ContentType", node.attributes.find(attribute => attribute.localName === "ContentType")!.value.toUpperCase());
+    }
+  }
   const volume = Volume.fromJSON({ "/out": "" });
-  await docx.writeArchive({ ...archive, members: archive.members.map(m => m === member ? { ...m, bytes: editor.serialize() } : m) }, { async write(b) { volume.appendFileSync("/out", b); } }, context.encoding, textContext);
+  await docx.writeArchive({ ...archive, members: archive.members.map(m => m === member ? { ...m, bytes: editor.serialize() } : m === types ? { ...m, bytes: typeEditor.serialize() } : m) }, { async write(b) { volume.appendFileSync("/out", b); } }, context.encoding, textContext);
   return new Uint8Array(volume.readFileSync("/out") as Buffer);
 }
 const read = (bytes: Uint8Array) => docx.inspectDocumentComments(bytes, { operation: "comments.list", options: {} }, textContext);
@@ -44,6 +51,49 @@ async function command(bytes: Uint8Array, args: string[]) {
   return { result, bytes: new Uint8Array(volume.readFileSync("/out") as Buffer), error: volume.readFileSync("/err", "utf8").toString() };
 }
 async function parts(bytes: Uint8Array) { return new Map((await docx.readArchive(bytes, textContext)).members.map(m => [m.name, new TextDecoder().decode(m.bytes)])); }
+
+for (const strict of [false, true]) for (const uppercaseMime of [false, true]) for (const route of ["sdk", "cli"] as const) for (const action of ["set", "remove"] as const) it(
+  `synchronizes exact reply metadata via ${route} ${action}; uppercase MIME=${uppercaseMime}; strict=${strict}`, async () => {
+    const input = await fixture({ strict, uppercaseMime }), before = readPackage(input);
+    let output: Uint8Array;
+    if (route === "sdk") {
+      const volume = Volume.fromJSON({ "/out": "" });
+      const request: docx.CommentEditRequest = action === "set" ? { operation: "comments.set", options: { comment: 2, text: "Updated observation", output: "-" } } : { operation: "comments.remove", options: { comment: 2, output: "-" } };
+      const result = await docx.editDocumentComments(input, request, { ...context, stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } } });
+      expect(result.changed).toBe(true);
+      expect(result.changes).toHaveLength(1);
+      output = new Uint8Array(volume.readFileSync("/out") as Buffer);
+    } else {
+      const result = await command(input, ["comments", action, "/input.docx", "--comment", "2", ...(action === "set" ? ["--text", "Updated observation"] : []), "--output", "-"]);
+      expect(result.result.exitCode, result.error).toBe(0);
+      output = result.bytes;
+    }
+    const after = readPackage(output), changed = new Set(action === "set" ? ["word/comments.xml"] : ["word/comments.xml", "word/thread.xml", "word/ids.xml", "word/extra.xml"]);
+    expect([...after.keys()]).toEqual([...before.keys()]);
+    for (const [name, bytes] of before) if (!changed.has(name)) expect(after.get(name), name).toEqual(bytes);
+    const comments = new TextDecoder().decode(after.get("word/comments.xml")!);
+    expect(comments).toContain(comment(4, "000000A1", "Check depth"));
+    if (action === "set") {
+      const namespace = strict ? "http://purl.oclc.org/ooxml/wordprocessingml/main" : w;
+      const actual = xmlStructure(after.get("word/comments.xml")!).children.flatMap(node => typeof node === "string" ? [] : node.children).filter(node => typeof node !== "string" && node.attributes[`{${namespace}}id`] === "9");
+      const expected = xmlStructure(new TextEncoder().encode(`<w:comment xmlns:w="${namespace}" xmlns:x="${w14}" w:id="9" w:author="Mira"><w:p x:paraId="000000B2"><w:r><w:t xml:space="preserve">Updated observation</w:t></w:r></w:p></w:comment>`));
+      expect(actual).toEqual(expected.children);
+    }
+    else {
+      expect(comments).not.toContain('w:id="9"');
+      const thread = new TextDecoder().decode(after.get("word/thread.xml")!), ids = new TextDecoder().decode(after.get("word/ids.xml")!), extra = new TextDecoder().decode(after.get("word/extra.xml")!);
+      expect(thread).toContain('<m:commentEx m:paraId="000000A1" m:done="1"/>');
+      expect(thread).not.toContain("000000B2");
+      expect(ids).toContain('<m:commentId m:paraId="000000A1" m:durableId="00000011"/>');
+      expect(ids).not.toContain("000000B2");
+      expect(extra).toContain('<m:commentExtensible m:durableId="00000011" m:dateUtc="2026-01-02T03:04:05Z"/>');
+      expect(extra).not.toContain("00000022");
+    }
+    expect((await read(output)).items.map(item => [item.comment_id, item.text])).toEqual(action === "set" ? [[4, "Check depth"], [9, "Updated observation"]] : [[4, "Check depth"]]);
+    expect((await docx.readDocumentArchive(output, textContext)).dialect).toBe(strict ? "strict" : "transitional");
+    expect(readPackage(input)).toEqual(before);
+  }
+);
 
 it("inventories extension identifiers, unknown attributes and nested entity metadata through CLI and SDK", async () => {
   const input = await fixture({ extra: '<m:commentExtensible m:durableId="00000011" newer:flag="retained"><m:extLst><newer:entity xmlns:e="http://schemas.microsoft.com/office/word/2026/wordml/cei"><e:commentEntityInfo e:entityType="2"/></newer:entity></m:extLst></m:commentExtensible>' });

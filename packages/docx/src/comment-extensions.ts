@@ -86,7 +86,7 @@ export function synchronizeCommentExtensions(state: State, selected: State["reco
   for (const info of state.extensions) {
     const descriptor = commentExtensionParts.find(e => e.kind === info.kind);
     const editor = state.editors.get(info.part);
-    if (!descriptor || !editor || groups.has(info.kind) || state.graph.getPart(info.part).content_type !== descriptor.contentType ||
+    if (!descriptor || !editor || groups.has(info.kind) || state.graph.getPart(info.part).content_type.toLowerCase() !== descriptor.contentType.toLowerCase() ||
       editor.root.namespace !== descriptor.namespace || editor.root.localName !== descriptor.root) refuse();
     const edges = state.graph.relationships(state.main).filter(e => e.reltype === descriptor!.relationship);
     if (edges.length !== 1 || edges[0]!.is_external || edges[0]!.fragment || edges[0]!.target_part.partname !== info.part) refuse();

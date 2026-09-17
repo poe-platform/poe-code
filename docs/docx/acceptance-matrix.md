@@ -440,3 +440,13 @@ four XML encodings and exact unrelated-member preservation. The original
 failures and two invalid test setups remain preserved. This closes the named
 F01/F04/F05/F06/F07 dependency only; full-family acceptance and the replacement
 workspace run remain open.
+# Numbering paragraph-type default — 2026-09-17
+
+[Exact evidence](numbering-style-type-20260917.md) qualifies omitted native
+paragraph style types in named/base/default numbering inheritance, including
+selected Choice and ProcessContent. All 288 new cases and 1,323 focused tests
+pass, as do 144 built paired SDK/actual Shell workflows with model reload,
+independent numbering assertions and exact style/relationship retention. The
+original 144 failures remain preserved. This closes this F02/F03/F04/F05 and
+F15/F18 dependency; complete F01–F07 acceptance and the current workspace gate
+remain open.

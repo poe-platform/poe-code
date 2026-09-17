@@ -119,7 +119,7 @@ export class NumberingGraph {
   }
   style(id: string, type: string): XmlElement {
     const found = this.children(this.styles).filter(n => n.namespace === this.xml.root.namespace && n.localName === "style" && numberingAttribute(n, "styleId") === id);
-    if (found.length !== 1 || numberingAttribute(found[0], "type") !== type) throw new UnsupportedEditError("Numbering style reference is missing or ambiguous.");
+    if (found.length !== 1 || (numberingAttribute(found[0], "type") ?? "paragraph") !== type) throw new UnsupportedEditError("Numbering style reference is missing or ambiguous.");
     return found[0]!;
   }
   paragraph(node: XmlElement): { id: number; level: number } | undefined {
@@ -129,7 +129,7 @@ export class NumberingGraph {
     const seen = new Set<string>();
     let style = numberingAttribute(this.child(props, "pStyle"));
     if (style === undefined) {
-      const defaults = this.children(this.styles).filter(n => n.namespace === node.namespace && n.localName === "style" && numberingAttribute(n, "type") === "paragraph" && ["1", "true", "on"].includes(numberingAttribute(n, "default") ?? ""));
+      const defaults = this.children(this.styles).filter(n => n.namespace === node.namespace && n.localName === "style" && (numberingAttribute(n, "type") ?? "paragraph") === "paragraph" && ["1", "true", "on"].includes(numberingAttribute(n, "default") ?? ""));
       if (defaults.length > 1) throw new UnsupportedEditError("Ambiguous default paragraph style.");
       style = numberingAttribute(defaults[0], "styleId");
     }

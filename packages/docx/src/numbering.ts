@@ -4,6 +4,7 @@ import type { XmlElement } from "./package-xml.js";
 import { parseDocumentXml } from "./package-xml.js";
 import { runElementOpen } from "./run-properties.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { activeXmlChildren } from "./xml-active-children.js";
 
 export const numberingFormats = ["bullet", "decimal", "lowerLetter", "upperLetter", "lowerRoman", "upperRoman"] as const;
 export function numberingAttribute(node: XmlElement | undefined, name = "val"): string | undefined {
@@ -14,10 +15,17 @@ export function numberingChild(node: XmlElement | undefined, name: string): XmlE
   if (children.length > 1) throw new UnsupportedEditError("Duplicate numbering properties are ambiguous.");
   return children[0];
 }
+function nonnegativeInteger(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+  const digits = value[0] === "+" || value[0] === "-" ? value.slice(1) : value;
+  const number = Number(value);
+  return digits && [...digits].every(c => c >= "0" && c <= "9") && Number.isSafeInteger(number) && number >= 0 ? number : undefined;
+}
 function integer(value: string | undefined, maximum = Number.MAX_SAFE_INTEGER): number {
-  if (!value || ![...value].every(c => c >= "0" && c <= "9") || !Number.isSafeInteger(Number(value)) || Number(value) > maximum)
+  const number = nonnegativeInteger(value);
+  if (number === undefined || number > maximum)
     throw new UnsupportedEditError("Numbering requires bounded nonnegative integer identifiers and levels.");
-  return Number(value);
+  return number;
 }
 interface ResolvedNumbering {
   readonly num: XmlElement;
@@ -59,6 +67,13 @@ export class NumberingGraph {
       if (node.namespace === this.xml.root.namespace && ["numId", "abstractNumId"].includes(node.localName)) {
         const value = numberingAttribute(node);
         if (value !== undefined) (node.localName === "numId" ? this.reservedInstances : this.reservedAbstracts).add(integer(value));
+      }
+      // Stored definitions also reserve IDs, including inactive/opaque branches.
+      // Invalid inert spellings stay opaque; this is not semantic admission.
+      if (node.namespace === this.xml.root.namespace && ["num", "abstractNum"].includes(node.localName)) {
+        const abstract = node.localName === "abstractNum";
+        const id = nonnegativeInteger(numberingAttribute(node, abstract ? "abstractNumId" : "numId"));
+        if (id !== undefined) (abstract ? this.reservedAbstracts : this.reservedInstances).add(id);
       }
       node.children.forEach(visit);
     };
@@ -289,11 +304,37 @@ export class NumberingGraph {
     const instances = this.newInstances.join("");
     if (!additions && !instances && !this.rebindings.size) return this.xml.serialize();
     const root = this.xml.root;
-    const firstNum = root.children.find(c => c.namespace === root.namespace && ["num", "numIdMacAtCleanup"].includes(c.localName));
-    const cleanup = numberingChild(root, "numIdMacAtCleanup");
+    const active = new Set(activeXmlChildren(this.xml, this.budget)(root));
+    const alternatives = new Set(this.xml.compatibility.branches.map(branch => branch.alternateContent));
+    this.budget.charge("retainedBytes", 128 + (active.size + alternatives.size) * 16);
+    const ranks = new Map<XmlElement, number[]>();
+    const collect = (node: XmlElement, found: Set<number>, alternate = false): void => {
+      this.budget.charge("work", 1);
+      if (node.namespace === root.namespace) {
+        const rank = ["numPicBullet", "abstractNum", "num", "numIdMacAtCleanup"].indexOf(node.localName);
+        if (rank >= 0) { if (alternate || active.has(node)) found.add(rank); return; }
+      }
+      // Retain order for every stored branch of an exposed alternative; ignored
+      // XML outside those alternatives cannot create numbering-order authority.
+      for (const child of node.children) collect(child, found, alternate || alternatives.has(node));
+    };
+    for (const node of root.children) {
+      const found = new Set<number>();
+      collect(node, found);
+      this.budget.charge("retainedBytes", 96 + found.size * 16);
+      ranks.set(node, [...found]);
+    }
+    const boundary = (rank: number): XmlElement | undefined => {
+      const node = root.children.find(node => ranks.get(node)!.some(value => value > rank));
+      if (node && ranks.get(node)!.some(value => value < rank))
+        throw new UnsupportedEditError("Numbering insertion would split a retained compatibility representation.");
+      return node;
+    };
+    const firstNum = additions ? boundary(1) : undefined;
+    const cleanup = instances ? boundary(2) : undefined;
     const patches = new Map<XmlElement, string>(this.rebindings);
     if (firstNum) patches.set(firstNum, additions + (patches.get(firstNum) ?? this.xml.sourceXml(firstNum)));
-    if (cleanup) patches.set(cleanup, (firstNum === cleanup ? additions : "") + instances + this.xml.sourceXml(cleanup));
+    if (cleanup) patches.set(cleanup, (firstNum === cleanup ? additions : "") + instances + (this.rebindings.get(cleanup) ?? this.xml.sourceXml(cleanup)));
     const content = this.xml.sourceXml(root, patches, true) + (firstNum ? "" : additions) + (cleanup ? "" : instances);
     const source = new TextDecoder().decode(this.xml.serialize());
     const originalRoot = this.xml.sourceXml(root);

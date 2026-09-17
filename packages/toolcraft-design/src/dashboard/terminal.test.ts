@@ -148,6 +148,32 @@ describe("parseKeypress", () => {
 });
 
 describe("createTerminalDriver", () => {
+  it("preserves Unicode and escape sequences split across terminal chunks", () => {
+    const stdin = new TestStdin();
+    const driver = createTerminalDriver({ stdin, stdout: new TestStdout() });
+    const received: Array<{ ch?: string; name?: string }> = [];
+    driver.onKeypress((event) => received.push(event));
+    const bytes = Buffer.from("界👩‍💻é");
+    for (const byte of bytes) stdin.emit("data", Buffer.from([byte]));
+    stdin.emit("data", Buffer.from("\u001b["));
+    stdin.emit("data", Buffer.from("A"));
+    expect(received.map((event) => event.ch).filter(Boolean).join("")).toBe("界👩‍💻é");
+    expect(received.at(-1)?.name).toBe("up");
+    driver.destroy();
+  });
+
+  it("delivers multiline bracketed paste as one input without submitting or quitting", () => {
+    const stdin = new TestStdin();
+    const driver = createTerminalDriver({ stdin, stdout: new TestStdout() });
+    const received: Array<{ ch?: string; name?: string }> = [];
+    driver.onKeypress((event) => received.push(event));
+    stdin.emit("data", Buffer.from("\u001b[200~Review this\nq"));
+    expect(received).toEqual([]);
+    stdin.emit("data", Buffer.from(" and verify\u001b[201~"));
+    expect(received).toEqual([{ name: "paste", ch: "Review this\nq and verify", ctrl: false, meta: false, shift: false }]);
+    driver.destroy();
+  });
+
   it("paints an adjacent row without moving the cursor for every cell", () => {
     const stdout = new TestStdout();
     const driver = createTerminalDriver({ stdin: new TestStdin(), stdout });

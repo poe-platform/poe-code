@@ -45,6 +45,31 @@ new failing implementation tests or code lint/build checks were required.
 
 ## Blocker
 
+### Expanded discovery recheck (2026-09-16)
+
+The repeated task request prompted fresh discovery rather than relying on the
+earlier gate. JSON parsing inspected package names and runtime, development,
+and optional dependency names for `xlsx`, `excel`, `spreadsheet`, `workbook`,
+and `sheetjs` across all five local checkouts:
+
+| Checkout | Package manifests inspected | Matches |
+| --- | ---: | ---: |
+| `poe-code` | 77 | 0 |
+| `poe-code-2` | 75 | 0 |
+| `poe-code-3` | 76 | 0 |
+| `poe-code-4` | 76 | 0 |
+| `poe-code-5` | 79 | 0 |
+
+The package keys in all five checkout lockfiles and the parent Workspace
+lockfile likewise had no matches. Filename discovery found no sibling SDK
+manifest. Reinspection of the current office-package public exports confirmed
+ZIP/compression codecs only. There are still no public workbook APIs to bind.
+
+The maintained package test route was rerun; its fresh output is recorded in
+`xlsx-sdk-gate-recheck-test.log`: exit 0, 47 test files and 1,066 tests passed.
+No conversion code or workbook tests were
+added: their required SDK is absent. This recheck does not pass the XLSX gate.
+
 Implementation requires the real sibling SDK package and public APIs for bounded
 workbook reading, sheet metadata/selection, sparse cells, merges, displayed text,
 typed values, styles/date systems, and formula cache presence. Discovery supplied

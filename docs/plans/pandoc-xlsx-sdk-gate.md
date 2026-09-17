@@ -2,6 +2,11 @@
 
 Status: blocked (2026-09-16). The `xlsx-conversion-adapter` task is incomplete.
 
+A fresh discovery recheck covered 383 package manifests across all five local
+checkouts and six lockfiles, including the parent Workspace. No sibling XLSX
+SDK was found. Expanded evidence and the maintained test rerun are recorded in
+the linked gate evidence; implementation and workbook QA remain pending.
+
 No sibling TypeScript XLSX SDK with a public workbook-reading API was found in
 the current workspace, its dependency lockfile, or the nearby repository package
 manifests inspected in discovery. Do not implement a replacement workbook parser,

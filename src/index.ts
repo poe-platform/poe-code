@@ -17,8 +17,8 @@ export {
   createSupervisor,
   waitForReady
 } from "./sdk/process-launcher.js";
-export { runRalph } from "./sdk/ralph.js";
-export { runExperiment, readExperimentJournal } from "./sdk/experiment.js";
+export { runRalph, runRalphSequence } from "./sdk/ralph.js";
+export { runExperiment, runExperimentSequence, readExperimentJournal } from "./sdk/experiment.js";
 export { installSkill } from "./skills.js";
 export type {
   InstallSkillOptions,
@@ -190,7 +190,7 @@ export type {
   MaestroEvent,
   Logger as MaestroLogger
 } from "@poe-code/maestro";
-export type { RalphRunOptions, RalphRunResult } from "./sdk/ralph.js";
+export type { RalphRunOptions, RalphRunResult, RalphSequenceOptions, RalphSequenceResult } from "./sdk/ralph.js";
 export type { AutomationDefinition } from "@poe-code/github-workflows";
 export type {
   CodeReviewAgentMcpConfig,
@@ -214,6 +214,9 @@ export type {
 } from "agent-code-review";
 export type {
   ExperimentRunOptions,
+  ExperimentSequenceOptions,
+  ExperimentSequenceResult,
+  ExperimentPlanSummary,
   ExperimentRunResult,
   ExperimentJournalOptions
 } from "./sdk/experiment.js";

@@ -369,7 +369,7 @@ export async function runExperimentLoop(
 
   const absoluteDocPath = resolveWorkflowPath(options.docPath, options.cwd, options.homeDir);
   const journalPath = resolveJournalPath(absoluteDocPath);
-  const managedPaths = [absoluteDocPath, journalPath];
+  const managedPaths = [absoluteDocPath, journalPath, ...(options.additionalManagedPaths ?? [])];
   const git = options.git ?? createDefaultGit(exec, managedPaths);
   const runLogDir = await ensureSafeRunLogDir({
     planPath: absoluteDocPath,
@@ -441,6 +441,13 @@ export async function runExperimentLoop(
     const initialMaxExperiments = validateMaxExperiments(
       options.maxExperiments ?? initialFrontmatter.max_experiments
     );
+    const initialAgents = normalizeAgents(options.agent ?? initialFrontmatter.agent);
+    const lastAgent = initialAgents[Math.max(0, experimentsCompleted - 1) % initialAgents.length]!;
+    await options.onPlanResolved?.({
+      docPath: options.docPath, agent: lastAgent.agent,
+      ...(lastAgent.model ? { model: lastAgent.model } : {}),
+      maxExperiments: initialMaxExperiments, experimentsCompleted, logDir: runLogDir
+    });
     if (experimentsCompleted >= initialMaxExperiments) {
       return finalize("max_experiments");
     }
@@ -572,6 +579,7 @@ export async function runExperimentLoop(
       if (newEntry === null) {
         await git.reset(preExperimentHash, options.cwd);
         await notifyCompletedState(options.onReset, preExperimentHash);
+        await options.onExperimentDiscarded?.(experimentIndex, "No journal result");
         continue;
       }
 

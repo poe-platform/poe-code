@@ -115,11 +115,12 @@ poe-code ralph run docs/plans/refactor-auth.md
 
 ## Dashboard Configuration
 
-Ralph runs can render the live dashboard in terminal TTY mode.
+Ralph's live dashboard shows iterations and queued plans. Type a message and press Enter to run it after the selected plan finishes; multiple submissions run in order through that plan's last agent and settings. Alt+Up/Down chooses the target plan. Ctrl+P switches to appending a plan, and Esc then `v` shows all queued work.
 
 ```bash
 # One-off flags
 poe-code ralph run --tui
+poe-code ralph run docs/plans/first.md docs/plans/second.md --tui --after-plan "Review the API"
 poe-code ralph run --no-tui
 
 # Config default (.poe-code/config.json)
@@ -137,7 +138,7 @@ Ralph archives completed docs by default. Disable this with `poe-code ralph run 
 
 ```bash
 poe-code ralph init [doc]  [--agent <name>] [--iterations <n>]
-poe-code ralph run  [doc]  [--agent <name>] [--iterations <n>] [--cwd <path>] [--archive|--no-archive] [--tui|--no-tui] [--runtime host|docker] [--worktree]
+poe-code ralph run [docs...] [--agent <name>] [--iterations <n>] [--cwd <path>] [--archive|--no-archive] [--tui|--no-tui] [--after-plan <message>] [--runtime host|docker] [--worktree]
 ```
 
 Pass `--worktree` to the `poe-code ralph run` CLI to run the whole Ralph loop in one managed git worktree and reconcile successful output afterward. Worktree mode requires a clean source checkout before the run starts. The root `poe-code` SDK wrapper also supports worktrees; the package-level runner below does not accept a `worktree` option.
@@ -159,7 +160,9 @@ const result = await runRalph({
 });
 ```
 
-Exports: `runRalph`, `discoverDocs`, `parseFrontmatter`, `writeFrontmatter`.
+`runRalphSequence({ docs, afterEachPlan, ...options })` runs ordered plans and follow-ups using the same runner. `afterEachPlan` mirrors repeatable `--after-plan` flags, including plans added later. Supply a `queue` from `@poe-code/agent-harness-tools` instead of `docs` and `afterEachPlan` to add work during execution. `onQueueChange` observes the sequence; the result contains `plans`, `messages`, and the final `queue`. Failed or cancelled work leaves later items pending.
+
+Exports: `runRalph`, `runRalphSequence`, `discoverDocs`, `parseFrontmatter`, `writeFrontmatter`.
 
 ## Testing Helper
 

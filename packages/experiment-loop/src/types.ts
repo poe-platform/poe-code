@@ -69,11 +69,22 @@ export interface AgentRunResult {
 
 export type ExperimentCallbackResult = void | Promise<void>;
 
+export interface ExperimentPlanSummary {
+  docPath: string;
+  agent: string;
+  model?: string;
+  maxExperiments: number;
+  experimentsCompleted: number;
+  logDir: string;
+}
+
 export interface ExperimentRunOptions {
   cwd: string;
   homeDir: string;
   docPath: string;
   agent?: string | string[];
+  /** Other selected workflow documents and journals excluded from experiment commits and resets. */
+  additionalManagedPaths?: readonly string[];
   runtime?: "host" | "docker";
   runtimeImage?: string;
   detach?: boolean;
@@ -84,12 +95,14 @@ export interface ExperimentRunOptions {
   git?: ExperimentGit;
   exec?: ExecFn;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
+  onPlanResolved?: (summary: ExperimentPlanSummary) => ExperimentCallbackResult;
   onExperimentStart?: (index: number, agent: string) => ExperimentCallbackResult;
   onBaselineCollected?: (baseline: Record<string, number>) => ExperimentCallbackResult;
   onCommit?: (commitHash: string) => ExperimentCallbackResult;
   onMetricResult?: (metric: MetricDef, result: EvalResult) => ExperimentCallbackResult;
   onReset?: (targetHash: string) => ExperimentCallbackResult;
   onExperimentComplete?: (index: number, entry: JournalEntry) => ExperimentCallbackResult;
+  onExperimentDiscarded?: (index: number, reason: string) => ExperimentCallbackResult;
   signal?: AbortSignal;
 }
 

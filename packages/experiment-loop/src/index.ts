@@ -6,3 +6,5 @@ export * from "./git/git.js";
 export * from "./config/loader.js";
 export * from "./discovery/discovery.js";
 export * from "./run/loop.js";
+export * from "./run/sequence.js";
+export * from "./run/dashboard.js";

@@ -416,6 +416,7 @@ ledger tracks this unresolved admission/history defect; exactly-once effects
 and arbitrary shared histories are not guaranteed.
 
 
+
 New run snapshots in poe-code 11.0.32 carried `executionSemantics: "jobs-v7"`.
 Packaged working v6 histories have compatibility coverage,
 while historical failing raw v6 histories remain separate evidence. Acceptance

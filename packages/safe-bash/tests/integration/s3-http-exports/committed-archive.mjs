@@ -199,6 +199,7 @@ export function mirrorArchiveExportTargets(target) {
       assert.ok(["*.js", "*.d.ts"].includes(parts.pop()), "archive export requires a single filename pattern");
       assertLiteralInputPath([...parts, "export-pattern"].join("/"));
     } else assertLiteralInputPath(local);
+    if (target.startsWith("./dist/opt-in/")) return `./dist/safe-bash-opt-in/${target.slice("./dist/opt-in/".length)}`;
     return `./${packagePrefix}/${target.slice(2)}`;
   }
   assert.ok(target && typeof target === "object" && !Array.isArray(target), "invalid archive export conditions");
@@ -525,7 +526,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       manifest = JSON.parse(bootstrap.get(`${packagePrefix}/package.json`));
       rootManifest = JSON.parse(bootstrap.get("package.json"));
       lock = JSON.parse(bootstrap.get("package-lock.json"));
-      assert.equal(manifest.name, "virtual-bash");
+      assert.equal(manifest.name, "@poe-platform/safe-bash");
       assert.equal(manifest.private, true);
       assert.equal(manifest.type, "module");
       assert.equal(manifest.engines.node, ">=22");
@@ -536,10 +537,11 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
         ...["expression", "nodes", "evaluate", "native-work", "inplace", "arguments", "mike", "native-encoder"]
           .flatMap(name => ["js", "js.map", "d.ts", "d.ts.map"].map(extension => `!dist/commands/yq/${name}.${extension}`)),
         "!dist/fs/devices", "!dist/shell/extensions/arrays", "!dist/shell/extensions/trap", "!dist/shell/extensions/jobs",
-        "!dist/shell/extensions/mapfile", "!dist/shell/extensions/read",
+        "!dist/shell/extensions/mapfile", "!dist/shell/extensions/read", "!dist/opt-in",
       ], "committed dist packaging contract drift");
       assertArchiveDependencyContract(manifest);
-      for (const key of ["prepare", "prepublish", "prepublishOnly", "prepack", "postpack", "preinstall", "install", "postinstall", "prebuild", "postbuild"]) assert.ok(!Object.hasOwn(manifest.scripts, key), `unapproved package lifecycle: ${key}`);
+      for (const key of ["prepare", "prepublish", "prepublishOnly", "prepack", "postpack", "preinstall", "install", "postinstall", "prebuild"]) assert.ok(!Object.hasOwn(manifest.scripts, key), `unapproved package lifecycle: ${key}`);
+      if (Object.hasOwn(manifest.scripts, "postbuild")) assert.equal(manifest.scripts.postbuild, "node scripts/build-optional-cli.mjs", "unapproved package lifecycle: postbuild");
       assert.equal(manifest.scripts.build, "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs", "unreviewed committed build command");
       assert.equal(rootManifest.name, "poe-code");
       assert.ok(rootManifest.workspaces.includes("packages/*"), "workspace package prefix missing");
@@ -556,7 +558,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
             `workspace lock drift: ${key || "root"} ${field}`);
         }
       }
-      assert.deepEqual(lock.packages["node_modules/virtual-bash"], { resolved: packagePrefix, link: true }, "workspace lock link drift");
+      assert.deepEqual(lock.packages["node_modules/@poe-platform/safe-bash"], { resolved: packagePrefix, link: true }, "workspace lock link drift");
       const dependencies = assertArchiveDependencyLock(manifest, lock);
       if (Object.hasOwn(dependencies, sharedName)) sharedSourceInputs({ files: bootstrap, lock });
       if (manifest.devDependencies?.["@poe-platform/op"] !== undefined) {

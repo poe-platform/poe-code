@@ -1,0 +1,77 @@
+import type { PlaywrightContext, PlaywrightElementHandle, PlaywrightPage } from './adapter.js';
+import { playwrightCommandCatalog, type PlaywrightCommand, type PlaywrightCommandDefinition } from './catalog.js';
+import { playwrightBuiltinCommands, limitedForms, type PlaywrightBuiltinCommand } from './builtins.js';
+
+export interface PlaywrightAbilityRequest {
+  readonly command: PlaywrightCommand;
+  readonly session: string;
+  readonly args: readonly string[];
+  readonly options: Readonly<Record<string, string | boolean | readonly string[]>>;
+  readonly signal: AbortSignal;
+  readonly browserSession?: {
+    readonly context: PlaywrightContext;
+    readonly page: PlaywrightPage | undefined;
+    resolveTarget(ref: string): Promise<PlaywrightElementHandle>;
+    selectPage(page: PlaywrightPage): Promise<void>;
+    registerCleanup(cleanup: () => Promise<void>): void;
+  };
+  write(text: string): Promise<void>;
+  readFile(filename: string): Promise<Uint8Array>;
+  writeArtifact(bytes: Uint8Array, filename?: string): Promise<void>;
+  registerCleanup(cleanup: () => Promise<void>): void;
+}
+
+export interface PlaywrightAbility {
+  readonly options?: readonly string[] | 'all';
+  readonly scope?: 'client' | 'session';
+  readonly limitations?: string;
+  execute(request: PlaywrightAbilityRequest): Promise<void>;
+}
+
+export type PlaywrightAbilities = {
+  readonly [Command in PlaywrightCommand]?: PlaywrightAbility | (Command extends PlaywrightBuiltinCommand ? true : never);
+};
+
+export interface RegisteredPlaywrightAbility {
+  readonly execute?: (request: PlaywrightAbilityRequest) => Promise<void>;
+  readonly scope: 'client' | 'session';
+  readonly arity: readonly [number, number];
+  readonly options: PlaywrightCommandDefinition['options'];
+  readonly limitations?: string;
+  readonly details?: string;
+}
+
+const builtinOptions: Partial<Record<PlaywrightBuiltinCommand, readonly string[]>> = {
+  open: ['browser', 'headed', 'headless'], snapshot: ['filename'], screenshot: ['filename', 'full-page'],
+};
+
+export function registerPlaywrightAbilities(abilities: PlaywrightAbilities | undefined, hasAdapter: boolean): ReadonlyMap<PlaywrightCommand, RegisteredPlaywrightAbility> {
+  if (abilities !== undefined && (!abilities || typeof abilities !== 'object' || Array.isArray(abilities))) throw new TypeError('Invalid Playwright abilities');
+  const entries = abilities === undefined
+    ? Object.keys(playwrightBuiltinCommands).filter(command => hasAdapter || ['list', 'close', 'close-all'].includes(command)).map(command => [command, true] as const)
+    : Object.entries(abilities);
+  const registered = new Map<PlaywrightCommand, RegisteredPlaywrightAbility>();
+  for (const [name, ability] of entries) {
+    if (!Object.hasOwn(playwrightCommandCatalog, name)) throw new TypeError(`Unknown Playwright ability: ${name}`);
+    const command = name as PlaywrightCommand;
+    const definition = playwrightCommandCatalog[command];
+    if (ability === true) {
+      if (!Object.hasOwn(playwrightBuiltinCommands, name)) throw new TypeError(`No built-in Playwright ability: ${name}`);
+      if (!hasAdapter && !['list', 'close', 'close-all'].includes(name)) throw new TypeError(`An injected Playwright adapter is required for ${name}`);
+      const builtin = name as PlaywrightBuiltinCommand;
+      const metadata = playwrightBuiltinCommands[builtin];
+      const options = Object.fromEntries((builtinOptions[builtin] ?? []).map(flag => [flag, definition.options[flag] ?? { type: 'boolean' as const, description: 'run browser in headless mode' }]));
+      registered.set(command, Object.freeze({ scope: 'session', arity: Object.freeze(metadata.arity.map(value => value - 1) as [number, number]), options: Object.freeze(options), details: metadata.details, ...(limitedForms[builtin] ? { limitations: limitedForms[builtin] } : {}) }));
+      continue;
+    }
+    if (!ability || typeof ability !== 'object' || Array.isArray(ability) || typeof ability.execute !== 'function'
+      || Object.keys(ability).some(key => !['execute', 'scope', 'options', 'limitations'].includes(key))
+      || ability.scope !== undefined && !['client', 'session'].includes(ability.scope)
+      || ability.limitations !== undefined && (typeof ability.limitations !== 'string' || !ability.limitations.trim())) throw new TypeError(`Invalid Playwright ability: ${name}`);
+    if (ability.scope === 'session' && !hasAdapter) throw new TypeError(`An injected Playwright adapter is required for ${name}`);
+    const flags = ability.options === 'all' ? Object.keys(definition.options) : ability.options ?? [];
+    if (!Array.isArray(flags) || flags.some(flag => typeof flag !== 'string' || !Object.hasOwn(definition.options, flag)) || new Set(flags).size !== flags.length) throw new TypeError(`Invalid Playwright ability options: ${name}`);
+    registered.set(command, Object.freeze({ execute: ability.execute.bind(ability), scope: ability.scope ?? 'client', arity: definition.arity, options: Object.freeze(Object.fromEntries(flags.map(flag => [flag, definition.options[flag]!]))), ...(ability.limitations === undefined ? {} : { limitations: ability.limitations }) }));
+  }
+  return registered;
+}

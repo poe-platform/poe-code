@@ -70,7 +70,14 @@ export async function captureRequiredPeer(snapshot: string, emittedHashes: Hashe
     assert.match(locked.integrity, /^sha512-[A-Za-z0-9+/]+={0,2}$/u, "Runtime peer must have registry integrity");
   }
   const entries: Record<string, string> = {};
-  const publicEntries = checkoutBinding ? ["poe-code/safe-fs", "poe-code/safe-fs/core"] : ["poe-code/safe-fs"];
+  const checkoutEntries: Record<string, string> = {
+    "poe-code/safe-fs": "./packages/safe-js/dist/safe-fs.js",
+    "poe-code/safe-fs/core": "./packages/safe-js/dist/safe-fs-core.js",
+    "poe-code/safe-playwright": "./packages/safe-playwright/dist/index.js",
+    "poe-code/safe-playwright/adapter": "./packages/safe-playwright/dist/adapter.js",
+  };
+  const publicEntries = checkoutBinding ? Object.keys(checkoutBinding.entries).sort() : ["poe-code/safe-fs"];
+  for (const entry of publicEntries) assert.ok(Object.hasOwn(checkoutEntries, entry), `Unreviewed canonical runtime entry: ${entry}`);
   const collectEntries = (path: string, bytes: Uint8Array, hash: string): void => {
     if (!path.endsWith(".js")) return;
     assert.equal(hash, emittedHashes[path], `Emitted bytes changed before peer capture: ${path}`);
@@ -81,6 +88,7 @@ export async function captureRequiredPeer(snapshot: string, emittedHashes: Hashe
       const target = peer.exports[`.${fileName.slice("poe-code".length)}`]?.import;
       assert.equal(typeof target, "string", "Canonical runtime requires an explicit public import target");
       assert.ok(target!.startsWith("./packages/") && target!.includes("/dist/") && !target!.split("/").includes(".."), "Canonical public target is not a built package entry");
+      if (checkoutBinding) assert.equal(target, checkoutEntries[fileName], `Canonical runtime differs from reviewed public target: ${fileName}`);
       if (peerBinding) assert.equal(target, `./${peerBinding.entries[fileName]}`, `Canonical runtime differs from authenticated public binding: ${fileName}`);
       entries[fileName] = posix.join("node_modules/poe-code", target!);
     }

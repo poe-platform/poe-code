@@ -72,6 +72,7 @@ it.each([
       "default-run.yaml": "prompt: '{{body}}'\n"
     };
     const fixture = canonicalBundleFixture();
+    fixture.manifest.files = [...(fixture.manifest.files ?? []), "!packages/safe-bash/dist/opt-in"];
     const volume = Volume.fromJSON({
       [path.join(root, "package.json")]: JSON.stringify(fixture.manifest),
       ...Object.fromEntries(Object.entries(experimentAssets).map(([name, content]) => [
@@ -97,9 +98,12 @@ it.each([
       volume.mkdirSync(path.join(root, "packages", name, "dist"), { recursive: true });
       volume.writeFileSync(
         path.join(root, "packages", name, "package.json"),
-        JSON.stringify({ name: `@poe-code/${name}` })
+        JSON.stringify({ name: name === "safe-bash" ? "@poe-platform/safe-bash" : `@poe-code/${name}` })
       );
     }
+    volume.mkdirSync(path.join(root, "packages/safe-bash/dist/opt-in"), { recursive: true });
+    volume.writeFileSync(path.join(root, "packages/safe-bash/dist/opt-in/optional.js"), "export {};\n");
+    volume.writeFileSync(path.join(root, "packages/safe-bash/dist/opt-in/optional.d.ts"), 'export type Host = import("@poe-platform/safe-bash/optional-host").Host;\n');
     volume.mkdirSync(path.join(root, "packages/office-package/dist"), { recursive: true });
     volume.writeFileSync(path.join(root, "packages/office-package/package.json"), JSON.stringify({
       name: "@poe-code/office-package", exports: { "./zip": { import: "./dist/zip.js" } }
@@ -184,6 +188,8 @@ it.each([
       expect(volume.existsSync(path.join(root, "dist/metafile.json"))).toBe(false);
     } else {
       await import("./bundle.mjs");
+      expect(volume.readFileSync(path.join(root, "packages/safe-bash/dist/opt-in/optional.d.ts"), "utf8"))
+        .toContain('import("@poe-platform/safe-bash/optional-host")');
       expect(volume.readFileSync(path.join(root, "packages/safe-bash/dist/codec.js"), "utf8"))
         .toBe('export { crc } from "../../office-package/dist/zip.js";');
       expect(volume.readFileSync(path.join(root, "packages/pptx/dist/index.js"), "utf8"))

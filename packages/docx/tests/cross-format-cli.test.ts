@@ -1,8 +1,8 @@
 import { beforeAll, afterAll, describe, expect, it, vi } from "vitest";
 import { Volume } from "memfs";
-import { Shell, MemoryFileSystem } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
-import { pptxCommands } from "virtual-bash/commands/pptx";
+import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
+import { pptxCommands } from "@poe-platform/safe-bash/commands/pptx";
 import { createPresentation, createPptxCommandEngine, addImage } from "pptx";
 import { createDocumentArchive, writeDocumentArchive, createDocxInspectionCommandEngine, insertDocumentImage } from "../src/index.js";
 

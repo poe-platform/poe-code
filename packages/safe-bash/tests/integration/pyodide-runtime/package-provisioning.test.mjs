@@ -112,7 +112,7 @@ test('real Pyodide package provisioning: documents, dependencies, canonical whee
   await put('documents.py', documentScript);
   await put('local_helper.py', 'answer = 42\n');
   await put('wheels.py', wheelScript);
-  await put('requirements.txt', '# existing exact pin\npypdf==6.18.1\n');
+  await put('requirements.txt', '# existing exact pin\npypdf==6.18.1\t# pinned dependency\ntyping-extensions==4.16.0 # comment ending in ' + String.fromCharCode(92) + '\n');
   const requests = [], progress = [], cache = memoryCache();
   const transport = createFetchTransport();
   let workers = 0;

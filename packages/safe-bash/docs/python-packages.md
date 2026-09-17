@@ -235,5 +235,5 @@ storage and are made available before that storage is mounted read-only.
 Real-runtime acceptance is separate from fast mocked unit tests. Run the
 [manual qualification](../../../docs/plans/python-package-provisioning-qa.md)
 for installation, imports, package data, local modules, offline reuse and
-failure cases. The [user edge review](../../../docs/plans/python-package-provisioning-edge-review.md)
-records additional extras, wheel-conflict, cancellation and integrity regressions.
+failure cases, including extras, wheel conflicts, cancellation and integrity
+regressions.

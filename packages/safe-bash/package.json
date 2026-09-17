@@ -1,5 +1,5 @@
 {
-  "name": "virtual-bash",
+  "name": "@poe-platform/safe-bash",
   "version": "0.0.0",
   "private": true,
   "description": "Extensible virtual shell with pluggable filesystems and streaming commands",
@@ -291,6 +291,68 @@
       "types": "./dist/commands/python/node.d.ts",
       "browser": null,
       "import": "./dist/commands/python/node.js"
+    },
+    "./commands/playwright": {
+      "types": "./dist/commands/playwright/index.d.ts",
+      "browser": "./dist/commands/playwright/index.js",
+      "import": "./dist/commands/playwright/index.js"
+    },
+    "./yes": {
+      "types": "./dist/opt-in/entrypoints/yes.d.ts",
+      "import": "./dist/opt-in/entrypoints/yes.js"
+    },
+    "./cmp": {
+      "types": "./dist/opt-in/entrypoints/cmp.d.ts",
+      "import": "./dist/opt-in/entrypoints/cmp.js"
+    },
+    "./dd": {
+      "types": "./dist/opt-in/entrypoints/dd.d.ts",
+      "import": "./dist/opt-in/entrypoints/dd.js"
+    },
+    "./shuf": {
+      "types": "./dist/opt-in/entrypoints/shuf.d.ts",
+      "import": "./dist/opt-in/entrypoints/shuf.js"
+    },
+    "./truncate": {
+      "types": "./dist/opt-in/entrypoints/truncate.d.ts",
+      "import": "./dist/opt-in/entrypoints/truncate.js"
+    },
+    "./install": {
+      "types": "./dist/opt-in/entrypoints/install.d.ts",
+      "import": "./dist/opt-in/entrypoints/install.js"
+    },
+    "./yq": {
+      "types": "./dist/opt-in/entrypoints/yq.d.ts",
+      "import": "./dist/opt-in/entrypoints/yq.js"
+    },
+    "./devices": {
+      "types": "./dist/opt-in/entrypoints/devices.d.ts",
+      "import": "./dist/opt-in/entrypoints/devices.js"
+    },
+    "./arrays": {
+      "types": "./dist/opt-in/entrypoints/arrays.d.ts",
+      "import": "./dist/opt-in/entrypoints/arrays.js"
+    },
+    "./jobs": {
+      "types": "./dist/opt-in/entrypoints/jobs.d.ts",
+      "import": "./dist/opt-in/entrypoints/jobs.js"
+    },
+    "./mapfile": {
+      "types": "./dist/opt-in/entrypoints/mapfile.d.ts",
+      "import": "./dist/opt-in/entrypoints/mapfile.js"
+    },
+    "./read": {
+      "types": "./dist/opt-in/entrypoints/read.d.ts",
+      "import": "./dist/opt-in/entrypoints/read.js"
+    },
+    "./trap": {
+      "types": "./dist/opt-in/entrypoints/trap.d.ts",
+      "import": "./dist/opt-in/entrypoints/trap.js"
+    },
+    "./playwright": {
+      "types": "./dist/commands/playwright/index.d.ts",
+      "browser": "./dist/commands/playwright/index.js",
+      "import": "./dist/commands/playwright/index.js"
     }
   },
   "files": [
@@ -342,7 +404,8 @@
     "!dist/shell/extensions/trap",
     "!dist/shell/extensions/jobs",
     "!dist/shell/extensions/mapfile",
-    "!dist/shell/extensions/read"
+    "!dist/shell/extensions/read",
+    "!dist/opt-in"
   ],
   "scripts": {
     "benchmark": "node --import tsx benchmarks/run.ts",
@@ -358,7 +421,8 @@
     "test:runner": "node scripts/test-reporting.mjs scripts/integration-inputs.test.mjs scripts/build.test.mjs scripts/copy-compression-assets.test.mjs scripts/test-reporting.test.mjs scripts/historical-type-models.test.mjs",
     "test:unit": "npm run test:runner && node scripts/test.mjs",
     "provision:python:integration": "npm --prefix tests/integration/pyodide-runtime ci && npm --prefix tests/integration/pyodide-runtime run provision:public",
-    "test:python:integration": "npm --prefix tests/integration/pyodide-runtime run test:public"
+    "test:python:integration": "npm --prefix tests/integration/pyodide-runtime run test:public",
+    "postbuild": "node scripts/build-optional-cli.mjs"
   },
   "dependencies": {},
   "devDependencies": {
@@ -372,7 +436,8 @@
     "typescript": "5.9",
     "@poe-code/safe-fs": "*",
     "pptx": "*",
-    "@poe-platform/op": "*"
+    "@poe-platform/op": "*",
+    "@poe-code/safe-playwright": "*"
   },
   "poeCode": {
     "packageLint": {

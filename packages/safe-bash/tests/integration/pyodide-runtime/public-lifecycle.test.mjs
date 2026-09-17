@@ -8,6 +8,149 @@ import { createWorker, runtimeModuleURL, delayedFileSystem, createOfflineCache }
 const quote = value => "'" + value.split("'").join("'\\''") + "'";
 const encode = value => new TextEncoder().encode(value);
 
+test('built public Python finalization preserves atexit ordering, binary files and buffered shutdown output', { timeout: 30000 }, async t => {
+  const tracked = delayedFileSystem(new MemoryFileSystem(), 1);
+  const shell = new Shell({ fs: tracked.fs }).use(pythonCommands({ createWorker }));
+  t.after(() => shell.dispose());
+  for (const status of [0, 7]) {
+    const result = await shell.exec('python -c ' + quote(`
+import atexit, sys
+held = open('/shutdown', 'wb')
+def first():
+ held.write(bytes(range(256)))
+ held.close()
+ print('first')
+def second():
+ print('second')
+atexit.register(first)
+atexit.register(second)
+print('body')
+sys.exit(${status})
+`));
+    assert.equal(result.exitCode, status, result.stderr);
+    assert.equal(result.stdout, 'body\nsecond\nfirst\n');
+    assert.equal(result.stderr, '');
+    assert.deepEqual(await tracked.fs.readFile('/shutdown'), Uint8Array.from({ length: 256 }, (_, index) => index));
+    assert.equal(tracked.handles.size, 0);
+  }
+});
+
+for (const mode of ['CPU loop', 'stdin']) {
+  test(`built public Python cancellation interrupts atexit ${mode} and permits recovery`, { timeout: 15000 }, async t => {
+    const tracked = delayedFileSystem(new MemoryFileSystem(), 1);
+    const shell = new Shell({ fs: tracked.fs }).use(pythonCommands({ createWorker, maxConcurrentWorkers: 1 }));
+    t.after(() => shell.dispose());
+    const controller = new AbortController();
+    const reason = new Error('cancel atexit ' + mode);
+    let reached;
+    const shutdown = new Promise(resolve => { reached = resolve; });
+    const writes = [];
+    const source = {
+      [Symbol.asyncIterator]() { return {
+        next() { reached(); return new Promise(() => {}); },
+        async return() { return { done: true }; },
+      }; },
+    };
+    const running = shell.exec('python -c ' + quote(`
+import atexit, os
+held = open('/held', 'wb', buffering=0)
+def shutdown():
+ held.write(b'before abort')
+ os.write(1, b'shutdown')
+ ${mode === 'CPU loop' ? 'while True: pass' : 'os.read(0, 1)'}
+atexit.register(shutdown)
+`), { signal: controller.signal, stdin: source, stdout: { async write(bytes) {
+      writes.push(bytes.slice());
+      if (mode === 'CPU loop') reached();
+    } } });
+    t.after(async () => { controller.abort(reason); await Promise.allSettled([running]); });
+    const rejected = assert.rejects(running, error => error === reason);
+    void rejected.catch(() => {});
+    await Promise.race([shutdown, running.then(result => { throw new Error('Exited before shutdown blocking: ' + result.stderr); })]);
+    // Allow the acknowledged output RPC to return into the noncooperative loop.
+    if (mode === 'CPU loop') await new Promise(resolve => setTimeout(resolve, 50));
+    assert.equal(tracked.handles.size, 1);
+    const started = performance.now();
+    controller.abort(reason);
+    await rejected;
+    assert.ok(performance.now() - started < 2000, 'termination interrupts finalization');
+    assert.equal(tracked.handles.size, 0);
+    assert.deepEqual(await tracked.fs.readFile('/held'), encode('before abort'));
+    assert.deepEqual(writes, [encode('shutdown')]);
+    const recovered = await shell.exec(`python3 -c 'print("recovered")'`);
+    assert.equal(recovered.exitCode, 0, recovered.stderr);
+    assert.equal(recovered.stdout, 'recovered\n');
+    assert.deepEqual(writes, [encode('shutdown')], 'no late output after retirement');
+    assert.equal(tracked.handles.size, 0);
+  });
+}
+
+test('built public Python absolute directory symlinks and interleaved retained append handles', { timeout: 30000 }, async t => {
+  for (const delay of [0, 1]) await t.test(delay ? 'delayed backend' : 'memory backend', async context => {
+    const storage = new MemoryFileSystem();
+    await storage.mkdir('/work'); await storage.mkdir('/tmp');
+    const tracked = delayedFileSystem(storage, delay);
+    const shell = new Shell({ fs: tracked.fs, cwd: '/work' }).use(pythonCommands({ createWorker }));
+    context.after(() => shell.dispose());
+    const result = await shell.exec('python -c ' + quote(`
+import os
+from pathlib import Path
+os.symlink('/tmp', '/work/link')
+path = Path('/work/link/shared café')
+path.write_bytes(b'canonical')
+assert Path('/tmp/shared café').read_bytes() == b'canonical'
+with open(path, 'a+b', buffering=0) as first, open(path, 'ab', buffering=0) as second:
+ first.seek(0)
+ second.write(b'2')
+ first.write(b'1')
+ assert first.tell() == 11
+ first.seek(0)
+ assert first.read() == b'canonical21'
+ os.unlink(path)
+ path.write_bytes(b'replacement')
+ first.write(b'!')
+ first.seek(0)
+ assert first.read() == b'canonical21!'
+ assert path.read_bytes() == b'replacement'
+assert path.read_bytes() == b'replacement'
+`));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(await storage.readFile('/tmp/shared café'), encode('replacement'));
+    assert.equal(tracked.handles.size, 0);
+  });
+});
+
+test('built public Python retained metadata refuses mutation of replacement pathnames', { timeout: 30000 }, async t => {
+  for (const delay of [0, 1]) await t.test(delay ? 'delayed backend' : 'memory backend', async context => {
+    const storage = new MemoryFileSystem();
+    const tracked = delayedFileSystem(storage, delay);
+    const shell = new Shell({ fs: tracked.fs }).use(pythonCommands({ createWorker }));
+    context.after(() => shell.dispose());
+    await storage.writeFile('/held', encode('original'), { mode: 0o600 });
+    const result = await shell.exec('python -c ' + quote(`
+import os, errno
+with open('/held', 'r+b', buffering=0) as stream:
+ os.rename('/held', '/renamed')
+ with open('/held', 'wb') as replacement: replacement.write(b'replacement')
+ os.chmod('/held', 0o600)
+ for mutate in (lambda: os.fchmod(stream.fileno(), 0o777), lambda: os.fchown(stream.fileno(), 123, 456)):
+  try: mutate()
+  except OSError as error: assert error.errno == errno.ENOTSUP, repr(error)
+  else: raise AssertionError('unsupported retained metadata reported success')
+ assert os.stat('/held').st_mode & 0o777 == 0o600
+ assert os.fstat(stream.fileno()).st_mode & 0o777 == 0o600
+ stream.truncate(3)
+ assert stream.read() == b'ori'
+`));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal((await storage.stat('/held')).mode & 0o777, 0o600);
+    assert.equal((await storage.stat('/renamed')).mode & 0o777, 0o600);
+    assert.deepEqual(await storage.readFile('/held'), encode('replacement'));
+    assert.deepEqual(await storage.readFile('/renamed'), encode('ori'));
+    assert.equal(tracked.handles.size, 0);
+  });
+});
+
 test('built public Python canonical immediate/delayed composed authority and bidirectional effects', { timeout: 60000 }, async t => {
   for (const delayed of [false, true]) await t.test(delayed ? 'delayed backend' : 'memory backend', async context => {
     const root = new MemoryFileSystem(), writable = new MemoryFileSystem(), protectedStorage = new MemoryFileSystem();

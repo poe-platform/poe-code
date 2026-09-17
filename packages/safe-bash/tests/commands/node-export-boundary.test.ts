@@ -46,7 +46,7 @@ test("host provider remains available exclusively through the explicit public ho
 for (const condition of ["node", "workerd", "worker", "browser"]) {
   test(`public host declarations enforce the ${condition} platform boundary`, () => {
     const diagnostics = platformDiagnostics([
-      'import { createNodeWorkerProvider as privateHost } from "virtual-bash/commands/node/host";',
+      'import { createNodeWorkerProvider as privateHost } from "@poe-platform/safe-bash/commands/node/host";',
       'import { createNodeWorkerProvider as publicHost } from "poe-code/safe-bash/commands/node/host";',
       'privateHost({ entry: "file:///engine.mjs", identity: "host" });',
       'publicHost({ entry: "file:///engine.mjs", identity: "host" });',

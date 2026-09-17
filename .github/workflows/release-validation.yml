@@ -241,4 +241,4 @@ jobs:
           tar -xf "$RUNNER_TEMP/poe-build/build.tar"
       - uses: ./.github/actions/setup-bash-oracle
       - name: Run balanced Bash shard
-        run: npm run test:unit --workspace=virtual-bash
+        run: npm run test:unit --workspace=@poe-platform/safe-bash

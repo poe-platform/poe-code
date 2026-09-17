@@ -1,3 +1,4 @@
+import { withoutErrorStacks } from "../../tests/helpers/without-error-stacks.js";
 import {createHash} from "node:crypto";
 import {expect,it} from "vitest";
 import evidence from "./__snapshots__/hz-kernel-oracle.json";
@@ -19,6 +20,7 @@ function attempt(operation:()=>Uint8Array|CodePointString):unknown {
 }
 
 it.each((["strict","ignore","replace"] as const).flatMap(policy=>[0,1,2].map(mode=>({policy,mode}))))("matches every HZ byte pair and split transition with $policy in mode $mode",({policy,mode})=>{
+    withoutErrorStacks(() => {
     const hash=createHash("sha256");let count=0;
     for(let first=0;first<256;first++)for(let second=0;second<256;second++){
       const budget=meter(),decoder=new DoubleByteIncrementalDecoder(hzCodec,policy),row:unknown[]=[];
@@ -32,6 +34,7 @@ it.each((["strict","ignore","replace"] as const).flatMap(policy=>[0,1,2].map(mod
     const expected=evidence.results.find(row=>row.kind==="decode"&&row.policy===policy&&row.mode===mode)!;
     expect(count).toBe(expected.count);
     expect(hash.digest("hex")).toBe(expected.digest);
+    });
 });
 
 it.each(["strict","ignore","replace"] as const)("matches HZ encode shifts, failures, finalization and state with %s",policy=>{

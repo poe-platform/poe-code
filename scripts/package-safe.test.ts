@@ -30,7 +30,7 @@ function optionalLeftovers() {
     else if (target && typeof target === "object") targets.push(...Object.values(target));
   }
   const excluded = (bashManifest.files as string[]).filter(file => file.startsWith("!"));
-  for (const file of excluded) {
+  for (const file of excluded.filter(file => file !== "!dist/opt-in")) {
     const relative = file.slice(1);
     if (relative.endsWith(".js") || relative.endsWith(".ts") || relative.endsWith(".map")) data["/repo/packages/safe-bash/" + relative] = relative.endsWith(".map") ? "{}\n" : "export {};\n";
     else for (const suffix of ["index.js", "index.d.ts", "index.js.map", "nested/data.json"]) data[`/repo/packages/safe-bash/${relative}/${suffix}`] = suffix.endsWith(".js") || suffix.endsWith(".ts") ? "export {};\n" : "{}\n";
@@ -39,6 +39,8 @@ function optionalLeftovers() {
     data["/repo/packages/safe-bash/dist/" + file] = file.endsWith(".json") ? "{}\n" : "export {};\n";
   }
   data["/repo/packages/safe-bash/dist/index.js.map"] = "{}\n";
+  data["/repo/packages/safe-bash/dist/opt-in/optional.js"] = "export {};\n";
+  data["/repo/packages/safe-bash/dist/opt-in/optional.d.ts"] = "export {};\n";
   const volume = Volume.fromJSON(data);
   const files = createFsFromVolume(volume).promises;
   const bundle = vi.fn(async () => ({ outputFiles: [{ path: "/repo/packages/safe-js/dist/index.js", contents: Buffer.from(volume.readFileSync("/repo/packages/safe-js/dist/index.js")) }] }));
@@ -46,11 +48,25 @@ function optionalLeftovers() {
 }
 
 describe("scoped safe package artifacts", () => {
+  it("ships the Playwright chunk and controller without adding it to the default entry", async () => {
+    const { volume, options } = optionalLeftovers();
+    volume.mkdirSync("/repo/packages/safe-bash/dist/playwright", { recursive: true });
+    volume.writeFileSync("/repo/packages/safe-bash/dist/playwright/index.js", "export const controller = 1;");
+    volume.writeFileSync("/repo/packages/safe-bash/dist/playwright/index.d.ts", "export declare const controller: 1;");
+    for (const extension of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/playwright/index.${extension}`, 'export { controller } from "../../playwright/index.js";');
+    await packageSafeLibraries({ ...options, outDir: "/output" });
+    expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/playwright/index.js", "utf8")).toBe("export const controller = 1;");
+    const manifest = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
+    expect(manifest.exports["./playwright"]).toEqual(manifest.exports["./commands/playwright"]);
+    expect(manifest.dependencies).not.toHaveProperty("@poe-code/safe-playwright");
+    expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/index.js", "utf8")).toBe("export {};\n");
+  });
+
   it("excludes all currently declared optional leftovers while preserving every default member", async () => {
     const { volume, data, excluded, options } = optionalLeftovers();
     await packageSafeLibraries({ ...options, outDir: "/output" });
     const prefix = "/repo/packages/safe-bash/";
-    const expected = Object.fromEntries(Object.entries(data).filter(([filename]) => filename.startsWith(prefix + "dist/") && !excluded.some(entry => {
+    const expected = Object.fromEntries(Object.entries(data).filter(([filename]) => filename.startsWith(prefix + "dist/") && !excluded.filter(entry => entry !== "!dist/opt-in").some(entry => {
       const omitted = prefix + entry.slice(1);
       return filename === omitted || filename.startsWith(omitted + "/");
     })).map(([filename, contents]) => [filename.replace(prefix + "dist/", "/output/safe-bash/dist/safe-bash/"), contents]));
@@ -210,72 +226,88 @@ describe("scoped safe package artifacts", () => {
 function optionalArtifact() {
   const fixture = optionalLeftovers();
   const { volume } = fixture;
-  volume.mkdirSync("/repo/packages/safe-bash-optional/dist/commands/yq", { recursive: true });
-  volume.mkdirSync("/repo/packages/safe-bash-optional/dist/fs/devices", { recursive: true });
-  volume.writeFileSync("/repo/packages/safe-bash-optional/package.json", JSON.stringify({
-    name: "@poe-code/safe-bash-optional", private: true, type: "module", description: "Explicit opt-in Bash tools",
-    engines: { node: ">=22" }, exports: { ".": { types: "./dist/optional.d.ts", import: "./dist/optional.js" } },
-    devDependencies: { "virtual-bash": "*", "@poe-code/safe-fs": "*" },
-  }));
-  volume.writeFileSync("/repo/packages/safe-bash-optional/README.md", "# Explicit optional tools\n");
-  volume.writeFileSync("/repo/packages/safe-bash-optional/dist/optional.js", 'export * from "./fs/devices/index.js"; export * from "./commands/yq/mike.js";');
-  volume.writeFileSync("/repo/packages/safe-bash-optional/dist/optional.d.ts", 'export * from "./fs/devices/index.js"; export * from "./commands/yq/mike.js";');
-  volume.writeFileSync("/repo/packages/safe-bash-optional/dist/fs/devices/index.js", 'import { FsError } from "@poe-platform/safe-fs"; import { host } from "@poe-platform/safe-bash/optional-host"; const asset = new URL("./profile.json", import.meta.url); export { FsError, host, asset };');
-  volume.writeFileSync("/repo/packages/safe-bash-optional/dist/fs/devices/index.d.ts", 'export type Value = import("@poe-platform/safe-bash").Value; export type FS = import("@poe-platform/safe-fs").FS;');
-  volume.writeFileSync("/repo/packages/safe-bash-optional/dist/fs/devices/profile.json", '{"profile":"fixture"}\n');
-  volume.writeFileSync("/repo/packages/safe-bash-optional/dist/commands/yq/mike.js", 'export const yaml = () => import("yaml");');
-  volume.writeFileSync("/repo/packages/safe-bash-optional/dist/commands/yq/mike.d.ts", 'export type YAML = import("yaml").Document;');
-  volume.writeFileSync("/repo/packages/safe-bash-optional/dist/unreachable.js", 'import "private-unused";');
+  volume.mkdirSync("/repo/packages/safe-bash/dist/opt-in/commands/yq", { recursive: true });
+  volume.mkdirSync("/repo/packages/safe-bash/dist/opt-in/fs/devices", { recursive: true });
+  const exports = Object.fromEntries(Object.entries(bashManifest.exports).filter(([, value]) => !(value as { import?: string }).import?.startsWith("./dist/opt-in/")));
+  Object.assign(exports, {
+    "./yq": { types: "./dist/opt-in/commands/yq/mike.d.ts", import: "./dist/opt-in/commands/yq/mike.js" },
+    "./devices": { types: "./dist/opt-in/fs/devices/index.d.ts", import: "./dist/opt-in/fs/devices/index.js" },
+  });
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify({ ...bashManifest, exports }));
+  volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/optional.js", 'export * from "./fs/devices/index.js"; export * from "./commands/yq/mike.js";');
+  volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/optional.d.ts", 'export * from "./fs/devices/index.js"; export * from "./commands/yq/mike.js";');
+  volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/fs/devices/index.js", 'import { FsError } from "@poe-platform/safe-fs"; import { host } from "@poe-platform/safe-bash/optional-host"; const asset = new URL("./profile.json", import.meta.url); export { FsError, host, asset };');
+  volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/fs/devices/index.d.ts", 'export type Value = import("@poe-platform/safe-bash").Value; export type FS = import("@poe-platform/safe-fs").FS;');
+  volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/fs/devices/profile.json", '{"profile":"fixture"}\n');
+  volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/commands/yq/mike.js", 'export const yaml = () => import("yaml");');
+  volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/commands/yq/mike.d.ts", 'export type YAML = import("yaml").Document;');
+  volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/unreachable.js", 'import "private-unused";');
   return fixture;
 }
 
 describe("explicit optional safe package artifact", () => {
-  it("keeps default output byte-identical to the existing three artifacts even when optional output is present", async () => {
+  it("ships the optional closure through the core package's explicit subpath without changing its default entry", async () => {
+    const { volume, options } = optionalArtifact();
+    const result = await packageSafeLibraries({ ...options, outDir: "/output" });
+    expect(result.map(entry => entry.name)).toEqual(["@poe-platform/safe-fs", "@poe-platform/safe-js", "@poe-platform/safe-bash"]);
+    const manifest = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
+    expect(manifest.exports["./yq"]).toEqual({ types: "./dist/safe-bash/opt-in/commands/yq/mike.d.ts", import: "./dist/safe-bash/opt-in/commands/yq/mike.js" });
+    expect(manifest.exports["./optional"]).toBeUndefined();
+    expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/opt-in/optional.js", "utf8")).toBe(volume.readFileSync("/repo/packages/safe-bash/dist/opt-in/optional.js", "utf8"));
+    expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/index.js", "utf8")).toBe("export {};\n");
+    expect(manifest.dependencies.yaml).toBeUndefined();
+    expect(manifest.peerDependencies).toEqual({ yaml: "2.9.0" });
+    expect(manifest.peerDependenciesMeta).toEqual({ yaml: { optional: true } });
+    expect(volume.existsSync("/output/safe-bash-optional")).toBe(false);
+  });
+
+  it("keeps default runtime bytes identical when optional output is present", async () => {
     const baseline = optionalLeftovers();
     const optional = optionalArtifact();
-    optional.volume.unlinkSync("/repo/packages/safe-bash-optional/README.md");
     await packageSafeLibraries({ ...baseline.options, outDir: "/output" });
     const result = await packageSafeLibraries({ ...optional.options, outDir: "/output" });
     expect(result.map(entry => entry.name)).toEqual(["@poe-platform/safe-fs", "@poe-platform/safe-js", "@poe-platform/safe-bash"]);
     const artifacts = (volume: Volume) => Object.fromEntries(Object.entries(volume.toJSON()).filter(([name]) => name.startsWith("/output/")));
-    expect(artifacts(optional.volume)).toEqual(artifacts(baseline.volume));
+    const baselineFiles = artifacts(baseline.volume);
+    const optionalFiles = artifacts(optional.volume);
+    for (const [filename, contents] of Object.entries(baselineFiles)) {
+      if (filename !== "/output/safe-bash/package.json" && !filename.includes("/opt-in/")) expect(optionalFiles[filename]).toEqual(contents);
+    }
     expect(optional.volume.existsSync("/output/safe-bash-optional")).toBe(false);
   });
 
-  it("emits only the optional runtime/declaration/asset closure with exact public peers and its own README", async () => {
+  it("embeds only the optional runtime/declaration/asset closure in the core tarball", async () => {
     const { volume, options } = optionalArtifact();
-    const result = await packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true });
-    expect(result.map(entry => entry.name)).toEqual(["@poe-platform/safe-fs", "@poe-platform/safe-js", "@poe-platform/safe-bash", "@poe-platform/safe-bash-optional"]);
-    const manifest = JSON.parse(volume.readFileSync("/output/safe-bash-optional/package.json", "utf8").toString());
+    const result = await packageSafeLibraries({ ...options, outDir: "/output" });
+    expect(result.map(entry => entry.name)).toEqual(["@poe-platform/safe-fs", "@poe-platform/safe-js", "@poe-platform/safe-bash"]);
+    const manifest = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
     expect(manifest).toMatchObject({
-      name: "@poe-platform/safe-bash-optional", version: "0.1.0", type: "module", license: "MIT", engines: { node: ">=22" }, files: ["dist"],
-      exports: { ".": { types: "./dist/optional.d.ts", import: "./dist/optional.js" } },
-      peerDependencies: { "@poe-platform/safe-bash": "0.1.0", "@poe-platform/safe-fs": "0.1.0", yaml: "2.9.0" },
+      name: "@poe-platform/safe-bash", version: "0.1.0", type: "module", license: "MIT", engines: { node: ">=22" }, files: ["dist"],
+      exports: { "./yq": { types: "./dist/safe-bash/opt-in/commands/yq/mike.d.ts", import: "./dist/safe-bash/opt-in/commands/yq/mike.js" } },
+      peerDependencies: { yaml: "2.9.0" },
       peerDependenciesMeta: { yaml: { optional: true } }, publishConfig: { access: "public" },
-      repository: { type: "git", url: "git+https://github.com/poe-platform/poe-code.git", directory: "packages/safe-bash-optional" },
+      repository: { type: "git", url: "git+https://github.com/poe-platform/poe-code.git", directory: "packages/safe-bash" },
     });
-    expect(manifest.dependencies).toBeUndefined();
+    expect(manifest.dependencies["@poe-platform/safe-bash"]).toBeUndefined();
     expect(manifest.devDependencies).toBeUndefined();
     expect(manifest.private).toBeUndefined();
-    expect(volume.readFileSync("/output/safe-bash-optional/README.md", "utf8")).toBe("# Explicit optional tools\n");
-    expect(result.at(-1)?.files).toBe(7);
-    const copied = Object.entries(volume.toJSON()).filter(([name]) => name.startsWith("/output/safe-bash-optional/dist/"));
+    const copied = Object.entries(volume.toJSON()).filter(([name]) => name.startsWith("/output/safe-bash/dist/safe-bash/opt-in/"));
     expect(copied).toHaveLength(7);
-    for (const [filename, contents] of copied) expect(contents).toEqual(volume.readFileSync(filename.replace("/output/safe-bash-optional/", "/repo/packages/safe-bash-optional/"), "utf8"));
-    expect(volume.existsSync("/output/safe-bash-optional/dist/unreachable.js")).toBe(false);
-    expect(volume.existsSync("/output/safe-bash-optional/dist/safe-bash")).toBe(false);
-    expect(volume.existsSync("/output/safe-bash-optional/dist/safe-fs")).toBe(false);
+    for (const [filename, contents] of copied) expect(contents).toEqual(volume.readFileSync(filename.replace("/output/safe-bash/dist/safe-bash/opt-in/", "/repo/packages/safe-bash/dist/opt-in/"), "utf8"));
+    expect(volume.existsSync("/output/safe-bash/dist/safe-bash/opt-in/unreachable.js")).toBe(false);
+    expect(volume.existsSync("/output/safe-bash/dist/safe-bash/opt-in/safe-bash")).toBe(false);
+    expect(volume.existsSync("/output/safe-bash/dist/safe-bash/opt-in/safe-fs")).toBe(false);
   });
 
-  for (const missing of ["README.md", "dist/optional.js", "dist/optional.d.ts"]) it(`refuses missing optional prerequisite before any output: ${missing}`, async () => {
+  for (const missing of ["optional.js", "optional.d.ts"]) it(`refuses missing optional prerequisite before any output: ${missing}`, async () => {
     const { volume, options } = optionalArtifact();
-    volume.unlinkSync("/repo/packages/safe-bash-optional/" + missing);
-    await expect(packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true })).rejects.toThrow(missing);
+    volume.unlinkSync("/repo/packages/safe-bash/dist/opt-in/" + missing);
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow(missing);
     expect(volume.existsSync("/output")).toBe(false);
   });
 
   for (const source of [
-    'import "virtual-bash";', 'import "poe-code/safe-fs";', 'import "@poe-code/safe-fs";',
+    'import "@poe-platform/safe-bash/unmapped";', 'import "poe-code/safe-fs";', 'import "@poe-code/safe-fs";',
     'import "@poe-platform/safe-bash/private-unexported";', 'import "@poe-platform/safe-fs/private-unexported";',
     'import "@poe-platform/safe-js";', 'import "yaml/private";', 'import "#safe-fs-platform";',
     'import "../../safe-bash/dist/index.js";', 'import "../../safe-fs/dist/index.js";',
@@ -283,74 +315,76 @@ describe("explicit optional safe package artifact", () => {
     'new URL(variable, import.meta.url);', 'new URL("https://example.com/asset", import.meta.url);',
   ]) it(`refuses an unmapped or nonliteral optional runtime edge: ${source}`, async () => {
     const { volume, options } = optionalArtifact();
-    volume.writeFileSync("/repo/packages/safe-bash-optional/dist/optional.js", source);
-    await expect(packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true })).rejects.toThrow();
+    volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/optional.js", source);
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow();
     expect(volume.existsSync("/output")).toBe(false);
   });
 
   for (const source of [
-    'export type Value = import("virtual-bash").Value;',
+    'export type Value = import("@poe-platform/safe-bash/unmapped").Value;',
     'export type Value = import("@poe-platform/safe-bash/private-unexported").Value;',
     '/// <reference path="../../safe-bash/dist/index.d.ts" />\nexport {};',
-    'import Value = require("virtual-bash"); export { Value };',
+    'import Value = require("@poe-platform/safe-bash"); export { Value };',
   ]) it(`refuses unmapped declaration edges: ${source}`, async () => {
     const { volume, options } = optionalArtifact();
-    volume.writeFileSync("/repo/packages/safe-bash-optional/dist/optional.d.ts", source);
-    await expect(packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true })).rejects.toThrow();
+    volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/optional.d.ts", source);
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow();
     expect(volume.existsSync("/output")).toBe(false);
   });
 
   it("refuses copying a core identity module under the optional dist tree", async () => {
     const { volume, options } = optionalArtifact();
-    volume.mkdirSync("/repo/packages/safe-bash-optional/dist/contracts", { recursive: true });
-    volume.writeFileSync("/repo/packages/safe-bash-optional/dist/contracts/errors.js", "export class FsError extends Error {};");
-    volume.writeFileSync("/repo/packages/safe-bash-optional/dist/optional.js", 'export * from "./contracts/errors.js";');
-    await expect(packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true })).rejects.toThrow("optional-owned");
+    volume.mkdirSync("/repo/packages/safe-bash/dist/opt-in/contracts", { recursive: true });
+    volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/contracts/errors.js", "export class FsError extends Error {};");
+    volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/optional.js", 'export * from "./contracts/errors.js";');
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("optional-owned");
     expect(volume.existsSync("/output")).toBe(false);
   });
 
   it("requires declaration targets rather than falling back to a runtime module", async () => {
     const { volume, options } = optionalArtifact();
-    volume.unlinkSync("/repo/packages/safe-bash-optional/dist/fs/devices/index.d.ts");
-    await expect(packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true })).rejects.toThrow("index.d.ts");
+    volume.unlinkSync("/repo/packages/safe-bash/dist/opt-in/fs/devices/index.d.ts");
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("index.d.ts");
     expect(volume.existsSync("/output")).toBe(false);
   });
 
   it("handles cycles without copying a module twice", async () => {
     const { volume, options } = optionalArtifact();
-    volume.writeFileSync("/repo/packages/safe-bash-optional/dist/commands/yq/mike.js", 'export * from "../../optional.js";');
-    const result = await packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true });
-    expect(result.at(-1)?.files).toBe(7);
+    volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/commands/yq/mike.js", 'export * from "../../optional.js";');
+    const result = await packageSafeLibraries({ ...options, outDir: "/output" });
+    expect(result.at(-1)?.name).toBe("@poe-platform/safe-bash");
+    expect(Object.keys(volume.toJSON()).filter(filename => filename.startsWith("/output/safe-bash/dist/safe-bash/opt-in/"))).toHaveLength(7);
   });
 
   it("validates JavaScript URL assets as runtime graph nodes", async () => {
     const { volume, options } = optionalArtifact();
-    volume.writeFileSync("/repo/packages/safe-bash-optional/dist/fs/devices/worker.js", 'import "virtual-bash";');
-    volume.writeFileSync("/repo/packages/safe-bash-optional/dist/optional.js", 'new URL("./fs/devices/worker.js", import.meta.url);');
-    await expect(packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true })).rejects.toThrow("Unmapped optional peer");
+    volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/fs/devices/worker.js", 'import "@poe-platform/safe-bash/unmapped";');
+    volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/optional.js", 'new URL("./fs/devices/worker.js", import.meta.url);');
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("Unexported optional peer route");
     expect(volume.existsSync("/output")).toBe(false);
   });
 
   for (const link of ["file", "directory"] as const) it(`refuses symlinked optional graph ${link} inputs`, async () => {
     const { volume, options } = optionalArtifact();
     if (link === "file") {
-      volume.unlinkSync("/repo/packages/safe-bash-optional/dist/optional.js");
-      volume.symlinkSync("/repo/packages/safe-bash/dist/index.js", "/repo/packages/safe-bash-optional/dist/optional.js");
+      volume.unlinkSync("/repo/packages/safe-bash/dist/opt-in/optional.js");
+      volume.symlinkSync("/repo/packages/safe-bash/dist/index.js", "/repo/packages/safe-bash/dist/opt-in/optional.js");
     } else {
-      volume.renameSync("/repo/packages/safe-bash-optional/dist/fs", "/repo/optional-fs");
-      volume.symlinkSync("/repo/optional-fs", "/repo/packages/safe-bash-optional/dist/fs");
+      volume.renameSync("/repo/packages/safe-bash/dist/opt-in/fs", "/repo/optional-fs");
+      volume.symlinkSync("/repo/optional-fs", "/repo/packages/safe-bash/dist/opt-in/fs");
     }
-    await expect(packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true })).rejects.toThrow("regular optional input");
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("regular optional input");
     expect(volume.existsSync("/output")).toBe(false);
   });
 
   it("resolves declared public wildcard peer routes without copying their modules", async () => {
     const { volume, options } = optionalArtifact();
-    volume.writeFileSync("/repo/packages/safe-bash-optional/dist/optional.js", 'export * from "@poe-platform/safe-bash/contracts/probe";');
-    volume.writeFileSync("/repo/packages/safe-bash-optional/dist/optional.d.ts", 'export * from "@poe-platform/safe-bash/contracts/probe";');
-    const result = await packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true });
-    expect(result.at(-1)?.files).toBe(2);
-    expect(volume.existsSync("/output/safe-bash-optional/dist/contracts")).toBe(false);
+    volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/optional.js", 'export * from "@poe-platform/safe-bash/contracts/probe";');
+    volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/optional.d.ts", 'export * from "@poe-platform/safe-bash/contracts/probe";');
+    const result = await packageSafeLibraries({ ...options, outDir: "/output" });
+    expect(result.at(-1)?.name).toBe("@poe-platform/safe-bash");
+    expect(Object.keys(volume.toJSON()).filter(filename => filename.startsWith("/output/safe-bash/dist/safe-bash/opt-in/"))).toHaveLength(7);
+    expect(volume.existsSync("/output/safe-bash/dist/safe-bash/opt-in/contracts")).toBe(false);
   });
 
   for (const extension of ["js", "d.ts"]) it(`rejects raw dot-segment public wildcard edges before normalization: ${extension}`, async () => {
@@ -373,8 +407,8 @@ describe("explicit optional safe package artifact", () => {
     expect(resolve("@poe-platform/safe-bash/contracts/probe")?.resolvedFileName).toBe(packageDir + "/dist/contracts/probe.d.ts");
     const specifier = "@poe-platform/safe-bash/contracts/../index";
     expect(resolve(specifier)).toBeUndefined();
-    volume.writeFileSync(`/repo/packages/safe-bash-optional/dist/optional.${extension}`, `export * from ${JSON.stringify(specifier)};`);
-    await expect(packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true })).rejects.toThrow("Invalid optional peer");
+    volume.writeFileSync(`/repo/packages/safe-bash/dist/opt-in/optional.${extension}`, `export * from ${JSON.stringify(specifier)};`);
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("Invalid optional peer");
     expect(volume.existsSync("/output")).toBe(false);
     expect(options.bundle).not.toHaveBeenCalled();
   });
@@ -386,8 +420,8 @@ describe("explicit optional safe package artifact", () => {
       volume.mkdirSync(directory, { recursive: true });
       volume.writeFileSync(`${directory}/probe.${extension}`, "export {};\n");
       const specifier = `@poe-platform/safe-bash/contracts/${segment}/probe`;
-      volume.writeFileSync(`/repo/packages/safe-bash-optional/dist/optional.${extension}`, `export * from ${JSON.stringify(specifier)};`);
-      await expect(packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true })).rejects.toThrow("Invalid optional peer");
+      volume.writeFileSync(`/repo/packages/safe-bash/dist/opt-in/optional.${extension}`, `export * from ${JSON.stringify(specifier)};`);
+      await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("Invalid optional peer");
       expect(volume.existsSync("/output")).toBe(false);
       expect(options.bundle).not.toHaveBeenCalled();
     });
@@ -396,29 +430,29 @@ describe("explicit optional safe package artifact", () => {
   it("refuses peer exports that target excluded optional modules", async () => {
     const { volume, options } = optionalArtifact();
     volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify({ ...bashManifest, exports: { ...bashManifest.exports, "./leak": { import: "./dist/optional.js", types: "./dist/optional.d.ts" } } }));
-    volume.writeFileSync("/repo/packages/safe-bash-optional/dist/optional.js", 'export * from "@poe-platform/safe-bash/leak";');
-    await expect(packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true })).rejects.toThrow("Unexported optional peer route");
+    volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/optional.js", 'export * from "@poe-platform/safe-bash/leak";');
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("Unexported optional peer route");
     expect(volume.existsSync("/output")).toBe(false);
   });
 
   it("requires yaml to remain an optional peer", async () => {
     const { volume, options } = optionalArtifact();
     volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify({ ...bashManifest, peerDependenciesMeta: { yaml: { optional: false } } }));
-    await expect(packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true })).rejects.toThrow("optional yaml 2.9.0");
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("optional yaml 2.9.0");
     expect(volume.existsSync("/output")).toBe(false);
   });
 
   for (const yaml of ["*", "^2.9.0", "2.8.0"]) it(`refuses an unqualified yaml peer version: ${yaml}`, async () => {
     const { volume, options } = optionalArtifact();
     volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify({ ...bashManifest, peerDependencies: { ...bashManifest.peerDependencies, yaml } }));
-    await expect(packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true })).rejects.toThrow("yaml");
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("yaml");
     expect(volume.existsSync("/output")).toBe(false);
   });
 
-  it("exposes explicit CLI opt-in while retaining the default three-artifact mode", () => {
-    expect(parsePackageSafeArguments(["--out-dir", "/output", "--version", "1.2.3"])).toEqual({ outDir: "/output", version: "1.2.3", includeOptional: false });
-    expect(parsePackageSafeArguments(["--out-dir", "/output", "--version", "1.2.3", "--include-optional"])).toEqual({ outDir: "/output", version: "1.2.3", includeOptional: true });
-    expect(() => parsePackageSafeArguments(["--include-optional"])).toThrow("Usage:");
+  it("packages optional entries automatically without a separate artifact flag", () => {
+    expect(parsePackageSafeArguments(["--out-dir", "/output", "--version", "1.2.3"])).toEqual({ outDir: "/output", version: "1.2.3" });
+    expect(() => parsePackageSafeArguments(["--out-dir", "/output", "--version", "1.2.3", "--include-optional"])).toThrow();
+    expect(() => parsePackageSafeArguments([])).toThrow("Usage:");
     expect(() => parsePackageSafeArguments(["--out-dir", "/output", "--version", "1.2.3", "--include-optional=false"])).toThrow();
   });
 });
@@ -451,7 +485,7 @@ describe("optional peer export-pattern segment admission", () => {
     }, host, undefined, undefined, ts.ModuleKind.ESNext).resolvedModule;
     const specifier = `@poe-platform/safe-bash/contracts/${fragment}`;
     const statement = `export * from ${JSON.stringify(specifier)};`;
-    volume.writeFileSync(`/repo/packages/safe-bash-optional/dist/optional.${extension}`, statement);
+    volume.writeFileSync(`/repo/packages/safe-bash/dist/opt-in/optional.${extension}`, statement);
     return { ...fixture, resolve, specifier, statement, packageDir };
   }
 
@@ -464,7 +498,7 @@ describe("optional peer export-pattern segment admission", () => {
       const { volume, options, resolve, specifier } = peerFixture(fragment, extension);
       expect(resolve("@poe-platform/safe-bash/contracts/probe")).toBeDefined();
       if (!fragment.includes("%2f") && !fragment.includes("%5C")) expect(resolve(specifier)).toBeUndefined();
-      await expect(packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true })).rejects.toThrow("Invalid optional peer");
+      await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("Invalid optional peer");
       expect(volume.existsSync("/output")).toBe(false);
       expect(options.bundle).not.toHaveBeenCalled();
     });
@@ -474,10 +508,10 @@ describe("optional peer export-pattern segment admission", () => {
     for (const extension of ["js", "d.ts"]) it(`preserves allowed raw wildcard bytes ${fragment}: ${extension}`, async () => {
       const { volume, options, resolve, specifier, statement } = peerFixture(fragment, extension);
       expect(resolve(specifier)).toBeDefined();
-      const result = await packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true });
-      expect(result.at(-1)?.name).toBe("@poe-platform/safe-bash-optional");
-      expect(volume.readFileSync(`/output/safe-bash-optional/dist/optional.${extension}`, "utf8")).toBe(statement);
-      expect(volume.existsSync("/output/safe-bash-optional/dist/contracts")).toBe(false);
+      const result = await packageSafeLibraries({ ...options, outDir: "/output" });
+      expect(result.at(-1)?.name).toBe("@poe-platform/safe-bash");
+      expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash/opt-in/optional.${extension}`, "utf8")).toBe(statement);
+      expect(volume.existsSync("/output/safe-bash/dist/safe-bash/opt-in/contracts")).toBe(false);
     });
   }
 
@@ -486,8 +520,8 @@ describe("optional peer export-pattern segment admission", () => {
     const exports = { ...bashManifest.exports, "./contracts/*.js": { import: "./dist/contracts/*.js", types: "./dist/contracts/*.d.ts" } };
     volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify({ ...bashManifest, exports }));
     volume.writeFileSync(`/repo/packages/safe-bash/dist/contracts/..${extension}`, "export {};\n");
-    volume.writeFileSync(`/repo/packages/safe-bash-optional/dist/optional.${extension}`, 'export * from "@poe-platform/safe-bash/contracts/..js";');
-    await expect(packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true })).rejects.toThrow("Invalid optional peer");
+    volume.writeFileSync(`/repo/packages/safe-bash/dist/opt-in/optional.${extension}`, 'export * from "@poe-platform/safe-bash/contracts/..js";');
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("Invalid optional peer");
     expect(volume.existsSync("/output")).toBe(false);
     expect(options.bundle).not.toHaveBeenCalled();
   });
@@ -498,9 +532,9 @@ describe("optional peer export-pattern segment admission", () => {
     volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify({ ...bashManifest, exports }));
     volume.writeFileSync(packageDir + "/package.json", JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", exports }));
     expect(resolve(specifier)?.resolvedFileName).toBe(packageDir + "/dist/contracts/probe.d.ts");
-    await packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true });
-    expect(volume.readFileSync(`/output/safe-bash-optional/dist/optional.${extension}`, "utf8")).toBe(statement);
-    expect(volume.existsSync("/output/safe-bash-optional/dist/contracts")).toBe(false);
+    await packageSafeLibraries({ ...options, outDir: "/output" });
+    expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash/opt-in/optional.${extension}`, "utf8")).toBe(statement);
+    expect(volume.existsSync("/output/safe-bash/dist/safe-bash/opt-in/contracts")).toBe(false);
   });
 
   for (const [fragment, pattern] of [["76alue", "%*"], ["%", "*76alue"]]) {
@@ -520,9 +554,9 @@ describe("optional peer export-pattern segment admission", () => {
       const completed = new URL(template.href.replaceAll("*", fragment));
       expect(fileURLToPath(completed)).toBe(`/repo/packages/safe-bash/dist/contracts/value.${extension}`);
       expect(volume.existsSync(fileURLToPath(completed))).toBe(true);
-      await packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true });
-      expect(volume.readFileSync(`/output/safe-bash-optional/dist/optional.${extension}`, "utf8")).toBe(statement);
-      expect(volume.existsSync("/output/safe-bash-optional/dist/contracts")).toBe(false);
+      await packageSafeLibraries({ ...options, outDir: "/output" });
+      expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash/opt-in/optional.${extension}`, "utf8")).toBe(statement);
+      expect(volume.existsSync("/output/safe-bash/dist/safe-bash/opt-in/contracts")).toBe(false);
     });
   }
 
@@ -532,7 +566,7 @@ describe("optional peer export-pattern segment admission", () => {
       const exports = { ...bashManifest.exports, "./contracts/*": { import: "./dist/contracts/%*.js", types: "./dist/contracts/%*.d.ts" } };
       volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify({ ...bashManifest, exports }));
       for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/contracts/%${fragment}.${suffix}`, "export {};\n");
-      await expect(packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true })).rejects.toThrow();
+      await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow();
       expect(volume.existsSync("/output")).toBe(false);
       expect(options.bundle).not.toHaveBeenCalled();
     });
@@ -546,8 +580,8 @@ describe("optional peer export-pattern segment admission", () => {
       const filename = "/repo/packages/safe-bash/" + target.replace("*", "probe") + "." + extension;
       volume.mkdirSync(filename.slice(0, filename.lastIndexOf("/")), { recursive: true });
       volume.writeFileSync(filename, "export {};\n");
-      volume.writeFileSync(`/repo/packages/safe-bash-optional/dist/optional.${extension}`, 'export * from "@poe-platform/safe-bash/contracts/probe";');
-      await expect(packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true })).rejects.toThrow("Invalid optional peer");
+      volume.writeFileSync(`/repo/packages/safe-bash/dist/opt-in/optional.${extension}`, 'export * from "@poe-platform/safe-bash/contracts/probe";');
+      await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("Invalid optional peer");
       expect(volume.existsSync("/output")).toBe(false);
       expect(options.bundle).not.toHaveBeenCalled();
     });

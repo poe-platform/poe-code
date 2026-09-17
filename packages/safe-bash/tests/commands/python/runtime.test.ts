@@ -26,6 +26,7 @@ test('python and python3 pass literal invocation and retire workers', async () =
     assert.equal(result.exitCode, 7);
   }
   assert.deepEqual(requests[0].invocation.args, ['-c', 'print("café")', 'two words']);
+  assert.deepEqual(requests.map(request => request.invocation.command), ['python', 'python3']);
   assert.equal(instance.terminated(), 2);
 });
 

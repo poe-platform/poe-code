@@ -7203,7 +7203,7 @@ export class Runtime {
       let candidates = [make(empty, pattern.startsWith("/") ? "/" : "", pattern.startsWith("/") ? 1 : 0, true, 0)];
       const ignored = (error: unknown): boolean => {
         this.signal.throwIfAborted();
-        return ["ENOENT", "ENOTDIR", "EACCES"].includes(errorCode(error) ?? "");
+        return ["ENOENT", "ENOTDIR", "EACCES", "EINVAL"].includes(errorCode(error) ?? "");
       };
       const read = async (candidate: Candidate) => {
         const maxEntries = 100_000 - this.budget.globstarEntries;
@@ -7345,7 +7345,11 @@ export class Runtime {
               const pending = this.fs.readdir(pathOf(state, candidate || "."), { signal: this.signal });
               entries = arrayStore(state) ? await interruptible(pending, this.signal) : await pending;
             }
-            catch (error) { if (["ENOENT", "ENOTDIR", "EACCES"].includes(errorCode(error) ?? "")) continue; throw error; }
+            catch (error) {
+              this.signal.throwIfAborted();
+              if (["ENOENT", "ENOTDIR", "EACCES", "EINVAL"].includes(errorCode(error) ?? "")) continue;
+              throw error;
+            }
             for (const entry of entries) {
               if (entry.name !== "." && entry.name !== ".." && (state.dotglob || !entry.name.startsWith(".") || segment.startsWith(".")) && await matches(entry.name)) {
                 addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${entry.name}`);
@@ -7362,7 +7366,10 @@ export class Runtime {
         const pending = this.fs.stat(pathOf(state, candidate), { signal: this.signal });
         const stat = arrayStore(state) ? await interruptible(pending, this.signal) : await pending;
         if (!value.endsWith("/") || stat.type === "directory") found.push(candidate + (value.endsWith("/") ? "/" : ""));
-      } catch (error) { if (!["ENOENT", "ENOTDIR", "EACCES"].includes(errorCode(error) ?? "")) throw error; }
+      } catch (error) {
+        this.signal.throwIfAborted();
+        if (!["ENOENT", "ENOTDIR", "EACCES", "EINVAL"].includes(errorCode(error) ?? "")) throw error;
+      }
     }
     return found.length ? found.sort() : [value];
   }

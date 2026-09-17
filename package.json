@@ -415,6 +415,78 @@
       },
       "browser": null,
       "import": "./packages/safe-js/dist/safe-fs-bridge.js"
+    },
+    "./safe-bash/yes": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/yes.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/yes.js"
+    },
+    "./safe-bash/cmp": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/cmp.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/cmp.js"
+    },
+    "./safe-bash/dd": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/dd.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/dd.js"
+    },
+    "./safe-bash/shuf": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/shuf.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/shuf.js"
+    },
+    "./safe-bash/truncate": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/truncate.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/truncate.js"
+    },
+    "./safe-bash/install": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/install.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/install.js"
+    },
+    "./safe-bash/yq": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/yq.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/yq.js"
+    },
+    "./safe-bash/devices": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/devices.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/devices.js"
+    },
+    "./safe-bash/arrays": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/arrays.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/arrays.js"
+    },
+    "./safe-bash/jobs": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/jobs.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/jobs.js"
+    },
+    "./safe-bash/mapfile": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/mapfile.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/mapfile.js"
+    },
+    "./safe-bash/read": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/read.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/read.js"
+    },
+    "./safe-bash/trap": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/trap.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/trap.js"
+    },
+    "./safe-bash/commands/playwright": {
+      "types": "./packages/safe-bash/dist/commands/playwright/index.d.ts",
+      "browser": "./packages/safe-bash/dist/commands/playwright/index.js",
+      "import": "./packages/safe-bash/dist/commands/playwright/index.js"
+    },
+    "./safe-bash/playwright": {
+      "types": "./packages/safe-bash/dist/commands/playwright/index.d.ts",
+      "browser": "./packages/safe-bash/dist/commands/playwright/index.js",
+      "import": "./packages/safe-bash/dist/commands/playwright/index.js"
+    },
+    "./safe-playwright": {
+      "types": "./packages/safe-playwright/dist/index.d.ts",
+      "browser": "./packages/safe-playwright/dist/index.js",
+      "import": "./packages/safe-playwright/dist/index.js"
+    },
+    "./safe-playwright/adapter": {
+      "types": "./packages/safe-playwright/dist/adapter.d.ts",
+      "browser": "./packages/safe-playwright/dist/adapter.js",
+      "import": "./packages/safe-playwright/dist/adapter.js"
     }
   },
   "workspaces": [
@@ -633,7 +705,9 @@
     "packages/safe-fs/src/native/loader.d.ts",
     "packages/docx/dist",
     "packages/docx/LICENSE",
-    "packages/docx/THIRD_PARTY_NOTICES.txt"
+    "packages/docx/THIRD_PARTY_NOTICES.txt",
+    "!packages/safe-bash/dist/opt-in",
+    "packages/safe-playwright/dist"
   ],
   "engines": {
     "node": ">=18.18"
@@ -673,7 +747,7 @@
     "toolcraft": ">=0.0.51 <0.1.0",
     "ts-morph": "^27.0.2",
     "turndown": "^7.2.4",
-    "yaml": "^2.8.2",
+    "yaml": "2.9.0",
     "temporal-polyfill": "1.0.4",
     "saxes": "6.0.0"
   },
@@ -773,10 +847,11 @@
     "turbo": "^2.9.18",
     "typescript": "^5.9.3",
     "typescript-eslint": "8.55.0",
-    "virtual-bash": "*",
+    "@poe-platform/safe-bash": "*",
     "vite": "6.4.3",
     "vitest": "4.1.11",
-    "@poe-code/safe-python": "*"
+    "@poe-code/safe-python": "*",
+    "@poe-code/safe-playwright": "*"
   },
   "repository": {
     "type": "git",

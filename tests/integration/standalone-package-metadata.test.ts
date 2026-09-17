@@ -187,6 +187,19 @@ describe("standalone package publish metadata", () => {
       "./memory",
       "./pptx",
       "./safe-bash",
+      "./safe-bash/yes",
+      "./safe-bash/cmp",
+      "./safe-bash/dd",
+      "./safe-bash/shuf",
+      "./safe-bash/truncate",
+      "./safe-bash/install",
+      "./safe-bash/yq",
+      "./safe-bash/devices",
+      "./safe-bash/arrays",
+      "./safe-bash/jobs",
+      "./safe-bash/mapfile",
+      "./safe-bash/read",
+      "./safe-bash/trap",
       "./safe-bash/commands/apply-patch",
       "./safe-bash/commands/archive",
       "./safe-bash/commands/column",
@@ -209,6 +222,7 @@ describe("standalone package publish metadata", () => {
       "./safe-bash/commands/node",
       "./safe-bash/commands/node/host",
       "./safe-bash/commands/op",
+      "./safe-bash/commands/playwright",
       "./safe-bash/commands/pptx",
       "./safe-bash/commands/pr",
       "./safe-bash/commands/python",
@@ -241,16 +255,19 @@ describe("standalone package publish metadata", () => {
       "./safe-fs/core",
       "./safe-fs/node",
       "./safe-fs/node/filesystem",
+      "./safe-bash/playwright",
       "./safe-js",
       "./safe-js/cli",
       "./safe-js/core",
       "./safe-js/workerd",
+      "./safe-playwright",
+      "./safe-playwright/adapter",
       "./safejs",
       "./safejs/cli",
       "./safejs/core",
       "./safejs/workerd",
       "./skills"
-    ]);
+    ].sort());
   });
 
   it("keeps browser contracts portable and Node contracts native across declared paths", () => {

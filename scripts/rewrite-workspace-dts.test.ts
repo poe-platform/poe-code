@@ -6,6 +6,21 @@ vi.mock(
 );
 
 describe("profile-specific emitted workspace declarations", () => {
+  it("preserves excluded distribution declarations while rewriting included ones", async () => {
+    const source = 'export type Value = import("@poe-platform/safe-bash/optional-host").Value;';
+    const volume = Volume.fromJSON({
+      "/repo/packages/safe-bash/dist/opt-in/optional.d.ts": source,
+      "/repo/packages/safe-bash/dist/included.d.ts": source
+    });
+    const { rewriteWorkspaceDts } = await import("./rewrite-workspace-dts.mjs");
+    await rewriteWorkspaceDts("/repo/packages/safe-bash/dist", [{ dir: "safe-bash", pkg: { name: "@poe-platform/safe-bash" } }], {
+      rootDir: "/repo", files: createFsFromVolume(volume).promises,
+      excludedPaths: ["/repo/packages/safe-bash/dist/opt-in"]
+    });
+    expect(volume.readFileSync("/repo/packages/safe-bash/dist/opt-in/optional.d.ts", "utf8")).toBe(source);
+    expect(volume.readFileSync("/repo/packages/safe-bash/dist/included.d.ts", "utf8")).toContain('import("./optional-host.js")');
+  });
+
   it.each(["node", "browser"])(
     "routes actual declaration edges for %s without changing literal data",
     async (profile) => {

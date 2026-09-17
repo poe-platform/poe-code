@@ -91,11 +91,25 @@ test('built public Python aliases match native CPython-in-Bash command and file 
   await directory('pkg');
   await directory('other');
   await file('entry.py', metadata);
+  const loaderMetadata = 'import __main__,json; loader=__main__.__loader__; print(json.dumps([None if loader is None else getattr(loader,"__name__",type(loader).__name__), __main__.__spec__ is None]))';
+  await file('loader.py', loaderMetadata);
   await file('local.py', 'value = "local café"\n');
   await file('pkg/__init__.py', 'value = 42\n');
   await file('pkg/__main__.py', metadata);
   await file('pkg/helper.py', 'from . import value\n');
   await file('binary.in', Uint8Array.of(0, 255, 128, 10, 13, 0));
+  const originalArguments = 'import sys,json; print(json.dumps(sys.orig_argv,ensure_ascii=False))';
+  await file('original.py', originalArguments);
+  await file('pkg/original.py', originalArguments);
+  await directory('app');
+  await file('app/__main__.py', metadata);
+  const zipped = spawnSync(process.env.SAFE_BASH_NATIVE_PYTHON, ['-c',
+    'import io,zipfile,sys; data=io.BytesIO(); archive=zipfile.ZipFile(data,"w"); archive.writestr("__main__.py",sys.argv[1]); archive.close(); sys.stdout.buffer.write(data.getvalue())', metadata]);
+  assert.ifError(zipped.error);
+  assert.equal(zipped.status, 0, String(zipped.stderr));
+  await file('app.zip', new Uint8Array(zipped.stdout));
+  await file('-c', 'print("terminated option")');
+  await file('latin1.py', Uint8Array.from(Buffer.from('# coding: latin-1\nprint("caf\xe9")\n', 'latin1')));
   const argumentsText = ' "two words" "" "café 日本語" --flag';
   for (const alias of ['python', 'python3']) {
     const cases = [
@@ -104,6 +118,13 @@ test('built public Python aliases match native CPython-in-Bash command and file 
       ['module arguments and metadata', alias + ' -m pkg' + argumentsText],
       ['explicit stdin arguments and metadata', alias + ' -' + argumentsText, metadata],
       ['implicit stdin metadata', alias, metadata],
+      ['inline main loader', alias + ' ' + code(loaderMetadata)],
+      ['explicit stdin main loader', alias + ' -', loaderMetadata],
+      ['implicit stdin main loader', alias, loaderMetadata],
+      ['file main loader', alias + ' loader.py'],
+      ['stream encoding and error policy', 'PYTHONIOENCODING=ascii:replace ' + alias + ' ' + code('import sys,json; print(json.dumps([[s.encoding,s.errors] for s in (sys.stdin,sys.stdout,sys.stderr)])); print("café"); print("café",file=sys.stderr)')],
+      ['universal newline stdin', alias + ' ' + code('import sys; print(repr(sys.stdin.read()))'), 'one\r\ntwo\rthree\n'],
+      ['binary stdin bypasses text newline conversion', alias + ' ' + code('import sys; sys.stdout.buffer.write(sys.stdin.buffer.read())'), 'one\r\ntwo\rthree\n'],
       ['local and relative package imports', alias + ' ' + code('import local,pkg.helper; print(local.value,pkg.helper.value)')],
       ['cwd and environment mutation', 'cd other; APPLICATION_VALUE="child env" ' + alias + ' ' + code('import os; print(os.getcwd(),os.environ["APPLICATION_VALUE"])')],
       ['uncaught exception stderr', alias + ' ' + code('raise ValueError("guest failure")')],
@@ -116,6 +137,31 @@ test('built public Python aliases match native CPython-in-Bash command and file 
       ['syntax error stderr', alias + ' ' + code('if True')],
       ['success stderr', alias + ' ' + code('import sys; print("out"); print("err",file=sys.stderr)')],
       ['numeric failure status', alias + ' ' + code('raise SystemExit(7)')],
+      ['original invocation arguments', alias + ' -Bu ' + code('import sys,json; print(json.dumps(sys.orig_argv,ensure_ascii=False))') + argumentsText],
+      ['original file arguments', alias + ' -- original.py' + argumentsText],
+      ['original module arguments', alias + ' -m pkg.original' + argumentsText],
+      ['original stdin arguments', alias + ' -' + argumentsText, originalArguments],
+      ['directory main entrypoint', alias + ' app' + argumentsText],
+      ['zip main entrypoint', alias + ' app.zip' + argumentsText],
+      ['terminated option filename', alias + ' -- -c'],
+      ['script encoding declaration', alias + ' latin1.py'],
+      ['None exit status', alias + ' ' + code('raise SystemExit(None)')],
+      ['boolean exit status', alias + ' ' + code('raise SystemExit(True)')],
+      ['integer subclass exit status', alias + ' ' + code('class Status(int):\n    def __int__(self): return 99\nraise SystemExit(Status(7))')],
+      ['input prompt and EOF', alias + ' ' + code('print(input("prompt:")); print(input())'), 'hello\n'],
+      ['stdin source leaves EOF for data', alias + ' -', 'import sys; print(repr(sys.stdin.buffer.read()))\n'],
+      ['mixed text and binary flushing', alias + ' -u ' + code('import sys; print("text",end=""); sys.stdout.buffer.write(b"binary"); print("end")')],
+      ['shutdown callback order', alias + ' ' + code('import atexit; atexit.register(print,"last"); atexit.register(print,"first"); print("body"); raise SystemExit(7)')],
+      ['exception hook', alias + ' ' + code('import sys; sys.excepthook=lambda kind,error,tb:print(kind.__name__,error); raise ValueError("hooked")')],
+      ['optimization compiler semantics', alias + ' -OO ' + code('import sys; print(sys.flags.optimize,__debug__); assert False')],
+      ['warning filter precedence', alias + ' -Wignore -Werror ' + code('import warnings; warnings.warn("warning")')],
+      ['safe path flag', alias + ' -P ' + code('import sys; print(sys.flags.safe_path, "" in sys.path)')],
+      ['safe path blocks implicit local import', alias + ' -P ' + code('import importlib.util; print(importlib.util.find_spec("local") is None)')],
+      ['isolation blocks implicit local import', alias + ' -I ' + code('import importlib.util; print(importlib.util.find_spec("local") is None)')],
+      ['safe path preserves explicit Python path', 'PYTHONPATH=. ' + alias + ' -P ' + code('import local; print(local.value)')],
+      ['safe path environment blocks implicit local import', 'PYTHONSAFEPATH=1 ' + alias + ' ' + code('import importlib.util; print(importlib.util.find_spec("local") is None)')],
+      ['ignored safe path environment permits local import', 'PYTHONSAFEPATH=1 ' + alias + ' -E ' + code('import local; print(local.value)')],
+      ['isolation ignores explicit Python path', 'PYTHONPATH=. ' + alias + ' -I ' + code('import importlib.util; print(importlib.util.find_spec("local") is None)')],
       ['negative failure status', alias + ' ' + code('raise SystemExit(-1)')],
       ['wrapped failure status', alias + ' ' + code('raise SystemExit(256)')],
       ['string failure and stderr', alias + ' ' + code('raise SystemExit("failure café")')],

@@ -110,11 +110,11 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    let source: string;
    try { source = decoder.decode(await context.fs.readFile(path,{signal:context.signal,maxBytes:1024*1024})); } catch(error) { context.signal.throwIfAborted();throw failure(`Cannot read Python requirements ${path}: ${error instanceof Error ? error.message : String(error)}`); }
    for (const line of source.split('\n')) {
-    const text=line.trim(); if (!text || text.startsWith('#'))continue;
+    // Only whitespace-delimited hashes begin comments; URL integrity fragments survive.
+    const comment=line.split('').findIndex((character,index)=>character==='#' && (index===0 || line[index-1]!.trim()===''));
+    const text=(comment<0?line:line.slice(0,comment)).trim(); if (!text)continue;
     if (text.endsWith('\\') || text.startsWith('-')) throw failure(`Unsupported requirements option or continuation in ${path}: ${text}`);
-    // Hash fragments on direct wheel URLs remain part of the requirement.
-    const comment=text.indexOf(' #');
-    requirements.push(normalizeRequirement(comment<0?text:text.slice(0,comment),dirname(path)));
+    requirements.push(normalizeRequirement(text,dirname(path)));
    }
   }
   context.signal.throwIfAborted();

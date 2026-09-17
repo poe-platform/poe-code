@@ -110,7 +110,7 @@ for (const scenario of ["leaf", "root", "empty", "unknown", "tampered", "foreign
   test(`candidate declaration listing authenticates ${scenario} without requiring an unused root import`, async () => {
     const { assertConsumerDeclarationFiles } = await import(peerModule);
     assert.equal(typeof assertConsumerDeclarationFiles, "function");
-    const installed = "/consumer/node_modules/virtual-bash";
+    const installed = "/consumer/node_modules/@poe-platform/safe-bash";
     const leaf = `${installed}/dist/commands/timeout/index.d.ts`, root = `${installed}/dist/index.d.ts`;
     const volume = Volume.fromJSON({ [leaf]: "export declare const timeout: number;", [root]: "export declare const root: number;" });
     const io = createFsFromVolume(volume);
@@ -119,7 +119,7 @@ for (const scenario of ["leaf", "root", "empty", "unknown", "tampered", "foreign
     if (scenario === "empty") files = [];
     if (scenario === "unknown") { files = [`${installed}/dist/private.d.ts`]; io.writeFileSync(files[0]!, "export {};"); }
     if (scenario === "tampered") io.writeFileSync(leaf, "changed");
-    if (scenario === "foreign") files = ["/other/node_modules/virtual-bash/dist/index.d.ts"];
+    if (scenario === "foreign") files = ["/other/node_modules/@poe-platform/safe-bash/dist/index.d.ts"];
     if (scenario === "source") files = [`${installed}/src/index.ts`];
     if (scenario === "symlink") { io.renameSync(leaf, "/outside.d.ts"); io.symlinkSync("/outside.d.ts", leaf); }
     if (scenario === "root" || scenario === "leaf") assertConsumerDeclarationFiles(files, installed, binding, io);
@@ -157,7 +157,7 @@ function fixture(change: (files: Record<string, string>) => void = () => {}, typ
   change(files);
   const bytes = archive(files, type);
   const integrity = `sha512-${createHash("sha512").update(bytes).digest("base64")}`;
-  const manifest = { name: "virtual-bash", peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "13.0.0" } };
+  const manifest = { name: "@poe-platform/safe-bash", peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "13.0.0" } };
   const lock = { packages: { "": manifest, "node_modules/poe-code": { version: "13.0.0", resolved: "https://registry.npmjs.org/poe-code/-/poe-code-13.0.0.tgz", integrity } } };
   const volume = Volume.fromJSON({ "/work/package.json": JSON.stringify(manifest), "/work/package-lock.json": JSON.stringify(lock), "/consumer/package.json": '{"type":"module"}' });
   const io = createFsFromVolume(volume);
@@ -187,7 +187,7 @@ test("authenticated peer staging contains exactly the public runtime/declaration
 
 function currentCoreFixture() {
   const root = "/checkout/packages/safe-bash";
-  const manifest = { name: "virtual-bash", private: true, peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." }, poeCode: { integration: { peerProfile: "checkout-root" } } };
+  const manifest = { name: "@poe-platform/safe-bash", private: true, peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." }, poeCode: { integration: { peerProfile: "checkout-root" } } };
   const peer = { name: "poe-code", version: "0.0.0-dev", type: "module", devDependencies: { "poe-code": "file:." }, exports: {
     "./safe-fs": { types: { default: `./${declarationPath}` }, import: "./packages/safe-js/dist/safe-fs.js" },
     "./safe-fs/core": { types: { default: "./packages/safe-fs/dist/core.d.ts" }, import: "./packages/safe-js/dist/safe-fs-core.js" },

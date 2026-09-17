@@ -1,5 +1,5 @@
-import { createS3HttpTransport, type S3HttpCredentials } from "virtual-bash";
-import type { S3HttpTransportOptions } from "virtual-bash/fs/s3/http";
+import { createS3HttpTransport, type S3HttpCredentials } from "@poe-platform/safe-bash";
+import type { S3HttpTransportOptions } from "@poe-platform/safe-bash/fs/s3/http";
 
 createS3HttpTransport({ endpoint: "https://example.invalid", region: "us-east-1" });
 const incompleteCredentials: S3HttpCredentials = { accessKeyId: "synthetic-access" };

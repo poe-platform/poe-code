@@ -1,3 +1,4 @@
+import { activeXmlChildren } from "./xml-active-children.js";
 import { archiveSettings, InvalidValueError, type ArchiveContext } from "./archive.js";
 import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
 import { validateDocxInvocation } from "./command.js";
@@ -62,10 +63,12 @@ export async function inspectDocumentStyles(input: Uint8Array, options: StyleIns
   const archive = await readDocumentArchive(input, { ...settings, budget });
   const part = stylePart(archive);
   const xml = part ? new DocumentXmlEditor(archive.members.find(m => m.name === part)!.bytes, {}, undefined, budget) : undefined;
-  const nodes = xml?.root.children.filter(n => n.namespace === xml.root.namespace && n.localName === "style") ?? [];
+  const children = xml ? activeXmlChildren(xml, budget) : (node: XmlElement) => node.children;
+  const child = (node: XmlElement | undefined, name: string) => node && children(node).find(n => n.namespace === node.namespace && n.localName === name);
+  const nodes = xml ? children(xml.root).filter(n => n.namespace === xml.root.namespace && n.localName === "style") : [];
   const defaults = child(xml?.root, "docDefaults");
-  const runDefaults = readStyleProperties(child(child(defaults, "rPrDefault"), "rPr"), undefined);
-  const paragraphDefaults = readStyleProperties(undefined, child(child(defaults, "pPrDefault"), "pPr"));
+  const runDefaults = readStyleProperties(child(child(defaults, "rPrDefault"), "rPr"), undefined, children);
+  const paragraphDefaults = readStyleProperties(undefined, child(child(defaults, "pPrDefault"), "pPr"), children);
   const defined = new Map(nodes.map(n => [attr(n, "styleId"), n]));
   const name = (id: string | undefined): string | null => id === undefined ? null : attr(child(defined.get(id), "name"), "val") ?? id;
   const resolved = new Map<XmlElement, StyleProperties | null>();
@@ -79,7 +82,7 @@ export async function inspectDocumentStyles(input: Uint8Array, options: StyleIns
     }
     let value: StyleProperties | null = node && seen.has(node) ? null : node ? resolved.get(node)! : defaultProperties;
     for (const current of chain.reverse()) {
-      const direct = readStyleProperties(child(current, "rPr"), child(current, "pPr"));
+      const direct = readStyleProperties(child(current, "rPr"), child(current, "pPr"), children);
       if (value !== null) value = inheritStyleProperties(value, direct);
       resolved.set(current, value);
     }
@@ -97,10 +100,10 @@ export async function inspectDocumentStyles(input: Uint8Array, options: StyleIns
       priority: styleInteger(attr(child(n, "uiPriority"), "val")),
       hidden: styleToggle(child(n, "semiHidden")) ?? false, locked: styleToggle(child(n, "locked")) ?? false,
       quickStyle: styleToggle(child(n, "qFormat")) ?? false, unhideWhenUsed: styleToggle(child(n, "unhideWhenUsed")) ?? false,
-      direct: readStyleProperties(child(n, "rPr"), child(n, "pPr")), effective: resolved.get(n) ?? null,
+      direct: readStyleProperties(child(n, "rPr"), child(n, "pPr"), children), effective: resolved.get(n) ?? null,
       runXml: source("rPr"), paragraphXml: source("pPr"), tableXml: source("tblPr") };
   }), defaults: { run: runDefaults, paragraph: paragraphDefaults }, latentXml: child(xml?.root, "latentStyles") ? xml!.sourceXml(child(xml!.root, "latentStyles")!) : null,
-  latent: xml ? readLatentStyles(xml.root, latent ? options.name : undefined) : null,
+  latent: xml ? readLatentStyles(xml.root, latent ? options.name : undefined, children) : null,
   diagnostics: report.diagnostics.filter(d => d.code.startsWith("style-") || d.code.startsWith("numbering-")) };
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify(data)).length);
   return data;
@@ -162,7 +165,7 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
     if (para !== (child(node, "pPr") ? xml.sourceXml(child(node, "pPr")!) : "")) update(node, "pPr", para);
   };
   if (operation.startsWith("styles.latent.")) {
-    const id = editLatentStyles(xml, operation, invocation.options);
+    const id = editLatentStyles(xml, operation, invocation.options, activeXmlChildren(xml, budget));
     if (id !== null) changes.push({ kind: "style", id });
   } else if (operation === "styles.defaults.set") {
     const defaults = child(xml.root, "docDefaults");

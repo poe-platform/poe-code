@@ -4,8 +4,8 @@ import { xmlValue } from "./create-content.js";
 import { runElementOpen } from "./run-properties.js";
 import { UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
 
-export function styleChild(node: XmlElement | undefined, name: string): XmlElement | undefined {
-  return node?.children.find(c => c.namespace === node.namespace && c.localName === name);
+export function styleChild(node: XmlElement | undefined, name: string, children: (node: XmlElement) => readonly XmlElement[] = node => node.children): XmlElement | undefined {
+  return node && children(node).find(c => c.namespace === node.namespace && c.localName === name);
 }
 export function styleAttribute(node: XmlElement | undefined, name: string): string | undefined {
   return node?.attributes.find(a => a.namespace === node.namespace && a.localName === name)?.value;
@@ -43,7 +43,8 @@ export type StyleProperties = Readonly<Record<keyof typeof styleFontFlags, boole
   readonly tabStops: readonly StyleTabStop[] | null;
   readonly numbering: { readonly id: string | null; readonly level: number | null } | null;
 };
-export function readStyleProperties(run: XmlElement | undefined, paragraph: XmlElement | undefined): StyleProperties {
+export function readStyleProperties(run: XmlElement | undefined, paragraph: XmlElement | undefined, children: (node: XmlElement) => readonly XmlElement[] = node => node.children): StyleProperties {
+  const child = (node: XmlElement | undefined, name: string) => styleChild(node, name, children);
   const numeric = (node: XmlElement | undefined, attribute = "val", divisor = 1): number | null => {
     const raw = styleAttribute(node, attribute);
     if (raw === undefined) return null;
@@ -51,28 +52,28 @@ export function readStyleProperties(run: XmlElement | undefined, paragraph: XmlE
     if (multiplier !== undefined && divisor !== 1) return Length(Number(raw.slice(0, -2)) * multiplier).pt;
     return styleInteger(raw)! / divisor;
   };
-  const num = styleChild(paragraph, "numPr"), spacing = styleChild(paragraph, "spacing"), ind = styleChild(paragraph, "ind");
-  const tabs = styleChild(paragraph, "tabs");
+  const num = child(paragraph, "numPr"), spacing = child(paragraph, "spacing"), ind = child(paragraph, "ind");
+  const tabs = child(paragraph, "tabs");
   const lineRule = styleAttribute(spacing, "lineRule") ?? null;
   const hanging = numeric(ind, "hanging", 20);
-  return { ...Object.fromEntries(Object.entries(styleFontFlags).map(([key, tag]) => [key, styleToggle(styleChild(run, tag))])) as Record<keyof typeof styleFontFlags, boolean | null>,
-    font: styleAttribute(styleChild(run, "rFonts"), "ascii") ?? null, size: numeric(styleChild(run, "sz"), "val", 2),
-    color: styleAttribute(styleChild(run, "color"), "val") ?? null,
-    themeColor: styleAttribute(styleChild(run, "color"), "themeColor") ?? null,
-    underline: styleAttribute(styleChild(run, "u"), "val") ?? null,
-    highlight: styleAttribute(styleChild(run, "highlight"), "val") ?? null,
-    baseline: styleAttribute(styleChild(run, "vertAlign"), "val") ?? null,
-    language: styleAttribute(styleChild(run, "lang"), "val") ?? null,
-    outlineLevel: numeric(styleChild(paragraph, "outlineLvl")), keepWithNext: styleToggle(styleChild(paragraph, "keepNext")),
-    keepTogether: styleToggle(styleChild(paragraph, "keepLines")), widowControl: styleToggle(styleChild(paragraph, "widowControl")),
-    pageBreakBefore: styleToggle(styleChild(paragraph, "pageBreakBefore")),
+  return { ...Object.fromEntries(Object.entries(styleFontFlags).map(([key, tag]) => [key, styleToggle(child(run, tag))])) as Record<keyof typeof styleFontFlags, boolean | null>,
+    font: styleAttribute(child(run, "rFonts"), "ascii") ?? null, size: numeric(child(run, "sz"), "val", 2),
+    color: styleAttribute(child(run, "color"), "val") ?? null,
+    themeColor: styleAttribute(child(run, "color"), "themeColor") ?? null,
+    underline: styleAttribute(child(run, "u"), "val") ?? null,
+    highlight: styleAttribute(child(run, "highlight"), "val") ?? null,
+    baseline: styleAttribute(child(run, "vertAlign"), "val") ?? null,
+    language: styleAttribute(child(run, "lang"), "val") ?? null,
+    outlineLevel: numeric(child(paragraph, "outlineLvl")), keepWithNext: styleToggle(child(paragraph, "keepNext")),
+    keepTogether: styleToggle(child(paragraph, "keepLines")), widowControl: styleToggle(child(paragraph, "widowControl")),
+    pageBreakBefore: styleToggle(child(paragraph, "pageBreakBefore")),
     leftIndent: numeric(ind, "start", 20) ?? numeric(ind, "left", 20), rightIndent: numeric(ind, "end", 20) ?? numeric(ind, "right", 20),
     firstLineIndent: hanging === null ? numeric(ind, "firstLine", 20) : -hanging,
     lineSpacing: numeric(spacing, "line", lineRule === "auto" || lineRule === null ? 240 : 20), lineSpacingRule: lineRule,
-    alignment: styleAttribute(styleChild(paragraph, "jc"), "val") ?? null,
+    alignment: styleAttribute(child(paragraph, "jc"), "val") ?? null,
     spaceBefore: numeric(spacing, "before", 20), spaceAfter: numeric(spacing, "after", 20),
-    tabStops: tabs ? tabs.children.filter(n => n.namespace === tabs.namespace && n.localName === "tab").map(n => ({ position: numeric(n, "pos", 20) ?? 0, alignment: styleAttribute(n, "val") ?? "left", leader: styleAttribute(n, "leader") ?? "none" })) : null,
-    numbering: num ? { id: styleAttribute(styleChild(num, "numId"), "val") ?? null, level: numeric(styleChild(num, "ilvl")) } : null };
+    tabStops: tabs ? children(tabs).filter(n => n.namespace === tabs.namespace && n.localName === "tab").map(n => ({ position: numeric(n, "pos", 20) ?? 0, alignment: styleAttribute(n, "val") ?? "left", leader: styleAttribute(n, "leader") ?? "none" })) : null,
+    numbering: num ? { id: styleAttribute(child(num, "numId"), "val") ?? null, level: numeric(child(num, "ilvl")) } : null };
 }
 
 export function inheritStyleProperties(inherited: StyleProperties, direct: StyleProperties): StyleProperties {

@@ -10,7 +10,7 @@ import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { formattedRunProperties, runElementOpen, underline, highlights, themes } from "./run-properties.js";
 import { paragraphProperties, paragraphUnits, alignments as paragraphAlignments } from "./paragraph-properties.js";
 import { validateDocxValue } from "./operation-schema.js";
-import type { CompatibilityContent } from "./compatibility.js";
+import { activeXmlChildren } from "./xml-active-children.js";
 import type { ModelStore, ModelRef } from "./model-store.js";
 
 /** An admitted owner fragment. Its caller retains package ownership and publication authority. */
@@ -21,7 +21,8 @@ export interface FormattingXmlOwner {
   readonly identity?: unknown;
   readonly budget?: DocumentBudget;
 }
-const modelOwners = new WeakMap<FormattingXmlOwner, XmlViewBinding>();
+/** Internal live bindings, not exported by the public barrel. */
+export const formattingXmlOwners = new WeakMap<FormattingXmlOwner, XmlViewBinding>();
 /** Internal live binding retains inherited compatibility scope and model mutation ownership. */
 export function modelFormattingOwner(store: ModelStore, ref: ModelRef): FormattingXmlOwner {
   const owner: FormattingXmlOwner = {
@@ -31,7 +32,7 @@ export function modelFormattingOwner(store: ModelStore, ref: ModelRef): Formatti
     getXml: () => new TextDecoder().decode(store.element(ref).serialize()),
     setXml: source => store.change(ref.part, xml => xml.replaceElement(store.node(ref), source))
   };
-  modelOwners.set(owner, {
+  formattingXmlOwners.set(owner, {
     budget: store.context.budget,
     read: () => store.xml(ref.part),
     resolve: () => store.node(ref),
@@ -48,26 +49,10 @@ function ownerBudget(owner: FormattingXmlOwner): DocumentBudget {
   return budget;
 }
 function editor(owner: FormattingXmlOwner): DocumentXmlEditor { return new DocumentXmlEditor(new TextEncoder().encode(owner.getXml()), {}, undefined, ownerBudget(owner)); }
-const readChildren = new WeakMap<DocumentXmlEditor, ReadonlyMap<XmlElement, readonly XmlElement[]>>();
 function readView(owner: FormattingXmlOwner, fragment?: DocumentXmlEditor, root?: XmlElement) {
-  const binding = modelOwners.get(owner), xml = fragment ?? binding?.read() ?? editor(owner);
+  const binding = formattingXmlOwners.get(owner), xml = fragment ?? binding?.read() ?? editor(owner);
   const view = { xml, root: root ?? (fragment ? xml.root : binding?.resolve(xml) ?? xml.root) };
-  const budget = ownerBudget(owner);
-  let children = readChildren.get(view.xml);
-  if (!children) {
-    const projected = new Map<XmlElement, readonly XmlElement[]>();
-    const collect = (content: readonly CompatibilityContent[]) => {
-      for (const item of content) if ("source" in item) {
-        budget.charge("retainedBytes", 96 + item.content.length * 8);
-        projected.set(item.source, item.content.filter(node => "source" in node).map(node => node.source));
-        collect(item.content);
-      }
-    };
-    collect(view.xml.compatibility.content);
-    children = projected;
-    readChildren.set(view.xml, children);
-  }
-  return { ...view, children: (node: XmlElement) => { budget.charge("work", 1); return children.get(node) ?? []; } };
+  return { ...view, children: activeXmlChildren(view.xml, ownerBudget(owner)) };
 }
 const ownerXmlViews = new WeakMap<object, Map<string, XmlElementView>>();
 function ownerView(owner: FormattingXmlOwner, key = "root", resolve: (xml: DocumentXmlEditor, root: XmlElement) => XmlElement = (ignoredXml, root) => root): XmlElementView {
@@ -76,7 +61,7 @@ function ownerView(owner: FormattingXmlOwner, key = "root", resolve: (xml: Docum
   if (!views) { views = new Map(); ownerXmlViews.set(bindingKey, views); }
   let view = views.get(key);
   if (!view) {
-    const budget = ownerBudget(owner), binding = modelOwners.get(owner);
+    const budget = ownerBudget(owner), binding = formattingXmlOwners.get(owner);
     view = bindXmlElementView({
       budget,
       read: binding?.read ?? (() => editor(owner)),

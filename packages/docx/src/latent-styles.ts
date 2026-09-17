@@ -16,8 +16,8 @@ export interface LatentStylesInfo {
   readonly defaults: { readonly defaultToHidden: boolean; readonly defaultToLocked: boolean; readonly defaultToQuickStyle: boolean; readonly defaultToUnhideWhenUsed: boolean; readonly defaultPriority: number | null; readonly loadCount: number | null };
   readonly entries: readonly LatentStyleInfo[];
 }
-export function readLatentStyles(root: XmlElement, name?: string): LatentStylesInfo | null {
-  const containers = root.children.filter(n => n.namespace === root.namespace && n.localName === "latentStyles");
+export function readLatentStyles(root: XmlElement, name?: string, children: (node: XmlElement) => readonly XmlElement[] = node => node.children): LatentStylesInfo | null {
+  const containers = children(root).filter(n => n.namespace === root.namespace && n.localName === "latentStyles");
   if (containers.length > 1) throw new UnsupportedEditError("Duplicate latent style containers are ambiguous.");
   const node = containers[0];
   if (!node) { if (name !== undefined) throw new SelectionError("missing-selection"); return null; }
@@ -29,7 +29,7 @@ export function readLatentStyles(root: XmlElement, name?: string): LatentStylesI
     if (["0", "false", "off"].includes(raw)) return false;
     throw new TypeError("Invalid latent style boolean.");
   };
-  const entries = node.children.filter(n => n.namespace === root.namespace && n.localName === "lsdException");
+  const entries = children(node).filter(n => n.namespace === root.namespace && n.localName === "lsdException");
   const selected = name === undefined ? entries : entries.filter(n => styleStoredName(attr(n, "name") ?? "") === styleStoredName(name));
   if (name !== undefined && selected.length !== 1) throw new SelectionError(selected.length ? "ambiguous-selection" : "missing-selection");
   return { defaults: Object.fromEntries(Object.entries(defaults).map(([key, tag]) => [key, value(node, tag, key === "defaultPriority" || key === "loadCount") ?? (key === "defaultPriority" || key === "loadCount" ? null : false)])) as unknown as LatentStylesInfo["defaults"],
@@ -37,9 +37,9 @@ export function readLatentStyles(root: XmlElement, name?: string): LatentStylesI
 }
 
 /** Mutate only latent settings; preserve opaque attributes, comments and siblings. */
-export function editLatentStyles(xml: DocumentXmlEditor, operation: string, options: Readonly<Record<string, unknown>>): string | null {
-  readLatentStyles(xml.root);
-  const existing = child(xml.root, "latentStyles");
+export function editLatentStyles(xml: DocumentXmlEditor, operation: string, options: Readonly<Record<string, unknown>>, children: (node: XmlElement) => readonly XmlElement[] = node => node.children): string | null {
+  readLatentStyles(xml.root, undefined, children);
+  const existing = child(xml.root, "latentStyles", children);
   const fragment = existing ? xml : new DocumentXmlEditor(new TextEncoder().encode(`<st:latentStyles xmlns:st="${xml.root.namespace}"/>`));
   const node = existing ?? fragment.root;
   let markup: string;
@@ -54,7 +54,7 @@ export function editLatentStyles(xml: DocumentXmlEditor, operation: string, opti
     markup = mergeStyleChildren(fragment, node, new Map(), [], attributes);
   } else {
     const name = options.name as string;
-    const entries = node.children.filter(n => n.namespace === node.namespace && n.localName === "lsdException" && styleStoredName(attr(n, "name") ?? "") === styleStoredName(name));
+    const entries = (existing ? children(node) : node.children).filter(n => n.namespace === node.namespace && n.localName === "lsdException" && styleStoredName(attr(n, "name") ?? "") === styleStoredName(name));
     if (entries.length > 1) throw new SelectionError("ambiguous-selection");
     if (operation === "styles.latent.add") {
       if (entries.length) throw new SelectionError("ambiguous-selection");

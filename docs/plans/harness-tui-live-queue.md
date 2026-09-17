@@ -44,7 +44,7 @@ The dashboard makes the current plan, pipeline phase, task, step, remaining task
 - [x] Shared live work queue.
 - [x] Composer and plan queue UI.
 - [x] CLI/SDK integration across harnesses.
-- [ ] Visual and performance iterations.
+- [x] Visual and performance iterations.
 - [ ] Required checks and final delivery record.
 
 ## First-hour checkpoint
@@ -106,3 +106,21 @@ The dashboard makes the current plan, pipeline phase, task, step, remaining task
 - Terminal-pilot exposed missing vertical draft navigation. Up/Down now use the displayed wrap width and preserve the desired column across shorter rows. Resizing resets that column; Unicode graphemes and tabs remain intact. Inspected multiline-up-after-100x28.png and wrapped-draft-up-80x24.png.
 - Local 105,000-character Unicode-draft measurements found 21–23 ms median work for Left, Backspace, and Ctrl+W. Local grapheme lookup reduced those operations to 0.03–0.05 ms. A deterministic test bounds examined text instead of imposing a timing threshold. All 325 dashboard tests, focused ESLint, and the design TypeScript check passed. Inspected edits of a combined accent and joined emoji at 100×28 and 80×24.
 - Full committed-source testing at c910b2e4c remains running. SafeJS had reported more than 1,090 test files without a reported failure as of 09:40 UTC. Current-head build, lint, and final CLI checks remain pending until this run finishes.
+- That full run ended at 09:44 UTC with two SafeJS suites unable to import historical fixtures from removed planning directories; 1,431 files and 30,513 tests passed in that task, with 48 skipped tests. Repository history already held the exact fixture repairs. Reused c75f0499a and f89e3741b locally as 170f7a345 and 650c4ed84, preserving archived JSON bytes beside their tests. Both affected suites then passed all 36 tests. The full command still requires a successful rerun; the partial pass is not recorded as a completed gate.
+
+### Seventh-hour review
+
+- The normal current-source build, repository lint, and design-doc generation passed before the final action/reply refinements. Production Pipeline and Gaslight walkthroughs again completed targeted messages and appended plans in order. A simulated failed command retained later work and exited 1.
+- Directory-prefixed reads and searches now show a concise action plus working directory, with raw source in Details. Codex's directory-aware command parser informed this refinement. Mixed commands and writes retain general Run labels. All 666 agent-spawn tests passed; 120×32 and 80×24 screenshots were inspected.
+- Reproduced archived-plan follow-ups pointing to a removed file. Pipeline and Ralph results now include the actual archived path, and fresh follow-up agents receive that path. Queue history retains the submitted plan name. All 624 affected package tests passed.
+- Agent replies now render Markdown through the existing design system. Cached formatting avoids repeated parsing during editing; only nearby Markdown blocks are formatted for a long live reply. Complete-render equivalence tests cover scrolling and footnotes; malformed streaming frontmatter falls back to readable source. All 1,944 design tests passed. Color, monochrome, narrow layouts, code indentation, and streaming input were visually inspected.
+- A sustained session handled more than 60,000 updates over roughly 24 minutes, including held history, resizing, and queue submission, then restored its terminal. Timing captures during broad test load are recorded as observations, not performance baselines.
+- The clean-checkout rerun passed 116,133 shared tests, the Op and Python tasks, 320 shell-runner tests, and 32,369 shell tests (86 skipped). SafeJS then exposed a 5-second timeout in a camera oracle batch. The batch now contains one sample while preserving every native and recorded comparison; all 18 focused tests passed. That already-failed full run was stopped. Final build and full committed-source validation are being restarted with the latest changes.
+- Latest local product commits: b0695095a (directory-aware actions), 3de93bafa (archived plan references), b84d12904 (Markdown replies). The camera fixture repair is 2c9fd6777. No push or release.
+
+### Final-hour verification
+
+- The current-source normal build and repository lint passed. Design documentation regenerated without tracked changes. The clean-checkout full test at 2c9fd6777 passed 116,153 shared tests (2 skipped), Op, Python, 320 shell-runner tests, and 32,369 shell tests (86 skipped); SafeJS is still running.
+- A final worktree review reproduced fresh follow-up prompts naming the original absolute source path in Pipeline, Ralph, and Experiment. Commit 15233e3cd uses the completed plan's execution path, retaining the original queue identity. All 534 affected package tests and focused lint passed. The final normal build and all eight SDK sequence tests then passed, including initial and appended worktree plans.
+- The final combined Markdown/queue view passed at 120×32 and 80×24. Inspected final-markdown-queue-120x32.png and final-markdown-queue-80x24.png, then closed the terminal-pilot session. All five harnesses have completed production CLI walkthroughs with fake external agents.
+- The broad run then reported one 5-second timeout among 1,027 independent regex comparisons. The unchanged complete file passed all 1,027 tests on focused rerun; the camera repair also passed in the broad run. No regex implementation or timeout was changed without a reproducible cause. The already-failed run was stopped, and current-head build plus clean-checkout verification at 15233e3cd is restarting without competing build/lint jobs.

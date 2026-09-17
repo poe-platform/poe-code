@@ -147,12 +147,14 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
       if (composer && !(event.ctrl && event.name === "c")) {
         if (submitting) return;
         if (event.ctrl && event.name === "p") {
+          feedback = undefined;
           [composer, otherDraft] = [otherDraft, composer];
           composer.focused = true;
           render();
           return;
         }
         if (composer.focused && event.meta && (event.name === "up" || event.name === "down")) {
+          feedback = undefined;
           const run = getStore().getState().stats.run;
           const plans = run?.queue?.filter((item) => item.kind === "plan") ?? [];
           const activeIndex = Math.max(0, plans.findIndex((item) => item.id === run?.activePlanId));
@@ -166,6 +168,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
           return;
         }
         if (!composer.focused && (event.ch === "i" || event.ch === "p" || event.name === "return")) {
+          feedback = undefined;
           const kind = event.ch === "p" ? "plan" : "message";
           if (composer.kind !== kind) [composer, otherDraft] = [otherDraft, composer];
           composer.focused = true;
@@ -183,8 +186,13 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
             void (async () => {
               try {
                 await opts.onSubmit!(submission);
-                composer = createComposerState(submission.kind, submission.afterPlanId);
-                feedback = submission.kind === "plan" ? "Plan queued" : "Message queued";
+                const run = store?.getState().stats.run;
+                const activeIndex = run?.queue?.findIndex((item) => item.id === run.activePlanId) ?? -1;
+                const targetIndex = run?.queue?.findIndex((item) => item.id === submission.afterPlanId) ?? -1;
+                const target = targetIndex < activeIndex ? run?.activePlanId : submission.afterPlanId;
+                composer = createComposerState(submission.kind, target);
+                const planNumber = (run?.queue?.filter((item) => item.kind === "plan").findIndex((item) => item.id === submission.afterPlanId) ?? -1) + 1;
+                feedback = submission.kind === "plan" ? "Plan queued" : `Message queued${planNumber > 0 ? ` after plan ${planNumber}` : ""}`;
               } catch (error) {
                 const message = error instanceof Error ? error.message : String(error);
                 composer = { ...composer!, error: message };
@@ -342,6 +350,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
     let cursor: { x: number; y: number } | undefined;
     if (conversation) {
       const activePlanId = state.stats.run?.activePlanId;
+      if (activePlanId !== lastActivePlanId) feedback = undefined;
       if (composer && (composer.afterPlanId === undefined ||
         (composer.text.length === 0 && composer.afterPlanId === lastActivePlanId))) {
         composer = { ...composer, afterPlanId: activePlanId };

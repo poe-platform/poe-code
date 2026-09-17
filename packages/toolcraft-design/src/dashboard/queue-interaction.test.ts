@@ -117,6 +117,54 @@ describe("dashboard live queue input", () => {
     });
   });
 
+  it.each(["first", "third"])("keeps the next message target valid after a plan transition during submission: %s", async (target) => {
+    await withOutputFormat("terminal", async () => {
+      vi.useFakeTimers();
+      let accept!: () => void;
+      const onSubmit = vi.fn().mockImplementationOnce(() => new Promise<void>((resolve) => { accept = resolve; }));
+      const ui = fixture(onSubmit);
+      const plans = [
+        { kind: "plan" as const, id: "first", path: "first.md", status: "running" as const },
+        { kind: "plan" as const, id: "second", path: "second.md", status: "pending" as const },
+        { kind: "plan" as const, id: "third", path: "third.md", status: "pending" as const }
+      ];
+      try {
+        ui.dashboard.updateStats({ run: { activePlanId: "first", queue: plans } });
+        if (target === "third") ui.send("\u001b[1;3B\u001b[1;3B");
+        ui.send("First message\r");
+        ui.dashboard.updateStats({ run: { activePlanId: "second", queue: plans.map((plan) => ({
+          ...plan, status: plan.id === "first" ? "completed" : plan.id === "second" ? "running" : "pending"
+        })) } });
+        vi.advanceTimersByTime(20);
+        accept();
+        await Promise.resolve();
+        await Promise.resolve();
+        const nextTarget = target === "first" ? "second" : "third";
+        expect(ui.screen()).toContain(`AFTER ${nextTarget}.md`);
+        expect(ui.screen()).toContain(`Message queued after plan ${target === "first" ? 1 : 3}`);
+        ui.send("Second message\r");
+        await Promise.resolve();
+        expect(onSubmit).toHaveBeenNthCalledWith(2, { kind: "message", text: "Second message", afterPlanId: nextTarget });
+      } finally { ui.dashboard.destroy(); }
+    });
+  });
+
+  it.each(["mode", "target", "active plan"])("clears queue acceptance feedback when changing %s", async (change) => {
+    await withOutputFormat("terminal", async () => {
+      const ui = fixture(vi.fn());
+      try {
+        ui.send("Review\r");
+        await Promise.resolve();
+        await Promise.resolve();
+        expect(ui.screen()).toContain("Message queued");
+        if (change === "mode") ui.send("\u0010");
+        else if (change === "target") ui.send("\u001b[1;3B");
+        else ui.dashboard.updateStats({ run: { activePlanId: "second" } });
+        expect(ui.screen()).not.toContain("Message queued");
+      } finally { ui.dashboard.destroy(); }
+    });
+  });
+
   it("follows the active plan when an empty message draft is hidden behind plan input", async () => {
     await withOutputFormat("terminal", async () => {
       const onSubmit = vi.fn();

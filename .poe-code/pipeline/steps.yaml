@@ -1,38 +1,45 @@
 steps:
   reproduce:
-    prompt: |
-      Original task:
+    prompt: |-
+      Task: {{id}} — {{title}}
       {{prompt}}
 
-      Validate the reported issue against the current code. Reproduce it with a failing test or other concrete evidence before implementation. If it cannot be validated, report that instead of changing code.
+      Inspect current main and applicable AGENTS.md instructions. Reproduce each reported defect before changing runtime code. For a code repair, add a fast failing regression first and record the command, expected behavior, actual behavior, runtime, and revision. Use primary specification text and pinned upstream fixtures; a native engine is a control, not the specification. Separate a product defect, host/backend limitation, intentional capability boundary, and missing evidence. If the report does not reproduce, record the evidence and qualify the behavior without inventing a fix. Keep temporary logs and generated evidence in out; keep plans in docs/plans.
+
+      Identify the exact specification or public contract and category owner. Record the smallest counterexample and a neighboring passing control; reuse existing evidence only after checking its revision and environment.
   implement:
-    prompt: |
-      Implement
-
+    prompt: |-
+      Task: {{id}} — {{title}}
       {{prompt}}
 
+      Implement only validated repairs or the explicitly requested feature, using TDD for code. Keep logic in the responsible package, preserve CLI/SDK parity, and follow SOLID, KISS, and YAGNI. Preserve budgets, host isolation, realm ownership, and replay invariants. Unit tests use memfs and mocked external capabilities; never query an LLM. Do not suppress failures, weaken assertions, increase test timeouts, narrow supported versions, or discard unrelated work. For audit/documentation tasks, produce the specified evidence instead of speculative runtime changes.
   refactor:
-    prompt: |
-      Original task:
+    prompt: |-
+      Task: {{id}} — {{title}}
       {{prompt}}
 
-      Refactor and simplify the code if you can, don't sweat it though.
-
+      Review the task diff for unnecessary abstractions, proxy-only functions, duplicated logic, unsafe host access, and compatibility regressions. Simplify only when supported by the task's tests. Check failure paths, cancellation, budgets, ownership, and snapshot/version compatibility where affected. Re-run affected checks after changes. Preserve other contributors' files. Record any unresolved finding; it blocks completion.
   test:
-    prompt: |
-      Original task:
+    prompt: |-
+      Task: {{id}} — {{title}}
       {{prompt}}
 
-      Be a user and test all edge cases, fix bugs if needed
+      Verify the exact candidate revision with independent edge cases and negative controls, not only tests mirroring the implementation. Cover syntax/runtime/lint, CLI/SDK, realm/host boundaries, budgets, errors, and original/checkpoint/replay execution where affected. Run the narrowest maintained workspace lint/test/build routes covering the change. For broad or shared changes run npm test, repository-wide lint, and npm run build. Use npm run lint:workflows for workflow changes, without workflow unit tests. Execute manual QA from Markdown and inspect CLI screenshots for visible changes. Report passes, failures, skips, unsupported cases, and incomplete runs separately. Investigate every failure, including timeouts; never count a focused rerun as a completed broad gate.
 
+      For a compatibility task, verify its required runtime cells and mapped upstream variants. For boundary changes include rollback/cleanup and negative authority controls. Preserve reproducible seeds and minimized cases for generated findings. Distinguish deterministic semantic checks from bounded performance measurements; unavailable matrix cells remain unverified.
   commit:
-    prompt: |
-      Make sure tests run, and commit all changes
+    prompt: |-
+      Task: {{id}} — {{title}}
+      {{prompt}}
 
+      Confirm required manual checks passed for the exact files being committed. Work on main unless the user requested a branch. Give each atomic improvement its own Conventional Commit and include its relevant planning documents. Stage explicit task-owned paths or hunks only; never blanket-add or commit unrelated staged work, ignored files, or artifacts. Do not bypass hooks or add a co-author. For evidence-only work, commit its report; if no task-owned change exists, record that fact. Report the local SHA separately from remote delivery and publication.
   release:
-    prompt: |
-      Push and watch the release
+    prompt: |-
+      Task: {{id}} — {{title}}
+      {{prompt}}
 
+      Deliver the task's verified commits to main through the normal push hooks when execution of this plan is authorized. Fetch first and preserve concurrent work; reconcile and revalidate if needed, never force-push or revert others' changes. Verify the delivered SHA is on remote main, then close any explicitly associated validated issue once its fix is verified there. Monitor every required GitHub build through successful publication; cancelled/superseded runs require following a successor containing the change. Diagnose failed builds and repair with tests and a separate atomic commit. Confirm npm versions and publication commit/provenance for each affected package, including scoped packages and poe-code when applicable. Never publish locally. A green build without a new version may be a documented no-release outcome for docs/config-only changes, not a claimed publication. Record local SHA, remote ancestry, workflow URL/conclusion, and actual published version separately in out. Keep monitoring releases while continuing independent work only if the runner permits it; no release step is complete with unresolved required publication.
+
+      Verify affected packages independently after partial publication, including installed-artifact smoke and registry integrity/provenance where available. Do not assume a successor run contains the fix: verify ancestry. Registry propagation delays and API limits require retry or alternate read-only evidence, not a false success. Record a concrete recovery path for unresolved publication; never unpublish or destructively roll back without explicit authorization.
 teardown:
-  prompt: |
-    Make sure tests run, and commit all changes
+  prompt: Audit task completion against recorded evidence and check any outstanding release builds. No blanket commit, push, local publication, or unrelated cleanup. Confirm every delivered change is present on remote main and every required publication succeeded. Report remaining failures, exclusions, unsupported behavior, and delivery blockers explicitly; never mark the plan complete on test counts alone. Keep generated evidence in out and distinguish implemented, verified, delivered, and published outcomes.

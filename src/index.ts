@@ -19,6 +19,8 @@ export {
 } from "./sdk/process-launcher.js";
 export { runRalph, runRalphSequence } from "./sdk/ralph.js";
 export { runExperiment, runExperimentSequence, readExperimentJournal } from "./sdk/experiment.js";
+export { runSuperintendentSequence } from "@poe-code/superintendent";
+export type { SuperintendentSequenceOptions, SuperintendentSequenceResult } from "@poe-code/superintendent";
 export { installSkill } from "./skills.js";
 export type {
   InstallSkillOptions,

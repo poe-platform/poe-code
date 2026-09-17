@@ -97,6 +97,17 @@ Runtime-injected workflow tool:
 
 `runSuperintendentSequence({ docs, runAgent, ...options })` runs multiple plans in order. Supply a shared `createRunQueue()` instance instead of `docs` to append plans and targeted messages during execution. `afterEachPlan` mirrors the CLI flag; `onQueueChange` reports immutable snapshots. The result includes all plan results, follow-up results, and the final queue. Follow-ups preserve the builder's agent, mode, MCP servers, and working directory.
 
+The installed `poe-code` SDK exposes the sequence and shared queue:
+
+```ts
+import {
+  createRunQueue,
+  runSuperintendentSequence,
+  type SuperintendentSequenceOptions,
+  type SuperintendentSequenceResult
+} from "poe-code";
+```
+
 Import from the package root:
 
 ```ts

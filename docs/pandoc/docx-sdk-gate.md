@@ -7,6 +7,36 @@ Outcome: public byte APIs are present and verified. Required semantic note
 construction is not fully supported by the verified public API; DOCX conversion
 remains open and no implementation or format capability was added.
 
+## Current public API recheck
+
+Rechecked on 2026-09-16 at revision
+`4f60fccf2acbb52d15aff2fd6f22dd4536e524d9` after reading root instructions
+and checking for scoped instructions under `packages/docx`, `packages/pandoc`
+and `docs` (none found). The selected maintained DOCX build closure passed.
+
+An original public `poe-code/docx` consumer again created, saved and reopened
+`Before after` using only memfs for document mutations. Both **footnote and
+endnote** operations rejected scalar ranges `{start: 6, end: 6}` and
+`{start: 0, end: 6}` with `usage`: "Whole resource operations require a
+resource token, not a text range." Both rejected a structured `content`
+body containing a bold run with `usage`: "Unknown argument: content."
+The supported whole-paragraph plain-text controls succeeded. Public parsed XML
+inspection confirmed each reference was the final paragraph child; public note
+inspection returned the supplied text and source bytes remained unchanged.
+
+The exact missing API remains a public semantic operation that inserts a
+footnote/endnote reference at an arbitrary inline position and binds an ordered
+structured block body, with the sibling owning note IDs, parts and relationships.
+Byte APIs are available; this narrower semantic dependency prevents the required
+conversion mapping. No converter implementation, sibling change, reference style
+subset or DOCX advertising was added. Conversion consumer and independent
+Office-open qualification remain pending. No code changed and no new TDD cycle
+or unit-suite execution is claimed for this recheck.
+
+Current evidence: [selected build](docx-sdk-gate-recheck-build.log) and
+[public memfs probe](docx-sdk-gate-recheck-public.log). QA remains the Markdown
+procedure in the existing implementation plan; these logs are evidence only.
+
 ## Results
 
 | Check | Observed result |

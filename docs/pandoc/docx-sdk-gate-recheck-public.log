@@ -1,0 +1,10 @@
+PASS public byte creation/save/reopen using memfs
+VERIFIED GAP footnote {"start":6,"end":6} Whole resource operations require a resource token, not a text range.
+VERIFIED GAP footnote {"start":0,"end":6} Whole resource operations require a resource token, not a text range.
+VERIFIED GAP footnote structured body Unknown argument: content.
+PASS footnote plain note appended at paragraph end; source unchanged
+VERIFIED GAP endnote {"start":6,"end":6} Whole resource operations require a resource token, not a text range.
+VERIFIED GAP endnote {"start":0,"end":6} Whole resource operations require a resource token, not a text range.
+VERIFIED GAP endnote structured body Unknown argument: content.
+PASS endnote plain note appended at paragraph end; source unchanged
+Conversion and independent Office-open qualification remain pending.

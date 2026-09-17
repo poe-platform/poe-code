@@ -3,6 +3,13 @@
 Status: open; conversion not implemented. This task does not change the sibling
 editor, format advertising, the text core or preservation editing.
 
+Revalidated at `4f60fccf2acbb52d15aff2fd6f22dd4536e524d9` on 2026-09-16:
+the maintained sibling build and public byte consumer passed, but both footnote
+and endnote inline-range insertion and structured-body creation remain rejected.
+The current [gate evidence](../pandoc/docx-sdk-gate.md#current-public-api-recheck)
+records the exact missing semantic operation. Resume at step 1 only when that
+sibling API is available; conversion and Office-open qualification remain open.
+
 ## Verified prerequisite and remaining gap
 
 The public `poe-code/docx` entry exports working asynchronous

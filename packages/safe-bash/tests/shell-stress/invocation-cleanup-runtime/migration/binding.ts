@@ -76,7 +76,8 @@ export async function captureRequiredPeer(snapshot: string, emittedHashes: Hashe
     "poe-code/safe-playwright": "./packages/safe-playwright/dist/index.js",
     "poe-code/safe-playwright/adapter": "./packages/safe-playwright/dist/adapter.js",
   };
-  const publicEntries = checkoutBinding ? Object.keys(checkoutEntries).sort() : ["poe-code/safe-fs"];
+  const publicEntries = checkoutBinding ? Object.keys(checkoutBinding.entries).sort() : ["poe-code/safe-fs"];
+  for (const entry of publicEntries) assert.ok(Object.hasOwn(checkoutEntries, entry), `Unreviewed canonical runtime entry: ${entry}`);
   const collectEntries = (path: string, bytes: Uint8Array, hash: string): void => {
     if (!path.endsWith(".js")) return;
     assert.equal(hash, emittedHashes[path], `Emitted bytes changed before peer capture: ${path}`);

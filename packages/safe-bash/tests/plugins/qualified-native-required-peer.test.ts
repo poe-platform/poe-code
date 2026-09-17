@@ -50,7 +50,8 @@ function fixture(
   native = true,
   empty = false,
   configure?: (files: Map<string, Buffer>) => void,
-  release = false
+  release = false,
+  playwright = true
 ) {
   const root = "/checkout/packages/safe-bash",
     snapshot = "/snapshot";
@@ -175,7 +176,7 @@ function fixture(
       [`${snapshot}/package-lock.json`]: JSON.stringify(lock),
       [`${snapshot}/dist/index.js`]: release
         ? 'import "poe-code/safe-fs";'
-        : 'import "poe-code/safe-fs"; import "poe-code/safe-fs/core"; import "poe-code/safe-playwright"; import "poe-code/safe-playwright/adapter";'
+        : 'import "poe-code/safe-fs"; import "poe-code/safe-fs/core";' + (playwright ? ' import "poe-code/safe-playwright"; import "poe-code/safe-playwright/adapter";' : '')
     })
   );
   const declarations = {
@@ -189,8 +190,10 @@ function fixture(
           ? []
           : [
               ["poe-code/safe-fs/core", "packages/safe-fs/dist/core.d.ts"],
-              ["poe-code/safe-playwright", "packages/safe-playwright/dist/index.d.ts"],
-              ["poe-code/safe-playwright/adapter", "packages/safe-playwright/dist/adapter.d.ts"]
+              ...(playwright ? [
+                ["poe-code/safe-playwright", "packages/safe-playwright/dist/index.d.ts"],
+                ["poe-code/safe-playwright/adapter", "packages/safe-playwright/dist/adapter.d.ts"]
+              ] : [])
             ] as [string, string][])
       ]),
       declarations: new Map(
@@ -301,6 +304,17 @@ for (const empty of [false, true])
       assert.equal(result.metadataSha256, digest(setup.files.get("package.json")!));
     });
   });
+
+test("required peer follows authenticated checkout entries when Playwright is local", async (context) => {
+  const setup = fixture(false, false, undefined, false, false);
+  await withIo(context, setup, async () => {
+    const result = await captureRequiredPeer(setup.snapshot, setup.emitted, setup.tools, setup.binding);
+    assert.deepEqual(result.entries, {
+      "poe-code/safe-fs": `${prefix}${runtime}`,
+      "poe-code/safe-fs/core": `${prefix}${core}`
+    });
+  });
+});
 
 test("required peer preserves branded no-native relative closure", async (context) => {
   const setup = fixture(false);

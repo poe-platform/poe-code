@@ -93,7 +93,7 @@ const result = await runGaslight({
 ## Run options
 
 - `planPaths`: Plan paths, resolved from `cwd`. Supply these or a live `queue`.
-- `queue`: A `createRunQueue()` instance from `@poe-code/agent-harness-tools` (also exported by `poe-code`). Append plans and targeted messages during execution; `queue.onChange()` reports ordered snapshots.
+- `queue`: A `createRunQueue()` instance from `poe-code`. Append plans and targeted messages during execution; `queue.onChange()` reports ordered snapshots.
 - `afterEachPlan`: Messages to run after every plan's configured rounds. Use with `planPaths`; when supplying `queue`, configure its `afterEachPlan` instead.
 - `agent`: Agent identifier. Required unless configured in `gaslight.yaml`.
 - `model`: Optional model override.

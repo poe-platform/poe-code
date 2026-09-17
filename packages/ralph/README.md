@@ -160,7 +160,7 @@ const result = await runRalph({
 });
 ```
 
-`runRalphSequence({ docs, afterEachPlan, ...options })` runs ordered plans and follow-ups using the same runner. `afterEachPlan` mirrors repeatable `--after-plan` flags, including plans added later. Supply a `queue` from `@poe-code/agent-harness-tools` instead of `docs` and `afterEachPlan` to add work during execution. `onQueueChange` observes the sequence; the result contains `plans`, `messages`, and the final `queue`. Archived plans include `archivedPath` in their result, and follow-up prompts reference that file. Failed or cancelled work leaves later items pending.
+`runRalphSequence({ docs, afterEachPlan, ...options })` runs ordered plans and follow-ups using the same runner. `afterEachPlan` mirrors repeatable `--after-plan` flags, including plans added later. Supply a `queue` from `createRunQueue` in `poe-code` instead of `docs` and `afterEachPlan` to add work during execution. `onQueueChange` observes the sequence; the result contains `plans`, `messages`, and the final `queue`. Archived plans include `archivedPath` in their result, and follow-up prompts reference that file. Failed or cancelled work leaves later items pending.
 
 Exports: `runRalph`, `runRalphSequence`, `discoverDocs`, `parseFrontmatter`, `writeFrontmatter`.
 

@@ -1,4 +1,4 @@
-import { bindXmlElementView, type XmlElementView } from "./xml-element-view.js";
+import { bindXmlElementView, type XmlElementView, type XmlViewBinding } from "./xml-element-view.js";
 import { DocumentBudget } from "./budget.js";
 import { plainLength, Pt, Twips, Length } from "./formatting-values.js";
 import { BoundsError, StaleHandleError } from "./model-errors.js";
@@ -6,13 +6,39 @@ import { numericSequence } from "./numeric-index.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
 import type { DocxEnumValue, DocxLength, DocxOperationArguments, DocxTabStop } from "./operation-types.js";
 import type { XmlElement } from "./package-xml.js";
-import { DocumentXmlEditor } from "./xml-write.js";
+import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { formattedRunProperties, runElementOpen, underline, highlights, themes } from "./run-properties.js";
 import { paragraphProperties, paragraphUnits, alignments as paragraphAlignments } from "./paragraph-properties.js";
 import { validateDocxValue } from "./operation-schema.js";
+import type { CompatibilityContent } from "./compatibility.js";
+import type { ModelStore, ModelRef } from "./model-store.js";
 
 /** An admitted owner fragment. Its caller retains package ownership and publication authority. */
-export interface FormattingXmlOwner { getXml(): string; setXml(xml: string): void; readonly part?: unknown; readonly identity?: unknown; readonly budget?: DocumentBudget }
+export interface FormattingXmlOwner {
+  getXml(): string;
+  setXml(xml: string): void;
+  readonly part?: unknown;
+  readonly identity?: unknown;
+  readonly budget?: DocumentBudget;
+}
+const modelOwners = new WeakMap<FormattingXmlOwner, XmlViewBinding>();
+/** Internal live binding retains inherited compatibility scope and model mutation ownership. */
+export function modelFormattingOwner(store: ModelStore, ref: ModelRef): FormattingXmlOwner {
+  const owner: FormattingXmlOwner = {
+    budget: store.context.budget,
+    get part() { store.node(ref); return store.part(ref.part); },
+    get identity() { return store.identity(ref); },
+    getXml: () => new TextDecoder().decode(store.element(ref).serialize()),
+    setXml: source => store.change(ref.part, xml => xml.replaceElement(store.node(ref), source))
+  };
+  modelOwners.set(owner, {
+    budget: store.context.budget,
+    read: () => store.xml(ref.part),
+    resolve: () => store.node(ref),
+    change: action => store.change(ref.part, action)
+  });
+  return owner;
+}
 const ownerBudgets = new WeakMap<object, DocumentBudget>();
 function ownerBudget(owner: FormattingXmlOwner): DocumentBudget {
   if (owner.budget) return owner.budget;
@@ -22,20 +48,50 @@ function ownerBudget(owner: FormattingXmlOwner): DocumentBudget {
   return budget;
 }
 function editor(owner: FormattingXmlOwner): DocumentXmlEditor { return new DocumentXmlEditor(new TextEncoder().encode(owner.getXml()), {}, undefined, ownerBudget(owner)); }
+const readChildren = new WeakMap<DocumentXmlEditor, ReadonlyMap<XmlElement, readonly XmlElement[]>>();
+function readView(owner: FormattingXmlOwner, fragment?: DocumentXmlEditor, root?: XmlElement) {
+  const binding = modelOwners.get(owner), xml = fragment ?? binding?.read() ?? editor(owner);
+  const view = { xml, root: root ?? (fragment ? xml.root : binding?.resolve(xml) ?? xml.root) };
+  const budget = ownerBudget(owner);
+  let children = readChildren.get(view.xml);
+  if (!children) {
+    const projected = new Map<XmlElement, readonly XmlElement[]>();
+    const collect = (content: readonly CompatibilityContent[]) => {
+      for (const item of content) if ("source" in item) {
+        budget.charge("retainedBytes", 96 + item.content.length * 8);
+        projected.set(item.source, item.content.filter(node => "source" in node).map(node => node.source));
+        collect(item.content);
+      }
+    };
+    collect(view.xml.compatibility.content);
+    children = projected;
+    readChildren.set(view.xml, children);
+  }
+  return { ...view, children: (node: XmlElement) => { budget.charge("work", 1); return children.get(node) ?? []; } };
+}
 const ownerXmlViews = new WeakMap<object, Map<string, XmlElementView>>();
-function ownerView(owner: FormattingXmlOwner, key = "root", resolve: (xml: DocumentXmlEditor) => XmlElement = xml => xml.root): XmlElementView {
+function ownerView(owner: FormattingXmlOwner, key = "root", resolve: (xml: DocumentXmlEditor, root: XmlElement) => XmlElement = (ignoredXml, root) => root): XmlElementView {
   const identity = owner.identity, bindingKey = identity !== null && typeof identity === "object" ? identity : owner;
   let views = ownerXmlViews.get(bindingKey);
   if (!views) { views = new Map(); ownerXmlViews.set(bindingKey, views); }
   let view = views.get(key);
   if (!view) {
-    const budget = ownerBudget(owner);
-    view = bindXmlElementView({ budget, read: () => editor(owner), resolve, change: action => { const xml = editor(owner); action(xml); owner.setXml(new TextDecoder().decode(xml.serialize())); } });
+    const budget = ownerBudget(owner), binding = modelOwners.get(owner);
+    view = bindXmlElementView({
+      budget,
+      read: binding?.read ?? (() => editor(owner)),
+      resolve: xml => resolve(xml, binding?.resolve(xml) ?? xml.root),
+      change: binding?.change ?? (action => { const xml = editor(owner); action(xml); owner.setXml(new TextDecoder().decode(xml.serialize())); })
+    });
     views.set(key, view);
   }
   return view;
 }
-function child(node: XmlElement, name: string): XmlElement | undefined { return node.children.find(c => c.namespace === node.namespace && c.localName === name); }
+function child(node: XmlElement, name: string, children: (node: XmlElement) => readonly XmlElement[] = node => node.children): XmlElement | undefined { return children(node).find(c => c.namespace === node.namespace && c.localName === name); }
+function property(owner: FormattingXmlOwner, kind: "rPr" | "pPr", name: string): XmlElement | undefined {
+  const view = readView(owner), props = child(view.root, kind, view.children);
+  return props && child(props, name, view.children);
+}
 function attr(node: XmlElement | undefined, name = "val"): string | undefined { return node?.attributes.find(a => a.namespace === node.namespace && a.localName === name)?.value; }
 function update(owner: FormattingXmlOwner, kind: "r" | "p", values: DocxOperationArguments<"runs.set"> | DocxOperationArguments<"paragraphs.set">): void {
   const xml = editor(owner), root = xml.root;
@@ -92,36 +148,35 @@ export class Font {
   equals(other: unknown): boolean { return other instanceof Font && (this.owner.identity ?? this.owner) === (other.owner.identity ?? other.owner); }
   private get rawElement(): XmlElement { return editor(this.owner).root; }
   get element(): XmlElementView { return ownerView(this.owner); }
-  private property(name: string): XmlElement | undefined { const props = child(this.rawElement, "rPr"); return props && child(props, name); }
-  get name(): string | null { return attr(this.property("rFonts"), "ascii") ?? null; }
+  get name(): string | null { return attr(property(this.owner, "rPr", "rFonts"), "ascii") ?? null; }
   set name(value: string | null) { if (value !== null && typeof value !== "string") throw new TypeError("Expected a font name or null."); update(this.owner, "r", { font: value }); }
-  get size(): Length | null { const value = attr(this.property("sz")); return value === undefined ? null : Pt(Number(value) / 2); }
+  get size(): Length | null { const value = attr(property(this.owner, "rPr", "sz")); return value === undefined ? null : Pt(Number(value) / 2); }
   set size(value: DocxLength | null) { value = value === null ? null : plainLength(value); if (value !== null && !validateDocxValue("Length", value)) throw new TypeError("Expected a font length or null."); update(this.owner, "r", { size: value === null ? null : { value: paragraphUnits(value, 1), unit: "emu" } }); }
   get underline(): boolean | DocxEnumValue<"WD_UNDERLINE"> | null {
-    const value = attr(this.property("u")); if (value === undefined) return null;
+    const value = attr(property(this.owner, "rPr", "u")); if (value === undefined) return null;
     if (value === "single") return true; if (value === "none") return false;
     const name = Object.keys(underline).find(key => underline[key as keyof typeof underline] === value) as keyof typeof underline | undefined;
     if (!name) throw new TypeError("Invalid underline value."); return { enum: "WD_UNDERLINE", name };
   }
   set underline(value: boolean | DocxEnumValue<"WD_UNDERLINE"> | null) { if (!validateDocxValue("boolean | WD_UNDERLINE | null", value) || value !== null && typeof value === "object" && !Object.hasOwn(underline, value.name)) throw new TypeError("Invalid underline value."); update(this.owner, "r", { underline: value }); }
   get highlight_color(): DocxEnumValue<"WD_COLOR_INDEX"> | null {
-    const value = attr(this.property("highlight")); if (value === undefined) return null;
+    const value = attr(property(this.owner, "rPr", "highlight")); if (value === undefined) return null;
     const name = Object.keys(highlights).find(key => highlights[key as keyof typeof highlights] === value) as keyof typeof highlights | undefined;
     if (!name) throw new TypeError("Invalid highlight color."); return { enum: "WD_COLOR_INDEX", name };
   }
   set highlight_color(value: DocxEnumValue<"WD_COLOR_INDEX"> | null) { if (!validateDocxValue("WD_COLOR_INDEX | null", value) || value !== null && !Object.hasOwn(highlights, value.name)) throw new TypeError("Invalid highlight color."); update(this.owner, "r", { highlight: value }); }
-  get superscript(): boolean | null { const value = attr(this.property("vertAlign")); return value === undefined ? null : value === "superscript"; }
+  get superscript(): boolean | null { const value = attr(property(this.owner, "rPr", "vertAlign")); return value === undefined ? null : value === "superscript"; }
   set superscript(value: boolean | null) { this.baseline("superscript", value); }
-  get subscript(): boolean | null { const value = attr(this.property("vertAlign")); return value === undefined ? null : value === "subscript"; }
+  get subscript(): boolean | null { const value = attr(property(this.owner, "rPr", "vertAlign")); return value === undefined ? null : value === "subscript"; }
   set subscript(value: boolean | null) { this.baseline("subscript", value); }
   private baseline(mode: "subscript" | "superscript", value: boolean | null): void {
     tri(value);
-    if (value === false && attr(this.property("vertAlign")) !== mode) { if (!child(this.rawElement, "rPr")) update(this.owner, "r", {}); return; }
+    if (value === false && attr(property(this.owner, "rPr", "vertAlign")) !== mode) { if (!child(this.rawElement, "rPr")) update(this.owner, "r", {}); return; }
     update(this.owner, "r", { baseline: value === true ? mode : null });
   }
 }
 for (const [name, [option, tag]] of Object.entries(fontFlags)) Object.defineProperty(Font.prototype, name, {
-  get(this: Font) { const props = child(editor(this.owner).root, "rPr"); return booleanValue(props && child(props, tag)); },
+  get(this: Font) { return booleanValue(property(this.owner, "rPr", tag)); },
   set(this: Font, value: boolean | null) { tri(value); update(this.owner, "r", { [option]: value }); }, enumerable: true
 });
 
@@ -134,41 +189,39 @@ export class ParagraphFormat {
 
   private tabs?: TabStops;
   constructor(readonly owner: FormattingXmlOwner) {}
-  get tab_stops(): TabStops { if (!child(this.rawElement, "pPr")) update(this.owner, "p", {}); return this.tabs ??= new TabStops(this.owner); }
+  get tab_stops(): TabStops { const view = readView(this.owner); if (!child(view.root, "pPr", view.children)) update(this.owner, "p", {}); return this.tabs ??= new TabStops(this.owner); }
   get part(): unknown { return this.owner.part ?? null; }
   equals(other: unknown): boolean { return other instanceof ParagraphFormat && (this.owner.identity ?? this.owner) === (other.owner.identity ?? other.owner); }
-  private get rawElement(): XmlElement { return editor(this.owner).root; }
   get element(): XmlElementView { return ownerView(this.owner); }
-  private property(name: string): XmlElement | undefined { const props = child(this.rawElement, "pPr"); return props && child(props, name); }
   get alignment(): DocxEnumValue<"WD_PARAGRAPH_ALIGNMENT"> | null {
-    const value = attr(this.property("jc")); if (value === undefined) return null;
+    const value = attr(property(this.owner, "pPr", "jc")); if (value === undefined) return null;
     const normalized = value === "start" ? "left" : value === "end" ? "right" : value;
     const name = Object.keys(paragraphAlignments).find(key => paragraphAlignments[key as keyof typeof paragraphAlignments] === normalized) as keyof typeof paragraphAlignments | undefined;
     if (!name) throw new TypeError("Invalid paragraph alignment."); return { enum: "WD_PARAGRAPH_ALIGNMENT", name };
   }
   set alignment(value: DocxEnumValue<"WD_PARAGRAPH_ALIGNMENT"> | null) { if (!validateDocxValue("WD_PARAGRAPH_ALIGNMENT | null", value)) throw new TypeError("Invalid paragraph alignment."); update(this.owner, "p", { alignment: value }); }
-  get right_indent(): Length | null { const node = this.property("ind"), value = attr(node, "end") ?? attr(node, "right"); return value === undefined ? null : storedLength(value); }
+  get right_indent(): Length | null { const node = property(this.owner, "pPr", "ind"), value = attr(node, "end") ?? attr(node, "right"); return value === undefined ? null : storedLength(value); }
   set right_indent(value: DocxLength | null) { this.length("rightIndent", value); }
-  get first_line_indent(): Length | null { const node = this.property("ind"), hanging = attr(node, "hanging"), first = attr(node, "firstLine"); return hanging !== undefined ? Twips(-storedLength(hanging).emu / 635) : first === undefined ? null : storedLength(first); }
+  get first_line_indent(): Length | null { const node = property(this.owner, "pPr", "ind"), hanging = attr(node, "hanging"), first = attr(node, "firstLine"); return hanging !== undefined ? Twips(-storedLength(hanging).emu / 635) : first === undefined ? null : storedLength(first); }
   set first_line_indent(value: DocxLength | null) { this.length("firstLineIndent", value); }
-  get space_before(): Length | null { const value = attr(this.property("spacing"), "before"); return value === undefined ? null : storedLength(value); }
+  get space_before(): Length | null { const value = attr(property(this.owner, "pPr", "spacing"), "before"); return value === undefined ? null : storedLength(value); }
   set space_before(value: DocxLength | null) { this.length("spaceBefore", value); }
-  get space_after(): Length | null { const value = attr(this.property("spacing"), "after"); return value === undefined ? null : storedLength(value); }
+  get space_after(): Length | null { const value = attr(property(this.owner, "pPr", "spacing"), "after"); return value === undefined ? null : storedLength(value); }
   set space_after(value: DocxLength | null) { this.length("spaceAfter", value); }
   private length(option: "rightIndent" | "firstLineIndent" | "spaceBefore" | "spaceAfter", value: DocxLength | null): void { value = value === null ? null : plainLength(value); if (!validateDocxValue("Length | null", value)) throw new TypeError("Expected a length or null."); update(this.owner, "p", { [option]: value }); }
-  get line_spacing(): Length | number | null { const node = this.property("spacing"), value = attr(node, "line"); return value === undefined ? null : ["exact", "atLeast"].includes(attr(node, "lineRule") ?? "auto") ? storedLength(value) : Number(value) / 240; }
+  get line_spacing(): Length | number | null { const node = property(this.owner, "pPr", "spacing"), value = attr(node, "line"); return value === undefined ? null : ["exact", "atLeast"].includes(attr(node, "lineRule") ?? "auto") ? storedLength(value) : Number(value) / 240; }
   set line_spacing(value: DocxLength | number | null) { value = value !== null && typeof value === "object" ? plainLength(value) : value; if (!validateDocxValue("Length | finite number | null", value)) throw new TypeError("Invalid line spacing."); update(this.owner, "p", { lineSpacing: value, ...(value !== null && typeof value === "object" && this.line_spacing_rule?.name === "AT_LEAST" ? { lineSpacingRule: { enum: "WD_LINE_SPACING", name: "AT_LEAST" } as const } : {}) }); }
   get line_spacing_rule(): DocxEnumValue<"WD_LINE_SPACING"> | null {
-    const node = this.property("spacing"), rule = attr(node, "lineRule"), line = attr(node, "line"); if (line === undefined && rule === undefined) return null;
+    const node = property(this.owner, "pPr", "spacing"), rule = attr(node, "lineRule"), line = attr(node, "line"); if (line === undefined && rule === undefined) return null;
     const name = rule === "exact" ? "EXACTLY" : rule === "atLeast" ? "AT_LEAST" : line === "240" ? "SINGLE" : line === "360" ? "ONE_POINT_FIVE" : line === "480" ? "DOUBLE" : "MULTIPLE";
     return { enum: "WD_LINE_SPACING", name };
   }
   set line_spacing_rule(value: DocxEnumValue<"WD_LINE_SPACING"> | null) { if (!validateDocxValue("WD_LINE_SPACING | null", value)) throw new TypeError("Invalid line spacing rule."); update(this.owner, "p", { lineSpacingRule: value }); }
-  get left_indent(): Length | null { const props = child(this.rawElement, "pPr"), ind = props && child(props, "ind"); const value = attr(ind, "start") ?? attr(ind, "left"); return value === undefined ? null : storedLength(value); }
+  get left_indent(): Length | null { const ind = property(this.owner, "pPr", "ind"); const value = attr(ind, "start") ?? attr(ind, "left"); return value === undefined ? null : storedLength(value); }
   set left_indent(value: DocxLength | null) { value = value === null ? null : plainLength(value); if (value !== null && !validateDocxValue("Length", value)) throw new TypeError("Expected a length or null."); update(this.owner, "p", { leftIndent: value as DocxOperationArguments<"paragraphs.set">["leftIndent"] }); }
 }
 for (const [name, [option, tag]] of Object.entries(paragraphFlags)) Object.defineProperty(ParagraphFormat.prototype, name, {
-  get(this: ParagraphFormat) { const props = child(editor(this.owner).root, "pPr"); return booleanValue(props && child(props, tag)); },
+  get(this: ParagraphFormat) { return booleanValue(property(this.owner, "pPr", tag)); },
   set(this: ParagraphFormat, value: boolean | null) { tri(value); update(this.owner, "p", { [option]: value }); }, enumerable: true
 });
 const alignments = { left: "LEFT", start: "START", center: "CENTER", right: "RIGHT", end: "END", decimal: "DECIMAL", bar: "BAR", list: "LIST", clear: "CLEAR", num: "NUM" } as const;
@@ -178,6 +231,7 @@ const tabCollections = new WeakMap<object, TabStops>();
 export class TabStops implements Iterable<TabStop> {
   readonly [index: number]: TabStop;
   private snapshot = "";
+  private readRoot: XmlElement | undefined;
   private tabSnapshot = "";
   private records: StopRecord[] = [];
   private nextId = 0;
@@ -190,19 +244,29 @@ export class TabStops implements Iterable<TabStop> {
     tabCollections.set(key, collection);
     return collection;
   }
-  private get rawElement(): XmlElement { const root = editor(this.owner).root; return child(root, "pPr") ?? root; }
-  get element(): XmlElementView { return ownerView(this.owner, "tabs", xml => child(xml.root, "pPr") ?? xml.root); }
+  get element(): XmlElementView { return ownerView(this.owner, "tabs", (xml, root) => child(root, "pPr", readView(this.owner, xml, root).children) ?? root); }
   get part(): unknown { return this.owner.part ?? null; }
   equals(other: unknown): boolean { return other instanceof TabStops && (this.owner.identity ?? this.owner) === (other.owner.identity ?? other.owner); }
-  elementFor(id: number, xml?: DocumentXmlEditor): XmlElement { this.refresh(); const index = this.records.findIndex(record => record.id === id); if (index < 0) throw new StaleHandleError("Tab stop handle is no longer valid."); const root = xml ? child(xml.root, "pPr") ?? xml.root : this.rawElement; return child(root, "tabs")!.children.filter(node => node.namespace === root.namespace && node.localName === "tab")[index]!; }
+  elementFor(id: number, xml?: DocumentXmlEditor, ownerRoot?: XmlElement): XmlElement {
+    this.refresh();
+    const index = this.records.findIndex(record => record.id === id);
+    if (index < 0) throw new StaleHandleError("Tab stop handle is no longer valid.");
+    const view = readView(this.owner, xml, ownerRoot), root = child(view.root, "pPr", view.children) ?? view.root;
+    const tabs = child(root, "tabs", view.children);
+    const node = tabs && view.children(tabs).filter(node => node.namespace === root.namespace && node.localName === "tab")[index];
+    if (!node) throw new StaleHandleError("Tab stop handle is no longer valid.");
+    return node;
+  }
 
   private refresh(): void {
-    const source = this.owner.getXml(); if (source === this.snapshot) return;
-    const xml = editor(this.owner), root = xml.root, props = child(root, "pPr"), tabs = props && child(props, "tabs");
+    const source = this.owner.getXml(), view = readView(this.owner);
+    if (source === this.snapshot && view.root === this.readRoot) return;
+    this.readRoot = view.root;
+    const { xml, root, children } = view, props = child(root, "pPr", children), tabs = props && child(props, "tabs", children);
     const tabXml = tabs ? xml.sourceXml(tabs) : "";
     if (tabXml === this.tabSnapshot) { this.snapshot = source; return; }
     this.tabSnapshot = tabXml;
-    this.records = (tabs?.children.filter(c => c.namespace === root.namespace && c.localName === "tab") ?? []).map(node => {
+    this.records = (tabs ? children(tabs).filter(c => c.namespace === root.namespace && c.localName === "tab") : []).map(node => {
       const position = Number(attr(node, "pos"));
       const alignment = alignments[attr(node)! as keyof typeof alignments], leader = leaders[(attr(node, "leader") ?? "none") as keyof typeof leaders];
       if (!Number.isSafeInteger(position) || !alignment || !leader) throw new TypeError("Invalid tab stop properties.");
@@ -233,6 +297,9 @@ export class TabStops implements Iterable<TabStop> {
     this.refresh(); const index = this.records.findIndex(r => r.id === id); if (index < 0) throw new StaleHandleError("Tab stop handle is no longer valid.");
     const value = { ...this.records[index]!.value, ...patch, ...(patch.position !== undefined ? { position: plainLength(patch.position) } : {}) };
     if (!validateDocxValue("{position: Length; alignment?: WD_TAB_ALIGNMENT; leader?: WD_TAB_LEADER}", value)) throw new TypeError("Expected valid tab stop properties.");
+    const view = readView(this.owner), activeProps = child(view.root, "pPr", view.children), activeTabs = activeProps && child(activeProps, "tabs", view.children);
+    const activeStop = activeTabs && view.children(activeTabs).filter(node => node.namespace === activeTabs.namespace && node.localName === "tab")[index];
+    if (!activeStop || !view.xml.compatibility.canEdit(activeStop)) throw new UnsupportedEditError("The tab stop is inside preserved compatibility content.");
     const xml = editor(this.owner), props = child(xml.root, "pPr")!, tabs = child(props, "tabs")!;
     const node = tabs.children.filter(c => c.namespace === tabs.namespace && c.localName === "tab")[index]!;
     const values: Record<string, string | null> = {};
@@ -265,7 +332,7 @@ export class TabStops implements Iterable<TabStop> {
 Object.defineProperty(TabStops.prototype, "delete", { value: TabStops.prototype.remove });
 export class TabStop {
   constructor(private readonly collection: TabStops, private readonly id: number) {}
-  get element(): XmlElementView { void this.collection.value(this.id); return ownerView(this.collection.owner, `tab:${this.id}`, xml => this.collection.elementFor(this.id, xml)); }
+  get element(): XmlElementView { void this.collection.value(this.id); return ownerView(this.collection.owner, `tab:${this.id}`, (xml, root) => this.collection.elementFor(this.id, xml, root)); }
   get part(): unknown { this.collection.value(this.id); return this.collection.part; }
   equals(other: unknown): boolean { this.collection.value(this.id); if (!(other instanceof TabStop)) return false; other.collection.value(other.id); return this.collection.equals(other.collection) && this.id === other.id; }
   get position(): Length { return Twips(paragraphUnits(this.collection.value(this.id).position)); }
@@ -307,19 +374,17 @@ export class ColorFormat {
   constructor(readonly owner: FormattingXmlOwner) {}
   get part(): unknown { return this.owner.part ?? null; }
   equals(other: unknown): boolean { return other instanceof ColorFormat && (this.owner.identity ?? this.owner) === (other.owner.identity ?? other.owner); }
-  private get rawElement(): XmlElement { return editor(this.owner).root; }
   get element(): XmlElementView { return ownerView(this.owner); }
-  private node(): XmlElement | undefined { const props = child(this.rawElement, "rPr"); return props && child(props, "color"); }
-  get rgb(): RGBColor | null { const value = attr(this.node()); return value === undefined || value === "auto" ? null : RGBColor.from_string(value); }
-  set rgb(value: RGBColor | null) { if (value !== null && !(value instanceof RGBColor)) throw new TypeError("Expected RGBColor or null."); if (value === null && !this.node()) return; update(this.owner, "r", { color: value === null ? null : value.toString() }); }
+  get rgb(): RGBColor | null { const value = attr(property(this.owner, "rPr", "color")); return value === undefined || value === "auto" ? null : RGBColor.from_string(value); }
+  set rgb(value: RGBColor | null) { if (value !== null && !(value instanceof RGBColor)) throw new TypeError("Expected RGBColor or null."); if (value === null && !property(this.owner, "rPr", "color")) return; update(this.owner, "r", { color: value === null ? null : value.toString() }); }
   get theme_color(): DocxEnumValue<"MSO_THEME_COLOR"> | null {
-    const value = attr(this.node(), "themeColor"); if (value === undefined) return null;
+    const value = attr(property(this.owner, "rPr", "color"), "themeColor"); if (value === undefined) return null;
     const name = Object.keys(themes).find(key => themes[key as keyof typeof themes] === value) as keyof typeof themes | undefined;
     if (!name) throw new TypeError("Invalid theme color."); return { enum: "MSO_THEME_COLOR", name };
   }
-  set theme_color(value: DocxEnumValue<"MSO_THEME_COLOR"> | null) { if (!validateDocxValue("MSO_THEME_COLOR | null", value) || value !== null && !Object.hasOwn(themes, value.name)) throw new TypeError("Invalid theme color."); if (value === null && !this.node()) return; if (value !== null && !this.node()) {
+  set theme_color(value: DocxEnumValue<"MSO_THEME_COLOR"> | null) { if (!validateDocxValue("MSO_THEME_COLOR | null", value) || value !== null && !Object.hasOwn(themes, value.name)) throw new TypeError("Invalid theme color."); if (value === null && !property(this.owner, "rPr", "color")) return; if (value !== null && !property(this.owner, "rPr", "color")) {
       let source = this.owner.getXml(); const staged = { getXml: () => source, setXml: (xml: string) => { source = xml; } };
       update(staged, "r", { color: "000000" }); update(staged, "r", { themeColor: value }); this.owner.setXml(source);
     } else update(this.owner, "r", value === null ? { color: null } : { themeColor: value }); }
-  get type(): DocxEnumValue<"MSO_COLOR_TYPE"> | null { const node = this.node(); return node === undefined ? null : { enum: "MSO_COLOR_TYPE", name: attr(node, "themeColor") !== undefined ? "THEME" : attr(node) === "auto" ? "AUTO" : "RGB" }; }
+  get type(): DocxEnumValue<"MSO_COLOR_TYPE"> | null { const node = property(this.owner, "rPr", "color"); return node === undefined ? null : { enum: "MSO_COLOR_TYPE", name: attr(node, "themeColor") !== undefined ? "THEME" : attr(node) === "auto" ? "AUTO" : "RGB" }; }
 }

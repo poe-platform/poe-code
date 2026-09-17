@@ -1,7 +1,7 @@
 import type { ModelRef, ModelStore } from "./model-store.js";
 import type { XmlElement } from "./package-xml.js";
 import { InputTypeError } from "./archive.js";
-import { Font, ParagraphFormat, type FormattingXmlOwner } from "./formatting-model.js";
+import { Font, ParagraphFormat, modelFormattingOwner } from "./formatting-model.js";
 import { paragraphTextRun, replaceParagraphContent } from "./paragraph-content.js";
 import { runElementOpen } from "./run-properties.js";
 import { xmlValue } from "./create-content.js";
@@ -118,7 +118,7 @@ export class Paragraph {
     return this.rendered_page_breaks.length > 0;
   }
   get paragraph_format(): ParagraphFormat {
-    return new ParagraphFormat(this.owner());
+    return new ParagraphFormat(modelFormattingOwner(this.store, this.ref));
   }
   get alignment() {
     return this.paragraph_format.alignment;
@@ -205,22 +205,6 @@ export class Paragraph {
       );
     });
   }
-  private owner(): FormattingXmlOwner {
-    const store = this.store,
-      ref = this.ref;
-    return {
-      budget: store.context.budget,
-      get part() {
-        store.node(ref);
-        return store.part(ref.part);
-      },
-      get identity() {
-        return store.identity(ref);
-      },
-      getXml: () => new TextDecoder().decode(store.element(ref).serialize()),
-      setXml: (text) => store.change(ref.part, (xml) => xml.replaceElement(store.node(ref), text))
-    };
-  }
 }
 
 export class Run {
@@ -302,20 +286,7 @@ export class Run {
     });
   }
   get font(): Font {
-    const store = this.store,
-      ref = this.ref;
-    return new Font({
-      budget: store.context.budget,
-      get part() {
-        store.node(ref);
-        return store.part(ref.part);
-      },
-      get identity() {
-        return store.identity(ref);
-      },
-      getXml: () => new TextDecoder().decode(store.element(ref).serialize()),
-      setXml: (text) => store.change(ref.part, (xml) => xml.replaceElement(store.node(ref), text))
-    });
+    return new Font(modelFormattingOwner(this.store, this.ref));
   }
   get bold(): boolean | null {
     return this.font.bold;

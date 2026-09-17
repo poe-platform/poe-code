@@ -1,4 +1,4 @@
-import { mountPythonFileSystem } from 'poe-code/safe-fs/core';
+import { mountPythonFileSystem } from '@poe-code/safe-fs/core';
 import { pythonExecution } from './execution.js';
 import { parsePythonInvocation } from './invocation.js';
 import { installPythonPackages } from './provisioning-runtime.js';

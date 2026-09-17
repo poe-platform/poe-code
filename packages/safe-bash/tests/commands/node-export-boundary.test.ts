@@ -27,8 +27,8 @@ test("node command module graph excludes worker_threads without replacing suppor
   assert.ok(imports.includes("node:path"));
 });
 
-test("host provider remains available exclusively through the explicit public host subpath", async () => {
-  const host = await import("poe-code/safe-bash/commands/node/host");
+test("host provider remains available exclusively through the explicit workspace host subpath", async () => {
+  const host = await import("@poe-platform/safe-bash/commands/node/host");
   assert.equal(typeof host.createNodeWorkerProvider, "function");
   assert.throws(() => host.createNodeWorkerProvider({ entry: "relative.js", identity: "explicit-host" }), TypeError);
   const events: string[] = [];
@@ -44,23 +44,20 @@ test("host provider remains available exclusively through the explicit public ho
 });
 
 for (const condition of ["node", "workerd", "worker", "browser"]) {
-  test(`public host declarations enforce the ${condition} platform boundary`, () => {
+  test(`workspace host declarations enforce the ${condition} platform boundary`, () => {
     const diagnostics = platformDiagnostics([
       'import { createNodeWorkerProvider as privateHost } from "@poe-platform/safe-bash/commands/node/host";',
-      'import { createNodeWorkerProvider as publicHost } from "poe-code/safe-bash/commands/node/host";',
       'privateHost({ entry: "file:///engine.mjs", identity: "host" });',
-      'publicHost({ entry: "file:///engine.mjs", identity: "host" });',
     ].join("\n"), condition);
-    assert.deepEqual(diagnostics, condition === "node" ? [] : [2305, 2305]);
+    assert.deepEqual(diagnostics, condition === "node" ? [] : [2305]);
   });
 }
 
-test("private and public workerd runtime declarations refuse browser imports", () => {
+test("private workerd runtime declarations refuse browser imports", () => {
   assert.deepEqual(platformDiagnostics([
     'import { run as privateRun } from "@poe-code/safe-js/workerd";',
-    'import { run as publicRun } from "poe-code/safe-js/workerd";',
-    'void privateRun; void publicRun;',
-  ].join("\n"), "browser"), [2305, 2305]);
+    'void privateRun;',
+  ].join("\n"), "browser"), [2305]);
 });
 
 function platformDiagnostics(source: string, condition: string): number[] {

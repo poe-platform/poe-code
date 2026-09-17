@@ -1,5 +1,5 @@
 import { dirname, isPathWithin, readBytes, resolvePath, type ByteSource, type CommandContext, type FileStat, type FileStaging } from "../../../contracts/index.js";
-import { retainFileSystemCleanup } from "poe-code/safe-fs/core";
+import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { checkPath, display, fail, hasIdentity, sameIdentity, type ArchiveLimits } from "../internal.js";
 
 export class Extraction {

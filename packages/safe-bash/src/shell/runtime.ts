@@ -23,7 +23,7 @@ import type { PreparedShellChild, ShellBindingReference, ShellBindingResult, She
 import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { SourceLineIndex } from "./source-line-index.js";
-import { scopeFileSystem } from "poe-code/safe-fs/core";
+import { scopeFileSystem } from "@poe-code/safe-fs/core";
 import { evaluateArithmetic, prepareArithmetic, type ArithmeticProgram } from "./arithmetic.js";
 import { defaultMaxParseUnits, ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces } from "./brace-expansion.js";

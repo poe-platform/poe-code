@@ -1,8 +1,8 @@
-import { FsError, openFileDescriptor, readBytes } from "poe-code/safe-fs";
+import { FsError, openFileDescriptor, readBytes } from "@poe-code/safe-fs";
 import type {
   ByteSource, FileDescriptor, FileStat, FileSystem, FileSystemCapabilities, FsOptions,
   OpenFileOptions, ReadStreamOptions, WriteFileOptions,
-} from "poe-code/safe-fs";
+} from "@poe-code/safe-fs";
 import { yieldTurn } from "../../contracts/yield.js";
 
 const deviceNames = ["null", "random", "urandom", "zero"] as const;

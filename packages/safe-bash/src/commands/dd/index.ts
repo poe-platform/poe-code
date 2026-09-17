@@ -3,7 +3,7 @@ import { commandRuntimeIdentity, getCommandArguments } from "../../contracts/com
 import { shellValueByteLength } from "../../contracts/value.js";
 import { assertCountedFileOutput, writeFileOutputCounted } from "../../contracts/filesystem-output.js";
 import type { VirtualShellPlugin } from "../../contracts/plugin.js";
-import { FsError } from "poe-code/safe-fs";
+import { FsError } from "@poe-code/safe-fs";
 import { writeBytes } from "../../contracts/io.js";
 import { createOutputOperation } from "../../contracts/output.js";
 import { yieldTurn } from "../../contracts/yield.js";

@@ -1,7 +1,7 @@
-import { collectBytes, readBytes } from "poe-code/safe-fs/core";
-import type { ByteSource, CollectOptions } from "poe-code/safe-fs/core";
-export { collectBytes, readBytes, toByteSource } from "poe-code/safe-fs/core";
-export type { ByteSource, CollectOptions } from "poe-code/safe-fs/core";
+import { collectBytes, readBytes } from "@poe-code/safe-fs/core";
+import type { ByteSource, CollectOptions } from "@poe-code/safe-fs/core";
+export { collectBytes, readBytes, toByteSource } from "@poe-code/safe-fs/core";
+export type { ByteSource, CollectOptions } from "@poe-code/safe-fs/core";
 import { FsError } from "./errors.js";
 
 export const outputFailure = Symbol("output failure");

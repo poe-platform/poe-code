@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import type { SafeJsBudgetOptions, SafeJsRuntime } from "../../../src/commands/safejs/index.js";
-import { createNodeFsBridge } from "../../../src/integrations/safejs/filesystem.js";
+import { createNodeFsBridge } from "@poe-code/safe-fs/node/filesystem";
 
 export const localRoot = process.env.SAFEJS_LOCAL_ROOT;
 export const localSkip = localRoot === undefined ? "Set SAFEJS_LOCAL_ROOT to the existing poe-code/packages/safejs checkout; contract fixtures are not interpreter proof" : false;

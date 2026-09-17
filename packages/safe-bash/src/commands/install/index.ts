@@ -1,6 +1,6 @@
 import { FsError, basename, dirname, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition, type FileStat, type FileSystemCapabilities, type VirtualShellPlugin } from "../../contracts/index.js";
 import { commandRuntimeIdentity } from "../../contracts/command.js";
-import { retainFileSystemCleanup } from "poe-code/safe-fs/core";
+import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { assertCountedFileOutput, openFileOutput, writeFileOutputCounted } from "../../contracts/filesystem-output.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { codeOf, output, pathOf } from "../internal.js";

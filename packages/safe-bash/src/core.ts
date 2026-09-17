@@ -5,7 +5,7 @@ export * from "./contracts/filesystem.js";
 export * from "./contracts/io.js";
 export * from "./contracts/output.js";
 export * from "./contracts/plugin.js";
-export { validatePath, resolvePath, normalizePath, relativePath, isPathWithin, assertPathWithin, basename, dirname, extname, joinPath, isAbsolutePath, posixPath } from "poe-code/safe-fs/core";
+export { validatePath, resolvePath, normalizePath, relativePath, isPathWithin, assertPathWithin, basename, dirname, extname, joinPath, isAbsolutePath, posixPath } from "@poe-code/safe-fs/core";
 export * from "./plugins/index.js";
 export * from "./shell/index.js";
 export * from "./commands/index.js";

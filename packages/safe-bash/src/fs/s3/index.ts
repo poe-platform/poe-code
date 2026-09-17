@@ -1,2 +1,2 @@
-export { S3FileSystem, S3RenameError, MockS3Client, createS3Transport, encodeCopySource, S3ServiceError } from "poe-code/safe-fs";
-export type { S3FileSystemOptions, MockS3ClientOptions, MockS3Operation, MockS3Request, S3Body, S3Client, S3CopyInput, S3CopyOutput, S3DeleteInput, S3GetOutput, S3HeadOutput, S3ListInput, S3ListOutput, S3ObjectInput, S3ObjectSummary, S3PutInput, S3RequestOptions, S3Transport, S3TransportCapabilities } from "poe-code/safe-fs";
+export { S3FileSystem, S3RenameError, MockS3Client, createS3Transport, encodeCopySource, S3ServiceError } from "@poe-code/safe-fs";
+export type { S3FileSystemOptions, MockS3ClientOptions, MockS3Operation, MockS3Request, S3Body, S3Client, S3CopyInput, S3CopyOutput, S3DeleteInput, S3GetOutput, S3HeadOutput, S3ListInput, S3ListOutput, S3ObjectInput, S3ObjectSummary, S3PutInput, S3RequestOptions, S3Transport, S3TransportCapabilities } from "@poe-code/safe-fs";

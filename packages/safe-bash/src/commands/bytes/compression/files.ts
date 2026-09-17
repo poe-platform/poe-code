@@ -4,7 +4,7 @@ import {
 } from "../../../contracts/index.js";
 import { codeOf, pathOf } from "../../internal.js";
 import { PublicDiagnostic } from "../../../diagnostics.js";
-import { retainFileSystemCleanup } from "poe-code/safe-fs/core";
+import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { profiles, type CompressionOptions } from "./options.js";
 import { chunkBytes, stagingLimit, transform } from "./stream.js";
 import { FileOperation } from "./file-operation.js";

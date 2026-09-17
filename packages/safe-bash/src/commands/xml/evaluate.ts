@@ -1,4 +1,4 @@
-import type { XmlAttribute, XmlContent, XmlElement } from "poe-code/safe-fs/core";
+import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/core";
 import type { Query, QueryStep } from "./query.js";
 import { XmlBudget } from "./limits.js";
 

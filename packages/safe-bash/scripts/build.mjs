@@ -349,6 +349,11 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
         toolRoots.push(join(opRoot, "dist"));
         peerPaths = { ...peerPaths, "@poe-platform/op": [join(opRoot, "dist/index.d.ts")] };
       }
+      if (peerPaths) {
+        for (const [name, declarations] of Object.entries(peerPaths)) {
+          if (name.startsWith("poe-code/safe-")) peerPaths["@poe-code/" + name.slice("poe-code/".length)] = declarations;
+        }
+      }
       return peerPaths;
     },
     admitSources(paths) {

@@ -1,4 +1,4 @@
-import { parseXmlSteps, XmlLimitError } from "poe-code/safe-fs/core";
+import { parseXmlSteps, XmlLimitError } from "@poe-code/safe-fs/core";
 import { FsError, getCommandArguments, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
 import { shellValueByteLength } from "../../contracts/value.js";
 import { writeDiagnostic } from "../../escaping.js";

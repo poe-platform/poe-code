@@ -1,5 +1,5 @@
 import { readBytes, type ByteSource, type CommandContext, type FileStat, type FileStaging } from "../../../contracts/index.js";
-import { retainFileSystemCleanup } from "poe-code/safe-fs/core";
+import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { writeFileOutput } from "../../../contracts/filesystem-output.js";
 import { checkPath, fail, type ArchiveLimits } from "../internal.js";
 

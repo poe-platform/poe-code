@@ -63,6 +63,12 @@
       ],
       "poe-code/safejs/core": [
         "../safe-js/src/core.ts"
+      ],
+      "@poe-code/safe-js": [
+        "../safe-js/src/index.ts"
+      ],
+      "@poe-code/safe-fs/node/filesystem": [
+        "../safe-fs/src/node/filesystem.ts"
       ]
     }
   },

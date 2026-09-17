@@ -40,3 +40,15 @@ Follow-up QA: run the built createPandocCommand with explicit byte stdin for a
 code directive containing field-shaped literal text and an admonition containing
 a field list; capture and inspect terminal HTML output. Separately inspect the
 number-lines destination rejection. Store screenshots/evidence under docs/pandoc.
+
+Second atomic follow-up: reproduce named/anonymous substitution hyperlinks failing
+to expand, implement suffix handling using existing deferred target resolution,
+and verify original image/strong-label links plus missing-target rejection. Rerun
+maintained package checks and inspect built byte-adapter HTML output before commit.
+
+Follow-up status: both reproduced reader gaps are fixed. Existing required edge
+categories remain covered; the full package suite now passes 1,052 tests, selected
+build closure passes, and inspected terminal screenshots confirm HTML output.
+The pinned reference, allowlist, unsupported rectangular-table-span policy and
+explicit include capability boundaries remain documented. No native fallback,
+adapter parsing logic, README change, push or release is part of this task.

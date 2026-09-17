@@ -173,6 +173,12 @@ it("resolves image substitutions with alt text and embedded inline targets", asy
   expect(JSON.stringify(doc)).toContain('"#place"');
   expect(JSON.stringify(doc)).toContain('"logo.png"');
 });
+it("resolves named and anonymous hyperlinks around substitution expansions", async () => {
+  const doc = await read("|badge|_ |label|__\n\n.. |badge| image:: badge.png\n   :alt: Badge\n.. |label| replace:: **Visit**\n.. _badge: https://badge.test\n.. __: https://visit.test");
+  const p = doc.blocks[0];
+  expect(p?.t === "Para" && p.c.flatMap(i => i.t === "Link" ? [[i.c[1][0]?.t, i.c[2][0]]] : [])).toEqual([["Image", "https://badge.test"], ["Strong", "https://visit.test"]]);
+  await expect(read("|label|_\n\n.. |label| replace:: text")).rejects.toMatchObject({code: "E_PARSE"});
+});
 it("does not swallow supported directives with unsupported options or bodies", async () => {
   for (const source of [".. code:: ts\n   :unknown: value\n\n   body", ".. image:: x.png\n\n   forbidden body", ".. include:: part.rst\n   :start-line: 2"]) {
     await expect(read(source)).rejects.toMatchObject({code: "E_CAPABILITY"});

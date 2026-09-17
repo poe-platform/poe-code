@@ -25,3 +25,17 @@ indicate a reader failure. `rst-directive-body-html.png` checks the same body
 without number-lines against HTML. Unit resource mutations remain memfs-only.
 
 No push or release is authorized.
+
+Substitution hyperlinks: the next original case first failed with E_PARSE for
+anonymous link/target count mismatch. Named/anonymous suffixes now link the
+expanded label through existing target resolution, preserving Image/Strong nodes.
+Missing named targets still fail. The maintained package suite passes 47 files
+and 1,052 tests; the selected five-build closure passes. An initial lint/typecheck
+found an insufficiently narrowed Inline union in the new assertion; the assertion
+was rewritten to narrow explicitly and lint/typechecks rerun.
+
+`rst-substitution-links-html.png` was captured and inspected: the built byte
+adapter emits the image and strong text inside their respective HTML anchors,
+without diagnostics, exit 0. `rst-directive-body-html.png` was also inspected and
+shows intact literal fields plus the admonition definition list, exit 0. These
+are terminal output checks, not browser layout or complete Docutils conformance.

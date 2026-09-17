@@ -86,9 +86,15 @@ export async function rstInlines(text: string, at: RstLine, host: RstInlineHost,
       }
       if (c === "|") {
         const end = await find(text, "|", i + 1, context);
-        if (end > i + 1 && endBoundary(text, end + 1)) {
-          for (const node of await host.substitution(text.slice(i + 1, end), locate(i), stack, depth + 1)) append(out, node);
-          i = end + 1; continue;
+        const reference = text[end + 1] === "_";
+        const anonymous = reference && text[end + 2] === "_";
+        const next = end + 1 + (reference ? anonymous ? 2 : 1 : 0);
+        if (end > i + 1 && endBoundary(text, next)) {
+          const name = text.slice(i + 1, end);
+          const label = await host.substitution(name, locate(i), stack, depth + 1);
+          if (reference) append(out, host.link(anonymous ? undefined : nameOf(name), label, locate(i)));
+          else for (const node of label) append(out, node);
+          i = next; continue;
         }
       }
       if (c === "[") {

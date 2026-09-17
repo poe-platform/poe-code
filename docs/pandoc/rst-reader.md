@@ -52,6 +52,11 @@ Anonymous references pair with anonymous targets in encounter order. Missing,
 duplicate and cyclic targets fail, including unused cyclic target definitions.
 Standalone HTTP, HTTPS and mailto URIs become links.
 
+Substitution references can carry named (`|name|_`) or anonymous (`|name|__`)
+hyperlink suffixes. The expanded text/image becomes the link label; target
+resolution, anonymous pairing and missing-target diagnostics follow ordinary
+hyperlink rules.
+
 Forward/nested replacement substitutions are case-sensitive and bounded by macro,
 expansion, depth, work and memory ceilings. Missing and recursive substitutions
 fail. Numbered notes, named/anonymous auto-number notes, auto-symbol notes and

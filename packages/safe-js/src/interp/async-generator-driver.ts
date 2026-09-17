@@ -3,7 +3,7 @@ import { getGeneratorOrigin } from "./closure-origin.js";
 import { createOrdinaryObject, getSandboxPrototype } from "./object-model.js";
 import { createThrowCompletion } from "./exceptions.js";
 import { runAsyncPrefix, runPromiseJob } from "./jobs.js";
-import { attachPendingPromiseReaction, createPendingPromiseCapability, pendingPromiseRejectors } from "./promise.js";
+import { attachPendingPromiseReaction, createPendingPromiseCapability, pendingPromiseRejectors, prepareAwaitedPromise } from "./promise.js";
 import { linkPromiseAggregateProducer } from "./promise-continuations.js";
 import { promiseReplayContext } from "./promise-replay.js";
 import { onFatalPromiseRejection, withFatalPromiseCleanup } from "./promise-tracker.js";
@@ -139,7 +139,10 @@ async function settleGeneratorRequest(driver: AsyncGeneratorDriver, action: "ful
 
 async function awaitGeneratorRequest(driver: AsyncGeneratorDriver, value: SandboxValue, kind: "body" | "return", budget: Budget, context?: SandboxCallContext): Promise<void> {
   let awaited: SandboxPromise;
-  if (kind === "body" && isSandboxPromise(value)) awaited = value;
+  if (isSandboxPromise(value)) {
+    const prepared = kind === "body" ? value : prepareAwaitedPromise(value, budget, context);
+    awaited = prepared instanceof Promise ? await prepared : prepared;
+  }
   else {
     const wrapper = promiseReplayContext.exit(() => createPendingPromiseCapability(budget, context));
     await wrapper.resolve.call([value], context);

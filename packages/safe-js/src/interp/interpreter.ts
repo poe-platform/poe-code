@@ -2838,7 +2838,10 @@ async function yieldGeneratorValue(value: SandboxValue, node: YieldExpression, c
   if (frame !== undefined && resuming && origin?.awaitPhase === "resume-return") {
     try {
       return {type: "return", value: await suspendAsyncFunctionValue(undefined, node, context, undefined, createCoercionContext(context), "resume-return")};
-    } catch (error) {return {type: "throw", value: error};}
+    } catch (error) {
+      if (isFatalSandboxError(error) || error instanceof HostCallResumabilityError) throw error;
+      return {type: "throw", value: createThrowCompletion(error, context.budget, context.callStack, node.span).value};
+    }
   }
   if (frame !== undefined && !node.delegate && (!resuming || origin?.awaitPhase === "yield"))
     value = await suspendAsyncFunctionValue(value, node, context, undefined, createCoercionContext(context), "yield");
@@ -2866,7 +2869,8 @@ async function yieldGeneratorValue(value: SandboxValue, node: YieldExpression, c
         ? await suspendJob(awaitSandboxValue(completion.value as SandboxValue, context.signal, context.budget, createCoercionContext(context)))
         : await suspendAsyncFunctionValue(completion.value as SandboxValue, node, context, undefined, createCoercionContext(context), "resume-return") };
     } catch (error) {
-      return { type: "throw", value: error };
+      if (isFatalSandboxError(error) || error instanceof HostCallResumabilityError) throw error;
+      return { type: "throw", value: createThrowCompletion(error, context.budget, context.callStack, node.span).value };
     }
   }
   return completion;

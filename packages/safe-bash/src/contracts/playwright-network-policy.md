@@ -95,6 +95,24 @@ Preserve separate `Set-Cookie` headers and supply headers matching the decoded
 body; remove content encoding/length when your fetch implementation decoded it.
 Never automatically follow redirects or buffer an unbounded response.
 
+A response may include `release(): void | Promise<void>` to release a retained
+host transfer permit or response resource. The helper captures it immediately
+when `fetch` resolves and calls it exactly once after the browser acknowledges
+delivery, or after rejection/cancellation. This includes invalid responses and
+responses that arrive after cancellation. Asynchronous release is awaited;
+disposal drains it. Release failure retires the browser and rejects disposal.
+Retirement failure takes precedence if both operations fail.
+
+Keep the host's transfer permit until this callback, including while CDP delivery
+is stalled. Limiting simultaneous host fetches alone does not bound already
+fetched responses retained for browser delivery. `maxConcurrentRequests` bounds
+request admission and retires on overload; it is not a substitute for a host's
+queued transfer semaphore or a byte budget. The host must separately bound the
+bytes and number of retained responses. Release callbacks must settle their own
+cooperative cleanup and must not await policy disposal, which awaits them.
+Report cleanup failures from `release`, not the ordinary cancellation or failure
+of the request whose resources are being released.
+
 The helper's response cap is a second check after the host returns its bounded
 body. It cannot retroactively bound allocation inside an arbitrary host callback.
 Defaults are a 30-second request deadline, 8 MiB response, 1 MiB request body,

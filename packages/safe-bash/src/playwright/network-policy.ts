@@ -25,6 +25,9 @@ export interface PlaywrightPolicyResponse {
   /** Preserve separate Set-Cookie entries. Supply headers for the decoded body. */
   readonly headers: readonly { name: string; value: string }[];
   readonly body: Uint8Array;
+  /** Release host response resources after delivery acknowledgement or failure.
+   * Called once and awaited, including for invalid or late canceled responses. */
+  readonly release?: () => void | Promise<void>;
 }
 export interface PlaywrightPolicyFailure {
   readonly targetId: string;
@@ -99,6 +102,7 @@ export async function installPlaywrightNetworkPolicy(options: PlaywrightNetworkP
   let closed = false;
   let disconnected = false;
   let disposal: Promise<void> | undefined;
+  let releaseFailure: { reason: unknown } | undefined;
   const failure = new Error('Browser network policy closed');
   const rejectPending = () => {
     for (const entry of pending.values()) { clearTimeout(entry.timer); entry.reject(failure); }
@@ -119,6 +123,7 @@ export async function installPlaywrightNetworkPolicy(options: PlaywrightNetworkP
       socket.removeEventListener('error', lost);
       socket.close();
       targets.clear();
+      if (releaseFailure) throw releaseFailure.reason;
     });
     return disposal;
   };
@@ -177,6 +182,7 @@ export async function installPlaywrightNetworkPolicy(options: PlaywrightNetworkP
     const identity = { targetId: target.targetId, frameId: params.frameId ?? '', requestId: operation.networkId, resourceType: params.resourceType ?? '' };
     const timer = setTimeout(() => controller.abort(new Error('Host request deadline exceeded')), timeout);
     operations.add(operation);
+    let release: (() => void | Promise<void>) | undefined;
     try {
       const native = params.request;
       const url = new URL(native.url);
@@ -202,6 +208,11 @@ export async function installPlaywrightNetworkPolicy(options: PlaywrightNetworkP
       const response = await options.fetch({ ...identity, url: native.url, method: native.method,
         headers: boundedHeaders(Object.entries(native.headers as Record<string, string>).map(([name, value]) => ({ name, value }))),
         ...(body ? { body } : {}), signal: controller.signal });
+      const releaseResponse = response.release;
+      if (releaseResponse !== undefined) {
+        if (typeof releaseResponse !== 'function') throw new Error('Invalid host response release');
+        release = () => releaseResponse.call(response);
+      }
       controller.signal.throwIfAborted();
       if (closed) throw failure;
       if (!Number.isInteger(response.status) || response.status < 200 || response.status > 599
@@ -219,7 +230,11 @@ export async function installPlaywrightNetworkPolicy(options: PlaywrightNetworkP
         try { await send('Fetch.failRequest', { requestId: params.requestId, errorReason: 'BlockedByClient' }, sessionId); }
         catch (protocolError) { if (!operation.nativeCanceled) throw protocolError; }
       }
-    } finally { clearTimeout(timer); operations.delete(operation); }
+    } finally {
+      try { await release?.(); }
+      catch (reason) { releaseFailure ??= { reason }; void dispose().catch(() => {}); }
+      finally { clearTimeout(timer); operations.delete(operation); }
+    }
   };
   function receive(event: { data: unknown }) {
     if (closed) return;

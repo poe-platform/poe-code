@@ -46,19 +46,53 @@ test('native CDP redirects, popup admission, request bodies, cookies and cancell
   const metadata = await (await fetch(`http://127.0.0.1:${cdpPort}/json/version`)).json();
   const socket = new WebSocket(metadata.webSocketDebuggerUrl);
   await new Promise(resolve => socket.addEventListener('open', resolve, { once: true }));
+  let holdReplies = false;
+  const heldFulfillments = new Set();
+  const heldReplies = [];
+  const listeners = new Map();
+  const policySocket = {
+    send(text) {
+      if (holdReplies) {
+        const command = JSON.parse(text);
+        if (command.method === 'Fetch.fulfillRequest') heldFulfillments.add(command.id);
+      }
+      socket.send(text);
+    },
+    addEventListener(name, listener) {
+      if (name !== 'message') { socket.addEventListener(name, listener); return; }
+      const forward = event => {
+        if (heldFulfillments.size) {
+          const message = JSON.parse(event.data);
+          if (heldFulfillments.delete(message.id)) { heldReplies.push(() => listener(event)); return; }
+        }
+        listener(event);
+      };
+      listeners.set(listener, forward);
+      socket.addEventListener(name, forward);
+    },
+    removeEventListener(name, listener) {
+      socket.removeEventListener(name, name === 'message' ? listeners.get(listener) : listener);
+      if (name === 'message') listeners.delete(listener);
+    },
+    close() { socket.close(); },
+  };
   let largestMessage = 0;
   socket.addEventListener('message', event => { largestMessage = Math.max(largestMessage, event.data.length); });
   const requests = [];
   const failures = [];
   const canceled = [];
   let holdRetirement;
+  let releasedResponses = 0;
   let policy;
   try {
     policy = await installPlaywrightNetworkPolicy({
-      socket, directNetwork: 'http-blocked-by-host', retire: async () => { await holdRetirement; await browser.close(); }, requestTimeoutMs: 3000,
+      socket: policySocket, directNetwork: 'http-blocked-by-host', retire: async () => { await holdRetirement; await browser.close(); }, requestTimeoutMs: 3000,
       maxRequestBytes: 8 * 1024 * 1024, maxProtocolMessageBytes: 32 * 1024 * 1024,
       onRequestFailure: failure => failures.push(failure),
       async fetch(request) {
+        if (new URL(request.url).pathname === '/held-response') return {
+          ...result('<title>Held response</title>'), release() { releasedResponses++; },
+        };
         if (new URL(request.url).pathname === '/large-upload') {
           assert.equal(request.body?.length, 8 * 1024 * 1024);
           assert.ok(request.body.every(byte => byte === 97));
@@ -93,6 +127,20 @@ test('native CDP redirects, popup admission, request bodies, cookies and cancell
         assert.equal(await probeWebSocket(await unguarded.newPage()), 'open');
         assert.deepEqual(websocketReceived, ['/upgrade']);
       } finally { await unguarded.close(); }
+    });
+    await t.test('host response release waits for the native fulfillment reply', async () => {
+      holdReplies = true;
+      try {
+        await page.goto('http://allowed.example/held-response');
+        assert.equal(await page.title(), 'Held response');
+        assert.ok(heldReplies.length > 0);
+        assert.equal(releasedResponses, 0);
+      } finally {
+        holdReplies = false;
+        for (const reply of heldReplies.splice(0)) reply();
+      }
+      await new Promise(resolve => setImmediate(resolve));
+      assert.equal(releasedResponses, 1);
     });
     await t.test('configured 8 MiB printable upload fits its bounded CDP envelope', async () => {
       await page.goto('https://allowed.example/final');

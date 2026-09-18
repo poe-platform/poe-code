@@ -2662,6 +2662,17 @@ test("Python shared executor admission tests remain admitted current input", () 
   }
 });
 
+test("Python native JSPI qualification inputs remain admitted without claiming executor acceptance", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/commands/python/jspi-assets.test.ts", "tests/commands/python/jspi-trampoline.test.ts",
+    "tests/commands/python/jspi.test.ts", "tests/integration/python-jspi-executor.fixture.ts",
+    "tests/integration/python-jspi.test.mjs", "tests/integration/python-jspi.worker.mjs"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
 test("Python Docker host acceptance remains admitted current input", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const boundaries = loadBoundaries(root);

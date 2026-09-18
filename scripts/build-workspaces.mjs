@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+const gitLocalVariablesByPath = new Map();
 const dependencyFields = ["dependencies", "devDependencies", "optionalDependencies"];
 const identityFields = ["dev", "ino", "mode", "size", "nlink", "mtimeMs", "ctimeMs"];
 const compareNames = (left, right) => left < right ? -1 : left > right ? 1 : 0;
@@ -488,12 +489,15 @@ export async function testWorkspaces(rootDirectory, options = {}) {
     testStages = sharedVitestStages(plan, fileSystem);
   }
   const childEnvironment = { ...environment };
-  const localGitVariables = execFileSync("git", ["rev-parse", "--local-env-vars"], {
+  const gitPath = environment.PATH ?? process.env.PATH;
+  let localGitVariables = gitLocalVariablesByPath.get(gitPath);
+  if (!localGitVariables) localGitVariables = execFileSync("git", ["rev-parse", "--local-env-vars"], {
     cwd: plan.root,
-    env: { PATH: environment.PATH, GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null" },
+    env: { PATH: gitPath, GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null" },
     encoding: "utf8", timeout: 10000, maxBuffer: 65536
   }).trim().split("\n");
   assert.ok(localGitVariables.every(name => name.startsWith("GIT_") && [...name].every(character => "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_".includes(character))), "Invalid Git local environment names");
+  gitLocalVariablesByPath.set(gitPath, localGitVariables);
   for (const name of localGitVariables) delete childEnvironment[name];
   const builds = await executeStages({ ...plan, stages: plan.buildStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency: 2, dependencyOrder: true });
   await executeStages({ ...plan, stages: testStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency, testArguments });

@@ -329,7 +329,8 @@
     "@formatjs/intl-pluralrules": "6.3.13",
     "@petamoriken/float16": "^3.9.3",
     "@kayahr/text-encoding": "^2.2.0",
-    "temporal-polyfill": "1.0.4"
+    "temporal-polyfill": "1.0.4",
+    "oxlint": "1.83.0"
   },
   "repository": {
     "type": "git",

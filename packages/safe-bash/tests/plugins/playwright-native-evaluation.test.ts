@@ -5,16 +5,18 @@ import type { PlaywrightAbilityRequest } from '../../src/playwright/abilities.js
 import { evaluateNativeExpression } from '../../src/playwright/native-evaluation.js';
 import { playwrightStandardAbilities } from '../../src/playwright/standard-capabilities.js';
 
+type BrowserCallback = (...args: never[]) => unknown;
+
 function fixture() {
   const realm = createContext({});
   const events: string[] = [];
   const cleanups: (() => Promise<void>)[] = [];
-  const invoke = async (callback: Function, args: unknown[]) => { realm.input = args; return runInContext(`(${callback.toString()})(...input)`, realm); };
-  const capture = async (callback: Function, input: unknown) => {
+  const invoke = async (callback: BrowserCallback, args: unknown[]) => { realm.input = args; return runInContext(`(${callback.toString()})(...input)`, realm); };
+  const capture = async (callback: BrowserCallback, input: unknown) => {
     assert.equal(cleanups.length, 1);
     events.push('acquire');
     const capsule = await invoke(callback, [input]);
-    return { async evaluate(callback: Function, input: unknown) { events.push('serialize'); return invoke(callback, [capsule, input]); }, async dispose() { events.push('dispose'); } };
+    return { async evaluate(callback: BrowserCallback, input: unknown) { events.push('serialize'); return invoke(callback, [capsule, input]); }, async dispose() { events.push('dispose'); } };
   };
   const page = { url: () => 'https://fixture.example/', evaluateHandle: capture };
   const context = { pages: () => [page] };

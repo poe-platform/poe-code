@@ -8,6 +8,56 @@ import { packageSafeLibraries, parsePackageSafeArguments, rewriteModuleSpecifier
 
 const bashManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
 
+it("preserves public contract exports when the browser bundle externalizes their canonical runtime", async () => {
+  const entry = readFileSync(new URL("../packages/safe-bash/src/core.browser.ts", import.meta.url), "utf8");
+  const publicContracts = {
+    command: ["CommandArgumentIdentityError", "createCommandArguments", "getCommandArguments", "commandRuntimeIdentity", "CommandRegistry", "validateExitCode"],
+    "command-requirements": ["evaluateCommandSupport", "assertCommandRequirements"],
+    errors: ["isErrnoCode", "isFsError", "toFsError", "FsError"],
+    filesystem: ["ACCESS_MODES"],
+    io: ["collectBytes", "readBytes", "toByteSource", "outputFailure", "createBytePipe", "writeText", "writeBytes", "pipeBytes", "collectText"],
+    output: ["createOutputOperation"],
+    plugin: ["composeMiddleware"],
+  };
+  const forwarding = Object.keys(publicContracts).map(name => `export * from "safe-bash-contracts/${name}";`).join("\n");
+  const modules = new Map([
+    ["shell", forwarding],
+    ["safe-bash-contracts", forwarding + '\nexport const shellValueBytes = {};'],
+    ...Object.entries(publicContracts).map(([subpath, names]) => [
+      "safe-bash-contracts/" + subpath, names.map(name => `export const ${name} = {};`).join("\n"),
+    ] as [string, string]),
+  ]);
+  const plugin = {
+    name: "canonical-contract-fixture",
+    setup(builder: import("esbuild").PluginBuild) {
+      builder.onResolve({ filter: /.*/ }, args => {
+        const filename = args.path === "./core.js" ? "shell" : args.path;
+        return modules.has(filename) || filename === "artifact" ? { path: filename, namespace: "fixture" } : undefined;
+      });
+      builder.onLoad({ filter: /.*/, namespace: "fixture" }, args => ({ contents: modules.get(args.path)!, loader: "js" }));
+    },
+  } satisfies import("esbuild").Plugin;
+  const artifact = await build({
+    stdin: { contents: entry, resolveDir: process.cwd() }, bundle: true, write: false,
+    format: "esm", platform: "browser", plugins: [{
+      name: "external-canonical-contracts",
+      setup(builder) {
+        builder.onResolve({ filter: /^safe-bash-contracts(?:\/|$)/ }, args => ({ path: args.path, external: true }));
+      },
+    }, plugin],
+  });
+  modules.set("artifact", artifact.outputFiles[0]!.text);
+  const consumer = await build({
+    stdin: { contents: 'import * as api from "artifact"; import * as canonical from "safe-bash-contracts"; export { api, canonical };' },
+    bundle: true, write: false, format: "cjs", platform: "browser", plugins: [plugin],
+  });
+  const output = { exports: {} as { api: Record<string, unknown>; canonical: Record<string, unknown> } };
+  new Function("module", consumer.outputFiles[0]!.text)(output);
+  const names = Object.values(publicContracts).flat();
+  expect(Object.keys(output.exports.api).sort()).toEqual([...names].sort());
+  for (const name of names) expect(output.exports.api[name]).toBe(output.exports.canonical[name]);
+});
+
 it("ships the ExifTool implementation and declarations without an unpublished dependency", async () => {
   const { volume, options } = optionalLeftovers();
   const name = "safe-bash-command-exiftool";

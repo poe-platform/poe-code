@@ -5,6 +5,8 @@ export * from './controller.js';
 export { parsePlaywrightOperationOutcome, type PlaywrightRecoveryResult, type PlaywrightOperationOutcome } from './recovery.js';
 export * from './catalog.js';
 export * from './network-policy.js';
+export { bindPlaywrightRoutePolicy } from './route-capabilities.js';
+export type { PlaywrightRoutePolicyBinding, PlaywrightRoutePolicyHost, PlaywrightRoutePolicyLimits } from './route-policy.js';
 export { parsePlaywrightStorageState } from './storage-state.js';
 export { createPlaywrightStorageOriginPreparer, type PlaywrightStorageControl, type PlaywrightStorageControlEvent } from './native-storage-targets.js';
 export { readPlaywrightStorageState, replacePlaywrightStorageState, type PlaywrightStorageOperationOptions, type PlaywrightStorageCDP, type PlaywrightStorageOriginLease, type PlaywrightStorageOriginPreparer } from './native-storage-replacement.js';

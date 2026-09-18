@@ -8,8 +8,9 @@ the home `issue-769-network-audit` worktree. The earlier network factory commits
 through `53e5c24c4` and its uncommitted target-authorization work remain preserved
 in the separate `issue-769-network` worktree; they are not ported wholesale.
 
-The only product correction here is in `route-capabilities.ts`. Network policy,
-prepared-target ownership, shared adapters and the parent main checkout are
+The corrections extend the existing route capabilities with an optional policy
+backend, a standard offline-state hook and public binding exports. Network policy,
+prepared-target ownership, shared adapters and the parent main checkout remain
 unchanged. The current safe-bash AGENTS command-workspace rule is acknowledged;
 this patch corrects an existing command rather than adding one.
 
@@ -46,7 +47,8 @@ standard header rewrite never reaches host authorization. Those four controls
 fail in each installation order. The policy callback is still invoked for URLs
 the user intended to mock. Initial exploratory runs also hit error-page followup
 navigation races; the final frozen-source controls test the allowed navigation
-first and retain the earlier runs separately.
+first and explicitly supply the mock's HTML content type. Earlier runs, including
+the initial unspecified-MIME probes, remain separate rather than being overwritten.
 
 Evidence under `/home/kjopek/out/issue769-network-audit`:
 
@@ -72,17 +74,70 @@ path is used when restoring routes.
 successful strict exact-optional/no-unchecked scoped TypeScript check. No full
 suite, root lint, dependency installation or push was performed.
 
-## Remaining necessary integration
+## Implemented policy composition
 
-Keep the remote route validation, registry and output behavior. A policy-backed
-route backend still needs one explicit trusted owner/context binding that
-evaluates those route records inside the policy fetch callback, after mandatory
-host URL admission and before downstream transport. Header/authority rewrites
-must be readmitted. Mock responses must preserve byte/concurrency budgets,
-acknowledged release and cancellation; offline mode must also gate host transport.
-Context replacement must acquire a new trusted binding, not copy owner authority
-from a user session name. Hidden prepared targets require the parent's guarded
-target/context identity and target-bound nonce mechanism, not native Page routes.
+The existing standard commands now support an explicit host binding, exported
+from the Playwright entry:
 
-This audit does not add that backend or claim the still-red policy/mock controls
-are repaired. It also does not qualify deployed Cloudflare or a published package.
+```ts
+const binding = bindPlaywrightRoutePolicy(context, {
+  ownsRequest,
+  admit,
+  fetch: boundedManualRedirectTransport,
+}, limits);
+```
+
+Supply `binding.fetch` to the existing network policy. For multiple contexts,
+the host dispatches through authoritative target/context identity, never a user
+session string. `ownsRequest` must verify that identity on each request. `admit`
+must authorize the initial URL and rewritten headers/authority without fetching.
+The downstream transport must use manual redirects and bounded cancellable reads.
+Bind before standard route commands; installed or pending native route records
+and duplicate bindings are rejected rather than mixed with policy interception.
+
+Bound commands keep the existing validation, registry, handlers and output. They
+do not call native page/context route APIs. The backend admits before matching
+or fulfillment, readmits header rewrites, enforces request/response/header/route
+retention and concurrency limits, and holds response leases until awaited release.
+Standard offline mode also gates downstream transport, while admitted explicit
+mocks remain usable. Session/context cleanup aborts and drains cooperative work;
+disposing a binding cannot silently downgrade it to native routing. Context
+replacement requires a fresh explicit policy binding before restoring records.
+
+The new controls cover late cancellation, exact falsey abort reasons, response
+ownership, acknowledged release/backpressure, route quota recovery, owner/context
+separation, replacement downgrade rejection and pending-native binding races.
+`backend-red.tap`, `backend-resources-red.tap` and
+`backend-binding-race-red.tap` retain the failing stages; current route controls
+are in `backend-final-unit.tap`.
+
+Final focused verification: `backend-scoped-green.tap` records 123 passing tests,
+zero skips and zero failures across the route, event, standard-session, restoration
+and network-policy controls. `backend-types.txt` records the successful strict
+exact-optional/no-unchecked TypeScript check. `backend-inventory.tap` records the
+passing maintained normal-runner inventory control. These are scoped checks,
+not a full workspace gate or root lint run.
+
+`playwright-route-policy-native.test.ts` exercises the actual guarded Chromium
+path: admitted mocks without downstream traffic, denied mock destinations,
+allowed and denied header rewrites, redirected forbidden mocked URLs, offline
+transport, admitted offline mocks, unroute, context isolation and late-response
+cleanup. Nine glob cases are compared against native routing in a separate
+deny-proxy-backed browser. `backend-native-patterns.tap` records Chromium
+143.0.7499.4, 23 admissions, eight downstream responses and eight releases. The
+final unchanged-source rerun is `backend-native-final.tap`, with the same counts.
+The native route test is opt-in through the maintained `PLAYWRIGHT_TEST_MODULE` and
+`PLAYWRIGHT_TEST_EXECUTABLE` variables, with home-only TMPDIR, and has an explicit
+normal-runner inventory assertion. It does not require a new dependency install.
+
+## Remaining host qualifications
+
+Native-only routing remains available for hosts not using a policy binding;
+arbitrary external native page/context routes are not made policy-compatible.
+The guarded standard route backend repairs the reproduced composition failure,
+not the behavior of unrelated host-installed interceptors. The host still owns
+independent egress denial and authoritative target/context mapping. Logical byte
+budgets do not claim a process-wide RSS bound or preemption of uncooperative
+host code. Hidden prepared targets remain the parent's guarded target and nonce
+mechanism, not native Page routes. No deployed Cloudflare or published-package
+qualification is claimed by these local tests.

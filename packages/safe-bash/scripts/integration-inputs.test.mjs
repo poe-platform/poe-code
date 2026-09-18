@@ -2431,6 +2431,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/plugins/playwright-modal-session.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-modal-capabilities.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-route-capabilities.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-route-policy-native.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-recording-capabilities.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-native-snapshot.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-find.test.ts"));

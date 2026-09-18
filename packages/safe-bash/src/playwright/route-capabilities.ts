@@ -3,6 +3,7 @@ import type { PlaywrightContext } from './adapter.js';
 import type { PlaywrightCommand } from './catalog.js';
 import { capabilityResult, requireSession, unsupported } from './capability-result.js';
 import { PlaywrightResourceLimitError } from './resource-limit.js';
+import { createPlaywrightRoutePolicyBackend, type PlaywrightRoutePolicyBinding, type PlaywrightRoutePolicyHost, type PlaywrightRoutePolicyLimits } from './route-policy.js';
 
 export interface PlaywrightRoute {
   request(): { headers(): Record<string, string> };
@@ -24,45 +25,75 @@ interface Entry {
   handler: PlaywrightRouteHandler;
   bytes: number;
 }
-interface Registry { entries: Entry[]; closed: boolean }
+interface Registry {
+  entries: Entry[];
+  closed: boolean;
+  registered: boolean;
+  pending: number;
+  cleanup(): Promise<void>;
+  backend?: ReturnType<typeof createPlaywrightRoutePolicyBackend>;
+}
 const registries = new WeakMap<PlaywrightContext, Registry>();
 const MAX_ROUTES = 64;
 
 async function installRoute(context: PlaywrightRoutingContext, registry: Registry, entry: Entry, signal?: AbortSignal): Promise<void> {
   signal?.throwIfAborted();
   if (registry.closed) throw new Error('Browser context is closed');
-  await context.route(entry.pattern, entry.handler);
-  try {
-    signal?.throwIfAborted();
-    if (registry.closed) throw new Error('Browser context is closed');
+  if (registry.backend) {
+    registry.backend.add(entry.pattern, entry.handler, entry.bytes);
     registry.entries.push(entry);
-  } catch (error) {
-    try { await context.unroute(entry.pattern, entry.handler); }
-    finally { signal?.throwIfAborted(); }
-    throw error;
+    return;
   }
+  registry.pending++;
+  try {
+    await context.route(entry.pattern, entry.handler);
+    try {
+      signal?.throwIfAborted();
+      if (registry.closed) throw new Error('Browser context is closed');
+      registry.entries.push(entry);
+    } catch (error) {
+      try { await context.unroute(entry.pattern, entry.handler); }
+      finally { signal?.throwIfAborted(); }
+      throw error;
+    }
+  } finally { registry.pending--; }
 }
 
-function routingFor(input: PlaywrightContext, registerCleanup: (cleanup: () => Promise<void>) => void) {
+function routingFor(input: PlaywrightContext, registerCleanup?: (cleanup: () => Promise<void>) => void, backend?: Registry['backend']) {
   const context = input as PlaywrightContext & Partial<PlaywrightRoutingContext>;
-  if (!context.route || !context.unroute) unsupported('network routes');
   let registry = registries.get(context);
+  if (!backend && !registry?.backend && (!context.route || !context.unroute)) unsupported('network routes');
   if (!registry) {
-    registry = { entries: [], closed: false };
+    registry = { entries: [], closed: false, registered: false, pending: 0, cleanup: undefined! };
     registries.set(context, registry);
     const owned = registry;
-    const onClose = () => { owned.closed = true; owned.entries.length = 0; registries.delete(context); };
+    let contextClosed = false;
+    const onClose = () => {
+      contextClosed = true;
+      owned.closed = true;
+      if (owned.backend) void owned.cleanup().catch(() => {});
+      else { owned.entries.length = 0; registries.delete(context); }
+    };
     context.on?.('close', onClose);
-    registerCleanup(async () => {
+    let closing: Promise<void> | undefined;
+    owned.cleanup = () => closing ??= (async () => {
+      owned.closed = true;
       try {
-        for (const entry of [...owned.entries]) {
+        if (owned.backend) await owned.backend.dispose();
+        else for (const entry of [...owned.entries]) {
           try { await context.unroute!(entry.pattern, entry.handler); }
-          catch (error) { if (!owned.closed) throw error; }
+          catch (error) { if (!contextClosed) throw error; }
         }
-      } finally { context.off?.('close', onClose); onClose(); }
-    });
+      } finally {
+        context.off?.('close', onClose);
+        owned.entries.length = 0;
+        if (!owned.backend) registries.delete(context);
+      }
+    })();
   }
   if (registry.closed) throw new Error('Browser context is closed');
+  if (backend) registry.backend = backend;
+  if (registerCleanup && !registry.registered) { registerCleanup(registry.cleanup); registry.registered = true; }
   return { context: context as PlaywrightContext & PlaywrightRoutingContext, registry };
 }
 
@@ -73,14 +104,33 @@ function routing(request: PlaywrightAbilityRequest) {
 
 /** Native state replacement must retain the routes of the logical CLI session. */
 export function capturePlaywrightRoutes(context: PlaywrightContext) {
-  const entries = [...registries.get(context)?.entries ?? []];
+  const source = registries.get(context);
+  const entries = [...source?.entries ?? []];
   if (!entries.length) return;
   return async (replacement: PlaywrightContext, registerCleanup: (cleanup: () => Promise<void>) => void) => {
+    if (source?.backend && !registries.get(replacement)?.backend) throw new Error('Replacement route policy must be explicitly bound');
     const { context, registry } = routingFor(replacement, registerCleanup);
     for (const entry of entries) {
       await installRoute(context, registry, entry);
     }
   };
+}
+
+export function bindPlaywrightRoutePolicy(context: PlaywrightContext, host: PlaywrightRoutePolicyHost, limits?: PlaywrightRoutePolicyLimits): PlaywrightRoutePolicyBinding {
+  const previous = registries.get(context);
+  if (previous?.closed || previous?.backend || previous?.pending || previous?.entries.length) throw new Error('Route policy context closed, already bound or has native routes');
+  const backend = createPlaywrightRoutePolicyBackend(host, limits);
+  const { registry } = routingFor(context, undefined, backend);
+  return Object.freeze({ fetch: backend.fetch, dispose: registry.cleanup });
+}
+
+export async function setPlaywrightNetworkState(context: PlaywrightContext, offline: boolean, signal: AbortSignal): Promise<void> {
+  signal.throwIfAborted();
+  if (registries.get(context)?.closed) throw new Error('Browser context is closed');
+  if (!context.setOffline) unsupported('setOffline');
+  await context.setOffline(offline);
+  registries.get(context)?.backend?.setOffline(offline);
+  signal.throwIfAborted();
 }
 
 const route: PlaywrightAbility = { scope: 'session', options: 'all', async execute(request) {
@@ -145,7 +195,8 @@ export const playwrightRouteAbilities: Partial<Record<PlaywrightCommand, Playwri
     for (const entry of [...registry.entries]) {
       if (pattern !== undefined && entry.pattern !== pattern) continue;
       request.signal.throwIfAborted();
-      await context.unroute(entry.pattern, entry.handler);
+      if (registry.backend) registry.backend.remove(entry.handler);
+      else await context.unroute(entry.pattern, entry.handler);
       registry.entries.splice(registry.entries.indexOf(entry), 1);
       removed++;
     }

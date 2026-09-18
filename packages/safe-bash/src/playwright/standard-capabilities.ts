@@ -12,7 +12,7 @@ import { playwrightModalAbilities } from './modal-capabilities.js';
 import { playwrightDrop } from './drop-capability.js';
 import { playwrightWebMCPAbilities } from './webmcp-capabilities.js';
 import { playwrightRecordingAbilities } from './recording-capabilities.js';
-import { playwrightRouteAbilities } from './route-capabilities.js';
+import { playwrightRouteAbilities, setPlaywrightNetworkState } from './route-capabilities.js';
 import { PlaywrightResourceLimitError } from './resource-limit.js';
 
 function button(value: string | undefined): PlaywrightMouseButton {
@@ -202,7 +202,7 @@ export const playwrightStandardAbilities: Partial<Record<PlaywrightCommand, Play
     if (!context.setOffline) unsupported('setOffline');
     const state = request.args[0];
     if (state !== 'online' && state !== 'offline') throw new Error('Invalid network state');
-    await context.setOffline(state === 'offline');
+    await setPlaywrightNetworkState(context, state === 'offline', request.signal);
     return capabilityResult(`await page.context().setOffline(${state === 'offline'});`, `Network is now ${state}`);
   } },
 };

@@ -1,20 +1,6 @@
 name: Release scoped safe packages
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
-    paths:
-      - "packages/safe-js/**"
-      - "packages/safe-bash/**"
-      - "packages/safe-fs/**"
-      - "scripts/package-safe*"
-      - "scripts/fixtures/safe-packages-*"
-      - "scripts/bundle*.mjs"
-      - "package.json"
-      - "package-lock.json"
-      - ".github/workflows/release-safe.yml"
-      - packages/safe-bash/scripts/build-optional*
-      - scripts/safe-bash-optional-*
 concurrency:
   group: release-safe
   cancel-in-progress: false

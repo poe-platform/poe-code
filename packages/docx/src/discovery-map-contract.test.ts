@@ -191,6 +191,8 @@ it("keeps the current evidence snapshot joined to live declarations and every AP
   Object.assign(native.runtimeMembers, neutralErrors.runtimeMembers);
   native.runtimeExports = neutralErrors.runtimeExports;
   Object.assign(audit.operations, native.operations);
+  const construction = JSON.parse(readFileSync(new URL("../../../docs/docx/document-construction-carriers-20260918/discovery-map-update.json", import.meta.url), "utf8")) as { operations: typeof audit.operations };
+  Object.assign(audit.operations, construction.operations);
   Object.assign(audit.apis, native.apis);
   audit.runtimeExports = native.runtimeExports;
   expect(Object.keys(audit.operations).sort()).toEqual(Object.keys(docxOperationSchemas).sort());

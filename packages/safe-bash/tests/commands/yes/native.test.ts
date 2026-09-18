@@ -13,8 +13,7 @@ async function oracle(executable: string, args: readonly string[], limit = 4096,
   const commandArgs = closeOutput
     ? ["--noprofile", "--norc", "-c", 'set -o pipefail; "$1" "${@:3}" | /usr/bin/head -c "$2"; exit $?', "oracle", executable, String(limit), ...args]
     : args;
-  const restorePipeSignal = closeOutput && process.platform === "linux";
-  const child = spawn(restorePipeSignal ? "/usr/bin/env" : command, restorePipeSignal ? ["--default-signal=PIPE", command, ...commandArgs] : commandArgs, { argv0: command === "/bin/bash" ? "bash" : "yes", stdio: ["ignore", "pipe", "pipe"], env: { LC_ALL: "C", LANG: "C", ...extraEnv } });
+  const child = spawn(command, commandArgs, { argv0: command === "/bin/bash" ? "bash" : "yes", stdio: ["ignore", "pipe", "pipe"], env: { LC_ALL: "C", LANG: "C", ...extraEnv } });
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];
   let outputBytes = 0;

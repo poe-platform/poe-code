@@ -456,7 +456,11 @@ test('device over mixed mounts preserves selected object profile without promoti
   assert.equal((await fs.capabilitiesFor('/readonly/file')).versionedDescriptors, true);
   assert.notEqual((await fs.capabilitiesFor('/native')).versionedDescriptors, true);
   assert.notEqual((await fs.capabilitiesFor('/dev/null')).versionedDescriptors, true);
-  await assert.rejects(fs.open('/dev/null', { access: 'write' }), { code: 'ENOTSUP' });
+  const nullDescriptor = await fs.open('/dev/null', { access: 'write' });
+  try {
+    assert.equal(await nullDescriptor.write(new Uint8Array([31]), null), 1);
+    assert.notEqual(nullDescriptor.capabilities.publication, 'conditional');
+  } finally { await nullDescriptor.close(); }
   await assert.rejects(fs.open('/readonly/file', { access: 'write' }), { code: 'EROFS' });
   assert.deepEqual(acquiredPaths, []);
   const controller = new AbortController();

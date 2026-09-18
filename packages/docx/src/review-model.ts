@@ -49,9 +49,10 @@ export class Comments implements Iterable<Comment> {
     text(value);
     text(author);
     if (initials !== null) text(initials);
-    const style = this.store.styles.has("Comment Text")
-      ? this.store.styles.at("Comment Text")
-      : this.store.styles.add_style("Comment Text", WD_STYLE_TYPE.PARAGRAPH);
+    const styles = this.store.stylesForStory(this.ref.part);
+    const style = styles.has("Comment Text")
+      ? styles.at("Comment Text")
+      : styles.add_style("Comment Text", WD_STYLE_TYPE.PARAGRAPH);
     const used = new Set(this.nodes.map(id));
     let next = 0;
     while (used.has(next)) next++;
@@ -423,7 +424,7 @@ export function bindCommentRange(
   text(author);
   if (initials !== null) text(initials);
   const { first, last } = validateCommentRange(store, runs);
-  const comment = new Comments(store, store.ensureComments()).add_comment(value, author, initials);
+  const comment = new Comments(store, store.ensureComments(first.ref.part)).add_comment(value, author, initials);
   applyCommentRange(store, first, last, comment.comment_id);
   return comment;
 }
@@ -438,9 +439,9 @@ export function markCommentRange(
   if (!Number.isSafeInteger(comment_id) || comment_id < 0)
     throw new InputTypeError("Expected a nonnegative comment ID.");
   validateCommentRange(store, [first, last]);
-  const main = store.xml(store.mainPart).root,
+  const main = store.xml(first.ref.part).root,
     dialect = dialectForNamespace(main.namespace)!;
-  const edges = [...store.part(store.mainPart).rels.values()].filter(
+  const edges = [...store.part(first.ref.part).rels.values()].filter(
     (edge) => edge.reltype === documentDialects[dialect].r + "/comments"
   );
   if (edges.length !== 1 || edges[0]!.is_external)
@@ -455,11 +456,11 @@ export function markCommentRange(
       commentAttribute(node, "id") === String(comment_id)) ||
     node.children.some(visit);
   if (
-    store
-      .snapshot()
-      .members.some(
-        (member) => member.name.endsWith(".xml") && visit(store.xml("/" + member.name).root)
-      )
+    store.package.parts.some(owner => {
+      const ownsComments = [...owner.rels.values()].some(edge => !edge.is_external &&
+        edge.reltype === documentDialects[dialect].r + "/comments" && edge.target_part.partname.toString() === part);
+      return ownsComments && visit(store.xml(owner.partname.toString()).root);
+    })
   )
     throw new UnsupportedEditError("Comment body already has an anchor.");
   applyCommentRange(store, first, last, comment_id);

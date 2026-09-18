@@ -29,9 +29,9 @@ import type { DocxEnumValue } from "./operation-types.js";
 import type { XmlElement } from "./package-xml.js";
 import { activeModelChildren } from "./model-active-children.js";
 
-function refs(store: ModelStore): ModelRef[] {
-  const xml = store.xml(store.mainPart),
-    children = activeModelChildren(store, store.mainPart),
+function refs(store: ModelStore, owner = store.mainPart): ModelRef[] {
+  const xml = store.xml(owner),
+    children = activeModelChildren(store, owner),
     body = sectionChild(xml.root, "body", children)!;
   const nodes: XmlElement[] = [];
   for (const child of children(body)) {
@@ -41,28 +41,28 @@ function refs(store: ModelStore): ModelRef[] {
       if (section) nodes.push(section);
     } else if (child.localName === "sectPr") nodes.push(child);
   }
-  return nodes.map((node) => store.ref(store.mainPart, node));
+  return nodes.map((node) => store.ref(owner, node));
 }
 
 /** Live zero-based section sequence; utility ordinals remain one-based. */
 export class Sections implements Iterable<Section> {
   readonly [index: number]: Section;
-  constructor(private readonly store: ModelStore) {
+  constructor(private readonly store: ModelStore, private readonly owner?: ModelRef) {
     return numericSequence(this);
   }
   get length(): number {
-    return refs(this.store).length;
+    return refs(this.store, this.owner?.part).length;
   }
   at(index: number): Section {
     if (!Number.isSafeInteger(index))
       throw new InputTypeError("Expected a safe integer section index.");
-    const items = refs(this.store),
+    const items = refs(this.store, this.owner?.part),
       ref = items[index < 0 ? items.length + index : index];
     if (!ref) throw new BoundsError("Section index is out of bounds.");
     return new Section(this.store, ref);
   }
   *[Symbol.iterator](): Iterator<Section> {
-    for (const ref of refs(this.store)) yield new Section(this.store, ref);
+    for (const ref of refs(this.store, this.owner?.part)) yield new Section(this.store, ref);
   }
   slice(start?: number, end?: number): Section[] {
     for (const value of [start, end])
@@ -272,7 +272,7 @@ export class Section {
   *iter_inner_content() {
     const children = activeModelChildren(this.store, this.ref.part),
       body = sectionChild(this.store.xml(this.ref.part).root, "body", children)!,
-      sections = refs(this.store),
+      sections = refs(this.store, this.ref.part),
       position = sections.findIndex((ref) => ref.id === this.ref.id);
     this.store.node(this.ref);
     let current = 0;
@@ -319,7 +319,7 @@ class HeaderFooter {
       (attr) => attr.namespace === r && attr.localName === "id"
     )?.value;
     const graph = new DocumentPackage(store.snapshot(), store.context.limits, store.context.budget);
-    const edge = graph.relationships(store.mainPart).find((edge) => edge.rId === id);
+    const edge = graph.relationships(this.section.ref.part).find((edge) => edge.rId === id);
     if (!edge || edge.is_external) throw new InvalidValueError("Invalid story binding.");
     // Inactive alternatives still own their stored relationship references.
     const referenced = (node: XmlElement): boolean => {
@@ -328,14 +328,14 @@ class HeaderFooter {
         || node.children.some(referenced);
     };
     const shared = referenced(store.xml(this.section.ref.part).root);
-    const otherEdge = retainedRelationshipTargets(graph, store.context.budget, [{owner: store.mainPart, id: id!}]).has(asciiKey(edge.target_part.partname));
+    const otherEdge = retainedRelationshipTargets(graph, store.context.budget, [{owner: this.section.ref.part, id: id!}]).has(asciiKey(edge.target_part.partname));
     store.transaction(() => {
       store.change(this.section.ref.part, (xml) => xml.replaceElement(this.local()!, ""));
       if (!shared) {
         const relationshipPart =
-          store.mainPart.slice(0, store.mainPart.lastIndexOf("/") + 1) +
+          this.section.ref.part.slice(0, this.section.ref.part.lastIndexOf("/") + 1) +
           "_rels/" +
-          store.mainPart.slice(store.mainPart.lastIndexOf("/") + 1) +
+          this.section.ref.part.slice(this.section.ref.part.lastIndexOf("/") + 1) +
           ".rels";
         store.change(relationshipPart, (xml) => {
           const relationship = relationshipXmlRows(xml.root, store.context.budget).find(row => row.rId === id);
@@ -378,13 +378,13 @@ class HeaderFooter {
         store.context.limits,
         store.context.budget
       );
-      const edge = graph.relationships(store.mainPart).find((edge) => edge.rId === id);
+      const edge = graph.relationships(this.section.ref.part).find((edge) => edge.rId === id);
       if (!edge || edge.is_external || edge.reltype !== r + "/" + this.kind)
         throw new InvalidValueError("Invalid story binding.");
       const part = edge.target_part.partname;
       return store.ref(part, store.xml(part).root);
     }
-    const sections = refs(store),
+    const sections = refs(store, this.section.ref.part),
       index = sections.findIndex((ref) => ref.id === this.section.ref.id);
     if (index > 0)
       return new HeaderFooter(
@@ -406,17 +406,17 @@ class HeaderFooter {
         store.context.budget
       );
       const part = graph.allocatePartName(
-          store.mainPart.slice(0, store.mainPart.lastIndexOf("/") + 1) + this.kind,
+          this.section.ref.part.slice(0, this.section.ref.part.lastIndexOf("/") + 1) + this.kind,
           ".xml"
         ),
-        id = graph.allocateRelationshipId(store.mainPart);
-      const relationshipPart = findRelationshipPart(graph, store.mainPart, store.context.budget)?.name;
+        id = graph.allocateRelationshipId(this.section.ref.part);
+      const relationshipPart = findRelationshipPart(graph, this.section.ref.part, store.context.budget)?.name;
       const relationshipsName = relationshipPart ? "/" + relationshipPart :
-        store.mainPart.slice(0, store.mainPart.lastIndexOf("/") + 1) +
+        this.section.ref.part.slice(0, this.section.ref.part.lastIndexOf("/") + 1) +
         "_rels/" +
-        store.mainPart.slice(store.mainPart.lastIndexOf("/") + 1) +
+        this.section.ref.part.slice(this.section.ref.part.lastIndexOf("/") + 1) +
         ".rels";
-      const relationship = `<Relationship xmlns="http://schemas.openxmlformats.org/package/2006/relationships" Id="${id}" Type="${r}/${this.kind}" Target="${xmlValue(relativePartTarget(store.mainPart, part))}"/>`;
+      const relationship = `<Relationship xmlns="http://schemas.openxmlformats.org/package/2006/relationships" Id="${id}" Type="${r}/${this.kind}" Target="${xmlValue(relativePartTarget(this.section.ref.part, part))}"/>`;
       const contentType = `application/vnd.openxmlformats-officedocument.wordprocessingml.${this.kind}+xml`;
       store.setPart(
         part,
@@ -434,7 +434,7 @@ class HeaderFooter {
             `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${relationship}</Relationships>`
           )
         );
-      store.change(store.mainPart, (xml) => {
+      store.change(this.section.ref.part, (xml) => {
         const section = store.node(this.section.ref),
           markup = `<sp:${this.kind}Reference xmlns:sp="${w}" xmlns:r="${r}" sp:type="${this.variant}" r:id="${id}"/>`;
         const next = section.children.find(

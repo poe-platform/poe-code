@@ -16,26 +16,29 @@ import { runElementOpen } from "./run-properties.js";
 import { Settings } from "./settings-model.js";
 import { InlineShapes, insertModelImage } from "./inline-shape-model.js";
 import { Image, type ImageModelInput } from "./image-model.js";
-import { packageAdmitImages } from "./package-view.js";
+import { packageAdmitImages, DocumentPartView } from "./package-view.js";
 import { activeModelChildren } from "./model-active-children.js";
 
 export class DocumentView {
   readonly ref: ModelRef;
   private boundSettings: Settings | undefined;
   private boundInlineShapes: InlineShapes | undefined;
-  constructor(readonly store: ModelStore) {
-    const root = store.xml(store.mainPart).root;
-    const body = activeModelChildren(store, store.mainPart)(root).find(
+  constructor(readonly store: ModelStore, owner = store.mainPart) {
+    const root = store.xml(owner).root;
+    const body = activeModelChildren(store, owner)(root).find(
       (child) => child.namespace === root.namespace && child.localName === "body"
     )!;
-    this.ref = store.ref(store.mainPart, body);
+    this.ref = store.ref(owner, body);
   }
   get part() {
-    return this.store.package.main_document_part;
+    this.store.node(this.ref);
+    const part = this.store.part(this.ref.part);
+    if (!(part instanceof DocumentPartView)) throw new InputTypeError("Expected a native document owner.");
+    return part;
   }
   get element() {
     return this.store.element(
-      this.store.ref(this.store.mainPart, this.store.xml(this.store.mainPart).root)
+      this.store.ref(this.ref.part, this.store.xml(this.ref.part).root)
     );
   }
   get paragraphs() {
@@ -49,10 +52,10 @@ export class DocumentView {
     ) as import("./table-model.js").Table[];
   }
   get styles() {
-    return this.store.styles;
+    return this.store.stylesForDocument(this.ref.part);
   }
   get settings(): Settings {
-    return (this.boundSettings ??= new Settings(this.store));
+    return (this.boundSettings ??= new Settings(this.store, undefined, this.ref.part));
   }
   get inline_shapes(): InlineShapes {
     return (this.boundInlineShapes ??= new InlineShapes(this.store, this.ref));
@@ -77,10 +80,10 @@ export class DocumentView {
     return this.store.transaction(() => bindCommentRange(this.store, runs, text, author, initials));
   }
   get sections() {
-    return new Sections(this.store);
+    return new Sections(this.store, this.ref);
   }
   get comments() {
-    return new Comments(this.store, this.store.ensureComments());
+    return new Comments(this.store, this.store.ensureComments(this.ref.part));
   }
   get core_properties() {
     return this.store.package.core_properties;

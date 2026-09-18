@@ -680,10 +680,10 @@ export class StoryPart extends XmlPartView {
       const style = styles.get_by_id(style_id, style_type);
       if (!style) throw new MissingKeyError("The requested style type has no default definition.");
       return style;
-    });
+    }, this.partname.toString());
   }
   get_style_id(style_or_name: BaseStyle | string | null, style_type: DocxEnumValue<"WD_STYLE_TYPE">): string | null {
-    return this.package[packageModel](this).withStyleDefinitions(styles => styles.get_style_id(style_or_name, style_type));
+    return this.package[packageModel](this).withStyleDefinitions(styles => styles.get_style_id(style_or_name, style_type), this.partname.toString());
   }
   async get_or_add_image(input: ImageModelInput): Promise<readonly [string, Image]> {
     this.package[packageMetadata](this);
@@ -796,11 +796,11 @@ export class DocumentPartView extends StoryPart {
     await this.package.save(output, options);
   }
   protected static override readonly nativeTypes = Object.values(documentTypes);
-  get document() { return this.package[packageModel](this).document; }
-  get comments() { return this.package[packageModel](this).document.comments; }
-  get settings() { return this.package[packageModel](this).document.settings; }
-  get styles() { return this.package[packageModel](this).styles; }
-  get inline_shapes() { return this.package[packageModel](this).document.inline_shapes; }
+  get document() { return this.package[packageModel](this).nativeDocument(this); }
+  get comments() { return this.document.comments; }
+  get settings() { return this.document.settings; }
+  get styles() { return this.package[packageModel](this).stylesForDocument(this.partname.toString()); }
+  get inline_shapes() { return this.document.inline_shapes; }
   get core_properties() { this.package[packageMetadata](this); return this.package.core_properties; }
   add_header_part(): readonly [HeaderPart, string] {
     const rId = this.package[packageNextRelationshipId](this);

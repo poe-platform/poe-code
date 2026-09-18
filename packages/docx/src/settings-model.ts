@@ -12,12 +12,12 @@ import { sectionBoolean } from "./section-properties.js";
 /** Live document settings; external resources remain inert. */
 export class Settings {
   private readonly ref: ModelRef;
-  constructor(private readonly store: ModelStore, partname?: string) {
+  constructor(private readonly store: ModelStore, partname?: string, owner = store.mainPart) {
     const graph = new DocumentPackage(store.snapshot(), store.context.limits, store.context.budget);
-    const w = store.xml(store.mainPart).root.namespace;
+    const w = store.xml(owner).root.namespace;
     const r = documentDialects[dialectForNamespace(w)!].r;
     const edges = graph
-      .relationships(store.mainPart)
+      .relationships(owner)
       .filter((edge) => edge.reltype === r + "/settings");
     if (partname === undefined && (edges.length > 1 || edges[0]?.is_external))
       throw new UnsupportedEditError("Expected one internal settings part.");
@@ -25,7 +25,7 @@ export class Settings {
     if (!part)
       part = store.transaction(() => {
         const created = graph.allocatePartName(
-          store.mainPart.slice(0, store.mainPart.lastIndexOf("/") + 1) + "settings",
+          owner.slice(0, owner.lastIndexOf("/") + 1) + "settings",
           ".xml"
         );
         store.setPart(
@@ -33,13 +33,13 @@ export class Settings {
           new TextEncoder().encode(`<ds:settings xmlns:ds="${w}"/>`),
           "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"
         );
-        const relationshipPart = findRelationshipPart(graph, store.mainPart, store.context.budget);
+        const relationshipPart = findRelationshipPart(graph, owner, store.context.budget);
         const relName = relationshipPart ? "/" + relationshipPart.name :
-          store.mainPart.slice(0, store.mainPart.lastIndexOf("/") + 1) +
+          owner.slice(0, owner.lastIndexOf("/") + 1) +
           "_rels/" +
-          store.mainPart.slice(store.mainPart.lastIndexOf("/") + 1) +
+          owner.slice(owner.lastIndexOf("/") + 1) +
           ".rels";
-        const edge = `<Relationship xmlns="http://schemas.openxmlformats.org/package/2006/relationships" Id="${graph.allocateRelationshipId(store.mainPart)}" Type="${r}/settings" Target="${xmlValue(relativePartTarget(store.mainPart, created))}"/>`;
+        const edge = `<Relationship xmlns="http://schemas.openxmlformats.org/package/2006/relationships" Id="${graph.allocateRelationshipId(owner)}" Type="${r}/settings" Target="${xmlValue(relativePartTarget(owner, created))}"/>`;
         if (relationshipPart)
           store.change(relName, (xml) => xml.insertChildren(xml.root, edge));
         else

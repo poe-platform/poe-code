@@ -36,7 +36,7 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
   settings.budget.charge("retainedBytes", borrowed.length);
   const source = new Uint8Array(borrowed);
   const document = await Document(source, settings);
-  const model = { get styles() { return document.styles; }, package: document.store.package, warnings: [] as readonly { readonly code: string }[], save: (output: import("./model-output.js").DocumentOutput, options?: import("./model-output.js").DocumentSaveOptions) => document.save(output, options), publish: (options: import("./publication.js").PublicationOptions, context: import("./publication.js").PublicationContext) => document.store.publish(options, context) };
+  const model = { package: document.store.package, warnings: [] as readonly { readonly code: string }[], save: (output: import("./model-output.js").DocumentOutput, options?: import("./model-output.js").DocumentSaveOptions) => document.save(output, options), publish: (options: import("./publication.js").PublicationOptions, context: import("./publication.js").PublicationContext) => document.store.publish(options, context) };
   const saved = new ModelSaveStage(settings);
   const named = new Map<string, unknown>();
   const objectIds = new Map<object, string>();
@@ -119,9 +119,9 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
       await settings.budget.checkpoint();
       let value: unknown;
       if (item.operation === styleModelBatchBootstrap) {
-        const receiver = item.receiver;
-        if (!(receiver?.resultHandle === "document" && Object.keys(receiver).length === 1) && (receiver?.id !== "document" || receiver.type !== "DocumentModel" || receiver.owner !== "document" || receiver.revision !== 0)) throw new DocxUsageError("The root receiver must be this document's initial handle.");
-        value = model.styles;
+        const receiver = resolve(item.receiver);
+        if (!(receiver instanceof DocumentView)) throw new DocxUsageError("Expected an admitted document owner.");
+        value = receiver.styles;
       } else if ((modelSaveOperations as readonly string[]).includes(item.operation)) {
         const receiver = resolve(item.receiver);
         const valid = item.operation === "model.document.Document.save.call" ? receiver instanceof DocumentView

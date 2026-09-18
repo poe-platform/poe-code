@@ -9,7 +9,7 @@ import { findRelationshipPart } from "./relationship-part.js";
 
 /** Materialize an original styles part, allocating both graph identities locally. */
 export function addDocumentStylesPart(archive: DocumentArchive, template: Pick<AdmittedDocumentArchive, "package" | "mainPart" | "dialect">, styles: string, budget: DocumentBudget): { archive: DocumentArchive; name: string } {
-  const name = template.package.allocatePartName("/word/styles", ".xml");
+  const name = template.package.allocatePartName("/" + template.mainPart.slice(0, template.mainPart.lastIndexOf("/") + 1) + "styles", ".xml");
   const { w, r } = documentDialects[template.dialect];
   const types = archive.members.find(member => member.name === "[Content_Types].xml")!;
   const typesEditor = new DocumentXmlEditor(types.bytes, {}, undefined, budget);

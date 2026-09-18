@@ -1,5 +1,15 @@
 # DOCX acceptance matrix
 
+The [document owner qualification](document-owner-liveness-20260917.md) records
+452 exact observations within a fresh 4,952-case, 36-file passing run, zero skips
+and 1,087 unchanged captured inputs. All 24 built model/SDK/actual Shell workflows
+pass. Loaded document resources, owner-local styles/comments, all header/footer
+variants and held handles through rename/rollback are qualified as enumerated.
+The separately committed [reader-capability correction](batch-read-capability-20260917.md)
+closes the 48 failures in the retained earlier broad run; that failed receipt
+earns no passing-gate credit. Whole-family and remaining native/variant acceptance
+stay open, including the separately reproduced direct paragraph/run read gap.
+
 The [native document story qualification](native-document-stories-20260917.md)
 records 284 exact header/footer behavior cases within a complete 2,326-case,
 14-file maintained consumer run, zero skips and 1,060 unchanged captured inputs.

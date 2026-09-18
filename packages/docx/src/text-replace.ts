@@ -9,12 +9,14 @@ import { resolveDocxSelection } from "./simple-selection.js";
 import { stageTrackedText, type TrackedTextEdit } from "./tracked-text.js";
 import { DocumentArchiveEditor } from "./package-write.js";
 import { type XmlElement } from "./package-xml.js";
-import { UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
+import { UnsupportedEditError, replaceSplitTextRunXml, type DocumentXmlEditor } from "./xml-write.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { activeControlLocks } from "./protection.js";
 import { compatibilityContainers } from "./compatibility.js";
 import { activeXmlChildren } from "./xml-active-children.js";
+import { formattedRunProperties } from "./run-properties.js";
+import type { DocumentBudget } from "./budget.js";
 
 export type DummyTextOptions = DocxOperationArguments<"lorem.set"> & { readonly input?: PublicationInput };
 export type TextReplaceOptions = DocxOperationArguments<"text.replace"> & { readonly input?: PublicationInput };
@@ -281,7 +283,7 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
     }
     stageTrackedText(editor, tracked, { author: opts.author!, timestamp: opts.timestamp! }, budget, settings.limits);
   }
-  const runs = new Map<XmlElement, { editor: DocumentXmlEditor; patches: Map<XmlElement, string> }>();
+  const runs = new Map<XmlElement, { editor: DocumentXmlEditor; patches: Map<XmlElement, string>; whole?: string }>();
   for (const { leaf, edits: changes } of opts.trackChanges ? [] : edits.values()) {
     const original = leaf.node.localName === "t" || leaf.node.localName === "delText" ? leaf.node.text : leaf.text;
     let offset = 0, text = "", markup = "";
@@ -289,20 +291,33 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
       text += original.slice(offset, change.start) + change.insert;
       if (explicit) {
         markup += textMarkup(leaf.node, original.slice(offset, change.start));
-        if (change.insert) markup += `</${leaf.run.name}>` + formattedRun(leaf, change.insert, opts) + runOpen(leaf.run) + runProperties(leaf);
+        if (change.insert) markup += `</${leaf.run.name}>` + formattedRun(leaf, change.insert, opts, budget) + runOpen(leaf.run) + runProperties(leaf);
       }
       offset = change.end;
     }
     text += original.slice(offset);
     if (!explicit) leaf.editor.replaceElement(leaf.node, textMarkup(leaf.node, text));
     else {
+      const content = leaf.run.children.filter(child => child.namespace !== leaf.run.namespace || child.localName !== "rPr");
+      if (content.length === 1 && content[0] === leaf.node && changes[0]!.start === 0 && changes.at(-1)!.end === original.length &&
+        changes.every((change, index) => index === 0 || changes[index - 1]!.end === change.start)) {
+        const props = leaf.run.children.find(child => child.namespace === leaf.run.namespace && child.localName === "rPr");
+        const properties = formattedRunProperties(leaf.editor, leaf.run,
+          { ...(opts.bold === undefined ? {} : { bold: opts.bold }), ...(opts.italic === undefined ? {} : { italic: opts.italic }) }, activeXmlChildren(leaf.editor, budget));
+        const patches = new Map([[leaf.node, textMarkup(leaf.node, text)]]);
+        if (props) patches.set(props, properties);
+        const whole = props ? leaf.editor.sourceXml(leaf.run, patches)
+          : runOpen(leaf.run) + properties + leaf.editor.sourceXml(leaf.run, patches, true) + `</${leaf.run.name}>`;
+        runs.set(leaf.run, { editor: leaf.editor, patches, whole });
+        continue;
+      }
       markup += textMarkup(leaf.node, original.slice(offset));
       const run = runs.get(leaf.run) ?? { editor: leaf.editor, patches: new Map() };
       run.patches.set(leaf.node, markup); runs.set(leaf.run, run);
     }
   }
-  for (const [run, { editor: xml, patches }] of runs) {
-    xml.replaceElement(run, xml.sourceXml(run, patches));
+  for (const [run, { editor: xml, patches, whole }] of runs) {
+    xml[replaceSplitTextRunXml](run, whole ?? xml.sourceXml(run, patches));
   }
   const changed = changedMatches.length > 0;
   const changes = changedMatches.map(match => {
@@ -329,13 +344,9 @@ function runProperties(leaf: Leaf): string {
   const props = leaf.run.children.find(child => child.namespace === leaf.run.namespace && child.localName === "rPr");
   return props ? leaf.editor.sourceXml(props) : "";
 }
-function formattedRun(leaf: Leaf, text: string, opts: DocxOperationArguments<"text.replace">): string {
-  const w = leaf.run.namespace;
-  const props = leaf.run.children.find(child => child.namespace === w && child.localName === "rPr");
-  const removed = new Map(props?.children.filter(child => child.namespace === w &&
-    (child.localName === "b" && opts.bold !== undefined || child.localName === "i" && opts.italic !== undefined)).map(child => [child, ""] as const));
-  const retained = props ? leaf.editor.sourceXml(props, removed, true) : "";
-  const overrides = (opts.bold === undefined ? "" : `<w:b xmlns:w="${xmlValue(w)}" w:val="${Number(opts.bold)}"/>`) + (opts.italic === undefined ? "" : `<w:i xmlns:w="${xmlValue(w)}" w:val="${Number(opts.italic)}"/>`);
-  const properties = props ? runOpen(props) + retained + overrides + `</${props.name}>` : `<w:rPr xmlns:w="${xmlValue(w)}">${overrides}</w:rPr>`;
+function formattedRun(leaf: Leaf, text: string, opts: DocxOperationArguments<"text.replace">, budget: DocumentBudget): string {
+  const properties = formattedRunProperties(leaf.editor, leaf.run,
+    { ...(opts.bold === undefined ? {} : { bold: opts.bold }), ...(opts.italic === undefined ? {} : { italic: opts.italic }) },
+    activeXmlChildren(leaf.editor, budget));
   return runOpen(leaf.run) + properties + textMarkup(leaf.node, text) + `</${leaf.run.name}>`;
 }

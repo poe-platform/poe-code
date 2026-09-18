@@ -8,7 +8,7 @@ import { pathContains } from "./location-index.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 import { DocumentArchiveEditor } from "./package-write.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
-import { UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
+import { UnsupportedEditError, replaceSplitTextRunXml, type DocumentXmlEditor } from "./xml-write.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { equivalentRunKey, formattedRunProperties, runElementOpen } from "./run-properties.js";
 import type { DocxOperationArguments } from "./operation-types.js";
@@ -154,7 +154,7 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
         previous.nodes = [combined]; previous.changed = true;
       } else previous = { source: content, nodes, key: last && equivalentRunKey(last), changed: replacement !== undefined };
     }
-    for (const [node, markup] of patches) xml.replaceElement(node, markup);
+    for (const [node, markup] of patches) xml[replaceSplitTextRunXml](node, markup);
   }
   const changes = selected.filter(location => changed.has(location.token)).map(before => {
     const paragraph = before.kind === "paragraph" ? document.resolve(encodeLocation({ ...before.value, range: null })) : paragraphFor(before);

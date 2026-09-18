@@ -760,3 +760,12 @@ preserving edits, insertion and explicit destructive setters. The focused run
 passed 170 cases and 48 built public SDK/Shell workflows passed. Both dialects
 retain untouched package members and unselected tab metadata. This adds scoped
 F08/F10/F12/F13 evidence; the family acceptance entries remain open.
+
+The [native property-alternative replacement correction](text-style-family-acceptance-20260918/replacement-property-requirement-evidence.json)
+records the original split, formatting, opaque-safety and whole-run failures.
+The final four-file execution passed 178 cases; rebuilt public SDK/Shell workflows
+passed 128 split/expected-rejection cases and eight distinct whole-run cases.
+Whole-run edits retain opaque identity, comments and processing instructions;
+partial unsupported property payloads reject without publication under §6.5.
+All prior failed attempts remain evidence. This closes only named F10/F12 defects;
+complete F08–F15/F18 acceptance remains open.

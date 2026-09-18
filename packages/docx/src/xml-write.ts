@@ -7,7 +7,7 @@ import {
   type XmlContent, type XmlElement, type XmlAttribute
 } from "./package-xml.js";
 
-import { MarkupCompatibility, compatibilitySettings, compatibilityProfileForRoot, hasCompatibilityMarkup, type CompatibilityProfile, type ExpandedXmlName } from "./compatibility.js";
+import { MarkupCompatibility, compatibilityContainers, compatibilitySettings, compatibilityProfileForRoot, hasCompatibilityMarkup, type CompatibilityProfile, type ExpandedXmlName } from "./compatibility.js";
 import { dialectForNamespace, validateXmlDialect, type DocumentDialect } from "./dialect.js";
 
 import {admitEquationFragment,inspectEquationFragment,mathNamespace} from './equation-fragments.js';
@@ -53,6 +53,11 @@ export const editActiveRelationshipXml = Symbol("edit-active-relationship-xml");
 
 /** Internal property-domain authority over selected native declarations. */
 export const editActivePropertyXml = Symbol("edit-active-property-xml");
+
+/** Internal text-domain split; opaque payloads retain the generic refusal. */
+export const replaceSplitTextRunXml = Symbol("replace-split-text-run-xml");
+
+const cloneableRunProperties = new Set("rStyle rFonts b bCs i iCs caps smallCaps strike dstrike outline shadow emboss imprint noProof snapToGrid vanish webHidden color spacing w kern position sz szCs highlight u effect bdr shd fitText vertAlign rtl cs em lang eastAsianLayout specVanish oMath".split(" "));
 
 function unsupported(): never {
   throw new UnsupportedEditError("The XML edit cannot establish faithful preservation.");
@@ -300,6 +305,30 @@ export class DocumentXmlEditor {
     this.assertShapeEditAllowed(node);
     if (this.#guardCompatibility && !this.#canEdit(node)) unsupported();
     this.#stageReplacement(node, xml, !this.#canReplaceSubtree(node, token => this.#canEdit(token)), true);
+  }
+
+  /** Native formatting alternatives can follow each fragment of a split run. */
+  [replaceSplitTextRunXml](node: XmlElement, xml: string): void {
+    this.#assertOwnedElement(node);
+    const containers = new Set(this.compatibility[compatibilityContainers]);
+    const cloneable = (element: XmlElement): boolean => {
+      this.#budget.charge("work", 1 + element.attributes.length);
+      return (element.namespace === node.namespace && (element.localName === "rPr" || cloneableRunProperties.has(element.localName) && !element.children.length) ||
+        element.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006" || containers.has(element)) &&
+        element.attributes.every(attribute => [node.namespace, "http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace", "http://schemas.openxmlformats.org/markup-compatibility/2006"].includes(attribute.namespace) ||
+          attribute.namespace === "" && element.localName === "Choice" && attribute.localName === "Requires") &&
+        element.children.every(cloneable);
+    };
+    if (!this.#dialect || node.namespace !== documentDialects[this.#dialect].w || node.localName !== "r" ||
+      node.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute)) ||
+      node.children.some(child => child.namespace !== node.namespace || !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen"].includes(child.localName) ||
+        (child.localName === "rPr" ? !cloneable(child) : child.children.length > 0 || child.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute))))) {
+      this.replaceElement(node, xml);
+      return;
+    }
+    this.assertShapeEditAllowed(node);
+    if (!this.#canEdit(node) || this.#patches.has(node)) unsupported();
+    this.#stageReplacement(node, xml, false, true);
   }
 
   #canReplaceSubtree(node: XmlElement, canEdit: (token: Token) => boolean): boolean {

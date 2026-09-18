@@ -636,3 +636,11 @@ SDK/CLI reads and native batch handles now retain selection identity, nullable
 formatting, story scope and reader-only filesystem capabilities. The historical
 failed receipts and declaration projections remain preserved. These observations
 close that dependency without assigning whole-family acceptance.
+
+The [generic package variant qualification](generic-package-public-variants-20260918.md)
+adds 144 exact memfs cases and 144 independent built model/SDK/actual Shell
+workflows for both dialects/kinds, generic part/package methods and image
+collections. Untouched bytes, outgoing edges, typed lengths and native kind
+retention pass. Two harness mistakes are preserved with no product-defect
+credit. This closes the named verification gap; full-family reconciliation
+remains open.

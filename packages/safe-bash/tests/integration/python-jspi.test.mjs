@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 import { build } from 'esbuild';
 import ts from 'typescript';
-import { createPythonJspiTrampoline } from '../../src/commands/python/jspi-trampoline.ts';
+import { createPythonJspiTrampoline, createPythonJspiNativeCall, createPythonJspiStatResult } from '../../src/commands/python/jspi-trampoline.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const tooling = process.env.SAFE_BASH_CF_RUNTIME_ROOT;
@@ -51,7 +51,7 @@ const ccall = embeddedModule(files['pyodide.asm.mjs'], node => ts.isFunctionDecl
   ? Buffer.from(node.body.statements[0].expression.arguments[0].arguments[0].text, 'hex') : undefined);
 const empty = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]);
 
-test('real workerd native async I/O, imports and binary streams; finalization remains unqualified', { timeout: 30000 }, async context => {
+test('real workerd native async I/O, imports, binary streams and asynchronous finalization', { timeout: 30000 }, async context => {
   const injection = `
 import main from 'main.wasm';
 import helper from 'helper.wasm';
@@ -70,7 +70,7 @@ export { WebAssembly, fetch, location };
   const outputRoot = process.env.TMPDIR;
   const bundle = await build({ entryPoints: [fileURLToPath(new URL('./python-jspi.worker.mjs', import.meta.url))],
     bundle: true, write: false, platform: 'node', format: 'esm', target: 'es2022', conditions: ['workerd', 'browser'],
-    external: ['main.wasm', 'helper.wasm', 'ccall.wasm', 'empty.wasm', 'trampoline.wasm', 'stdlib.bin', 'node:*', 'ws'],
+    external: ['main.wasm', 'helper.wasm', 'ccall.wasm', 'empty.wasm', 'trampoline.wasm', 'native-call.wasm', 'stat-result.wasm', 'stdlib.bin', 'node:*', 'ws'],
     define: { 'globalThis.process': 'undefined', process: 'undefined' },
     alias: { 'pinned-pyodide-loader': resolve(runtimeRoot, 'pyodide.mjs'),
       'pinned-pyodide-module': resolve(runtimeRoot, 'pyodide.asm.mjs'),
@@ -83,7 +83,8 @@ export { WebAssembly, fetch, location };
   const modules = [
     { type: 'ESModule', path: resolve(outputRoot, 'main.mjs'), contents: bundle.outputFiles[0].text },
     ...[['main.wasm', files['pyodide.asm.wasm']], ['helper.wasm', helper], ['ccall.wasm', ccall],
-      ['empty.wasm', empty], ['trampoline.wasm', createPythonJspiTrampoline()]].map(([name, contents]) => ({ type: 'CompiledWasm', path: resolve(outputRoot, name), contents })),
+      ['empty.wasm', empty], ['trampoline.wasm', createPythonJspiTrampoline()], ['native-call.wasm', createPythonJspiNativeCall()],
+      ['stat-result.wasm', createPythonJspiStatResult()]].map(([name, contents]) => ({ type: 'CompiledWasm', path: resolve(outputRoot, name), contents })),
     { type: 'Data', path: resolve(outputRoot, 'stdlib.bin'), contents: files['python_stdlib.zip'] },
   ];
   const miniflare = new Miniflare(convertV4MiniflareOptions({ modules, compatibilityDate: '2026-09-17', cf: false }));
@@ -103,8 +104,11 @@ export { WebAssembly, fetch, location };
     const finalizationResponse = await miniflare.dispatchFetch('http://fixture/finalization');
     const finalization = await finalizationResponse.json();
     assert.equal(finalizationResponse.status, 200, JSON.stringify(finalization));
-    assert.ok(finalization.failures.some(message => message.includes('Cannot stack switch: no thread state to hand control back to')));
-    assert.deepEqual(finalization.finalized, []);
+    assert.deepEqual(finalization.failures, []);
+    assert.deepEqual(finalization.finalized, [42]);
+    assert.deepEqual(finalization.buffered, [255, 0, 43]);
+    assert.deepEqual(finalization.destructor, [44]);
+    assert.deepEqual(finalization.stdout, [0, 255, 42, 45]);
     context.diagnostic(JSON.stringify({ sourceQualificationOnly: true, memory: result.memory, elapsedMs: result.elapsedMs,
       requests: result.requests.length, finalizationFailure: finalization.failures,
       assets: modules.map(module => ({ name: module.path.slice(outputRoot.length + 1), bytes: Buffer.byteLength(module.contents) })) }));

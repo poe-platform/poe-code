@@ -69,15 +69,15 @@ worker's behavior. The real workerd source qualification now includes local
 imports, native `_csv` file reads, zlib, binary stdin/stdout/stderr, seek and
 canonical output writes; it observes serial deliberately delayed requests.
 
-Full executor delivery is blocked, not complete. A maintained characterization
-reproduces the pinned runtime's asynchronous finalization error: atexit native
-I/O reaches the backend but fails to suspend because raw `_Py_FinalizeEx` has no
-Pyodide handback thread state. Calling `createPromising` on the export does not
-establish that state. Catching the Python error can still produce exit status
-zero, so success cannot be inferred from the exit code. The incomplete executor
-has deliberately been moved to test fixtures, not exported as a product host.
+Full executor delivery remains incomplete. The original characterization exposed
+the pinned runtime's asynchronous finalization error: raw `_Py_FinalizeEx` has
+no Pyodide handback thread state. Calling `createPromising` did not establish
+that state. The native shutdown and C-API bridges described in the follow-up
+below now pass positive finalization assertions, including actual file effects.
+The executor remains a fixture until background-callback retirement and the
+public host lifecycle are qualified; it is not yet an exported product host.
 
-Next work must qualify interpreter finalization and background-task retirement
+Next work must qualify background-task retirement and exclusive finalization
 without bypassing the runtime's thread-state guard, then exercise cancellation
 and sibling lifetime through actual Shell instances and the packed public
 artifact. Managed-child import integration and a disposable Cloudflare
@@ -85,6 +85,44 @@ deployment remain separate outstanding gates. No push, remote-main delivery,
 release, issue closure or deployment is claimed by this worktree.
 
 ## Validation handoff
+
+### Native finalization follow-up
+
+The acceptance assertion was changed to require atexit output, and reproduced
+the original handback-thread-state failure before the implementation changed.
+A separate standard-JSPI native import path now enters CPython finalization
+without calling Pyodide's task-oriented `syscall_syncify`. This leaves the
+runtime's thread-state guard intact. Native atexit writes, unclosed buffers,
+destructor writes, and binary finalizer stdout pass in actual pinned workerd.
+
+Adding metadata/listing to atexit and a destructor exposed two further red
+cases. A precompiled C-API request module replaces the Python `run_sync`
+metadata shim. CPython's `statresult_new` also looks up `posix` through the
+already-cleared `sys.modules` during late destruction; a pinned-runtime native
+stat oracle succeeded while the Python constructor failed. A second precompiled
+C-API module constructs the true struct-sequence directly, with its field order
+discovered before shutdown and correct owned element references. The stronger
+workerd test now passes, including destructor metadata and atexit listing.
+
+These are source-runtime finalization qualifications, not completion of #746.
+Next: own/drain scheduled callbacks before exclusive finalization, test actual
+Shell cancellation/sibling lifetime, then qualify the packed consumer and
+managed-runtime integration. The latter's pre-instantiated immutable imports
+remain a separate blocker. No deployment access or publication is claimed.
+Upstream `origin/main` was checked through `c98f1437f`; the ZIP/identity and new
+release fixes do not change these Python source paths. Shared SafeFS descriptor
+contracts/implementations are left to #763; this follow-up changes no SafeFS files.
+
+Evidence: `out/issue-746/finalization-red.log`,
+`out/issue-746/finalization-metadata-red.log`,
+`out/issue-746/finalization-metadata-native-oracle.log`,
+`out/issue-746/finalization-metadata.log`, and
+`out/issue-746/native-stat-unit.log`. The extra Wasm modules are 254 and 241 bytes;
+the expanded native syscall trampoline is 4990 bytes.
+The focused Python command is unchanged from the original validation below and
+now passes 58 tests. The scoped helper typecheck and `git diff --check` pass.
+
+### Original component validation
 
 All commands below run in the issue worktree, never parent main.
 

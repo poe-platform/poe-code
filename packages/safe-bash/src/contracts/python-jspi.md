@@ -15,6 +15,22 @@ The adapter passes bootstrap calls through unchanged; during guest execution it
 returns an asynchronous canonical request to the Wasm `syscall_syncify` export.
 Suspension occurs in Wasm, with no intervening synchronous JS filesystem frame.
 
+During exclusive interpreter shutdown, a separate standard JSPI import calls
+the asynchronous dispatcher directly. `_Py_FinalizeEx` is entered with
+`WebAssembly.promising`; it does not impersonate a live Pyodide task or modify
+the `syscall_syncify` thread-state guard. This boundary requires the host to
+prevent concurrent Python callbacks while finalization is in progress.
+
+Two additional small precompiled C-API modules serve metadata without a
+`pyodide.ffi.run_sync` Python callback: one converts a request/result through
+`PyUnicode_AsUTF8`/`PyUnicode_FromString`, and the other constructs real
+`os.stat_result` objects with `PyStructSequence_New` and owned field references.
+The latter avoids the Python constructor's import lookup after `sys.modules`
+is cleared. Field order is discovered from the pinned type before shutdown;
+missing canonical fields are not fabricated. Metadata requests are capped at
+16 KiB and encoded responses at 1 MiB; this does not bound a backend's own
+directory enumeration allocation.
+
 `jspi-assets.ts` supplies lexical loader bindings, not global monkey patches.
 It maps exact admitted helper bytes to precompiled Wasm modules, serves bundled
 stdlib bytes, and recognizes only its own main-module response. Equal-length
@@ -51,20 +67,23 @@ took 1233 ms including initialization and the script. Neither number is a
 production memory guarantee or benchmark. Exact asset sizes are emitted by the
 test; the main Wasm is 9598218 bytes and stdlib is 2545564 bytes.
 
-The same test **reproduces a finalization failure**. Calling raw
+The original red test reproduced a finalization failure. Calling raw
 `_Py_FinalizeEx` through `WebAssembly.promising` / Pyodide `createPromising` does
 not establish the thread-state bookkeeping needed by `syscall_syncify`.
 An atexit handler's native open reaches canonical storage, but suspension raises
 `Cannot stack switch: no thread state to hand control back to` and the expected
 file contents are not written. Python can catch that error, so an exit status of
-zero does not prove successful interpreter retirement. The test explicitly
-asserts the failure as characterization, not as an acceptance pass.
+zero does not prove successful interpreter retirement. The current test now
+requires the actual finalizer bytes: delayed native atexit I/O, unclosed buffered
+file flushing, destructor writes and metadata, atexit directory enumeration,
+and binary stdout flushing pass through the new native shutdown boundary.
+The native syscall adapter is still not a complete public executor.
 
 Do not bypass Pyodide's thread-state guard, replay syscalls, copy the workspace,
-or replace only `builtins.open` to hide this problem. Full safe asynchronous
-finalization and background-task retirement need an independently qualified
-runtime path. Cancellation and sibling ownership tests of the lower-level
-adapter do not establish that full runtime guarantee.
+or replace only `builtins.open` to hide lifecycle defects. Background-task
+retirement and exclusion of reentry during finalization still need qualification.
+Cancellation and sibling ownership tests of the lower-level adapter do not
+establish that full runtime guarantee.
 
 Managed Python child imports remain instantiated before application code, with
 no supported replacement hook qualified here. Packed-public-consumer and managed

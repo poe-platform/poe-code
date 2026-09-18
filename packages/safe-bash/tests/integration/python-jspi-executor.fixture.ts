@@ -16,6 +16,8 @@ export interface PythonJspiRuntimeConfiguration {
 
 export interface PythonJspiExecutorOptions {
   readonly trampoline: object;
+  readonly nativeCall: object;
+  readonly statResult: object;
   readonly loadRuntime: (configuration: PythonJspiRuntimeConfiguration) => Promise<any>;
 }
 
@@ -33,6 +35,9 @@ export function createPythonJspiQualificationExecutor(options: PythonJspiExecuto
   let native: ReturnType<typeof createPythonNativeSyscalls> | undefined;
   let instanceBound = false;
   let importsBound = false;
+  let methodDefinition = 0;
+  let methodPointer: number | undefined;
+  let statPointer: number | undefined;
   const originals: Record<string, (...args: any[]) => number> = {};
 
   const execute = async (start: PythonExecutorStart): Promise<number> => {
@@ -60,7 +65,8 @@ export function createPythonJspiQualificationExecutor(options: PythonJspiExecuto
           const original = Object.fromEntries(Object.keys(pythonJspiSignatures).map(name => [name, originals[name] ?? (() => -52)]));
           const request = Object.fromEntries(Object.keys(pythonJspiSignatures).map(name => [name,
             (...args: (number | bigint)[]) => native!.invoke(name, args)]));
-          const bridge = new engine.Instance(options.trampoline, {original, request, control:{active, syncify}});
+          const shutdown = Object.fromEntries(Object.entries(request).map(([name, dispatch]) => [name, new engine.Suspending(dispatch)]));
+          const bridge = new engine.Instance(options.trampoline, {original, request, shutdown, control:{active, syncify}});
           for (const namespace of namespaces) for (const name of Object.keys(originals)) {
             if (typeof namespace[name] === 'function') namespace[name] = bridge.exports[name];
           }
@@ -95,37 +101,95 @@ export function createPythonJspiQualificationExecutor(options: PythonJspiExecuto
       };
       const absolute = (path: string): string => path.startsWith('/') ? path : filesystem.cwd() + '/' + path;
       const bootstrapPath = (path: string): boolean => path === start.runtimeMount || path.startsWith(start.runtimeMount + '/');
-      runtime.globals.set('_safe_async_metadata', (path: string | number, follow: boolean) => encode(() => native!.metadata(path, follow)));
-      runtime.globals.set('_safe_async_directory', (path: string) => encode(async () => {
-        const target = absolute(path);
-        const entries = bootstrapPath(target) ? filesystem.readdir(target).filter((name: string) => name !== '.' && name !== '..')
-          : (await start.dispatch({op:'readdir',args:[target]}) as {name:string}[]).map(entry => entry.name);
-        return {entries};
-      }));
-      runtime.globals.set('_safe_async_tree', (path: string) => encode(async () => {
-        const target = absolute(path);
-        if (bootstrapPath(target) || !await start.dispatch({op:'rmtreeSupported',args:[target]})) return {supported:false};
-        try { await start.dispatch({op:'rmtree',args:[target]}); return {supported:true}; }
-        catch (error) { return {supported:true, errno:errno[(error as {code?:string}).code ?? ''] ?? errno.EIO}; }
-      }));
+      const module = runtime._module;
+      const send = async (pointer: number): Promise<number> => {
+        let response = await encode(async () => {
+          signal.throwIfAborted();
+          const [operation, path, follow] = JSON.parse(module.UTF8ToString(pointer, 16384));
+          if (operation === 'stat') return native!.metadata(path, follow);
+          if (typeof path !== 'string') throw Object.assign(new Error('Invalid native Python path'), {code:'EINVAL'});
+          const target = absolute(path);
+          if (operation === 'directory') {
+            const entries = bootstrapPath(target) ? filesystem.readdir(target).filter((name: string) => name !== '.' && name !== '..')
+              : (await start.dispatch({op:'readdir',args:[target]}) as {name:string}[]).map(entry => entry.name);
+            return {entries};
+          }
+          if (operation === 'tree') {
+            if (bootstrapPath(target) || !await start.dispatch({op:'rmtreeSupported',args:[target]})) return {supported:false};
+            try { await start.dispatch({op:'rmtree',args:[target]}); return {supported:true}; }
+            catch (error) { return {supported:true, errno:errno[(error as {code?:string}).code ?? ''] ?? errno.EIO}; }
+          }
+          throw Object.assign(new Error('Invalid native Python operation'), {code:'EINVAL'});
+        });
+        if (response.length > 1048576) response = JSON.stringify({errno:errno.EFBIG});
+        let bytes = new TextEncoder().encode(response);
+        if (bytes.length > 1048576) bytes = new TextEncoder().encode(JSON.stringify({errno:errno.EFBIG}));
+        const output = module._malloc(bytes.length + 1);
+        if (!output) return 0;
+        module.HEAPU8.set(bytes, output);
+        module.HEAPU8[output + bytes.length] = 0;
+        return output;
+      };
+      const nativeCall = new engine.Instance(options.nativeCall, {
+        python: {utf8:module._PyUnicode_AsUTF8, unicode:module._PyUnicode_FromString,
+          free:module._free, noMemory:module._PyErr_NoMemory},
+        request: {send}, shutdown: {send:new engine.Suspending(send)}, control: {active, syncify},
+      });
+      methodPointer = module.addFunction(nativeCall.exports.call, 'iii');
+      methodDefinition = module._malloc(128);
+      if (!methodDefinition) throw new PythonFailure('runtime-assets');
+      module.HEAPU8.fill(0, methodDefinition, methodDefinition + 128);
+      module.HEAPU8.set(new TextEncoder().encode('request\0_safe_native_fs\0'), methodDefinition + 16);
+      module.HEAPU32.set([methodDefinition + 16, methodPointer, 8, 0], methodDefinition / 4);
+      const extension = module._PyImport_AddModule(methodDefinition + 24);
+      const callable = module._PyCFunction_NewEx(methodDefinition, 0, 0);
+      if (!extension || !callable || module._PyModule_AddObject(extension, methodDefinition + 16, callable) < 0) throw new PythonFailure('runtime-abi');
+      const fields = Number(runtime.runPython('os.stat_result.n_fields'));
+      const statResult = new engine.Instance(options.statResult, {python: {
+        fields: new engine.Global({value:'i32'}, fields), create:module._PyStructSequence_New,
+        size:module._PyTuple_Size, item:module._PyTuple_GetItem, retain:module._Py_IncRef,
+        set:module._PyStructSequence_SetItem, invalid:module._PyErr_BadArgument,
+      }});
+      statPointer = module.addFunction(statResult.exports.construct, 'iii');
+      module.HEAPU8.set(new TextEncoder().encode('stat_result\0os\0'), methodDefinition + 80);
+      module.HEAPU32.set([methodDefinition + 80, statPointer, 8, 0], (methodDefinition + 64) / 4);
+      const osModule = module._PyImport_AddModule(methodDefinition + 92);
+      const statType = module._PyObject_GetAttrString(osModule, methodDefinition + 80);
+      const constructStat = module._PyCFunction_NewEx(methodDefinition + 64, statType, 0);
+      module._Py_DecRef(statType);
+      if (!constructStat || module._PyModule_AddObject(extension, methodDefinition + 80, constructStat) < 0) throw new PythonFailure('runtime-abi');
       runtime.runPython(`
-from pyodide.ffi import run_sync as _safe_run_sync
+from _safe_native_fs import request as _safe_native_request
 def _safe_stat_projection(path, follow):
- return _safe_run_sync(_safe_async_metadata(path, follow))
+ return _safe_native_request(json.dumps(['stat', path, follow]))
 def _safe_import_stat(path):
  return _safe_stat_projection(path, True)
 def _safe_directory_entries(path):
- return _safe_run_sync(_safe_async_directory(path))
+ return _safe_native_request(json.dumps(['directory', path]))
 def _safe_tree_cleanup(path):
- return _safe_run_sync(_safe_async_tree(path))
+ return _safe_native_request(json.dumps(['tree', path]))
 `);
       for (const script of [pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonTreeCleanup]) runtime.runPython(script);
+      runtime.runPython(`
+from _safe_native_fs import stat_result as _safe_construct_stat
+_safe_stat_fields = os.stat_result.n_fields
+_safe_stat_probe = os.stat_result(tuple(range(_safe_stat_fields)))
+_safe_stat_indexes = {name: getattr(_safe_stat_probe, name) for name in dir(_safe_stat_probe) if name.startswith('st_')}
+def _safe_native_stat_type(values, extras):
+ fields = list(values) + [None] * (_safe_stat_fields - len(values))
+ for name, value in extras.items():
+  if name in _safe_stat_indexes:
+   fields[_safe_stat_indexes[name]] = value
+ return _safe_construct_stat(tuple(fields))
+_safe_stat_type = _safe_native_stat_type
+`);
       runtime.globals.set('_safe_invocation_json', JSON.stringify(start.invocation));
       active.value = 1;
       start.onReady();
       const exitCode = await runtime.runPythonAsync(pythonExecution);
       signal.throwIfAborted();
-      const finalized = await runtime._module.createPromising(runtime._module._Py_FinalizeEx)();
+      active.value = 2;
+      const finalized = await engine.promising(runtime._module._Py_FinalizeEx)();
       signal.throwIfAborted();
       return finalized < 0 ? 120 : Number(exitCode) & 255;
     } finally {
@@ -134,6 +198,9 @@ def _safe_tree_cleanup(path):
       cleanup = native?.close();
       try { await cleanup; }
       finally {
+        if (methodDefinition) runtime?._module._free(methodDefinition);
+        if (methodPointer !== undefined) runtime?._module.removeFunction(methodPointer);
+        if (statPointer !== undefined) runtime?._module.removeFunction(statPointer);
         runtime = undefined;
         native = undefined;
         syncify.set(0, null);

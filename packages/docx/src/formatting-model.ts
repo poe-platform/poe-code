@@ -10,6 +10,7 @@ import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { formattedRunProperties, runElementOpen, underline, highlights, themes } from "./run-properties.js";
 import { paragraphProperties, paragraphUnits, alignments as paragraphAlignments } from "./paragraph-properties.js";
 import { validateDocxValue } from "./operation-schema.js";
+import { assertFormattingHistoryEditable } from "./revision-markup.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import type { ModelStore, ModelRef } from "./model-store.js";
 
@@ -88,6 +89,7 @@ function update(owner: FormattingXmlOwner, kind: "r" | "p", values: DocxOperatio
   if (binding) {
     binding.change(xml => {
       const root = binding.resolve(xml), children = activeXmlChildren(xml, ownerBudget(owner)), props = child(root, kind + "Pr", children);
+      assertFormattingHistoryEditable(xml.root, root, children, ownerBudget(owner));
       let replacement = kind === "r" ? formattedRunProperties(xml, root, values as DocxOperationArguments<"runs.set">, children) : paragraphProperties(xml, root, values as DocxOperationArguments<"paragraphs.set">, undefined, children);
       // Empty internal updates explicitly materialize a documented model owner.
       if (!replacement && Object.keys(values).length === 0) replacement = `<fmt:${kind}Pr xmlns:fmt="${root.namespace}"/>`;
@@ -98,6 +100,7 @@ function update(owner: FormattingXmlOwner, kind: "r" | "p", values: DocxOperatio
   }
   const xml = editor(owner), root = xml.root;
   if (root.localName !== kind) throw new TypeError("Formatting requires the matching admitted owner element.");
+  assertFormattingHistoryEditable(xml.root, root, activeXmlChildren(xml, ownerBudget(owner)), ownerBudget(owner));
   const props = child(root, kind + "Pr");
   let replacement = kind === "r" ? formattedRunProperties(xml, root, values as DocxOperationArguments<"runs.set">) : paragraphProperties(xml, root, values as DocxOperationArguments<"paragraphs.set">);
   if (!replacement) replacement = `<fmt:${kind}Pr xmlns:fmt="${root.namespace}"/>`;

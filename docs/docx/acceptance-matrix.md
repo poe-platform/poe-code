@@ -785,3 +785,11 @@ passed across both dialects and kinds. Whole-run overrides preserve the original
 carrier, inactive branch, other properties and every untouched member without
 splitting or duplicating carriers. Partial carrier splits and full-family
 acceptance remain open.
+
+The [formatting-history carrier correction](text-style-family-acceptance-20260918/run-format-history-requirement-evidence.json)
+records qualified original SDK/Shell, live-model and standalone-model failures.
+The final six-file run passed 324 cases; 292 rebuilt public/standalone workflows
+passed. Selected complex property history rejects before mutation/publication;
+inert history remains byte-retained. The model retains supported-history behavior,
+and the utility retains its stricter explicit-history guard. The invalid initial
+selector attempt remains recorded. Full-family acceptance remains open.

@@ -115,9 +115,9 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
     for (const index of target.run.value.path) { parent = node; node = node.children[index]!; ancestors.push(node); }
     xml.assertShapeEditAllowed(node);
     selectedNodes.set(node, target.location);
-    if (ancestors.some(n => n.namespace === node.namespace && (["moveFrom", "moveTo", "del"].includes(n.localName) || ["p", "r"].includes(n.localName) && n.children.some(p => p.localName === n.localName + "Pr" && p.children.some(c => c.localName === p.localName + "Change")))))
-      throw new UnsupportedEditError("Complex or deleted revision runs cannot be formatted.");
     const children = activeXmlChildren(xml, budget);
+    if (ancestors.some(n => n.namespace === node.namespace && (["moveFrom", "moveTo", "del"].includes(n.localName) || ["p", "r"].includes(n.localName) && children(n).some(p => p.namespace === node.namespace && p.localName === n.localName + "Pr" && children(p).some(c => c.namespace === node.namespace && c.localName === p.localName + "Change")))))
+      throw new UnsupportedEditError("Complex or deleted revision runs cannot be formatted.");
     const props = children(node).find(c => c.namespace === node.namespace && c.localName === "rPr");
     const original = props ? xml.sourceXml(props) : "";
     const properties = formattedRunProperties(xml, node, opts, children);

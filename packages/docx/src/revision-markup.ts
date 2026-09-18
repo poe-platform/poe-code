@@ -77,3 +77,23 @@ export function assertOutsideRevisionRanges(root: XmlElement, target: XmlElement
   };
   visit(root);
 }
+
+/** A model property patch cannot reconcile opaque owner or ancestor history. */
+export function assertFormattingHistoryEditable(root: XmlElement, target: XmlElement, children: (node: XmlElement) => readonly XmlElement[], budget: DocumentBudget): void {
+  const visit = (node: XmlElement, blocked: boolean): boolean => {
+    budget.charge("work", 1);
+    const active = children(node);
+    const history = node.namespace === target.namespace && (["p", "r"].includes(node.localName) || node === target) &&
+      active.filter(property => property.namespace === target.namespace && ["pPr", "rPr"].includes(property.localName)).some(property =>
+        children(property).some(change => {
+          const revision = revisionInfo(change);
+          return revision?.type === "format" && revision.support === "opaque";
+        }));
+    if (node === target) {
+      if (blocked || history) throw new UnsupportedEditError("Formatting cannot reconcile complex property history.");
+      return true;
+    }
+    return active.some(child => visit(child, blocked || history));
+  };
+  if (!visit(root, false)) throw new UnsupportedEditError("Formatting requires an active owned element.");
+}

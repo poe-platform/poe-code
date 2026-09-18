@@ -563,6 +563,13 @@ F15/F18 dependency; complete F01–F07 acceptance and the current workspace gate
 remain open.
 # Public reservation/cancellation variants — 2026-09-17
 
+The [current opt-in closure check](opt-in-closure-20260918.md) verifies native and
+fresh browser-target public registration, collision preflight and replacement,
+plus the absence of DOCX from the default browser dependency graph. All 1,097
+captured inputs remain unchanged. Earlier verification failures are retained.
+This scoped section 4 evidence does not establish browser/worker certification
+or whole-family acceptance.
+
 The [current relationship-collection public replay](f01-f07-public-relationships-20260918.md)
 repeats all 31 qualified built public campaigns after `e2c19d315`. All pass with
 3,917 unchanged captured inputs per campaign. Exact modules, assertions, output

@@ -1,6 +1,6 @@
 export const playwrightBuiltinCommands = {
   open: { arity: [1, 2], details: '--browser <chromium|firefox|webkit> selects an injected engine (default: chromium).\n--headed or --headless selects the mode (default: headless); host support is required.' },
-  goto: { arity: [2, 2], details: 'Navigation accepts http:, https:, and about:blank. It invalidates snapshot refs.' },
+  goto: { arity: [2, 2], details: 'Navigates the native browser and invalidates snapshot refs.' },
   list: { arity: [1, 1], details: 'Lists sessions owned by this controller. States: acquiring, open, closing, closed.' },
   close: { arity: [1, 1], details: 'Closes the selected owned session. Closing an absent session is safe; use open to start it again.' },
   attach: { arity: [1, 2], details: 'Attach to a browser provided by an authenticated attachment broker.' },

@@ -149,9 +149,7 @@ export function parseInvocation(invocation: PlaywrightInvocation, abilities: Rea
   }
   const url = command === 'open' || command === 'goto' || command === 'tab-new' ? positional[0] : undefined;
   if (url !== undefined) {
-    const parsedUrl = new URL(url);
-    if (parsedUrl.protocol !== 'https:' && parsedUrl.protocol !== 'http:' && url !== 'about:blank') throw new Error('Unsupported navigation URL');
-    parsed.url = url;
+    parsed.url = URL.canParse(url) ? url : `${url.startsWith('localhost') ? 'http' : 'https'}://${url}`;
   }
   if (command === 'click' || command === 'fill') {
     const ref = positional[0]!;

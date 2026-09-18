@@ -230,9 +230,32 @@ test('session selection, retained ownership, explicit engine, and idempotent dis
   await assert.rejects(f.run(['open']), /disposed/);
 });
 
+test('navigation forwards native URL schemes and normalizes bare hostnames', async () => {
+  const f = fixture();
+  const inputs = [
+    ['data:text/html,<h1>Hello</h1>', 'data:text/html,<h1>Hello</h1>'],
+    ['file:///tmp/page.html', 'file:///tmp/page.html'],
+    ['about:blank#section', 'about:blank#section'],
+    ['javascript:void(0)', 'javascript:void(0)'],
+    ['custom-browser:resource', 'custom-browser:resource'],
+    ['poe.com', 'https://poe.com'],
+    ['localhost/page', 'http://localhost/page'],
+  ];
+  try {
+    for (const command of ['open', 'goto', 'tab-new']) {
+      if (command !== 'open') await f.run(['open']);
+      for (const [input, expected] of inputs) {
+        await f.run([command, input!]);
+        assert.ok(f.events.includes(`goto:default:${expected}`), `${command} must pass ${input} to the native provider`);
+        f.events.length = 0;
+      }
+    }
+  } finally { await f.controller.dispose(); }
+});
+
 test('invalid arguments, unsupported engines/options and invalid limits have no effects', async () => {
   const f = fixture();
-  for (const args of [['open', '--browser=webkit'], ['open', '--headed'], ['open', '--browser=unknown'], ['open', '--idle-timeout=-1'], ['open', '--session=../bad'], ['goto'], ['close', 'extra'], ['open', '--browser'], ['open', 'javascript:alert(1)']]) {
+  for (const args of [['open', '--browser=webkit'], ['open', '--headed'], ['open', '--browser=unknown'], ['open', '--idle-timeout=-1'], ['open', '--session=../bad'], ['goto'], ['close', 'extra'], ['open', '--browser']]) {
     await assert.rejects(f.run(args));
   }
   assert.deepEqual(f.events, []);

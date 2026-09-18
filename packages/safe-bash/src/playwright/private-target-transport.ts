@@ -231,9 +231,9 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
     } catch (error) { retire(error); }
   }
 
-  function finish(entry: Creation, targetId?: string): void {
+  function finish(entry: Creation, committing: boolean, targetId?: string): void {
     if (!entry.active || creation !== entry || failure) throw new Error('Target creation guard is no longer active');
-    if (targetId !== undefined) {
+    if (committing) {
       if (!identity(targetId) || targets.has(targetId)) {
         const error = new Error('Invalid or reused private target identity');
         retire(error);
@@ -285,8 +285,8 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
         timer: setTimeout(() => retire(new Error('Native target creation identity timed out')), limits.creationTimeoutMs) };
       creation = entry;
       return {
-        commit(targetId) { finish(entry, targetId); },
-        rollback() { finish(entry); },
+        commit(targetId) { finish(entry, true, targetId); },
+        rollback() { finish(entry, false); },
         fail(error) {
           if (entry.failed || failure) return;
           if (!entry.active || creation !== entry) throw new Error('Target creation guard is no longer active');

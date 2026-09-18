@@ -242,3 +242,70 @@ test('signed client command IDs used by native browser shutdown are remapped wit
   assert.deepEqual(state.received, [{ id: -9999, result: {} }]);
   state.transport.close();
 });
+
+test('missing commit identity cannot silently behave like rollback', () => {
+  const state = fixture();
+  const guard = state.beginCreation();
+  state.receive(attached('unresolved', 'unresolved-session'));
+  assert.throws(() => guard.commit(undefined as unknown as string), /identity/i);
+  assert.equal(state.closes(), 1);
+  assert.deepEqual(state.received, []);
+});
+
+test('duplicate held replies do not consume the event budget twice', () => {
+  const state = fixture({ maxBufferedMessages: 1 });
+  const guard = state.beginCreation();
+  state.transport.send({ id: 42, method: 'Target.getTargets' });
+  const reply = { id: state.sent[0]!.id, result: { targetInfos: [{ targetId: 'public' }] } };
+  state.receive(reply);
+  state.receive(reply);
+  guard.commit('scratch');
+  assert.equal(state.received.length, 1);
+  assert.equal(state.closes(), 0);
+  state.transport.close();
+});
+
+test('pending byte admission is returned on native response completion', () => {
+  const state = fixture({ maxPendingBytes: 60, maxPendingCommands: 1 });
+  for (let index = 0; index < 3; index++) {
+    state.transport.send({ id: index, method: 'Runtime.enable' });
+    state.receive({ id: state.sent.at(-1)!.id, result: {} });
+  }
+  assert.equal(state.received.length, 3);
+  assert.equal(state.closes(), 0);
+  state.transport.close();
+});
+
+test('a response cannot be routed into a different native session', () => {
+  const state = fixture();
+  state.transport.send({ id: 1, method: 'Runtime.enable', sessionId: 'public' });
+  state.receive({ id: state.sent[0]!.id, sessionId: 'foreign', result: {} });
+  assert.equal(state.closes(), 1);
+  assert.deepEqual(state.received, []);
+});
+
+test('child sessions under private sessions inherit privacy and real detach', () => {
+  const state = fixture();
+  state.beginCreation().commit('scratch');
+  state.receive(attached('scratch', 'private'));
+  state.receive(attached('child', 'child-session', 'private'));
+  assert.equal(state.sent.length, 2);
+  assert.deepEqual(state.sent[1]!.params, { sessionId: 'child-session' });
+  state.receive({ id: state.sent[0]!.id, result: {} });
+  state.receive({ id: state.sent[1]!.id, sessionId: 'private', result: {} });
+  state.receive({ method: 'Target.targetInfoChanged', params: { targetInfo: { targetId: 'child' } } });
+  assert.deepEqual(state.received, []);
+  state.transport.close();
+});
+
+test('open is forwarded once and downstream callback failure retires', () => {
+  const state = fixture();
+  let opens = 0;
+  state.upstream.open = () => { opens++; };
+  state.transport.open?.();
+  state.transport.open?.();
+  assert.equal(opens, 1);
+  state.transport.onmessage = () => { throw new Error('Client callback failed'); };
+  state.receive(attached('public', 'session'));
+  assert.equal(state.closes(), 1);
+});

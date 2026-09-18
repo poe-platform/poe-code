@@ -301,6 +301,7 @@ function validateCommentRange(
   const xml = store.xml(first.ref.part),
     firstNode = store.node(first.ref),
     lastNode = store.node(last.ref);
+  const children = activeModelChildren(store, first.ref.part);
   const ordered: {
     node: XmlElement;
     parent: XmlElement;
@@ -339,7 +340,7 @@ function validateCommentRange(
       if (type === "end") fieldDepth = Math.max(0, fieldDepth - 1);
     }
     ordered.push({ node, parent, container, safe: safe && !fieldDepth, order: order++ });
-    for (const child of node.children) visit(child, node, container, safe);
+    for (const child of children(node)) visit(child, node, container, safe);
   };
   visit(xml.root, xml.root, xml.root, true);
   const start = ordered.find((n) => n.node === firstNode),

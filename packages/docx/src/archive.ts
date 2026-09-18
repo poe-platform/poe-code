@@ -2,6 +2,7 @@ import { CodecError, createZipCodec, type ZipLimits } from "@poe-code/office-pac
 import { DocumentBudget } from "./budget.js";
 import { documentByteView } from "./byte-input.js";
 import { DocumentError } from "./document-error.js";
+import { hasArchiveDrivePrefix } from "./archive-path.js";
 
 export interface ArchiveLimits {
   readonly maxArchiveBytes: number;
@@ -136,7 +137,7 @@ export async function readArchive(
     for (const entry of archive.entries) {
       if (entry.centralHeaderBytes! > 65535)
         throw new InvalidContainerError("OPC central directory headers cannot exceed 65535 bytes.");
-      if (entry.symlink || entry.name.includes("\\") || entry.name.includes(":"))
+      if (entry.symlink || entry.name.includes("\\") || hasArchiveDrivePrefix(entry.name))
         throw new InvalidContainerError("Unsafe document archive member.");
       expanded += entry.size;
       if (expanded > limits.maxRetainedBytes - retained)

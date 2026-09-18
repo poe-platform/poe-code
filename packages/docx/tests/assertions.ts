@@ -44,7 +44,9 @@ export function readPackage(bytes: Uint8Array): Map<string, Uint8Array> {
     assert(next <= end, "ZIP central extent");
     const rawName = bytes.subarray(cursor + 46, cursor + 46 + nameLength);
     const name = decoder.decode(rawName);
-    assert(name && !name.includes("\\") && !name.includes("\0") && !name.includes(":"), "ZIP name");
+    assert(name && !name.includes("\\") && !name.includes("\0"), "ZIP name");
+    const first = name.charCodeAt(0);
+    assert(!(name[1] === ":" && ((first >= 65 && first <= 90) || (first >= 97 && first <= 122))), "ZIP drive name");
     assert(
       name.split("/").every((segment) => segment && segment !== "." && segment !== ".."),
       "ZIP path"

@@ -1,5 +1,6 @@
 import { CodecError, createZipCodec, type ZipEntry } from "@poe-code/office-package";
 import { asPermissionError } from "./io-errors.js";
+import { hasArchiveDrivePrefix } from "./archive-path.js";
 import {
   archiveSettings,
   CancellationError,
@@ -105,7 +106,7 @@ export async function writeArchive(
       if (
         !member.name ||
         member.name.includes("\\") ||
-        member.name.includes(":") ||
+        hasArchiveDrivePrefix(member.name) ||
         member.name.includes("\0") ||
         parts.some((part) => !part || part === "." || part === "..") ||
         names.has(member.name) ||

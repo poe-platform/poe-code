@@ -1212,7 +1212,7 @@ test("maintained outer launcher rejects inherited startup settings before the ve
     const verifierMarker = join(directory, "synthetic-verifier-ran");
     const startup = join(directory, "startup.cjs");
     writeFileSync(startup, `require("node:fs").writeFileSync(${JSON.stringify(startupMarker)}, "owned startup control"); process.exit(86);\n`);
-    writeFileSync(join(directory, "verify.mjs"), `import {writeFileSync} from "node:fs"; writeFileSync(${JSON.stringify(verifierMarker)},JSON.stringify({revision:process.argv[2],environment:process.env})); writeFileSync(process.argv[3],JSON.stringify({status:"pass",runtime:{requests:0},typecheck:{sourceFallback:false,negativeDiagnosticCodes:[2322,2345,2741]}}));\n`);
+    writeFileSync(join(directory, "verify.mjs"), `import {writeFileSync} from "node:fs"; writeFileSync(${JSON.stringify(verifierMarker)},JSON.stringify({revision:process.argv[2],environment:process.env})); writeFileSync(process.argv[3],JSON.stringify({status:"fail",steps:[],error:{message:"Public SafeFS must preserve shared SafeJS runtime identity"}})); process.exitCode=1;\n`);
     const observedEnvironments = [];
     for (const mode of ["baseline", "poison"]) {
       if (existsSync(verifierMarker)) rmSync(verifierMarker);

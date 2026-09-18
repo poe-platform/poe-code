@@ -16,5 +16,5 @@ export async function executeRunFormatCommand(invocation: DocxInvocation, bytes:
   if (output === "-" && !data.dryRun) return new Uint8Array();
   return new TextEncoder().encode(options.json ? JSON.stringify({ version: 1, operation: "runs.set", ok: true, data,
     warnings: [], errors: [], affected: data.changes.length, locations: data.changes.map(change => change.after) }) + "\n"
-    : `docx runs set: ${data.dryRun ? "dry-run; " : ""}${data.changes.length} ${data.changes.length === 1 ? "selection" : "selections"} formatted\n`);
+    : `docx runs set: ${data.dryRun ? "dry-run; " : ""}${data.changes.length} ${options.text === undefined ? `${data.changes.length === 1 ? "selection" : "selections"} formatted` : `${data.changes.length === 1 ? "run" : "runs"} updated`}\n`);
 }

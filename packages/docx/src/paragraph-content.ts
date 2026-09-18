@@ -1,6 +1,8 @@
-import { containsRevision } from "./revision-markup.js";
+import { containsRevision, assertFormattingHistoryEditable } from "./revision-markup.js";
+import { activeXmlChildren } from "./xml-active-children.js";
 import { xmlValue } from "./create-content.js";
-import type { XmlElement } from "./package-xml.js";
+import type { DocumentBudget } from "./budget.js";
+import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { runElementOpen } from "./run-properties.js";
 import { UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
 
@@ -82,4 +84,24 @@ export function splitParagraphContent(xml: DocumentXmlEditor, p: XmlElement, car
   }
   if (caret > offset) throw new UnsupportedEditError("Caret exceeds paragraph text.");
   return [halves[0]!, halves[1]!];
+}
+
+/** Whole run assignment removes native content and retains its owning properties. */
+export function replaceRunContent(xml: DocumentXmlEditor, run: XmlElement, properties: string, text: string, budget: DocumentBudget): string {
+  const children = activeXmlChildren(xml, budget);
+  assertFormattingHistoryEditable(xml.root, run, children, budget);
+  const active = children(run);
+  const containers = active.filter(child => child.namespace === run.namespace && child.localName === "rPr");
+  if (containers.length > 1 || active.some(child => child.namespace !== run.namespace ||
+    !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak"].includes(child.localName) ||
+    child.localName !== "rPr" && child.content.some(content => content.kind !== "text" || child.localName !== "t" && content.text.trim())))
+    throw new UnsupportedEditError("Whole run text cannot discard owned resources or unsupported content.");
+  const props = containers[0];
+  const patches = new Map(active.filter(child => child !== props).map(child => [child, ""]));
+  if (props && properties !== xml.sourceXml(props)) patches.set(props, properties);
+  const fragment = parseDocumentXml(new TextEncoder().encode(paragraphTextRun(run.namespace, text)), {}, budget).root;
+  // Namespace bindings belong to newly written leaves, never to retained opaque
+  // properties whose inherited namespace context must stay unchanged.
+  const content = fragment.children.map(child => runElementOpen(child) + xmlValue(child.text) + `</${child.name}>`).join("");
+  return runElementOpen(run) + (props ? "" : properties) + xml.sourceXml(run, patches, true) + content + `</${run.name}>`;
 }

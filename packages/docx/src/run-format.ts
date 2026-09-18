@@ -10,13 +10,14 @@ import { DocumentArchiveEditor } from "./package-write.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { UnsupportedEditError, replaceSplitTextRunXml, type DocumentXmlEditor } from "./xml-write.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
+import { replaceRunContent } from "./paragraph-content.js";
 import { equivalentRunKey, formattedRunProperties, runElementOpen } from "./run-properties.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 
 export type RunFormatOptions = DocxOperationArguments<"runs.set"> & { readonly input?: PublicationInput };
 export interface RunFormatData {
   readonly changed: boolean;
-  readonly changes: readonly { readonly kind: "format"; readonly before: Location; readonly after: Location }[];
+  readonly changes: readonly { readonly kind: "format" | "replace"; readonly before: Location; readonly after: Location }[];
   readonly output: { readonly path: string | null; readonly bytes: number; readonly sha256: string } | null;
   readonly dryRun: boolean;
 }
@@ -56,7 +57,6 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
   const { input: identity, ...operationOptions } = options;
   const invocation = validateDocxInvocation({ operation: "runs.set", inputs: [identity?.path ?? "document"], options: operationOptions }, settings.budget);
   const opts = invocation.options as DocxOperationArguments<"runs.set">;
-  if (opts.text !== undefined) throw new UnsupportedEditError("Run text assignment is a separate pending operation subset.");
   const budget = settings.budget.lower(Object.fromEntries((opts.limit ?? []).map(item => [item.name, item.value])));
   const document = await openDocumentLocations(input, { ...settings, budget });
   const selected = resolveDocxSelection(document, invocation);
@@ -73,6 +73,8 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
     return text;
   };
   for (const location of selected) {
+    if (opts.text !== undefined && (location.kind !== "run" || location.value.range !== null))
+      throw new UnsupportedEditError("Whole run text assignment requires a whole run selection; ranges are formatting only.");
     budget.charge("work", 1);
     const range = location.value.range;
     if (location.kind === "run") {
@@ -121,11 +123,13 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
     const props = children(node).find(c => c.namespace === node.namespace && c.localName === "rPr");
     const original = props ? xml.sourceXml(props) : "";
     const properties = formattedRunProperties(xml, node, opts, children);
-    if (properties === original) continue;
+    if (properties === original && opts.text === undefined) continue;
     let markup: string;
-    if (target.whole) {
+    if (opts.text !== undefined) markup = replaceRunContent(xml, node, properties, opts.text, budget);
+    else if (target.whole) {
       markup = props ? xml.sourceXml(node, new Map([[props, properties]])) : runElementOpen(node) + properties + xml.sourceXml(node, new Map(), true) + `</${node.name}>`;
     } else markup = splitRun(xml, node, target.start, target.end, properties);
+    if (markup === xml.sourceXml(node)) continue;
     // Check the selected run, rather than rejecting an opaque unselected sibling.
     const record = parents.get(parent) ?? { xml, patches: new Map() };
     record.patches.set(node, markup); parents.set(parent, record);
@@ -141,7 +145,7 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
       const nodes = replacement === undefined ? [content] : parseDocumentXml(new TextEncoder().encode(`<root${[...content.namespaces].filter(([p]) => p !== "xml").map(([p, uri]) => ` ${p ? "xmlns:" + p : "xmlns"}="${xmlValue(uri)}"`).join("")}>${replacement}</root>`), {}, budget).root.children;
       const first = nodes[0], last = nodes.at(-1);
       const key = first && equivalentRunKey(first);
-      if (previous && previous.key !== undefined && previous.key === key && (previous.changed || replacement !== undefined) && previous.nodes.length === 1 && nodes.length === 1) {
+      if (opts.text === undefined && previous && previous.key !== undefined && previous.key === key && (previous.changed || replacement !== undefined) && previous.nodes.length === 1 && nodes.length === 1) {
         const left = previous.nodes[0]!;
         const right = first!;
         const serialize = (node: XmlElement): string => runElementOpen(node) + node.content.map(c => c.kind === "element" ? serialize(c) : c.kind === "text" ? xmlValue(c.text) : "").join("") + `</${node.name}>`;
@@ -157,6 +161,10 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
     for (const [node, markup] of patches) xml[replaceSplitTextRunXml](node, markup);
   }
   const changes = selected.filter(location => changed.has(location.token)).map(before => {
+    if (opts.text !== undefined) {
+      const value = { ...before.value, generation: 1 };
+      return { kind: "replace" as const, before, after: { ...before, value, token: encodeLocation(value) } };
+    }
     const paragraph = before.kind === "paragraph" ? document.resolve(encodeLocation({ ...before.value, range: null })) : paragraphFor(before);
     let start = 0, length = 0;
     if (before.kind === "run") {

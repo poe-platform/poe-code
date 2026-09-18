@@ -2,8 +2,7 @@ import type { ModelRef, ModelStore } from "./model-store.js";
 import type { XmlElement } from "./package-xml.js";
 import { InputTypeError } from "./archive.js";
 import { Font, ParagraphFormat, modelFormattingOwner } from "./formatting-model.js";
-import { paragraphTextRun, replaceParagraphContent } from "./paragraph-content.js";
-import { runElementOpen } from "./run-properties.js";
+import { paragraphTextRun, replaceParagraphContent, replaceRunContent } from "./paragraph-content.js";
 import { xmlValue } from "./create-content.js";
 import { Hyperlink, RenderedPageBreak, markCommentRange } from "./review-model.js";
 import type { DocxEnumValue } from "./operation-types.js";
@@ -236,26 +235,10 @@ export class Run {
     if (typeof value !== "string") throw new InputTypeError("Expected run text.");
     this.store.change(this.ref.part, (xml) => {
       const r = this.store.node(this.ref);
-      const props = r.children.find(
+      const props = activeModelChildren(this.store, this.ref.part)(r).find(
         (child) => child.localName === "rPr" && child.namespace === r.namespace
       );
-      if (
-        r.children.some(
-          (child) =>
-            !["rPr", "t", "tab", "ptab", "noBreakHyphen", "softHyphen", "br", "cr", "lastRenderedPageBreak"].includes(child.localName)
-        )
-      )
-        throw new UnsupportedEditError("Whole run text cannot discard owned resources.");
-      const fragment = paragraphTextRun(r.namespace, value);
-      const inner = fragment.slice(fragment.indexOf(">") + 1, fragment.lastIndexOf("</"));
-      xml.replaceElement(
-        r,
-        runElementOpen(r).slice(0, -1) +
-          (r.attributes.some((a) => a.name === "xmlns:pi") ? ">" : ` xmlns:pi="${r.namespace}">`) +
-          (props ? xml.sourceXml(props) : "") +
-          inner +
-          `</${r.name}>`
-      );
+      xml.replaceElement(r, replaceRunContent(xml, r, props ? xml.sourceXml(props) : "", value, this.store.context.budget));
     });
   }
   get style(): CharacterStyle | null {

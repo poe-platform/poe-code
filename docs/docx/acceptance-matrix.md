@@ -793,3 +793,5 @@ passed. Selected complex property history rejects before mutation/publication;
 inert history remains byte-retained. The model retains supported-history behavior,
 and the utility retains its stricter explicit-history guard. The invalid initial
 selector attempt remains recorded. Full-family acceptance remains open.
+
+The [whole-run assignment correction](text-style-family-acceptance-20260918/run-text-assignment-requirement-evidence.json) records 100 original failures and subsequent original history, nested-resource, carrier and result-schema failures. The final ten-file focused run passed 672 cases; 1,224 independent rebuilt model/SDK/Shell workflows passed across kinds, dialects and prefixes. Owning formatting, RTL/CJK metadata, inactive branches, untouched members and relationships remain retained. Direct/ordered assignment now executes and its result schemas agree; every scalar-range assignment rejects. Qualified malformed package and verifier expectations preserve original history. This is scoped evidence; complete family acceptance remains open.

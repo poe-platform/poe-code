@@ -58,6 +58,12 @@
 
 ## Codebase and public API
 
+- New commands belong in their own `packages/safe-bash-command-<name>`
+  workspace, named `safe-bash-command-<name>`, with `private: true`.
+  Do not publish these packages unless the user explicitly instructs it.
+  Expose them through safe-bash exports; safe-bash composes packages while
+  command logic stays in the command package. Packed exports must work without
+  installing private workspaces. See `../../docs/plans/safe-bash-command-package-pattern.md`.
 - TypeScript ESM, strict NodeNext, Node.js >=22; use .js specifiers in TS imports.
   Runtime dependencies stay empty. Product virtual commands never spawn native
   processes or access implicit host files; native utilities are test oracles only.

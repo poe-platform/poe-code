@@ -23,7 +23,7 @@ export default {
         socket = response.webSocket;
         socket.accept();
         policy = await installPlaywrightNetworkPolicy({
-          socket, directNetwork: 'blocked-by-host', retire: release,
+          socket, directNetwork: 'http-blocked-by-host', retire: release,
           onRequestFailure: failure => failures.push(failure),
           async fetch(request) {
             routes.push(request.url);

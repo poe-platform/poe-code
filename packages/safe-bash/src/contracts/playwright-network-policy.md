@@ -6,36 +6,45 @@ hop through an exclusively owned public Chromium CDP WebSocket. Chromium still
 performs navigation, cookie processing, origin changes, relative URL resolution,
 and redirect method/body rewriting. Standard CLI commands and sessions are unchanged.
 
-The helper requires **independent denial of direct browser egress**. Fetch
-interception disappears when its CDP connection dies; a JavaScript close handler
-cannot protect a browser after the host process or Worker isolate dies. The host
-must deny browser HTTP, WebSocket, WebRTC/UDP, and other direct sockets outside
-the policy's lifetime. `directNetwork: 'blocked-by-host'` declares this trusted
-host obligation; it does not configure or verify isolation. Admitted HTTP work
-runs through the separate host fetch callback.
+The helper requires **independent denial of direct browser HTTP(S) and WebSocket
+egress**. Fetch interception disappears when its CDP connection dies; a JavaScript
+close handler cannot protect a browser after the host process or Worker isolate
+dies. Use `directNetwork: 'http-blocked-by-host'` when the host denies HTTP(S),
+`ws://`, and `wss://` outside the policy's lifetime. Admitted HTTP work runs through
+the separate host fetch callback. The existing `directNetwork: 'blocked-by-host'`
+value additionally declares independent denial of every other protocol, including
+WebRTC/UDP. Neither declaration configures or verifies the external boundary.
+
+The HTTP policy does not mediate or establish denial of WebRTC/UDP, TURN,
+WebTransport, or other non-HTTP transports. Their availability remains the host's
+separate responsibility. Do not use this helper as an all-protocol sandbox or
+claim that these transports consume the HTTP callback's transfer budget.
 
 Cloudflare Playwright 1.3.6 exposes lifetime-latched
 `acquire(binding, { guardrails: { allowedDomains: [] } })`. The empty allowlist is
-the documented deny-all **HTTP/HTTPS** profile. Cloudflare's guardrails do not
-establish denial of WebRTC/UDP, TURN, WebTransport, or every other direct socket.
-This setting alone does not satisfy `directNetwork: 'blocked-by-host'`: a
-Cloudflare host must additionally enforce the other-protocol boundary before
-using the example below. Actual Cloudflare testing with an empty allowlist and
-this helper still obtained WebRTC server-reflexive ICE candidates from public
-STUN servers, demonstrating UDP traffic outside the host fetch callback. The
-current Cloudflare recipe is therefore **not a deployable isolation boundary**
-without an additional provider-enforced non-HTTP restriction. This helper does
-not supply that restriction. Do not substitute a hostname allowlist: even
+the documented deny-all **HTTP/HTTPS** profile. Actual Cloudflare tests also
+verified `ws://` and `wss://` denial against an independently counted destination:
+unguarded positive controls connected; guarded sessions made no connection both
+with a healthy policy and after its socket closed while retirement was delayed
+and the ordinary Playwright client stayed alive. This qualifies the HTTP-scoped
+setting in the example below, not the stronger `'blocked-by-host'` declaration.
+
+Actual Cloudflare tests obtained WebRTC server-reflexive ICE candidates from
+public STUN servers both with the prior production adapter and with this helper.
+That pre-existing non-HTTP limitation is tracked in
+[poe-code issue 758](https://github.com/poe-platform/poe-code/issues/758).
+Additional provider-enforced restrictions are necessary for an all-protocol
+boundary. This helper does not supply them. Do not substitute a hostname allowlist: even
 allowed direct traffic would bypass host transfer accounting. Verify the provider's
 denial on your deployed runtime, including after both clients disconnect. The
-native fixture uses a denying HTTP proxy and a WebRTC proxy restriction; that
-fixture is not evidence of Cloudflare UDP enforcement.
+native fixture uses a denying HTTP proxy and a WebSocket positive control; it
+does not establish UDP enforcement.
 
 ```ts
 import { acquire, connect } from '@cloudflare/playwright';
 import { installPlaywrightNetworkPolicy } from '@poe-platform/safe-bash/playwright';
 
-// Prerequisite: enforce non-HTTP direct-network denial outside the CDP lifetime.
+// HTTP/WebSocket policy only; non-HTTP transports require separate host policy.
 const { sessionId } = await acquire(binding, {
   guardrails: { allowedDomains: [] },
 });
@@ -50,7 +59,7 @@ try {
   response.webSocket.accept();
   policy = await installPlaywrightNetworkPolicy({
     socket: response.webSocket,
-    directNetwork: 'blocked-by-host',
+    directNetwork: 'http-blocked-by-host',
     fetch: boundedHostFetch,
     onRequestFailure: reportHostFailure,
     async retire() {
@@ -110,9 +119,11 @@ page's target ID with its public CDP `Target.getTargetInfo` command and correlat
 main-document errors without another routing handler. Diagnostic callback errors
 do not allow network continuation. Keep callbacks synchronous and non-reentrant.
 
-Pages and iframe targets are armed before execution resumes. Unsupported workers
-and other target types remain paused until their owner terminates them or the
-session retires; they count toward the target limit. WebSocket requests are
+Pages and iframe targets are armed before execution resumes. Dedicated workers,
+shared workers, and other unsupported target types remain paused until their
+owner terminates them or the session retires; they count toward the target limit.
+Pages that depend on those workers may behave differently from an ordinary
+Playwright browser. Service-worker interception is bypassed. WebSocket requests are
 blocked. Browser request cancellation, target closure, and policy disposal abort
 associated host work. Normal same-owner reuse is supported while both connections
 remain alive. Cold attachment to already navigated targets is refused; retire

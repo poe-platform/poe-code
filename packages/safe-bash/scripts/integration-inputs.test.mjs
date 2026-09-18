@@ -2437,6 +2437,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/plugins/playwright-interrupt.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-network-policy.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-network-policy-message.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-network-policy-scope.test.ts"));
   assert.ok(files.includes("tests/plugins/timezone-injection.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-cli.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-abilities.test.ts"));

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
+import { createHash } from 'node:crypto';
 import { test } from 'node:test';
 const { installPlaywrightNetworkPolicy } = await import(
   process.env.SAFE_BASH_NETWORK_POLICY_MODULE || new URL('../../src/playwright/network-policy.ts', import.meta.url).href
@@ -14,18 +15,33 @@ test('native CDP redirects, popup admission, request bodies, cookies and cancell
 }, async t => {
   const { chromium } = await import(modulePath);
   const received = [];
+  const websocketReceived = [];
   const forbidden = createServer((request, response) => { received.push(request.url); response.end('forbidden'); });
+  forbidden.on('upgrade', (request, socket) => {
+    websocketReceived.push(request.url);
+    const accept = createHash('sha1').update(request.headers['sec-websocket-key'] + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11').digest('base64');
+    socket.end(`HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ${accept}\r\n\r\n`);
+  });
   const denyProxy = createServer((_request, response) => response.writeHead(502).end());
   denyProxy.on('connect', (_request, socket) => socket.end('HTTP/1.1 403 Forbidden\r\n\r\n'));
+  denyProxy.on('upgrade', (_request, socket) => socket.end('HTTP/1.1 403 Forbidden\r\n\r\n'));
   const portReservation = createServer();
   for (const server of [forbidden, denyProxy, portReservation]) await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const cdpPort = portReservation.address().port;
   await new Promise(resolve => portReservation.close(resolve));
   const forbiddenUrl = `http://127.0.0.1:${forbidden.address().port}`;
+  const websocketUrl = `ws://127.0.0.1:${forbidden.address().port}/upgrade`;
+  const probeWebSocket = page => page.evaluate(url => new Promise(resolve => {
+    const ws = new WebSocket(url);
+    const timer = setTimeout(() => { ws.close(); resolve('timeout'); }, 3000);
+    ws.onopen = () => { clearTimeout(timer); ws.close(); resolve('open'); };
+    ws.onerror = () => { clearTimeout(timer); resolve('error'); };
+  }), websocketUrl);
+  const launchOptions = { headless: true,
+    ...(process.env.PLAYWRIGHT_TEST_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_TEST_EXECUTABLE } : {}) };
   const browser = await chromium.launch({
-    headless: true,
-    ...(process.env.PLAYWRIGHT_TEST_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_TEST_EXECUTABLE } : {}),
-    args: [`--remote-debugging-port=${cdpPort}`, `--proxy-server=http://127.0.0.1:${denyProxy.address().port}`, '--proxy-bypass-list=<-loopback>', '--force-webrtc-ip-handling-policy=disable_non_proxied_udp'],
+    ...launchOptions,
+    args: [`--remote-debugging-port=${cdpPort}`, `--proxy-server=http://127.0.0.1:${denyProxy.address().port}`, '--proxy-bypass-list=<-loopback>'],
   });
   const metadata = await (await fetch(`http://127.0.0.1:${cdpPort}/json/version`)).json();
   const socket = new WebSocket(metadata.webSocketDebuggerUrl);
@@ -39,7 +55,7 @@ test('native CDP redirects, popup admission, request bodies, cookies and cancell
   let policy;
   try {
     policy = await installPlaywrightNetworkPolicy({
-      socket, directNetwork: 'blocked-by-host', retire: async () => { await holdRetirement; await browser.close(); }, requestTimeoutMs: 3000,
+      socket, directNetwork: 'http-blocked-by-host', retire: async () => { await holdRetirement; await browser.close(); }, requestTimeoutMs: 3000,
       maxRequestBytes: 8 * 1024 * 1024, maxProtocolMessageBytes: 32 * 1024 * 1024,
       onRequestFailure: failure => failures.push(failure),
       async fetch(request) {
@@ -71,6 +87,13 @@ test('native CDP redirects, popup admission, request bodies, cookies and cancell
     });
     const context = await browser.newContext();
     const page = await context.newPage();
+    await t.test('WebSocket destination receives the unguarded positive control', async () => {
+      const unguarded = await chromium.launch(launchOptions);
+      try {
+        assert.equal(await probeWebSocket(await unguarded.newPage()), 'open');
+        assert.deepEqual(websocketReceived, ['/upgrade']);
+      } finally { await unguarded.close(); }
+    });
     await t.test('configured 8 MiB printable upload fits its bounded CDP envelope', async () => {
       await page.goto('https://allowed.example/final');
       assert.equal(await page.evaluate(async () => (await fetch('/large-upload', {
@@ -176,7 +199,10 @@ test('native CDP redirects, popup admission, request bodies, cookies and cancell
       assert.deepEqual(messages, []);
       assert.deepEqual(received, []);
     });
-    await t.test('independent direct-network denial survives policy transport loss', async () => {
+    await t.test('independent HTTP and WebSocket denial survives policy transport loss', async () => {
+      await page.goto('http://allowed.example/final');
+      assert.equal(await probeWebSocket(page), 'error');
+      assert.deepEqual(websocketReceived, ['/upgrade']);
       let releaseRetirement;
       holdRetirement = new Promise(resolve => { releaseRetirement = resolve; });
       socket.close();
@@ -184,6 +210,8 @@ test('native CDP redirects, popup admission, request bodies, cookies and cancell
       // Deliberately keep the live browser after policy death: a close callback
       // cannot be the network boundary if the host isolate itself disappears.
       try {
+        assert.equal(await probeWebSocket(page), 'error');
+        assert.deepEqual(websocketReceived, ['/upgrade']);
         await page.evaluate(async url => { await fetch(url).catch(() => {}); }, `${forbiddenUrl}/after-policy-loss`);
         await page.goto(`${forbiddenUrl}/navigation-after-policy-loss`, { timeout: 2000 }).catch(() => {});
         assert.deepEqual(received, []);

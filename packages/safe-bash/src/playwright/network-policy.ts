@@ -35,10 +35,11 @@ export interface PlaywrightPolicyFailure {
 }
 export interface PlaywrightNetworkPolicyOptions {
   readonly socket: PlaywrightPolicySocket;
-  /** Required host guarantee: browser egress is denied independently of CDP,
-   * including UDP/WebRTC, unsupported protocols, and transport disconnection.
-   * This declaration does not configure or verify that external boundary. */
-  readonly directNetwork: 'blocked-by-host';
+  /** Required host guarantee: direct HTTP(S) and WebSocket egress is denied
+   * independently of CDP, including after transport disconnection.
+   * 'blocked-by-host' additionally declares all-protocol denial (e.g. WebRTC).
+   * Neither declaration configures or verifies the external host boundary. */
+  readonly directNetwork: 'http-blocked-by-host' | 'blocked-by-host';
   /** Admit every URL and use manual redirects with bounded, cancellable reads. */
   readonly fetch: (request: PlaywrightPolicyRequest) => Promise<PlaywrightPolicyResponse>;
   /** Destroy the exclusively owned remote browser, including on transport loss. */
@@ -72,7 +73,7 @@ function boundedHeaders(entries: readonly { name: string; value: string }[]): { 
 /** Installs before exposing any page. No page/context routing may be installed.
  * Disposal retires the browser before detaching; reconnect is not supported. */
 export async function installPlaywrightNetworkPolicy(options: PlaywrightNetworkPolicyOptions): Promise<{ dispose(): Promise<void> }> {
-  if (options.directNetwork !== 'blocked-by-host' || typeof options.fetch !== 'function' || typeof options.retire !== 'function') {
+  if (!['http-blocked-by-host', 'blocked-by-host'].includes(options.directNetwork) || typeof options.fetch !== 'function' || typeof options.retire !== 'function') {
     throw new TypeError('A host fetch policy, browser retirement, and independent direct-network denial are required');
   }
   const positive = (value: number | undefined, fallback: number) => {

@@ -7,7 +7,9 @@
 - Export one public CDP helper from the existing Safe Bash Playwright import.
   Keep CLI/help/session syntax unchanged and retain host ownership of credentials.
 - Acquire an exclusively owned browser with independent lifetime denial of direct
-  egress. Install browser-level flattened CDP auto-attachment before exposing
+  HTTP(S)/WebSocket egress. Keep the stronger all-protocol host declaration
+  available, without making it a prerequisite for an HTTP-only policy.
+  Install browser-level flattened CDP auto-attachment before exposing
   pages, arm descendant pages/frames before resume, and keep unsupported workers
   paused. Never combine it with Playwright route interception.
 - Fulfill each bounded, authorized host response at its original request hop so
@@ -38,7 +40,9 @@
    using an independently counted public forbidden destination. Confirm the
    counter's positive control, deny-all profile, both CDP/Playwright clients,
    native fulfilled redirects, and zero additional hits after policy/both clients
-   disconnect. HTTP checks do not establish WebRTC/UDP enforcement.
+   disconnect. Include actual ws/wss positive controls and denial with retirement
+   deliberately held after policy-socket loss. HTTP/WS checks do not establish
+   WebRTC/UDP enforcement; the existing provider limitation is tracked in #758.
 5. Verify the actual host integration uses bounded manual Worker fetch, standard
    CLI commands, precise host diagnostics and owned session retirement. Exercise
    ordinary redirecting sites; anti-bot responses remain site behavior.

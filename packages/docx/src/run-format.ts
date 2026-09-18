@@ -25,7 +25,7 @@ export interface RunFormatData {
 interface Target { location: Location; run: Location; start: number; end: number; whole: boolean; }
 
 function splitRun(editor: DocumentXmlEditor, run: XmlElement, start: number, end: number, properties: string): string {
-  if (run.content.some(c => c.kind !== "element") || run.children.some(c => c.namespace !== run.namespace || !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen"].includes(c.localName)
+  if (run.content.some(c => c.kind !== "element") || run.children.some(c => c.namespace !== run.namespace || !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak"].includes(c.localName)
     || c.localName !== "rPr" && c.content.some(child => child.kind !== "text")))
     throw new UnsupportedEditError("Partial formatting requires a simple text run without opaque content or field markers.");
   const props = run.children.find(c => c.localName === "rPr");
@@ -34,6 +34,10 @@ function splitRun(editor: DocumentXmlEditor, run: XmlElement, start: number, end
   let offset = 0;
   for (const child of run.children) {
     if (child === props) continue;
+    if (child.localName === "lastRenderedPageBreak") {
+      fragments[offset < start ? 0 : offset < end ? 1 : 2] += editor.sourceXml(child);
+      continue;
+    }
     const scalars = child.localName === "t" ? [...child.text] : [" "];
     const next = offset + scalars.length;
     const ranges = [[offset, Math.min(next, start)], [Math.max(offset, start), Math.min(next, end)], [Math.max(offset, end), next]];
@@ -135,6 +139,10 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
       let offset = 0;
       for (const child of children(node)) {
         if (child === props) continue;
+        if (child.localName === "lastRenderedPageBreak") {
+          fragments[offset < target.start ? 0 : offset < target.end ? 1 : 2]!.content.set(child, xml.sourceXml(child));
+          continue;
+        }
         const scalars = ["t", "delText"].includes(child.localName) ? [...child.text] : [" "];
         const next = offset + scalars.length;
         const ranges = [[offset, Math.min(next, target.start)], [Math.max(offset, target.start), Math.min(next, target.end)], [Math.max(offset, target.end), next]];

@@ -40,7 +40,7 @@ export function replaceParagraphContent(xml: DocumentXmlEditor, p: XmlElement, p
         throw new UnsupportedEditError("Whole paragraph text cannot discard nested note markers.");
       if (node.localName !== "rPr" && node.content.some(c => c.kind !== "element" && c.kind !== "text"))
         throw new UnsupportedEditError("Whole paragraph text cannot discard XML annotations.");
-      if (node.namespace !== p.namespace || !["r", "rPr", "t", "tab", "ptab", "noBreakHyphen", "softHyphen", "br", "cr", "hyperlink", "footnoteRef", "endnoteRef"].includes(node.localName)) {
+      if (node.namespace !== p.namespace || !["r", "rPr", "t", "tab", "ptab", "noBreakHyphen", "softHyphen", "br", "cr", "lastRenderedPageBreak", "hyperlink", "footnoteRef", "endnoteRef"].includes(node.localName)) {
         throw new UnsupportedEditError("Whole paragraph text cannot replace fields, objects or review content.");
       }
       if (node.localName !== "rPr") for (const c of children(node)) check(c);
@@ -74,12 +74,16 @@ export function splitParagraphContent(xml: DocumentXmlEditor, p: XmlElement, car
     if (markers.has(child.localName)) {
       halves[offset < caret ? 0 : 1] += xml.sourceXml(child); continue;
     }
-    if (child.localName !== "r" || child.content.some(c => c.kind !== "element") || child.children.some(c => c.namespace !== p.namespace || !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen"].includes(c.localName) || c.localName !== "rPr" && c.content.some(n => n.kind !== "text")))
+    if (child.localName !== "r" || child.content.some(c => c.kind !== "element") || child.children.some(c => c.namespace !== p.namespace || !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak"].includes(c.localName) || c.localName !== "rPr" && c.content.some(n => n.kind !== "text")))
       throw new UnsupportedEditError("Caret insertion cannot split fields, objects, links or review content.");
     const fragments = ["", ""];
     const properties = child.children.find(c => c.namespace === p.namespace && c.localName === "rPr");
     for (const leaf of child.children) {
       if (leaf === properties) continue;
+      if (leaf.localName === "lastRenderedPageBreak") {
+        fragments[offset < caret ? 0 : 1] += xml.sourceXml(leaf);
+        continue;
+      }
       const chars = leaf.localName === "t" ? [...leaf.text] : [" "];
       const count = Math.max(0, Math.min(chars.length, caret - offset));
       for (const [side, from, to] of [[0, 0, count], [1, count, chars.length]] as const) {

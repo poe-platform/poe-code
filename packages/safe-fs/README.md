@@ -71,6 +71,16 @@ All required methods must exist, but a backend may reject an operation with `FsE
 
 `createDeviceFileSystem(fs)` adds portable `/dev/null` whole-file, stream, and descriptor I/O. Descriptor reads return EOF and writes discard bytes; stat remains a zero-size character device and descriptor position remains zero. Truncating opens are accepted, exclusive creation fails with `EEXIST`, and descriptor resizing and synchronization are unsupported. Access modes, cancellation, and closed handles use the normal descriptor checks. With an authoritative object store, use `createDeviceFileSystem(withObjectFileDescriptors(fs, store))` so null-device I/O never acquires or publishes an object version; ordinary files retain conditional publication. The device wrapper must be outermost for this composition.
 
+`withObjectFileDescriptors(fs, store)` supports large shell and Python descriptor
+writes when the host supplies `store.createStaging`: private externally backed
+pages keep working memory bounded without publishing the growing file after
+every write. Conditional publication still occurs at sync/close, and retained
+readers keep their old versions. Without that optional backend primitive, the
+default 8 MiB dirty-page budget still limits unflushed output. See the
+[object descriptor and spill contract](src/contracts/object-publication.md) for
+backend methods, failure semantics and qualification; no provider storage is
+configured automatically.
+
 Immutable flat stores can supply `identityScope`, `opaqueIdentity` and an ABA-safe
 `opaqueVersion` on file stats, then expose `atomicFilePublication: true` with
 `publishFileConditional(path, source, { expected, parent, maxBytes, signal })`.

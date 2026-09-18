@@ -14,6 +14,7 @@ export interface ObjectFilePublicationConformanceFixture {
 
 export interface ObjectFilePublicationConformanceOptions {
   readonly createFixture: () => ObjectFilePublicationConformanceFixture | Promise<ObjectFilePublicationConformanceFixture>;
+  readonly requireStaging?: boolean;
 }
 
 export interface ObjectFilePublicationConformanceCase {
@@ -130,6 +131,65 @@ export function createObjectFilePublicationConformanceCases(options: ObjectFileP
       },
     },
   ];
+  if (options.requireStaging) cases.push(
+    {
+      name: "object staging: private pages have owned reads and truncation semantics",
+      async run({ fixture, path, track }) {
+        const name = path("staged");
+        const staging = track(await fixture.store.createStaging!(name, { chunkBytes: 4, maxFileBytes: 16 }));
+        const sibling = track(await fixture.store.createStaging!(name, { chunkBytes: 4, maxFileBytes: 16 }));
+        check(await staging.readPage(0) === undefined, "new staging contains an unowned page");
+        const input = new Uint8Array([1, 2, 3, 4]);
+        await staging.writePage(0, input);
+        input.fill(0);
+        const retained = await staging.readPage(0);
+        check(retained !== undefined, "staging lost an acknowledged page");
+        bytes(retained, new Uint8Array([1, 2, 3, 4]));
+        retained.fill(0);
+        bytes((await staging.readPage(0))!, new Uint8Array([1, 2, 3, 4]));
+        check(await sibling.readPage(0) === undefined, "staging leaked across descriptors");
+        await staging.writePage(2, new Uint8Array([5, 6, 7, 8]));
+        await staging.truncate(2);
+        bytes((await staging.readPage(0))!, new Uint8Array([1, 2, 0, 0]));
+        check(await staging.readPage(2) === undefined, "truncate retained a removed page");
+        const visible = await fixture.store.acquire(name, { access: "read" });
+        if (visible) track(visible);
+        check(visible === undefined, "private staging published a namespace entry");
+      },
+    },
+    {
+      name: "object staging: cancelled writes preserve acknowledged pages",
+      async run({ fixture, path, track }) {
+        const staging = track(await fixture.store.createStaging!(path("stage-cancelled"), { chunkBytes: 4, maxFileBytes: 16 }));
+        await staging.writePage(0, new Uint8Array([1, 2, 3, 4]));
+        const controller = new AbortController();
+        const reason = new Error("staging cancellation");
+        controller.abort(reason);
+        let rejected = false;
+        try { await staging.writePage(0, new Uint8Array(4), { signal: controller.signal }); }
+        catch (error) { check(error === reason, "staging must preserve cancellation identity"); rejected = true; }
+        check(rejected, "cancelled staging write succeeded");
+        bytes((await staging.readPage(0))!, new Uint8Array([1, 2, 3, 4]));
+      },
+    },
+    {
+      name: "object staging: writes larger than memory stay private until conditional sync",
+      async run({ fixture, path, track, publish }) {
+        const name = path("stage-descriptor");
+        await publish(name, null, new Uint8Array([1, 2, 3, 4]));
+        const fs = withObjectFileDescriptors(fixture.fs, fixture.store, { chunkBytes: 4, maxStagedBytes: 4, maxStagedPages: 1, maxFileBytes: 16 });
+        const descriptor = track(await fs.open!(name, { access: "readwrite" }));
+        const content = new Uint8Array([5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+        await descriptor.write(content, 0);
+        bytes(await fixture.fs.readFile(name), new Uint8Array([1, 2, 3, 4]));
+        const buffer = new Uint8Array(content.length);
+        check(await descriptor.read(buffer, 0) === buffer.length, "staging read was incomplete");
+        bytes(buffer, content);
+        await descriptor.sync(false);
+        bytes(await fixture.fs.readFile(name), content);
+      },
+    },
+  );
   return cases.map(entry => ({
     name: entry.name,
     async run() {
@@ -140,6 +200,7 @@ export function createObjectFilePublicationConformanceCases(options: ObjectFileP
         validatePath(fixture.root);
         check(fixture.root.startsWith("/"), "conformance fixture root must be absolute");
         check(typeof fixture.store.publish === "function", "conformance requires authoritative conditional publication");
+        if (options.requireStaging) check(typeof fixture.store.createStaging === "function", "conformance requires private object staging");
         const root = fixture.root.endsWith("/") ? fixture.root.slice(0, -1) : fixture.root;
         const track = <Value extends { close(): Promise<void> }>(value: Value): Value => {
           resources.push(value);

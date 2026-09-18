@@ -22,9 +22,22 @@ export interface ObjectFileAcquireOptions extends FsOptions {
   readonly access: OpenFileOptions["access"];
 }
 
+export interface ObjectFileStaging {
+  readPage(index: number, options?: FsOptions): Promise<Uint8Array | undefined>;
+  writePage(index: number, bytes: Uint8Array, options?: FsOptions): Promise<void>;
+  truncate(size: number, options?: FsOptions): Promise<void>;
+  close(): Promise<void>;
+}
+
+export interface ObjectFileStagingOptions extends FsOptions {
+  readonly chunkBytes: number;
+  readonly maxFileBytes: number;
+}
+
 export interface ObjectFilePublicationStore {
   acquire(path: string, options: ObjectFileAcquireOptions): Promise<ObjectFileVersion | undefined>;
   publish?(path: string, expectedRevision: string | null, source: ByteSource, options: ObjectFilePublicationOptions): Promise<ObjectFileVersion>;
+  createStaging?(path: string, options: ObjectFileStagingOptions): Promise<ObjectFileStaging>;
 }
 
 export interface ObjectFileDescriptorOptions {
@@ -43,6 +56,7 @@ interface ObjectFileState {
   modifiedAt: number;
   dirty: boolean;
   pages: Map<number, Uint8Array>;
+  staging: ObjectFileStaging | undefined;
   failure: { reason: unknown } | undefined;
 }
 
@@ -55,9 +69,39 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
   const maxOpenFiles = options.maxOpenFiles ?? 64;
   if (![chunkBytes, maxStagedBytes, maxStagedPages, maxFileBytes, maxOpenFiles].every(value => Number.isSafeInteger(value) && value > 0)
     || chunkBytes > 1048576 || typeof store.acquire !== "function"
-    || store.publish !== undefined && typeof store.publish !== "function") throw new TypeError("Invalid object descriptor configuration");
+    || store.publish !== undefined && typeof store.publish !== "function"
+    || store.createStaging !== undefined && typeof store.createStaging !== "function") throw new TypeError("Invalid object descriptor configuration");
+  const createStaging = store.createStaging?.bind(store);
   let stagedBytes = 0;
   let openFiles = 0;
+  const stagingWaiters = new Set<() => void>();
+  const reservePage = async (path: string, forwarded: FsOptions): Promise<void> => {
+    if (maxStagedBytes < chunkBytes) throw new FsError("ENOSPC", { path, message: "Object staging requires at least one page of working memory" });
+    while (stagedBytes + chunkBytes > maxStagedBytes || stagedBytes / chunkBytes >= maxStagedPages) {
+      forwarded.signal?.throwIfAborted();
+      await new Promise<void>((resolve, reject) => {
+        const wake = (): void => {
+          stagingWaiters.delete(wake);
+          forwarded.signal?.removeEventListener("abort", abort);
+          resolve();
+        };
+        const abort = (): void => {
+          stagingWaiters.delete(wake);
+          forwarded.signal?.removeEventListener("abort", abort);
+          reject(forwarded.signal?.reason);
+        };
+        stagingWaiters.add(wake);
+        forwarded.signal?.addEventListener("abort", abort, { once: true });
+        if (forwarded.signal?.aborted) abort();
+      });
+    }
+    forwarded.signal?.throwIfAborted();
+    stagedBytes += chunkBytes;
+  };
+  const releasePage = (): void => {
+    stagedBytes -= chunkBytes;
+    for (const wake of stagingWaiters) wake();
+  };
 
   const version = (value: ObjectFileVersion): ObjectFileVersion => {
     if (!value || typeof value.revision !== "string" || value.revision.length === 0 || value.revision.length > 4096
@@ -81,7 +125,7 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
     if (openFiles >= maxOpenFiles) throw new FsError("EMFILE", { path });
     openFiles++;
     let acquiring = true;
-    const state: ObjectFileState = { head: undefined, position: 0, size: 0, inheritedSize: 0, modifiedAt: Date.now(), dirty: false, pages: new Map(), failure: undefined };
+    const state: ObjectFileState = { head: undefined, position: 0, size: 0, inheritedSize: 0, modifiedAt: Date.now(), dirty: false, pages: new Map(), staging: undefined, failure: undefined };
     const check = (forwarded: FsOptions): void => {
       if (acquiring) admitted.signal?.throwIfAborted();
       forwarded.signal?.throwIfAborted();
@@ -104,6 +148,16 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
       if (!(data instanceof Uint8Array) || data.byteLength !== count) throw new FsError("EIO", { path, message: "Immutable range read returned an invalid byte count" });
       return Uint8Array.from(data);
     };
+    const readStagedPage = async (page: number, forwarded: FsOptions): Promise<Uint8Array | undefined> => {
+      const bytes = await perform(forwarded, selected => state.staging!.readPage(page, selected));
+      if (bytes !== undefined && (!(bytes instanceof Uint8Array) || bytes.byteLength !== chunkBytes)) throw new FsError("EIO", { path, message: "Invalid object staging page" });
+      return bytes;
+    };
+    const retireStaging = async (): Promise<void> => {
+      const staging = state.staging;
+      state.staging = undefined;
+      if (typeof staging?.close === "function") await staging.close();
+    };
     const read = async (buffer: Uint8Array, position: number, forwarded: FsOptions): Promise<number> => {
       check(forwarded);
       const count = Math.min(buffer.byteLength, Math.max(0, state.size - position));
@@ -115,7 +169,17 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
         const length = Math.min(count - copied, chunkBytes - within);
         const staged = state.pages.get(page);
         if (staged) buffer.set(staged.subarray(within, within + length), copied);
-        else {
+        else if (state.staging) {
+          await reservePage(path, forwarded);
+          try {
+            const spilled = await readStagedPage(page, forwarded);
+            if (spilled) buffer.set(spilled.subarray(within, within + length), copied);
+            else {
+              buffer.fill(0, copied, copied + length);
+              buffer.set(await readBase(offset, length, forwarded), copied);
+            }
+          } finally { releasePage(); }
+        } else {
           buffer.fill(0, copied, copied + length);
           buffer.set(await readBase(offset, length, forwarded), copied);
         }
@@ -158,7 +222,9 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
         state.modifiedAt = published.stat.mtimeMs;
         state.dirty = false;
         clearPages(state);
-        await previous?.close();
+        let retirementFailed = true;
+        try { await retireStaging(); retirementFailed = false; }
+        finally { await finishCleanup(() => previous?.close(), retirementFailed); }
       } catch (reason) {
         state.failure = { reason };
         if (received) await finishCleanup(() => received!.close(), true);
@@ -213,6 +279,40 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
           const start = admitted.append ? state.size : position ?? state.position;
           const end = start + buffer.byteLength;
           if (!Number.isSafeInteger(end) || end > maxFileBytes) throw new FsError("EFBIG", { path, message: "Object descriptor file limit exceeded" });
+          if (createStaging) {
+            try {
+              if (!state.staging) {
+                await perform(forwarded, async selected => {
+                  state.staging = await createStaging(path, { ...selected, chunkBytes, maxFileBytes });
+                  if (!state.staging || ![state.staging.readPage, state.staging.writePage, state.staging.truncate, state.staging.close].every(method => typeof method === "function")) throw new FsError("EIO", { path, message: "Invalid object staging handle" });
+                });
+              }
+              let copied = 0;
+              while (copied < buffer.byteLength) {
+                await reservePage(path, forwarded);
+                try {
+                  const offset = start + copied;
+                  const page = Math.floor(offset / chunkBytes);
+                  const within = offset % chunkBytes;
+                  const length = Math.min(buffer.byteLength - copied, chunkBytes - within);
+                  let bytes = within === 0 && length === chunkBytes ? undefined : await readStagedPage(page, forwarded);
+                  if (!bytes) {
+                    bytes = new Uint8Array(chunkBytes);
+                    if (within !== 0 || length !== chunkBytes) bytes.set(await readBase(page * chunkBytes, chunkBytes, forwarded));
+                  }
+                  bytes.set(buffer.subarray(copied, copied + length), within);
+                  await perform(forwarded, selected => state.staging!.writePage(page, bytes!, selected));
+                  copied += length;
+                } finally { releasePage(); }
+              }
+            } catch (reason) { state.failure = { reason }; throw reason; }
+            state.size = Math.max(state.size, end);
+            state.modifiedAt = Date.now();
+            state.dirty = true;
+            if (position === null) state.position = end;
+            if (admitted.synchronization !== undefined) await flush(forwarded);
+            return buffer.byteLength;
+          }
           const first = Math.floor(start / chunkBytes);
           const last = Math.floor((end - 1) / chunkBytes);
           const missing: number[] = [];
@@ -250,6 +350,10 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
         truncate: async (_state, length, forwarded) => {
           check(forwarded);
           if (length > maxFileBytes) throw new FsError("EFBIG", { path });
+          if (state.staging) {
+            try { await perform(forwarded, selected => state.staging!.truncate(length, selected)); }
+            catch (reason) { state.failure = { reason }; throw reason; }
+          }
           for (const [page, bytes] of state.pages) {
             if (page * chunkBytes >= length) { state.pages.delete(page); stagedBytes -= chunkBytes; }
             else if ((page + 1) * chunkBytes > length) bytes.fill(0, length % chunkBytes);
@@ -269,8 +373,12 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
             clearPages(state);
             const retained = state.head;
             state.head = undefined;
-            try { await finishCleanup(() => retained?.close(), failed); }
-            finally { openFiles--; }
+            let retirementFailed = true;
+            try { await finishCleanup(retireStaging, failed); retirementFailed = false; }
+            finally {
+              try { await finishCleanup(() => retained?.close(), failed || retirementFailed); }
+              finally { openFiles--; }
+            }
           }
         },
       };

@@ -5,6 +5,7 @@ import { createDocument, type DocumentCreateOptions } from "./create.js";
 import type { DocxInspectionCommandRequest } from "./inspection-command.js";
 import type { DocumentIo } from "./io.js";
 import { PublicationError, type PublicationInput } from "./publication.js";
+import { asPermissionError } from "./io-errors.js";
 
 export async function executeCreateCommand(invocation: DocxInvocation, request: DocxInspectionCommandRequest, context: ArchiveContext, io: DocumentIo): Promise<Uint8Array> {
   const options = invocation.options;
@@ -27,7 +28,7 @@ export async function executeCreateCommand(invocation: DocxInvocation, request: 
     } catch (error) {
       request.signal.throwIfAborted();
       if (error && typeof error === "object" && "code" in error && ["limit-exceeded", "cancelled"].includes(String(error.code))) throw error;
-      throw new SourceError(error);
+      throw asPermissionError(error) ?? new SourceError(error);
     }
   }
   const creation: DocumentCreateOptions = {

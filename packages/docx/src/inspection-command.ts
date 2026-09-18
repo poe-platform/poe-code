@@ -39,6 +39,7 @@ import type { DocumentScope } from "./location-index.js";
 import type { Location } from "./location-token.js";
 import { executeXmlCommand } from "./xml-command.js";
 import { PublicationError, type PublicationInput } from "./publication.js";
+import { asPermissionError } from "./io-errors.js";
 import { extractDocumentText, type TextOptions } from "./text.js";
 import { executeCreateCommand } from "./create-command.js";
 import { executeTextReplaceCommand } from "./text-replace-command.js";
@@ -334,8 +335,8 @@ export function createDocxInspectionCommandEngine(options: { readonly limits?: P
         if (["images.extract", "objects.extract"].includes(invocation.operation) && (error instanceof ImageExtractionCancellationError || error instanceof ObjectExtractionCancellationError)) throw error;
         const cancelled = request.signal.aborted || error instanceof CancellationError;
         if (writingDiagnostics) return { exitCode: cancelled ? 130 : invocation.operation === "diff" ? 2 : 3 };
-        const code = cancelled ? "cancelled" : error instanceof ResourceLimitError ? "limit-exceeded" : acquiring ? "source-failure" : error && typeof error === "object" && "code" in error ? String(error.code) : "invalid-document";
-        exitCode = error instanceof ResourceLimitError ? 4 : code === "conflict" ? 1 : acquiring || error instanceof PublicationError || code === "source-failure" || code === "sink-failure" ? 3 : code === "usage" ? 2 : 1;
+        const code = cancelled ? "cancelled" : error instanceof ResourceLimitError ? "limit-exceeded" : asPermissionError(error) ? "permission" : acquiring ? "source-failure" : error && typeof error === "object" && "code" in error ? String(error.code) : "invalid-document";
+        exitCode = error instanceof ResourceLimitError ? 4 : code === "conflict" ? 1 : acquiring || error instanceof PublicationError || code === "permission" || code === "source-failure" || code === "sink-failure" ? 3 : code === "usage" ? 2 : 1;
         if (cancelled) exitCode = 130;
         else if (invocation.operation === "diff") exitCode = 2;
         const failureMessage = acquiring ? "Unable to read the declared document input." : error instanceof PublicationError && error.stdoutMayBePartial ? "Binary stdout may contain partial output." : error instanceof UnsupportedEmbeddedFontMutationError ? error.message : "Document operation failed: " + code;

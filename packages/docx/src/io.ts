@@ -3,6 +3,7 @@ import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.j
 import { SinkError, type ArchiveSink, type ArchiveWriteOptions } from "./archive-write.js";
 import { writeDocumentArchive } from "./document-write.js";
 import { documentByteView } from "./byte-input.js";
+import { asPermissionError, PermissionError } from "./io-errors.js";
 
 export interface DocumentByteSource {
   open(signal: AbortSignal): AsyncIterable<Uint8Array>;
@@ -111,19 +112,19 @@ export class DocumentIo {
       let offset = 0;
       for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
       return bytes;
-    });
+    }).catch(error => { throw asPermissionError(error) ?? error; });
   }
 
   write(archive: DocumentArchive, sink: ArchiveSink, options: ArchiveWriteOptions): Promise<void> {
     return this.#run(async () => {
       if (!sink || typeof sink.write !== "function") throw new InputTypeError("Expected a document byte sink.");
-      let sinkFailure: SinkError | undefined;
+      let sinkFailure: SinkError | PermissionError | undefined;
       try {
         await writeDocumentArchive(archive, { write: async (bytes, signal) => {
           try { await sink.write(bytes, signal); }
           catch (error) {
             if (!(error instanceof CancellationError))
-              sinkFailure = new SinkError("Document output failed.", { cause: error });
+              sinkFailure = asPermissionError(error) ?? new SinkError("Document output failed.", { cause: error });
             throw error;
           }
         } }, options, this.#context);

@@ -4,6 +4,7 @@ import { archiveSettings, CancellationError, ResourceLimitError, type ArchiveCon
 import { DocxUsageError } from "./argument-json.js";
 import { measurePackageResourceSerialization } from "./ancillary-resources.js";
 import { SourceError, type DocxInvocation } from "./command.js";
+import { asPermissionError } from "./io-errors.js";
 import { inspectDocumentEquations, addDocumentEquation, replaceDocumentEquation, type EquationMutationContext, type EquationMutationData } from "./equations.js";
 import type { DocxInspectionCommandRequest } from "./inspection-command.js";
 import type { DocumentIo } from "./io.js";
@@ -65,7 +66,7 @@ export async function executeEquationsCommand(invocation: DocxInvocation, bytes:
       } catch (error) {
         if (error instanceof ResourceLimitError || error instanceof CancellationError || error instanceof UnsupportedProfileError) throw error;
         if (signal.aborted) throw new CancellationError("Equation fragment acquisition cancelled.", { cause: signal.reason });
-        throw new SourceError("Unable to read the declared equation fragment.");
+        throw asPermissionError(error) ?? new SourceError(error);
       }
     } }
   };

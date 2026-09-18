@@ -565,9 +565,11 @@ remain open.
 
 The [neutral error dependency checks](neutral-error-contract-20260918.md) add
 current base-error and package/XML/style ownership evidence: 973 final focused
-assertions and 226 built ownership workflows pass. Permission, additional
-document/comment ownership, complete current gates and family reconciliation
-remain open. Older full gates interrupted at this dependency receive no credit.
+assertions and 226 built ownership workflows pass. Subsequent permission checks
+pass 2,630 assertions and 528 built public workflows; original harness mistakes
+and selected-out variants receive no credit. Additional document/comment
+ownership, complete current gates and family reconciliation remain open. Older
+full gates interrupted at this dependency receive no credit.
 
 The [current opt-in closure check](opt-in-closure-20260918.md) verifies native and
 fresh browser-target public registration, collision preflight and replacement,

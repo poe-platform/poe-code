@@ -1,4 +1,5 @@
 import { admitPackingFiles } from "./packing-vfs-admission.js";
+import { asPermissionError } from "./io-errors.js";
 import { validateArchiveNamespace } from "./archive-namespace.js";
 import { dirname, type FileSystem } from "@poe-code/safe-fs/core";
 import { archiveSettings, CancellationError, InvalidContainerError, ResourceLimitError, type ArchiveContext, type ArchiveMember } from "./archive.js";
@@ -60,12 +61,13 @@ export async function packDocumentArchive(input: unknown, options: DocxOperation
       directories.add(parent);
     }
   };
-  if (output !== undefined && output !== "-") await checkParents(output);
   try {
+    if (output !== undefined && output !== "-") await checkParents(output);
     await admitPackingFiles(files.map(({ entry, path }) => ({ path, bytes: entry.bytes })), { filesystem: fs, signal, budget });
   } catch (error) {
+    if (signal.aborted) throw new CancellationError("Archive packing cancelled.", { cause: signal.reason });
     if (error instanceof InvalidContainerError || error instanceof ResourceLimitError || error instanceof CancellationError) throw error;
-    throw new SourceError(error);
+    throw asPermissionError(error) ?? new SourceError(error);
   }
   const members: ArchiveMember[] = [];
   let total = 0;
@@ -92,7 +94,7 @@ export async function packDocumentArchive(input: unknown, options: DocxOperation
     } catch (error) {
       if (signal.aborted) throw new CancellationError("Archive packing cancelled.", { cause: signal.reason });
       if (error instanceof InvalidContainerError || error instanceof ResourceLimitError || error instanceof CancellationError) throw error;
-      throw new SourceError(error);
+      throw asPermissionError(error) ?? new SourceError(error);
     }
   }
   for (const name of inventory.directories ?? []) members.push({ name: name + "/", bytes: new Uint8Array(), directory: true, modified: new Date("1980-01-01T00:00:00Z") });
@@ -103,13 +105,18 @@ export async function packDocumentArchive(input: unknown, options: DocxOperation
     if (type !== entry.contentType) throw new InvalidPackageError("Inventory content type conflicts with its package.");
   }
   if (output !== undefined && output !== "-" && admitted.force === true) {
+    try {
     let existing = false;
     try { await fs.lstat(output, { signal }); existing = true; }
-    catch (error) { if (!error || typeof error !== "object" || !("code" in error) || error.code !== "ENOENT") throw new SourceError(error); }
+    catch (error) { if (!error || typeof error !== "object" || !("code" in error) || error.code !== "ENOENT") throw asPermissionError(error) ?? new SourceError(error); }
     if (existing) for (const { path } of files) {
       const comparison = await fs.compareEntry?.(output, fs, path, { signal }) ?? "unknown";
       if (comparison === "same") throw new PublicationError("conflict", "Packed output aliases an input payload.");
       if (comparison !== "distinct") throw new PublicationError("unsupported-publication", "Packed output alias identity is unknown.");
+    }
+    } catch (error) {
+      if (signal.aborted) throw new CancellationError("Archive packing cancelled.", { cause: signal.reason });
+      throw asPermissionError(error) ?? error;
     }
   }
   const dryRun = admitted.dryRun === true;

@@ -11,6 +11,8 @@ import { readDocumentArchive } from "./admission.js";
 import { SemanticValidationError, validateDocumentArchive } from "./validation.js";
 import { MarkupCompatibility } from "./compatibility.js";
 import { activeControlLocks, activeSettingsProtection } from "./protection.js";
+import { PublicationError, PermissionError, asPermissionError, type PublishedFile } from "./io-errors.js";
+export { PublicationError, type PublishedFile } from "./io-errors.js";
 
 /** Caller-granted transactional output. Only the acquired stage is owned by save. */
 export interface ByteSink {
@@ -67,19 +69,7 @@ export interface PublicationContext extends ArchiveContext {
   readonly stdout?: ArchiveSink | ByteSink;
   readonly encoding: ArchiveWriteOptions;
 }
-export interface PublishedFile { readonly path: string; readonly bytes: number }
 export interface PublicationResult { readonly published: readonly PublishedFile[]; readonly archiveSha256?: string }
-export class PublicationError extends Error {
-  /** Secondary owned-resource cleanup failure; never replaces the primary cause. */
-  cleanupError?: unknown;
-  constructor(
-    readonly code: "conflict" | "permission" | "unsupported-publication" | "sink-failure",
-    message: string,
-    readonly published: readonly PublishedFile[] = [],
-    readonly stdoutMayBePartial = false,
-    options?: ErrorOptions
-  ) { super(message, options); }
-}
 class PublicationCancellationError extends CancellationError {
   cleanupError?: unknown;
   constructor(readonly published: readonly PublishedFile[], readonly stdoutMayBePartial: boolean, options: ErrorOptions) {
@@ -130,6 +120,7 @@ function failure(error: unknown, published: readonly PublishedFile[], signal: Ab
   const options = { cause: previous?.cause ?? error };
   const result = signal.aborted || code === "cancelled"
     ? new PublicationCancellationError([...published], false, options)
+    : category === "permission" ? new PermissionError("Document publication access denied.", options, [...published])
     : new PublicationError(category, "Document publication did not complete.", [...published], false, options);
   if (previous?.cleanupError !== undefined) result.cleanupError = previous.cleanupError;
   return result;
@@ -140,7 +131,7 @@ async function destination(fs: FileSystem, path: string, options: PublicationOpt
   cancelled(signal);
   const capabilities = fs.capabilitiesFor ? await fs.capabilitiesFor(path, { signal, create: true }) : fs.capabilities;
   if (capabilities.readOnly === true || capabilities.write === false)
-    throw new PublicationError("permission", "Destination is not writable.");
+    throw new PermissionError("Destination is not writable.");
   if (capabilities.atomicFileStaging !== true || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile)
     throw new PublicationError("unsupported-publication", "Destination lacks atomic owned staging.");
   const parent = await fs.lstat(dirname(path), { signal });
@@ -409,6 +400,8 @@ export async function publishDocumentArchive(archive: DocumentArchive, options: 
     catch (error) {
       if ("stage" in context.stdout!) throw error;
       if (signal.aborted || error instanceof CancellationError) throw new PublicationCancellationError([], true, { cause: error });
+      const permission = asPermissionError(error);
+      if (permission) throw new PermissionError("Binary stdout access denied; output may be partial.", { cause: permission.cause ?? error }, [], true);
       throw new PublicationError("sink-failure", "Binary stdout may contain partial output.", [], true, { cause: error });
     }
     finally { release?.(); }

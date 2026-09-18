@@ -5,6 +5,7 @@ import type { DocxInspectionCommandRequest } from "./inspection-command.js";
 import type { DocumentIo } from "./io.js";
 import { getDocumentXml, replaceDocumentXmlPart, type XmlOptions } from "./xml-parts.js";
 import { PublicationError, type PublicationInput } from "./publication.js";
+import { asPermissionError } from "./io-errors.js";
 
 export async function executeXmlCommand(invocation: DocxInvocation, bytes: Uint8Array, input: PublicationInput | undefined,
   request: DocxInspectionCommandRequest, context: ArchiveContext, io: DocumentIo): Promise<Uint8Array> {
@@ -38,7 +39,7 @@ export async function executeXmlCommand(invocation: DocxInvocation, bytes: Uint8
   } catch (error) {
     if (error instanceof ResourceLimitError || error instanceof CancellationError) throw error;
     request.signal.throwIfAborted();
-    throw new SourceError("Unable to read the declared XML input.");
+    throw asPermissionError(error) ?? new SourceError(error);
   }
   const output = typeof options.output === "string" ? options.output === "-" ? "-" : resolvePath(request.cwd, options.output) : undefined;
   const data = await replaceDocumentXmlPart(bytes, replacement, {

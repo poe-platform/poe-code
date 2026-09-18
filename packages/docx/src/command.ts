@@ -3,6 +3,7 @@ import { escapeTerminalText } from "toolcraft-design/escape-terminal-text";
 import { getDocxDiscovery } from "./discovery.js";
 import { DocumentBudget, type DocumentLimits } from "./budget.js";
 import { ResourceLimitError } from "./archive.js";
+import { PermissionError, asPermissionError } from "./io-errors.js";
 import { validateDocxSelection } from "./command-selection.js";
 import { validateDocxOptionRules } from "./command-option-rules.js";
 import { normalizeDocxPropertyOptions } from "./command-properties.js";
@@ -561,7 +562,7 @@ export function createDocxCommandEngine<Request extends DocxCommandRequest, Resu
           } catch (error) {
             request.signal.throwIfAborted();
             if (error instanceof ResourceLimitError || error instanceof DocxUsageError) throw error;
-            throw new SourceError(error);
+            throw asPermissionError(error) ?? new SourceError(error);
           }
           const value = parseDocxJson(bytes, budget);
           if (source.type === "BatchV1") Object.assign(options, validateDocxBatch(value, budget, { author: options.author, timestamp: options.timestamp }));
@@ -572,9 +573,9 @@ export function createDocxCommandEngine<Request extends DocxCommandRequest, Resu
       }
       catch (error) {
         if (request.signal.aborted) return { exitCode: 130 } as DocxCommandEngineResult<Result>;
-        if (!(error instanceof DocxUsageError) && !(error instanceof ResourceLimitError) && !(error instanceof SourceError)) throw error;
+        if (!(error instanceof DocxUsageError) && !(error instanceof ResourceLimitError) && !(error instanceof SourceError) && !(error instanceof PermissionError)) throw error;
         const context = errorContexts.get(error) ?? { operation: invocation?.operation ?? "help", json: invocation?.options.json === true, budget };
-        const code = error instanceof ResourceLimitError ? "limit-exceeded" : error instanceof SourceError ? "source-failure" : "usage";
+        const code = error instanceof ResourceLimitError ? "limit-exceeded" : error instanceof PermissionError ? "permission" : error instanceof SourceError ? "source-failure" : "usage";
         const diagnostic = commandDiagnostic(error.message, code, context.budget.limits.diagnosticBytes);
         try {
           if (context.json || context.operation === "schema") await request.stdout.write(new TextEncoder().encode(JSON.stringify({ version: 1, operation: context.operation, ok: false, data: null, warnings: [], errors: [{ code, message: diagnostic.message }], affected: 0, locations: [] }) + "\n"));
@@ -585,7 +586,7 @@ export function createDocxCommandEngine<Request extends DocxCommandRequest, Resu
           throw transportError;
         }
         if (request.signal.aborted) return { exitCode: 130 } as DocxCommandEngineResult<Result>;
-        return { exitCode: context.operation === "diff" ? 2 : error instanceof ResourceLimitError ? 4 : error instanceof SourceError ? 3 : 2 } as DocxCommandEngineResult<Result>;
+        return { exitCode: context.operation === "diff" ? 2 : error instanceof ResourceLimitError ? 4 : error instanceof SourceError || error instanceof PermissionError ? 3 : 2 } as DocxCommandEngineResult<Result>;
       }
       if (discoveryOutput) {
         if (request.signal.aborted) return { exitCode: 130 } as DocxCommandEngineResult<Result>;

@@ -1,5 +1,6 @@
 export { sanitizeDocument, type SanitizationData } from "./sanitize.js";
 export { DocumentError } from "./document-error.js";
+export { PermissionError } from "./io-errors.js";
 export { BoundsError, MissingKeyError, StaleHandleError, OwnershipError } from "./model-errors.js";
 export {
   readArchive,

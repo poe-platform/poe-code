@@ -1,4 +1,5 @@
 import { CodecError, createZipCodec, type ZipEntry } from "@poe-code/office-package";
+import { asPermissionError } from "./io-errors.js";
 import {
   archiveSettings,
   CancellationError,
@@ -197,7 +198,7 @@ export async function writeArchive(
     signal.throwIfAborted();
   } catch (error) {
     if (signal.aborted) throw new CancellationError("Archive writing cancelled.");
-    if (publishing) throw new SinkError("Archive output failed.");
+    if (publishing) throw asPermissionError(error) ?? new SinkError("Archive output failed.");
     if (error instanceof CodecError) {
       if (error.code === "resource-limit") throw new ResourceLimitError("Archive limit exceeded.");
       throw new InvalidContainerError("Invalid document archive.");

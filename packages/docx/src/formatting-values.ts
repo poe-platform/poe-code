@@ -260,7 +260,7 @@ const enumNumbers = {
 export type FormattingEnum = keyof typeof enumNumbers;
 export type EnumMember<K extends FormattingEnum> = DocxEnumValue<K> & Readonly<{ value: number; xml_value?: string | null; toString(): string }>;
 type Symbols<K extends FormattingEnum> = { readonly [N in keyof typeof enumNumbers[K]]: EnumMember<K> & Readonly<{ name: K extends "WD_BREAK_TYPE" ? N extends "TEXT_WRAPPING" ? "LINE_CLEAR_ALL" : N : N }> } & Iterable<EnumMember<K>> & Readonly<{
-  members: Readonly<{ [N in keyof typeof enumNumbers[K]]: EnumMember<K> }>;
+  members: ReadonlyMap<string, EnumMember<K>> & Readonly<{ [N in keyof typeof enumNumbers[K]]: EnumMember<K> }>;
   fromValue(value: number): EnumMember<K>;
   from_xml(value: string | null): EnumMember<K>;
   to_xml(value: DocxEnumValue<K> | number | null): string | null;
@@ -284,7 +284,22 @@ function symbols<K extends FormattingEnum>(family: K): Symbols<K> {
     }
     return [name, member] as const;
   });
-  const members = Object.freeze(Object.fromEntries(entries));
+  // Named properties retain existing access and aliases; the map protocol also
+  // exposes every name without leaking the mutable native map through callbacks.
+  const memberMap = Object.freeze(Object.assign(new Map(entries), Object.fromEntries(entries)));
+  const members = new Proxy(memberMap, {
+    get(target, key, receiver) {
+      if (key === "set" || key === "delete" || key === "clear") return undefined;
+      if (key === "size") return target.size;
+      if (key === "forEach") return (callback: (value: EnumMember<K>, key: string, map: ReadonlyMap<string, EnumMember<K>>) => void, thisArg?: unknown) => {
+        if (typeof callback !== "function") throw new InputTypeError("Expected a member-map callback.");
+        for (const [name, member] of target) callback.call(thisArg, member, name, receiver);
+      };
+      if (key === "get" || key === "has" || key === "keys" || key === "values" || key === "entries" || key === Symbol.iterator)
+        return Reflect.get(target, key, target).bind(target);
+      return Reflect.get(target, key, receiver);
+    }
+  });
   const result = Object.fromEntries(entries);
   Object.defineProperties(result, {
     members: { value: members },

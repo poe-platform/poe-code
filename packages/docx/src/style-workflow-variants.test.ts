@@ -984,13 +984,13 @@ for (const c of cases)
         const before = styles.length;
         const added = styles.add_style(
           "Coastal detail",
-          WD_STYLE_TYPE.members[c.type as keyof typeof WD_STYLE_TYPE.members],
+          WD_STYLE_TYPE.members.get(c.type!)!,
           c.builtin
         );
         expect(styles.length).toBe(before + 1);
         expect(styles.at("Coastal detail")).toBeInstanceOf(BaseStyle);
         expect(added.type).toEqual(
-          WD_STYLE_TYPE.members[c.type as keyof typeof WD_STYLE_TYPE.members]
+          WD_STYLE_TYPE.members.get(c.type!)!
         );
         expect(added.builtin).toBe(c.builtin);
         break;

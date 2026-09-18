@@ -29,3 +29,32 @@ The host acquires the guard before dispatching native target creation and commit
 ## Delivery limits
 
 The adapter must be installed at initial client binding. An independent unfiltered client can still register scripts; hiding events on the policy connection cannot shield another client. Scratch storage must remain host-owned, script-disabled, and network-policy controlled. This transport is not a general adversarial CDP authorization boundary. Creation-time browser retirement, reconnect ownership, and full canonical backend behavior require parent-level integration qualification.
+
+## Qualified attachment routes
+
+The opt-in `packages/safe-bash/tests/integration/playwright-private-target-transport.test.mjs` exercises the production source with two public attachment routes. The parent must register this exact new path in its integration-input inventory; that shared inventory remains outside this assignment.
+
+- Local Playwright uses `chromium.connectOverCDP(adapter.transport)` directly.
+- Installed Cloudflare Playwright 1.3.6 does not accept that object through its overridden `connectOverCDP`. Its public `connect(BrowserWorker, sessionId)` accepts a fetch binding instead. The fixture wraps that public binding's WebSocket upgrade in a native Workers `WebSocketPair`; one side is returned in a genuine 101 Response, and the other translates JSON messages through the adapter. This requires no private Cloudflare client import or property access.
+- The Cloudflare route executes in local workerd with `nodejs_compat` and the explicitly required `EVAL` binding, and controls an independently launched real Chromium. It qualifies the client/transport boundary, not acquisition or deployment in managed Cloudflare Browser Rendering.
+- Both routes verify existing/later init suppression, exact native context identity, shared localStorage/IndexedDB, concurrent and later public-page behavior, and normal/abort target destruction. Native `Target.closeTarget` acknowledgement can precede destruction; the fixture waits for the exact `Target.targetDestroyed` event before declaring release complete.
+
+Run focused checks from the authorized worktree:
+
+```sh
+node --import tsx --test packages/safe-bash/tests/plugins/playwright-private-target-transport.test.ts
+node node_modules/typescript/bin/tsc --noEmit --target es2023 --module nodenext --moduleResolution nodenext --strict --exactOptionalPropertyTypes --noUncheckedIndexedAccess --skipLibCheck packages/safe-bash/src/playwright/private-target-transport.ts packages/safe-bash/tests/plugins/playwright-private-target-transport.test.ts
+```
+
+The opt-in native route requires explicit installed prerequisites and home-only scratch:
+
+```sh
+TMPDIR="$PWD/out/issue-746/chromium-hidden/tmp" \
+MINIFLARE_WORKERD_PATH=/home/kjopek/project/poe-issue-worktrees-20260918/issue-769/out/issue-769-verification/workerd-compat/workerd \
+SAFE_BASH_CF_RUNTIME_ROOT=/home/kjopek/project/poe-issue-worktrees-20260918/issue-769/out/issue-769-verification/runtime \
+PLAYWRIGHT_TEST_MODULE=/home/kjopek/project/poe-issue-worktrees-20260918/issue-769/out/issue-769-verification/runtime/node_modules/playwright-core/index.mjs \
+PLAYWRIGHT_TEST_EXECUTABLE=/home/kjopek/.cache/ms-playwright/chromium_headless_shell-1200/chrome-headless-shell-linux64/chrome-headless-shell \
+node --test packages/safe-bash/tests/integration/playwright-private-target-transport.test.mjs
+```
+
+These paths name existing owner-provided tools, not dependencies installed or copied by the fixture. The optional loader wrapper is needed on this host because its system glibc cannot launch the installed workerd directly. Hosts with compatible libc need not set the override. The test reports actual runtime versions and skips rather than installing missing prerequisites.

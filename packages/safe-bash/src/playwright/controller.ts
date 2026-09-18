@@ -5,6 +5,7 @@ import { parseInvocation, validatePlaywrightSessionName, type PlaywrightInvocati
 import { formatPlaywrightHelp } from './help.js';
 import { registerPlaywrightAbilities, type PlaywrightAbilities, type PlaywrightAbilityRequest } from './abilities.js';
 import { executePlaywrightAbility } from './ability-execution.js';
+import { createPlaywrightCommandBudget } from './command-budget.js';
 import { playwrightCliCompatibilityVersion, playwrightCodeString, serializePlaywrightResult, type PlaywrightCommandResult, type PlaywrightResultSection } from './response.js';
 import { capabilityArtifactName } from './capability-result.js';
 import { isPlaywrightSnapshotRef, resolvePlaywrightTarget } from './targets.js';
@@ -389,6 +390,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     finally { work.delete(operation); }
   };
   const run = async (invocation: PlaywrightInvocation): Promise<void> => {
+    const commandBudget = createPlaywrightCommandBudget(maxCommandBytes);
     const writtenFiles = new Set<string>();
     const original = invocation;
     if (original.writeArtifact) invocation = { ...original, async writeArtifact(bytes, filename) {
@@ -439,12 +441,24 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       local.signal.throwIfAborted();
       lifetime.signal.throwIfAborted();
     };
-    const writeResult = async (result: PlaywrightCommandResult) => {
+    const write = async (text: string) => {
       check();
-      const text = serializePlaywrightResult(configuredResult(result), parsed);
-      if (text.length > maxCommandBytes || new TextEncoder().encode(text).byteLength > maxCommandBytes) throw new PlaywrightResourceLimitError('Playwright command byte limit exceeded');
+      if (text.length > commandBudget.remaining) throw new PlaywrightResourceLimitError('Playwright command byte limit exceeded');
+      commandBudget.admit(new TextEncoder().encode(text).byteLength);
       await invocation.write(text);
       check();
+    };
+    const writeArtifact = async (bytes: Uint8Array, filename?: string) => {
+      check();
+      if (!invocation.writeArtifact) throw new Error('Artifact byte destination unsupported');
+      if (bytes.byteLength > maxArtifactBytes) throw new PlaywrightResourceLimitError('Artifact byte limit exceeded');
+      commandBudget.admit(bytes.byteLength);
+      await invocation.writeArtifact(bytes, filename);
+      check();
+    };
+    const writeResult = async (result: PlaywrightCommandResult) => {
+      check();
+      await write(serializePlaywrightResult(configuredResult(result), parsed));
     };
     const configuredResult = (result: PlaywrightCommandResult): PlaywrightCommandResult => {
       const language = active?.configuration?.codegen ?? 'typescript';
@@ -489,16 +503,13 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       const downloads = await collectPlaywrightDownloads(session.page, session.lease?.captureArtifact, { signal: local.signal, maxBytes: Math.min(maxArtifactBytes, maxCommandBytes), ...(session.configuration ? { configuration: session.configuration } : {}) }, session.lease?.captureDownload);
       if (!downloads.length) return [];
       if (!invocation.writeArtifact) throw new Error('Artifact byte destination unsupported');
-      for (const download of downloads) await invocation.writeArtifact(download.bytes, download.filename);
+      for (const download of downloads) await writeArtifact(download.bytes, download.filename);
       return [{ title: 'Events', content: downloads.map(download => `- Downloaded file [${download.filename.split('/').at(-1)}](${download.filename})`).join('\n') }];
     };
     const flushTrace = async (session: Session): Promise<string[]> => {
       if (!session.lease?.captureTrace) return [];
       return flushPlaywrightTrace(session.lease.context, session.lease.captureTrace, {
-        signal: local.signal, maxBytes: Math.min(maxArtifactBytes, maxCommandBytes), async writeArtifact(bytes, filename) {
-          if (!invocation.writeArtifact) throw new Error('Artifact byte destination unsupported');
-          await invocation.writeArtifact(bytes, filename);
-        },
+        signal: local.signal, maxBytes: Math.min(maxArtifactBytes, commandBudget.remaining), writeArtifact,
         ...(invocation.workspace ? { mkdir: (path: string) => invocation.workspace!.mkdir(path) } : {}),
       });
     };
@@ -523,7 +534,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       }
       sections.push(...await downloadSections(session));
       if (invocation.writeArtifact) {
-        const consoleLink = await flushPlaywrightConsole(session.lease!.context, page, { ...(session.configuration ? { configuration: session.configuration } : {}), writeArtifact: async (bytes, filename) => { await invocation.writeArtifact!(bytes, filename); } });
+        const consoleLink = await flushPlaywrightConsole(session.lease!.context, page, { ...(session.configuration ? { configuration: session.configuration } : {}), writeArtifact });
         if (consoleLink) sections.push({ title: 'Events', content: `- New console entries: ${consoleLink}` });
       }
       const title = await page.title?.();
@@ -553,7 +564,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           const bytes = new TextEncoder().encode(text);
           if (bytes.byteLength > maxArtifactBytes) throw new PlaywrightResourceLimitError('Artifact byte limit exceeded');
           if (!invocation.writeArtifact) throw new Error('Artifact byte destination unsupported');
-          await invocation.writeArtifact(bytes, target);
+          await writeArtifact(bytes, target);
           sections.push({ title: 'Snapshot', content: `- [Snapshot](${target})` });
         } else sections.push({ title: 'Snapshot', content: text.trimEnd(), codeframe: 'yaml' });
       }
@@ -673,12 +684,12 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       check();
       if (parsed.command === 'help') {
         const help = formatPlaywrightHelp(parsed.topic, abilities);
-        await invocation.write(parsed.json ? JSON.stringify({ help: help.trimEnd() }, null, 2) + '\n' : help);
+        await write(parsed.json ? JSON.stringify({ help: help.trimEnd() }, null, 2) + '\n' : help);
         check();
         return;
       }
       if (parsed.command === 'version') {
-        await invocation.write(parsed.json ? JSON.stringify({ version: playwrightCliCompatibilityVersion }, null, 2) + '\n' : playwrightCliCompatibilityVersion + '\n');
+        await write(parsed.json ? JSON.stringify({ version: playwrightCliCompatibilityVersion }, null, 2) + '\n' : playwrightCliCompatibilityVersion + '\n');
         check();
         return;
       }
@@ -692,7 +703,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       if (parsed.command === 'detach' && !ability.execute) {
         const known = sessions.has(parsed.session) || (await savedSessions(local.signal)).some(session => session.name === parsed.session);
         if (known) throw new Error(parsed.json ? `session '${parsed.session}' was not attached; use close to stop it.` : `session '${parsed.session}' was not attached; use \`playwright-cli${parsed.session === 'default' ? '' : ` -s=${parsed.session}`} close\` to stop it.`);
-        await invocation.write(parsed.json ? JSON.stringify({ session: parsed.session, status: 'not-attached' }, null, 2) + '\n' : `Browser '${parsed.session}' is not attached.\n`);
+        await write(parsed.json ? JSON.stringify({ session: parsed.session, status: 'not-attached' }, null, 2) + '\n' : `Browser '${parsed.session}' is not attached.\n`);
         return;
       }
       if (parsed.command === 'install' && !ability.execute) {
@@ -703,7 +714,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         const browser = parsed.args[0] === 'chrome' ? 'chromium' : parsed.args[0] ?? 'chromium';
         if (!options.adapter || !Object.hasOwn(options.adapter.browsers, browser)) throw new Error(`Unsupported browser: ${browser}`);
         if (parsed.options.force || parsed.options['with-deps']) throw new Error('Browser installation is managed by the configured provider');
-        if (parsed.options.list || parsed.options['dry-run']) await invocation.write(`Browser: ${browser}\n  Install location: provider-managed\n`);
+        if (parsed.options.list || parsed.options['dry-run']) await write(`Browser: ${browser}\n  Install location: provider-managed\n`);
         return;
       }
       const expiryRetirement = retireExpired();
@@ -717,7 +728,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         }
         for (const session of sessions.values()) if (session.state === 'open') known.set(session.name, { name: session.name, status: session.state });
         const browsers = [...known.values()];
-        await invocation.write(parsed.json ? JSON.stringify({ browsers }, null, 2) + '\n' : browsers.length ? '### Browsers\n' + browsers.map(browser => `- ${browser.name}:\n  - status: ${browser.status}\n`).join('') : '  (no browsers)\n');
+        await write(parsed.json ? JSON.stringify({ browsers }, null, 2) + '\n' : browsers.length ? '### Browsers\n' + browsers.map(browser => `- ${browser.name}:\n  - status: ${browser.status}\n`).join('') : '  (no browsers)\n');
         check();
         return;
       }
@@ -735,7 +746,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         const errors = results.flatMap(result => result.status === 'rejected' ? [result.reason] : []);
         try { await options.persistence?.close?.(undefined, local.signal); } catch (error) { errors.push(error); }
         if (errors.length) throw new AggregateError(errors, 'Playwright close-all failed');
-        if (parsed.json) await invocation.write(JSON.stringify({ closed }, null, 2) + '\n');
+        if (parsed.json) await write(JSON.stringify({ closed }, null, 2) + '\n');
         check();
         return;
       }
@@ -839,7 +850,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
                 },
               });
             }
-            const executeAbility = () => executePlaywrightAbility(ability, parsed, invocation, { signal: local.signal, maxCommandBytes, maxArtifactBytes, actionTimeoutMs: sessionActionTimeout(active), codeExecutionTimeoutMs, navigationTimeoutMs: sessionNavigationTimeout(active), maxPages: maxTabs, ...(browserSession ? { browserSession } : {}), check: () => active ? checkSession(active) : check() });
+            const executeAbility = () => executePlaywrightAbility(ability, parsed, invocation, { signal: local.signal, maxCommandBytes, maxArtifactBytes, commandBudget, actionTimeoutMs: sessionActionTimeout(active), codeExecutionTimeoutMs, navigationTimeoutMs: sessionNavigationTimeout(active), maxPages: maxTabs, ...(browserSession ? { browserSession } : {}), check: () => active ? checkSession(active) : check() });
             let result: void | PlaywrightCommandResult;
             try { result = active ? await active.snapshot.withReferences(executeAbility) : await executeAbility(); }
             catch (error) {
@@ -882,7 +893,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             try { await options.persistence?.close?.(parsed.session, local.signal); } catch (error) { errors.push(error); }
             if (errors.length === 1) throw errors[0];
             if (errors.length) throw new AggregateError(errors, 'Playwright close failed');
-            await invocation.write(parsed.json ? JSON.stringify({ session: parsed.session, status: wasOpen ? 'closed' : 'not-open' }, null, 2) + '\n'
+            await write(parsed.json ? JSON.stringify({ session: parsed.session, status: wasOpen ? 'closed' : 'not-open' }, null, 2) + '\n'
               : wasOpen ? `Browser '${parsed.session}' closed\n\n` : `Browser '${parsed.session}' is not open.\n`);
             check();
             return;
@@ -895,7 +906,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             try { await options.persistence?.delete(parsed.session, local.signal); sessions.delete(parsed.session); } catch (error) { errors.push(error); }
             if (errors.length === 1) throw errors[0];
             if (errors.length) throw new AggregateError(errors, 'Playwright retirement and data deletion failed');
-            await invocation.write(parsed.json ? JSON.stringify({ session: parsed.session, deleted: !!session || !!options.persistence }, null, 2) + '\n'
+            await write(parsed.json ? JSON.stringify({ session: parsed.session, deleted: !!session || !!options.persistence }, null, 2) + '\n'
               : `Deleted user data for browser '${parsed.session}'.\n`);
             check();
             return;
@@ -929,7 +940,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             checkSession(session);
             const result = await pageResult(session, actionCode(session, { name: 'navigate', url: parsed.url ?? 'about:blank' }, `await page.goto(${playwrightCodeString(parsed.url ?? 'about:blank')});`), 'file');
             const rendered = serializePlaywrightResult(configuredResult(result), parsed);
-            await invocation.write(parsed.json ? JSON.stringify({ session: session.name, result: JSON.parse(rendered) }, null, 2) + '\n'
+            await write(parsed.json ? JSON.stringify({ session: session.name, result: JSON.parse(rendered) }, null, 2) + '\n'
               : `### Browser \`${session.name}\` opened.\n` + rendered);
             checkSession(session);
             session.state = 'open';
@@ -1076,7 +1087,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               checkSession(session);
               // Uint8Array constructor copies even when bytes is a Buffer view.
               const filename = parsed.filename ?? capabilityArtifactName(parsed.ref ? 'element' : 'page', parsed.imageType, session.configuration);
-              await invocation.writeArtifact!(new Uint8Array(bytes), filename);
+              await writeArtifact(new Uint8Array(bytes), filename);
               const label = parsed.ref ? 'element' : parsed.fullPage ? 'full page' : 'viewport';
               const screenshotTarget = parsed.ref ? targetLocators.get(parsed.ref)! : 'page';
               await writeResult({ sections: [

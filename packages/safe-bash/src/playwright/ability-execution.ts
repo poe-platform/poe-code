@@ -2,6 +2,7 @@ import type { PlaywrightAbilityRequest, RegisteredPlaywrightAbility } from './ab
 import type { PlaywrightPage } from './adapter.js';
 import type { ParsedInvocation, PlaywrightInvocation } from './invocation.js';
 import type { PlaywrightCommandResult } from './response.js';
+import { createPlaywrightCommandBudget } from './command-budget.js';
 
 function freezeConfiguration<T>(value: T): T {
   if (value && typeof value === 'object') {
@@ -15,6 +16,7 @@ export async function executePlaywrightAbility(ability: RegisteredPlaywrightAbil
   readonly signal: AbortSignal;
   readonly maxCommandBytes: number;
   readonly maxArtifactBytes: number;
+  readonly commandBudget?: ReturnType<typeof createPlaywrightCommandBudget>;
   readonly actionTimeoutMs?: number;
   readonly codeExecutionTimeoutMs?: number;
   readonly navigationTimeoutMs?: number;
@@ -23,16 +25,12 @@ export async function executePlaywrightAbility(ability: RegisteredPlaywrightAbil
   check(): void;
 }): Promise<void | PlaywrightCommandResult> {
   let accepting = true;
-  let bytesUsed = 0;
+  const budget = context.commandBudget ?? createPlaywrightCommandBudget(context.maxCommandBytes);
   const pending: Promise<unknown>[] = [];
   const cleanups = new Set<() => Promise<void>>();
   const check = () => {
     context.check();
     if (!accepting) throw new Error('Playwright ability invocation has finished');
-  };
-  const admitBytes = (bytes: number) => {
-    if (bytes > context.maxCommandBytes - bytesUsed) throw new PlaywrightResourceLimitError('Playwright command byte limit exceeded');
-    bytesUsed += bytes;
   };
   const track = <Result>(action: () => Promise<Result>): Promise<Result> => {
     const operation = Promise.resolve().then(action);
@@ -56,7 +54,7 @@ export async function executePlaywrightAbility(ability: RegisteredPlaywrightAbil
         const code = browserSession.generateActionCode!(structuredClone(options));
         check();
         if (typeof code !== 'string') throw new TypeError('Native Playwright generated code must be text');
-        admitBytes(new TextEncoder().encode(code).byteLength);
+        budget.admit(new TextEncoder().encode(code).byteLength);
         return code;
       }) as NonNullable<typeof browserSession.generateActionCode> } : {}),
       ...(browserSession.targetLocator ? { targetLocator(target: string) {
@@ -74,7 +72,7 @@ export async function executePlaywrightAbility(ability: RegisteredPlaywrightAbil
         return browserSession.executeCode!({ ...options,
           signal: AbortSignal.any([context.signal, options.signal]),
           timeoutMs: Math.min(options.timeoutMs, context.codeExecutionTimeoutMs ?? 30000),
-          maxOutputBytes: Math.min(options.maxOutputBytes, context.maxCommandBytes - bytesUsed),
+          maxOutputBytes: Math.min(options.maxOutputBytes, budget.remaining),
           maxPages: Math.min(options.maxPages, context.maxPages ?? 16),
         });
       }) as NonNullable<typeof browserSession.executeCode> } : {}),
@@ -111,7 +109,7 @@ export async function executePlaywrightAbility(ability: RegisteredPlaywrightAbil
       ...(browserSession.captureArtifact ? { captureArtifact: ((produce, options) => {
         check();
         const signal = AbortSignal.any([context.signal, options.signal]);
-        const maxBytes = Math.min(options.maxBytes, context.maxArtifactBytes, context.maxCommandBytes - bytesUsed);
+        const maxBytes = Math.min(options.maxBytes, context.maxArtifactBytes, budget.remaining);
         return track(async () => {
           context.check();
           const bytes = await browserSession.captureArtifact!(produce, { ...options, signal, maxBytes });
@@ -129,8 +127,8 @@ export async function executePlaywrightAbility(ability: RegisteredPlaywrightAbil
     write(text: string) {
       check();
       if (typeof text !== 'string') throw new TypeError('Playwright output must be text');
-      if (text.length > context.maxCommandBytes - bytesUsed) throw new PlaywrightResourceLimitError('Playwright command byte limit exceeded');
-      admitBytes(new TextEncoder().encode(text).byteLength);
+      if (text.length > budget.remaining) throw new PlaywrightResourceLimitError('Playwright command byte limit exceeded');
+      budget.admit(new TextEncoder().encode(text).byteLength);
       return track(async () => { context.check(); await invocation.write(text); context.check(); });
     },
     readFile(filename: string) {
@@ -139,10 +137,10 @@ export async function executePlaywrightAbility(ability: RegisteredPlaywrightAbil
       if (!invocation.readArtifact) throw new Error('Virtual artifact input unsupported');
       return track(async () => {
         context.check();
-        const bytes = await invocation.readArtifact!(filename, Math.min(context.maxArtifactBytes, context.maxCommandBytes - bytesUsed));
+        const bytes = await invocation.readArtifact!(filename, Math.min(context.maxArtifactBytes, budget.remaining));
         if (!(bytes instanceof Uint8Array)) throw new TypeError('Artifact input must return bytes');
         if (bytes.byteLength > context.maxArtifactBytes) throw new PlaywrightResourceLimitError('Artifact byte limit exceeded');
-        admitBytes(bytes.byteLength);
+        budget.admit(bytes.byteLength);
         context.check();
         return new Uint8Array(bytes);
       });
@@ -153,7 +151,7 @@ export async function executePlaywrightAbility(ability: RegisteredPlaywrightAbil
       if (bytes.byteLength > context.maxArtifactBytes) throw new PlaywrightResourceLimitError('Artifact byte limit exceeded');
       if (filename !== undefined) filenameCheck(filename);
       if (!invocation.writeArtifact) throw new Error('Artifact byte destination unsupported');
-      admitBytes(bytes.byteLength);
+      budget.admit(bytes.byteLength);
       const owned = new Uint8Array(bytes);
       return track(async () => { context.check(); await invocation.writeArtifact!(owned, filename); context.check(); });
     },

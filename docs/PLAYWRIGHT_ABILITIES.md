@@ -184,12 +184,14 @@ unsupported. The limits and defaults are:
 | `maxSnapshotBytes` | 262144 | Aggregate built-in snapshot UTF-8 output, admitted inside each frame before transfer |
 | `maxSnapshotRefs` | 1000 | Retained built-in snapshot nodes, admitted before native element-handle extraction |
 | `maxArtifactBytes` | 16777216 | Each artifact read/write |
-| `maxCommandBytes` | 16777216 | Aggregate custom-handler text/artifact input/output bytes |
+| `maxCommandBytes` | 16777216 | Per-invocation aggregate text/artifact output (including help, version and response framing), custom-handler artifact input and generated code |
 
 All limits are positive safe integers. These are admission/transfer limits, not
 an isolation or memory ceiling for arbitrary client code. Client handlers must
 honor cancellation and implement their backend's action timeout policy. Opaque,
 uncooperative host work cannot be forcibly preempted by this library.
+Budget failures produce a nonzero CLI result and a stderr diagnostic, including
+in JSON mode; the diagnostic is not charged to the exhausted command budget.
 
 Built-in snapshots require public frame `evaluateHandle`. They retain nodes in a
 browser-side object and transfer only bounded status and rendered text; they do

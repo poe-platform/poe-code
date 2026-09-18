@@ -2,6 +2,7 @@ import { createPlaywrightController, type PlaywrightControllerOptions } from '..
 import type { VirtualShellPlugin } from '../../contracts/plugin.js';
 import { dirname, resolvePath } from '../../contracts/path.js';
 import { writeBytes } from '../../contracts/io.js';
+import { isPlaywrightResourceLimitError } from '../../playwright/resource-limit.js';
 
 export type PlaywrightCliOptions = PlaywrightControllerOptions & { readonly replace?: boolean };
 
@@ -92,7 +93,7 @@ export function createPlaywrightCli(options: PlaywrightCliOptions = {}) {
           } catch (error) {
             context.signal.throwIfAborted();
             const end = context.args.indexOf('--');
-            if (context.args.slice(0, end === -1 ? undefined : end).includes('--json')) {
+            if (!isPlaywrightResourceLimitError(error) && context.args.slice(0, end === -1 ? undefined : end).includes('--json')) {
               await writeBytes(context.stdout, new TextEncoder().encode(JSON.stringify({ isError: true, error: errorMessage(error) }, null, 2) + '\n'), context.signal);
               return { exitCode: 1 };
             }

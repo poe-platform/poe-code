@@ -9,6 +9,8 @@ before later dependencies and still requires current-source reconciliation.
 
 | Required behavior or dependency | Current named evidence |
 | --- | --- |
+| Current container, limit, native declaration, dialect and template assertions | [7,754 named foundation passes and independent built replay](f01-f03-foundation-replay-20260918.md) |
+| Core-property MCE publication with both admitted UTF-16 byte orders | [Corrected publication fixture and preserved declaration refusals](core-mce-publication-consumer-20260918.md) |
 | Explicit selected paragraph/run reads and typed resource handles | [Resource read qualification](text-resource-read-20260917.md) |
 | Native provider protocol execution | [Provider qualification](part-provider-protocol-20260917.md) |
 | Native and typed batch save, snapshot/publication behavior | [Save qualification](document-part-save-20260917.md), [current schema/save consumer](save-discovery-consumer-20260918.md) |

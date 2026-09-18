@@ -34,9 +34,10 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   const composer = options.showQueue && !options.composer?.focused ? undefined : options.composer;
   const run = stats.run;
   const theme = getTheme().styles;
+  const compactHeight = buffer.height < 18;
   const width = Math.max(0, Math.min(164, buffer.width - 4));
   const x = Math.max(0, Math.floor((buffer.width - width) / 2));
-  const sidebarWidth = !options.showQueue && width >= 106 ? Math.min(40, Math.floor(width * 0.29)) : 0;
+  const sidebarWidth = !compactHeight && !options.showQueue && width >= 106 ? Math.min(40, Math.floor(width * 0.29)) : 0;
   const transcriptWidth = Math.max(0, width - (sidebarWidth > 0 ? sidebarWidth + 3 : 0));
   const queue = run?.queue ?? [];
   const plans = queue.filter((item) => item.kind === "plan");
@@ -49,8 +50,9 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   put(buffer, { x, y: 1, width, height: 1 }, 0, context, theme.muted);
 
   const draft = composer ? layoutComposer(composer, Math.max(1, transcriptWidth - 3)) : undefined;
-  const inputLines = draft ? Math.min(3, draft.lines.length) : 0;
-  const composerHeight = composer ? inputLines + 3 : 0;
+  const inputLines = draft ? Math.min(compactHeight ? 1 : 3, draft.lines.length) : 0;
+  const inputRow = compactHeight ? 1 : 2;
+  const composerHeight = composer ? inputLines + inputRow + (!compactHeight || composer.error || options.feedback ? 1 : 0) : 0;
   const hint = composer?.focused
     ? composer.kind === "plan" ? "Enter Queue plan  Ctrl+P Message  Esc Browse"
       : "Enter Queue  Alt+Enter Newline  Ctrl+P Plan  Alt+↑↓ Target  Esc Browse"
@@ -65,16 +67,16 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
     else footerLines[footerLines.length - 1] = previous ? `${previous}  ${part}` : part;
   }
   const footerY = Math.max(0, buffer.height - footerLines.length);
-  const composerY = Math.max(3, footerY - composerHeight);
+  const composerY = Math.max(0, footerY - composerHeight);
   const contentBottom = composer ? composerY - 1 : footerY - 1;
-  let outputY = 3;
+  let outputY = compactHeight ? 2 : 3;
 
   if (sidebarWidth === 0) {
     if (activePlan?.kind === "plan") {
       put(buffer, { x, y: outputY++, width, height: 1 }, 0,
         `${marker(activePlan.status)} ${activePlanIndex + 1}. ${basename(activePlan.path)}`, { bold: true });
     }
-    if (nextPlan?.kind === "plan" && !options.showQueue) {
+    if (nextPlan?.kind === "plan" && !options.showQueue && !compactHeight) {
       put(buffer, { x, y: outputY++, width, height: 1 }, 0,
         `○ ${activePlanIndex + 2}. ${basename(nextPlan.path)} · next`, theme.muted);
     }
@@ -95,7 +97,7 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   const statusMarker = { running: "●", error: "!", paused: "Ⅱ", idle: "○", done: "✓" }[stats.status];
   put(buffer, { x, y: outputY++, width: transcriptWidth, height: 1 }, 0,
     `${statusMarker} ${phase} · ${progressLabel}${run?.activity ? ` · ${run.activity}` : ""}`, stats.status === "error" ? theme.error : { bold: true });
-  outputY++;
+  if (!compactHeight) outputY++;
   const outputRect: Rect = { x, y: outputY, width: transcriptWidth, height: Math.max(0, contentBottom - outputY) };
   let scrollOffset = options.scrollOffset;
   let workOffset = options.workOffset ?? 0;
@@ -118,7 +120,7 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
     ? "Usage unavailable" : `${formatNumber(stats.tokensIn + stats.tokensOut)} tokens`;
   const pendingMessages = queue.filter((item) => item.kind === "message" && item.status === "pending").length;
   const metrics = `${formatElapsed(stats.elapsedMs)} · ${usage}${pendingMessages ? ` · ${pendingMessages} message${pendingMessages === 1 ? "" : "s"} queued` : ""}${scrollOffset > 0 && !options.showQueue ? " · History paused" : ""}`;
-  put(buffer, { x, y: Math.max(outputY, contentBottom), width: transcriptWidth, height: 1 }, 0, metrics, theme.muted);
+  put(buffer, { x, y: contentBottom, width: transcriptWidth, height: 1 }, 0, metrics, theme.muted);
 
   let cursor: { x: number; y: number } | undefined;
   if (composer && draft) {
@@ -126,20 +128,20 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
     const target = plans.find((plan) => plan.id === composer.afterPlanId) ?? activePlan;
     const label = composer.kind === "plan" ? "ADD PLAN · joins the end of the queue"
       : `AFTER ${target?.kind === "plan" ? basename(target.path) : "CURRENT PLAN"}`;
-    put(buffer, rect, 0, "─".repeat(transcriptWidth), theme.muted);
-    put(buffer, rect, 1, options.submitting ? "Adding to queue…" : label, theme.muted);
+    if (!compactHeight) put(buffer, rect, 0, "─".repeat(transcriptWidth), theme.muted);
+    put(buffer, rect, inputRow - 1, options.submitting ? "Adding to queue…" : label, theme.muted);
     const start = Math.max(0, Math.min(draft.cursor.y - inputLines + 1, draft.lines.length - inputLines));
     for (let index = 0; index < inputLines; index++) {
       const text = composer.text.length === 0
         ? composer.kind === "plan" ? "docs/plans/next-plan.md" : "Queue a message for this plan…"
         : draft.lines[start + index] ?? "";
-      put(buffer, rect, index + 2, `${index === 0 ? "›" : " "}  ${text}`, composer.text.length === 0 ? theme.muted : {});
+      put(buffer, rect, index + inputRow, `${index === 0 ? "›" : " "}  ${text}`, composer.text.length === 0 ? theme.muted : {});
     }
     if (composer.error) put(buffer, rect, composerHeight - 1, composer.error, theme.error);
     else if (options.feedback) put(buffer, rect, composerHeight - 1, options.feedback, theme.success);
     if (composer.focused && !options.submitting) cursor = {
       x: Math.min(buffer.width - 1, x + 3 + draft.cursor.x),
-      y: Math.max(0, Math.min(footerY - 1, composerY + 2 + draft.cursor.y - start))
+      y: Math.max(0, Math.min(footerY - 1, composerY + inputRow + draft.cursor.y - start))
     };
   }
 

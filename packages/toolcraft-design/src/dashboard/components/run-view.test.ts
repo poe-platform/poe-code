@@ -32,6 +32,34 @@ function screen(width: number, height: number, overrides: Partial<Parameters<typ
 }
 
 describe("run dashboard information hierarchy", () => {
+  it.each([40, 60, 80, 140])("preserves output, input, and controls in a short terminal at %s columns", (width) => {
+    const { rows, result } = screen(width, 12, {
+      output: [{ kind: "info", role: "agent", text: "Latest result", ts: 0 }],
+      composer: { ...createComposerState("message", "first"), text: "Review this result", cursor: 18 }
+    });
+    expect(result.outputRect.height).toBeGreaterThan(0);
+    expect(rows.join("\n")).toContain("Latest result");
+    expect(rows.join("\n")).toContain("7/30 tasks");
+    expect(rows[result.cursor!.y]).toContain("Review this result");
+    const target = rows.find((row) => row.includes("AFTER "))!;
+    expect(target.trim()).toBe("AFTER docx-release.md");
+    expect(rows.join("\n")).toContain("Usage unavailable");
+    expect(rows.slice(-3).join("\n")).toContain("Esc Browse");
+    expect(result.outputRect.y + result.outputRect.height).toBeLessThan(result.cursor!.y);
+  });
+
+  it("keeps the edited line and validation error separate in a short terminal", () => {
+    const text = "First line\nSecond line\nEdited line";
+    const { rows, result } = screen(60, 12, {
+      output: [{ kind: "info", role: "agent", text: "Latest result", ts: 0 }],
+      composer: { ...createComposerState("message", "first"), text, cursor: text.length, error: "Plan file was not found" }
+    });
+    expect(rows[result.cursor!.y]).toContain("Edited line");
+    expect(rows[result.cursor!.y + 1]).toContain("Plan file was not found");
+    expect(rows.join("\n")).toContain("Latest result");
+    expect(rows.slice(-2).join("\n")).toContain("Esc Browse");
+  });
+
   it("renders readable conversation blocks and keeps raw action detail collapsed", () => {
     const output = [
       { kind: "info" as const, role: "agent" as const, text: "The release checks are passing.", ts: 0 },

@@ -196,8 +196,8 @@ export class Hyperlink {
   }
   get history(): boolean {
     const value = commentAttribute(this.store.node(this.ref), "history");
-    if (value === undefined || ["0", "false", "off"].includes(value)) return false;
-    if (["1", "true", "on"].includes(value)) return true;
+    if (value === undefined || ["1", "true", "on"].includes(value)) return true;
+    if (["0", "false", "off"].includes(value)) return false;
     throw new InvalidValueError("Expected a hyperlink history flag.");
   }
 }

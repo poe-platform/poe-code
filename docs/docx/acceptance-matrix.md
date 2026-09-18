@@ -657,3 +657,10 @@ closes owner-local allocation at sparse and signed 32-bit boundaries with
 public workflows. Existing comment bodies and relationships remain retained.
 Original failures and consumer corrections are recorded; whole-family
 reconciliation remains open.
+
+The [hyperlink history qualification](hyperlink-history-variants-20260918.md)
+closes the omitted-flag model/utility mismatch with 540 original passing memfs
+cases and 540 independent built public workflows. Body/header/footer, lexical
+flags, active MCE carriers, label order and retained relationships pass in both
+dialects/kinds. The combined maintained run passes 1,194 cases. Full-family
+acceptance remains open.

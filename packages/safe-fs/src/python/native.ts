@@ -345,7 +345,7 @@ export function createPythonNativeSyscalls(options: PythonNativeSyscallOptions):
     invoke(name, args) {
       if (closing || pending) return Promise.resolve((name.startsWith('fd_') ? 1 : -1) * errno.EBUSY!);
       const operation = execute(name, args).catch(error => {
-        const code = signal.aborted ? errno.EINTR! : errno[(error as {code?: string})?.code ?? ''] ?? errno.EIO!;
+        const code = signal.aborted ? errno.ECANCELED! : errno[(error as {code?: string})?.code ?? ''] ?? errno.EIO!;
         return (name.startsWith('fd_') ? 1 : -1) * code;
       });
       pending = operation;

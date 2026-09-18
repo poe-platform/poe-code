@@ -26,8 +26,10 @@ fragments before awaiting the host. Native reads may return short reads.
 Descriptors retain canonical identity across pathname changes; seek does not
 reopen the path. Each invocation has independent stdio-close state and native
 descriptor bookkeeping. Native errno uses the pinned guest ABI, not host errno
-numbers; unknown host exceptions become EIO. A canceled invocation returns EINTR
-at the syscall boundary without undoing earlier effects.
+numbers; unknown host exceptions become EIO. A canceled invocation returns
+terminal ECANCELED at the syscall boundary without undoing earlier effects.
+EINTR is reserved for retryable interruptions; using it for persistent
+cancellation makes libc/CPython retry an operation that can never succeed.
 
 `metadata(pathOrFd, follow)` projects canonical metadata for Python consumers
 that can represent absent optional fields. Native fixed-layout stat instead

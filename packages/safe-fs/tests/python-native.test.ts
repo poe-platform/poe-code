@@ -142,7 +142,7 @@ test('closing binary stdio revokes that descriptor without affecting its sibling
   assert.deepEqual(operations, ['stderr','stderr']);
 });
 
-test('cancellation closes a late native acquisition before returning EINTR', async () => {
+test('cancellation closes a late native acquisition before returning terminal ECANCELED', async () => {
   const controller = new AbortController();
   const closed: unknown[] = [];
   const native = fixture(async request => {
@@ -150,9 +150,19 @@ test('cancellation closes a late native acquisition before returning EINTR', asy
     assert.equal(request.op,'close');
     closed.push(request.args[0]);
   }, controller.signal);
-  assert.equal(await native.invoke('__syscall_openat',[-100,native.text('late'),0,0]),-27);
+  assert.equal(await native.invoke('__syscall_openat',[-100,native.text('late'),0,0]),-11);
   await native.close();
   assert.deepEqual(closed,[7]);
+});
+
+test('cancellation never asks libc to retry native I/O with EINTR', async () => {
+  const controller = new AbortController();
+  const native = fixture(async () => { assert.fail('canceled native I/O reached the backend'); }, controller.signal);
+  controller.abort();
+  native.vector();
+  assert.equal(await native.invoke('fd_read', [0, 512, 1, 600]), 11);
+  assert.equal(await native.invoke('fd_write', [1, 512, 1, 600]), 11);
+  await native.close();
 });
 
 test('metadata participates in native admission and retirement barriers', async () => {

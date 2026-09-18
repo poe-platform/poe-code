@@ -737,3 +737,11 @@ original 54 clauses. An additional lossless shared-context supplement preserves
 rejections and byte/relationship postconditions. The original complete DOCX run
 remains failed; later focused corrections passed. Fresh whole-repository gates
 and authorized renderer qualification still prevent complete F01–F07 acceptance.
+
+The [replacement compatibility correction](text-style-family-acceptance-20260918/replacement-requirement-evidence.json)
+adds 48 original memfs cases for F09/F10 active text and formatting-history
+carriers. The maintained nine-file run passed 494 cases; 72 built public SDK/Shell
+workflows passed across both dialects and macro-free kinds. Active history rejects;
+inactive history and opaque barriers retain their contract behavior. The two
+interrupted broad runs grant no acceptance. This closes the named defects only;
+complete F08–F15/F18 acceptance and other interactions remain open.

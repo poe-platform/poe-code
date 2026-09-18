@@ -1,4 +1,4 @@
-import { assertOutsideRevisionRanges, containsRevision, revisionInfo } from "./revision-markup.js";
+import { assertOutsideRevisionRanges, revisionInfo } from "./revision-markup.js";
 import { archiveSettings } from "./archive.js";
 import { validateDocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
@@ -13,6 +13,8 @@ import { UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { activeControlLocks } from "./protection.js";
+import { compatibilityContainers } from "./compatibility.js";
+import { activeXmlChildren } from "./xml-active-children.js";
 
 export type DummyTextOptions = DocxOperationArguments<"lorem.set"> & { readonly input?: PublicationInput };
 export type TextReplaceOptions = DocxOperationArguments<"text.replace"> & { readonly input?: PublicationInput };
@@ -80,6 +82,11 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
     const targets = selected.filter(target => target.value.story === paragraph.value.story &&
       (pathContains(target.value.path, paragraph.value.path) || pathContains(paragraph.value.path, target.value.path)));
     const xml = editor.xml(paragraph.value.part.slice(1));
+    const containers = new Set(xml.compatibility[compatibilityContainers]);
+    const branches = new Map(xml.compatibility.branches.map(branch => [branch.alternateContent, branch.selected]));
+    const activeChildren = activeXmlChildren(xml, budget);
+    const containsActiveRevision = (element: XmlElement): boolean =>
+      revisionInfo(element) !== undefined || activeChildren(element).some(containsActiveRevision);
     let node = xml.root;
     const ancestors: XmlElement[] = [node];
     for (const index of paragraph.value.path) { node = node.children[index]!; ancestors.push(node); }
@@ -133,7 +140,15 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
     if (ancestors.some(n => !visible(n.localName) || n.localName === "tr" && n.children.some(p => p.localName === "trPr" && p.children.some(c => !visible(c.localName))))) continue;
     const visit = (current: XmlElement, path: readonly number[], run?: XmlElement, runOffset = { value: 0 }): void => {
       budget.charge("work", targets.length + 1);
-      if (current.namespace !== w) { flush(); return; }
+      if (current.namespace !== w) {
+        if (branches.has(current)) {
+          const selectedBranch = branches.get(current);
+          if (selectedBranch) visit(selectedBranch, [...path, current.children.indexOf(selectedBranch)], run, runOffset);
+        } else if (containers.has(current)) {
+          current.children.forEach((child, index) => visit(child, [...path, index], run, runOffset));
+        } else flush();
+        return;
+      }
       const name = current.localName;
       const review = revisionInfo(current);
       if (review && (name.endsWith("RangeStart") || name.endsWith("RangeEnd"))) {
@@ -174,8 +189,8 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
         return;
       }
       const container = ["hyperlink", "sdt", "sdtContent", "fldSimple", "ins", "del", "moveTo", "moveFrom"].includes(name);
-      const changedProperties = ["p", "r"].includes(name) && current.children.some(props => props.namespace === w &&
-        props.localName === name + "Pr" && containsRevision(props));
+      const changedProperties = ["p", "r"].includes(name) && activeChildren(current).some(props => props.namespace === w &&
+        props.localName === name + "Pr" && containsActiveRevision(props));
       if (container || changedProperties) flush();
       if (!visible(name)) return;
       if (!["p", "r"].includes(name) && !container) { flush(); return; }

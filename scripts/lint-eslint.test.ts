@@ -974,11 +974,18 @@ describe("selection and immutable metadata leaves", () => {
     expect(JSON.parse(stderr.write.mock.calls[0][0])).toMatchObject({ receipts: result.receipts, directoryPins: result.directoryPins, counters: result.counters, unprocessed: result.unprocessed });
   });
   it("preserves full stylish audit details for warnings and incomplete runs", async () => {
-    for (const files of [{ "src/warning.js": "const unused = 1;" }, {}]) {
-      const state = model(files);
-      const guard = Object.keys(files).length ? state.guard : createLintInputGuard({ root, boundaries, fileSystem: state.fileSystem, limits: { metadataOperations: 2 } });
-      const result = await lintRoot({ guard, config: state.config, receiptBinding: state.binding });
-      expect(result.warningCount > 0 || !result.complete).toBe(true);
+    for (const outcome of [{ complete: true, warningCount: 1 }, { complete: false, warningCount: 0 }]) {
+      const result = {
+        ...outcome,
+        exitCode: outcome.complete ? 0 : 2,
+        errorCount: 0,
+        eslint: { loadFormatter: vi.fn(async () => ({ format: () => "" })) },
+        results: [],
+        receipts: [{ path: "src/warning.js", kind: "regular" }],
+        directoryPins: [{ path: "src" }],
+        counters: { subjects: 1 },
+        unprocessed: { entries: outcome.complete ? [] : ["src/pending.js"] }
+      };
       const stderr = { write: vi.fn() };
       await printLintResult(result, { format: "stylish", maxWarnings: -1 }, { write: vi.fn() }, stderr);
       expect(JSON.parse(stderr.write.mock.calls[0][0])).toMatchObject({ receipts: result.receipts, directoryPins: result.directoryPins, counters: result.counters, unprocessed: result.unprocessed });

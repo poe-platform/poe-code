@@ -4,7 +4,7 @@ import { bindXmlElementView, type XmlElementView } from "./xml-element-view.js";
 import { budgetSharesReservations } from "./budget.js";
 import { type DocumentModelContext } from "./model-context.js";
 import { type DocumentModelInput } from "./model-input.js";
-import { MissingKeyError, StaleHandleError } from "./model-errors.js";
+import { MissingKeyError, StaleHandleError, OwnershipError } from "./model-errors.js";
 import { archiveSettings, InputTypeError, InvalidValueError, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { modelOutput, type DocumentOutput, type DocumentSaveOptions } from "./model-output.js";
 import { documentDialects } from "./dialect.js";
@@ -207,7 +207,9 @@ export class Styles implements Iterable<BaseStyle> {
     typeName(style_type);
     if (style_or_name === null) return null;
     const style = typeof style_or_name === "string" ? this.at(style_or_name) : style_or_name;
-    if (!(style instanceof BaseStyle) || style.collection !== this || style.type.name !== style_type.name) throw new TypeError("Expected an owned style of the requested type.");
+    if (!(style instanceof BaseStyle)) throw new InputTypeError("Expected a style of the requested type.");
+    if (style.collection !== this) throw new OwnershipError("Expected an owned style.");
+    if (style.type.name !== style_type.name) throw new InputTypeError("Expected a style of the requested type.");
     return style.style_id === this.default(style_type)?.style_id ? null : style.style_id;
   }
   get latent_styles(): LatentStyles {
@@ -281,7 +283,11 @@ export class CharacterStyle extends BaseStyle {
   get font(): Font { return new Font(this.formattingOwner("r")); }
   get base_style(): BaseStyle | null { const id = attr(this.store.readChild(this.rawElement, "basedOn"), "val"); return id === undefined ? null : [...this.collection].find(s => s.style_id === id) ?? null; }
   set base_style(value: BaseStyle | null) {
-    if (value !== null && (!(value instanceof BaseStyle) || value.collection !== this.collection || value.type.name !== this.type.name)) throw new TypeError("Expected a base style from this document of the same type.");
+    if (value !== null) {
+      if (!(value instanceof BaseStyle)) throw new InputTypeError("Expected a base style of the same type.");
+      if (value.collection !== this.collection) throw new OwnershipError("Expected a base style from this document.");
+      if (value.type.name !== this.type.name) throw new InputTypeError("Expected a base style of the same type.");
+    }
     const visited = new Set<string | null>();
     let next = value;
     while (next) {
@@ -298,7 +304,11 @@ export class ParagraphStyle extends CharacterStyle {
     return [...this.collection].find(s => s.style_id === id && s.type.name === "PARAGRAPH") ?? this;
   }
   set next_paragraph_style(value: BaseStyle | null) {
-    if (value !== null && (!(value instanceof BaseStyle) || value.collection !== this.collection || value.type.name !== "PARAGRAPH")) throw new TypeError("Expected an owned paragraph style.");
+    if (value !== null) {
+      if (!(value instanceof BaseStyle)) throw new InputTypeError("Expected a paragraph style.");
+      if (value.collection !== this.collection) throw new OwnershipError("Expected an owned paragraph style.");
+      if (value.type.name !== "PARAGRAPH") throw new InputTypeError("Expected a paragraph style.");
+    }
     this.setValue("next", value?.style_id === this.style_id ? null : value?.style_id ?? null);
   }
 }

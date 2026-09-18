@@ -563,6 +563,12 @@ F15/F18 dependency; complete F01–F07 acceptance and the current workspace gate
 remain open.
 # Public reservation/cancellation variants — 2026-09-17
 
+The [neutral error dependency checks](neutral-error-contract-20260918.md) add
+current base-error and package/XML/style ownership evidence: 973 final focused
+assertions and 226 built ownership workflows pass. Permission, additional
+document/comment ownership, complete current gates and family reconciliation
+remain open. Older full gates interrupted at this dependency receive no credit.
+
 The [current opt-in closure check](opt-in-closure-20260918.md) verifies native and
 fresh browser-target public registration, collision preflight and replacement,
 plus the absence of DOCX from the default browser dependency graph. All 1,097

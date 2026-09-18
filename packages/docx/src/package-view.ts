@@ -8,7 +8,7 @@ import { parseMediaType } from "./media-type.js";
 import { archiveSettings, InputTypeError, InvalidValueError, ResourceLimitError, type ArchiveContext, type ArchiveMember, type DocumentArchive } from "./archive.js";
 import { DocumentPackage, type PackagePart, type PackageRelationship } from "./package.js";
 import { validateDocumentArchive, SemanticValidationError } from "./validation.js";
-import { MissingKeyError, StaleHandleError } from "./model-errors.js";
+import { MissingKeyError, StaleHandleError, OwnershipError } from "./model-errors.js";
 import { PublicationError } from "./publication.js";
 import { DocumentXmlEditor, editActiveRelationshipXml, UnsupportedEditError } from "./xml-write.js";
 import { relationshipXmlRows, relationshipXmlIds, collapseRelationshipScalar } from "./relationship-xml.js";
@@ -173,7 +173,7 @@ export class PackageView {
     return part;
   }
   [packageMetadata](part: PartView): PackagePart {
-    if (part.package !== this) throw new InputTypeError("Expected a part owned by this package.");
+    if (part.package !== this) throw new OwnershipError("Expected a part owned by this package.");
     if (!partNames.has(part)) throw new StaleHandleError("The part owner is detached.");
     const metadata = this.current().graph.getPart(partNames.get(part)!);
     const budget = archiveSettings(this.#binding.context).budget;
@@ -515,7 +515,7 @@ export class PackageView {
     });
   }
   [packageReadXml](part: PartView): { xml: DocumentXmlEditor; budget: DocumentBudget } {
-    if (part.package !== this) throw new InputTypeError("Expected a part owned by this package.");
+    if (part.package !== this) throw new OwnershipError("Expected a part owned by this package.");
     const name = partNames.get(part);
     if (!name) throw new StaleHandleError("The part owner is detached.");
     const metadata = this.current().graph.getPart(name), budget = archiveSettings(this.#binding.context).budget;
@@ -910,7 +910,8 @@ export class ImageParts implements Iterable<ImagePartView> {
   [Symbol.iterator](): IterableIterator<ImagePartView> { return this.#package[packageImages]()[Symbol.iterator](); }
   has(item: unknown): boolean { return this.#package[packageImages]().includes(item as ImagePartView); }
   append(item: ImagePartView): void {
-    if (!(item instanceof ImagePartView) || item.package !== this.#package) throw new InputTypeError("Expected an image part owned by this package.");
+    if (!(item instanceof ImagePartView)) throw new InputTypeError("Expected an image part.");
+    if (item.package !== this.#package) throw new OwnershipError("Expected an image part owned by this package.");
     this.#package[packageMetadata](item);
   }
   async get_or_add_image_part(input: ImageModelInput): Promise<ImagePartView> {
@@ -1037,7 +1038,8 @@ export class Relationships implements Iterable<string> {
     let target_ref: string;
     if (is_external) { if (typeof target !== "string") throw new InputTypeError("Expected an inert external target string."); target_ref = collapseRelationshipScalar(target); }
     else {
-      if (!(target instanceof PartView) || target.package !== this.#package) throw new InputTypeError("Expected a target owned by this package.");
+      if (!(target instanceof PartView)) throw new InputTypeError("Expected a target part.");
+      if (target.package !== this.#package) throw new OwnershipError("Expected a target owned by this package.");
       target_ref = relativePartTarget(this.#owner?.partname.toString() ?? "/", target.partname.toString());
     }
     this.#package[packageEditRelationships](this.#owner, [...this.rows(), { rId, reltype, target_ref, is_external }]);
@@ -1046,7 +1048,8 @@ export class Relationships implements Iterable<string> {
   get_or_add(reltype: string, target_part: PartView): RelationshipView {
     if (typeof reltype !== "string") throw new InputTypeError("Expected a relationship type.");
     reltype = collapseRelationshipScalar(reltype);
-    if (!(target_part instanceof PartView) || target_part.package !== this.#package) throw new InputTypeError("Expected an owned target part.");
+    if (!(target_part instanceof PartView)) throw new InputTypeError("Expected a target part.");
+    if (target_part.package !== this.#package) throw new OwnershipError("Expected an owned target part.");
     const found = [...this.values()].find(row => !row.is_external && row.reltype === reltype && row.target_part === target_part);
     return found ?? this.add_relationship(reltype, target_part, this.#package[packageNextRelationshipId](this.#owner));
   }
@@ -1079,7 +1082,8 @@ export class Relationships implements Iterable<string> {
     for (const entry of entries) {
       if (!Array.isArray(entry) || entry.length !== 2) throw new InputTypeError("Expected a relationship key and value pair.");
       const [id, value] = entry;
-      if (!(value instanceof RelationshipView) || !value.belongsPackage(this.#package) || typeof id !== "string" || id !== value.rId || replacements.has(id)) throw new InputTypeError("Expected matching same-package relationship entries.");
+      if (!(value instanceof RelationshipView) || typeof id !== "string" || id !== value.rId || replacements.has(id)) throw new InputTypeError("Expected matching relationship entries.");
+      if (!value.belongsPackage(this.#package)) throw new OwnershipError("Expected same-package relationship entries.");
       let target_ref = value.target_ref;
       if (!value.is_external && !value.belongs(this)) {
         const hash = target_ref.indexOf("#");

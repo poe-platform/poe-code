@@ -3,7 +3,7 @@ import { DocumentBudget } from "./budget.js";
 import { Volume } from "memfs";
 import {
   DocumentXmlEditor, DocumentArchiveEditor, parseDocumentXml, readArchive, readDocumentArchive, writeArchive,
-  UnsupportedEditError, InvalidXmlError, ResourceLimitError, type ArchiveLimits
+  UnsupportedEditError, InvalidXmlError, ResourceLimitError, OwnershipError, InputTypeError, type ArchiveLimits
 } from "./index.js";
 
 import { createDocumentFixture } from "../tests/fixtures/documents.js";
@@ -30,7 +30,7 @@ it("retains scalar comments and refuses element content or foreign owners", () =
     else { editor.replaceScalarText(editor.root, "New"); expect(editor.serialize()).toEqual(utf8("<root>New<!--keep--></root>")); }
   }
   const editor = new DocumentXmlEditor(utf8("<root/>")), foreign = new DocumentXmlEditor(utf8("<other/>"));
-  expect(() => editor.replaceScalarText(foreign.root, "New")).toThrow(UnsupportedEditError);
+  expect(() => editor.replaceScalarText(foreign.root, "New")).toThrow(OwnershipError);
 });
 it("fills self-closing scalar root and nested leaf shells", () => {
   for (const xml of ["<root marker = 'keep'/>", "<outer><root marker = 'keep'/></outer>"]) {
@@ -107,7 +107,7 @@ it("rejects foreign nodes, invalid XML values and coercion without changing stag
   const editor = new DocumentXmlEditor(utf8('<r a="yes">old</r>'));
   const node = editor.root.content[0]!;
   editor.setText(node, "valid");
-  expect(() => editor.setText(parseDocumentXml(utf8('<r>foreign</r>')).root.content[0]!, "new")).toThrow(UnsupportedEditError);
+  expect(() => editor.setText(parseDocumentXml(utf8('<r>foreign</r>')).root.content[0]!, "new")).toThrow(OwnershipError);
   for (const text of ["\0", "\ud800", "\uffff"]) expect(() => editor.setText(node, text)).toThrow(InvalidXmlError);
   for (const value of [null, undefined, 36, {}, false]) expect(() => editor.setAttribute(editor.root, "a", value as never)).toThrow(TypeError);
   expect(editor.serialize()).toEqual(utf8('<r a="yes">valid</r>'));
@@ -175,7 +175,7 @@ it("preserves processing-instruction target and rejects normalized-away leading 
 
 it("rejects attributes masquerading as text nodes and retains namespace scopes", () => {
   const editor = new DocumentXmlEditor(utf8('<a:r xmlns:a="urn:first" a:flag="yes"><a:r xmlns:a="urn:second" a:flag="keep"/></a:r>'));
-  expect(() => editor.setText(editor.root.attributes[1]! as never, 'bad" extra="changed')).toThrow(UnsupportedEditError);
+  expect(() => editor.setText(editor.root.attributes[1]! as never, 'bad" extra="changed')).toThrow(InputTypeError);
   editor.setAttribute(editor.root.children[0]!, "a:flag", "updated");
   const root = parseDocumentXml(editor.serialize()).root;
   expect(root.namespace).toBe("urn:first");

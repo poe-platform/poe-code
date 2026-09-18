@@ -15,3 +15,9 @@ export class StaleHandleError extends RangeError {
   override readonly name = "StaleHandleError";
   readonly code = "stale-selection";
 }
+
+/** A live object cannot confer authority over another document or XML owner. */
+export class OwnershipError extends Error {
+  override readonly name = "OwnershipError";
+  readonly code = "conflict";
+}

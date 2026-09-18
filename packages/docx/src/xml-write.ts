@@ -1,4 +1,5 @@
 import { InputTypeError, ResourceLimitError } from "./archive.js";
+import { OwnershipError } from "./model-errors.js";
 import { DocumentBudget } from "./budget.js";
 import { opaqueXmlContent } from "./xml-retention.js";
 import {
@@ -221,6 +222,7 @@ export class DocumentXmlEditor {
 
   /** Every affected native box must admit the operation, even before a no-op edit. */
   assertShapeEditAllowed(node: XmlElement): void {
+    this.#assertOwnedElement(node);
     if (!this.#dialect) return;
     const span = this.#spans.get(node);
     if (!span) unsupported();
@@ -262,7 +264,7 @@ export class DocumentXmlEditor {
 
   /** Exact admitted source, for engine-authored fragments retaining lexical XML. */
   sourceXml(node: XmlElement, replacements: ReadonlyMap<XmlElement, string> = new Map(), contentOnly = false): string {
-    if (!this.#elements.has(node)) unsupported();
+    this.#assertOwnedElement(node);
     const span = this.#spans.get(node)!;
     this.#budget.charge("work", span.end - span.start);
     this.#budget.charge("retainedBytes", (span.end - span.start) * 2);
@@ -270,6 +272,7 @@ export class DocumentXmlEditor {
     const chunks: string[] = [];
     const descendants = [...replacements.keys()];
     for (const child of descendants) {
+      this.#assertOwnedElement(child);
       const childSpan = this.#spans.get(child);
       if (child === node || !childSpan || childSpan.start < span.contentStart! || childSpan.end > span.contentEnd!) unsupported();
     }
@@ -292,7 +295,8 @@ export class DocumentXmlEditor {
   /** Replace an owned editable subtree; validate the complete candidate atomically. */
   replaceElement(node: XmlElement, xml: string): void {
     if (typeof xml !== "string") throw new InputTypeError("Expected XML markup.");
-    if (!this.#elements.has(node) || node === this.root || this.#patches.has(node)) unsupported();
+    this.#assertOwnedElement(node);
+    if (node === this.root || this.#patches.has(node)) unsupported();
     this.assertShapeEditAllowed(node);
     if (this.#guardCompatibility && !this.#canEdit(node)) unsupported();
     this.#stageReplacement(node, xml, !this.#canReplaceSubtree(node, token => this.#canEdit(token)), true);
@@ -380,6 +384,7 @@ export class DocumentXmlEditor {
 
   /** Explicit bounded math authority; generic subtree replacement remains conservative. */
   replaceEquationElement(node:XmlElement,markup:string):void {
+    this.#assertOwnedElement(node);
     if(typeof markup!=="string")throw new InputTypeError("Expected equation markup.");
     if(!this.#elements.has(node)||node===this.root||this.#patches.has(node)||!this.#dialect)unsupported();
     const namespace=mathNamespace(this.#dialect==='strict');
@@ -392,6 +397,7 @@ export class DocumentXmlEditor {
 
   /** Append one bounded math root without granting generic compatibility insertion. */
   appendEquationElement(paragraph:XmlElement,markup:string):void {
+    this.#assertOwnedElement(paragraph);
     if(typeof markup!=="string")throw new InputTypeError("Expected equation markup.");
     if(!this.#elements.has(paragraph)||this.#patches.has(paragraph)||!this.#dialect||paragraph.namespace!==documentDialects[this.#dialect].w||paragraph.localName!=='p')unsupported();
     const fragment=admitEquationFragment(new TextEncoder().encode(markup),mathNamespace(this.#dialect==='strict'),this.#budget);
@@ -419,7 +425,8 @@ export class DocumentXmlEditor {
   /** Replace only scalar text content while preserving the exact owned element shell. */
   replaceScalarText(node: XmlElement, text: string): void {
     if (typeof text !== "string") throw new InputTypeError("Expected an XML text string.");
-    if (!this.#elements.has(node) || this.#patches.has(node) || node.children.length) unsupported();
+    this.#assertOwnedElement(node);
+    if (this.#patches.has(node) || node.children.length) unsupported();
     if (this.#guardCompatibility && (!this.#canEdit(node) || node.content.some(token => !this.#canEdit(token)))) unsupported();
     this.assertShapeEditAllowed(node);
     this.#stageScalarText(node, text);
@@ -506,7 +513,9 @@ export class DocumentXmlEditor {
   /** Inserts admitted markup at an owned child boundary, retaining source tokens. */
   insertChildren(parent: XmlElement, xml: string, before?: XmlElement): void {
     if (typeof xml !== "string") throw new InputTypeError("Expected XML markup.");
-    if (!this.#elements.has(parent) || (before && !parent.children.includes(before))) unsupported();
+    this.#assertOwnedElement(parent);
+    if (before !== undefined) this.#assertOwnedElement(before);
+    if (before && !parent.children.includes(before)) unsupported();
     if (this.#guardCompatibility && !this.#canEdit(parent)) unsupported();
     this.assertShapeEditAllowed(parent);
     this.#stageInsertion(parent,xml,before,true);
@@ -534,7 +543,8 @@ export class DocumentXmlEditor {
 
   setText(node: XmlContent, text: string): void {
     if (typeof text !== "string") throw new InputTypeError("Expected an XML text string.");
-    if (!this.#spans.has(node) || !["text", "cdata", "comment", "processing-instruction"].includes(node.kind)) unsupported();
+    if (!node || typeof node !== "object" || !["element", "text", "cdata", "comment", "processing-instruction"].includes(node.kind)) throw new InputTypeError("Expected an XML content node.");
+    if (!this.#spans.has(node)) throw new OwnershipError("Expected content owned by this XML editor.");
     if (node.kind === "element") unsupported();
     if (node.kind !== "text" && text.includes("\r")) unsupported();
     if (node.kind === "cdata" && text.includes("]]>")) unsupported();
@@ -548,7 +558,7 @@ export class DocumentXmlEditor {
       typeof name.namespace !== "string" || typeof name.localName !== "string" ||
       Object.keys(name).some(key => key !== "namespace" && key !== "localName"))) || typeof value !== "string")
       throw new InputTypeError("Expected an XML attribute name or expanded name and string value.");
-    if (!this.#elements.has(element)) unsupported();
+    this.#assertOwnedElement(element);
     const attribute = element.attributes.find(item => typeof name === "string" ? item.name === name :
       item.namespace === name.namespace && item.localName === name.localName);
     if (!attribute || attribute.namespace === "http://www.w3.org/2000/xmlns/") unsupported();
@@ -573,7 +583,7 @@ export class DocumentXmlEditor {
 
   /** Tail text is owned by the containing element, never by an external resource. */
   setElementTail(element: XmlElement, value: string | null): void {
-    if (!this.#elements.has(element)) unsupported();
+    this.#assertOwnedElement(element);
     const parent = [...this.#elements].find(node => node.children.includes(element));
     const owner = parent ?? element;
     this.#assertOwnedEdit(owner);
@@ -641,8 +651,14 @@ export class DocumentXmlEditor {
     this.#acceptOwnedPatch(element, patch, existing ? 0 : 1);
   }
 
+  #assertOwnedElement(element: XmlElement): void {
+    if (!element || typeof element !== "object" || element.kind !== "element") throw new InputTypeError("Expected an XML element.");
+    if (!this.#elements.has(element)) throw new OwnershipError("Expected an element owned by this XML editor.");
+  }
+
   #assertOwnedEdit(element: XmlElement): void {
-    if (!this.#elements.has(element) || this.#patches.size || this.#guardCompatibility && !this.#canEdit(element)) unsupported();
+    this.#assertOwnedElement(element);
+    if (this.#patches.size || this.#guardCompatibility && !this.#canEdit(element)) unsupported();
     this.assertShapeEditAllowed(element);
   }
 

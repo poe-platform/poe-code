@@ -458,7 +458,8 @@
     "@poe-code/safe-playwright": "*",
     "safe-bash-contracts": "*",
     "safe-bash-command-wkhtmltopdf": "*",
-    "safe-bash-command-exiftool": "*"
+    "safe-bash-command-exiftool": "*",
+    "@poe-code/package-lint": "*"
   },
   "poeCode": {
     "packageLint": {

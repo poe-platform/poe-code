@@ -41,7 +41,11 @@ for (const strict of [false, true]) for (const kind of ["officeDocument", "style
       { operation: "model.document.Document.styles.get", receiver: ref("document"), arguments: {}, resultHandle: "styles" },
       { operation: "model.styles.styles.Styles.part.get", receiver: ref("styles"), arguments: {}, resultHandle: "stylePart" },
       { operation: "model.opc.part.XmlPart.package.get", receiver: ref("stylePart"), arguments: {}, resultHandle: "package" },
-      kind === "officeDocument" ? { operation: "model.package.Package.main_document_part.get", receiver: ref("package"), arguments: {}, resultHandle: "selected" } : { operation: "model.parts.styles.StylesPart.default.call", arguments: { ownerPackage: ref("package") }, resultHandle: "selected" },
+      { operation: "model.package.Package.main_document_part.get", receiver: ref("package"), arguments: {}, resultHandle: kind === "officeDocument" ? "selected" : "main" },
+      ...(kind === "officeDocument" ? [] : [
+        { operation: "model.parts.document.DocumentPart.styles.get", receiver: ref("main"), arguments: {}, resultHandle: "ownedStyles" },
+        { operation: "model.styles.styles.Styles.part.get", receiver: ref("ownedStyles"), arguments: {}, resultHandle: "selected" }
+      ]),
       { operation: "model.opc.part.Part.partname.get", receiver: ref("selected"), arguments: {} }
     ] };
     if (route === "sdk") {

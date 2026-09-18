@@ -34,11 +34,11 @@ interface Message {
 }
 
 interface Command {
-  clientId?: number;
-  clientKey?: string;
+  clientId: number | undefined;
+  clientKey: string | undefined;
   method: string;
-  sessionId?: string;
-  targetId?: string;
+  sessionId: string | undefined;
+  targetId: string | undefined;
   internal: boolean;
   replied: boolean;
   bytes: number;
@@ -173,6 +173,7 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
         if (message.error) throw new Error('Native private target detach failed');
         return;
       }
+      if (command.clientId === undefined) throw new Error('Missing client CDP response identity');
       const reply = { ...message, id: command.clientId };
       const targetInfo = record(message.result?.targetInfo) ? message.result.targetInfo : undefined;
       if (targets.has(command.targetId ?? '') || sessions.has(command.sessionId ?? '') ||

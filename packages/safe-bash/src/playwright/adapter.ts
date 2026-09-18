@@ -9,16 +9,28 @@ export interface PlaywrightLocator {
   ariaSnapshot(options?: { timeout?: number }): Promise<string>;
 }
 
-export interface SnapshotNode {
-  readonly tagName: string;
+export interface SnapshotContentNode {
   readonly textContent: string | null;
+  readonly nodeType?: number;
+  readonly tagName?: string;
+  readonly firstChild?: SnapshotContentNode | null;
+  readonly nextSibling?: SnapshotContentNode | null;
+  readonly parentElement?: SnapshotNode | null;
+  readonly ownerDocument?: {
+    readonly defaultView: {
+      readonly document: unknown;
+      getComputedStyle?(node: SnapshotContentNode): { readonly display: string; readonly visibility: string; readonly contentVisibility?: string };
+    } | null;
+    getElementById?(id: string): SnapshotContentNode | null;
+  };
+  getAttribute?(name: string): string | null;
+}
+
+export interface SnapshotNode extends SnapshotContentNode {
+  readonly tagName: string;
   readonly innerText?: string;
   readonly isConnected: boolean;
-  readonly ownerDocument?: {
-    readonly defaultView: { readonly document: unknown } | null;
-    getElementById?(id: string): { readonly textContent: string | null } | null;
-  };
-  readonly labels?: ArrayLike<{ readonly textContent: string | null }> | null;
+  readonly labels?: ArrayLike<SnapshotContentNode> | null;
   readonly value?: string;
   readonly checked?: boolean;
   readonly indeterminate?: boolean;

@@ -3,6 +3,9 @@ import type { PlaywrightElementHandle, PlaywrightSnapshotHandle, SnapshotNode } 
 import type { FrameSnapshotCapsule, FrameSnapshotInput } from '../../src/playwright/frame-snapshot.js';
 
 export function createSnapshotFrame(elements: readonly { node: SnapshotNode; native: PlaywrightElementHandle }[], content = '') {
+  for (const { node } of elements) {
+    if (!('firstChild' in node)) Object.defineProperty(node, 'firstChild', { get: () => ({ nodeType: 3, textContent: node.textContent }) });
+  }
   const capsules: PlaywrightSnapshotHandle[] = [];
   const disposedCapsules: PlaywrightSnapshotHandle[] = [];
   const acquiredElements: PlaywrightElementHandle[] = [];

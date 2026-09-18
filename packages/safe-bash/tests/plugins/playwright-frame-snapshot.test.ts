@@ -3,10 +3,18 @@ import { test } from 'node:test';
 import { createContext, runInContext } from 'node:vm';
 import { createFrameSnapshot } from '../../src/playwright/frame-snapshot.js';
 import type { FrameSnapshotInput, FrameSnapshotCapsule, FrameSnapshotRenderResult } from '../../src/playwright/frame-snapshot.js';
-import type { SnapshotNode } from '../../src/playwright/adapter.js';
+import type { SnapshotContentNode, SnapshotNode } from '../../src/playwright/adapter.js';
 
 function element(attributes: Record<string, string> = {}, properties: Partial<SnapshotNode> = {}): SnapshotNode {
-  return { tagName: 'BUTTON', textContent: 'Save', isConnected: true, getAttribute: name => attributes[name] ?? null, ...properties };
+  return { tagName: 'BUTTON', textContent: 'Save', firstChild: { nodeType: 3, textContent: properties.textContent ?? 'Save' }, isConnected: true, getAttribute: name => attributes[name] ?? null, ...properties };
+}
+
+function tree(tagName: string, children: SnapshotContentNode[], attributes: Record<string, string> = {}): SnapshotNode {
+  const linked = children.map(child => Object.assign(Object.create(child) as SnapshotContentNode, { nextSibling: null as SnapshotContentNode | null }));
+  for (let index = 0; index < linked.length; index++) linked[index]!.nextSibling = linked[index + 1] ?? null;
+  const node = element(attributes, { tagName, firstChild: linked[0] ?? null });
+  Object.defineProperty(node, 'textContent', { get() { throw new Error('aggregate textContent is forbidden'); } });
+  return node;
 }
 
 function fixture(nodes: SnapshotNode[] = [], body = '', limits: FrameSnapshotInput = { maxSnapshotBytes: 4096, maxSnapshotRefs: 20 }) {
@@ -59,6 +67,102 @@ test('readable text trims paragraphs and skips blank lines without allocating re
   assert.deepEqual(empty.render([]), { status: 'ok', text: '' });
 });
 
+test('author-only and naming-prohibited roles never infer names from descendants', () => {
+  const roles = ['navigation', 'search', 'region', 'form', 'group', 'img', 'generic', 'presentation', 'paragraph'];
+  const nodes = roles.map(role => element({ role }, { tagName: 'DIV', textContent: '.css{color:red}window.secret=1;Go home' }));
+  assert.equal(fixture(nodes).render(nodes.map((_, index) => `e${index + 1}`)).text,
+    roles.map((role, index) => `- ${role} "" [ref=e${index + 1}]\n`).join(''));
+  for (const node of nodes) {
+    Object.defineProperty(node, 'textContent', { get() { throw new Error('container text must not be read'); } });
+    Object.defineProperty(node, 'firstChild', { get() { throw new Error('container descendants must not be visited'); } });
+  }
+  assert.equal(fixture(nodes).render(nodes.map((_, index) => `e${index + 1}`)).status, 'ok');
+});
+
+test('author-only roles accept explicit names but naming-prohibited roles do not', () => {
+  const nodes = [
+    element({ role: 'navigation', 'aria-label': 'Main' }),
+    element({ role: 'img', 'aria-label': 'Chart' }),
+    element({ role: 'generic', 'aria-label': 'Wrong', title: 'Wrong' }),
+    element({ role: 'paragraph', 'aria-label': 'Wrong' }),
+  ];
+  assert.equal(fixture(nodes).render(['e1', 'e2', 'e3', 'e4']).text,
+    '- navigation "Main" [ref=e1]\n- img "Chart" [ref=e2]\n- generic "" [ref=e3]\n- paragraph "" [ref=e4]\n');
+});
+
+test('content names exclude source and hidden descendants but retain inline text and named images', () => {
+  const children = [
+    { nodeType: 3, textContent: 'Go ' },
+    tree('STYLE', [{ nodeType: 3, textContent: 'source' }]),
+    tree('SCRIPT', [{ nodeType: 3, textContent: 'source' }]),
+    tree('SPAN', [{ nodeType: 3, textContent: 'hidden' }], { 'aria-hidden': 'true' }),
+    tree('SPAN', [{ nodeType: 3, textContent: 'hidden' }], { hidden: '' }),
+    tree('IMG', [], { alt: 'home' }),
+  ];
+  const nodes = [tree('A', children), tree('BUTTON', children), tree('DIV', children, { role: 'heading' })];
+  assert.equal(fixture(nodes).render(['e1', 'e2', 'e3']).text,
+    '- link "Go home" [ref=e1]\n- button "Go home" [ref=e2]\n- heading "Go home" [ref=e3]\n');
+});
+
+test('labels traverse visible content and explicit hidden references without chaining labelledby', () => {
+  const label = tree('LABEL', [
+    { nodeType: 3, textContent: 'Account ' },
+    tree('SPAN', [], { 'aria-label': 'name' }),
+    tree('SPAN', [{ nodeType: 3, textContent: 'wrong' }], { 'aria-hidden': 'true' }),
+    tree('SCRIPT', [{ nodeType: 3, textContent: 'wrong' }]),
+  ]);
+  const hidden = tree('SPAN', [{ nodeType: 3, textContent: 'Hidden label' }], { hidden: '', 'aria-labelledby': 'cycle' });
+  const empty = tree('SPAN', []);
+  const ownerDocument = { defaultView: null, getElementById: (id: string) => ({ label, hidden, empty }[id] ?? null) };
+  const nodes = [
+    element({}, { tagName: 'INPUT', labels: [label] }),
+    element({ 'aria-labelledby': 'missing label hidden label', 'aria-label': 'wrong' }, { ownerDocument }),
+    element({ 'aria-labelledby': 'empty', 'aria-label': 'wrong' }, { ownerDocument }),
+    element({ 'aria-labelledby': 'missing', 'aria-label': '  Fallback  ' }, { ownerDocument }),
+    element({ 'aria-label': ' \t ' }, { textContent: 'Contents' }),
+  ];
+  assert.equal(fixture(nodes).render(['e1', 'e2', 'e3', 'e4', 'e5']).text,
+    '- textbox "Account name" [ref=e1]\n- button "Account name Hidden label" [ref=e2]\n- button "" [ref=e3]\n- button "Fallback" [ref=e4]\n- button "Contents" [ref=e5]\n');
+});
+
+test('name traversal and label ID scanning fail closed at the byte-derived work budget', () => {
+  const wide = tree('BUTTON', Array.from({ length: 200 }, () => tree('SPAN', [])));
+  let deep = tree('SPAN', []);
+  for (let index = 0; index < 200; index++) deep = tree('SPAN', [deep]);
+  const ids = element({ 'aria-labelledby': 'missing '.repeat(200) });
+  for (const node of [wide, tree('BUTTON', [deep]), ids]) {
+    assert.deepEqual(fixture([node], '', { maxSnapshotBytes: 64, maxSnapshotRefs: 1 }).render(['e1']), { status: 'byte-limit', text: '' });
+  }
+});
+
+test('computed visibility prunes descendants and block boundaries separate content names', () => {
+  const styled = (display: string, visibility = 'visible') => ({
+    defaultView: { document: {}, getComputedStyle: () => ({ display, visibility }) },
+  });
+  const hidden = tree('SPAN', [{ nodeType: 3, textContent: 'Wrong' }]);
+  Object.defineProperty(hidden, 'ownerDocument', { value: styled('none') });
+  Object.defineProperty(hidden, 'firstChild', { get() { throw new Error('hidden descendants must not be read'); } });
+  const invisible = tree('SPAN', [{ nodeType: 3, textContent: 'Wrong' }]);
+  Object.defineProperty(invisible, 'ownerDocument', { value: styled('inline', 'hidden') });
+  const block = tree('SPAN', [{ nodeType: 3, textContent: 'First' }]);
+  Object.defineProperty(block, 'ownerDocument', { value: styled('block') });
+  const button = tree('BUTTON', [block, { nodeType: 3, textContent: 'last' }, hidden, invisible]);
+  assert.equal(fixture([button]).render(['e1']).text, '- button "First last" [ref=e1]\n');
+});
+
+test('wrapping labels exclude their control and hidden ancestor references remain usable', () => {
+  const control = element({}, { tagName: 'INPUT', value: 'not a name' });
+  const label = tree('LABEL', []);
+  Object.defineProperty(label, 'firstChild', { value: control });
+  Object.defineProperty(control, 'nextSibling', { value: { nodeType: 3, textContent: 'Label' } });
+  Object.defineProperty(control, 'labels', { value: [label] });
+  const reference = tree('SPAN', [{ nodeType: 3, textContent: 'Hidden reference' }]);
+  Object.defineProperty(reference, 'parentElement', { value: element({ hidden: '' }, { tagName: 'DIV' }) });
+  const button = element({ 'aria-labelledby': 'label' }, { ownerDocument: { defaultView: null, getElementById: () => reference } });
+  assert.equal(fixture([control, button]).render(['e1', 'e2']).text,
+    '- textbox "Label" [ref=e1] [value="not a name"]\n- button "Hidden reference" [ref=e2]\n');
+});
+
 test('native wrapping and for labels and aria-labelledby retain naming precedence', () => {
   const nodes = [
     element({}, { tagName: 'INPUT', labels: [{ textContent: 'Name' }] }),
@@ -70,7 +174,7 @@ test('native wrapping and for labels and aria-labelledby retain naming precedenc
     element({ 'aria-label': 'ARIA wins' }, { tagName: 'INPUT', labels: [{ textContent: 'Wrong' }] }),
   ];
   assert.equal(fixture(nodes).render(['e1', 'e2', 'e3', 'e4']).text,
-    '- textbox "Name" [ref=e1]\n- textbox "Email address" [ref=e2]\n- textbox "Account  name" [ref=e3]\n- textbox "ARIA wins" [ref=e4]\n');
+    '- textbox "Name" [ref=e1]\n- textbox "Email address" [ref=e2]\n- textbox "Account name" [ref=e3]\n- textbox "ARIA wins" [ref=e4]\n');
 });
 
 test('native input roles, states, values and password exclusion match snapshot formatting', () => {
@@ -107,7 +211,7 @@ test('fallback names and tag roles retain native snapshot behavior', () => {
   ];
   assert.equal(fixture(nodes).render(nodes.map((_, index) => `e${index + 1}`)).text,
     '- button "Submit" [ref=e1]\n- button "Reset" [ref=e2]\n- button "Go" [ref=e3]\n- button "Picture" [ref=e4]\n'
-    + '- textbox "Title" [ref=e5]\n- textbox "Hint" [ref=e6]\n- link "Link" [ref=e7]\n- div "Editable" [ref=e8]\n');
+    + '- textbox "Title" [ref=e5]\n- textbox "Hint" [ref=e6]\n- link "Link" [ref=e7]\n- div "" [ref=e8]\n');
 });
 
 test('large id, class and unrelated attributes never enter snapshot extraction', () => {
@@ -143,7 +247,7 @@ for (const field of ['body', 'aria-label', 'value', 'role', 'text', 'labels', 'l
 }
 
 test('complete escaped UTF-8 output, state and host ref syntax share one exact byte budget', () => {
-  const original = element({ role: 'custom"\n' }, { textContent: '  é😀"\\\n  ' });
+  const original = element({ role: 'custom"\n', 'aria-label': '  é😀"\\\n  ' });
   const body = 'hé😀\u0000';
   const expected = `- text ${JSON.stringify(body)}\n- ${JSON.stringify('custom"\n').slice(1, -1)} ${JSON.stringify('é😀"\\')} [ref=e123456]\n`;
   const bytes = Buffer.byteLength(expected);

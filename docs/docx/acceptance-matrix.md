@@ -677,3 +677,9 @@ closes direct inspection gaps for active MCE run/text carriers and malformed
 history flags. All 620 original cases, 1,923 maintained consumers and 620
 independent built workflows pass. Exact labels, cached markers and retained
 relationships agree through model/SDK/actual CLI. Full-family acceptance stays open.
+
+The [Document equality qualification](document-equality-20260918.md) closes the
+missing synchronous public method. All 52 original cases, 474 maintained owner
+consumers and 76 independent built workflows pass, including native and renamed
+owners. Read-only comparisons retain zero affected changes and no publication.
+Full-family acceptance remains open.

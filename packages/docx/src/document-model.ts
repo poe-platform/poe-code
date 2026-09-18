@@ -31,6 +31,10 @@ export class DocumentView {
     )!;
     this.ref = store.ref(owner, body);
   }
+  equals(other: unknown): boolean {
+    const node = this.store.node(this.ref);
+    return other instanceof DocumentView && other.store === this.store && other.store.node(other.ref) === node;
+  }
   get part() {
     this.store.node(this.ref);
     const part = this.store.part(this.ref.part);

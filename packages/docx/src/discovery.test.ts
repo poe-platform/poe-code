@@ -242,7 +242,7 @@ describe("document discovery", () => {
     });
   });
 
-  it("includes private-looking public model declarations without claiming implementation", () => {
+  it("reports public model support consistently in schema and help", () => {
     const schema = discover("schema")!.data as DocxSchemaData;
     expect(
       schema.operations.find((item) => item.id === "model.table._Cell.text.get")
@@ -251,9 +251,9 @@ describe("document discovery", () => {
     expect(id).toBeTruthy();
     const result = discover("help", "batch", "--operation", id)!;
     expect(result.human).toContain(id);
-    expect(result.human).toContain("not implemented");
+    expect(result.human).not.toContain("not implemented");
     expect(discover("schema", "batch", "--operation", id)!.data).toMatchObject({
-      operations: [{ id, path: ["batch"], support: "reject" }]
+      operations: [{ id, path: ["batch"], support: "edit" }]
     });
   });
 

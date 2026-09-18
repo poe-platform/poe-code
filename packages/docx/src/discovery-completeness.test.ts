@@ -78,7 +78,7 @@ it("accounts for every declaration in root schemas, including unsupported public
   ).toMatchObject({ path: ["batch"], support: "edit" });
   expect(
     data.operations.find((item) => item.id === "model.document.Document.save.call")
-  ).toMatchObject({ path: ["batch"], support: "reject" });
+  ).toMatchObject({ path: ["batch"], support: "edit" });
   expect(
     data.operations.find((item) => item.id === "model.image.image.Image.sha1.get")
   ).toMatchObject({ support: "read" });

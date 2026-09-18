@@ -25,20 +25,35 @@ export interface TextResourceInspectionData {
   };
 }
 
-async function openTextResource(input: Uint8Array, operation: "paragraphs.get" | "runs.get", options: DocxOperationArguments<"paragraphs.get">, context: ArchiveContext) {
+export interface TextResourceListData {
+  readonly items: readonly TextResourceInspectionData["item"][];
+}
+
+async function openTextResources(input: Uint8Array, operation: "paragraphs.get" | "runs.get" | "paragraphs.list" | "runs.list", options: DocxOperationArguments<"paragraphs.get">, context: ArchiveContext) {
   const settings = archiveSettings(context);
   const invocation = validateDocxInvocation({ operation, inputs: ["document"], options }, settings.budget);
   const budget = settings.budget.lower(Object.fromEntries((options.limit ?? []).map(item => [item.name, item.value])));
   const document = await openDocumentLocations(input, { ...settings, budget }, "inventory");
-  const location = resolveDocxSelection(document, invocation)[0]!;
+  const locations = resolveDocxSelection(document, invocation);
   const graph = new DocumentPackage(document.snapshot(), settings.limits, budget);
-  const root = parseDocumentXml(graph.getPart(location.value.part).bytes, {}, budget).root;
-  let node = root;
-  for (const position of location.value.path) { budget.charge("work", 1); node = node.children[position]!; }
-  return { document, location, graph, root, node, budget, children: activeXmlChildren(root, budget) };
+  const parts = new Map<string, { root: XmlElement; children: ReturnType<typeof activeXmlChildren> }>();
+  const read = (location: Location) => {
+    let part = parts.get(location.value.part);
+    if (!part) {
+      const root = parseDocumentXml(graph.getPart(location.value.part).bytes, {}, budget).root;
+      part = { root, children: activeXmlChildren(root, budget) };
+      parts.set(location.value.part, part);
+    }
+    let node = part.root;
+    for (const position of location.value.path) { budget.charge("work", 1); node = node.children[position]!; }
+    return { document, location, graph, ...part, node, budget };
+  };
+  return { locations, read, budget };
 }
 
-function textResourceData(source: Awaited<ReturnType<typeof openTextResource>>, kind: "paragraphs" | "runs", values: Readonly<Record<string, unknown>>): TextResourceInspectionData {
+type TextResourceSource = ReturnType<Awaited<ReturnType<typeof openTextResources>>["read"]>;
+
+function textResourceData(source: TextResourceSource, kind: "paragraphs" | "runs", values: Readonly<Record<string, unknown>>): TextResourceInspectionData {
   const { document, location, graph, root, node, budget, children } = source;
   const properties: TextResourceInspectionData["item"]["properties"][number][] = [];
   const writable = docxOperationSchemas[kind === "paragraphs" ? "paragraphs.set" : "runs.set"].sdkFields;
@@ -90,24 +105,52 @@ function textResourceData(source: Awaited<ReturnType<typeof openTextResource>>, 
 
 /** Reads one stored paragraph without creating styles or changing its story. */
 export async function inspectDocumentParagraph(input: Uint8Array, options: DocxOperationArguments<"paragraphs.get">, context: ArchiveContext): Promise<TextResourceInspectionData> {
-  const source = await openTextResource(input, "paragraphs.get", options, context);
+  const opened = await openTextResources(input, "paragraphs.get", options, context);
+  const source = opened.read(opened.locations[0]!);
+  return textResourceData(source, "paragraphs", paragraphValues(source));
+}
+
+function paragraphValues(source: TextResourceSource): Readonly<Record<string, unknown>> {
   const paragraph = styleChild(source.node, "pPr", source.children);
   const runDefaults = styleChild(paragraph, "rPr", source.children);
-  return textResourceData(source, "paragraphs", { ...readStyleProperties(runDefaults, paragraph, source.children), style: styleAttribute(styleChild(paragraph, "pStyle", source.children), "val") });
+  return { ...readStyleProperties(runDefaults, paragraph, source.children), style: styleAttribute(styleChild(paragraph, "pStyle", source.children), "val") };
 }
 
 /** Reads one stored run, including explicit false formatting and inert references. */
 export async function inspectDocumentRun(input: Uint8Array, options: DocxOperationArguments<"runs.get">, context: ArchiveContext): Promise<TextResourceInspectionData> {
-  const source = await openTextResource(input, "runs.get", options, context);
+  const opened = await openTextResources(input, "runs.get", options, context);
+  const source = opened.read(opened.locations[0]!);
+  return textResourceData(source, "runs", runValues(source));
+}
+
+function runValues(source: TextResourceSource): Readonly<Record<string, unknown>> {
   const run = styleChild(source.node, "rPr", source.children);
   const { fontHidden, ...properties } = readStyleProperties(run, undefined, source.children);
   const fonts = styleChild(run, "rFonts", source.children), language = styleChild(run, "lang", source.children), color = styleChild(run, "color", source.children);
   const slots = Object.fromEntries(([ ["ascii", "ascii"], ["highAnsi", "hAnsi"], ["eastAsia", "eastAsia"], ["complexScript", "cs"],
     ["asciiTheme", "asciiTheme"], ["highAnsiTheme", "hAnsiTheme"], ["eastAsiaTheme", "eastAsiaTheme"], ["complexScriptTheme", "cstheme"] ] as const)
     .map(([name, attribute]) => [name, styleAttribute(fonts, attribute) ?? null]));
-  return textResourceData(source, "runs", { ...properties, ...slots, hidden: fontHidden,
+  return { ...properties, ...slots, hidden: fontHidden,
     superscript: properties.baseline === null ? null : properties.baseline === "superscript", subscript: properties.baseline === null ? null : properties.baseline === "subscript",
     eastAsiaLanguage: styleAttribute(language, "eastAsia") ?? null, bidiLanguage: styleAttribute(language, "bidi") ?? null,
     themeTint: styleAttribute(color, "themeTint") ?? null, themeShade: styleAttribute(color, "themeShade") ?? null,
-    style: styleAttribute(styleChild(run, "rStyle", source.children), "val") });
+    style: styleAttribute(styleChild(run, "rStyle", source.children), "val") };
+}
+
+/** Lists stored paragraphs in selected logical story order without creating definitions. */
+export async function inspectDocumentParagraphs(input: Uint8Array, options: DocxOperationArguments<"paragraphs.list">, context: ArchiveContext): Promise<TextResourceListData> {
+  const source = await openTextResources(input, "paragraphs.list", options, context);
+  const data = { items: source.locations.map(location => { const item = source.read(location); return textResourceData(item, "paragraphs", paragraphValues(item)).item; }) };
+  const size = new TextEncoder().encode(JSON.stringify(data)).length;
+  source.budget.check("serializedOutput", size); source.budget.charge("retainedBytes", size);
+  return data;
+}
+
+/** Lists stored runs in selected logical story order, retaining inert owner-local references. */
+export async function inspectDocumentRuns(input: Uint8Array, options: DocxOperationArguments<"runs.list">, context: ArchiveContext): Promise<TextResourceListData> {
+  const source = await openTextResources(input, "runs.list", options, context);
+  const data = { items: source.locations.map(location => { const item = source.read(location); return textResourceData(item, "runs", runValues(item)).item; }) };
+  const size = new TextEncoder().encode(JSON.stringify(data)).length;
+  source.budget.check("serializedOutput", size); source.budget.charge("retainedBytes", size);
+  return data;
 }

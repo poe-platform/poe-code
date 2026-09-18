@@ -339,6 +339,8 @@ export const inspectionOperationMetadata: Readonly<Record<string, { description:
   ["tables.get", "Inspect one table's 1-based logical cell anchors, spans, omitted slots and exact text.", ["F19", "F20"], tableReadData],
   ["paragraphs.get", "Read one selected paragraph's logical text, stored nullable formatting and inert owner-local references without creating definitions. A typed batch result handle retains the native paragraph owner.", ["F01", "F04", "F08", "F19"], textResourceData],
   ["runs.get", "Read one selected run's logical text, stored nullable formatting and inert owner-local references without creating definitions. A typed batch result handle retains the native run owner.", ["F01", "F04"], textResourceData],
+  ["paragraphs.list", "List selected stored paragraphs in logical story order with nullable formatting and inert references, without creating definitions or publishing a package.", ["F08"], object({ items: array(textResourceData.properties!.item!) })],
+  ["runs.list", "List selected stored runs in logical story order with nullable formatting and inert owner-local references, without creating definitions or publishing a package.", ["F08", "F19"], object({ items: array(textResourceData.properties!.item!) })],
   ["tables.list", "List stored table records in the explicitly selected story/owner scope, including logical anchors, spans, omitted slots and exact cell text.", ["F19", "F20"], object({ items: array(tableReadRecord) })],
   ["tables.merge", "Merge a complete rectangle with an explicit content join policy.", ["F20"], tableEditData],
   ["tables.split", "Restore a merged cell's existing grid slots with explicit content distribution.", ["F20"], tableEditData],

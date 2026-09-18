@@ -8,7 +8,7 @@ import { replaceDocumentText, setDocumentDummyText, type TextReplaceOptions, typ
 import { editDocumentParagraphs, type ParagraphEditRequest } from "./paragraph-edit.js";
 import { editDocumentTables, type TableEditRequest } from "./table-edit.js";
 import { inspectDocumentTable, inspectDocumentTables } from "./table-read.js";
-import { inspectDocumentParagraph, inspectDocumentRun } from "./text-resource-read.js";
+import { inspectDocumentParagraph, inspectDocumentRun, inspectDocumentParagraphs, inspectDocumentRuns } from "./text-resource-read.js";
 import { formatDocumentRuns, type RunFormatOptions } from "./run-format.js";
 import { insertDocumentImage, type ImageInsertionContext, type ImageInsertionRequest } from "./image-insertion.js";
 import { replaceDocumentImage, type ImageReplacementRequest } from "./image-replacement.js";
@@ -39,6 +39,8 @@ for (const operation of ["properties.set", "properties.remove"])
 documentBatchActions.set("text.get", (input, item, context) => extractDocumentText(input, context, item.arguments as TextOptions));
 documentBatchActions.set("paragraphs.get", (input, item, context) => inspectDocumentParagraph(input, item.arguments as DocxOperationArguments<"paragraphs.get">, context));
 documentBatchActions.set("runs.get", (input, item, context) => inspectDocumentRun(input, item.arguments as DocxOperationArguments<"runs.get">, context));
+documentBatchActions.set("paragraphs.list", (input, item, context) => inspectDocumentParagraphs(input, item.arguments as DocxOperationArguments<"paragraphs.list">, context));
+documentBatchActions.set("runs.list", (input, item, context) => inspectDocumentRuns(input, item.arguments as DocxOperationArguments<"runs.list">, context));
 documentBatchActions.set("fields.list", (input, item, context) => inspectDocumentFields(input, item.arguments as DocxOperationArguments<"fields.list">, context));
 documentBatchActions.set("tables.get", (input, item, context) => inspectDocumentTable(input, item.arguments as DocxOperationArguments<"tables.get">, context));
 documentBatchActions.set("tables.list", (input, item, context) => inspectDocumentTables(input, item.arguments as DocxOperationArguments<"tables.list">, context));

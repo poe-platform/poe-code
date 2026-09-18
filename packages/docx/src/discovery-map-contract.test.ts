@@ -199,6 +199,10 @@ it("keeps the current evidence snapshot joined to live declarations and every AP
   Object.assign(audit.operations, styleRemoval.operations);
   const styleAdmission = JSON.parse(readFileSync(new URL("../../../docs/docx/text-style-family-acceptance-20260918/style-removal-admission-discovery-map-update.json", import.meta.url), "utf8")) as { operations: typeof audit.operations };
   Object.assign(audit.operations, styleAdmission.operations);
+  const textLists = JSON.parse(readFileSync(new URL("../../../docs/docx/text-style-family-acceptance-20260918/text-list-discovery-map-update.json", import.meta.url), "utf8")) as typeof native;
+  Object.assign(audit.operations, textLists.operations);
+  Object.assign(native.runtimeMembers, textLists.runtimeMembers);
+  native.runtimeExports = textLists.runtimeExports;
   Object.assign(audit.apis, native.apis);
   audit.runtimeExports = native.runtimeExports;
   expect(Object.keys(audit.operations).sort()).toEqual(Object.keys(docxOperationSchemas).sort());

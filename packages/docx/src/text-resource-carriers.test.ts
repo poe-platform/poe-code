@@ -44,17 +44,20 @@ async function fixture(carrier: typeof carriers[number], strict: boolean, kind: 
 }
 
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
-for (const carrier of carriers) for (const resource of ["paragraphs", "runs"] as const) for (const route of ["sdk", "shell"] as const)
-it(`${route} reads ${resource} from ${carrier} with active MCE and owner-local inert links; strict=${strict}; kind=${kind}`, async () => {
+for (const carrier of carriers) for (const resource of ["paragraphs", "runs"] as const) for (const route of ["sdk", "shell"] as const) for (const action of ["get", "list"] as const)
+it(`${route} ${action === "get" ? "reads" : "lists"} ${resource} from ${carrier} with active MCE and owner-local inert links; strict=${strict}; kind=${kind}`, async () => {
   const { input, owner, reltype } = await fixture(carrier, strict, kind, true);
   const scope = carrier === "table" ? "body" : carrier;
   const options = { scope, ...(carrier === "table" ? { table: 1, cell: "A1" } : {}), paragraph: 1, ...(resource === "runs" ? { run: 1 } : {}) };
   let data: api.TextResourceInspectionData;
-  if (route === "sdk") data = await (resource === "paragraphs" ? api.inspectDocumentParagraph : api.inspectDocumentRun)(input, options, textContext);
+  if (route === "sdk") {
+    if (action === "get") data = await (resource === "paragraphs" ? api.inspectDocumentParagraph : api.inspectDocumentRun)(input, options, textContext);
+    else { const result = await (resource === "paragraphs" ? api.inspectDocumentParagraphs : api.inspectDocumentRuns)(input, options, textContext); expect(result.items).toHaveLength(1); data = { item: result.items[0]! }; }
+  }
   else {
     const fs = new MemoryFileSystem(); await fs.writeFile("/source", input);
     const shell = new Shell({ fs }).use(docxCommands({ engine: api.createDocxInspectionCommandEngine({ limits: textContext.limits }) }));
-    try { const result = await shell.exec(`docx ${resource} get /source --scope ${scope}${carrier === "table" ? " --table 1 --cell A1" : ""} --paragraph 1${resource === "runs" ? " --run 1" : ""} --json`); expect(result.exitCode, result.stdout + result.stderr).toBe(0); data = JSON.parse(result.stdout).data; expect(await fs.readFile("/source")).toEqual(input); } finally { await shell.dispose(); }
+    try { const result = await shell.exec(`docx ${resource} ${action} /source --scope ${scope}${carrier === "table" ? " --table 1 --cell A1" : ""} --paragraph 1${resource === "runs" ? " --run 1" : ""} --json`); expect(result.exitCode, result.stdout + result.stderr).toBe(0); const resultData = JSON.parse(result.stdout).data; data = action === "get" ? resultData : { item: resultData.items[0] }; if (action === "list") expect(resultData.items).toHaveLength(1); expect(await fs.readFile("/source")).toEqual(input); } finally { await shell.dispose(); }
   }
   expect(data.item.text).toBe(resource === "paragraphs" ? "Harbor 😀 active" : "Harbor 😀");
   expect(data.item.location.value.part).toBe(owner);

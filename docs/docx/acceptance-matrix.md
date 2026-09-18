@@ -564,3 +564,10 @@ all four typed save routes now use the shared publication engine with one outer
 destination and explicit capability checks. Exact bindings are in
 [requirement-evidence.json.gz](document-part-save-20260917/requirement-evidence.json.gz).
 Owner/rename liveness, resource reads and full F01–F07 reconciliation remain open.
+
+The subsequent [comment-owner boundary qualification](comment-owner-boundaries-20260917.md)
+records 24 exact linked/unlinked owner cases within 1,069 passing maintained
+cases and 24 built public workflows. Duplicate anchors now reject for unlinked
+native owners while preserving existing state and owner-local IDs. Named
+requirement bindings and both historical failures are retained. This closes that
+reproduced dependency; it does not close any whole family.

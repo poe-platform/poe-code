@@ -10,6 +10,8 @@ import type { XmlElement } from "./package-xml.js";
 import { WD_STYLE_TYPE, type Length } from "./formatting-values.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { documentDialects, dialectForNamespace } from "./dialect.js";
+import { DocumentPackage } from "./package.js";
+import { relationshipOwner } from "./part-uri.js";
 
 function text(value: unknown): asserts value is string {
   if (typeof value !== "string") throw new InputTypeError("Expected comment text.");
@@ -455,11 +457,13 @@ export function markCommentRange(
     (["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName) &&
       commentAttribute(node, "id") === String(comment_id)) ||
     node.children.some(visit);
+  const graph = new DocumentPackage(store.snapshot(), store.context.limits, store.context.budget);
   if (
-    store.package.parts.some(owner => {
-      const ownsComments = [...owner.rels.values()].some(edge => !edge.is_external &&
-        edge.reltype === documentDialects[dialect].r + "/comments" && edge.target_part.partname.toString() === part);
-      return ownsComments && visit(store.xml(owner.partname.toString()).root);
+    graph.parts.some(owner => {
+      if (relationshipOwner(owner.partname) !== null) return false;
+      const ownsComments = graph.relationships(owner.partname).some(edge => !edge.is_external &&
+        edge.reltype === documentDialects[dialect].r + "/comments" && edge.target_part.partname === part);
+      return ownsComments && visit(store.xml(owner.partname).root);
     })
   )
     throw new UnsupportedEditError("Comment body already has an anchor.");

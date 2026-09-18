@@ -333,7 +333,7 @@ function validateCommentRange(
         "fldSimple",
         "customXml"
       ].includes(node.localName);
-    if (node.localName === "fldChar") {
+    if (node.namespace === xml.root.namespace && node.localName === "fldChar") {
       const type = commentAttribute(node, "fldCharType");
       if (type === "begin") fieldDepth++;
       if (type === "end") fieldDepth = Math.max(0, fieldDepth - 1);
@@ -379,10 +379,10 @@ function validateCommentRange(
     throw new UnsupportedEditError("Comment anchors cannot cross controlled or annotated content.");
   let depth = 0;
   for (const item of ordered) {
-    if (item.node.localName === "commentRangeStart") depth++;
+    if (item.node.namespace === xml.root.namespace && item.node.localName === "commentRangeStart") depth++;
     if (item.order === start.order && depth)
       throw new UnsupportedEditError("Comment ranges cannot overlap existing comments.");
-    if (item.node.localName === "commentRangeEnd") depth = Math.max(0, depth - 1);
+    if (item.node.namespace === xml.root.namespace && item.node.localName === "commentRangeEnd") depth = Math.max(0, depth - 1);
   }
   const allRuns = span.filter((n) => n.node.localName === "r");
   if (
@@ -454,7 +454,8 @@ export function markCommentRange(
   if (!comment)
     throw new UnsupportedEditError("Comment anchoring requires an existing comment body.");
   const visit = (node: XmlElement): boolean =>
-    (["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName) &&
+    (node.namespace === documentDialects[dialect].w &&
+      ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName) &&
       commentAttribute(node, "id") === String(comment_id)) ||
     node.children.some(visit);
   const graph = new DocumentPackage(store.snapshot(), store.context.limits, store.context.budget);

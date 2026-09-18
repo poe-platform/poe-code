@@ -284,9 +284,9 @@ function decodeDouble(raw: string): string {
       continue;
     }
     if (character !== "\\") {
-      const codePoint = character.codePointAt(0)!;
+      const codePoint = raw.codePointAt(index)!;
       if (codePoint === 0) throw syntax();
-      result += character;
+      result += String.fromCodePoint(codePoint);
       if (codePoint > 0xffff) index++;
       continue;
     }
@@ -337,7 +337,7 @@ function projectDoubleBytes(raw: string, start = 0, end = raw.length): number {
       continue;
     }
     if (character !== "\\") {
-      const codePoint = character.codePointAt(0)!;
+      const codePoint = raw.codePointAt(index)!;
       if (codePoint === 0) throw syntax();
       bytes += utf8Width(codePoint);
       if (codePoint > 0xffff) index++;
@@ -395,7 +395,7 @@ function projectSingleBytes(raw: string, start = 0, end = raw.length): number {
       if (character === "\n" || raw[index] === "\n") while (raw[index + 1] === " " || raw[index + 1] === "\t") index++;
       bytes++;
     } else {
-      const codePoint = character.codePointAt(0)!;
+      const codePoint = raw.codePointAt(index)!;
       bytes += utf8Width(codePoint);
       if (codePoint > 0xffff) index++;
     }
@@ -1158,7 +1158,7 @@ export async function* parseYamlDocuments(text: string, work: YqOwnedWork, ledge
       let codePoints = 0;
       for (let index = 0; index < line.text.length; index++) {
         const character = line.text[index]!;
-        const point = character.codePointAt(0)!;
+        const point = line.text.codePointAt(index)!;
         if (doubleQuoted) {
           if (escaped) escaped = false;
           else if (character === "\\") escaped = true;

@@ -124,6 +124,12 @@ test("WRK-07 real parser accepts C and rejects C+1 decoded scalar bytes", async 
   });
 });
 
+for (const quote of ["", "'", '"']) test(`WRK-07 supplementary scalar boundary uses UTF-8 bytes: ${quote || "plain"}`, async () => {
+  const scalar = "😀".repeat(yqCaps.maxScalarBytes / 4);
+  assert.equal(await parseOne(`${quote}${scalar}${quote}`), scalar);
+  await assert.rejects(parseOne(`${quote}${scalar}a${quote}`), { code: "LIMIT_MAX_SCALAR_BYTES" });
+});
+
 test("WRK-17 actual encoders reserve exact escaped bytes before emitting fragments", async () => {
   await assert.rejects(() => encodeYaml("\0", noopWork, 7), (failure: unknown) => failure instanceof JqLimitError);
   assert.equal(await encodeYaml("\0", noopWork, 8), '"\\u0000"');

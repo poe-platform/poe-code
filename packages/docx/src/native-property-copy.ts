@@ -6,7 +6,7 @@ import { DocumentXmlEditor } from "./xml-write.js";
 import { runElementOpen } from "./run-properties.js";
 
 /** Additional split owners copy active properties; inert data stays with the original owner. */
-export function copiedNativeProperties(markup: string, property: XmlElement, root: XmlElement, profile: CompatibilityProfile, budget: DocumentBudget): string {
+export function copiedNativeProperties(markup: string, property: XmlElement, root: XmlElement, profile: CompatibilityProfile, budget: DocumentBudget, moveSection = false): string {
   if (!markup) return "";
   const chain: XmlElement[] = [];
   const find = (node: XmlElement): boolean => {
@@ -33,6 +33,8 @@ export function copiedNativeProperties(markup: string, property: XmlElement, roo
   let parent = parsed; for (const index of childIndexes) parent = parent.children[index]!;
   const render = (node: XmlElement): string => {
     budget.charge("work", 1 + node.content.length);
+    // A section is transferred to the suffix, retaining its complete stored subtree.
+    if (moveSection && node.namespace === property.namespace && node.localName === "sectPr") return editor.sourceXml(node);
     const branch = node.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006" && ["Choice", "Fallback"].includes(node.localName);
     if (!active.has(node) && !containers.has(node)) {
       if (!branch) return "";

@@ -407,13 +407,15 @@ export class DocumentXmlEditor {
     const children = activeXmlChildren(this, this.#budget), containers = new Set(this.compatibility[compatibilityContainers]);
     const validate = (node: XmlElement): void => {
       this.#budget.charge("work", 1 + node.attributes.length);
+      // This owner moves once; it is never independently cloned or semantically edited.
+      if (node.namespace === paragraph.namespace && node.localName === "sectPr" && this.#canEdit(node)) return;
       if (!this.#canEdit(node) || node.namespace !== paragraph.namespace || !(cloneableParagraphProperties.has(node.localName) || cloneableRunProperties.has(node.localName)) || node.attributes.some(attribute => !["http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace", "http://schemas.openxmlformats.org/markup-compatibility/2006"].includes(attribute.namespace) && !this.#canEdit(attribute)) ||
         node.children.some(child => child.namespace !== paragraph.namespace && !containers.has(child)) || node.content.some(item => item.kind !== "element" && (item.kind !== "text" || item.text.trim()))) unsupported();
       for (const child of children(node)) validate(child);
     };
     if (props.localName !== "pPr" || !children(paragraph).includes(props)) unsupported();
     validate(props);
-    return copiedNativeProperties(this.sourceXml(props), props, this.root, this.#profile, this.#budget);
+    return copiedNativeProperties(this.sourceXml(props), props, this.root, this.#profile, this.#budget, true);
   }
 
   /** Native formatting alternatives can follow each fragment of a split run. */

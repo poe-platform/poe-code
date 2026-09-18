@@ -452,7 +452,7 @@ export class DocumentXmlEditor {
       this.root.namespace !== documentDialects[this.#dialect].w || this.root.localName !== "styles" ||
       node.namespace !== this.root.namespace || node.localName !== "style" ||
       !activeXmlChildren(this, this.#budget)(this.root).includes(node)) unsupported();
-    const view = new MarkupCompatibility(node, this.#profile, this.#budget);
+    const view = this.compatibility;
     if (!this.#canEdit(node)) unsupported();
     this.#stageReplacement(node, xml, !this.#canReplaceSubtree(node, token => view.canEdit(token)), true);
   }

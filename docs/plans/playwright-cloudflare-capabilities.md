@@ -70,11 +70,14 @@ and 837 differential cases against the original parser and configuration coercio
 The integrated Cloudflare configuration probe passed native JSON tree output,
 Python action code, custom test IDs, quoted output directories, JSON/INI loading,
 configured page scripts, locale/viewport settings, and retained cookies after
-controller restart. A separate init-page-module probe exposed guest-created init
-scripts disappearing on guest disconnect; the consumer transport fix is pending.
+controller restart. The init-page-module probe also passed after restoring
+guest-created native script registrations after disconnect and separating the host
+code-execution budget from individual action timeouts. Duplicate registrations,
+last-page closure, ordinary errors, and oversized script metadata have native
+regression coverage.
 
-Still pending: final maintained checks, guest-created init-script retention,
-publication, and consumer verification against the actual public release.
+Still pending: final maintained checks, publication, and consumer verification
+against the actual public release.
 
 ## Complete command inventory
 

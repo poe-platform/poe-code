@@ -190,7 +190,7 @@ export const playwrightStandardAbilities: Partial<Record<PlaywrightCommand, Play
     let output: string | undefined;
     await capabilityAction(request, async () => {
       const result = await session.executeCode!({ page, source, signal: request.signal,
-        timeoutMs: request.limits?.actionTimeoutMs ?? 30000, maxOutputBytes, maxPages: request.limits?.maxPages ?? 16 });
+        timeoutMs: request.limits?.codeExecutionTimeoutMs ?? 30000, maxOutputBytes, maxPages: request.limits?.maxPages ?? 16 });
       if (result !== undefined) {
         output = JSON.stringify(result);
         if (output !== undefined && new TextEncoder().encode(output).byteLength > maxOutputBytes) throw new PlaywrightResourceLimitError('Playwright code result byte limit exceeded');

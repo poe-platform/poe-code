@@ -38,6 +38,8 @@ Acquired resources may expose these additional trusted host operations:
   credentials, bindings, and other owners. Source and output bounds, browser
   creation limits, cancellation, and late-side-effect revocation remain host
   responsibilities. A caller timeout alone does not terminate guest code.
+  `limits.codeExecutionTimeoutMs` bounds startup plus execution independently of
+  configured native action/navigation timeouts; its default is 30 seconds.
 
 Resource operations participate in lease cleanup. Hosts should use idempotent
 provider retirement, including a separate interrupt path for stalled browser

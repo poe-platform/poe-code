@@ -120,7 +120,7 @@ test('run-code uses only the owned native execution hook and supports virtual so
     browserSession: { ...request.browserSession!, runAction: async action => { actions++; await action(); }, executeCode: async options => {
       assert.equal(options.page, f.page);
       assert.equal(options.source, source);
-      assert.equal(options.timeoutMs, 123);
+      assert.equal(options.timeoutMs, 30000);
       assert.equal(options.maxPages, 3);
       assert.equal(options.maxOutputBytes, 1024);
       return 'native title';

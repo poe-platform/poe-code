@@ -39,6 +39,29 @@ function fixture(maxSessions = 2) {
   return { controller, adapter, events, leases, run };
 }
 
+for (const actionTimeout of [0, 1500]) test(`init-page and run-code keep action timeout ${actionTimeout} separate from the whole-program deadline`, async () => {
+  const f = fixture();
+  const actionTimeouts: number[] = [];
+  const codeTimeouts: number[] = [];
+  const controller = createPlaywrightController({ adapter: { ...f.adapter, async acquire(request) {
+    const lease = await f.adapter.acquire(request);
+    Object.assign(lease.context, { setDefaultTimeout(timeout: number) { actionTimeouts.push(timeout); } });
+    return { ...lease, async executeCode(options) {
+      codeTimeouts.push(options.timeoutMs);
+      if (options.timeoutMs < 3000) throw new Error('Run-code deadline exceeded during isolated module startup');
+    } };
+  } } });
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write() {}, async readArtifact(path) {
+    return new TextEncoder().encode(path === 'config.ini' ? `timeouts.action=${actionTimeout}\nbrowser.initPage[]=init.cjs` : 'exports.default = async ({ page }) => page.title();');
+  } });
+  try {
+    await run(['open', '--config=config.ini']);
+    await run(['run-code', 'async page => page.title()']);
+    assert.deepEqual(actionTimeouts, [actionTimeout]);
+    assert.deepEqual(codeTimeouts, [30000, 30000]);
+  } finally { await controller.dispose(); await f.controller.dispose(); }
+});
+
 test('failed native JSON capture retires its session before another open', async () => {
   const f = fixture();
   try {

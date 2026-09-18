@@ -65,6 +65,19 @@ test('session configuration is forwarded as an isolated readonly copy', async ()
   await executePlaywrightAbility(setup.ability, setup.parsed, setup.invocation, { ...setup.context, navigationTimeoutMs: 54321, browserSession: { ...browser.browserSession, configuration } });
 });
 
+test('native code execution has a host deadline independent of each action timeout', async () => {
+  const browser = browserFixture();
+  const timeouts: number[] = [];
+  const setup = fixture(async request => {
+    for (const timeoutMs of [60000, 2000]) await request.browserSession!.executeCode!({ page: browser.page, source: 'async page => page.title()', signal: request.signal, timeoutMs, maxOutputBytes: 32, maxPages: 1 });
+  });
+  await executePlaywrightAbility(setup.ability, setup.parsed, setup.invocation, { ...setup.context,
+    actionTimeoutMs: 1500, codeExecutionTimeoutMs: 45000,
+    browserSession: { ...browser.browserSession, async executeCode(options) { timeouts.push(options.timeoutMs); } },
+  });
+  assert.deepEqual(timeouts, [45000, 2000]);
+});
+
 test('native code generation forwards owned action inputs and bounds provider output', async () => {
   const browser = browserFixture();
   let retained: NonNullable<PlaywrightAbilityRequest['browserSession']>['generateActionCode'];

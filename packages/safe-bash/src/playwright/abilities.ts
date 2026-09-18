@@ -11,7 +11,7 @@ export interface PlaywrightAbilityRequest {
   readonly args: readonly string[];
   readonly options: Readonly<Record<string, string | boolean | readonly string[]>>;
   readonly signal: AbortSignal;
-  readonly limits?: { readonly maxCommandBytes: number; readonly maxArtifactBytes: number; readonly actionTimeoutMs?: number; readonly navigationTimeoutMs?: number; readonly maxPages?: number };
+  readonly limits?: { readonly maxCommandBytes: number; readonly maxArtifactBytes: number; readonly actionTimeoutMs?: number; readonly codeExecutionTimeoutMs?: number; readonly navigationTimeoutMs?: number; readonly maxPages?: number };
   readonly browserSession?: {
     readonly configuration?: PlaywrightSessionConfiguration;
     readonly context: PlaywrightContext;

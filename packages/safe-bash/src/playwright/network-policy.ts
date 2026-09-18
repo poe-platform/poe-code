@@ -73,6 +73,37 @@ function boundedHeaders(entries: readonly { name: string; value: string }[]): { 
   });
 }
 
+function parseRequestPayload(native: any, maxRequest: number): Pick<PlaywrightPolicyRequest, 'url' | 'method' | 'headers' | 'body'> {
+  try {
+    const url = new URL(native.url);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') throw new Error('Unsupported browser network protocol');
+    let body: Uint8Array | undefined;
+    if (native.hasPostData || native.postData !== undefined || native.postDataEntries !== undefined) {
+      if (!Array.isArray(native.postDataEntries) || native.postDataEntries.some((entry: any) => typeof entry.bytes !== 'string')) {
+        throw new Error('Browser did not supply complete binary request body');
+      }
+      let size = 0;
+      const pieces: string[] = [];
+      for (const entry of native.postDataEntries) {
+        if (entry.bytes.length > Math.ceil(maxRequest / 3) * 4) throw new Error('Host request body limit exceeded');
+        const decoded = atob(entry.bytes);
+        size += decoded.length;
+        if (size > maxRequest) throw new Error('Host request body limit exceeded');
+        pieces.push(decoded);
+      }
+      body = new Uint8Array(size);
+      let offset = 0;
+      for (const piece of pieces) for (let index = 0; index < piece.length; index++) body[offset++] = piece.charCodeAt(index);
+    }
+    return { url: native.url, method: native.method,
+      headers: boundedHeaders(Object.entries(native.headers as Record<string, string>).map(([name, value]) => ({ name, value }))),
+      ...(body ? { body } : {}) };
+  } finally {
+    delete native?.postData;
+    delete native?.postDataEntries;
+  }
+}
+
 /** Installs before exposing any page. No page/context routing may be installed.
  * Disposal retires the browser before detaching; reconnect is not supported. */
 export async function installPlaywrightNetworkPolicy(options: PlaywrightNetworkPolicyOptions): Promise<{ dispose(): Promise<void> }> {
@@ -184,30 +215,7 @@ export async function installPlaywrightNetworkPolicy(options: PlaywrightNetworkP
     operations.add(operation);
     let release: (() => void | Promise<void>) | undefined;
     try {
-      const native = params.request;
-      const url = new URL(native.url);
-      if (url.protocol !== 'https:' && url.protocol !== 'http:') throw new Error('Unsupported browser network protocol');
-      let body: Uint8Array | undefined;
-      if (native.hasPostData || native.postData !== undefined || native.postDataEntries !== undefined) {
-        if (!Array.isArray(native.postDataEntries) || native.postDataEntries.some((entry: any) => typeof entry.bytes !== 'string')) {
-          throw new Error('Browser did not supply complete binary request body');
-        }
-        let size = 0;
-        const pieces: string[] = [];
-        for (const entry of native.postDataEntries) {
-          if (entry.bytes.length > Math.ceil(maxRequest / 3) * 4) throw new Error('Host request body limit exceeded');
-          const decoded = atob(entry.bytes);
-          size += decoded.length;
-          if (size > maxRequest) throw new Error('Host request body limit exceeded');
-          pieces.push(decoded);
-        }
-        body = new Uint8Array(size);
-        let offset = 0;
-        for (const piece of pieces) for (let index = 0; index < piece.length; index++) body[offset++] = piece.charCodeAt(index);
-      }
-      const response = await options.fetch({ ...identity, url: native.url, method: native.method,
-        headers: boundedHeaders(Object.entries(native.headers as Record<string, string>).map(([name, value]) => ({ name, value }))),
-        ...(body ? { body } : {}), signal: controller.signal });
+      const response = await options.fetch({ ...identity, ...parseRequestPayload(params.request, maxRequest), signal: controller.signal });
       const releaseResponse = response.release;
       if (releaseResponse !== undefined) {
         if (typeof releaseResponse !== 'function') throw new Error('Invalid host response release');

@@ -158,6 +158,17 @@ session. A provider may impose a stricter transport limit.
 Protocol commands and target/request admission are
 bounded; overload retires the browser. Incomplete binary upload data is rejected.
 
+Upload decoding and validation discard the parsed request's `postData` and
+`postDataEntries` fields before calling host `fetch` or awaiting a failure
+acknowledgement, including when validation throws. Binary request bytes come
+only from complete `postDataEntries`, never from the potentially lossy text.
+The decoded body remains available to the host while it is queued or in use;
+response delivery permits retain their existing acknowledgement lifetime.
+This removes serialized upload references from the helper's parsed request
+objects, not all browser or transport allocations. Deterministic held-ack tests
+establish that reference lifetime, not heap/RSS savings or production improvement;
+those require separate measurements with the actual deployed adapter.
+
 `onRequestFailure` receives stable CDP `targetId`, `frameId`, `requestId`,
 `resourceType`, and a message of at most 1,024 characters. The request ID is the
 Network ID when available and otherwise the Fetch ID. The host can obtain a

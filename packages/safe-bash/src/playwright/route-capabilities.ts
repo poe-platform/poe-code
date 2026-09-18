@@ -24,8 +24,24 @@ interface Entry {
   handler: PlaywrightRouteHandler;
   bytes: number;
 }
-const registries = new WeakMap<PlaywrightContext, { entries: Entry[]; closed: boolean }>();
+interface Registry { entries: Entry[]; closed: boolean }
+const registries = new WeakMap<PlaywrightContext, Registry>();
 const MAX_ROUTES = 64;
+
+async function installRoute(context: PlaywrightRoutingContext, registry: Registry, entry: Entry, signal?: AbortSignal): Promise<void> {
+  signal?.throwIfAborted();
+  if (registry.closed) throw new Error('Browser context is closed');
+  await context.route(entry.pattern, entry.handler);
+  try {
+    signal?.throwIfAborted();
+    if (registry.closed) throw new Error('Browser context is closed');
+    registry.entries.push(entry);
+  } catch (error) {
+    try { await context.unroute(entry.pattern, entry.handler); }
+    finally { signal?.throwIfAborted(); }
+    throw error;
+  }
+}
 
 function routingFor(input: PlaywrightContext, registerCleanup: (cleanup: () => Promise<void>) => void) {
   const context = input as PlaywrightContext & Partial<PlaywrightRoutingContext>;
@@ -62,8 +78,7 @@ export function capturePlaywrightRoutes(context: PlaywrightContext) {
   return async (replacement: PlaywrightContext, registerCleanup: (cleanup: () => Promise<void>) => void) => {
     const { context, registry } = routingFor(replacement, registerCleanup);
     for (const entry of entries) {
-      await context.route(entry.pattern, entry.handler);
-      registry.entries.push(entry);
+      await installRoute(context, registry, entry);
     }
   };
 }
@@ -104,9 +119,7 @@ const route: PlaywrightAbility = { scope: 'session', options: 'all', async execu
     for (const name of removeHeaders ?? []) delete updated[name];
     await native.continue({ headers: updated });
   };
-  request.signal.throwIfAborted();
-  await context.route(pattern, handler);
-  registry.entries.push({ ...data, handler, bytes });
+  await installRoute(context, registry, { ...data, handler, bytes }, request.signal);
   return capabilityResult(`await page.context().route(${JSON.stringify(pattern)}, async route => { /* route handler */ });`, `Route added for pattern: ${pattern}`);
 } };
 

@@ -563,6 +563,12 @@ F15/F18 dependency; complete F01–F07 acceptance and the current workspace gate
 remain open.
 # Public reservation/cancellation variants — 2026-09-17
 
+The [current relationship-collection public replay](f01-f07-public-relationships-20260918.md)
+repeats all 31 qualified built public campaigns after `e2c19d315`. All pass with
+3,917 unchanged captured inputs per campaign. Exact modules, assertions, output
+and receipts are retained; overlapping historical runs are not additional cases.
+Complete gates and full F01–F07 requirement binding remain pending.
+
 [Exact evidence](public-budget-cancellation-20260917.md) qualifies 304 DOCX
 model/SDK/actual Shell observations covering measured work/retained-memory
 boundaries, host/option limits, cooperative cancellation and settled stream

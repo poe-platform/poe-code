@@ -175,26 +175,89 @@ test('native detach failure retires rather than exposing or falsely acknowledgin
   assert.deepEqual(state.received, []);
 });
 
-test('retained target tombstones cap lifetime admission without evicting private identities', () => {
+test('confirmed target retirement returns active capacity while retaining recent privacy', () => {
   const state = fixture({ maxPrivateTargets: 1 });
   state.beginCreation().commit('scratch');
   state.receive({ method: 'Target.targetDestroyed', params: { targetId: 'scratch' } });
-  assert.throws(() => state.beginCreation(), /capacity/i);
   state.receive({ method: 'Target.targetInfoChanged', params: { targetInfo: { targetId: 'scratch' } } });
   assert.deepEqual(state.received, []);
+  state.beginCreation().commit('replacement');
+  assert.throws(() => state.beginCreation(), /capacity/i);
   assert.equal(state.closes(), 0);
   state.transport.close();
 });
 
-test('session tombstones remain private and repeated attachment has a hard bound', () => {
+test('confirmed session detach returns active capacity while retaining recent privacy', () => {
   const state = fixture({ maxPrivateSessions: 1 });
   state.beginCreation().commit('scratch');
   state.receive(attached('scratch', 'first'));
   state.receive({ id: state.sent[0]!.id, result: {} });
   state.receive({ method: 'Target.detachedFromTarget', params: { sessionId: 'first' } });
+  state.receive({ method: 'Runtime.executionContextCreated', sessionId: 'first', params: {} });
   state.receive(attached('scratch', 'second'));
+  assert.equal(state.closes(), 0);
+  assert.equal(state.sent.length, 2);
+  state.receive({ id: state.sent[1]!.id, result: {} });
+  state.receive(attached('scratch', 'third'));
   assert.equal(state.closes(), 1);
   assert.deepEqual(state.received, []);
+});
+
+test('sequential confirmed private lifecycles exceed the default target and session limits', () => {
+  const state = fixture();
+  try {
+    for (let index = 0; index < 1100; index++) {
+      const target = `private-${index}`;
+      const session = `private-session-${index}`;
+      state.beginCreation().commit(target);
+      state.receive(attached(target, session));
+      state.receive({ id: state.sent.at(-1)!.id, result: {} });
+      state.receive({ method: 'Target.detachedFromTarget', params: { sessionId: session } });
+      state.receive({ method: 'Target.targetDestroyed', params: { targetId: target } });
+    }
+    assert.equal(state.closes(), 0);
+    assert.deepEqual(state.received, []);
+  } finally { state.transport.close(); }
+});
+
+test('creation replay preserves privacy and frees only confirmed retired identities', () => {
+  const state = fixture({ maxPrivateTargets: 1, maxPrivateSessions: 1 });
+  try {
+    const guard = state.beginCreation();
+    state.receive(attached('scratch', 'private'));
+    state.receive({ method: 'Target.detachedFromTarget', params: { sessionId: 'private' } });
+    state.receive({ method: 'Target.targetDestroyed', params: { targetId: 'scratch' } });
+    guard.commit('scratch');
+    state.receive({ id: state.sent[0]!.id, result: {} });
+    state.receive({ method: 'Target.targetInfoChanged', params: { targetInfo: { targetId: 'scratch' } } });
+    state.receive({ method: 'Runtime.executionContextCreated', sessionId: 'private', params: {} });
+    assert.deepEqual(state.received, []);
+    state.beginCreation().commit('replacement');
+    assert.throws(() => state.beginCreation(), /capacity/i);
+    assert.equal(state.closes(), 0);
+  } finally { state.transport.close(); }
+});
+
+test('retired history never evicts an active private target or session', () => {
+  const state = fixture({ maxPrivateTargets: 2, maxPrivateSessions: 2 });
+  try {
+    state.beginCreation().commit('active');
+    state.receive(attached('active', 'active-session'));
+    state.receive({ id: state.sent[0]!.id, result: {} });
+    for (let index = 0; index < 5; index++) {
+      const target = `retired-${index}`;
+      const session = `retired-session-${index}`;
+      state.beginCreation().commit(target);
+      state.receive(attached(target, session));
+      state.receive({ id: state.sent.at(-1)!.id, result: {} });
+      state.receive({ method: 'Target.detachedFromTarget', params: { sessionId: session } });
+      state.receive({ method: 'Target.targetDestroyed', params: { targetId: target } });
+    }
+    state.receive({ method: 'Target.targetInfoChanged', params: { targetInfo: { targetId: 'active' } } });
+    state.receive({ method: 'Runtime.executionContextCreated', sessionId: 'active-session', params: {} });
+    assert.deepEqual(state.received, []);
+    assert.equal(state.closes(), 0);
+  } finally { state.transport.close(); }
 });
 
 test('duplicate replies are ignored without retaining per-command tombstones; never-issued replies retire', () => {

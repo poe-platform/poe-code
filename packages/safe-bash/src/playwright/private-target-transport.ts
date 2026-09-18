@@ -83,6 +83,8 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
   const encoder = new TextEncoder();
   const targets = new Set<string>();
   const sessions = new Map<string, string>();
+  const retiredTargets = new Set<string>();
+  const retiredSessions = new Set<string>();
   const pending = new Map<number, Command>();
   const clientKeys = new Set<string>();
   const buffered: { message: Message; bytes: number }[] = [];
@@ -108,6 +110,8 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
     clientKeys.clear();
     targets.clear();
     sessions.clear();
+    retiredTargets.clear();
+    retiredSessions.clear();
     buffered.length = 0;
     pendingBytes = 0;
     bufferedBytes = 0;
@@ -136,6 +140,20 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
   function deny(message: Message): void {
     transport.onmessage?.({ id: message.id, ...(message.sessionId ? { sessionId: message.sessionId } : {}),
       error: { code: -32000, message: 'Policy-owned target is unavailable to this client' } });
+  }
+
+  function privateTarget(value: unknown): boolean {
+    return identity(value) && (targets.has(value) || retiredTargets.has(value));
+  }
+
+  function privateSession(value: unknown): boolean {
+    return identity(value) && (sessions.has(value) || retiredSessions.has(value));
+  }
+
+  function rememberRetirement(identities: Set<string>, value: string, limit: number): void {
+    identities.add(value);
+    // Only confirmed inactive IDs age out. Active identities are never evicted.
+    if (identities.size > limit) identities.delete(identities.values().next().value!);
   }
 
   function issue(input: Message, internal = false, denied = false): void {
@@ -176,36 +194,45 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
       if (command.clientId === undefined) throw new Error('Missing client CDP response identity');
       const reply = { ...message, id: command.clientId, ...(command.sessionId ? { sessionId: command.sessionId } : {}) };
       const targetInfo = record(message.result?.targetInfo) ? message.result.targetInfo : undefined;
-      if (targets.has(command.targetId ?? '') || sessions.has(command.sessionId ?? '') ||
-        targets.has(String(targetInfo?.targetId ?? '')) || targets.has(String(message.result?.targetId ?? ''))) {
+      if (privateTarget(command.targetId) || privateSession(command.sessionId) ||
+        privateTarget(targetInfo?.targetId) || privateTarget(message.result?.targetId)) {
         deny(reply);
       } else if (command.method === 'Target.getTargets' && message.result) {
         if (!Array.isArray(message.result.targetInfos) || message.result.targetInfos.some(info => !record(info) || !identity(info.targetId))) {
           throw new Error('Invalid native target list');
         }
         transport.onmessage?.({ ...reply, result: { ...message.result,
-          targetInfos: message.result.targetInfos.filter(info => !targets.has(info.targetId)) } });
+          targetInfos: message.result.targetInfos.filter(info => !privateTarget(info.targetId)) } });
       } else transport.onmessage?.(reply);
       return;
     }
     const info = record(message.params?.targetInfo) ? message.params.targetInfo : undefined;
     const targetId = info?.targetId ?? message.params?.targetId;
     const sessionId = message.params?.sessionId;
-    if (message.method === 'Target.attachedToTarget' && (targets.has(String(targetId ?? '')) || sessions.has(message.sessionId ?? ''))) {
+    if (message.method === 'Target.targetDestroyed' && identity(targetId) && targets.delete(targetId)) {
+      rememberRetirement(retiredTargets, targetId, limits.maxPrivateTargets);
+      return;
+    }
+    if (message.method === 'Target.detachedFromTarget' && identity(sessionId) && sessions.delete(sessionId)) {
+      rememberRetirement(retiredSessions, sessionId, limits.maxPrivateSessions);
+      return;
+    }
+    if (message.method === 'Target.attachedToTarget' && (privateTarget(targetId) || privateSession(message.sessionId))) {
       if (!identity(targetId) || !identity(sessionId)) throw new Error('Invalid private native session identity');
+      if (retiredSessions.has(sessionId)) return;
       if (sessions.has(sessionId)) {
         if (sessions.get(sessionId) !== targetId) throw new Error('Private native session identity changed');
         return;
       }
-      if (sessions.size >= limits.maxPrivateSessions || (!targets.has(targetId) && targets.size >= limits.maxPrivateTargets)) {
+      if (sessions.size >= limits.maxPrivateSessions || (!privateTarget(targetId) && targets.size >= limits.maxPrivateTargets)) {
         throw new Error('Private target/session identity capacity exceeded');
       }
-      targets.add(targetId);
+      if (!retiredTargets.has(targetId)) targets.add(targetId);
       sessions.set(sessionId, targetId);
       issue({ method: 'Target.detachFromTarget', params: { sessionId }, ...(message.sessionId ? { sessionId: message.sessionId } : {}) }, true);
       return;
     }
-    if (targets.has(String(targetId ?? '')) || sessions.has(String(sessionId ?? '')) || sessions.has(message.sessionId ?? '')) return;
+    if (privateTarget(targetId) || privateSession(sessionId) || privateSession(message.sessionId)) return;
     transport.onmessage?.(message);
   }
 
@@ -240,7 +267,7 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
   function finish(entry: Creation, committing: boolean, targetId?: string): void {
     if (!entry.active || creation !== entry || failure) throw new Error('Target creation guard is no longer active');
     if (committing) {
-      if (!identity(targetId) || targets.has(targetId)) {
+      if (!identity(targetId) || privateTarget(targetId)) {
         const error = new Error('Invalid or reused private target identity');
         retire(error);
         throw error;
@@ -274,7 +301,7 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
       try {
         const { message } = snapshot(input);
         if (message.id === undefined || !message.method) throw new Error('Expected CDP command identity and method');
-        issue(message, false, targets.has(String(message.params?.targetId ?? '')) || sessions.has(message.sessionId ?? ''));
+        issue(message, false, privateTarget(message.params?.targetId) || privateSession(message.sessionId));
       } catch (error) { retire(error); throw error; }
     },
     close() { retire(new Error('Private target transport closed')); },

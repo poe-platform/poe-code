@@ -12,6 +12,11 @@ provider and explicit caller configuration. Any application-specific network
 policy must come from that host's documented requirements, not from the presence
 of arbitrary browser JavaScript or an isolated code runner.
 
+Private CDP target/session capacity counts active identities. Only native target
+destruction or session detach confirmations release that identity's capacity.
+Bounded recent retirement tombstones suppress late messages; active private
+identities never age out or get evicted to admit another target/session.
+
 ## Native browser adapter
 
 `createPlaywrightAdapter` accepts native browser capabilities. It forwards

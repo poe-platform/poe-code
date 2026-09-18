@@ -89,8 +89,9 @@ A completed baseline GitHub fresh unit job took 57 minutes 42 seconds. Its nativ
 SafeJS task took 1,457.28 seconds (1,470 files including three skipped), and native
 SafePython took 628.36 seconds (1,151 files). These are CI measurements, separate
 from the Darwin local comparisons above. The new default native Vitest result
-cache addresses those unchanged local tasks; deliberately fresh CI still executes
-them. Removing duplicate root ownership preserves their native coverage.
+cache covers the configured SafePython task. SafeJS remains fresh because its
+unit lifecycle hooks are not admitted to the native result cache; deliberately
+fresh CI still executes both tasks. Removing duplicate root ownership preserves their native coverage.
 
 The corrected native probe includes JavaScript recommended and TypeScript rules:
 303 of 304 ordinary files were admitted, with one ambient declaration falling
@@ -114,8 +115,11 @@ unit gate is running; previous in-process gates exhibited variable timeouts,
 including a 111-second pause in a DOCX case whose isolated 72-test group passed.
 Those DOCX tests were left unchanged because no logic bug was reproduced.
 
-Delivery: eleven atomic code/config/test improvements are committed locally; no
-verified goal pushes or publications yet. The full lint gate passed, and the
+Delivery snapshot before publication: thirteen atomic code/config/test/documentation
+improvements are committed and individually verified on remote main through
+`5b6fc32a429d9814c278186d44f647fa911c38af`. Intermediate queued release runs were
+canceled as subsequent pushes replaced them. Publication verification follows
+the surviving cumulative GitHub Release run; a push is not a publication. The full lint gate passed, and the
 latest focused infrastructure gate passed 323 tests across ten files. The shared
 unit phase passed all 1,693 files (two skipped). The full native Bash phase is
 still running and has reported failures; separate complete grep, stream-close,
@@ -158,3 +162,13 @@ and no `.turbo` or `.tsbuildinfo` entries. A complete maintained default-cache
 unit gate is now running with the compatible temporary GNU Bash 5.3 on PATH and
 stable committed metadata. Its pending result is reported separately from the
 successful focused and lint/build gates.
+
+A second complete local attempt stopped after 1,194.96 seconds in a shared batch:
+one DOCX case exceeded its deadline during a 73.568-second pause. The unchanged
+complete template file then passed all 30 tests in 8.26 seconds in isolation;
+no production logic bug was reproduced, so no speculative DOCX change or timeout
+increase was made. The surviving GitHub fresh validation includes all delivered
+commits and has passed build, audit, lint/contracts, cached units and completed
+Bash shards; remaining fresh native checks and publication are tracked there.
+The native arithmetic compatibility fix reports two explicit unavailable-oracle
+skips on Bash 3.2, with all 60 other checks passing; Bash 5.3 runs all 62 checks.

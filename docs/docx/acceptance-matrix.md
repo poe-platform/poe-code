@@ -9,6 +9,7 @@ before later dependencies and still requires current-source reconciliation.
 
 | Required behavior or dependency | Current named evidence |
 | --- | --- |
+| Relationship collection defaults, iterable updates, returned handles and opaque-reference guards | [2,712 exact owned passes, 205 neighbors and 384 built public workflows](relationship-collection-protocols-20260918.md) |
 | All immutable package URI fields, references, returned handles and argument boundaries through actual Shell | [600 current public URI variants and retained standards correction](pack-uri-public-variants-20260918.md) |
 | Remaining current IRI/object/resource consumers and full original batch carrier matrix | [Eleven passing public consumer campaigns](f01-f07-current-consumers-20260918.md) |
 | Current built native/carrier/variant dependency replays | [Twenty executed public campaigns with unchanged inputs](f01-f07-current-public-20260918.md) |

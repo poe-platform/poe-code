@@ -777,3 +777,11 @@ logical scalar; formatting, caret insertion and destructive setter scopes now
 agree. The source-compatible model read representation is retained. Untouched
 members and paragraph/run formatting are independently checked. This closes
 named F08/F10/F12/F13 gaps only; full-family acceptance remains open.
+
+The [complete active-run carrier correction](text-style-family-acceptance-20260918/whole-run-carriers-requirement-evidence.json)
+records 24 original whole-run failures and 24 additional segmented-run failures.
+The focused five-file run passed 226 cases, and 96 rebuilt SDK/Shell workflows
+passed across both dialects and kinds. Whole-run overrides preserve the original
+carrier, inactive branch, other properties and every untouched member without
+splitting or duplicating carriers. Partial carrier splits and full-family
+acceptance remain open.

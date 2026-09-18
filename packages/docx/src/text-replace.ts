@@ -283,7 +283,7 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
     }
     stageTrackedText(editor, tracked, { author: opts.author!, timestamp: opts.timestamp! }, budget, settings.limits);
   }
-  const runs = new Map<XmlElement, { editor: DocumentXmlEditor; patches: Map<XmlElement, string>; whole?: string }>();
+  const runs = new Map<XmlElement, { editor: DocumentXmlEditor; patches: Map<XmlElement, string>; whole?: { properties: string; props?: XmlElement } }>();
   for (const { leaf, edits: changes } of opts.trackChanges ? [] : edits.values()) {
     const original = leaf.node.localName === "t" || leaf.node.localName === "delText" ? leaf.node.text : leaf.text;
     let offset = 0, text = "", markup = "";
@@ -298,17 +298,26 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
     text += original.slice(offset);
     if (!explicit) leaf.editor.replaceElement(leaf.node, textMarkup(leaf.node, text));
     else {
-      const content = leaf.run.children.filter(child => child.namespace !== leaf.run.namespace || child.localName !== "rPr");
-      if (content.length === 1 && content[0] === leaf.node && changes[0]!.start === 0 && changes.at(-1)!.end === original.length &&
-        changes.every((change, index) => index === 0 || changes[index - 1]!.end === change.start)) {
-        const props = leaf.run.children.find(child => child.namespace === leaf.run.namespace && child.localName === "rPr");
-        const properties = formattedRunProperties(leaf.editor, leaf.run,
-          { ...(opts.bold === undefined ? {} : { bold: opts.bold }), ...(opts.italic === undefined ? {} : { italic: opts.italic }) }, activeXmlChildren(leaf.editor, budget));
-        const patches = new Map([[leaf.node, textMarkup(leaf.node, text)]]);
-        if (props) patches.set(props, properties);
-        const whole = props ? leaf.editor.sourceXml(leaf.run, patches)
-          : runOpen(leaf.run) + properties + leaf.editor.sourceXml(leaf.run, patches, true) + `</${leaf.run.name}>`;
-        runs.set(leaf.run, { editor: leaf.editor, patches, whole });
+      const children = activeXmlChildren(leaf.editor, budget);
+      const content = children(leaf.run).filter(child => child.namespace !== leaf.run.namespace || child.localName !== "rPr");
+      const complete = content.length > 0 && content.every(child => {
+        budget.charge("work", 1);
+        const item = edits.get(child);
+        const original = child.namespace === leaf.run.namespace && ["t", "delText"].includes(child.localName) ? child.text : item?.leaf.text;
+        return original === "" || original !== undefined && item?.leaf.run === leaf.run && item.edits[0]!.start === 0 && item.edits.at(-1)!.end === original.length &&
+          item.edits.every((change, index) => index === 0 || item.edits[index - 1]!.end === change.start);
+      });
+      if (complete) {
+        const run = runs.get(leaf.run) ?? { editor: leaf.editor, patches: new Map<XmlElement, string>() };
+        if (!run.whole) {
+          const props = children(leaf.run).find(child => child.namespace === leaf.run.namespace && child.localName === "rPr");
+          const properties = formattedRunProperties(leaf.editor, leaf.run,
+            { ...(opts.bold === undefined ? {} : { bold: opts.bold }), ...(opts.italic === undefined ? {} : { italic: opts.italic }) }, children);
+          run.whole = { properties, ...(props ? { props } : {}) };
+          if (props) run.patches.set(props, properties);
+        }
+        run.patches.set(leaf.node, textMarkup(leaf.node, text));
+        runs.set(leaf.run, run);
         continue;
       }
       markup += textMarkup(leaf.node, original.slice(offset));
@@ -317,7 +326,8 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
     }
   }
   for (const [run, { editor: xml, patches, whole }] of runs) {
-    xml[replaceSplitTextRunXml](run, whole ?? xml.sourceXml(run, patches));
+    const markup = whole && !whole.props ? runOpen(run) + whole.properties + xml.sourceXml(run, patches, true) + `</${run.name}>` : xml.sourceXml(run, patches);
+    xml[replaceSplitTextRunXml](run, markup);
   }
   const changed = changedMatches.length > 0;
   const changes = changedMatches.map(match => {

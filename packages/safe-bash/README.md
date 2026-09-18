@@ -85,8 +85,18 @@ These plugins are separate from `agentCommands()`; pass them to `shell.use(...)`
 | --- | --- |
 | `curl` | `networkCommands({ authorize, transport?, limits?, replace? })`: required authorization on every request, redirect, and retry. Node uses the native HTTP transport; Workers can inject `createFetchTransport()`. `createOriginAuthorizer([...])` provides exact origin/hostname policy; its omitted allowlist is deliberately `*` (allow all). [Options and limits](src/commands/network/types.ts). |
 | `node` | `nodeCommands({ runtime, limits?, replace? })`: runs JavaScript with an injected SafeJS runtime, virtual files, and shell streams. [Usage and supported subset](src/commands/node/README.md). |
+| `python`, `python3` | `pythonCommands({ createExecutor })` from `@poe-platform/safe-bash/commands/python`: supply an explicit executor for invocation-local Python, filesystem I/O and shell streams. [Executor and ownership contract](src/contracts/python-executor.md). |
 | `llm` | `llmCommands({ providers, defaultModel?, replace? })`: opt-in model routing, sandbox attachments and streamed text/binary output. Includes injected-transport OpenAI and ElevenLabs reference providers. [Configuration and provider contract](src/commands/llm/README.md). |
 | `playwright-cli` | Standard browser commands, storage state, native snapshots, recordings, and traces through a host-owned adapter. [Sessions and host capabilities](src/contracts/playwright-sessions.md). `installPlaywrightNetworkPolicy` from `/playwright` supports browser-native redirects with per-hop bounded host HTTP fetch and independent direct HTTP/WebSocket denial. Cloudflare guardrails do not establish WebRTC/UDP denial or all-protocol accounting; hosts requiring those guarantees must refuse this integration. [Network policy and lifecycle](src/contracts/playwright-network-policy.md). |
+
+For a custom same-isolate Python JSPI host, use `createPythonJspiExecutor` from
+the same Python entry with an explicit loader, precompiled Wasm modules and
+pinned, authenticated runtime assets; follow the [static host recipe](src/contracts/python-jspi.md).
+Native I/O uses the caller's asynchronous filesystem without workspace copying,
+Node worker threads or a SAB request/reply bridge. This path is qualified with
+installed public-package artifacts in local workerd, not a verified Cloudflare
+deployment or a managed Python native-filesystem integration. JSPI cancellation
+is cooperative; it neither preempts CPU-only loops nor establishes confinement.
 
 Storage can be in memory, a rooted host directory, S3-compatible storage, or WebDAV,
 with read-only wrappers, mounts, and overlays. Choose and configure it explicitly;

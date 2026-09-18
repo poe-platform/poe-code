@@ -19,8 +19,8 @@ const cases = [
   ["positional at uses spaces", 'set -- 1 + 2; IFS=:; printf "%s\\n" "$(($@))"', "3\n"],
   ["nested arithmetic", 'rows=3; printf "%s\\n" "$(( $(( $rows-1 )) + 1 ))"', "3\n"],
   ["backtick substitution", 'printf "%s\\n" "$((`printf 3`-1))"', "2\n"],
-  ["double quoted operand", 'rows=3; printf "%s\\n" "$((${rows}+"$(printf 3)"-1))"', "5\n"],
-  ["literal double quoted operand", 'printf "%s\\n" "$(("3"-1))"', "2\n"],
+  ["double quoted operand", 'rows=3; printf "%s\\n" "$((${rows}+"$(printf 3)"-1))"', "5\n", [4, 4]],
+  ["literal double quoted operand", 'printf "%s\\n" "$(("3"-1))"', "2\n", [4, 4]],
   ["no field splitting", 'IFS=3; rows=3; printf "%s\\n" "$(($rows-1))"', "2\n"],
   ["command quoting and trailing newlines", 'printf "%s\\n" "$(($(printf "%s\\n\\n" "3")-1))"', "2\n"],
   ["substitution isolation", 'rows=3; value=$(($(rows=9; printf 3)-1)); printf "%s:%s\\n" "$value" "$rows"', "2:3\n"],
@@ -31,8 +31,21 @@ const cases = [
   ["substitution not evaluated twice", 'rows=1; value=$(( $((rows++)) + $rows )); printf "%s:%s\\n" "$value" "$rows"', "3:2\n"],
 ] as const;
 
-for (const [name, source, stdout] of cases) {
-  test(`arithmetic expansion native control: ${name}`, () => {
+for (const [name, source, stdout, minimumVersion] of cases) {
+  test(`arithmetic expansion native control: ${name}`, context => {
+    if (minimumVersion) {
+      // GNU Bash introduced double-quoted arithmetic identifiers in 4.4.
+      const version = spawnSync("bash", ["--noprofile", "--norc", "-c", 'printf "%s.%s" "${BASH_VERSINFO[0]}" "${BASH_VERSINFO[1]}"'], { encoding: "utf8", env: { PATH: process.env.PATH, LC_ALL: "C" }, timeout: 2000 });
+      assert.ifError(version.error);
+      assert.equal(version.status, 0);
+      assert.equal(version.stderr, "");
+      const [major, minor] = version.stdout.split(".").map(Number);
+      assert.ok(Number.isInteger(major) && Number.isInteger(minor));
+      if (major! < minimumVersion[0] || (major === minimumVersion[0] && minor! < minimumVersion[1])) {
+        context.skip(`Native oracle requires Bash ${minimumVersion.join(".")}; host is ${version.stdout}`);
+        return;
+      }
+    }
     const result = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { PATH: process.env.PATH, LC_ALL: "C" }, timeout: 2000 });
     assert.ifError(result.error);
     assert.equal(result.status, 0);

@@ -4,6 +4,9 @@ Use `npm test` for the root and every declared workspace unit task, including
 required builds and npm lifecycle hooks. Use `npm run build` for the complete
 workspace and root build. Use `npm run lint` for ESLint, typechecking, and workflows.
 
+Native arithmetic oracle cases that require Bash 4.4 report explicit skips on
+older host Bash versions. Their paired product arithmetic checks always run.
+
 Successful ordinary workspace builds and compatible workspace unit results use a
 machine cache by default. Root tests, non-Vitest native tasks, lifecycle-dependent builds,
 and workspaces with directory symlink inputs still execute. Compatible unit

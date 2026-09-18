@@ -8,7 +8,7 @@ import { textContext } from "../tests/fixtures/text.js";
 import { rasterPng } from "../tests/fixtures/raster.js";
 import { readPackage, xmlStructure } from "../tests/assertions.js";
 
-const enc = (value: string) => new TextEncoder().encode(value), ref = (resultHandle: string) => ({ resultHandle });
+const enc = (value: string) => new TextEncoder().encode(value), ref = (resultHandle: string, key?: string) => ({ resultHandle, ...(key === undefined ? {} : { key }) });
 const wordType = "application/vnd.openxmlformats-officedocument.wordprocessingml.";
 const owners = [
   ["parts.document.DocumentPart", api.DocumentPartView, "document.main", "document"],
@@ -48,7 +48,10 @@ it(`${route} executes inherited package reads, hooks, edges and rename on ${owne
   operations.push({ operation: "model.package.Package.main_document_part.get", receiver: ref("nativePackage"), arguments: {}, resultHandle: "sameMain" });
   operations.push({ operation: "model.parts.document.DocumentPart.partname.get", receiver: ref("sameMain"), arguments: {} }); expected.set(operations.length - 1, "/word/document.xml");
   if (role !== "image") {
-    invoke("element.get", {}, "element"); invoke("part.get", {}, "samePart");
+    invoke("element.get", {}, "element");
+    operations.push({ operation: "model.XmlElementView.tag.get", receiver: ref("element"), arguments: {} });
+    expected.set(operations.length - 1, { namespaceURI: role === "core" ? "http://schemas.openxmlformats.org/package/2006/metadata/core-properties" : word, localName: root });
+    invoke("part.get", {}, "samePart");
     operations.push({ operation: prefix + ".partname.get", receiver: ref("samePart"), arguments: {} }); expected.set(operations.length - 1, name);
   }
   expected.set(invoke("related_parts.get"), []);
@@ -60,7 +63,9 @@ it(`${route} executes inherited package reads, hooks, edges and rename on ${owne
   expected.set(invoke("target_ref.call", { rId: "rId1" }), "../word/document.xml");
   invoke("part_related_by.call", { reltype: "urn:coastal:internal" }, "related");
   operations.push({ operation: "model.parts.document.DocumentPart.partname.get", receiver: ref("related"), arguments: {} }); expected.set(operations.length - 1, "/word/document.xml");
-  const mapIndex = invoke("related_parts.get");
+  const mapIndex = invoke("related_parts.get", {}, "relatedMap");
+  operations.push({ operation: "model.parts.document.DocumentPart.partname.get", receiver: ref("relatedMap", "rId1"), arguments: {} });
+  expected.set(operations.length - 1, "/word/document.xml");
   invoke("partname.set", { value: renamed }); expected.set(invoke("partname.get"), renamed);
   expected.set(invoke("target_ref.call", { rId: "external" }), "../coast?view=1#bay");
   expected.set(invoke("drop_rel.call", { rId: "rId1" }), null); expected.set(invoke("related_parts.get"), []);

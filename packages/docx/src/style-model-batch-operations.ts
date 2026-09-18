@@ -9,9 +9,9 @@ import { docxOperationSchemas } from "./operation-schema.js";
 import { imageBatchActions } from "./image-batch-operations.js";
 import { Length, Emu, Inches, Cm, Mm, Pt, Twips, isLength, enumFamilies, enumMembers, enumString, enumValue, enumFromValue, enumFromXml, enumToXml } from "./formatting-values.js";
 import { DocxUsageError } from "./argument-json.js";
-import { BaseStyle, CharacterStyle, ParagraphStyle, TableStyle, Styles, LatentStyles, LatentStyle } from "./styles-model.js";
+import { setStyleLinks, BaseStyle, CharacterStyle, ParagraphStyle, TableStyle, Styles, LatentStyles, LatentStyle } from "./styles-model.js";
 import { Font, ParagraphFormat, TabStops, TabStop, ColorFormat, RGBColor } from "./formatting-model.js";
-import type { DocxEnumValue, DocxLength } from "./operation-types.js";
+import type { DocxOperationArguments, DocxEnumValue, DocxLength } from "./operation-types.js";
 
 type Action = (receiver: unknown, args: Readonly<Record<string, unknown>>) => unknown;
 const styleActions = new Map<string, Action>([...packUriBatchActions, ...packageViewBatchActions]);
@@ -48,6 +48,7 @@ for (const [name, owner] of [["BaseStyle", BaseStyle], ["CharacterStyle", Charac
   if (owner === CharacterStyle || owner === ParagraphStyle || owner === TableStyle) properties(prefix, owner, ["base_style", "font"], ["base_style"]);
   if (owner === ParagraphStyle || owner === TableStyle) properties(prefix, owner, ["paragraph_format", "next_paragraph_style"], ["next_paragraph_style"]);
 }
+method("styles.links", "set", BaseStyle, (receiver, args) => (receiver as BaseStyle)[setStyleLinks](args as DocxOperationArguments<"styles.links.set">));
 const styles = "model.styles.styles.Styles";
 properties(styles, Styles, ["latent_styles"], []);
 method(styles, "add_style.call", Styles, (receiver, args) => (receiver as Styles).add_style(args.name as string, args.styleType as DocxEnumValue<"WD_STYLE_TYPE">, args.builtin as boolean | undefined));

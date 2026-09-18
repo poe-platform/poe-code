@@ -1,3 +1,4 @@
+import { styleLinkPatches } from "./style-links.js";
 import { admitDocumentModel } from "./model-admission.js";
 import { PackageView, StylesPart, packageBindStyles, packageAdmitImages } from "./package-view.js";
 import { bindXmlElementView, type XmlElementView } from "./xml-element-view.js";
@@ -16,7 +17,7 @@ import { styleAttribute as attr, styleChild as child, styleToggle, styleInteger,
 import { styleDisplayName, styleStoredName } from "./style-names.js";
 import { addDocumentStylesPart } from "./styles-part.js";
 import { editLatentStyles, readLatentStyles } from "./latent-styles.js";
-import type { DocxEnumValue } from "./operation-types.js";
+import type { DocxOperationArguments, DocxEnumValue } from "./operation-types.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { DocumentXmlEditor, replaceActiveStyleXml } from "./xml-write.js";
 import { assertDocumentEditable, publishDocumentArchive, PublicationError, publicationGenerationGuard, type PublicationOptions, type PublicationContext } from "./publication.js";
@@ -124,6 +125,9 @@ export const styleModelMutations = new WeakMap<Styles, { readonly revision: numb
 /** Internal shared heading allocation; retains the live styles owner. */
 export const resolveHeadingStyle = Symbol("resolve-heading-style");
 
+/** Internal declared advanced relationship operation, not a public model alias. */
+export const setStyleLinks = Symbol("set-style-links");
+
 /** Read-only part metadata with owned byte snapshots; edits use the live model. */
 export class StylePartView extends StylesPart {
   #styles: Styles | undefined;
@@ -229,6 +233,20 @@ export class BaseStyle {
   }
   protected setAttribute(name: string, value: string | null): void {
     this.store.change(xml => { const node = this.store.node(xml, this.token); xml[replaceActiveStyleXml](node, mergeStyleChildren(xml, node, new Map(), order, { [name]: value })); });
+  }
+  [setStyleLinks](options: DocxOperationArguments<"styles.links.set">): void {
+    this.store.change(xml => {
+      const budget = archiveSettings(this.store.context).budget, children = activeXmlChildren(xml, budget);
+      const selected = this.store.node(xml, this.token);
+      const patches = styleLinkPatches(this.store.nodes(xml), selected, options, children, budget);
+      for (const [node, patch] of patches) {
+        const updates = new Map<string, string>();
+        if (patch.link !== undefined) updates.set("link", patch.link === null ? "" : `<st:link xmlns:st="${node.namespace}" st:val="${xmlValue(patch.link)}"/>`);
+        const attributes = patch.default === undefined ? {} : { default: patch.default };
+        const markup = mergeStyleChildren(xml, node, updates, order, attributes, children);
+        if (markup !== xml.sourceXml(node)) xml[replaceActiveStyleXml](node, markup);
+      }
+    });
   }
   get name(): string | null { const value = attr(this.store.readChild(this.rawElement, "name"), "val"); return value === undefined ? null : styleDisplayName(value); }
   set name(value: string | null) { if (value !== null && typeof value !== "string") throw new TypeError("Expected a style name or null."); this.setValue("name", value); }

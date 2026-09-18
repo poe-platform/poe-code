@@ -1,3 +1,4 @@
+import { styleLinkPatches } from "./style-links.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import { archiveSettings, InvalidValueError, type ArchiveContext } from "./archive.js";
 import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
@@ -200,21 +201,9 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
       if (target && (attr(target, "type") ?? "paragraph") !== type) throw new InvalidValueError("Style relationship requires matching types.");
       setValue(selected, tag, target ? attr(target, "styleId")! : null);
     }
-    if (opts.linkedStyle !== undefined) {
-      const target = opts.linkedStyle === null ? undefined : resolve(opts.linkedStyle);
-      if (target && !((type === "paragraph" && (attr(target, "type") ?? "paragraph") === "character") || (type === "character" && (attr(target, "type") ?? "paragraph") === "paragraph")))
-        throw new InvalidValueError("Linked styles require paragraph and character types.");
-      const unlink = (node: XmlElement) => {
-        const old = nodes.find(n => attr(n, "styleId") === attr(child(node, "link"), "val"));
-        if (old && attr(child(old, "link"), "val") === attr(node, "styleId")) setValue(old, "link", null);
-      };
-      unlink(selected); if (target) unlink(target);
-      setValue(selected, "link", target ? attr(target, "styleId")! : null);
-      if (target) setValue(target, "link", attr(selected, "styleId")!);
-    }
-    if (opts.defaultForType !== undefined) {
-      if (opts.defaultForType !== ["1", "true", "on"].includes(attr(selected, "default") ?? "0")) attributes.set(selected, { default: opts.defaultForType ? "1" : null });
-      if (opts.defaultForType) for (const node of nodes) if (node !== selected && (attr(node, "type") ?? "paragraph") === type && attr(node, "default") !== undefined) attributes.set(node, { default: null });
+    for (const [node, patch] of styleLinkPatches(nodes, selected, opts, children, budget)) {
+      if (patch.link !== undefined) setValue(node, "link", patch.link);
+      if (patch.default !== undefined) attributes.set(node, { default: patch.default });
     }
     for (const [key, tag] of [["hidden", "semiHidden"], ["locked", "locked"], ["quickStyle", "qFormat"], ["unhideWhenUsed", "unhideWhenUsed"]] as const)
       if (opts[key] !== undefined) setValue(selected, tag, opts[key] ? "1" : null);

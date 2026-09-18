@@ -1297,7 +1297,7 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     const sourceLock = JSON.parse(readRegularInput(resolve(authority, "../.."), "package-lock.json", 16 * 1024 * 1024));
     for (const name of ["@noble/hashes", "pako"]) lock.packages[`node_modules/${name}`] = structuredClone(sourceLock.packages[`node_modules/${name}`]);
     for (const identity of Object.values(resolveTools().identities)) lock.packages[relative(resolve(authority, "../.."), identity.root)] = { version: identity.version };
-    for (const path of ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/copy-compression-assets.mjs", ...boundaries.fixtureDirectories.map(fixture => fixture.owner)]) {
+    for (const path of ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/generate-native-storage-sources.mjs", "scripts/copy-compression-assets.mjs", ...boundaries.fixtureDirectories.map(fixture => fixture.owner)]) {
       put(`${packagePrefix}/${path}`, readRegularInput(authority, path, 300000, undefined, boundaries));
     }
     const native = "src/commands/bytes/compression/native";
@@ -1420,7 +1420,7 @@ test("committed admission batches exact object IDs while retaining raw admitted 
     };
     const candidate = inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute);
     assert.deepEqual(candidate.files.get(path), payload);
-    for (const input of ["scripts/guard-package-dist.mjs", ...["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/copy-compression-assets.mjs"].map(input => `${packagePrefix}/${input}`)]) {
+    for (const input of ["scripts/guard-package-dist.mjs", ...["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/generate-native-storage-sources.mjs", "scripts/copy-compression-assets.mjs"].map(input => `${packagePrefix}/${input}`)]) {
       const expected = readRegularInput(resolve(authority, "../.."), input, 300000);
       const actual = candidate.files.get(input);
       assert.ok(Buffer.isBuffer(actual) && Buffer.isBuffer(expected), input);
@@ -1654,6 +1654,8 @@ for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", f
     assert.ok(report.steps.find(step => step.label === "isolated committed op compiler build"));
     assert.ok(report.op.emitted.some(entry => entry.path === "packages/op/dist/index.d.ts"));
     assert.ok(report.archivePaths.includes(`${packagePrefix}/scripts/build.mjs`));
+    assert.ok(report.blobReads.includes(`${packagePrefix}/scripts/generate-native-storage-sources.mjs`));
+    assert.ok(report.archivePaths.includes(`${packagePrefix}/scripts/generate-native-storage-sources.mjs`));
     const copy = report.steps.find(step => step.label === "isolated committed codec asset copy");
     assert.ok(copy);
     assert.deepEqual(copy.args, ["scripts/copy-compression-assets.mjs"]);

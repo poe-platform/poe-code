@@ -16,7 +16,16 @@ runs through the separate host fetch callback.
 
 Cloudflare Playwright 1.3.6 exposes lifetime-latched
 `acquire(binding, { guardrails: { allowedDomains: [] } })`. The empty allowlist is
-the documented deny-all profile. Do not substitute a hostname allowlist: even
+the documented deny-all **HTTP/HTTPS** profile. Cloudflare's guardrails do not
+establish denial of WebRTC/UDP, TURN, WebTransport, or every other direct socket.
+This setting alone does not satisfy `directNetwork: 'blocked-by-host'`: a
+Cloudflare host must additionally enforce the other-protocol boundary before
+using the example below. Actual Cloudflare testing with an empty allowlist and
+this helper still obtained WebRTC server-reflexive ICE candidates from public
+STUN servers, demonstrating UDP traffic outside the host fetch callback. The
+current Cloudflare recipe is therefore **not a deployable isolation boundary**
+without an additional provider-enforced non-HTTP restriction. This helper does
+not supply that restriction. Do not substitute a hostname allowlist: even
 allowed direct traffic would bypass host transfer accounting. Verify the provider's
 denial on your deployed runtime, including after both clients disconnect. The
 native fixture uses a denying HTTP proxy and a WebRTC proxy restriction; that
@@ -26,6 +35,7 @@ fixture is not evidence of Cloudflare UDP enforcement.
 import { acquire, connect } from '@cloudflare/playwright';
 import { installPlaywrightNetworkPolicy } from '@poe-platform/safe-bash/playwright';
 
+// Prerequisite: enforce non-HTTP direct-network denial outside the CDP lifetime.
 const { sessionId } = await acquire(binding, {
   guardrails: { allowedDomains: [] },
 });
@@ -80,9 +90,17 @@ The helper's response cap is a second check after the host returns its bounded
 body. It cannot retroactively bound allocation inside an arbitrary host callback.
 Defaults are a 30-second request deadline, 8 MiB response, 1 MiB request body,
 64 active requests, and 64 attached targets. Options are `requestTimeoutMs`,
-`maxResponseBytes`, `maxRequestBytes`, `maxConcurrentRequests`, and `maxTargets`.
+`maxResponseBytes`, `maxRequestBytes`, `maxProtocolMessageBytes`,
+`maxConcurrentRequests`, and `maxTargets`.
 Header lists are limited to 1,024 entries and 64 KiB UTF-8; incoming CDP JSON is
-limited to 8 MiB characters. Protocol commands and target/request admission are
+limited to 8 MiB UTF-8 by default. `maxProtocolMessageBytes` can increase that
+limit up to a hard maximum of 32 MiB. For an 8 MiB printable upload, configure
+both `maxRequestBytes: 8 * 1024 * 1024` and
+`maxProtocolMessageBytes: 32 * 1024 * 1024`: Chromium's JSON/base64 envelope
+also consumes transport space. Heavily escaped binary bodies can exceed the
+transport limit even when their decoded body fits; such messages retire the
+session. A provider may impose a stricter transport limit.
+Protocol commands and target/request admission are
 bounded; overload retires the browser. Incomplete binary upload data is rejected.
 
 `onRequestFailure` receives stable CDP `targetId`, `frameId`, `requestId`,

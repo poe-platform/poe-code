@@ -47,6 +47,8 @@ export interface PlaywrightNetworkPolicyOptions {
   readonly requestTimeoutMs?: number;
   readonly maxResponseBytes?: number;
   readonly maxRequestBytes?: number;
+  /** Incoming UTF-8 CDP JSON cap, default 8 MiB; at most 32 MiB. */
+  readonly maxProtocolMessageBytes?: number;
   readonly maxConcurrentRequests?: number;
   readonly maxTargets?: number;
 }
@@ -81,6 +83,10 @@ export async function installPlaywrightNetworkPolicy(options: PlaywrightNetworkP
   const timeout = positive(options.requestTimeoutMs, 30000);
   const maxResponse = positive(options.maxResponseBytes, 8 * 1024 * 1024);
   const maxRequest = positive(options.maxRequestBytes, 1024 * 1024);
+  const maxMessage = options.maxProtocolMessageBytes ?? 8 * 1024 * 1024;
+  if (!Number.isSafeInteger(maxMessage) || maxMessage < 1 || maxMessage > 32 * 1024 * 1024) {
+    throw new TypeError('Invalid protocol message limit (maximum 32 MiB)');
+  }
   const maxConcurrent = positive(options.maxConcurrentRequests, 64);
   const maxTargets = positive(options.maxTargets, 64);
   const { socket } = options;
@@ -217,7 +223,22 @@ export async function installPlaywrightNetworkPolicy(options: PlaywrightNetworkP
   function receive(event: { data: unknown }) {
     if (closed) return;
     try {
-      if (typeof event.data !== 'string' || event.data.length > 8 * 1024 * 1024) throw new Error('Expected bounded JSON CDP transport');
+      if (typeof event.data !== 'string' || event.data.length > maxMessage) throw new Error('Expected bounded JSON CDP transport');
+      // Count UTF-8 without allocating another copy of an oversized message.
+      let messageBytes = event.data.length;
+      for (let index = 0; index < event.data.length; index++) {
+        const code = event.data.charCodeAt(index);
+        if (code < 0x80) continue;
+        if (code < 0x800) messageBytes++;
+        else {
+          messageBytes += 2;
+          if (code >= 0xd800 && code <= 0xdbff) {
+            const next = event.data.charCodeAt(index + 1);
+            if (next >= 0xdc00 && next <= 0xdfff) index++;
+          }
+        }
+        if (messageBytes > maxMessage) throw new Error('Expected bounded JSON CDP transport');
+      }
       const message = JSON.parse(event.data) as Message;
       if (message.id !== undefined) {
         const entry = pending.get(message.id);

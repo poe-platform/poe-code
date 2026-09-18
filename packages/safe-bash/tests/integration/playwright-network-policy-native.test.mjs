@@ -30,6 +30,8 @@ test('native CDP redirects, popup admission, request bodies, cookies and cancell
   const metadata = await (await fetch(`http://127.0.0.1:${cdpPort}/json/version`)).json();
   const socket = new WebSocket(metadata.webSocketDebuggerUrl);
   await new Promise(resolve => socket.addEventListener('open', resolve, { once: true }));
+  let largestMessage = 0;
+  socket.addEventListener('message', event => { largestMessage = Math.max(largestMessage, event.data.length); });
   const requests = [];
   const failures = [];
   const canceled = [];
@@ -38,8 +40,14 @@ test('native CDP redirects, popup admission, request bodies, cookies and cancell
   try {
     policy = await installPlaywrightNetworkPolicy({
       socket, directNetwork: 'blocked-by-host', retire: async () => { await holdRetirement; await browser.close(); }, requestTimeoutMs: 3000,
+      maxRequestBytes: 8 * 1024 * 1024, maxProtocolMessageBytes: 32 * 1024 * 1024,
       onRequestFailure: failure => failures.push(failure),
       async fetch(request) {
+        if (new URL(request.url).pathname === '/large-upload') {
+          assert.equal(request.body?.length, 8 * 1024 * 1024);
+          assert.ok(request.body.every(byte => byte === 97));
+          return result('accepted');
+        }
         requests.push({ ...request, bytes: request.body && [...request.body], body: request.body && new TextDecoder().decode(request.body) });
         const url = new URL(request.url);
         if (!['allowed.example', 'other.example'].includes(url.hostname)) throw new Error('Forbidden destination');
@@ -63,6 +71,15 @@ test('native CDP redirects, popup admission, request bodies, cookies and cancell
     });
     const context = await browser.newContext();
     const page = await context.newPage();
+    await t.test('configured 8 MiB printable upload fits its bounded CDP envelope', async () => {
+      await page.goto('https://allowed.example/final');
+      assert.equal(await page.evaluate(async () => (await fetch('/large-upload', {
+        method: 'POST', body: 'a'.repeat(8 * 1024 * 1024),
+      })).text()), 'accepted');
+      assert.ok(largestMessage > 8 * 1024 * 1024);
+      assert.ok(largestMessage <= 32 * 1024 * 1024);
+      t.diagnostic(`8 MiB printable upload largest CDP message: ${largestMessage} characters`);
+    });
     for (const status of [301, 302, 303, 307, 308]) await t.test(`POST ${status}`, async () => {
       await context.clearCookies();
       await page.goto(`https://allowed.example/form?status=${status}`);

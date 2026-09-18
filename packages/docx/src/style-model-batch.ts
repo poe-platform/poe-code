@@ -1,3 +1,4 @@
+import { ModelSaveStage, modelSaveOperations } from "./model-save-stage.js";
 import { PackageView, PartView, XmlPartView, StoryPart, HeaderPart, FooterPart, CommentsPart, SettingsPart, StylesPart, DocumentPartView, NumberingPart, _NumberingDefinitions, Relationships, RelationshipView, CoreProperties, CorePropertiesPartView, ImageParts, ImagePartView } from "./package-view.js";
 import { packageViewBatchActions } from "./package-view-batch-operations.js";
 import { XmlElementView } from "./xml-element-view.js";
@@ -36,6 +37,7 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
   const source = new Uint8Array(borrowed);
   const document = await Document(source, settings);
   const model = { get styles() { return document.styles; }, package: document.store.package, warnings: [] as readonly { readonly code: string }[], save: (output: import("./model-output.js").DocumentOutput, options?: import("./model-output.js").DocumentSaveOptions) => document.save(output, options), publish: (options: import("./publication.js").PublicationOptions, context: import("./publication.js").PublicationContext) => document.store.publish(options, context) };
+  const saved = new ModelSaveStage(settings);
   const named = new Map<string, unknown>();
   const objectIds = new Map<object, string>();
   const results: { operation: string; value: unknown }[] = [];
@@ -120,6 +122,14 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
         const receiver = item.receiver;
         if (!(receiver?.resultHandle === "document" && Object.keys(receiver).length === 1) && (receiver?.id !== "document" || receiver.type !== "DocumentModel" || receiver.owner !== "document" || receiver.revision !== 0)) throw new DocxUsageError("The root receiver must be this document's initial handle.");
         value = model.styles;
+      } else if ((modelSaveOperations as readonly string[]).includes(item.operation)) {
+        const receiver = resolve(item.receiver);
+        const valid = item.operation === "model.document.Document.save.call" ? receiver instanceof DocumentView
+          : item.operation === "model.parts.document.DocumentPart.save.call" ? receiver instanceof DocumentPartView : receiver instanceof PackageView;
+        if (!valid || !(receiver instanceof DocumentView || receiver instanceof DocumentPartView || receiver instanceof PackageView))
+          throw new DocxUsageError("Expected an admitted save owner.");
+        await saved.capture(item.arguments.output as { path?: string; capability: string }, sink => receiver.save(sink));
+        value = undefined;
       } else if (item.operation === "model.types.ProvidesStoryPart.part.get" || item.operation === "model.types.ProvidesXmlPart.part.get") {
         const receiver = resolve(item.receiver);
         if (!isModel(receiver) || !("part" in receiver)) throw new DocxUsageError("Expected an admitted part provider.");
@@ -148,6 +158,6 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
       throw error;
     }
   }
-  return { save: model.save, publish: model.publish, warnings: model.warnings, results: Object.freeze(results),
+  return { save: saved.staged ? saved.save.bind(saved) : model.save, publish: saved.staged ? saved.publish.bind(saved) : model.publish, warnings: model.warnings, results: Object.freeze(results),
     operationResults: Object.freeze(operationResults), changes: Object.freeze(effects.changes), affected };
 }

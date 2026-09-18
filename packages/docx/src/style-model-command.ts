@@ -22,7 +22,7 @@ export async function executeStyleModelCommand(invocation: DocxInvocation, bytes
   const data = await executeDocumentBatch(bytes, {version, operations}, {...intent, ...(input ? {input} : {}), ...(output === undefined ? {} : {output})} as DocumentBatchOptions, { ...context,
     encoding: {order: "input", compression: "store"}, filesystem: request.filesystem as FileSystem, stdout: request.stdout,
     ...(request.registerCleanup ? {registerCleanup: request.registerCleanup} : {}),
-    binaryResolver: { capability: "command", async *open(path, { signal, maxBytes }) {
+    binaryResolver: { capability: "command", filesystem: request.filesystem as FileSystem, async *open(path, { signal, maxBytes }) {
       const readStream = request.filesystem.readStream;
       if (!readStream) throw new UnsupportedProfileError("Image paths require an explicit streaming read capability.");
       const source = { open: (inner: AbortSignal) => readStream.call(request.filesystem, path, { signal: inner }) };

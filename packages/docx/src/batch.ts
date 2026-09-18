@@ -5,7 +5,6 @@ import { DocumentSession } from "./document-session.js";
 import { docxOperationSchemas } from "./operation-schema.js";
 import { UnsupportedProfileError } from "./package-xml.js";
 import { publishDocumentArchive, type PublicationContext, type PublicationOptions } from "./publication.js";
-import type { ImageInsertionContext } from "./image-insertion.js";
 import type { DocumentModelContext } from "./model-context.js";
 import { closedRecord, encodeLocation, type Location } from "./location-token.js";
 import type { DocumentBudget } from "./budget.js";
@@ -45,7 +44,7 @@ function rebaseLocations(value: unknown, generation: number, beforeGeneration: n
 }
 
 /** Syntax is admitted as a whole; effects stay local until the single outer publication. */
-export async function executeDocumentBatch(input: Uint8Array, value: unknown, options: DocumentBatchOptions, context: PublicationContext & Pick<ImageInsertionContext, "binaryResolver"> & Pick<DocumentModelContext, "registerCleanup" | "fontResolver">): Promise<DocumentBatchData> {
+export async function executeDocumentBatch(input: Uint8Array, value: unknown, options: DocumentBatchOptions, context: PublicationContext & Pick<DocumentModelContext, "binaryResolver" | "registerCleanup" | "fontResolver">): Promise<DocumentBatchData> {
   const settings = archiveSettings(context);
   closedRecord(options, ["input", "output", "inPlace", "force", "dryRun", "json", "limit", "author", "timestamp"]);
   if (![Object.prototype, null].includes(Object.getPrototypeOf(options))) throw new InputTypeError("Expected owned batch options.");

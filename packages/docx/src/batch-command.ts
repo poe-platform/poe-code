@@ -16,7 +16,7 @@ export async function executeBatchCommand(invocation: DocxInvocation, bytes: Uin
   const { version, operations, ...intent } = options;
   const data = await executeDocumentBatch(bytes, { version, operations }, { ...intent, ...(input ? { input } : {}), ...(output === undefined ? {} : { output }) },
     { ...context, encoding: { order: "input", compression: "store" }, filesystem: request.filesystem as FileSystem, stdout: request.stdout,
-      binaryResolver: { capability: "command", open(path, { signal }) {
+      binaryResolver: { capability: "command", filesystem: request.filesystem as FileSystem, open(path, { signal }) {
         const absolute = resolvePath(request.cwd, path);
         return request.filesystem.readStream ? request.filesystem.readStream(absolute, { signal }) : { async *[Symbol.asyncIterator]() { yield await request.filesystem.readFile(absolute, { signal }); } };
       } }

@@ -791,6 +791,10 @@ export class StylesPart extends XmlPartView {
 }
 
 export class DocumentPartView extends StoryPart {
+  async save(output: DocumentOutput, options?: DocumentSaveOptions): Promise<void> {
+    this.package[packageMetadata](this);
+    await this.package.save(output, options);
+  }
   protected static override readonly nativeTypes = Object.values(documentTypes);
   get document() { return this.package[packageModel](this).document; }
   get comments() { return this.package[packageModel](this).document.comments; }

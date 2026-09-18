@@ -546,3 +546,11 @@ header/footer publication defects. Exact bindings are in
 [requirement-evidence.json.gz](part-provider-protocol-20260917/requirement-evidence.json.gz).
 This is scoped evidence; owner/rename liveness, save staging, resource reads and
 complete F01–F07 variant reconciliation remain open.
+
+The [native and batch save qualification](document-part-save-20260917.md)
+records 394 exact save cases within 2,636 passing maintained cases, 48 built
+public workflows, and unchanged captured inputs. Native DocumentPart saving and
+all four typed save routes now use the shared publication engine with one outer
+destination and explicit capability checks. Exact bindings are in
+[requirement-evidence.json.gz](document-part-save-20260917/requirement-evidence.json.gz).
+Owner/rename liveness, resource reads and full F01–F07 reconciliation remain open.

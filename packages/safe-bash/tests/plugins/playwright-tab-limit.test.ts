@@ -43,11 +43,11 @@ test('page-created tabs respect exact capacity and permit replacement after a ta
     await current.run(['open']);
     const context = current.contexts[0]!;
     const popup = context.popup();
-    assert.equal((await current.run(['tab-list'])).trim().split('\n').length, 2);
+    assert.equal(await current.run(['tab-list']), '### Result\n- 0: (current) [](about:blank)\n- 1: [](about:blank)\n');
     assert.equal(context.releases, 0);
     await popup.close();
     context.popup();
-    assert.equal((await current.run(['tab-list'])).trim().split('\n').length, 2);
+    assert.equal(await current.run(['tab-list']), '### Result\n- 0: (current) [](about:blank)\n- 1: [](about:blank)\n');
     assert.equal(context.releases, 0);
   } finally { await current.controller.dispose(); }
 });
@@ -65,12 +65,12 @@ test('delayed popup overflow retires only its session between commands and permi
     assert.equal(victim.pages.length, 0);
     assert.equal(victim.events.listenerCount('page'), 0);
     assert.equal(current.contexts[1]!.releases, 0);
-    assert.ok((await current.run(['-s=spare', 'tab-list'])).includes('selected'));
+    assert.equal(await current.run(['-s=spare', 'tab-list']), '### Result\n- 0: (current) [](about:blank)\n');
     await assert.rejects(current.run(['-s=victim', 'tab-list']), /closed|tab limit/i);
     await current.run(['-s=victim', 'open']);
     victim.events.emit('page');
     assert.equal(current.contexts[2]!.releases, 0);
-    assert.ok((await current.run(['-s=victim', 'tab-list'])).includes('selected'));
+    assert.equal(await current.run(['-s=victim', 'tab-list']), '### Result\n- 0: (current) [](about:blank)\n');
   } finally { await current.controller.dispose(); }
 });
 

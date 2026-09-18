@@ -66,7 +66,7 @@ jobs:
           appendFileSync(process.env.GITHUB_OUTPUT, `next=${next}\n`);
           NODE
       - run: npm run build
-      - run: npx vitest run scripts/package-safe.test.ts scripts/root-optional-package.test.ts scripts/safe-bash-optional-build.test.ts scripts/safe-bash-optional-lifecycle.test.ts
+      - run: npx vitest run scripts/package-safe.test.ts scripts/root-optional-package.test.ts scripts/safe-bash-optional-build.test.ts scripts/safe-bash-optional-lifecycle.test.ts scripts/verify-safe-publication.test.ts
       - run: npm run lint:packages
       - name: Prepare scoped artifacts
         env:
@@ -125,31 +125,23 @@ jobs:
   verify-publication:
     needs: publish
     runs-on: ubuntu-latest
-    permissions: {}
+    permissions:
+      contents: read
     timeout-minutes: 45
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - name: Verify the published versions
         env:
           VERSION: ${{ needs.publish.outputs.version }}
+          SOURCE: ${{ github.sha }}
         shell: bash
         run: |
           set -euo pipefail
-          for PACKAGE in safe-fs safe-js safe-bash; do
-            VERIFIED=false
-            for ATTEMPT in {1..180}; do
-              if ACTUAL=$(curl --fail --silent --show-error --connect-timeout 10 --max-time 30 --header "Cache-Control: no-cache" "https://registry.npmjs.org/@poe-platform%2F$PACKAGE/$VERSION") &&
-                node --input-type=module -e 'import assert from "node:assert/strict"; assert.equal(JSON.parse(process.argv[1]).version, process.argv[2]);' "$ACTUAL" "$VERSION"; then
-                VERIFIED=true
-                break
-              fi
-              if [ "$ATTEMPT" -lt 180 ]; then sleep 10; fi
-            done
-            if [ "$VERIFIED" != true ]; then
-              echo "Registry verification failed for @poe-platform/$PACKAGE@$VERSION" >&2
-              exit 1
-            fi
-          done
-          printf 'Published and registry-verified safe-fs, safe-js and safe-bash (including explicit command imports) at %s\n' "$VERSION" >> "$GITHUB_STEP_SUMMARY"
+          node scripts/verify-safe-publication.mjs --version "$VERSION" --source "$SOURCE"
+          printf 'Public archives downloaded and SHA-512 verified; provenance source matched; fresh npm resolution/install and Node imports (including explicit commands) passed for safe-fs, safe-js and safe-bash at %s from %s\n' "$VERSION" "$SOURCE" >> "$GITHUB_STEP_SUMMARY"

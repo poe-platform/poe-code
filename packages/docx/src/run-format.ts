@@ -25,7 +25,7 @@ export interface RunFormatData {
 interface Target { location: Location; run: Location; start: number; end: number; whole: boolean; }
 
 function splitRun(editor: DocumentXmlEditor, run: XmlElement, start: number, end: number, properties: string): string {
-  if (run.content.some(c => c.kind !== "element") || run.children.some(c => c.namespace !== run.namespace || !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak"].includes(c.localName)
+  if (run.content.some(c => c.kind !== "element") || run.children.some(c => c.namespace !== run.namespace || !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak", "footnoteRef", "endnoteRef"].includes(c.localName)
     || c.localName !== "rPr" && c.content.some(child => child.kind !== "text")))
     throw new UnsupportedEditError("Partial formatting requires a simple text run without opaque content or field markers.");
   const props = run.children.find(c => c.localName === "rPr");
@@ -34,7 +34,7 @@ function splitRun(editor: DocumentXmlEditor, run: XmlElement, start: number, end
   let offset = 0;
   for (const child of run.children) {
     if (child === props) continue;
-    if (child.localName === "lastRenderedPageBreak") {
+    if (["lastRenderedPageBreak", "footnoteRef", "endnoteRef"].includes(child.localName)) {
       fragments[offset < start ? 0 : offset < end ? 1 : 2] += editor.sourceXml(child);
       continue;
     }
@@ -131,19 +131,28 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
     const original = props ? xml.sourceXml(props) : "";
     const properties = formattedRunProperties(xml, node, opts, children);
     if (properties === original && opts.text === undefined) continue;
-    if (!target.whole && props && children(props).some(child => child.namespace === node.namespace && child.localName === "rPrChange"))
+    const preserveMarkers = target.location.value.range !== null && children(node).some(child => child.namespace === node.namespace && ["footnoteRef", "endnoteRef"].includes(child.localName));
+    if ((!target.whole || preserveMarkers) && props && children(props).some(child => child.namespace === node.namespace && child.localName === "rPrChange"))
       throw new UnsupportedEditError("Partial formatting cannot duplicate an owned property-history identity.");
     let markup: string;
     if (opts.text !== undefined) markup = replaceRunContent(xml, node, properties, opts.text, budget);
-    else if (target.whole) {
+    else if (target.whole && !preserveMarkers) {
       markup = props ? xml.sourceXml(node, new Map([[props, properties]])) : runElementOpen(node) + properties + xml.sourceXml(node, new Map(), true) + `</${node.name}>`;
-    } else if (node.children.some(child => child.namespace !== node.namespace) || props && props.children.some(child => child.namespace !== node.namespace)) {
-      const fragments = [0, 1, 2].map(index => ({ properties: index === 1 ? properties : original, content: new Map<XmlElement, string>() }));
+    } else if (preserveMarkers || node.children.some(child => child.namespace !== node.namespace) || props && props.children.some(child => child.namespace !== node.namespace)) {
+      const fragments: { properties: string; content: Map<XmlElement, string> }[] = [];
+      const append = (child: XmlElement, content: string, selected: boolean): void => {
+        const value = selected ? properties : original;
+        let fragment = fragments.at(-1);
+        if (!fragment || fragment.properties !== value || fragment.content.has(child)) {
+          fragment = { properties: value, content: new Map() }; fragments.push(fragment);
+        }
+        fragment.content.set(child, content);
+      };
       let offset = 0;
       for (const child of children(node)) {
         if (child === props) continue;
-        if (child.localName === "lastRenderedPageBreak") {
-          fragments[offset < target.start ? 0 : offset < target.end ? 1 : 2]!.content.set(child, xml.sourceXml(child));
+        if (["lastRenderedPageBreak", "footnoteRef", "endnoteRef"].includes(child.localName)) {
+          append(child, xml.sourceXml(child), child.localName === "lastRenderedPageBreak" && offset >= target.start && offset < target.end);
           continue;
         }
         const scalars = ["t", "delText"].includes(child.localName) ? [...child.text] : [" "];
@@ -157,7 +166,7 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
             const attrs = child.attributes.filter(attribute => !(attribute.namespace === "http://www.w3.org/XML/1998/namespace" && attribute.localName === "space"));
             content = runElementOpen({ ...child, attributes: attrs }).slice(0, -1) + ' xml:space="preserve">' + xmlValue(scalars.slice(from! - offset, to! - offset).join("")) + `</${child.name}>`;
           }
-          fragments[i]!.content.set(child, content);
+          append(child, content, i === 1);
         }
         offset = next;
       }

@@ -1,3 +1,4 @@
+import { editDocumentBookmarks, type BookmarkEditRequest } from "./bookmarks.js";
 import type { PublicationContext } from "./publication.js";
 import type { DocxBatchOperation } from "./command.js";
 import { docxOperationSchemas } from "./operation-schema.js";
@@ -18,6 +19,7 @@ import type { DocxOperationArguments } from "./operation-types.js";
 
 type Action = (input: Uint8Array, item: DocxBatchOperation, context: PublicationContext & Pick<ImageInsertionContext, "binaryResolver">) => Promise<unknown>;
 export const documentBatchActions = new Map<string, Action>();
+documentBatchActions.set("bookmarks.add", (input, item, context) => editDocumentBookmarks(input, { operation: item.operation, options: item.arguments } as BookmarkEditRequest, context));
 for (const operation of ["fields.add", "fields.set", "toc.add", "toc.set", "captions.add", "captions.set"])
   documentBatchActions.set(operation, (input, item, context) => editDocumentFields(input, { operation: item.operation, options: item.arguments } as FieldEditRequest, context));
 for (const operation of ["paragraphs.add", "paragraphs.set", "runs.add", "tables.add"])

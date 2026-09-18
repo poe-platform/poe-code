@@ -335,6 +335,7 @@ export class LocationIndex {
       if (node.namespace !== this.#w) { unsupported = true; return; }
       const name = node.localName;
       if (name === "pPr" || name === "rPr" || name === "lastRenderedPageBreak") return;
+      if ((name === "footnoteRef" && entry.scope === "footnotes" || name === "endnoteRef" && entry.scope === "endnotes") && !node.children.length && !node.text.trim()) return;
       if (["bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "commentReference", "proofErr", "permStart", "permEnd"].includes(name) && !node.children.length && !node.text.trim()) return;
       if (name === "t") {
         this.#budget.charge("work", node.text.length);

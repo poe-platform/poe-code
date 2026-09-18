@@ -122,7 +122,7 @@ it("admits inherited resets of style presentation metadata and latent numeric de
     })
   ).not.toThrow();
 });
-it("advertises supported style model batches without claiming unrelated model operations", async () => {
+it("advertises supported style, picture and document-save model batches", async () => {
   const { getDocxDiscovery } = await import("./discovery.js");
   const supported = getDocxDiscovery({
     operation: "schema",
@@ -138,12 +138,12 @@ it("advertises supported style model batches without claiming unrelated model op
     options: { operation: "model.document.Document.add_picture.call" }
   })?.data;
   expect(picture).toMatchObject({ operations: [{ support: "edit" }] });
-  const unsupported = getDocxDiscovery({
+  const save = getDocxDiscovery({
     operation: "schema",
     inputs: [],
     options: { operation: "model.document.Document.save.call" }
   })?.data;
-  expect(unsupported).toMatchObject({ operations: [{ support: "reject" }] });
+  expect(save).toMatchObject({ operations: [{ id: "model.document.Document.save.call", support: "edit" }] });
 });
 it("retains nullable style names and IDs in inherited model declarations", () => {
   for (const type of [

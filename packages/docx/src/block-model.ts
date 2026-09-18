@@ -242,7 +242,7 @@ export class Run {
       if (
         r.children.some(
           (child) =>
-            !["rPr", "t", "tab", "br", "cr", "lastRenderedPageBreak"].includes(child.localName)
+            !["rPr", "t", "tab", "ptab", "br", "cr", "lastRenderedPageBreak"].includes(child.localName)
         )
       )
         throw new UnsupportedEditError("Whole run text cannot discard owned resources.");

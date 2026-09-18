@@ -160,12 +160,12 @@ export function readTextSegments(index: LocationIndex, selected: readonly Locati
         else if (type === "end") fields.pop();
         return [];
       }
-      const text = name === "t" || name === "delText" ? node.text : name === "tab" ? "\t" : name === "cr" ? "\n"
+      const text = name === "t" || name === "delText" ? node.text : name === "tab" || name === "ptab" ? "\t" : name === "cr" ? "\n"
         : name === "br" ? index.attr(node, "type") === "page" ? "\f" : index.attr(node, "type") === "column" ? "\v" : "\n"
         : name === "noBreakHyphen" ? "\u2011" : name === "softHyphen" ? "\u00ad" : undefined;
       if (text !== undefined) {
         if (!included(state.entry) || fields.includes(false) || name === "delText" && view === "final") return [];
-        const kind = name === "tab" ? "tab" : name === "br" || name === "cr" ? text === "\f" ? "page-break" : text === "\v" ? "column-break" : "line-break" : "text";
+        const kind = name === "tab" || name === "ptab" ? "tab" : name === "br" || name === "cr" ? text === "\f" ? "page-break" : text === "\v" ? "column-break" : "line-break" : "text";
         return text ? [{ state, segments: [make(text, name === "delText" ? { ...state, revision: "delete" } : state, kind)] }] : [];
       }
       const children = (index.children.get(node) ?? []).flatMap(child => visit(child, state));

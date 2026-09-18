@@ -753,3 +753,10 @@ failed before the correction. The final seven-file run passed 295 cases, and
 216 independent built public workflows passed. Independent XML assertions exclude
 duplicate active references and retain inactive definitions. These are exact
 scoped cases, not complete-family acceptance.
+
+The [positional-tab correction](text-style-family-acceptance-20260918/position-tab-requirement-evidence.json)
+adds 28 original cases for logical positional-tab text, scalar selection,
+preserving edits, insertion and explicit destructive setters. The focused run
+passed 170 cases and 48 built public SDK/Shell workflows passed. Both dialects
+retain untouched package members and unselected tab metadata. This adds scoped
+F08/F10/F12/F13 evidence; the family acceptance entries remain open.

@@ -341,7 +341,7 @@ export class LocationIndex {
         for (let i = 0; i < node.text.length; length++) i += node.text.codePointAt(i)! > 0xffff ? 2 : 1;
         return;
       }
-      if (name === "tab" || name === "cr" || (name === "br" && (!this.attr(node, "type") || this.attr(node, "type") === "textWrapping"))) { length++; return; }
+      if (name === "tab" || name === "ptab" || name === "cr" || (name === "br" && (!this.attr(node, "type") || this.attr(node, "type") === "textWrapping"))) { length++; return; }
       if (!["p", "r", "hyperlink"].includes(name)) { unsupported = true; return; }
       if (name === "hyperlink") barriers.push(length);
       for (const child of this.children.get(node) ?? []) visit(child);

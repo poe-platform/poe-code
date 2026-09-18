@@ -166,7 +166,7 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
         else if (type === "end") field.pop();
         return;
       }
-      const text = name === "t" || name === "delText" ? current.text : name === "tab" ? "\t" : name === "cr" ? "\n"
+      const text = name === "t" || name === "delText" ? current.text : name === "tab" || name === "ptab" ? "\t" : name === "cr" ? "\n"
         : name === "br" ? attr(current, "type") === "page" ? "\f" : attr(current, "type") === "column" ? "\v" : "\n"
         : name === "noBreakHyphen" ? "\u2011" : name === "softHyphen" ? "\u00ad" : undefined;
       if (text !== undefined && run) {

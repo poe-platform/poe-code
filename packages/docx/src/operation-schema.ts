@@ -113,13 +113,13 @@ function receiver(value: unknown, type?: string): boolean {
   if (Object.hasOwn(value, "resultHandle")) return closed(value, { resultHandle: "BatchHandleName", index: "?nonnegative integer", key: "?identifier" }) && !(value.index !== undefined && value.key !== undefined);
   return closed(value, { id: "identifier", type: "identifier", owner: "identifier", revision: "nonnegative integer" }) && (type === undefined || value.type === type);
 }
-export function splitDocxType(type: string): string[] {
+export function splitDocxType(type: string, separator = "|"): string[] {
   const result: string[] = [];
   let start = 0, depth = 0;
   for (let i = 0; i < type.length; i++) {
     if ("{<[(".includes(type[i]!)) depth++;
     else if ("}>])".includes(type[i]!)) depth--;
-    else if (type[i] === "|" && depth === 0) { result.push(type.slice(start, i).trim()); start = i + 1; }
+    else if (type[i] === separator && depth === 0) { result.push(type.slice(start, i).trim()); start = i + 1; }
   }
   result.push(type.slice(start).trim());
   return result;

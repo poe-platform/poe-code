@@ -13,6 +13,7 @@ import {
   type DocxOperationArguments,
   type DocxBatchArgumentMap,
   type DocxBatchItem,
+  type DocxModelHandle,
   type DocxEnumValue,
   type DocxSchemaData
 } from "./index.js";
@@ -107,7 +108,7 @@ async function cli(input: Uint8Array, words: string[], operations = batch(null))
 it("admits null in both public transport types while retaining required enum identity", () => {
   type Alignment = DocxEnumValue<"WD_PARAGRAPH_ALIGNMENT"> | null;
   expectTypeOf<DocxOperationArguments<typeof setter>["value"]>().toEqualTypeOf<Alignment>();
-  expectTypeOf<DocxBatchArgumentMap[typeof setter]["value"]>().toEqualTypeOf<Alignment>();
+  expectTypeOf<DocxBatchArgumentMap[typeof setter]["value"]>().toEqualTypeOf<Alignment | Extract<DocxModelHandle<never>, {resultHandle: string}>>();
   const reset: DocxBatchItem = {
     operation: setter,
     receiver: paragraph,
@@ -300,7 +301,8 @@ it("derives nullable closed schemas, parser input, and generated help from the o
   };
   for (const surface of ["cli", "sdk", "batch"] as const) {
     const schema = getDocxOperationSchema(setter, surface);
-    expect(schema.properties?.value).toEqual({ anyOf: [enumSchema, { type: "null" }] });
+    expect(surface === "batch" ? schema.properties?.value?.anyOf?.[0] : schema.properties?.value).toEqual({ anyOf: [enumSchema, { type: "null" }] });
+    if (surface === "batch") expect(schema.properties?.value?.anyOf?.[1]).toMatchObject({ required: ["resultHandle"], additionalProperties: false });
     expect(schema.required).toContain("value");
   }
   const parsed = parseDocxArguments(
@@ -319,7 +321,7 @@ it("derives nullable closed schemas, parser input, and generated help from the o
   expect(data.operations[0]).toMatchObject({
     id: setter,
     support: "edit",
-    input: { properties: { value: { anyOf: [enumSchema, { type: "null" }] } } }
+    input: { properties: { value: { anyOf: [{ anyOf: [enumSchema, { type: "null" }] }, { required: ["resultHandle"], additionalProperties: false }] } } }
   });
 });
 

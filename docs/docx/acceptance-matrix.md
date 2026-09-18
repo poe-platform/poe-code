@@ -1,5 +1,13 @@
 # DOCX acceptance matrix
 
+The [native StoryPart qualification](native-story-part-20260917.md) records 677
+exact behavior assertions within a 3,211-assertion maintained consumer run, with
+zero skips and 1,070 unchanged captured inputs. Sixty built model/SDK/actual
+Shell workflows pass across both dialects/kinds and five story owners. Scoped
+IDs, style rollback, image ownership, detached pictures and typed tuple results
+are qualified; discovery projections grant no behavior credit. Header/footer,
+provider and remaining native/carrier/variant dependencies keep F01–F07 open.
+
 The [internal Target fragment record](internal-target-fragment-20260917.md)
 qualifies 1,104 exact public cases and 84 built checks, zero skips, alongside
 2,407 existing consumer cases. Escaped fragment octets retain their spelling;

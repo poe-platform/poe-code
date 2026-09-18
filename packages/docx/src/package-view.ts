@@ -1,5 +1,6 @@
+import { inlineImageRun } from "./inline-image-xml.js";
 import type { ModelStore } from "./model-store.js";
-import type { Styles } from "./styles-model.js";
+import type { BaseStyle, Styles } from "./styles-model.js";
 import type { Comments } from "./review-model.js";
 import type { Settings } from "./settings-model.js";
 import { originalModelDefaults } from "./default-model-styles.js";
@@ -23,6 +24,7 @@ import { validateDocxValue } from "./operation-schema.js";
 import type { DocumentBudget } from "./budget.js";
 import { isXmlContentType, parseDocumentXml } from "./package-xml.js";
 import { Image, type ImageModelInput, type ImageModelContext } from "./image-model.js";
+import type { DocxEnumValue } from "./operation-types.js";
 import type { DocumentModelInput } from "./model-input.js";
 import { admitDocumentModel } from "./model-admission.js";
 import { modelContext, type DocumentModelContext } from "./model-context.js";
@@ -64,6 +66,7 @@ export const packageBindImage = Symbol("bind-image");
 /** Internal transaction checkpoint; preserves package and retained part identities. */
 export const packageOwnerCheckpoint = Symbol("owner-checkpoint");
 const packageLoadImage = Symbol("load-image");
+const packageStoryImage = Symbol("story-image");
 const partNames = new WeakMap<PartView, string>();
 const validateNativePartType = Symbol("validate-native-part-type");
 
@@ -241,6 +244,41 @@ export class PackageView {
     this.#images.set(part.partname.toString(), image);
     return part;
   }
+  async [packageStoryImage](owner: StoryPart, input: ImageModelInput, prepare?: (id: string, image: Image) => XmlElementView): Promise<readonly [string, Image, XmlElementView | undefined]> {
+    this.#binding.writable();
+    const metadata = this[packageMetadata](owner);
+    const { budget } = archiveSettings(this.#binding.context);
+    const namespace = parseDocumentXml(metadata.bytes, {}, budget).root.namespace;
+    const dialect = Object.values(documentDialects).find(dialect => dialect.w === namespace);
+    if (!dialect) throw new InputTypeError("Expected an admitted native story owner.");
+    const revision = this.#revision, ownerVersion = this.#binding.version();
+    const image = await Image.from_file(input, this.#binding.context as ImageModelContext);
+    if (revision !== this.#revision || ownerVersion !== this.#binding.version())
+      throw new PublicationError("conflict", "Package changed during story image admission.");
+    const restore = this[packageOwnerCheckpoint]();
+    try {
+      const bytes = image.blob, reltype = `${dialect.r}/image`, { graph } = this.current();
+      for (const candidate of this[packageImages]()) {
+        const existing = candidate.blob;
+        if (existing.length !== bytes.length || !existing.every((value, index) => value === bytes[index])) continue;
+        const retained = candidate.image;
+        const edge = graph.relationships(metadata.partname).find(edge => !edge.is_external && edge.reltype === reltype && asciiKey(edge.target_part.partname) === asciiKey(candidate.partname.toString()));
+        const id = edge?.rId ?? graph.allocateRelationshipId(metadata.partname);
+        const fragment = prepare?.(id, retained);
+        if (!edge) owner.load_rel(reltype, candidate, id);
+        return Object.freeze([id, retained, fragment]);
+      }
+      const name = graph.allocatePartName(metadata.partname.slice(0, metadata.partname.lastIndexOf("/") + 1) + "media/image", `.${image.ext}`);
+      const id = graph.allocateRelationshipId(metadata.partname);
+      const fragment = prepare?.(id, image);
+      this[packageAdmitPart](name, image.content_type, bytes, { owner, reltype, rId: id });
+      this.#images.set(name, image);
+      return Object.freeze([id, image, fragment]);
+    } catch (error) {
+      restore();
+      throw error;
+    }
+  }
   get core_properties(): CoreProperties {
     const edges = [...this.rels.values()].filter(edge => edge.reltype === "http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties");
     if (edges.length > 1 || edges[0]?.is_external) throw new InvalidValueError("Expected one owned core-properties part.");
@@ -267,7 +305,7 @@ export class PackageView {
   [packageCore](part: XmlPartView): CoreProperties {
     return new CoreProperties(part, archiveSettings(this.#binding.context).budget);
   }
-  [packageAdmitPart](name: string | PackURI, content_type: string, input: Uint8Array, relationship?: { owner: PartView; reltype: string }): PartView {
+  [packageAdmitPart](name: string | PackURI, content_type: string, input: Uint8Array, relationship?: { owner: PartView; reltype: string; rId?: string }): PartView {
     this.#binding.writable();
     if (!(input instanceof Uint8Array) || typeof content_type !== "string" || !content_type) throw new InputTypeError("Expected owned part bytes and a content type.");
     name = normalizePartName(name instanceof PackURI ? name.toString() : name);
@@ -289,7 +327,7 @@ export class PackageView {
         overrides += `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="/${xmlValue(relName)}" ContentType="${relContentType}"/>`;
       }
       const relXml = new DocumentXmlEditor(existing?.bytes ?? new TextEncoder().encode(`<Relationships xmlns="${relNamespace}"/>`), {}, undefined, settings.budget);
-      relXml.insertChildren(relXml.root, `<Relationship xmlns="${relNamespace}" Id="${graph.allocateRelationshipId(owner)}" Type="${xmlValue(relationship.reltype)}" Target="${xmlValue(relativePartTarget(owner, name))}"/>`);
+      relXml.insertChildren(relXml.root, `<Relationship xmlns="${relNamespace}" Id="${relationship.rId ?? graph.allocateRelationshipId(owner)}" Type="${xmlValue(relationship.reltype)}" Target="${xmlValue(relativePartTarget(owner, name))}"/>`);
       const member = { name: relName, bytes: relXml.serialize(), directory: false, modified: new Date("1980-01-01T00:00:00Z") };
       if (existing) members[members.indexOf(existing)] = { ...existing, bytes: member.bytes };
       else members.push(member);
@@ -582,6 +620,74 @@ export class XmlPartView extends PartView {
 }
 
 export class StoryPart extends XmlPartView {
+  static override async load(partname: string | PackURI, content_type: string, blob: Uint8Array, owner: PackageView): Promise<StoryPart> {
+    if (!(owner instanceof PackageView) || typeof content_type !== "string" || !this.nativeTypes.includes(parseMediaType(content_type)))
+      throw new InputTypeError("Expected an admitted owner and a native story content type.");
+    return owner[packageAdmitPart](partname, content_type, blob) as StoryPart;
+  }
+  get next_id(): number {
+    const { xml, budget } = this.package[packageReadXml](this);
+    let maximum = 0;
+    const pending = [xml.root];
+    while (pending.length) {
+      const node = pending.pop()!;
+      budget.charge("work", 1 + node.attributes.length + node.children.length);
+      for (const attribute of node.attributes) {
+        if (attribute.namespace || attribute.localName !== "id" || !attribute.value.length ||
+            [...attribute.value].some(char => char < "0" || char > "9")) continue;
+        const value = Number(attribute.value);
+        if (!Number.isSafeInteger(value) || value >= Number.MAX_SAFE_INTEGER)
+          throw new ResourceLimitError("The story identifier range is exhausted.");
+        maximum = Math.max(maximum, value);
+      }
+      pending.push(...node.children);
+    }
+    return maximum + 1;
+  }
+  get_style(style_id: string | null, style_type: DocxEnumValue<"WD_STYLE_TYPE">): BaseStyle {
+    return this.package[packageModel](this).withStyleDefinitions(styles => {
+      const style = styles.get_by_id(style_id, style_type);
+      if (!style) throw new MissingKeyError("The requested style type has no default definition.");
+      return style;
+    });
+  }
+  get_style_id(style_or_name: BaseStyle | string | null, style_type: DocxEnumValue<"WD_STYLE_TYPE">): string | null {
+    return this.package[packageModel](this).withStyleDefinitions(styles => styles.get_style_id(style_or_name, style_type));
+  }
+  async get_or_add_image(input: ImageModelInput): Promise<readonly [string, Image]> {
+    this.package[packageMetadata](this);
+    const [id, image] = await this.package[packageStoryImage](this, input);
+    return Object.freeze([id, image]);
+  }
+  async new_pic_inline(input: ImageModelInput, width?: number | Length | null, height?: number | Length | null): Promise<XmlElementView> {
+    const { budget, xml: ownerXml } = this.package[packageReadXml](this);
+    const dialect = Object.values(documentDialects).find(dialect => dialect.w === ownerXml.root.namespace);
+    if (!dialect) throw new InputTypeError("Expected an admitted native story owner.");
+    const result = await this.package[packageStoryImage](this, input, (id, image) => {
+      const [cx, cy] = image.scaled_dimensions(width, height), drawingId = this.next_id;
+      if (drawingId > 4294967295) throw new ResourceLimitError("The drawing identifier range is exhausted.");
+      const markup = inlineImageRun(dialect, drawingId, id, { width: cx.emu, height: cy.emu, crop: "" }).run;
+      budget.charge("retainedBytes", markup.length * 3);
+      let xml = new DocumentXmlEditor(new TextEncoder().encode(markup), {}, undefined, budget);
+      const resolve = (document: DocumentXmlEditor) => {
+        const drawing = document.root.children.find(node => node.namespace === dialect.w && node.localName === "drawing");
+        const inline = drawing?.children.find(node => node.namespace === dialect.wp && node.localName === "inline");
+        if (!inline) throw new StaleHandleError("The detached picture fragment is no longer available.");
+        return inline;
+      };
+      return bindXmlElementView({ budget,
+        read: () => { this.package[packageMetadata](this); return xml; }, resolve,
+        change: action => {
+          this.package[packageMetadata](this);
+          const candidate = new DocumentXmlEditor(xml.serialize(), {}, undefined, budget);
+          action(candidate);
+          xml = new DocumentXmlEditor(candidate.serialize(), {}, undefined, budget);
+        }
+      });
+    });
+    return result[2]!;
+  }
+
   protected static override readonly nativeTypes: readonly string[] = [
     ...Object.values(documentTypes),
     "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml",

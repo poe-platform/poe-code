@@ -2,14 +2,14 @@ import { expect, expectTypeOf, it } from "vitest";
 import { Volume } from "memfs";
 import { MemoryFileSystem, Shell } from "virtual-bash";
 import { docxCommands } from "virtual-bash/commands/docx";
-import { Document, applyStyleModelBatch, assertDocxFields, createDocxInspectionCommandEngine, docxOperationSchemas, type DocxOperationArguments, type DocxBatchArgumentMap, type DocxLength } from "./index.js";
+import { Document, applyStyleModelBatch, assertDocxFields, createDocxInspectionCommandEngine, docxOperationSchemas, type DocxOperationArguments, type DocxBatchArgumentMap, type DocxLength, type DocxModelHandle } from "./index.js";
 import { textContext, textFixture } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
 
 const operation = "model.table._Cell.width.set";
 it("declares the live cell width reset in both typed transport argument maps", () => {
   expectTypeOf<DocxOperationArguments<typeof operation>["value"]>().toEqualTypeOf<DocxLength | null>();
-  expectTypeOf<DocxBatchArgumentMap[typeof operation]["value"]>().toEqualTypeOf<DocxLength | null>();
+  expectTypeOf<DocxBatchArgumentMap[typeof operation]["value"]>().toEqualTypeOf<DocxLength | null | Extract<DocxModelHandle<never>, {resultHandle: string}>>();
   for (const fields of [docxOperationSchemas[operation].fields, docxOperationSchemas[operation].sdkFields, docxOperationSchemas[operation].batchFields]) {
     expect(() => assertDocxFields(fields!, {value: null})).not.toThrow();
     expect(() => assertDocxFields(fields!, {value: {value: 720, unit: "twip"}})).not.toThrow();

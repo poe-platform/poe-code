@@ -255,13 +255,16 @@ it("executes inherited package views through their declared batch IDs", async ()
   }
 });
 
-it("exposes the inherited styles-part loader through its identical XML-part operation", async () => {
-  const { StylePartView, XmlPartView } = await import("./index.js");
-  expect(StylePartView.load).toBe(XmlPartView.load);
+it("exposes the native styles-part loader and preserves generic XML loading", async () => {
+  const { StylePartView, StylesPart, XmlPartView, InputTypeError } = await import("./index.js");
   const input = await textFixture(paragraph("Original harbour report"));
   const xml = new TextEncoder().encode("<harbour><tide>low</tide></harbour>");
   const doc = await Document(input, textContext);
-  const loaded = await StylePartView.load(
+  await expect(StylePartView.load("/data/foreign.xml", "application/xml", xml, doc.part.package)).rejects.toBeInstanceOf(InputTypeError);
+  const nativeXml = new TextEncoder().encode('<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><!--original--></w:styles>');
+  const native = await StylePartView.load("/data/styles.xml", "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml", nativeXml, doc.part.package);
+  expect(native).toBeInstanceOf(StylesPart); expect(native.blob).toEqual(nativeXml);
+  const loaded = await XmlPartView.load(
     "/data/harbour.xml",
     "application/xml",
     xml,

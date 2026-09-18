@@ -1,3 +1,6 @@
+import type { Length } from "./formatting-values.js";
+import type { BaseStyle } from "./styles-model.js";
+import type { DocxEnumValue } from "./operation-types.js";
 import { docxOperationSchemas } from "./operation-schema.js";
 import { resolveDocumentModelContext } from "./model-transport-context.js";
 import { acquireDocumentTransportInput } from "./model-input.js";
@@ -33,7 +36,8 @@ for (const prefix of ["model.package.Package", "model.opc.package.OpcPackage"]) 
   action(`${prefix}.load_rel.call`, PackageView, (receiver, args) => receiver.load_rel(args.reltype as string, args.target as PartView | string, args.rId as string, args.isExternal as boolean | undefined));
   action(`${prefix}.next_partname.call`, PackageView, (receiver, args) => receiver.next_partname(args.template as string));
 }
-for (const [prefix, owner] of [["model.opc.part.Part", PartView], ["model.opc.part.XmlPart", XmlPartView], ["model.parts.document.DocumentPart", DocumentPartView], ["model.parts.story.StoryPart", StoryPart], ["model.parts.hdrftr.HeaderPart", HeaderPart], ["model.parts.hdrftr.FooterPart", FooterPart], ["model.parts.comments.CommentsPart", CommentsPart], ["model.parts.settings.SettingsPart", SettingsPart], ["model.parts.numbering.NumberingPart", NumberingPart], ["model.parts.styles.StylesPart", StylesPart], ["model.parts.image.ImagePart", ImagePartView], ["model.opc.parts.coreprops.CorePropertiesPart", CorePropertiesPartView]] as const) {
+const partOwners = [["model.opc.part.Part", PartView], ["model.opc.part.XmlPart", XmlPartView], ["model.parts.document.DocumentPart", DocumentPartView], ["model.parts.story.StoryPart", StoryPart], ["model.parts.hdrftr.HeaderPart", HeaderPart], ["model.parts.hdrftr.FooterPart", FooterPart], ["model.parts.comments.CommentsPart", CommentsPart], ["model.parts.settings.SettingsPart", SettingsPart], ["model.parts.numbering.NumberingPart", NumberingPart], ["model.parts.styles.StylesPart", StylesPart], ["model.parts.image.ImagePart", ImagePartView], ["model.opc.parts.coreprops.CorePropertiesPart", CorePropertiesPartView]] as const;
+for (const [prefix, owner] of partOwners) {
   for (const name of ["blob", "content_type", "partname", "package", "rels", "related_parts"] as const) action(`${prefix}.${name}.get`, owner, receiver => receiver[name]);
   action(`${prefix}.partname.set`, owner, (receiver, args) => { receiver.partname = args.value as string | PackURI; });
   action(`${prefix}.part_related_by.call`, owner, (receiver, args) => receiver.part_related_by(args.reltype as string));
@@ -44,9 +48,11 @@ for (const [prefix, owner] of [["model.opc.part.Part", PartView], ["model.opc.pa
   action(`${prefix}.before_marshal.call`, owner, receiver => receiver.before_marshal());
   action(`${prefix}.after_unmarshal.call`, owner, receiver => receiver.after_unmarshal());
 }
-for (const prefix of ["model.opc.part.XmlPart", "model.parts.document.DocumentPart", "model.parts.story.StoryPart", "model.parts.hdrftr.HeaderPart", "model.parts.hdrftr.FooterPart", "model.parts.comments.CommentsPart", "model.parts.settings.SettingsPart", "model.parts.numbering.NumberingPart", "model.parts.styles.StylesPart", "model.opc.parts.coreprops.CorePropertiesPart"]) {
-  action(`${prefix}.element.get`, XmlPartView, receiver => receiver.element);
-  action(`${prefix}.part.get`, XmlPartView, receiver => receiver.part);
+for (const [prefix, owner] of partOwners) {
+  if (owner !== XmlPartView && !(owner.prototype instanceof XmlPartView)) continue;
+  const xmlOwner = owner as typeof XmlPartView;
+  action(`${prefix}.element.get`, xmlOwner, receiver => receiver.element);
+  action(`${prefix}.part.get`, xmlOwner, receiver => receiver.part);
 }
 const prefix = "model.opc.rel.Relationships";
 for (const name of ["related_parts", "xml"] as const) action(`${prefix}.${name}.get`, Relationships, receiver => receiver[name]);
@@ -81,7 +87,7 @@ action("model.opc.parts.coreprops.CorePropertiesPart.core_properties.get", CoreP
 action("model.opc.coreprops.CoreProperties.part.get", CoreProperties, receiver => receiver.part);
 action("model.opc.coreprops.CoreProperties.element.get", CoreProperties, receiver => receiver.element);
 
-for (const [prefix, owner] of [["model.opc.part.Part", PartView], ["model.opc.part.XmlPart", XmlPartView], ["model.parts.document.DocumentPart", DocumentPartView], ["model.parts.story.StoryPart", StoryPart], ["model.parts.hdrftr.HeaderPart", HeaderPart], ["model.parts.hdrftr.FooterPart", FooterPart], ["model.parts.comments.CommentsPart", CommentsPart], ["model.parts.settings.SettingsPart", SettingsPart], ["model.parts.numbering.NumberingPart", NumberingPart], ["model.parts.styles.StylesPart", StylesPart], ["model.parts.image.ImagePart", ImagePartView], ["model.opc.parts.coreprops.CorePropertiesPart", CorePropertiesPartView]] as const) {
+for (const [prefix, owner] of partOwners) {
   packageActions.set(`${prefix}.load.call`, async (_receiver, args, context) => {
     const acquired = await acquireImageModelInput(args.blob as Uint8Array | DocxBinaryInput, context);
     return owner.load(args.partname as string, args.contentType as string, acquired.bytes, args.ownerPackage as PackageView);
@@ -108,6 +114,19 @@ for (const [id, owner] of [["model.package.Package.get_or_add_image_part.call", 
 }
 packageActions.set("model.parts.image.ImagePart.from_image.call", (_receiver, args) => ImagePartView.from_image(args.image as Image, args.partname as string, args.ownerPackage as PackageView));
 
+for (const [prefix, owner] of [["model.parts.document.DocumentPart", DocumentPartView], ["model.parts.story.StoryPart", StoryPart], ["model.parts.hdrftr.HeaderPart", HeaderPart], ["model.parts.hdrftr.FooterPart", FooterPart], ["model.parts.comments.CommentsPart", CommentsPart]] as const) {
+  action(`${prefix}.next_id.get`, owner, receiver => receiver.next_id);
+  action(`${prefix}.get_style.call`, owner, (receiver, args) => receiver.get_style(args.styleId as string | null, args.styleType as DocxEnumValue<"WD_STYLE_TYPE">));
+  action(`${prefix}.get_style_id.call`, owner, (receiver, args) => receiver.get_style_id(args.styleOrName as BaseStyle | string | null, args.styleType as DocxEnumValue<"WD_STYLE_TYPE">));
+  for (const method of ["get_or_add_image", "new_pic_inline"] as const) packageActions.set(`${prefix}.${method}.call`, async (receiver, args, context) => {
+    if (!(receiver instanceof owner)) throw new DocxUsageError("Expected an admitted native story owner.");
+    const descriptor = args.imageDescriptor as ImageModelInput | DocxBinaryInput;
+    const input = !(descriptor instanceof Uint8Array) && "path" in descriptor
+      ? { path: descriptor.path, capability: descriptor.capability }
+      : (await acquireImageModelInput(descriptor as Uint8Array | DocxBinaryInput, context)).bytes;
+    return method === "new_pic_inline" ? receiver.new_pic_inline(input, args.width as number | Length | null | undefined, args.height as number | Length | null | undefined) : receiver.get_or_add_image(input);
+  });
+}
 action("model.parts.comments.CommentsPart.comments.get", CommentsPart, receiver => receiver.comments);
 action("model.parts.settings.SettingsPart.settings.get", SettingsPart, receiver => receiver.settings);
 for (const name of ["document", "comments", "settings", "styles", "inline_shapes", "core_properties"] as const)

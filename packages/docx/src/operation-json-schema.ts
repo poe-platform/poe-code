@@ -36,10 +36,17 @@ const identifier: DocxJsonSchema = { type: "string", minLength: 1, pattern: "^[^
 const number: DocxJsonSchema = { type: "number", minimum: -Number.MAX_SAFE_INTEGER, maximum: Number.MAX_SAFE_INTEGER };
 const integer: DocxJsonSchema = { ...number, type: "integer" };
 
-function fieldsSchema(fields: Readonly<Record<string, DocxFieldSchema>>, definitions: Record<string, DocxJsonSchema>): DocxJsonSchema {
+function fieldsSchema(fields: Readonly<Record<string, DocxFieldSchema>>, definitions: Record<string, DocxJsonSchema>, handles = false): DocxJsonSchema {
   return {
     type: "object",
-    properties: Object.fromEntries(Object.entries(fields).map(([name, field]) => [name, valueSchema(field.wireType ?? field.type, definitions)])),
+    properties: Object.fromEntries(Object.entries(fields).map(([name, field]) => {
+      const value = valueSchema(field.wireType ?? field.type, definitions);
+      return [name, handles && field.type !== "unknown" ? { anyOf: [value, {
+        ...objectSchema({ resultHandle: "BatchHandleName", index: "?nonnegative integer", key: "?identifier" }, definitions),
+        not: { required: ["index", "key"] },
+        description: "Prior batch result with a compatible declared type; selected values retain argument validation."
+      }] } : value];
+    })),
     required: Object.entries(fields).filter(([, field]) => field.required).map(([name]) => name),
     additionalProperties: false
   };
@@ -176,7 +183,7 @@ function valueSchema(type: string, definitions: Record<string, DocxJsonSchema>):
   }
   if (type === "BatchV1") return objectSchema({ version: "literal 1", operations: "ReadonlyArray<OperationV1>" }, definitions);
   if (type === "OperationV1") return { oneOf: Object.entries(docxOperationSchemas).filter(([, declaration]) => declaration.batchFields !== undefined).map(([id, declaration]) => {
-    const properties: Record<string, DocxJsonSchema> = { id: { type: "string", minLength: 1, maxLength: 64, pattern: "^[A-Za-z][A-Za-z0-9_-]*$" }, operation: { const: id }, arguments: fieldsSchema(declaration.batchFields!, definitions) };
+    const properties: Record<string, DocxJsonSchema> = { id: { type: "string", minLength: 1, maxLength: 64, pattern: "^[A-Za-z][A-Za-z0-9_-]*$" }, operation: { const: id }, arguments: fieldsSchema(declaration.batchFields!, definitions, declaration.transport === "typed-batch") };
     const required = ["operation", "arguments"];
     if (declaration.receiver) { properties.receiver = receiverSchema(declaration.receiver, definitions); required.push("receiver"); }
     if (declaration.resultHandle?.allowed) properties.resultHandle = valueSchema("BatchHandleName", definitions);
@@ -200,7 +207,7 @@ export function getDocxOperationSchema(id: string, transport: "sdk" | "cli" | "b
   const definitions: Record<string, DocxJsonSchema> = {};
   if (id === "pack") definitions.PackageInventoryV1 = packageInventorySchema;
   const applicable = transport === "batch" ? fields : { ...Object.fromEntries(declaration.commonOptions.map(key => [key, docxCommonOptions[key]!])), ...fields };
-  const schema = fieldsSchema(applicable, definitions);
+  const schema = fieldsSchema(applicable, definitions, transport === "batch" && declaration.transport === "typed-batch");
   const conditions: DocxJsonSchema[] = [];
   if (id === "diff") conditions.push({ oneOf: [
     { properties: { mode: { enum: ["parts", "xml"] }, scope: { const: "package" } } },

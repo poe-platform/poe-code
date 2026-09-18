@@ -7,7 +7,7 @@ import { validateDocxOptionRules } from "./command-option-rules.js";
 import { normalizeDocxPropertyOptions } from "./command-properties.js";
 import { decodeLocation } from "./location-token.js";
 import { DocxUsageError, decodeDocxText, parseDocxJson, docxByteLength, copyDocxBytes } from "./argument-json.js";
-import { docxOperationSchemas, docxCommonOptions, assertDocxFields, validateDocxValue, type DocxOperationSchema } from "./operation-schema.js";
+import { docxOperationSchemas, docxCommonOptions, assertDocxFields, validateDocxValue, splitDocxType, type DocxOperationSchema } from "./operation-schema.js";
 
 export interface DocxArgumentSource {
   readonly argument: string;
@@ -398,11 +398,17 @@ function batchMutates(value: unknown): boolean {
   });
 }
 function handleType(receiver: Record<string, unknown>, handles: ReadonlyMap<string, string>): string {
+  if (!validateDocxValue("Receiver", receiver) || Object.keys(receiver).some(key => !["resultHandle", "index", "key"].includes(key))) usage("Invalid batch handle reference.");
   let type = handles.get(receiver.resultHandle as string);
   if (!type) usage("Unknown or forward result handle.");
   if (type.startsWith("Promise<") && type.endsWith(">")) type = type.slice(8, -1);
   if (receiver.index === undefined && receiver.key === undefined) return type;
   if (receiver.index !== undefined && receiver.key !== undefined) usage("Choose index or key lookup.");
+  if (type.startsWith("readonly [") && type.endsWith("]")) {
+    const items = splitDocxType(type.slice(10, -1), ",");
+    if (receiver.key !== undefined || typeof receiver.index !== "number" || receiver.index >= items.length) usage("Tuple handles require an in-range index.");
+    return items[receiver.index]!;
+  }
   if ((type.startsWith("ReadonlyArray<") || type.startsWith("IterableIterator<")) && type.endsWith(">")) {
     if (receiver.key !== undefined) usage("Sequences require an index.");
     return type.slice(type.indexOf("<") + 1, -1);
@@ -448,7 +454,13 @@ export function validateDocxBatch(value: unknown, budget = new DocumentBudget(),
       }
     }
     if (item.operation === "properties.set") Object.assign(arguments_, normalizeDocxPropertyOptions(arguments_, false));
-    assertDocxFields(fields, arguments_);
+    assertDocxFields(fields, arguments_, (type, value) => {
+      if (schema.transport !== "typed-batch" || type === "unknown" || !value || typeof value !== "object" || !Object.hasOwn(value, "resultHandle")) return undefined;
+      const source = handleType(value as Record<string, unknown>, handles);
+      if (validateDocxValue(type, value)) return true;
+      const targets = splitDocxType(type);
+      return splitDocxType(source).every(candidate => targets.includes(candidate));
+    });
     for (const [name, value] of Object.entries(arguments_)) if (fields[name]?.type !== "unknown") checkArgumentHandles(value, handles);
     validateSelections(item.operation, arguments_);
     if (schema.transport !== "typed-batch") {
@@ -468,7 +480,7 @@ export function validateDocxBatch(value: unknown, budget = new DocumentBudget(),
         if (receiver.key !== undefined && typeof receiver.key !== "string") usage("Invalid handle key.");
         const type = handleType(receiver, handles);
         const styleReceivers: Readonly<Record<string, readonly string[]>> = { BaseStyle: ["CharacterStyle", "ParagraphStyle", "_TableStyle", "_NumberingStyle"], CharacterStyle: ["BaseStyle", "ParagraphStyle", "_TableStyle"], ParagraphStyle: ["BaseStyle", "CharacterStyle", "_TableStyle"], _TableStyle: ["BaseStyle", "CharacterStyle", "ParagraphStyle"], _NumberingStyle: ["BaseStyle"] };
-        const packageReceivers: Readonly<Record<string, readonly string[]>> = { XmlPartView: ["XmlPart", "Part", "PartView", "StylesPart"], PartView: ["Part"], PackageView: ["Package", "OpcPackage"], RelationshipView: ["_Relationship"], DocumentPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], StoryPart: ["Part", "XmlPart", "PartView", "XmlPartView"], HeaderPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], FooterPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], CommentsPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], SettingsPart: ["Part", "XmlPart", "PartView", "XmlPartView"], NumberingPart: ["Part", "XmlPart", "PartView", "XmlPartView"], StylesPart: ["Part", "XmlPart", "PartView", "XmlPartView"], CorePropertiesPart: ["Part", "XmlPart", "PartView", "XmlPartView"], ImagePart: ["Part", "PartView"] };
+        const packageReceivers: Readonly<Record<string, readonly string[]>> = { XmlPartView: ["XmlPart", "Part", "PartView", "StylesPart", "StoryPart", "HeaderPart", "FooterPart", "CommentsPart", "SettingsPart", "NumberingPart", "DocumentPart", "CorePropertiesPart"], PartView: ["Part", "XmlPart", "XmlPartView", "StylesPart", "StoryPart", "HeaderPart", "FooterPart", "CommentsPart", "SettingsPart", "NumberingPart", "DocumentPart", "CorePropertiesPart", "ImagePart"], PackageView: ["Package", "OpcPackage"], RelationshipView: ["_Relationship"], DocumentPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], StoryPart: ["Part", "XmlPart", "PartView", "XmlPartView"], HeaderPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], FooterPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], CommentsPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], SettingsPart: ["Part", "XmlPart", "PartView", "XmlPartView"], NumberingPart: ["Part", "XmlPart", "PartView", "XmlPartView"], StylesPart: ["Part", "XmlPart", "PartView", "XmlPartView"], CorePropertiesPart: ["Part", "XmlPart", "PartView", "XmlPartView"], ImagePart: ["Part", "PartView"] };
         if (!type.split(" | ").some(candidate => candidate === schema.receiver || styleReceivers[candidate]?.includes(schema.receiver!) || packageReceivers[candidate]?.includes(schema.receiver!))) usage("Handle type does not match receiver.");
       } else if (typeof receiver.id !== "string" || !receiver.id || typeof receiver.type !== "string" || !receiver.type || typeof receiver.owner !== "string" || !receiver.owner || typeof receiver.revision !== "number" || !Number.isSafeInteger(receiver.revision) || receiver.revision < 0) usage("Invalid model receiver.");
       else if (receiver.type !== schema.receiver) usage("Receiver type does not match operation.");

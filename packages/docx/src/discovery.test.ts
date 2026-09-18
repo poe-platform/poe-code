@@ -36,12 +36,12 @@ it("advertises bounded equation fragments independently of full math models", ()
 it("publishes factory wire fields that admit only byte blobs and finite image contexts", () => {
   const prefix = "model.image.image.Image";
   const schema = getDocxOperationSchema(`${prefix}.from_blob.call`, "batch");
-  expect(schema.properties?.blob).toMatchObject({
+  expect(schema.properties?.blob?.anyOf?.[0]).toMatchObject({
     type: "object",
     properties: { kind: { const: "bytes" } }
   });
   for (const name of ["from_blob", "from_file"]) {
-    const context = getDocxOperationSchema(`${prefix}.${name}.call`, "batch").properties?.context;
+    const context = getDocxOperationSchema(`${prefix}.${name}.call`, "batch").properties?.context?.anyOf?.[0];
     expect(Object.keys(context?.properties ?? {})).toEqual(["vfs", "limits", "timestamp", "author", "fonts"]);
     expect(context?.additionalProperties).toBe(false);
   }
@@ -70,7 +70,7 @@ it("publishes factory wire fields that admit only byte blobs and finite image co
 });
 it("enforces canonical base64 pad bits in published image blob schemas", () => {
   const encoded = getDocxOperationSchema("model.image.image.Image.from_blob.call", "batch")
-    .properties?.blob?.properties?.base64;
+    .properties?.blob?.anyOf?.[0]?.properties?.base64;
   expect(encoded?.pattern).toBeTypeOf("string");
   const pattern = new RegExp(encoded!.pattern!);
   for (const value of ["", "AA==", "AQ==", "AAA=", "AAE=", "AAAA"])

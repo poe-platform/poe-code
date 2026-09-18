@@ -160,6 +160,10 @@ export class ModelStore {
       throw new InputTypeError("Expected an owned comments root.");
     return new Comments(this, this.ref(name, root));
   }
+  withStyleDefinitions<T>(resolve: (styles: Styles) => T): T {
+    if (this.boundStyles) return resolve(this.boundStyles);
+    return this.transaction(() => resolve(this.styles));
+  }
   get styles(): Styles {
     if (!this.boundStyles) {
       this.writable();

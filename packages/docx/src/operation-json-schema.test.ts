@@ -35,7 +35,8 @@ describe("machine readable operation schemas", () => {
     expect(replacement.required).toContain("find");
     expect(replacement.properties?.with).toEqual({ type: "string" });
     const bold = getDocxOperationSchema("model.text.run.Run.bold.set", "batch");
-    expect(bold.properties?.value).toEqual({ anyOf: [{ type: "boolean" }, { type: "null" }] });
+    expect(bold.properties?.value?.anyOf?.[0]).toEqual({ anyOf: [{ type: "boolean" }, { type: "null" }] });
+    expect(bold.properties?.value?.anyOf?.[1]).toMatchObject({ required: ["resultHandle"], additionalProperties: false });
     expect(() => getDocxOperationSchema("script.eval")).toThrow();
   });
   it("describes enum symbols and recursive content with closed records", () => {

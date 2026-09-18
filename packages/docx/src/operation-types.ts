@@ -1630,7 +1630,7 @@ interface MaintainedDocxOperationArgumentMap {
   "styles.links.set": Readonly<{ "linkedStyle"?: string | null | undefined; "defaultForType"?: boolean | undefined }>;
 }
 export type DocxOperationArguments<Id extends DocxOperationId> = DocxOperationArgumentMap[Id];
-export interface DocxBatchArgumentMap extends
+interface DocxLiteralBatchArgumentMap extends
   Readonly<Record<DocxLiveModelGetterId, Readonly<Record<string, never>>>>,
   Readonly<Record<DocxLiveModelComparisonId, Readonly<{ other: unknown }>>> {
   "styles.latent.list": Readonly<Record<string, never>>;
@@ -3155,6 +3155,8 @@ export interface DocxBatchArgumentMap extends
   "sections.columns.set": Readonly<{ "equalWidth"?: boolean | undefined; "gap"?: DocxLength | undefined; "columns"?: readonly ({readonly width: DocxLength; readonly gapAfter?: DocxLength})[] | undefined; "separator"?: boolean | undefined }>;
   "styles.links.set": Readonly<{ "linkedStyle"?: string | null | undefined; "defaultForType"?: boolean | undefined }>;
 }
+type BatchArgumentsWithReferences<T> = { readonly [K in keyof T]: [T[K]] extends [never] ? never : T[K] | Extract<DocxModelHandle<never>, { readonly resultHandle: string }> };
+export type DocxBatchArgumentMap = { readonly [Id in keyof DocxLiteralBatchArgumentMap]: Id extends `model.${string}` ? BatchArgumentsWithReferences<DocxLiteralBatchArgumentMap[Id]> : DocxLiteralBatchArgumentMap[Id] };
 export type DocxBatchOperationId = keyof DocxBatchArgumentMap;
 type DocxLiveModelItemMap = {
   readonly [Id in keyof DocxLiveModelReceiverMap]: Readonly<{

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { runInNewContext } from 'node:vm';
 import type { PlaywrightContext, PlaywrightPage, PlaywrightStorageState } from '../../src/playwright/adapter.js';
 import { bindPlaywrightStorageContext, readPlaywrightStorageState, replacePlaywrightStorageState, type PlaywrightStorageOriginLease } from '../../src/playwright/native-storage-replacement.js';
 
@@ -11,9 +12,13 @@ function fixture() {
   let census: PlaywrightStorageState = { cookies: [], origins: [{ origin, localStorage: [] }] };
   let readback = { origin, localStorage: [{ name: 'current', value: 'mutated' }], indexedDB: [{ name: 'current-db', version: 1, stores: [] }] };
   let preparedOrigin = origin;
+  const listeners = new Set<(page: PlaywrightPage) => void>();
+  const pages: PlaywrightPage[] = [];
   const page = { close: async () => { events.push('page.close'); } } as unknown as PlaywrightPage;
   const context = {
-    pages: () => [], newPage: async () => { events.push('page'); return page; },
+    pages: () => pages, newPage: async () => { events.push('page'); return page; },
+    on: (_event: string, listener: (page: PlaywrightPage) => void) => { listeners.add(listener); },
+    off: (_event: string, listener: (page: PlaywrightPage) => void) => { listeners.delete(listener); },
     newCDPSession: async () => ({ async send() { events.push('identity'); return { targetInfo: { targetId: 'public', browserContextId: 'owned' } }; }, async detach() { events.push('identity.detach'); } }),
     storageState: async () => { events.push('census'); return census; },
     clearCookies: async () => { events.push('cookies.clear'); }, addCookies: async () => { events.push('cookies.add'); },
@@ -34,8 +39,99 @@ function fixture() {
   const controller = new AbortController();
   const cleanups: (() => Promise<void>)[] = [];
   const options = { signal: controller.signal, maxBytes: 1048576, registerCleanup: (cleanup: () => Promise<void>) => { events.push('register'); cleanups.push(cleanup); } };
-  return { context, events, lease, prepare, controller, cleanups, options, setCensus: (value: PlaywrightStorageState) => { census = value; }, setReadback: (value: typeof readback) => { readback = value; } };
+  return { context, events, lease, prepare, controller, cleanups, options, listeners, pages, setCensus: (value: PlaywrightStorageState) => { census = value; }, setReadback: (value: typeof readback) => { readback = value; } };
 }
+
+test('bound IndexedDB census uses the owned closing reader instead of the provider collector', async () => {
+  const item = fixture();
+  const nativeCensus = item.context.storageState!;
+  item.context.storageState = async options => {
+    assert.notEqual(options?.indexedDB, true, 'native provider census leaks live-page database connections');
+    return nativeCensus();
+  };
+  const retire = await bindPlaywrightStorageContext(item.context, item.prepare, item.controller.signal);
+  try {
+    const state = await readPlaywrightStorageState(item.context, { ...item.options, indexedDB: true });
+    assert.equal(state.origins[0]!.indexedDB![0]!.name, 'current-db');
+    await replacePlaywrightStorageState(item.context, empty, item.options);
+    assert.ok(item.events.includes('cookies.clear'));
+  } finally { await retire(); }
+});
+
+test('closed historical and frame-only IndexedDB origins remain discoverable and listeners retire', async () => {
+  const item = fixture(); item.setCensus(empty);
+  const pageListeners = new Map<string, () => void>();
+  let url = 'about:blank';
+  const historical = { url: () => url, frames: () => [{ url: () => 'https://frame.example/path' }],
+    on: (event: string, listener: () => void) => { pageListeners.set(event, listener); },
+    off: (event: string) => { pageListeners.delete(event); },
+  } as unknown as PlaywrightPage;
+  const retire = await bindPlaywrightStorageContext(item.context, item.prepare, item.controller.signal);
+  for (const listener of item.listeners) listener(historical);
+  url = 'https://historical.example/path';
+  pageListeners.get('framenavigated')?.();
+  pageListeners.get('close')?.();
+  const state = await readPlaywrightStorageState(item.context, { ...item.options, indexedDB: true });
+  assert.deepEqual(state.origins.map(item => item.origin).sort(), ['https://frame.example', 'https://historical.example']);
+  assert.ok(state.origins.every(item => item.indexedDB?.[0]?.name === 'current-db'));
+  await retire();
+  assert.equal(item.listeners.size, 0);
+  assert.equal(pageListeners.size, 0);
+});
+
+test('initially supplied IndexedDB-only origins are included without live tabs', async () => {
+  const item = fixture(); item.setCensus(empty);
+  const retire = await bindPlaywrightStorageContext(item.context, item.prepare, item.controller.signal, ['https://initial.example']);
+  try {
+    const state = await readPlaywrightStorageState(item.context, { ...item.options, indexedDB: true });
+    assert.equal(state.origins[0]!.origin, 'https://initial.example');
+    assert.equal(state.origins[0]!.indexedDB![0]!.name, 'current-db');
+  } finally { await retire(); }
+});
+
+test('restoration clears IndexedDB through the verified native target before restoring records', async () => {
+  const item = fixture();
+  const send = item.lease.cdp.send;
+  let cleared = false;
+  item.lease.cdp.send = async (method, params) => {
+    if (method === 'Storage.clearDataForOrigin') {
+      assert.deepEqual(params, { origin, storageTypes: 'indexeddb' });
+      cleared = true;
+    }
+    if (method === 'Runtime.evaluate' && String(params?.expression).includes('.deleteDatabase(') && !cleared) {
+      return { exceptionDetails: { exception: { description: 'Database deletion blocked by an existing native census or live application connection' } } };
+    }
+    return send(method, params);
+  };
+  const retire = await bindPlaywrightStorageContext(item.context, item.prepare, item.controller.signal);
+  try {
+    await replacePlaywrightStorageState(item.context, empty, item.options);
+    assert.equal(cleared, true);
+    assert.ok(item.events.lastIndexOf('Target.getTargetInfo') < item.events.indexOf('Storage.clearDataForOrigin'));
+    assert.ok(item.events.indexOf('Storage.clearDataForOrigin') < item.events.lastIndexOf('Runtime.evaluate'));
+  } finally { await retire(); }
+});
+
+test('a database request blocked by a later competing connection rejects before a later request error', async () => {
+  const item = fixture();
+  const send = item.lease.cdp.send;
+  item.lease.cdp.send = async (method, params) => {
+    if (method !== 'Runtime.evaluate' || !String(params?.expression).includes('.deleteDatabase(')) return send(method, params);
+    const request: { onblocked?: () => void; onerror?: () => void; error?: Error } = {};
+    try {
+      const value = await runInNewContext(String(params?.expression), { location: { origin }, navigator: {},
+        indexedDB: { databases: async () => [{ name: 'locked' }], deleteDatabase() {
+          queueMicrotask(() => { request.onblocked?.(); queueMicrotask(() => { request.error = new Error('later fallback request error'); request.onerror?.(); }); });
+          return request;
+        } }, localStorage: { clear() {} },
+      });
+      return { result: { value } };
+    } catch (error) { return { exceptionDetails: { exception: { description: String(error) } } }; }
+  };
+  const retire = await bindPlaywrightStorageContext(item.context, item.prepare, item.controller.signal);
+  try { await assert.rejects(replacePlaywrightStorageState(item.context, empty, item.options), /blocked.*open connection/i); }
+  finally { await retire(); }
+});
 
 test('native identity is captured before exposure; replacement enumerates before destructive work and joins cleanup', async () => {
   const item = fixture();
@@ -65,6 +161,7 @@ test('a foreign native target is rejected and detached/released without evaluati
   await bindPlaywrightStorageContext(item.context, async () => ({ ...item.lease, targetId: 'foreign' }), item.controller.signal);
   await assert.rejects(replacePlaywrightStorageState(item.context, empty, item.options), /identity/);
   assert.ok(!item.events.includes('Runtime.evaluate'));
+  assert.ok(!item.events.includes('Storage.clearDataForOrigin'));
   assert.deepEqual(item.events.slice(-2), ['detach', 'release']);
 });
 

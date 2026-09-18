@@ -17,6 +17,14 @@ destruction or session detach confirmations release that identity's capacity.
 Bounded recent retirement tombstones suppress late messages; active private
 identities never age out or get evicted to admit another target/session.
 
+Bound storage contexts enumerate IndexedDB through the owned reader, which
+closes its database connections. They retain visited frame origins after tabs
+close and seed origins from initial storage state. Public
+`readPlaywrightStorageState` uses this route with `PlaywrightStorageOperationOptions`;
+restoration clears IndexedDB through the verified same-context native target,
+including connections held by provider census or application code. Native
+blocked database requests fail explicitly without reloading live tabs.
+
 ## Native browser adapter
 
 `createPlaywrightAdapter` accepts native browser capabilities. It forwards

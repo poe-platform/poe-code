@@ -68,7 +68,11 @@ export async function qualify(browser, origins, prepareStorageOrigin) {
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
       return (await fetch('/probe')).text();
     });
-    const censusBefore = await context.storageState({ indexedDB: true });
+    const censusOptions = { signal: new AbortController().signal, maxBytes: 1048576, registerCleanup() {} };
+    const censusBefore = await readPlaywrightStorageState(context, { ...censusOptions, indexedDB: true });
+    // A direct provider census may retain a live database connection. Native
+    // replacement must still clear it without changing the application's tabs.
+    await context.storageState({ indexedDB: true });
     const censusBeforeWitness = await first.evaluate(() => globalThis.helperNavigations);
     const pages = context.pages();
     await context.addInitScript(() => { globalThis.localStorage.setItem('init-witness', 'unexpected'); });
@@ -77,7 +81,7 @@ export async function qualify(browser, origins, prepareStorageOrigin) {
     const loadWitness = await first.evaluate(() => globalThis.helperNavigations);
     const after = client.inspectSessions()[0];
     const currentPages = after.context.pages();
-    const cleared = { loaded, censusBefore, censusAfter: await after.context.storageState({ indexedDB: true }),
+    const cleared = { loaded, censusBefore, censusAfter: await readPlaywrightStorageState(after.context, { ...censusOptions, indexedDB: true }),
       serviceWorkers: { before: serviceWorkerBefore, censusBeforeWitness, loadWitness, ...await first.evaluate(async () => ({ after: await (await fetch('/probe')).text(), registrations: (await navigator.serviceWorker.getRegistrations()).length, helperNavigations: globalThis.helperNavigations })) },
       sameContext: context === after.context, sameSelectedPage: first === after.selectedPage,
       samePages: currentPages.length === pages.length && currentPages.every((page, index) => page === pages[index]),

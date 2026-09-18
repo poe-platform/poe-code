@@ -28,6 +28,7 @@ interface Binding {
   readonly controller: AbortController;
   readonly operations: Set<Promise<void>>;
   readonly origins: Set<string>;
+  refreshOrigins(): void;
 }
 
 const bindings = new WeakMap<PlaywrightContext, Binding>();
@@ -39,7 +40,7 @@ async function finish(actions: (() => Promise<unknown>)[]): Promise<void> {
   if (errors.length > 1) throw new AggregateError(errors, 'Native storage cleanup failed');
 }
 
-export async function bindPlaywrightStorageContext(context: PlaywrightContext, prepare: PlaywrightStorageOriginPreparer, signal: AbortSignal): Promise<() => Promise<void>> {
+export async function bindPlaywrightStorageContext(context: PlaywrightContext, prepare: PlaywrightStorageOriginPreparer, signal: AbortSignal, initialOrigins: readonly string[] = []): Promise<() => Promise<void>> {
   signal.throwIfAborted();
   if (!context.newCDPSession) throw new Error('Native storage context identity requires CDP');
   if (bindings.has(context)) throw new Error('Native storage context is already bound');
@@ -56,11 +57,35 @@ export async function bindPlaywrightStorageContext(context: PlaywrightContext, p
     browserContextId = identity.browserContextId;
   } finally { await finish([async () => cdp?.detach(), async () => { if (!existing) await page.close(); }]); }
   signal.throwIfAborted();
-  const binding: Binding = { browserContextId, prepare, controller: new AbortController(), operations: new Set(), origins: new Set() };
+  const observed = new Map<import('./adapter.js').PlaywrightPage, () => void>();
+  const remember = (value: string | undefined) => {
+    if (!value) return;
+    try { const origin = new URL(value).origin; if (origin !== 'null') binding.origins.add(origin); } catch {}
+  };
+  const record = (page: import('./adapter.js').PlaywrightPage) => {
+    remember(page.url?.());
+    for (const frame of page.frames?.() ?? []) remember(frame.url?.());
+  };
+  const onPage = (page: import('./adapter.js').PlaywrightPage) => {
+    record(page);
+    if (observed.has(page)) return;
+    const navigated = () => record(page);
+    const cleanup = () => { page.off?.('framenavigated', navigated); page.off?.('close', closed); observed.delete(page); };
+    const closed = () => { record(page); cleanup(); };
+    observed.set(page, cleanup);
+    page.on?.('framenavigated', navigated);
+    page.on?.('close', closed);
+  };
+  const binding: Binding = { browserContextId, prepare, controller: new AbortController(), operations: new Set(), origins: new Set(initialOrigins),
+    refreshOrigins() { for (const page of context.pages()) onPage(page); } };
   bindings.set(context, binding);
+  context.on('page', onPage);
+  binding.refreshOrigins();
   let retirement: Promise<void> | undefined;
   return () => retirement ??= (async () => {
     bindings.delete(context);
+    context.off('page', onPage);
+    for (const cleanup of observed.values()) cleanup();
     binding.controller.abort(new Error('Native storage context retired'));
     await Promise.allSettled(binding.operations);
     binding.origins.clear();
@@ -71,7 +96,11 @@ async function restoreOrigin(origin: PlaywrightStorageState['origins'][number]):
   const { location, navigator, indexedDB, localStorage } = globalThis as unknown as NativeStorageGlobals;
   const helpers = {
     request<Result>(request: NativeStorageRequest<Result>): Promise<Result> {
-      return new Promise((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
+      return new Promise((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+        request.onblocked = () => reject(new Error('Native IndexedDB request blocked by an open connection'));
+      });
     },
     decode(value: unknown, refs = new Map<number, unknown>()): unknown {
       if (value === null || typeof value !== 'object') return value;
@@ -141,7 +170,7 @@ export interface PlaywrightStorageOperationOptions {
   registerCleanup(cleanup: () => Promise<void>): void;
 }
 
-async function inOrigin(binding: Binding, context: PlaywrightContext, origin: string, signal: AbortSignal, expression: string): Promise<unknown> {
+async function inOrigin(binding: Binding, context: PlaywrightContext, origin: string, signal: AbortSignal, expression: string, clearIndexedDB = false): Promise<unknown> {
   signal.throwIfAborted();
   const lease = await binding.prepare({ context, browserContextId: binding.browserContextId, origin, signal });
   let retirement: Promise<void> | undefined;
@@ -158,11 +187,17 @@ async function inOrigin(binding: Binding, context: PlaywrightContext, origin: st
       const { frameTree } = await lease.cdp.send('Page.getFrameTree');
       const frame = (frameTree as { frame?: { id?: unknown; url?: unknown } } | undefined)?.frame;
       if (typeof frame?.id !== 'string' || typeof frame.url !== 'string' || new URL(frame.url).origin !== origin) throw new Error('Native storage frame origin mismatch');
+      signal.throwIfAborted();
+      if (clearIndexedDB) await lease.cdp.send('Storage.clearDataForOrigin', { origin, storageTypes: 'indexeddb' });
       const { executionContextId } = await lease.cdp.send('Page.createIsolatedWorld', { frameId: frame.id, worldName: 'safe-bash-native-storage' });
       signal.throwIfAborted();
       const result = await lease.cdp.send('Runtime.evaluate', { expression, contextId: executionContextId, returnByValue: true, awaitPromise: true });
       signal.throwIfAborted();
-      if (result.exceptionDetails) throw new Error('Native storage origin operation failed');
+      if (result.exceptionDetails) {
+        const exception = result.exceptionDetails as { exception?: { description?: unknown }; text?: unknown };
+        const description = exception.exception?.description ?? exception.text;
+        throw new Error('Native storage origin operation failed' + (typeof description === 'string' ? ': ' + description.slice(0, 1024) : ''));
+      }
       return (result.result as { value?: unknown } | undefined)?.value;
     } catch (error) { signal.throwIfAborted(); throw error; }
   })()]);
@@ -177,12 +212,13 @@ async function inOrigin(binding: Binding, context: PlaywrightContext, origin: st
 async function storageOperation<Result>(binding: Binding, options: PlaywrightStorageOperationOptions, action: (signal: AbortSignal) => Promise<Result>): Promise<Result> {
   const controller = new AbortController();
   const signal = AbortSignal.any([options.signal, controller.signal, binding.controller.signal]);
-  let operation: Promise<Result> | undefined;
-  options.registerCleanup(async () => { controller.abort(new Error('Native storage operation retired')); await operation?.catch(() => {}); });
-  operation = Promise.resolve().then(async () => {
+  const owned: { operation?: Promise<Result> } = {};
+  options.registerCleanup(async () => { controller.abort(new Error('Native storage operation retired')); await owned.operation?.catch(() => {}); });
+  const operation = Promise.resolve().then(async () => {
     signal.throwIfAborted();
     return action(signal);
   });
+  owned.operation = operation;
   const tracked = operation.then(() => {}, () => {});
   binding.operations.add(tracked);
   try { return await operation; } finally { binding.operations.delete(tracked); }
@@ -190,16 +226,22 @@ async function storageOperation<Result>(binding: Binding, options: PlaywrightSto
 
 async function censusState(context: PlaywrightContext, binding: Binding, options: PlaywrightStorageOperationOptions, indexedDB: boolean, signal: AbortSignal): Promise<PlaywrightStorageState> {
   if (!context.storageState) throw new Error('Native storage census is required');
-  const census = parsePlaywrightStorageState(await context.storageState(indexedDB ? { indexedDB: true } : undefined), { maxBytes: options.maxBytes });
-  for (const origin of binding.origins) {
-    if (census.origins.some(item => item.origin === origin)) continue;
+  // Provider IndexedDB collectors may leave live-page connections open. Read
+  // databases only in owned targets, whose collector closes every connection.
+  const census = parsePlaywrightStorageState(await context.storageState(), { maxBytes: options.maxBytes });
+  binding.refreshOrigins();
+  const origins = new Set([...census.origins.map(item => item.origin), ...binding.origins]);
+  for (const origin of origins) {
+    const existing = census.origins.findIndex(item => item.origin === origin);
+    if (!indexedDB && existing !== -1) continue;
     signal.throwIfAborted();
-    const remainingBytes = options.maxBytes - new TextEncoder().encode(JSON.stringify(census)).length;
+    const remainingBytes = options.maxBytes - new TextEncoder().encode(JSON.stringify({ ...census, origins: census.origins.filter(item => item.origin !== origin) })).length;
     if (remainingBytes <= 0) throw new PlaywrightResourceLimitError('Browser storage state byte limit exceeded');
     const result = await inOrigin(binding, context, origin, signal, `(${collectStorageOrigin.toString()})(${JSON.stringify({ origin, indexedDB, maxBytes: remainingBytes })})`);
     if (result === false) throw new PlaywrightResourceLimitError('Browser storage state byte limit exceeded');
     if (typeof result !== 'string') throw new Error('Invalid native storage readback');
     const current = parsePlaywrightStorageState({ cookies: [], origins: [JSON.parse(result)] }, { maxBytes: options.maxBytes }).origins[0]!;
+    if (existing !== -1) census.origins.splice(existing, 1);
     if (current.localStorage.length || current.indexedDB?.length) census.origins.push(current);
     parsePlaywrightStorageState(census, { maxBytes: options.maxBytes });
   }
@@ -231,7 +273,7 @@ export async function replacePlaywrightStorageState(context: PlaywrightContext, 
     await context.addCookies(state.cookies);
     for (const [origin, replacement] of origins) {
       signal.throwIfAborted();
-      const result = await inOrigin(binding, context, origin, signal, `(${restoreOrigin.toString()})(${JSON.stringify(replacement)})`);
+      const result = await inOrigin(binding, context, origin, signal, `(${restoreOrigin.toString()})(${JSON.stringify(replacement)})`, true);
       if (result !== true) throw new Error('Native storage origin restoration failed');
     }
     signal.throwIfAborted();

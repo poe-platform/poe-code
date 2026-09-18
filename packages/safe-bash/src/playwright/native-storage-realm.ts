@@ -6,6 +6,7 @@ export interface NativeStorageRequest<Result> {
   onsuccess: (() => void) | null;
   onerror: (() => void) | null;
   onupgradeneeded?: (() => void) | null;
+  onblocked?: (() => void) | null;
 }
 
 interface NativeStorageIndex { name: string; keyPath: string | string[]; multiEntry: boolean; unique: boolean }
@@ -49,7 +50,11 @@ export async function collectStorageOrigin(input: { origin: string; indexedDB: b
   };
   const helpers = {
     request<Result>(request: NativeStorageRequest<Result>): Promise<Result> {
-      return new Promise((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
+      return new Promise((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+        request.onblocked = () => reject(new Error('Native IndexedDB request blocked by an open connection'));
+      });
     },
     encode(value: unknown, refs = new Map<object, number>(), depth = 0): unknown {
       if (++nodes > input.maxBytes || depth > 100) throw limit;

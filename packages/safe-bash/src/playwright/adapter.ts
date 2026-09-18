@@ -479,7 +479,7 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
         if (closed) throw new Error("Playwright browser is closed");
         context = await resource.browser.newContext(contextOptions);
         context.on("close", onContextClosed);
-        if (!context.setStorageState && resource.prepareStorageOrigin) retireStorage = await bindPlaywrightStorageContext(context, resource.prepareStorageOrigin, options.signal);
+        if (!context.setStorageState && resource.prepareStorageOrigin) retireStorage = await bindPlaywrightStorageContext(context, resource.prepareStorageOrigin, options.signal, contextOptions.storageState?.origins.map(item => item.origin));
         options.signal.throwIfAborted();
         if (!resource.browser.isConnected()) onDisconnected();
         if (closed) throw new Error("Playwright browser closed during context acquisition");

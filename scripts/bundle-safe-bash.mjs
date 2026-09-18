@@ -89,7 +89,7 @@ export function resolveBrowserShellBuild(rootDir) {
     metafile: true,
     write: false,
     external: ["poe-code/safe-fs/core"],
-    alias: { "node:stream/web": platform, "@poe-platform/op": path.join(rootDir, "packages/op/src/index.ts") },
+    alias: { "node:stream/web": platform, "@poe-platform/op": path.join(rootDir, "packages/op/src/index.ts"), "@poe-code/safe-fs": "poe-code/safe-fs" },
     inject: [platform],
     plugins: [{
       name: "portable-shell-capabilities",

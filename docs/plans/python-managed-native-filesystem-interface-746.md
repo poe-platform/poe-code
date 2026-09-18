@@ -122,10 +122,10 @@ WorkerStub disposal method, provided the observable cleanup requirements hold.
 
 ## TDD and acceptance sequence
 
-1. Send the specific capability/lifecycle request to the workerd maintainers,
+1. Follow the filed [workerd capability/lifecycle request #7432](https://github.com/cloudflare/workerd/issues/7432),
    linking #746 and the maintained public JSPI test as an independent reference.
    Obtain either the documented existing hook or an agreed upstream change.
-   This plan is the request draft; it has not been filed upstream.
+   Filing the request does not qualify the managed executor or its native mount.
 2. In the runtime change's own test suite, first reproduce the ordinary native
    stat/import failure against a delayed authoritative provider. Build the driver
    at the actual pre-instantiation boundary, not through Emscripten callbacks.

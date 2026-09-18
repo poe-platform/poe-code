@@ -22,7 +22,12 @@ claim that these transports consume the HTTP callback's transfer budget.
 
 Cloudflare Playwright 1.3.6 exposes lifetime-latched
 `acquire(binding, { guardrails: { allowedDomains: [] } })`. The empty allowlist is
-the documented deny-all **HTTP/HTTPS** profile. Actual Cloudflare tests also
+the documented deny-all **HTTP/HTTPS** profile in
+[Cloudflare Browser Run guardrails](https://developers.cloudflare.com/browser-run/features/guardrails/).
+Omitting both allowlist properties leaves HTTP/HTTPS unrestricted. Do not add
+`allowedDomainSets` or nonempty `allowedDomains` to this profile: they permit
+direct traffic outside host admission and transfer accounting.
+Actual Cloudflare tests also
 verified `ws://` and `wss://` denial against an independently counted destination:
 unguarded positive controls connected; guarded sessions made no connection both
 with a healthy policy and after its socket closed while retirement was delayed
@@ -33,12 +38,35 @@ Actual Cloudflare tests obtained WebRTC server-reflexive ICE candidates from
 public STUN servers both with the prior production adapter and with this helper.
 That pre-existing non-HTTP limitation is tracked in
 [poe-code issue 758](https://github.com/poe-platform/poe-code/issues/758).
-Additional provider-enforced restrictions are necessary for an all-protocol
-boundary. This helper does not supply them. Do not substitute a hostname allowlist: even
-allowed direct traffic would bypass host transfer accounting. Verify the provider's
-denial on your deployed runtime, including after both clients disconnect. The
-native fixture uses a denying HTTP proxy and a WebSocket positive control; it
-does not establish UDP enforcement.
+The supported integration has no identified provider-enforced WebRTC/UDP
+restriction: the documented guardrails cover HTTP/HTTPS, and the
+[1.3.6 acquisition options](https://github.com/cloudflare/playwright/blob/v1.3.6/packages/playwright-cloudflare/index.d.ts)
+expose no immutable WebRTC/UDP disable setting. Deleting JavaScript APIs such as
+`RTCPeerConnection`, injecting page scripts, or requesting retirement on CDP loss
+does not establish an independent boundary for a still-live browser.
+
+Hosts requiring **all-protocol URL admission or transfer accounting must reject
+this Cloudflare integration before acquiring or exposing a session**. Do not set
+`directNetwork: 'blocked-by-host'` to request a stronger mode: it asserts a
+boundary the host already supplies, which these Cloudflare guardrails do not
+establish. Supporting that requirement needs a separately enforced and qualified
+provider/network boundary; neither the HTTP redirect fix nor this helper supplies
+one. A host that explicitly accepts HTTP-only admission/accounting can use the
+example below with the non-HTTP limitation retained.
+
+Verify the provider's denial on your deployed runtime, including after both
+clients disconnect. WebSocket denial above is tested provider behavior, not an
+extension of Cloudflare's documented HTTP/HTTPS guarantee. The native fixture
+uses a denying HTTP proxy and a WebSocket positive control; it does not establish
+UDP enforcement. Any future non-HTTP enforcement qualification must independently
+observe UDP/STUN/TURN destinations, include a positive reachability control, and
+test policy connection loss while the browser remains alive. HTTP counters,
+absence of ICE candidates, and mocked CDP tests alone are not that evidence.
+
+Network scope never replaces session authorization: the trusted host must bind
+each acquisition/reuse to its user/agent owner independently of guest-selected
+CLI session names. The HTTP-only choice does not permit cross-owner reuse or
+retirement of another owner's browser; standard CLI syntax remains unchanged.
 
 ```ts
 import { acquire, connect } from '@cloudflare/playwright';

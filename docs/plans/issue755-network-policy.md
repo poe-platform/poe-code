@@ -9,6 +9,13 @@
 - Acquire an exclusively owned browser with independent lifetime denial of direct
   HTTP(S)/WebSocket egress. Keep the stronger all-protocol host declaration
   available, without making it a prerequisite for an HTTP-only policy.
+  The declaration asserts an existing independent host boundary; it cannot
+  configure or verify one. The supported Cloudflare integration has no identified
+  provider-enforced WebRTC/UDP restriction. Its guardrails document HTTP/HTTPS
+  only; hosts requiring all-protocol admission/accounting must refuse that
+  integration before session acquisition, not assert the stronger declaration.
+  Do not treat deleting page JavaScript APIs as a provider boundary. See the
+  [supported scope and host admission contract](../../packages/safe-bash/src/contracts/playwright-network-policy.md).
   Install browser-level flattened CDP auto-attachment before exposing
   pages, arm descendant pages/frames before resume, and keep unsupported workers
   paused. Never combine it with Playwright route interception.
@@ -42,10 +49,16 @@
    native fulfilled redirects, and zero additional hits after policy/both clients
    disconnect. Include actual ws/wss positive controls and denial with retirement
    deliberately held after policy-socket loss. HTTP/WS checks do not establish
-   WebRTC/UDP enforcement; the existing provider limitation is tracked in #758.
+   WebRTC/UDP enforcement; #758 documents that unsupported stronger guarantee.
+   A future enforcement fix requires independent UDP/STUN/TURN destination
+   observations with a positive reachability control, including policy connection
+   loss while the browser remains alive. Do not count that future qualification
+   as passed by this HTTP redirect matrix or disclose observed addresses/secrets.
 5. Verify the actual host integration uses bounded manual Worker fetch, standard
    CLI commands, precise host diagnostics and owned session retirement. Exercise
    ordinary redirecting sites; anti-bot responses remain site behavior.
+   Independently enforce user/agent ownership on acquisition and reuse; network
+   admission and guest-selected CLI session names are not ownership authority.
 6. Commit only owned source/tests/docs. Fetch and rebase, push directly to main,
    verify remote ancestry, then close the issue only when the complete fix is
    qualified. Monitor GitHub publication and verify exact registry source and

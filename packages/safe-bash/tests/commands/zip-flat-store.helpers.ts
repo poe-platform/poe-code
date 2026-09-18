@@ -1,4 +1,4 @@
-import { FsError, normalizePath, type ByteSource, type ConditionalFilePublicationOptions, type FileStat, type FileSystem, type FsOptions } from "poe-code/safe-fs/core";
+import { FsError, normalizePath, type ByteSource, type ConditionalFilePublicationOptions, type FileStat, type FileSystem, type FsOptions } from "@poe-code/safe-fs/core";
 
 /** Bounded host model: implicit directories and immutable blobs, with no inodes. */
 export function flatStore() {

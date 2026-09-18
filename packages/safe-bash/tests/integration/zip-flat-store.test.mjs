@@ -13,7 +13,7 @@ for (const runtime of ['node', 'workerd']) test(`#731 public ZIP creation and up
   const { build } = require('esbuild');
   const { Miniflare } = require('miniflare');
   const alias = {};
-  for (const [name, subpath, sourceName] of [['safe-bash', '.', '@poe-platform/safe-bash'], ['safe-fs', './core', 'poe-code/safe-fs/core']]) {
+  for (const [name, subpath, sourceName] of [['safe-bash', '.', '@poe-platform/safe-bash'], ['safe-fs', './core', '@poe-code/safe-fs/core']]) {
     const directory = resolve(consumerRoot, 'node_modules', '@poe-platform', name);
     const manifest = JSON.parse(readFileSync(resolve(directory, 'package.json'), 'utf8'));
     const entry = manifest.exports[subpath];

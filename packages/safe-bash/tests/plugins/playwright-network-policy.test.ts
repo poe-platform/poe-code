@@ -26,7 +26,7 @@ test('policy arms every target before resume and never continues a browser reque
     socket, directNetwork: 'blocked-by-host', retire: async () => { retired++; },
     fetch: async request => { requests.push(request); return { status: 302, headers: [{ name: 'location', value: '/next' }], body: new Uint8Array() }; },
   });
-  socket.receive({ method: 'Target.attachedToTarget', params: { sessionId: 'page-session', waitingForDebugger: true, targetInfo: { targetId: 'page', type: 'page', url: '' } } });
+  socket.receive({ method: 'Target.attachedToTarget', params: { sessionId: 'page-session', waitingForDebugger: true, targetInfo: { targetId: 'page', browserContextId: 'context-a', type: 'page', url: '' } } });
   await tick();
   const methods = socket.sent.filter(m => m.sessionId === 'page-session').map(m => m.method);
   assert.ok(methods.indexOf('Fetch.enable') < methods.indexOf('Runtime.runIfWaitingForDebugger'));
@@ -36,6 +36,7 @@ test('policy arms every target before resume and never continues a browser reque
     await tick();
   }
   assert.equal(requests.length, 2);
+  assert.equal(requests[0].browserContextId, 'context-a');
   assert.equal(socket.sent.filter(m => m.method === 'Fetch.fulfillRequest').length, 2);
   assert.equal(socket.sent.some(m => m.method === 'Fetch.continueRequest'), false);
   await policy.dispose();

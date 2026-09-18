@@ -51,6 +51,66 @@ function browserFixture() {
   return { page, target, calls, browserSession };
 }
 
+test('session configuration is forwarded as an isolated readonly copy', async () => {
+  const browser = browserFixture();
+  const configuration = { outputDir: '/reports', console: { level: 'warning' as const }, timeouts: { navigation: 54321 } };
+  const setup = fixture(async request => {
+    assert.deepEqual(request.browserSession!.configuration, configuration);
+    assert.notEqual(request.browserSession!.configuration, configuration);
+    assert.notEqual(request.browserSession!.configuration!.console, configuration.console);
+    assert.equal(Object.isFrozen(request.browserSession!.configuration), true);
+    assert.equal(Object.isFrozen(request.browserSession!.configuration!.console), true);
+    assert.equal(request.limits!.navigationTimeoutMs, 54321);
+  });
+  await executePlaywrightAbility(setup.ability, setup.parsed, setup.invocation, { ...setup.context, navigationTimeoutMs: 54321, browserSession: { ...browser.browserSession, configuration } });
+});
+
+test('native code generation forwards owned action inputs and bounds provider output', async () => {
+  const browser = browserFixture();
+  let retained: NonNullable<PlaywrightAbilityRequest['browserSession']>['generateActionCode'];
+  const action = { name: 'hover' as const, selector: '#save' };
+  let oversized = false;
+  const setup = fixture(async request => {
+    retained = request.browserSession!.generateActionCode;
+    assert.equal(retained!({ language: 'python', action }), 'page.hover()');
+    oversized = true;
+    assert.throws(() => retained!({ language: 'python', action }), /byte limit/);
+  });
+  await executePlaywrightAbility(setup.ability, setup.parsed, setup.invocation, { ...setup.context, browserSession: {
+    ...browser.browserSession, generateActionCode: value => {
+      assert.deepEqual(value, { language: 'python', action });
+      assert.notEqual(value.action, action);
+      return oversized ? 'x'.repeat(100) : 'page.hover()';
+    },
+  } });
+  assert.throws(() => retained!({ language: 'python', action }), /finished/);
+});
+
+test('artifact capture forwards invocation cancellation and clamps the provider byte allowance', async () => {
+  const browser = browserFixture();
+  const requestedAbort = new AbortController();
+  const bytes = new Uint8Array([1, 2]);
+  let captureSignal: AbortSignal | undefined;
+  const setup = fixture(async request => {
+    assert.equal(typeof request.browserSession!.captureArtifact, 'function');
+    assert.deepEqual(await request.browserSession!.captureArtifact!(async path => {
+      assert.equal(path, '/private/artifact.zip');
+    }, { signal: requestedAbort.signal, maxBytes: 999, extension: 'zip' }), bytes);
+  });
+  await executePlaywrightAbility(setup.ability, setup.parsed, setup.invocation, {
+    ...setup.context,
+    browserSession: { ...browser.browserSession, async captureArtifact(produce, options) {
+      assert.equal(options.maxBytes, 16);
+      assert.equal(options.extension, 'zip');
+      captureSignal = options.signal;
+      await produce('/private/artifact.zip');
+      return bytes;
+    } },
+  });
+  setup.abort.abort();
+  assert.equal(captureSignal!.aborted, true);
+});
+
 for (const operation of ['write', 'readFile', 'writeArtifact'] as const) {
   test(`fire-and-forget ${operation} drains before invocation cleanup`, async () => {
     const started = deferred<void>();

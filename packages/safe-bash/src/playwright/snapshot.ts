@@ -1,14 +1,17 @@
-import type { PlaywrightPage, PlaywrightElementHandle, PlaywrightSnapshotHandle } from './adapter.js';
+import type { PlaywrightPage, PlaywrightElementHandle, PlaywrightSnapshotHandle, PlaywrightSnapshotJSONCapture } from './adapter.js';
 import { createFrameSnapshot } from './frame-snapshot.js';
+import { captureNativePlaywrightSnapshot } from './native-snapshot.js';
+import { captureNativePlaywrightJSON } from './native-json-snapshot.js';
 
 export interface SnapshotLimits { readonly maxSnapshotBytes: number; readonly maxSnapshotRefs: number }
 
 interface SnapshotResource { dispose(): Promise<void> }
-interface SnapshotReference {
+type SnapshotReference = {
+  readonly kind: 'capsule';
   readonly capsule: PlaywrightSnapshotHandle;
   readonly slot: number;
   native?: PlaywrightElementHandle;
-}
+} | { readonly kind: 'native'; readonly page: PlaywrightPage; readonly ref: string; native?: PlaywrightElementHandle };
 
 export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => string) {
   for (const value of [limits?.maxSnapshotBytes, limits?.maxSnapshotRefs]) if (!Number.isSafeInteger(value) || value < 1) throw new RangeError('Invalid snapshot limit');
@@ -66,8 +69,21 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
       await retire([]);
     }
   };
-  const capture = async (page: PlaywrightPage, signal?: AbortSignal): Promise<string> => {
+  const capture = async (page: PlaywrightPage, signal?: AbortSignal, options: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number } = {}): Promise<string> => {
     signal?.throwIfAborted();
+    if (!page.ariaSnapshot && !page._snapshotForAI && (options.root || options.depth || options.boxes)) throw new Error('Native snapshot options unsupported by this browser');
+    if (page.ariaSnapshot || page._snapshotForAI) {
+      await invalidate();
+      const capturedEpoch = epoch;
+      const captured = await captureNativePlaywrightSnapshot(page, { maxBytes: maxSnapshotBytes, maxRefs: maxSnapshotRefs,
+        nextRef: nextRef ?? (() => `e${++sequence}`), ...(signal ? { signal } : {}),
+        ...options,
+      });
+      signal?.throwIfAborted();
+      if (capturedEpoch !== epoch) throw new Error('Snapshot stale during capture');
+      for (const [issued, ref] of captured.refs) refs.set(issued, { kind: 'native', page, ref });
+      return captured.text;
+    }
     if (typeof page.frames !== 'function') throw new Error('Snapshot engine unsupported: public frame evaluation required');
     const frames = page.frames();
     if (frames.some(frame => typeof frame.evaluateHandle !== 'function')) throw new Error('Snapshot engine unsupported: public frame evaluation required');
@@ -87,21 +103,21 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
         acquired.add(capsule);
         signal?.throwIfAborted();
         const admission = await capsule.evaluate(value => ({ status: value.status, count: value.count }), undefined);
-        if (admission.status === 'ref-limit' || admission.count > maxSnapshotRefs - pending.size) throw new Error('Snapshot ref limit exceeded');
+        if (admission.status === 'ref-limit' || admission.count > maxSnapshotRefs - pending.size) throw new PlaywrightResourceLimitError('Snapshot ref limit exceeded');
         if (admission.status !== 'ok' || !Number.isSafeInteger(admission.count) || admission.count < 0) throw new Error('Snapshot capture failed');
         const frameRefs: string[] = [];
         for (let slot = 0; slot < admission.count; slot++) {
           const ref = nextRef?.() ?? `e${++sequence}`;
           frameRefs.push(ref);
-          pending.set(ref, { capsule, slot });
+          pending.set(ref, { kind: 'capsule', capsule, slot });
         }
         signal?.throwIfAborted();
         const rendered = await capsule.evaluate((value, frameRefs) => value.render(frameRefs), frameRefs);
-        if (rendered.status === 'byte-limit') throw new Error('Snapshot byte limit exceeded');
+        if (rendered.status === 'byte-limit') throw new PlaywrightResourceLimitError('Snapshot byte limit exceeded');
         if (rendered.status !== 'ok' || typeof rendered.text !== 'string') throw new Error('Snapshot capture failed');
-        if (rendered.text.length > maxSnapshotBytes - bytes) throw new Error('Snapshot byte limit exceeded');
+        if (rendered.text.length > maxSnapshotBytes - bytes) throw new PlaywrightResourceLimitError('Snapshot byte limit exceeded');
         bytes += new TextEncoder().encode(rendered.text).byteLength;
-        if (bytes > maxSnapshotBytes) throw new Error('Snapshot byte limit exceeded');
+        if (bytes > maxSnapshotBytes) throw new PlaywrightResourceLimitError('Snapshot byte limit exceeded');
         text += rendered.text;
       }
       signal?.throwIfAborted();
@@ -121,6 +137,23 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     const reference = refs.get(ref);
     if (!reference) throw new Error(`Unknown or stale snapshot ref: ${ref}; snapshot again`);
     const capturedEpoch = epoch;
+    if (reference.kind === 'native') {
+      if (!reference.native) {
+        const locator = reference.page.locator(`aria-ref=${reference.ref}`);
+        if (!locator.elementHandle) throw new Error('Native snapshot target resolution unavailable');
+        let handle: PlaywrightElementHandle | null;
+        try { handle = await locator.elementHandle({ timeout: 30000 }); }
+        catch { throw new Error(`Snapshot ref stale: ${ref}; snapshot again`); }
+        if (!handle || capturedEpoch !== epoch) {
+          if (handle) await retire([handle]);
+          throw new Error(`Snapshot ref stale: ${ref}; snapshot again`);
+        }
+        resources.add(handle); reference.native = handle;
+      }
+      const connected = await reference.native.evaluate(node => node.isConnected);
+      if (!connected || capturedEpoch !== epoch) throw new Error(`Snapshot ref stale: ${ref}; snapshot again`);
+      return reference.native;
+    }
     let connected = false;
     try {
       connected = await reference.capsule.evaluate((capsule, slot) => {
@@ -141,5 +174,19 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     }
     return reference.native;
   };
-  return { capture, resolve, invalidate, withReferences };
+  const captureJSON = async (page: PlaywrightPage, signal?: AbortSignal, options: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number; captureJSON?: PlaywrightSnapshotJSONCapture } = {}) => {
+    await invalidate();
+    const capturedEpoch = epoch;
+    const captured = await captureNativePlaywrightJSON(page, { maxBytes: maxSnapshotBytes, maxRefs: maxSnapshotRefs,
+      nextRef: nextRef ?? (() => `e${++sequence}`), ...(signal ? { signal } : {}), ...options });
+    signal?.throwIfAborted();
+    if (capturedEpoch !== epoch) throw new Error('Snapshot stale during capture');
+    for (const [issued, ref] of captured.refs) refs.set(issued, { kind: 'native', page, ref });
+    return captured.tree;
+  };
+  return { capture, captureJSON, resolve, invalidate, withReferences, nativeSelector(ref: string): string | undefined {
+    const reference = refs.get(ref);
+    return reference?.kind === 'native' ? `aria-ref=${reference.ref}` : undefined;
+  } };
 }
+import { PlaywrightResourceLimitError } from './resource-limit.js';

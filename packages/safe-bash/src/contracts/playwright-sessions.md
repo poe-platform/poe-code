@@ -1,81 +1,74 @@
-# Owned Playwright session restoration
+# Playwright sessions and host capabilities
 
-`createPlaywrightController` and `createPlaywrightCli` expose host-only
-`restoreSession(options)` and `inspectSessions()` methods. They are not commands,
-do not add guest options, and do not change `-s`, `PLAYWRIGHT_CLI_SESSION` or help.
+`createPlaywrightCli` implements the `@playwright/cli@0.1.20` command surface.
+The injected adapter owns browser allocation; commands and their help use the
+standard syntax. Standard `-s`, `--session`, and `PLAYWRIGHT_CLI_SESSION` values
+select an alias, not a provider session or a tenant identity.
 
-The host persists an authenticated owner-to-provider mapping, reconnects its
-provider transport, selects the existing context and page, and restores each live
-record before admitting guest commands. Merely connecting a browser and calling
-the generic adapter's `acquire` creates a new context rather than restoring one.
+The host must isolate each controller and its persistence callbacks by trusted
+owner identity. Never use an untrusted alias to select another owner's browser,
+filesystem, or storage namespace. Keep mandatory network enforcement outside
+guest-controlled route handlers.
 
-## Restore options
+## Native browser adapter
 
-- `name`: the existing CLI alias, using the same validation as `-s`.
-- `acquire({ signal })`: awaited host callback returning `{ lease, selectedPage }`.
-  `lease` is the public `PlaywrightLease` for an existing context. It owns exactly
-  the resources specified by the host's `release` policy. `selectedPage` is an
-  optional existing member of that context; omission requires explicit tab
-  selection before page actions. No page or context is created by restoration.
-- `signal`: optional cancellation signal, borrowed only during restoration.
-- `expiresAt`: optional absolute Unix timestamp in milliseconds. Expired records
-  are rejected before acquisition; expiry is rechecked before admission and
-  browser actions. Idle expired sessions are retired on the next controller
-  command, not by a background timer. Provider TTLs remain the host's responsibility.
+`createPlaywrightAdapter` accepts native browser capabilities. It forwards
+validated context options, uses native page and locator methods, observes
+browser events, and retires resources on cancellation or a failed lease.
+Canonical device descriptors are bundled; injected descriptors override them.
 
-The callback is not called after invalid input, disposal, expiry or capacity
-rejection. It owns partial acquisition cleanup until it returns a lease. Once
-returned, the controller retires the lease on failed/cancelled restoration and
-awaits cleanup, including late acquisition after cancellation. Accepted sessions
-participate in the existing per-name queue, capacity, list, close, close-all and
-controller disposal. Restoration never replaces an active same-name session.
+Acquired resources may expose these additional trusted host operations:
 
-`inspectSessions()` returns frozen host checkpoints containing each open session's
-`name`, live `context`, optional `selectedPage`, and optional `expiresAt`. These
-are live host references, not a serialized browser profile or credential export.
-After awaiting a command, the host can translate them to its own persistent
-provider/context/page identifiers. Inspection excludes closed/expired sessions.
+- `captureArtifact` reads a generated native file into bounded bytes. The host
+  supplies the temporary path and cleans it up after success or failure.
+- `captureDownload` retrieves the original native download bytes. A remote
+  provider must supply a real transport; replaying the source URL is not an
+  equivalent download.
+- `captureTrace` flushes and reads the current recording's native trace,
+  network, and referenced resource files. Returned paths are relative and
+  validated before the CLI writes standard live trace files into its VFS.
+- `prepareFileBytes` supplies the provider's binary input representation.
+- `generateActionCode` renders validated native actions with the provider's
+  Playwright language generators, using the selected standard codegen language.
+- `captureSnapshotJSON` returns the native accessibility tree with its actionable
+  refs. The host bounds frames and serialized bytes before transport and honors
+  cancellation; a failed capture retires the lease before another command.
+- `executeCode` runs a standard Playwright function with the selected native
+  Page. The host must isolate arbitrary JavaScript from its own process,
+  credentials, bindings, and other owners. Source and output bounds, browser
+  creation limits, cancellation, and late-side-effect revocation remain host
+  responsibilities. A caller timeout alone does not terminate guest code.
 
-Snapshot handles and refs are intentionally not checkpointed. Every restoration
-uses fresh randomized numeric ref namespaces. Old refs fail with the normal
-snapshot-again diagnostic, even after taking a new snapshot. Cookies and tabs
-survive only by restoring the same provider context, not by exporting guest state.
+Resource operations participate in lease cleanup. Hosts should use idempotent
+provider retirement, including a separate interrupt path for stalled browser
+protocol work. `PlaywrightResourceLimitError` tells the controller that the
+operation exceeded an ownership or resource boundary and requires retirement.
+Ordinary command errors preserve a healthy session.
 
-## Ownership and recovery
+## Persistence
 
-Never look up an arbitrary provider ID supplied by a guest alias. Bind owner,
-tenant and credentials in the callback closure, and enumerate only that owner's
-persisted records. A stale provider ID must fail or be discarded by the host;
-do not silently attach a different browser or recreate a session under old refs.
-Provider authentication/transport failures from bootstrap are host errors and
-must be sanitized before being shown to a guest.
+Optional persistence callbacks operate within the host's trusted owner scope:
 
-The controller serializes its own session operations. The host must additionally
-serialize ownership transfer across processes/controllers, for example with its
-authenticated Durable Object or a storage lease. A persistent record alone is not
-proof of exclusive ownership. Await bootstrap restoration before allowing list or
-close-all, so these commands cover all restored records for that owner.
+- `checkpoint` receives the current context, selected page, validated context
+  settings, effective configuration, and idle/expiry metadata.
+- `restore` returns a newly owned lease and selected page. Its optional
+  `initialize` callback runs after controller observers attach and startup
+  scripts are registered, before the restored session is published.
+- `list` returns bounded metadata for resumable saved sessions without opening
+  browsers. The host excludes deleted, intentionally closed, or expired data.
+- `close` suppresses automatic restoration without requiring storage deletion.
+  An undefined name closes all saved aliases for that owner.
+- `delete` removes the named profile.
 
-`dispose` retains its existing retirement semantics; it is not a keep-alive or
-silent detach operation. A host choosing transport-only lease release must own
-remote expiry/deletion separately. Transport loss and local lease retirement do
-not establish that a provider browser has ended. No environment variables or
-additional provider settings are read by these lifecycle methods.
+The controller checkpoints before graceful disposal. Explicit close is
+distinct from disposal: later explicit open may reuse saved storage, while
+ordinary commands must not silently reopen an intentionally closed session.
+Forceful cleanup must not wait on a new checkpoint.
 
-## Cloudflare host configuration
-
-With the qualified `@cloudflare/playwright` 1.3.6 client, a browser keep-alive
-does not make a normal `newContext()` persistent: those contexts use
-dispose-on-detach. A host retaining sessions across transport replacement needs
-a persistent connection and its existing default context. The public URL-based
-connection can be configured with `new URL(endpointURLString(binding, { sessionId }))`,
-setting its `persistent` search parameter to `true`, then passing that URL to
-`connect`. Restore `browser.contexts()[0]` and the previously selected existing
-page; do not replace it with `newContext()` or `newPage()` during bootstrap.
-
-This is an explicit host/provider configuration, not something a guest alias
-can enable. The host still owns stale-ID handling, browser expiry and deletion.
-The maintained real-browser fixture uses the public installed packages, Miniflare
-4.20260708.1, its Chromium binding and an explicit `EVAL` binding. Its container
-CI launch mode disables Chromium's internal sandbox for trusted fixture pages;
-this interoperability test does not qualify untrusted guest isolation.
+Use `parsePlaywrightStorageState`, `parsePlaywrightContextOptions`, and
+`parsePlaywrightSessionConfiguration` when accepting persisted data. A host
+must additionally bound and validate its own envelope, navigation URLs,
+retention policy, and storage publication. Playwright storage state does not
+include arbitrary DOM/JavaScript heap state or sessionStorage. Automatic host
+checkpoints may include IndexedDB; standard explicit state commands retain
+the upstream behavior.

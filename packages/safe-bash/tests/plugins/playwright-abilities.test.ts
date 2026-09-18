@@ -10,7 +10,7 @@ function invocation(args: string[], write: (text: string) => Promise<void> = asy
   return { args, env: {}, signal: new AbortController().signal, write };
 }
 
-test('an explicit client ability map controls both dispatch and advertised help without a browser', async () => {
+test('an explicit client ability map controls dispatch while help keeps the standard command vocabulary', async () => {
   const calls: unknown[] = [];
   const controller = createPlaywrightController({ abilities: {
     'cookie-set': {
@@ -24,8 +24,8 @@ test('an explicit client ability map controls both dispatch and advertised help 
     assert.ok(help.startsWith('playwright-cli - run playwright mcp commands from terminal\n\nUsage:'));
     assert.ok(help.includes('Storage:\n'));
     assert.ok(help.includes('cookie-set <name> <value>'));
-    assert.ok(!help.includes('  open [url]'));
-    assert.ok(!help.includes('Network:'));
+    assert.ok(help.includes('  open [url]'));
+    assert.ok(help.includes('Network:'));
     assert.ok(!help.includes('[unsupported]'));
     let output = '';
     await controller.run(invocation(['-s=research', 'cookie-set', 'token', 'value', '--domain', 'example.test', '--secure'], async text => { output += text; }));
@@ -190,9 +190,9 @@ test('session abilities borrow the retained context and register cleanup that ru
   } finally { await controller.dispose(); }
 });
 
-test('a failing borrowed ability retires its session and preserves execution plus cleanup errors', async () => {
+test('a resource-limited borrowed ability retires its session and preserves execution plus cleanup errors', async () => {
   const fixture = retainedFixture();
-  const executeFailure = new Error('ability failed');
+  const executeFailure = new PlaywrightResourceLimitError('ability resource limit');
   const cleanupFailure = new Error('cleanup failed');
   const controller = createPlaywrightController({ adapter: fixture.adapter, abilities: {
     open: true, 'cookie-get': { scope: 'session', async execute(request) { request.browserSession!.registerCleanup(async () => { throw cleanupFailure; }); throw executeFailure; } },
@@ -242,3 +242,4 @@ test('session cleanup cannot prevent browser release from unblocking in-flight b
     assert.deepEqual(fixture.events, ['released']);
   } finally { finishCleanup(); await closing; await controller.dispose(); }
 });
+import { PlaywrightResourceLimitError } from '../../src/playwright/resource-limit.js';

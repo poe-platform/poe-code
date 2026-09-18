@@ -61,6 +61,55 @@ async function run(controller: ReturnType<typeof createPlaywrightController>, ar
   return output;
 }
 
+test('lazy restoration observes the first initialized navigation before exposing its session', async () => {
+  const host = browser();
+  const controller = createPlaywrightController({ adapter: host.adapter, persistence: {
+    async restore() { return { lease: host.lease, selectedPage: host.page, async initialize({ signal }: { signal: AbortSignal }) {
+      signal.throwIfAborted();
+      assert.deepEqual(controller.inspectSessions(), []);
+      host.contextEvents.emit('console', { page: () => host.page, type: () => 'log', text: () => 'first navigation', location: () => ({ url: host.page.url(), lineNumber: 1, columnNumber: 0 }) });
+    } }; },
+    async checkpoint() {}, async delete() {},
+  } });
+  try { assert.match(await run(controller, ['-s=owned', 'console']), /first navigation/); }
+  finally { await controller.dispose(); }
+});
+
+for (const cancelled of [false, true]) test(`restore initializer ${cancelled ? 'cancellation' : 'failure'} retires its owned lease`, async () => {
+  const host = browser();
+  const controller = createPlaywrightController({ adapter: host.adapter });
+  const abort = new AbortController();
+  const failure = new Error('initialization failed');
+  await assert.rejects(controller.restoreSession({ name: 'owned', signal: abort.signal, async acquire() {
+    return { lease: host.lease, selectedPage: host.page, async initialize({ signal }: { signal: AbortSignal }) {
+      if (cancelled) { abort.abort(failure); signal.throwIfAborted(); }
+      throw failure;
+    } };
+  } }), error => error === failure);
+  assert.equal(host.calls.releases, 1);
+  assert.deepEqual(controller.inspectSessions(), []);
+  assert.deepEqual(host.contextEvents.eventNames(), []);
+  assert.equal(host.closedListeners.size, 0);
+  await controller.dispose();
+});
+
+test('cancelling an in-flight initializer starts lease retirement before waiting for initialization', async () => {
+  const host = browser();
+  const controller = createPlaywrightController({ adapter: host.adapter });
+  const abort = new AbortController();
+  const entered = deferred();
+  const finish = deferred();
+  const restoring = Promise.allSettled([controller.restoreSession({ name: 'owned', signal: abort.signal, async acquire() {
+    return { lease: host.lease, selectedPage: host.page, async initialize() { entered.resolve(); await finish.promise; } };
+  } })]);
+  await entered.promise;
+  abort.abort(new Error('cancelled initializer'));
+  await nextTurn();
+  try { assert.equal(host.calls.releases, 1); }
+  finally { finish.resolve(); await restoring; await controller.dispose(); }
+  assert.equal((await restoring)[0]!.status, 'rejected');
+});
+
 test('dispose drains late restore acquisition and lease cleanup without exposing a checkpoint', async () => {
   const host = browser();
   const entered = deferred();
@@ -333,7 +382,7 @@ test('CLI checkpoints remain host-only and guest commands cannot request restora
     assert.deepEqual(Object.keys(checkpoints[0]!).sort(), ['context', 'expiresAt', 'name', 'selectedPage']);
     const output = await shell.exec('playwright-cli list');
     assert.equal(output.exitCode, 0);
-    assert.equal(output.stdout, 'owned\topen\n');
+    assert.equal(output.stdout, '### Browsers\n- owned:\n  - status: open\n');
     for (const command of ['restore-session', 'inspect-sessions']) {
       const refused = await shell.exec(`playwright-cli ${command}`);
       assert.equal(refused.exitCode, 1);

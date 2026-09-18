@@ -54,7 +54,7 @@ test('cold controller restores the same owned context and selected page without 
     assert.equal(checkpoint!.context, browser.context);
     assert.equal(checkpoint!.selectedPage, browser.pages[1]);
     await restarted.run(['list']);
-    assert.ok(restarted.output.some(text => text.includes('owned\topen')));
+    assert.ok(restarted.output.some(text => text.includes('- owned:\n  - status: open')));
     await restarted.run(['close-all']);
     assert.equal(browser.releases, 1);
     assert.deepEqual(second.inspectSessions(), []);
@@ -97,8 +97,9 @@ test('restore and open share name admission and public CLI exposes the same host
   const restored = controller.restoreSession({ name: 'same', async acquire() { return { lease: browser.lease, selectedPage: browser.pages[1] }; } });
   const opened = runner(controller).run(['-s=same', 'open']);
   await restored;
-  await assert.rejects(opened, /already open/);
-  assert.equal(browser.createdPages, 0);
+  await opened;
+  assert.equal(browser.createdPages, 1);
+  assert.equal(browser.releases, 1);
   await controller.dispose();
   const cli = createPlaywrightCli({ adapter: browser.adapter });
   assert.equal(typeof cli.restoreSession, 'function');

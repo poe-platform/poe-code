@@ -10,6 +10,8 @@ export interface PlaywrightPolicySocket {
 
 export interface PlaywrightPolicyRequest {
   readonly targetId: string;
+  /** Trusted CDP context identity for context-scoped host routing. */
+  readonly browserContextId?: string;
   readonly frameId: string;
   /** CDP Network request ID when available; otherwise the Fetch request ID. */
   readonly requestId: string;
@@ -58,7 +60,7 @@ export interface PlaywrightNetworkPolicyOptions {
 }
 
 type Message = { id?: number; method?: string; params?: any; result?: any; error?: { message?: string }; sessionId?: string };
-type Target = { targetId: string; type: string };
+type Target = { targetId: string; type: string; browserContextId?: string };
 type Operation = { controller: AbortController; networkId: string; sessionId: string; nativeCanceled: boolean };
 
 function boundedHeaders(entries: readonly { name: string; value: string }[]): { name: string; value: string }[] {
@@ -210,7 +212,7 @@ export async function installPlaywrightNetworkPolicy(options: PlaywrightNetworkP
     if (!target) throw new Error('Request from an unowned browser target');
     const controller = new AbortController();
     const operation = { controller, networkId: params.networkId ?? params.requestId, sessionId, nativeCanceled: false };
-    const identity = { targetId: target.targetId, frameId: params.frameId ?? '', requestId: operation.networkId, resourceType: params.resourceType ?? '' };
+    const identity = { targetId: target.targetId, ...(typeof target.browserContextId === 'string' ? { browserContextId: target.browserContextId } : {}), frameId: params.frameId ?? '', requestId: operation.networkId, resourceType: params.resourceType ?? '' };
     const timer = setTimeout(() => controller.abort(new Error('Host request deadline exceeded')), timeout);
     operations.add(operation);
     let release: (() => void | Promise<void>) | undefined;

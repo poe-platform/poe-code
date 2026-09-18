@@ -2426,6 +2426,20 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/plugins/zip-commands.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-adapter.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-controller.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-standard-output.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-standard-session.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-modal-session.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-modal-capabilities.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-route-capabilities.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-recording-capabilities.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-native-snapshot.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-find.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-download-capabilities.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-open-options.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-workspace.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-standard-capabilities.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-context-replacement.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-capability-events.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-session-restore.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-session-restore-review.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-snapshot.test.ts"));
@@ -2616,6 +2630,15 @@ test("Playwright session restoration public acceptance remains admitted current 
   const root = fileURLToPath(new URL("../", import.meta.url));
   const boundaries = loadBoundaries(root);
   for (const path of ["tests/integration/playwright-session-restore.test.mjs", "tests/integration/playwright-session-restore.worker.mjs"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
+test("Playwright standard capability native acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/integration/playwright-capabilities.test.mjs", "tests/integration/playwright-snapshot-native.test.mjs", "tests/integration/playwright-native-types.test.mjs"]) {
     assertAdmittedInputPath(path, boundaries);
     assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
   }

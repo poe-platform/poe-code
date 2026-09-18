@@ -39,6 +39,78 @@ function fixture(maxSessions = 2) {
   return { controller, adapter, events, leases, run };
 }
 
+test('failed native JSON capture retires its session before another open', async () => {
+  const f = fixture();
+  try {
+    await f.run(['open']);
+    const owned = f.leases[0]!;
+    const page = owned.lease.context.pages()[0]!;
+    Object.assign(page, { on() {}, off() {} });
+    const failure = new Error('native JSON snapshot timed out');
+    Object.defineProperty(owned.lease, 'captureSnapshotJSON', { value: async () => { throw failure; } });
+    await assert.rejects(f.run(['snapshot', '--json']), error => error === failure);
+    assert.equal(owned.releases, 1);
+    assert.deepEqual(f.controller.inspectSessions(), []);
+    await f.run(['open']);
+    assert.equal(f.leases.length, 2);
+  } finally { await f.controller.dispose(); }
+});
+
+for (const command of ['close', 'goto'] as const) test(`failed live trace capture still retires resources during ${command}`, async () => {
+  const f = fixture();
+  await f.run(['open']);
+  const owned = f.leases[0]!;
+  let name = '';
+  let failed = false;
+  Object.defineProperty(owned.lease.context, 'tracing', { value: {
+    async start(options: { name: string }) { name = options.name; }, async stop() {},
+  } });
+  Object.defineProperty(owned.lease, 'captureTrace', { value: async () => {
+    if (failed) throw new Error('capture failed');
+    return { files: [{ path: `${name}.trace`, bytes: new Uint8Array() }, { path: `${name}.network`, bytes: new Uint8Array() }] };
+  } });
+  try {
+    await f.run(['tracing-start'], { writeArtifact: async () => {} });
+    failed = true;
+    await assert.rejects(f.run(command === 'goto' ? ['goto', 'https://example.test'] : ['close'], { writeArtifact: async () => {} }), /capture failed/);
+    assert.equal(owned.releases, 1);
+    assert.deepEqual(f.controller.inspectSessions(), []);
+  } finally { await f.controller.dispose(); }
+});
+
+test('available trace transport does not require artifact writes until recording starts', async () => {
+  const f = fixture();
+  try {
+    await f.run(['open']);
+    Object.defineProperty(f.leases[0]!.lease, 'captureTrace', { value: async () => { throw new Error('no recording must not capture'); } });
+    await f.run(['goto', 'https://example.test']);
+    assert.equal(f.leases[0]!.releases, 0);
+  } finally { await f.controller.dispose(); }
+});
+
+test('native trace shutdown finishes before browser release after a capture failure', async () => {
+  const f = fixture();
+  await f.run(['open']);
+  const owned = f.leases[0]!;
+  const stopping = deferred<void>();
+  const finish = deferred<void>();
+  Object.defineProperty(owned.lease.context, 'tracing', { value: {
+    async start() {}, async stop() { stopping.resolve(); await finish.promise; if (owned.releases) throw new Error('trace browser closed too early'); },
+  } });
+  Object.defineProperty(owned.lease, 'captureTrace', { value: async () => { throw new Error('original trace capture failure'); } });
+  const result = f.run(['tracing-start'], { writeArtifact: async () => {} }).then(() => undefined, error => error);
+  await stopping.promise;
+  const prematureRelease = owned.releases;
+  finish.resolve();
+  const failure: unknown = await result;
+  try {
+    assert.equal(prematureRelease, 0);
+    assert.ok(failure instanceof Error);
+    assert.match(failure.message, /original trace capture failure/);
+    assert.equal(owned.releases, 1);
+  } finally { await f.controller.dispose().catch(() => {}); }
+});
+
 for (const command of ['click', 'fill', 'custom'] as const) {
   for (const cancel of [false, true]) test(`${command} keeps a navigating target alive until ${cancel ? 'cancellation' : 'the action settles'}`, async () => {
     const cancellation = new AbortController();
@@ -48,6 +120,7 @@ for (const command of ['click', 'fill', 'custom'] as const) {
     const listeners = new Set<() => void>();
     let disposals = 0;
     let releases = 0;
+    let latestRef = '';
     const action = async () => {
       for (const listener of listeners) listener();
       navigation.resolve();
@@ -74,17 +147,18 @@ for (const command of ['click', 'fill', 'custom'] as const) {
       ...(command === 'custom' ? { abilities: { open: true as const, snapshot: true as const, click: {
         scope: 'session' as const,
         async execute(request: import('../../src/playwright/index.js').PlaywrightAbilityRequest) {
-          await (await request.browserSession!.resolveTarget('e1')).click();
+          await (await request.browserSession!.resolveTarget(latestRef)).click();
           if (!cancel) await request.browserSession!.selectPage(page);
         },
       } } } : {}),
     });
-    const run = (args: string[]) => controller.run({ args, env: {}, signal: cancellation.signal, write: async () => {} });
+    const run = (args: string[]) => controller.run({ args, env: {}, signal: cancellation.signal, write: async text => { latestRef = text.match(/ref=(e\d+)/)?.[1] ?? latestRef; } });
     try {
       await run(['open']);
       await run(['snapshot']);
       assert.equal(snapshot.acquiredElements.length, 0);
-      const pending = run(command === 'fill' ? ['fill', 'e1', 'value'] : ['click', 'e1']);
+      const priorCapsuleDisposals = snapshot.disposedCapsules.length;
+      const pending = run(command === 'fill' ? ['fill', latestRef, 'value'] : ['click', latestRef]);
       const outcome = pending.then(() => undefined, error => error);
       await navigation.promise;
       await new Promise(resolve => setImmediate(resolve));
@@ -95,7 +169,7 @@ for (const command of ['click', 'fill', 'custom'] as const) {
       else assert.equal(await outcome, undefined);
       assert.equal(prematureDisposals, 0);
       assert.equal(disposals, 1);
-      assert.equal(snapshot.disposedCapsules.length, 1);
+      assert.equal(snapshot.disposedCapsules.length, priorCapsuleDisposals + 1);
       assert.equal(releases, cancel ? 1 : 0);
       if (!cancel) await run(['snapshot']);
     } finally { loaded.resolve(); await controller.dispose(); }
@@ -108,9 +182,9 @@ test('SDK help needs no adapter, artifact sink or valid session environment', as
   try {
     let output = '';
     await controller.run({ args: ['--help', 'snapshot'], env: { PLAYWRIGHT_CLI_SESSION: 'invalid session' }, signal: new AbortController().signal, write: async text => { output += text; } });
-    assert.ok(output.includes('Usage: playwright-cli snapshot'));
-    assert.ok(output.includes('Not enabled by this client'));
-    assert.ok(!output.includes('--filename'));
+    assert.ok(output.startsWith('playwright-cli snapshot [target]'));
+    assert.ok(!output.includes('Not enabled by this client'));
+    assert.ok(output.includes('--filename'));
     const signal = AbortSignal.abort(new Error('cancelled help'));
     await assert.rejects(controller.run({ args: ['--help'], env: {}, signal, write: async () => { throw new Error('unexpected write'); } }), /cancelled help/);
   } finally { await controller.dispose(); }
@@ -125,7 +199,7 @@ test('session selection, retained ownership, explicit engine, and idempotent dis
   assert.equal(f.leases.every(l => l.releases === 0), true);
   await f.run(['-s', 'flag', 'goto', 'https://example.com']);
   await f.run(['list']);
-  assert.match(f.events.at(-1)!, /flag.*open/);
+  assert.match(f.events.at(-1)!, /flag:[\s\S]*status: open/);
   const disposal = f.controller.dispose();
   assert.equal(disposal, f.controller.dispose());
   await disposal;
@@ -135,7 +209,7 @@ test('session selection, retained ownership, explicit engine, and idempotent dis
 
 test('invalid arguments, unsupported engines/options and invalid limits have no effects', async () => {
   const f = fixture();
-  for (const args of [['open', '--browser=webkit'], ['open', '--headed'], ['open', '--browser=unknown'], ['open', '--idle-timeout=1'], ['open', '--session=../bad'], ['goto'], ['close', 'extra'], ['open', '--browser'], ['open', 'javascript:alert(1)']]) {
+  for (const args of [['open', '--browser=webkit'], ['open', '--headed'], ['open', '--browser=unknown'], ['open', '--idle-timeout=-1'], ['open', '--session=../bad'], ['goto'], ['close', 'extra'], ['open', '--browser'], ['open', 'javascript:alert(1)']]) {
     await assert.rejects(f.run(args));
   }
   assert.deepEqual(f.events, []);
@@ -308,7 +382,7 @@ test('unimplemented config and billing options are refused rather than silently 
   assert.deepEqual(f.events, []);
 });
 
-test('list observes acquiring, open, closing and closed; close serializes before replacement', async () => {
+test('list exposes only open browsers while close serializes before replacement', async () => {
   const f = fixture();
   const gate = deferred<PlaywrightLease>();
   const entered = deferred<void>();
@@ -317,22 +391,22 @@ test('list observes acquiring, open, closing and closed; close serializes before
   const opening = f.run(['open']);
   await entered.promise;
   await f.run(['list']);
-  assert.equal(f.events.at(-1), 'out:default\tacquiring\n');
+  assert.equal(f.events.at(-1), 'out:  (no browsers)\n');
   gate.resolve(f.leases[0]!.lease);
   await opening;
   await f.run(['list']);
-  assert.equal(f.events.at(-1), 'out:default\topen\n');
+  assert.equal(f.events.at(-1), 'out:### Browsers\n- default:\n  - status: open\n');
   const retiring = deferred<void>();
   const started = deferred<void>();
   f.leases[0]!.lease.release = async () => { f.leases[0]!.releases++; started.resolve(); await retiring.promise; };
   const closing = f.run(['close']);
   await started.promise;
   await f.run(['list']);
-  assert.equal(f.events.at(-1), 'out:default\tclosing\n');
+  assert.equal(f.events.at(-1), 'out:  (no browsers)\n');
   retiring.resolve();
   await closing;
   await f.run(['list']);
-  assert.equal(f.events.at(-1), 'out:default\tclosed\n');
+  assert.equal(f.events.at(-1), 'out:  (no browsers)\n');
   await f.controller.dispose();
 });
 
@@ -448,8 +522,8 @@ test('invocation cleanup prevents queued close-all effects and drains its work',
   const closing = f.run(['close-all'], { registerCleanup(fn: () => Promise<void>) { cleanup = fn; } });
   const completion = cleanup();
   assert.equal(completion, cleanup());
-  const rejected = assert.rejects(closing, error => error instanceof AggregateError
-    && error.errors.every((cause: unknown) => cause instanceof Error && cause.message === 'Playwright invocation cleaned up'));
+  const rejected = assert.rejects(closing, error => (error instanceof AggregateError ? error.errors : [error])
+    .every((cause: unknown) => cause instanceof Error && cause.message === 'Playwright invocation cleaned up'));
   navigation.resolve(undefined);
   await navigating;
   await rejected;
@@ -482,7 +556,7 @@ test('screenshots fix CSS geometry before calling the native producer', async ()
   Object.assign(page, { evaluate: async () => ({ width: 8, height: 8 }) });
   page.screenshot = async options => { captures.push(options); return new Uint8Array([1]); };
   await current.run(['screenshot'], { writeArtifact: async () => {} });
-  assert.deepEqual(captures, [{ type: 'png', fullPage: false, timeout: 30000, scale: 'css', clip: { x: 0, y: 0, width: 8, height: 8 } }]);
+  assert.deepEqual(captures, [{ type: 'png', fullPage: false, timeout: 5000, scale: 'css', clip: { x: 0, y: 0, width: 8, height: 8 } }]);
   await current.controller.dispose();
 });
 

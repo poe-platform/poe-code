@@ -54,7 +54,7 @@ for (const type of ['png', 'jpeg'] as const) {
     const result = await capturePlaywrightScreenshot(current.page, { ...defaults, type });
     assert.equal(result, current.bytes);
     assert.deepEqual(current.measurements, [{ width: 1280, height: 720 }]);
-    assert.deepEqual(current.captures, [{ type, fullPage: false, timeout: 5000, scale: 'css', clip: { x: 0, y: 0, width: 1280, height: 720 } }]);
+    assert.deepEqual(current.captures, [{ type, ...(type === 'jpeg' ? { quality: 90 } : {}), fullPage: false, timeout: 5000, scale: 'css', clip: { x: 0, y: 0, width: 1280, height: 720 } }]);
   });
 
   test(`${type} allows an 8x8 image under a 1024-byte artifact limit`, async () => {
@@ -302,7 +302,13 @@ for (const reason of [false, null, { cancelled: true }, new Error('engine failur
   });
 }
 
-for (const options of [null, { ...defaults, type: 'webp' }, { ...defaults, fullPage: 1 }, { ...defaults, timeout: 0 },
+test('zero screenshot timeout preserves the standard no-timeout override', async () => {
+  const current = fixture();
+  await capturePlaywrightScreenshot(current.page, { ...defaults, timeout: 0 });
+  assert.equal(current.captures[0]?.timeout, 0);
+});
+
+for (const options of [null, { ...defaults, type: 'webp' }, { ...defaults, fullPage: 1 },
   { ...defaults, timeout: -1 }, { ...defaults, timeout: 1.5 }, { ...defaults, timeout: Infinity }, { ...defaults, timeout: Number.MAX_SAFE_INTEGER + 1 }]) {
   test(`invalid capture configuration fails before measurement: ${JSON.stringify(options)}`, async () => {
     const current = fixture(8, 8);

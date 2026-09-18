@@ -7,6 +7,7 @@ import semver from "semver";
 import glob from "fast-glob";
 import ts from "typescript";
 import { build } from "esbuild";
+import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { resolveBundleGraph } from "./bundle-graph.mjs";
 import { copyNativeAssets, nativeImportMapping, readBuiltNativeAssets } from "../packages/safe-fs/scripts/native-assets.mjs";
 import { resolveWorkerdRuntimeBuild } from "./bundle-fs.mjs";
@@ -264,6 +265,37 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
         for (const output of workerd.outputFiles) bundled.set(output.path, output.contents);
       }
     }
+    if (name === "safe-bash") {
+      // These runtimes belong to the scoped artifact. Root CLI builds deliberately
+      // do not prepare or publish sandbox payloads.
+      const graph = await resolveBundleGraph(rootDir, workspaces, files);
+      const alias = Object.fromEntries(Object.entries(graph.alias).map(([specifier, target]) => [specifier, publicSpecifier(specifier) !== specifier ? publicSpecifier(specifier) : target]));
+      const external = [...graph.external, "@poe-platform/safe-fs"];
+      const recipes = [];
+      if (Object.values(source.exports).some(value => value?.browser?.endsWith(".browser.js") || value?.workerd?.endsWith(".browser.js"))) {
+        recipes.push(resolveBrowserShellBuild(rootDir));
+      }
+      for (const command of ["op", "pandoc"]) {
+        if (!source.exports["./commands/" + command]) continue;
+        const converterDependencies = new Set(workspaces.filter(({ dir }) => dir === "pandoc" || dir === "pdf")
+          .flatMap(({ pkg }) => Object.keys(pkg.dependencies ?? {}))
+          .filter(dependency => !Object.hasOwn(root.dependencies ?? {}, dependency) && !Object.hasOwn(root.optionalDependencies ?? {}, dependency)));
+        recipes.push({ absWorkingDir: rootDir, alias,
+          external: command === "pandoc" ? external.filter(dependency => !converterDependencies.has(dependency)) : external,
+          entryPoints: [path.join(packageDir, "src/commands", command, "index.ts")],
+          outfile: path.join(packageDir, "dist/commands", command, "index.js"),
+          bundle: true, platform: "node", target: command === "pandoc" ? "node22" : "es2022", format: "esm", sourcemap: true, write: false,
+          ...(command === "pandoc" ? { banner: { js: 'import {createRequire as createPandocRequire} from "node:module"; const require = createPandocRequire(import.meta.url);' } } : {}),
+        });
+      }
+      for (const recipe of recipes) {
+        const result = await bundle(recipe);
+        for (const output of result.outputFiles) {
+          bundled.set(output.path, output.contents);
+          pending.push(output.path);
+        }
+      }
+    }
     const enqueueExport = value => {
       if (typeof value === "string" && value.startsWith("./")) {
         const absolute = path.resolve(rootDir, value);
@@ -361,16 +393,18 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
             return specifier;
           }
           let publicName = publicSpecifier(specifier);
-          if (declaration) {
+          if (declaration || name === "safe-bash" && (publicName === "@poe-code/office-package" || publicName.startsWith("@poe-code/office-package/"))) {
             const workspace = workspaces.find(({ pkg }) => pkg.private && (publicName === pkg.name || publicName.startsWith(pkg.name + "/")));
             if (workspace) {
               const route = "." + publicName.slice(workspace.pkg.name.length);
               const exported = workspace.pkg.exports?.[route];
-              const types = exported?.types ?? (route === "." && workspace.pkg.exports === undefined ? workspace.pkg.types : undefined);
-              if (typeof types !== "string") throw new Error(`Missing private workspace declaration entrypoint: ${specifier}`);
-              const target = path.resolve(rootDir, "packages", workspace.dir, types);
+              const entrypoint = declaration
+                ? exported?.types ?? (route === "." && workspace.pkg.exports === undefined ? workspace.pkg.types : undefined)
+                : exported?.import;
+              if (typeof entrypoint !== "string") throw new Error(`Missing private workspace ${declaration ? "declaration" : "runtime"} entrypoint: ${specifier}`);
+              const target = path.resolve(rootDir, "packages", workspace.dir, entrypoint);
               artifactPath(rootDir, target);
-              if (!target.endsWith(".d.ts") && !target.endsWith(".d.mts")) throw new Error(`Not a private workspace declaration: ${specifier}`);
+              if (declaration && !target.endsWith(".d.ts") && !target.endsWith(".d.mts")) throw new Error(`Not a private workspace declaration: ${specifier}`);
               publicName = path.relative(path.dirname(filename), target).split(path.sep).join("/");
               if (!publicName.startsWith(".")) publicName = "./" + publicName;
             }

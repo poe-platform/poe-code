@@ -43,7 +43,7 @@ function optionalLeftovers() {
   data["/repo/packages/safe-bash/dist/opt-in/optional.d.ts"] = "export {};\n";
   const volume = Volume.fromJSON(data);
   const files = createFsFromVolume(volume).promises;
-  const bundle = vi.fn(async () => ({ outputFiles: [{ path: "/repo/packages/safe-js/dist/index.js", contents: Buffer.from(volume.readFileSync("/repo/packages/safe-js/dist/index.js")) }] }));
+  const bundle = vi.fn(async (settings: { outdir?: string }) => ({ outputFiles: settings.outdir === "/repo/packages/safe-js/dist" ? [{ path: "/repo/packages/safe-js/dist/index.js", contents: Buffer.from(volume.readFileSync("/repo/packages/safe-js/dist/index.js")) }] : [] }));
   return { volume, data, excluded, options: { rootDir: "/repo", version: "0.1.0", files, bundle } };
 }
 
@@ -619,4 +619,57 @@ it('packages SafeJS from its own exports when the root no longer exposes sandbox
   await packageSafeLibraries({ ...options, outDir: "/output" });
   const manifest = JSON.parse(volume.readFileSync('/output/safe-js/package.json', 'utf8') as string);
   expect(manifest.exports['.']).toEqual({ types: './dist/safe-js/index.d.ts', import: './dist/safe-js/index.js' });
+});
+
+
+it("prepares scoped browser and private command runtimes without root sandbox bundles", async () => {
+  const { volume, options } = optionalLeftovers();
+  volume.writeFileSync("/repo/package.json", JSON.stringify({ license: "MIT", exports: {} }));
+  const browserTargets = Object.keys(volume.toJSON()).filter(filename => filename.endsWith(".browser.js"));
+  for (const filename of browserTargets) volume.unlinkSync(filename);
+  for (const name of ["op", "pandoc", "office-package"]) {
+    volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
+    volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify({
+      name: name === "op" ? "@poe-platform/op" : `@poe-code/${name}`, private: true,
+      exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+    }));
+    volume.writeFileSync(`/repo/packages/${name}/dist/index.d.ts`, "export {};\n");
+  }
+  volume.writeFileSync("/repo/packages/office-package/dist/index.js", "export const codec = 1;\n");
+  for (const name of ["op", "pandoc"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.js`,
+    `export * from "${name === "op" ? "@poe-platform/op" : "@poe-code/pandoc"}";`);
+  volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'export { codec } from "@poe-code/office-package";');
+  const bundle = vi.fn(async (settings: { outfile?: string; outdir?: string; entryPoints: Record<string, string> | string[] }) => {
+    const targets = settings.outfile ? [settings.outfile] : Object.keys(settings.entryPoints).map(name => `${settings.outdir}/${name}.js`);
+    return { outputFiles: targets.map(filename => ({ path: filename, contents: Buffer.from('export const prepared = true;\n') })) };
+  });
+  await packageSafeLibraries({ ...options, bundle, outDir: "/output" });
+  for (const filename of browserTargets) {
+    expect(volume.readFileSync(filename.replace("/repo/packages/safe-bash/dist/", "/output/safe-bash/dist/safe-bash/"), "utf8"))
+      .toBe('export const prepared = true;\n');
+    expect(volume.existsSync(filename)).toBe(false);
+  }
+  for (const name of ["op", "pandoc"]) expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash/commands/${name}/index.js`, "utf8"))
+    .toBe('export const prepared = true;\n');
+  expect(volume.readFileSync("/output/safe-bash/dist/office-package/index.js", "utf8")).toBe("export const codec = 1;\n");
+  expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/index.js", "utf8"))
+    .toBe('export { codec } from "../office-package/index.js";');
+  const manifest = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
+  expect(manifest.dependencies).toEqual({});
+  expect(volume.existsSync("/repo/dist")).toBe(false);
+});
+
+for (const [specifier, target, failure] of [
+  ["private-runtime", "./dist/index.js", "Private or CLI dependency leaked"],
+  ["@poe-code/office-package/missing", "./dist/index.js", "Missing private workspace runtime entrypoint"],
+  ["@poe-code/office-package", "../../outside.js", "Not a built package file"],
+]) it(`keeps scoped private runtime admission bounded: ${specifier} ${target}`, async () => {
+  const { volume, options } = optionalLeftovers();
+  const name = specifier.startsWith("@poe-code/office-package") ? "@poe-code/office-package" : specifier;
+  volume.mkdirSync("/repo/packages/office-package", { recursive: true });
+  volume.writeFileSync("/repo/packages/office-package/package.json", JSON.stringify({
+    name, private: true, exports: { ".": { import: target } },
+  }));
+  volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", `export * from ${JSON.stringify(specifier)};`);
+  await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow(failure);
 });

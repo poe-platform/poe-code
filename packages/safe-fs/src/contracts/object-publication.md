@@ -277,3 +277,42 @@ orphan reclamation, and deployment access. Run the public backend conformance
 and shared-pressure/failure/cancellation matrix on that actual host as well as
 the native workload; success on fresh fixture output does not replace those
 requirements.
+
+### Installed public-package staging mode
+
+The same workerd test accepts `SAFE_FS_PUBLIC_CONSUMER_ROOT` plus
+`SAFE_FS_PUBLIC_ADMISSION` instead of an executor checkout. The consumer must be
+an independent npm installation under this checkout's `out/`, with matching
+`@poe-platform/safe-bash`, `safe-fs` and `safe-js` versions. It resolves Shell
+from the public package and Python/assets/generators from
+`@poe-platform/safe-bash/commands/python`, with the canonical filesystem from
+`@poe-platform/safe-fs/core`, using workerd/browser export conditions.
+
+Public mode rejects all executor/staging source selection variables. It never
+reads Git or overlays product source. Build-input admission rejects workspace
+product files, nested/unmatched public package copies and unpinned public bytes;
+only the test's own Worker/R2 fixture and pinned Pyodide assets may sit outside
+the independent installation. Missing exports or metadata fail rather than
+falling back to a checkout. The frozen mode and its metadata/asset checks remain
+available separately.
+
+The admission JSON has `schemaVersion: 1`, an exact `version`, `lockSha256`,
+`origin` (`locally-packed-candidates` or `registry-release`), and a `packages`
+object keyed by the three full public package names. Each entry supplies
+`resolved` and SHA-512 SRI `integrity` matching its npm lock receipt, `tarball`
+(path relative to the consumer), and `files` (every archive file's package-relative
+path mapped to SHA-256, including `package.json`). Generate file hashes from
+the reviewed archives, not the potentially modified installed files. Admission
+checks archive bytes, installed bytes/metadata, the installation lock, exact
+SafeFS dependency pairing, and absence of package/file symlinks. Preserve the
+reviewed manifest: these are caller-supplied provenance pins and npm receipts,
+not a claim of signed build attestation.
+
+Candidate mode requires local archive receipts. Registry mode requires matching
+HTTPS npm-registry receipts and reviewed copies of those same registry tarballs.
+A locally packed candidate is never relabeled as a published release merely
+because its version matches. Exported qualification manifests and diagnostics
+record mode, origin, versions, integrity receipts, admission/lock hashes and
+the installed module-input digest, rather than inventing a source commit.
+The 9/100 MiB immediate/delayed R2 matrix and all limits remain unchanged. This
+mode does not establish deployment or production-host acceptance.

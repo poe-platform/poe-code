@@ -198,3 +198,58 @@ Cloudflare. This fixture does not replace that remaining #763 acceptance.
 Configuration/limits source references (reviewed September 18, 2026): official
 Cloudflare Workers Wrangler configuration and Workers platform limits docs.
 Local fetched copies are retained in the qualification evidence directory.
+
+## Installed public-package rerun
+
+Deployment remains pending; the installed-package mode below is a **local
+Miniflare** qualification and requires no Cloudflare account or credential
+lookup. Preserve the existing frozen-source route above as a separate result.
+
+1. Copy the reviewed tarballs into this worktree's `out/` and install all three
+   matching packages into a new independent consumer directory using npm.
+   Never link the parent's node_modules. The current offered artifacts are
+   version `0.0.0-issue746.parent`; label them `locally-packed-candidates`, not a
+   registry release and not the frozen e0dfa9b1e source artifact.
+2. Save the npm lock receipt. In separate temporary directories under `out/`,
+   extract the reviewed package tarballs and compute SHA-256 for every regular
+   file, keyed relative to each archive's `package/` root. Reject symlinks.
+   Record each complete archive's SHA-512 SRI and its lock `resolved` value.
+   Build the admission manifest defined in the object-publication contract:
+   `schemaVersion`, explicit `origin`, exact paired `version`, SHA-256 of the
+   lock bytes, and all three `packages` entries with `resolved`, `integrity`,
+   consumer-relative `tarball` and the `files` hash index. Review/preserve this
+   independently generated manifest before using the installed files.
+3. Run without any source selection, keeping runtime asset/tool pins unchanged:
+
+```sh
+SAFE_FS_PUBLIC_CONSUMER_ROOT="$PWD/out/issue763-public/consumer" \
+SAFE_FS_PUBLIC_ADMISSION="$PWD/out/issue763-public/admission.json" \
+SAFE_FS_PYODIDE_ROOT=/absolute/path/to/pyodide-314.0.6-package \
+SAFE_FS_WORKERD_ROOT=/absolute/path/to/miniflare-project \
+TMPDIR="$PWD/out/issue763-public" \
+env -u SAFE_FS_EXECUTOR_ROOT -u SAFE_FS_EXECUTOR_REVISION \
+  -u SAFE_FS_STAGING_REVISION \
+  node --test packages/safe-fs/tests/integration/object-staging-workerd.test.mjs
+```
+
+The loader checks public exports and installed bytes, never Git/source aliases.
+For an independent no-Git check, prepend an executable named `git` that exits
+nonzero to PATH during this command; the valid public matrix must still pass.
+Keep the four complete native cases, admission checks, byte/input digests and
+the explicit provenance label. Invalid version, metadata, integrity, symlink,
+or source-selection inputs must reject; do not repair them by falling back to
+workspace code. Fast rejection regressions run with:
+
+```sh
+node --test packages/safe-fs/tests/integration/object-staging-public-admission.test.mjs
+```
+
+After publication, make a new consumer by installing the exact registry version
+of all three packages from npm, and obtain reviewed copies of those registry
+tarballs. Generate a **new** admission manifest with `origin: registry-release`;
+its package lock receipts must point to the npm registry, not local files. Run
+the same matrix. Do not modify candidate receipts or reuse their manifest to
+manufacture registry provenance. These checks attest the pinned installation,
+not a successful release workflow or a deployed Worker. Public-mode exports
+record package provenance instead of the frozen-source fields, so the earlier
+frozen-artifact verification command must not be applied to them unchanged.

@@ -17,7 +17,7 @@ test("compression and archive browser graphs need no Node codecs or streams", as
     outdir: "/virtual-codec-graph", bundle: true, platform: "browser", format: "esm", target: "es2022",
     conditions: ["workerd", "worker", "browser"], write: false, metafile: true, logLevel: "silent",
     external: ["poe-code/safe-fs/core"], inject: [platform],
-    alias: { "node:stream/web": platform, "node:path": platform },
+    alias: { "@poe-code/safe-fs": "poe-code/safe-fs", "node:stream/web": platform, "node:path": platform },
   });
   const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
   assert.deepEqual([...new Set(imports.filter(entry => entry.external).map(entry => entry.path))], ["poe-code/safe-fs/core"]);

@@ -57,7 +57,8 @@ export async function executeDocumentBatch(input: Uint8Array, value: unknown, op
   const invocation = validateDocxInvocation({ operation: "batch", inputs: [identity?.path ?? "document"], options: { ...operationOptions, ...initial } }, settings.budget);
   const batch = { version: 1, operations: invocation.options.operations } as DocxBatch;
   const budget = settings.budget.lower(Object.fromEntries((options.limit ?? []).map(item => [item.name, item.value])));
-  if (batch.operations.length && batch.operations.every(item => !documentBatchActions.has(item.operation))) {
+  if (batch.operations.length && batch.operations.some(item => !documentBatchActions.has(item.operation) || item.resultHandle) &&
+    batch.operations.every(item => !documentBatchActions.has(item.operation) || ["paragraphs.get", "runs.get"].includes(item.operation))) {
     const model = await applyStyleModelBatch(input, batch, { ...settings, budget,
       ...(context.binaryResolver ? {binaryResolver: context.binaryResolver} : {}),
       ...(context.registerCleanup ? {registerCleanup: context.registerCleanup} : {}),

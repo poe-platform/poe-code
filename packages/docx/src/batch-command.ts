@@ -8,8 +8,10 @@ import { PublicationError, type PublicationInput } from "./publication.js";
 import { executeStyleModelCommand } from "./style-model-command.js";
 
 export async function executeBatchCommand(invocation: DocxInvocation, bytes: Uint8Array, input: PublicationInput | undefined, request: DocxInspectionCommandRequest, context: ArchiveContext): Promise<Uint8Array> {
-  const options = invocation.options as unknown as DocumentBatchOptions & { version: 1; operations: readonly { operation: string; arguments: Record<string, unknown> }[] };
-  if (options.operations.length && options.operations.every(item => !documentBatchActions.has(item.operation))) return executeStyleModelCommand(invocation, bytes, input, request, context);
+  const options = invocation.options as unknown as DocumentBatchOptions & { version: 1; operations: readonly { operation: string; arguments: Record<string, unknown>; resultHandle?: string }[] };
+  if (options.operations.length && options.operations.some(item => !documentBatchActions.has(item.operation) || item.resultHandle) &&
+    options.operations.every(item => !documentBatchActions.has(item.operation) || ["paragraphs.get", "runs.get"].includes(item.operation)))
+    return executeStyleModelCommand(invocation, bytes, input, request, context);
   if ((options.inPlace || options.output !== undefined && options.output !== "-") && invocation.inputs[0] !== "-" && !input)
     throw new PublicationError("unsupported-publication", "File publication requires admitted input identity.");
   const output = options.output === undefined ? undefined : options.output === "-" ? "-" : resolvePath(request.cwd, options.output);

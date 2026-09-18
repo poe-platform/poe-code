@@ -200,3 +200,4 @@ export { Section, Sections, _Header, _Footer } from "./section-model.js";
 export { Comment, Comments, Hyperlink, RenderedPageBreak } from "./review-model.js";
 
 export type { ProvidesStoryPart, ProvidesXmlPart } from "./part-provider.js";
+export { inspectDocumentParagraph, inspectDocumentRun, type TextResourceInspectionData } from "./text-resource-read.js";

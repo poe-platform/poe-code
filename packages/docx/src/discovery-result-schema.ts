@@ -99,6 +99,9 @@ const inspectionData = object({
 });
 const validationData = object({ valid: boolean, profile: { const: "core-v1" }, checks: array(object({ id: string, status: { enum: ["passed", "failed", "unvalidated"] } })), diagnostics: array(object({ code: string, part: string, location: string, message: string })), warnings: strings });
 const xmlData = object({ part: string, encoding: { enum: ["base64", "utf-8"] }, content: string, pretty: boolean, bytes: number, sha256: string });
+const textResourceData = object({ item: object({ kind: { enum: ["paragraphs", "runs"] }, location, text: string,
+  properties: array(object({ name: string, type: { enum: ["string", "boolean", "integer", "number"] }, value: { anyOf: [string, boolean, { type: "number" }, { type: "null" }] }, writable: boolean, cached: { const: false } })),
+  references: array(reference), support: { const: "read" } }) });
 const mutationData = object({ changed: boolean, changes: array(object({ kind: { const: "replace" }, before: location, after: location })),
   output: { oneOf: [object({ path: nullableString, bytes: number, sha256: string }), { type: "null" }] }, dryRun: boolean });
 const equationLocation = object({ kind: { const: "part" }, token: string, value: object({ version: { const: 1 }, sourceSha256: string, generation: number, part: string, story: string, path: array(number), range: { type: "null" } }), positions: object({}) });
@@ -334,6 +337,8 @@ export const inspectionOperationMetadata: Readonly<Record<string, { description:
   ["links.list", "List inert links with stored address, separate anchor, label and owner location.", ["F21"], object({ items: array(object({ location, text: string, address: string, fragment: string, url: string, history: boolean, contains_page_break: boolean })) })],
   ...["links.add", "links.set", "links.remove"].map(id => [id, id === "links.add" ? "Append a hyperlink label to a selected paragraph." : id === "links.set" ? "Change the target while preserving label runs and owner relationships." : "Remove a hyperlink: unwrap its visible label by default; --delete-content deletes it.", ["F21"], object({ ...mutationData.properties, changes: array(object({ kind: { enum: ["insert", "target", "unwrap", "remove"] }, before: location, after: location })) })]),
   ["tables.get", "Inspect one table's 1-based logical cell anchors, spans, omitted slots and exact text.", ["F19", "F20"], tableReadData],
+  ["paragraphs.get", "Read one selected paragraph's logical text, stored nullable formatting and inert owner-local references without creating definitions. A typed batch result handle retains the native paragraph owner.", ["F01", "F04", "F08", "F19"], textResourceData],
+  ["runs.get", "Read one selected run's logical text, stored nullable formatting and inert owner-local references without creating definitions. A typed batch result handle retains the native run owner.", ["F01", "F04"], textResourceData],
   ["tables.list", "List stored table records in the explicitly selected story/owner scope, including logical anchors, spans, omitted slots and exact cell text.", ["F19", "F20"], object({ items: array(tableReadRecord) })],
   ["tables.merge", "Merge a complete rectangle with an explicit content join policy.", ["F20"], tableEditData],
   ["tables.split", "Restore a merged cell's existing grid slots with explicit content distribution.", ["F20"], tableEditData],

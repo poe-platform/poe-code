@@ -571,3 +571,10 @@ cases and 24 built public workflows. Duplicate anchors now reject for unlinked
 native owners while preserving existing state and owner-local IDs. Named
 requirement bindings and both historical failures are retained. This closes that
 reproduced dependency; it does not close any whole family.
+
+The subsequent [paragraph/run read qualification](text-resource-read-20260917.md)
+records 248 exact resource cases within 2,328 passing maintained cases. Direct
+SDK/CLI reads and native batch handles now retain selection identity, nullable
+formatting, story scope and reader-only filesystem capabilities. The historical
+failed receipts and declaration projections remain preserved. These observations
+close that dependency without assigning whole-family acceptance.

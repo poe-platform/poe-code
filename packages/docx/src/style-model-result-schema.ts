@@ -29,6 +29,7 @@ function value(type: string): DocxJsonSchema {
   return object({ id: string, type: styleTypes.includes(type) ? { enum: styleTypes } : partTypes.includes(type) ? { enum: [...partTypes, "NumberingPart"] } : { const: type }, owner: { const: "document" }, revision: { const: 0 } });
 }
 export function styleModelOperationResultSchema(id: string): DocxJsonSchema {
+  if (id === "paragraphs.get" || id === "runs.get") return inspectionOperationMetadata[id]!.result.oneOf![0]!;
   const empty: DocxJsonSchema = {type: "array", maxItems: 0};
   return object({version: {const: 1}, operation: { const: id }, ok: {const: true}, data: value(docxOperationSchemas[id]!.valueType),
     warnings: {type: "array", items: object({code: string, message: string})}, errors: empty, affected: integer,
@@ -42,7 +43,7 @@ export function batchPublicationSchema(): DocxJsonSchema {
 export function styleModelBatchResultSchema(): DocxJsonSchema {
   const empty: DocxJsonSchema = { type: "array", maxItems: 0 };
   return { oneOf: [object({ version: { const: 1 }, operation: { const: "batch" }, ok: { const: true },
-    data: object({ results: { type: "array", items: { oneOf: styleModelBatchOperations.filter(id => docxOperationSchemas[id]).map(styleModelOperationResultSchema) } }, publication: {anyOf: [batchPublicationSchema(), {type: "null"}]} }),
+    data: object({ results: { type: "array", items: { oneOf: [...styleModelBatchOperations.filter(id => docxOperationSchemas[id]), "paragraphs.get", "runs.get"].map(styleModelOperationResultSchema) } }, publication: {anyOf: [batchPublicationSchema(), {type: "null"}]} }),
     warnings: { type: "array", items: object({ code: string, message: string }) }, errors: empty, affected: integer, locations: empty }), object({ version: { const: 1 }, operation: { const: "batch" }, ok: { const: false }, data: { type: "null" }, warnings: empty,
     errors: { type: "array", minItems: 1, items: object({ code: string, message: string }) }, affected: { const: 0 }, locations: empty })] };
 }

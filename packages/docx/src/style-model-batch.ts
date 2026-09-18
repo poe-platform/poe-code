@@ -7,6 +7,9 @@ import { isLength, plainLength, Length, Inches, Cm, Mm, Pt, Twips } from "./form
 import { Image, type ImageModelContext } from "./image-model.js";
 import { imageBatchActions } from "./image-batch-operations.js";
 import { Document, DocumentView } from "./document-model.js";
+import { DocumentSession } from "./document-session.js";
+import { inspectDocumentParagraph, inspectDocumentRun } from "./text-resource-read.js";
+import type { DocxOperationArguments } from "./operation-types.js";
 import { Drawing, InlineShape, InlineShapes } from "./inline-shape-model.js";
 import { Settings } from "./settings-model.js";
 import { Paragraph, Run } from "./block-model.js";
@@ -30,12 +33,13 @@ export { styleModelBatchOperations } from "./style-model-batch-operations.js";
 export async function applyStyleModelBatch(input: Uint8Array, operations: unknown, context: ImageModelContext = {}) {
   const settings = modelContext(context);
   const batch = validateDocxBatch(operations, settings.budget);
-  for (const item of batch.operations) if (!styleModelBatchOperations.includes(item.operation) && !structureModelBatchActions.has(item.operation)) throw new UnsupportedProfileError("This model operation is not implemented by the style batch executor.");
+  for (const item of batch.operations) if (!styleModelBatchOperations.includes(item.operation) && !structureModelBatchActions.has(item.operation) && !["paragraphs.get", "runs.get"].includes(item.operation)) throw new UnsupportedProfileError("This model operation is not implemented by the style batch executor.");
   const borrowed = documentByteView(input);
   settings.budget.check("compressedInput", borrowed.length);
   settings.budget.charge("retainedBytes", borrowed.length);
   const source = new Uint8Array(borrowed);
   const document = await Document(source, settings);
+  const readSession = batch.operations.some(item => ["paragraphs.get", "runs.get"].includes(item.operation)) ? await DocumentSession.open(source, { ...settings, encoding: { order: "input", compression: "store" } }) : undefined;
   const model = { package: document.store.package, warnings: [] as readonly { readonly code: string }[], save: (output: import("./model-output.js").DocumentOutput, options?: import("./model-output.js").DocumentSaveOptions) => document.save(output, options), publish: (options: import("./publication.js").PublicationOptions, context: import("./publication.js").PublicationContext) => document.store.publish(options, context) };
   const saved = new ModelSaveStage(settings);
   const named = new Map<string, unknown>();
@@ -118,7 +122,19 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
     try {
       await settings.budget.checkpoint();
       let value: unknown;
-      if (item.operation === styleModelBatchBootstrap) {
+      let resultValue: unknown;
+      let readLocations: import("./location-token.js").Location[] | undefined;
+      if (item.operation === "paragraphs.get" || item.operation === "runs.get") {
+        const read = item.operation === "paragraphs.get" ? inspectDocumentParagraph : inspectDocumentRun;
+        const data = await read(source, item.arguments as DocxOperationArguments<"paragraphs.get">, readSession!.context);
+        const location = data.item.location;
+        let node = document.store.xml(location.value.part).root;
+        for (const position of location.value.path) node = node.children[position]!;
+        const ref = document.store.ref(location.value.part, node);
+        value = item.operation === "paragraphs.get" ? document.store.paragraph(ref) : document.store.run(ref);
+        resultValue = data;
+        readLocations = [location];
+      } else if (item.operation === styleModelBatchBootstrap) {
         const receiver = resolve(item.receiver);
         if (!(receiver instanceof DocumentView)) throw new DocxUsageError("Expected an admitted document owner.");
         value = receiver.styles;
@@ -143,14 +159,15 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
         value = await (imageAction ? imageAction(resolve(item.receiver), args, settings) : packageAction ? packageAction(resolve(item.receiver), args, settings) : (structureModelBatchActions.get(item.operation) ?? styleModelBatchActions.get(item.operation))!(resolve(item.receiver), args));
       }
       if (item.resultHandle) named.set(item.resultHandle, value);
-      const encoded = encode(value);
+      const encoded = resultValue ?? encode(value);
       results.push({ operation: item.operation, value: encoded });
       const nextRevision = currentRevision();
       const changes = nextRevision !== revision ? effects.record(document.store.snapshot()) : [];
+      if (readSession && changes.length) await readSession.stage(document.store.snapshot());
       const count = changes.length ? 1 : 0;
       affected += count;
       operationResults.push({version: 1, operation: item.operation, ok: true, data: encoded, affected: count,
-        warnings: [], errors: [], locations: changes.flatMap(change => change.after ? [change.after] : [])});
+        warnings: [], errors: [], locations: readLocations ?? changes.flatMap(change => change.after ? [change.after] : [])});
       revision = nextRevision;
     } catch (cause) {
       const error = cause instanceof Error ? cause : new Error("Document model batch operation failed.", {cause});

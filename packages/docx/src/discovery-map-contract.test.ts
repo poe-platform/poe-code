@@ -182,6 +182,11 @@ it("keeps the current evidence snapshot joined to live declarations and every AP
     operations: typeof audit.operations; apis: typeof audit.apis; runtimeExports: string[];
     runtimeMembers: Record<string, { operationIds: string[]; members: { operationIds: string[]; evidenceKind: string }[] }>;
   };
+  const textResources = JSON.parse(readFileSync(new URL("../../../docs/docx/text-resource-read-20260917/discovery-map-update.json", import.meta.url), "utf8")) as typeof native;
+  Object.assign(native.operations, textResources.operations);
+  Object.assign(native.apis, textResources.apis);
+  Object.assign(native.runtimeMembers, textResources.runtimeMembers);
+  native.runtimeExports = textResources.runtimeExports;
   Object.assign(audit.operations, native.operations);
   Object.assign(audit.apis, native.apis);
   audit.runtimeExports = native.runtimeExports;

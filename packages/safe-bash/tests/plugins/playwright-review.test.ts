@@ -6,7 +6,7 @@ import { createSnapshotFrame } from '../helpers/playwright-snapshot.js';
 
 test('capacity preflight remains valid when a closed session is reopened concurrently with a new session', async () => {
   const acquired: string[] = [];
-  const page = { goto: async () => {} } as unknown as PlaywrightPage;
+  const page = { goto: async () => {}, url: () => 'about:blank' } as unknown as PlaywrightPage;
   const adapter: PlaywrightAdapter = {
     browsers: { chromium: { headed: false } },
     async acquire(options) {
@@ -45,7 +45,7 @@ test('cancelled reference actions preserve deferred handle disposal failures', a
   };
   const snapshot = createSnapshotFrame([{ node, native: handle }]);
   const page = {
-    goto: async () => {}, on() {}, off() {},
+    goto: async () => {}, url: () => 'about:blank', on() {}, off() {},
     frames: () => [snapshot.frame],
   } as unknown as PlaywrightPage;
   const controller = createPlaywrightController({ adapter: {
@@ -58,17 +58,20 @@ test('cancelled reference actions preserve deferred handle disposal failures', a
       } satisfies PlaywrightLease;
     },
   } });
-  const run = (args: string[]) => controller.run({ args, env: {}, signal: cancellation.signal, write: async () => {} });
+  let latestRef = '';
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: cancellation.signal, write: async text => { latestRef = text.match(/ref=(e\d+)/)?.[1] ?? latestRef; } });
   try {
     await run(['open']);
     await run(['snapshot']);
     assert.equal(snapshot.acquiredElements.length, 0);
-    const outcome = run(['click', 'e1']).then(() => undefined, error => error);
+    const priorCapsuleDisposals = snapshot.disposedCapsules.length;
+    assert.ok(latestRef);
+    const outcome = run(['click', latestRef]).then(() => undefined, error => error);
     await actionStarted;
     cancellation.abort(new Error('cancelled action'));
     const failure = await outcome;
     assert.equal(disposals, 1);
-    assert.equal(snapshot.disposedCapsules.length, 1);
+    assert.equal(snapshot.disposedCapsules.length, priorCapsuleDisposals + 1);
     assert.ok(failure instanceof AggregateError, 'cancellation must not erase deferred disposal failure');
     assert.equal(failure.errors[0], cancellation.signal.reason);
     assert.ok(failure.errors[1] instanceof AggregateError);

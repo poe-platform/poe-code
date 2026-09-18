@@ -165,6 +165,15 @@ function record(value: unknown, allowed: string[], required: string[] = []): val
 }
 const text = (value: unknown): value is string => typeof value === "string" && validText(value);
 const identifier = (value: unknown): value is string => text(value) && value.length > 0 && !value.includes("\0");
+export function validFontName(value: unknown): value is string {
+  if (!identifier(value)) return false;
+  for (const char of value) {
+    const code = char.codePointAt(0)!;
+    if (code < 32 || code >= 127 && code <= 159) return false;
+  }
+  return true;
+}
+
 function optional(value: RecordValue, key: string, check: (value: unknown) => boolean): boolean {
   return value[key] === undefined || check(value[key]);
 }
@@ -226,10 +235,10 @@ export function validateOriginalDocumentContent(value: unknown): boolean {
     optional(item, "width", length) && optional(item, "height", length) && optional(item, "orientation", v => v === "portrait" || v === "landscape") &&
     optional(item, "margins", v => record(v, ["top", "right", "bottom", "left", "header", "footer", "gutter"]) && Object.values(v).every(n => n === undefined || length(n)));
   const style = (item: unknown) => record(item, ["name", "type", "font", "size", "bold", "italic"], ["name", "type"]) && identifier(item.name) &&
-    ["paragraph", "character", "table"].includes(item.type as string) && optional(item, "font", identifier) && optional(item, "size", length) &&
+    ["paragraph", "character", "table"].includes(item.type as string) && optional(item, "font", validFontName) && optional(item, "size", length) &&
     optional(item, "bold", v => typeof v === "boolean") && optional(item, "italic", v => typeof v === "boolean");
   const theme = (item: unknown) => record(item, ["name", "majorFont", "minorFont", "colors"], ["name", "majorFont", "minorFont"]) &&
-    identifier(item.name) && identifier(item.majorFont) && identifier(item.minorFont) && optional(item, "colors", v =>
+    identifier(item.name) && validFontName(item.majorFont) && validFontName(item.minorFont) && optional(item, "colors", v =>
       record(v, ["dark1", "light1", "dark2", "light2", "accent1", "accent2", "accent3", "accent4", "accent5", "accent6", "hyperlink", "followedHyperlink"]) &&
       Object.values(v).every(color => color === undefined || typeof color === "string" && color.length === 6 && [...color].every(c => "0123456789abcdefABCDEF".includes(c))));
   return record(value, ["version", "blocks", "page", "styles", "theme"], ["version", "blocks"]) && value.version === 1 && blocks(value.blocks) &&

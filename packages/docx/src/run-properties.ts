@@ -1,3 +1,5 @@
+import { validFontName } from "./argument-json.js";
+import { InvalidValueError } from "./archive.js";
 import { xmlValue } from "./create-content.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import type { XmlElement } from "./package-xml.js";
@@ -17,6 +19,11 @@ export function runElementOpen(node: XmlElement): string {
 
 /** Only supplied direct properties change; absence never resolves the style cascade. */
 export function formattedRunProperties(editor: DocumentXmlEditor, run: XmlElement, options: DocxOperationArguments<"runs.set">, children: (node: XmlElement) => readonly XmlElement[] = node => node.children, metadata: DocxOperationArguments<"runs.fonts.set"> = {}): string {
+  for (const value of [options.font, options.ascii, options.highAnsi, options.eastAsia, options.complexScript,
+    metadata.ascii, metadata.highAnsi, metadata.eastAsia, metadata.complexScript]) {
+    if (value !== undefined && value !== null && !validFontName(value))
+      throw new InvalidValueError("Font references must be nonempty names without control characters.");
+  }
   const w = run.namespace;
   const containers = children(run).filter(c => c.namespace === w && c.localName === "rPr");
   if (containers.length > 1) throw new UnsupportedEditError("Duplicate run property containers cannot be edited.");

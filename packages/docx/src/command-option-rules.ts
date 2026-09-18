@@ -1,4 +1,4 @@
-import { DocxUsageError } from "./argument-json.js";
+import { DocxUsageError, validFontName } from "./argument-json.js";
 import { paragraphLineMultiples, paragraphUnits } from "./paragraph-properties.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 
@@ -204,7 +204,7 @@ export function validateDocxOptionRules(operation: string, options: Readonly<Rec
     const size = magnitude(options.size);
     if (size !== undefined && (Math.round(size / 6350) < 1 || Math.round(size / 6350) > 3276)) reject("Font size must round to 1 through 3276 half-points.");
     for (const key of ["font", "ascii", "highAnsi", "eastAsia", "complexScript"]) {
-      if (options[key] !== undefined && options[key] !== null && (typeof options[key] !== "string" || !options[key] || [...options[key] as string].some(c => c.charCodeAt(0) < 32))) reject("Font references must be nonempty names without control characters.");
+      if (options[key] !== undefined && options[key] !== null && !validFontName(options[key])) reject("Font references must be nonempty names without control characters.");
     }
     if (has("font") && (has("ascii") || has("highAnsi"))) reject("Font shorthand conflicts with explicit Latin font slots.");
     if (has("baseline") && (has("superscript") || has("subscript"))) reject("Choose one baseline spelling.");

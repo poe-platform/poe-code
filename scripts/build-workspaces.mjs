@@ -310,11 +310,39 @@ function taskEnvironment(environment, stage, unitMode) {
   return selected;
 }
 
-async function executeStages(plan, { environment, spawn, host, concurrency = 1, unitMode = false, testArguments = [] }) {
+async function executeStages(plan, { environment, spawn, host, concurrency = 1, unitMode = false, testArguments = [], dependencyOrder = false }) {
   assert.equal(host.platform === "win32", false, "Workspace process-group cleanup currently supports POSIX hosts");
   const active = new Set(), registered = [], failures = [];
   const remember = (context, error) => { context?.errors.push(error); failures.push(error); };
-  let interrupted, failed = false, next = 0, completed = 0;
+  let interrupted, failed = false, completed = 0;
+  const pending = new Set(plan.stages);
+  const selectedNames = new Set(plan.stages.map(stage => stage.name));
+  const finished = new Set(), waiting = new Set(), inFlight = new Set();
+  const prerequisites = new Map();
+  if (dependencyOrder) {
+    const edges = new Map();
+    for (const edge of plan.edges) {
+      if (!edges.has(edge.from)) edges.set(edge.from, []);
+      edges.get(edge.from).push(edge.to);
+    }
+    for (const stage of plan.stages) {
+      const required = new Set(), visited = new Set();
+      const visit = name => {
+        if (visited.has(name)) return;
+        visited.add(name);
+        for (const dependency of edges.get(name) ?? []) {
+          if (selectedNames.has(dependency)) required.add(dependency);
+          visit(dependency);
+        }
+      };
+      visit(stage.name);
+      prerequisites.set(stage.name, required);
+    }
+  }
+  const notifyReady = () => {
+    for (const resolve of waiting) resolve();
+    waiting.clear();
+  };
   const signal = (pid, value) => {
     try { host.kill(-pid, value); } catch (error) { if (error?.code !== "ESRCH") throw error; }
   };
@@ -404,9 +432,23 @@ async function executeStages(plan, { environment, spawn, host, concurrency = 1, 
     }
   };
   const work = async () => {
-    while (!failed && next < plan.stages.length) {
-      const stage = plan.stages[next++];
-      await run(stage);
+    while (!failed && pending.size) {
+      const stage = [...pending].find(candidate =>
+        [...(prerequisites.get(candidate.name) ?? [])].every(name => finished.has(name)));
+      if (!stage) {
+        assert.ok(inFlight.size, "Workspace dependencies cannot make progress");
+        await new Promise(resolve => waiting.add(resolve));
+        continue;
+      }
+      pending.delete(stage);
+      inFlight.add(stage);
+      try {
+        await run(stage);
+        if (!failed) finished.add(stage.name);
+      } finally {
+        inFlight.delete(stage);
+        notifyReady();
+      }
     }
   };
   try {
@@ -414,6 +456,7 @@ async function executeStages(plan, { environment, spawn, host, concurrency = 1, 
     const workers = Array.from({ length: concurrency }, () => work().catch(error => {
       failures.push(error); failed = true;
       for (const context of active) terminate(context, "SIGTERM");
+      notifyReady();
     }));
     await Promise.all(workers);
   } catch (error) { failures.push(error); failed = true; }
@@ -431,12 +474,7 @@ export async function buildWorkspaces(rootDirectory, options = {}) {
   validateEnvironment(environment);
   const plan = createWorkspaceBuildPlan(rootDirectory, fileSystem);
   const selected = { ...plan, ...selectBuildStages(plan, workspace === undefined ? plan.workspaces.map(stage => stage.name) : [workspace]) };
-  let completed = 0;
-  for (const layer of plan.layers) {
-    const names = new Set(layer);
-    const stages = selected.stages.filter(stage => names.has(stage.name));
-    if (stages.length) completed += await executeStages({ ...selected, stages }, { environment, spawn, host, concurrency });
-  }
+  const completed = await executeStages(selected, { environment, spawn, host, concurrency, dependencyOrder: true });
   return { workspaces: plan.workspaces.length, builds: completed, edges: plan.edges.length, layers: plan.layers.length, noBuild: selected.noBuild, manifestless: plan.manifestless };
 }
 
@@ -457,7 +495,7 @@ export async function testWorkspaces(rootDirectory, options = {}) {
   }).trim().split("\n");
   assert.ok(localGitVariables.every(name => name.startsWith("GIT_") && [...name].every(character => "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_".includes(character))), "Invalid Git local environment names");
   for (const name of localGitVariables) delete childEnvironment[name];
-  const builds = await executeStages({ ...plan, stages: plan.buildStages }, { environment: childEnvironment, spawn, host, unitMode: true });
+  const builds = await executeStages({ ...plan, stages: plan.buildStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency: 2, dependencyOrder: true });
   await executeStages({ ...plan, stages: testStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency, testArguments });
   return { workspaces: plan.workspaces.length, builds, tests: plan.testStages.length, concurrency, cache: "UNCACHED", excluded: excludeWorkspace ? [excludeWorkspace] : [], noTest: plan.noTest, noBuild: plan.buildNoBuild, manifestless: plan.manifestless };
 }

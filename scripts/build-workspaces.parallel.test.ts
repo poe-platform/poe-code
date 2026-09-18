@@ -54,6 +54,23 @@ function fixture() {
 }
 
 describe("dependency-layer workspace builds", () => {
+  it("starts a ready dependent without waiting for an unrelated slow build", async () => {
+    const state = fixture();
+    state.fileSystem.writeFileSync(state.root + "/packages/alpha/package.json", JSON.stringify({
+      name: "alpha", version: "1.0.0", scripts: { build: "build-alpha" }, dependencies: { beta: "*" }
+    }));
+    const running = buildWorkspaces(state.root, state);
+    expect(state.children).toHaveLength(2);
+    state.children[0]!.emit("close", 0, null);
+    await new Promise(resolve => setImmediate(resolve));
+    const startedBeforeSlowSibling = state.children.length;
+    state.children[1]!.emit("close", 0, null);
+    await new Promise(resolve => setImmediate(resolve));
+    state.children[2]!.emit("close", 0, null);
+    await running;
+    expect(startedBeforeSlowSibling).toBe(3);
+  });
+
   it("accepts a bounded build concurrency option alongside an exact workspace", () => {
     expect(parseWorkspaceArguments(["--concurrency=1"])).toEqual({ mode: "build", concurrency: 1 });
     expect(parseWorkspaceArguments(["--workspace=alpha", "--concurrency=2"])).toEqual({

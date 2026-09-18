@@ -16,12 +16,18 @@ const { Miniflare, convertV4MiniflareOptions } = require('miniflare');
 
 const python = `
 import json, sys, pyodide, pyodide_js, zlib
+from js import Object
 from workers import WorkerEntrypoint, Response
 class Default(WorkerEntrypoint):
  async def fetch(self, request):
   result = {'python': sys.version.split()[0], 'pyodide': pyodide.__version__,
    'syscall_syncify': hasattr(pyodide_js._module, '_syscall_syncify'),
    'exposed_imports': hasattr(pyodide_js._module, 'wasmImports')}
+  result['native_hooks'] = [name for name in dir(pyodide_js._module)
+   if not name.startswith('___') and any(part in name.lower() for part in ['syscall', 'wasm', 'jspi', 'mount'])]
+  result['api_hooks'] = [name for name in dir(pyodide_js._module.API)
+   if any(part in name.lower() for part in ['syscall', 'wasm', 'jspi', 'mount', 'filesystem'])]
+  result['filesystem_backends'] = list(Object.keys(pyodide_js._module.FS.filesystems))
   response = await self.env.FS.fetch('https://canonical/work/local_module.py')
   result['canonical_rpc'] = await response.text()
   try:
@@ -60,6 +66,9 @@ return child.getEntrypoint().fetch(request);
     const result = JSON.parse(text);
     assert.equal(result.pyodide, '314.0.6');
     assert.equal(result.syscall_syncify, true);
+    assert.equal(result.exposed_imports, false);
+    assert.ok(result.native_hooks.includes('_syscall_syncify'));
+    assert.ok(result.filesystem_backends.includes('MEMFS'));
     assert.equal(result.canonical_rpc, 'answer = 42\n');
     assert.deepEqual(result.native_bytes, [0, 255, 42]);
     assert.equal(result.canonical_native_error, 'FileNotFoundError');

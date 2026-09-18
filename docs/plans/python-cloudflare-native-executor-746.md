@@ -198,6 +198,15 @@ pointer/wasm-table mutation, JS-frame suspension, or Python builtins wrappers
 are not substitutes. Await upstream/runtime-owner guidance on that interface
 while independently qualifying the custom static implementation.
 
+The follow-up managed inventory (`managed-hooks.log`) enumerates exposed ABI
+names only, never credentials or binding values. It finds the standard
+Emscripten mount helpers, `instantiateWasm`, wasm table/plugin helpers and
+`syscall_syncify`; the API hook inventory is empty and `wasmImports` is absent.
+The compiled instance is already created when these helpers become visible.
+Their existence is not a supported replacement boundary for its captured native
+imports. The maintained probe continues to demonstrate canonical RPC success
+and native canonical-open failure without copying files or installing a shim.
+
 ## Boundaries
 
 Do not fabricate absent canonical POSIX metadata. Native stat must reject values

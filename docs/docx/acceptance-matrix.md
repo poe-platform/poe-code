@@ -650,3 +650,10 @@ closes filename loss with 308 original passing memfs cases, 11,786 affected
 consumer cases and 300 independent built public workflows. Original failures
 and unchanged controls remain preserved. Destination budgets, owned bytes and
 package retention pass; full F01–F07 reconciliation remains open.
+
+The [comment-ID boundary qualification](comment-id-boundaries-20260918.md)
+closes owner-local allocation at sparse and signed 32-bit boundaries with
+168 passing memfs cases, 1,530 affected consumers and 168 independent built
+public workflows. Existing comment bodies and relationships remain retained.
+Original failures and consumer corrections are recorded; whole-family
+reconciliation remains open.

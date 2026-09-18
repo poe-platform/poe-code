@@ -14,6 +14,7 @@ import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { documentDialects, dialectForNamespace } from "./dialect.js";
 import { DocumentPackage } from "./package.js";
 import { relationshipOwner } from "./part-uri.js";
+import { nextCommentId } from "./comment-id.js";
 
 function text(value: unknown): asserts value is string {
   if (typeof value !== "string") throw new InputTypeError("Expected comment text.");
@@ -53,13 +54,11 @@ export class Comments implements Iterable<Comment> {
     text(value);
     text(author);
     if (initials !== null) text(initials);
+    const next = nextCommentId(this.nodes.map(id), this.store.context.budget);
     const styles = this.store.stylesForStory(this.ref.part);
     const style = styles.has("Comment Text")
       ? styles.at("Comment Text")
       : styles.add_style("Comment Text", WD_STYLE_TYPE.PARAGRAPH);
-    const used = new Set(this.nodes.map(id));
-    let next = 0;
-    while (used.has(next)) next++;
     this.store.change(this.ref.part, (xml) => {
       const root = this.store.node(this.ref);
       xml.insertChildren(

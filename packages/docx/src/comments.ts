@@ -14,6 +14,7 @@ import { assertDocumentEditable, publishDocumentArchive, type PublicationContext
 import { resolveDocxSelection } from "./simple-selection.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { findRelationshipPart } from "./relationship-part.js";
+import { nextCommentId } from "./comment-id.js";
 
 export type CommentReadRequest = { [K in "comments.list" | "comments.get"]: { readonly operation: K; readonly options: DocxOperationArguments<K> } }["comments.list" | "comments.get"];
 export type CommentEditRequest = { [K in "comments.add" | "comments.set" | "comments.remove"]: { readonly operation: K; readonly options: DocxOperationArguments<K>; readonly input?: PublicationInput } }["comments.add" | "comments.set" | "comments.remove"];
@@ -124,8 +125,7 @@ export async function editDocumentComments(input: Uint8Array, request: CommentEd
     const lastPath = [...before.value.path, p.children.indexOf(last)];
     const compare = (a: readonly number[], b: readonly number[]) => { for (let i = 0; i < Math.min(a.length, b.length); i++) if (a[i] !== b[i]) return a[i]! - b[i]!; return a.length - b.length; };
     if (state.records.some(n => n.start?.part === before.value.part && n.end && compare(n.start.path, lastPath) < 0 && compare(firstPath, n.end.path) < 0)) throw new UnsupportedEditError("Comment ranges cannot overlap existing comments.");
-    const used = new Set(state.records.map(n => n.id));
-    let id = 0; while (used.has(id)) { budget.charge("work", 1); id++; }
+    const id = nextCommentId(state.records.map(n => n.id), budget);
     const patches = new Map([[first, `<cm:commentRangeStart xmlns:cm="${w}" cm:id="${id}"/>` + editor.sourceXml(first)]]);
     patches.set(last, (patches.get(last) ?? editor.sourceXml(last)) + `<cm:commentRangeEnd xmlns:cm="${w}" cm:id="${id}"/><cm:r xmlns:cm="${w}"><cm:commentReference cm:id="${id}"/></cm:r>`);
     editor.replaceElement(p, editor.sourceXml(p, patches));

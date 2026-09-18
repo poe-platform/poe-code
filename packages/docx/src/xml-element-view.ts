@@ -51,7 +51,7 @@ function markup(node: DocxXmlNode, budget: DocumentBudget, depth = 1): string {
   const declarations = [...namespaces].filter(([prefix]) => prefix !== "xml").map(([prefix, uri]) => ` xmlns:${prefix}="${xmlValue(uri)}"`).join("");
   const children = (node.children ?? []).map(child => markup(child, budget, depth + 1)).join("");
   budget.charge("retainedBytes", (tag.length + attributes.length + declarations.length + children.length) * 2);
-  return `<${tag}${declarations}${attributes}>${children}</${tag}>`;
+  return `<${tag}${node.name.namespaceURI ? "" : ' xmlns=""'}${declarations}${attributes}>${children}</${tag}>`;
 }
 
 class XmlViewStore {

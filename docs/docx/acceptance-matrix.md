@@ -9,6 +9,7 @@ before later dependencies and still requires current-source reconciliation.
 
 | Required behavior or dependency | Current named evidence |
 | --- | --- |
+| XML insertion retains explicitly empty namespaces under inherited defaults, including native-name lookalikes | [384 original failures, 768 qualified cases and 384 independently checked built workflows](xml-insert-expanded-names-20260918.md) |
 | OPC colon-bearing part read/edit/rename/save and separate extraction safety | [88 original failures; 3,624 qualified passes and 236 built workflows](opc-colon-partnames-20260918.md) |
 | DOTX native returned DocumentPart and separately loaded styles/settings/comments views | [54 exact public-route passes and 54 independent built workflows](native-template-returned-views-20260918.md) |
 | Relationship collection defaults, iterable updates, returned handles and opaque-reference guards | [2,712 exact owned passes, 205 neighbors and 384 built public workflows](relationship-collection-protocols-20260918.md) |

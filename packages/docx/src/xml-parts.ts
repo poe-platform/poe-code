@@ -16,6 +16,7 @@ import { DocumentBudget } from "./budget.js";
 import { DocumentPackage } from "./package.js";
 import { displayXml } from "./xml-display.js";
 import { documentDialects } from "./dialect.js";
+import { parseMediaType } from "./media-type.js";
 
 export interface XmlOptions { readonly part: string; readonly raw?: boolean; readonly pretty?: boolean }
 export interface XmlData {
@@ -130,7 +131,7 @@ export async function replaceDocumentXmlPart(input: Uint8Array, replacement: Uin
       throw new UnsupportedEditError("Replacement changes opaque XML content or its namespace context.");
   }
   for (const part of archive.package.parts) {
-    if (graph.getPart(part.partname).content_type.toLowerCase() !== part.content_type.toLowerCase())
+    if (parseMediaType(graph.getPart(part.partname).content_type, "identity") !== parseMediaType(part.content_type, "identity"))
       throw new UnsupportedEditError("XML replacement cannot change existing part content types or document kind.");
   }
   if (changed && embeddedFontState(archive.package, budget) !== embeddedFontState(graph, budget))

@@ -355,6 +355,108 @@ test("quoted and block scalar families", async () => {
   assert.equal((await run(["-o", "json", "-c", "."], ">-\n  pine\n  oak\n")).stdout, '"pine oak"\n');
 });
 
+for (const quote of ["'", '"']) {
+  for (const lineBreak of ["\n", "\r\n", "\r"]) {
+    for (const [name, content, expected] of [
+      ["paragraph", "first\n  second\n\n  paragraph", "first second\nparagraph"],
+      ["multiple empty lines", "first\n\n\n  last", "first\n\nlast"],
+      ["whitespace-only lines", "first \t\n \t\n   \n  last", "first\n\nlast"],
+      ["more indentation", "first \t\n      second\n  last", "first second last"],
+      ["literal inline whitespace", "  first \t second  ", "  first \t second  "],
+      ["opening and closing breaks", "\n  first\n\n  last\n  ", " first\nlast "],
+      ["only one break", "  \n \t", " "],
+      ["only empty lines", "  \n \t\n\n  ", "\n\n"],
+      ["only whitespace", " \t ", " \t "],
+      ["non-ASCII content", "é😀\n  中\n\n  𠀀", "é😀 中\n𠀀"],
+      ["non-YAML whitespace", "first\u00a0\n  \u00a0second\u2028\n  \u2029last", "first\u00a0 \u00a0second\u2028 \u2029last"],
+    ] as const) {
+      test(`quoted folding ${quote} ${JSON.stringify(lineBreak)}: ${name}`, async () => {
+        const input = `text: ${quote}${content.split("\n").join(lineBreak)}${quote}${lineBreak}`;
+        assert.deepEqual(await run(["-o", "json", "-c", "."], input), {
+          status: 0, stdout: `${JSON.stringify({ text: expected })}\n`, stderr: "",
+        });
+      });
+    }
+  }
+}
+
+for (const lineBreak of ["\n", "\r\n", "\r"]) {
+  for (const [name, content, expected] of [
+    ["escaped continuation", "first\\\n  second", "firstsecond"],
+    ["escaped continuation whitespace", "first \t\\\n  second", "first \tsecond"],
+    ["escaped continuation empty line", "first\\\n \t\n  second", "first\nsecond"],
+    ["escaped continuation empty lines", "first\\\n\n\n  second", "first\n\nsecond"],
+    ["escaped continuation at close", "first\\\n \t\n  ", "first\n"],
+    ["escaped whitespace next to folding", "first\\ \\t \t\n  \\ second", "first \t  second"],
+    ["escaped content is not folded", "first\\n\\r\\t\n  second", "first\n\r\t second"],
+    ["escaped slash before folding", "first\\\\\n\n  second", "first\\\nsecond"],
+  ] as const) {
+    test(`quoted folding double ${JSON.stringify(lineBreak)}: ${name}`, async () => {
+      assert.deepEqual(await run(["-o", "json", "-c", "."], `"${content.split("\n").join(lineBreak)}"`), {
+        status: 0, stdout: `${JSON.stringify(expected)}\n`, stderr: "",
+      });
+    });
+  }
+}
+
+test("quoted folding preserves doubled single quotes and literal backslashes", async () => {
+  assert.deepEqual(await run(["-o", "json", "-c", "."], "'can''t\\\n\n  stop''now'"), {
+    status: 0, stdout: `${JSON.stringify("can't\\\nstop'now")}\n`, stderr: "",
+  });
+});
+
+test("quoted folding preserves paragraphs through a VFS shell invocation", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/input.yaml", new TextEncoder().encode('text: "first\n  second\n\n  paragraph"\n'));
+  const shell = new Shell({ fs, cwd: "/work" }).use(yqCommands());
+  try {
+    const result = await shell.exec("yq -o json -c '.' input.yaml");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, '{"text":"first second\\nparagraph"}\n');
+    assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
+});
+
+test("quoted folding projections match decoded UTF-8 bytes within each flow token", async context => {
+  const input = '["first  \n  second\n\n  😀", \'can\'\'t\n\n  中\', "a \\\n\n  b", "\\n\\t\\ \n  z", " \n\n  ", "tail"]';
+  const expected = ["first second\n😀", "can't\n中", "a \nb", "\n\t  z", "\n", "tail"];
+  const session = createYqQuerySession({ signal: new AbortController().signal });
+  const ledger = new YqLedger();
+  const admitScalar = ledger.admitScalar.bind(ledger);
+  const projections: number[] = [];
+  context.mock.method(ledger, "admitScalar", (bytes: number) => {
+    projections.push(bytes);
+    admitScalar(bytes);
+  });
+  try {
+    const values = [];
+    for await (const value of parseYamlDocuments(input, session.ownedWork, ledger)) values.push(value);
+    assert.deepEqual(values, [expected]);
+    assert.deepEqual(projections, expected.map(value => Buffer.byteLength(value)));
+    assert.equal(ledger.documentNodes, expected.length + 1);
+    assert.equal(ledger.documentValueBytes, Buffer.byteLength(JSON.stringify(expected)));
+  } finally { await session.close(); }
+});
+
+for (const quote of ["'", '"']) test(`quoted folding ${quote} admission precedes decoded scalar construction`, async context => {
+  const session = createYqQuerySession({ signal: new AbortController().signal });
+  const ledger = new YqLedger();
+  const failure = new YqError("limit", "LIMIT_MAX_SCALAR_BYTES", 5);
+  const admission = context.mock.method(ledger, "admitScalar", (bytes: number) => {
+    assert.equal(bytes, Buffer.byteLength("😀\n中"));
+    throw failure;
+  });
+  try {
+    await assert.rejects(async () => {
+      for await (const unused of parseYamlDocuments(`${quote}😀 \n\n  中${quote}`, session.ownedWork, ledger)) void unused;
+    }, error => error === failure);
+    assert.equal(admission.mock.callCount(), 1);
+    assert.equal(ledger.documentNodes, 0);
+    assert.equal(ledger.documentValueBytes, 0);
+  } finally { await session.close(); }
+});
+
 test("directives and documents remain independent", async () => {
   const result = await run(["-o", "json", "-c", "."], "%YAML 1.2\n---\nready\n...\n---\n");
   assert.deepEqual(result, { status: 0, stdout: '"ready"\nnull\n', stderr: "" });

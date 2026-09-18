@@ -127,13 +127,14 @@ export class Section {
   private set(tag: string, attr: string, value: string | null): void {
     this.store.change(this.ref.part, (xml) => {
       const node = this.store.node(this.ref),
-        child = sectionChild(node, tag);
+        children = activeModelChildren(this.store, this.ref.part),
+        child = sectionChild(node, tag, children);
       const markup = child
         ? mergeStyleChildren(xml, child, new Map(), [], { [attr]: value })
         : `<sp:${tag} xmlns:sp="${node.namespace}"${value === null ? "" : ` sp:${attr}="${xmlValue(value)}"`}/>`;
       xml.replaceElement(
         node,
-        mergeStyleChildren(xml, node, new Map([[tag, markup]]), sectionPropertyOrder)
+        mergeStyleChildren(xml, node, new Map([[tag, markup]]), sectionPropertyOrder, {}, children)
       );
     });
   }

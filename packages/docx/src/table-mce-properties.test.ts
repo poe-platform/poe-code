@@ -103,7 +103,7 @@ for (const strict of [false, true]) it(`reads selected columns of an empty ${str
 });
 
 for (const strict of [false, true]) it.each(fixtures.filter(fixture => fixture !== "direct control"))(
-  `retains table subtree restrictions and supports native attribute resets in ${strict ? "Strict" : "Transitional"} %s`,
+  `supports active table properties and resets in ${strict ? "Strict" : "Transitional"} %s`,
   async fixture => {
     const input = await inputFor(fixture, strict);
     const actions = ["alignment", "alignment reset", "autofit", "direction", "vertical", "vertical reset", "width", "width reset", "height", "height reset", "height rule", "height rule reset"];
@@ -133,10 +133,7 @@ for (const strict of [false, true]) it.each(fixtures.filter(fixture => fixture !
       }
       outcomes.push({ action, code, retained: Buffer.from(doc.element.serialize()).equals(Buffer.from(before)) });
     }
-    expect(outcomes).toEqual(actions.map(action => {
-      const reset = action === "height reset" || action === "height rule reset";
-      return { action, code: reset ? "no error" : "unsupported-edit", retained: !reset };
-    }));
+    expect(outcomes).toEqual(actions.map(action => ({action, code: "no error", retained: false})));
   }
 );
 
@@ -152,6 +149,73 @@ it("refreshes cached table grids after ordinary edits and isolates document owne
   expect(table.columns.at(0).width?.twips).toBe(1440);
   expect(other.tables[0]!.columns.at(0).width?.twips).toBe(720);
 });
+
+const nativeEdits = [
+  {owner: "table", property: "alignment", value: WD_TABLE_ALIGNMENT.LEFT, tag: "jc", expected: "LEFT"},
+  {owner: "table", property: "alignment", value: null, tag: "jc", expected: null},
+  {owner: "table", property: "autofit", value: true, tag: "tblLayout", expected: true},
+  {owner: "table", property: "table_direction", value: WD_TABLE_DIRECTION.LTR, tag: "bidiVisual", expected: "LTR"},
+  {owner: "cell", property: "vertical_alignment", value: WD_CELL_VERTICAL_ALIGNMENT.TOP, tag: "vAlign", expected: "TOP"},
+  {owner: "cell", property: "vertical_alignment", value: null, tag: "vAlign", expected: null},
+  {owner: "cell", property: "width", value: Twips(720), tag: "tcW", expected: 720},
+  {owner: "cell", property: "width", value: null, tag: "tcW", expected: null},
+  {owner: "row", property: "height", value: Twips(240), tag: "trHeight", expected: 240},
+  {owner: "row", property: "height", value: null, tag: "trHeight", expected: null},
+  {owner: "row", property: "height_rule", value: WD_ROW_HEIGHT_RULE.AUTO, tag: "trHeight", expected: "AUTO"},
+  {owner: "row", property: "height_rule", value: null, tag: "trHeight", expected: "AT_LEAST"}
+] as const;
+for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
+for (const encoding of ["utf8", "utf16be"] as const) for (const fixture of fixtures)
+for (const route of ["model", "sdk", "shell"] as const) it.each(nativeEdits)(
+  `${route} saves native $owner $property=$expected with carrier retention; ${fixture} ${encoding} ${kind} strict=${strict}`,
+  async edit => {
+    const enc = (text: string) => new TextEncoder().encode(text), parts = readPackage(await inputFor(fixture, strict));
+    const originalXml = new TextDecoder().decode(parts.get("word/document.xml"));
+    if (encoding === "utf16be") parts.set("word/document.xml", new Uint8Array(Buffer.from("\ufeff" + originalXml, "utf16le").swap16()));
+    if (kind === "dotx") parts.set("[Content_Types].xml", enc(new TextDecoder().decode(parts.get("[Content_Types].xml")).replace("wordprocessingml.document.main+xml", "wordprocessingml.template.main+xml")));
+    const volume = Volume.fromJSON({"/input": "", "/output": ""});
+    await writeArchive({comment: new Uint8Array(), members: [...parts].map(([name, bytes]) => ({name, bytes, directory: false, modified: new Date("2026-01-02T03:04:06Z")}))}, {async write(bytes) {volume.appendFileSync("/input", bytes);}}, {order: "input", compression: "store"}, textContext);
+    const input = new Uint8Array(volume.readFileSync("/input") as Buffer), sink = {async write(bytes: Uint8Array) {volume.appendFileSync("/output", bytes);}};
+    const ref = (resultHandle: string, index?: number) => ({resultHandle, ...(index === undefined ? {} : {index})});
+    const batch = {version: 1, operations: [
+      {operation: "model.document.Document.tables.get", receiver: ref("document"), arguments: {}, resultHandle: "tables"},
+      {operation: "model.table.Table.rows.get", receiver: ref("tables", 0), arguments: {}, resultHandle: "rows"},
+      {operation: "model.table._Rows.__getitem__.get", receiver: ref("rows"), arguments: {index: 0}, resultHandle: "row"},
+      {operation: "model.table.Table.cell.call", receiver: ref("tables", 0), arguments: {rowIdx: 0, colIdx: 1}, resultHandle: "cell"},
+      {operation: `model.table.${edit.owner === "table" ? "Table" : edit.owner === "cell" ? "_Cell" : "_Row"}.${edit.property}.set`, receiver: edit.owner === "table" ? ref("tables", 0) : ref(edit.owner), arguments: {value: edit.value !== null && (edit.property === "width" || edit.property === "height") ? {value: edit.expected, unit: "twip"} : edit.value}}
+    ]};
+    if (route === "model") {
+      const doc = await Document(input, textContext), table = doc.tables[0]!;
+      Reflect.set(edit.owner === "table" ? table : edit.owner === "cell" ? table.cell(0, 1) : table.rows.at(0), edit.property, edit.value);
+      await doc.save(sink);
+    } else if (route === "sdk") {
+      const result = await executeDocumentBatch(input, batch, {output: "-"}, {...textContext, encoding: {order: "input", compression: "store"}, stdout: sink});
+      expect(result.results.at(-1)?.affected).toBe(1); expect(result.publication?.changed).toBe(true);
+    } else {
+      const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); await fs.writeFile("/ops", enc(JSON.stringify(batch)));
+      const result = await new Shell({fs}).use(docxCommands({engine: createDocxInspectionCommandEngine({limits: textContext.limits})})).exec("docx batch /input --ops-file /ops --output - > /output");
+      expect(result.exitCode, result.stdout + result.stderr).toBe(0); volume.writeFileSync("/output", await fs.readFile("/output")); expect(await fs.readFile("/input")).toEqual(input);
+    }
+    const output = new Uint8Array(volume.readFileSync("/output") as Buffer), saved = readPackage(output);
+    for (const [name, bytes] of parts) if (name !== "word/document.xml") expect(saved.get(name)).toEqual(bytes);
+    const actualXml = new TextDecoder(encoding === "utf16be" ? "utf-16be" : "utf-8").decode(saved.get("word/document.xml"));
+    const erased = edit.value === null && !["height", "height_rule"].includes(edit.property);
+    const mask = (source: string, removed: boolean) => {
+      if (removed) return source;
+      const start = source.indexOf(`<w:${edit.tag}`); expect(start).toBeGreaterThanOrEqual(0);
+      const openEnd = source.indexOf(">", start), end = source[openEnd - 1] === "/" ? openEnd + 1 : source.indexOf(`</w:${edit.tag}>`, openEnd) + edit.tag.length + 5;
+      expect(end).toBeGreaterThan(start); return source.slice(0, start) + source.slice(end);
+    };
+    expect(mask(actualXml, erased)).toBe(mask(originalXml, false));
+    if (encoding === "utf16be") expect(saved.get("word/document.xml")!.slice(0, 2)).toEqual(Uint8Array.of(254, 255));
+    const table = (await Document(output, textContext)).tables[0]!, row = table.rows.at(0), cell = table.cell(0, 1);
+    const state = {alignment: table.alignment?.name ?? null, autofit: table.autofit, table_direction: table.table_direction?.name ?? null, vertical_alignment: cell.vertical_alignment?.name ?? null, width: cell.width?.twips ?? null, height: row.height?.twips ?? null, height_rule: row.height_rule?.name ?? null};
+    expect(state).toEqual({alignment: "CENTER", autofit: false, table_direction: "RTL", vertical_alignment: "CENTER", width: 1440, height: 360, height_rule: "EXACTLY", [edit.property]: edit.expected});
+    expect([row.grid_cols_before, row.grid_cols_after, cell.grid_span, table.columns.length]).toEqual([1, 1, 2, 4]);
+    expect(row.cells.map(item => item.text)).toEqual(["Original cell", "Original cell"]); expect(table.cell(0, 2)).toBe(cell);
+    expect(volume.readFileSync("/input")).toEqual(Buffer.from(input));
+  }
+);
 
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
 for (const route of ["model", "sdk", "shell"] as const) for (const attribute of ["height", "height_rule"] as const)
@@ -226,21 +290,22 @@ for (const strict of [false, true]) for (const route of ["model", "sdk", "cli"] 
   }
 });
 
-for (const strict of [false, true]) for (const route of ["sdk", "cli"] as const) it(`rejects protected ${strict ? "Strict" : "Transitional"} table resets through ${route} without publication`, async () => {
+for (const strict of [false, true]) for (const route of ["sdk", "cli"] as const) it(`saves active ${strict ? "Strict" : "Transitional"} table resets through ${route} with exact retention`, async () => {
   const input = await inputFor("selected containers", strict), volume = Volume.fromJSON({ "/out": "", "/err": "" });
   const batch = { version: 1, operations: [
     { operation: "model.document.Document.tables.get", receiver: { resultHandle: "document" }, arguments: {}, resultHandle: "tables" },
     { operation: "model.table.Table.alignment.set", receiver: { resultHandle: "tables", index: 0 }, arguments: { value: null } }
   ] };
-  if (route === "sdk") await expect(applyStyleModelBatch(input, batch, textContext)).rejects.toMatchObject({ code: "unsupported-edit" });
+  if (route === "sdk") {const result = await applyStyleModelBatch(input, batch, textContext); expect(result.affected).toBe(1); await result.save({async write(bytes) {volume.appendFileSync("/out", bytes);}});}
   else {
     const cli = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
       args: ["batch", "/input.docx", "--ops-json", JSON.stringify(batch), "--output", "-"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
       filesystem: { async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} },
       stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
     });
-    expect(cli.exitCode).toBe(1);
-    expect(volume.readFileSync("/err", "utf8")).toContain("unsupported-edit");
+    expect(cli.exitCode).toBe(0);
   }
-  expect(volume.readFileSync("/out")).toHaveLength(0);
+  const output = new Uint8Array(volume.readFileSync("/out") as Buffer), before = readPackage(input), after = readPackage(output);
+  for (const [name, bytes] of before) expect(after.get(name)).toEqual(name === "word/document.xml" ? new TextEncoder().encode(new TextDecoder().decode(bytes).replace('<w:jc w:val="center"/>', "")) : bytes);
+  expect((await Document(output, textContext)).tables[0]!.alignment).toBeNull();
 });

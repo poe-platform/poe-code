@@ -86,16 +86,16 @@ export function inheritStyleProperties(inherited: StyleProperties, direct: Style
 }
 
 /** Retain source children, including comments and unknown metadata, in schema order. */
-export function mergeStyleChildren(xml: DocumentXmlEditor, parent: XmlElement, updates: ReadonlyMap<string, string>, order: readonly string[], attributes: Readonly<Record<string, string | null>> = {}): string {
+export function mergeStyleChildren(xml: DocumentXmlEditor, parent: XmlElement, updates: ReadonlyMap<string, string>, order: readonly string[], attributes: Readonly<Record<string, string | null>> = {}, children: (node: XmlElement) => readonly XmlElement[] = node => node.children): string {
   const replacements = new Map<XmlElement, string>();
   const prefixes = new Map<XmlElement, string>();
   let tail = "";
   for (const [name, markup] of [...updates].sort(([a], [b]) => order.indexOf(a) - order.indexOf(b))) {
-    const matches = parent.children.filter(c => c.namespace === parent.namespace && c.localName === name);
+    const matches = children(parent).filter(c => c.namespace === parent.namespace && c.localName === name);
     if (matches.length > 1) throw new UnsupportedEditError("Duplicate style properties cannot be edited.");
     if (matches[0]) { replacements.set(matches[0], markup); continue; }
     if (!markup) continue;
-    const next = parent.children.find(c => c.namespace === parent.namespace && order.indexOf(c.localName) > order.indexOf(name));
+    const next = children(parent).find(c => c.namespace === parent.namespace && order.indexOf(c.localName) > order.indexOf(name));
     if (next) prefixes.set(next, (prefixes.get(next) ?? "") + markup); else tail += markup;
   }
   for (const [node, prefix] of prefixes) replacements.set(node, prefix + (replacements.get(node) ?? xml.sourceXml(node)));
@@ -103,7 +103,7 @@ export function mergeStyleChildren(xml: DocumentXmlEditor, parent: XmlElement, u
   if (!Object.keys(attributes).length && !tail && !prefixes.size) return xml.sourceXml(parent, replacements);
   const retained = parent.attributes.filter(a => a.namespace !== parent.namespace || !Object.hasOwn(attributes, a.localName));
   const namespaces = new Map(parent.namespaces);
-  let prefix = "st";
+  let prefix = [...namespaces].find(([name, namespace]) => name && namespace === parent.namespace)?.[0] ?? "st";
   for (let n = 1; namespaces.has(prefix) && namespaces.get(prefix) !== parent.namespace; n++) prefix = `st${n}`;
   namespaces.set(prefix, parent.namespace);
   const open = runElementOpen({ ...parent, attributes: retained, namespaces });

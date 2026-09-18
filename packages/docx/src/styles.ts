@@ -161,8 +161,8 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
     update(node, tag, value === null ? "" : element(tag, value));
   };
   const formatting = (node: XmlElement) => {
-    const run = formattedRunProperties(xml, node, { ...opts, hidden: opts.fontHidden });
-    const para = paragraphProperties(xml, node, opts);
+    const run = formattedRunProperties(xml, node, { ...opts, hidden: opts.fontHidden }, children);
+    const para = paragraphProperties(xml, node, opts, undefined, children);
     if (run !== (child(node, "rPr") ? xml.sourceXml(child(node, "rPr")!) : "")) update(node, "rPr", run);
     if (para !== (child(node, "pPr") ? xml.sourceXml(child(node, "pPr")!) : "")) update(node, "pPr", para);
   };
@@ -221,7 +221,7 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
     if (opts.priority !== undefined) setValue(selected, "uiPriority", opts.priority === null ? null : String(opts.priority));
     formatting(selected);
     for (const node of new Set([...patches.keys(), ...attributes.keys()])) {
-      const markup = mergeStyleChildren(xml, node, patches.get(node) ?? new Map(), styleOrder, attributes.get(node));
+      const markup = mergeStyleChildren(xml, node, patches.get(node) ?? new Map(), styleOrder, attributes.get(node), children);
       if (markup === xml.sourceXml(node)) continue;
       xml[replaceActiveStyleXml](node, markup); changes.push({ kind: "style", id: attr(node, "styleId")! });
     }

@@ -1,5 +1,6 @@
 import { InputTypeError, ResourceLimitError } from "./archive.js";
 import { DocumentBudget } from "./budget.js";
+import { opaqueXmlContent } from "./xml-retention.js";
 import {
   parseDocumentXml, documentXmlSettings, InvalidXmlError, type DocumentXml, type DocumentXmlLimits,
   type XmlContent, type XmlElement, type XmlAttribute
@@ -17,6 +18,17 @@ import { relationshipXmlRows } from "./relationship-xml.js";
 import { propertyGroupDefinition, readPropertyNodes } from "./property-values.js";
 
 type Token = XmlContent | XmlAttribute;
+function containsMath(root: XmlElement, budget: DocumentBudget): boolean {
+  const pending = [root];
+  while (pending.length) {
+    const node = pending.pop()!;
+    budget.charge("work", 1);
+    if (node.namespace === mathNamespace(false) || node.namespace === mathNamespace(true)) return true;
+    budget.charge("retainedBytes", node.children.length * 8);
+    pending.push(...node.children);
+  }
+  return false;
+}
 interface Span { start: number; end: number; owner: XmlContent; contentStart?: number; contentEnd?: number; empty?: boolean; attributeStart?: number; attributeEnd?: number }
 
 export class UnsupportedEditError extends Error {
@@ -256,12 +268,18 @@ export class DocumentXmlEditor {
     this.#budget.charge("retainedBytes", (span.end - span.start) * 2);
     let offset = contentOnly ? span.contentStart! : span.start;
     const chunks: string[] = [];
-    for (const child of replacements.keys()) if (!node.children.includes(child)) unsupported();
-    for (const child of node.children) {
+    const descendants = [...replacements.keys()];
+    for (const child of descendants) {
+      const childSpan = this.#spans.get(child);
+      if (child === node || !childSpan || childSpan.start < span.contentStart! || childSpan.end > span.contentEnd!) unsupported();
+    }
+    descendants.sort((left, right) => this.#spans.get(left)!.start - this.#spans.get(right)!.start);
+    for (const child of descendants) {
       const replacement = replacements.get(child);
       if (replacement === undefined) continue;
       if (typeof replacement !== "string") throw new InputTypeError("Expected XML markup.");
       const childSpan = this.#spans.get(child)!;
+      if (childSpan.start < offset) unsupported();
       this.#budget.charge("work", replacement.length);
       this.#budget.charge("retainedBytes", replacement.length * 2);
       chunks.push(this.#source.slice(offset, childSpan.start), replacement);
@@ -276,18 +294,18 @@ export class DocumentXmlEditor {
     if (typeof xml !== "string") throw new InputTypeError("Expected XML markup.");
     if (!this.#elements.has(node) || node === this.root || this.#patches.has(node)) unsupported();
     this.assertShapeEditAllowed(node);
-    this.#assertEditableSubtree(node, token => this.#canEdit(token));
-    this.#stageReplacement(node,xml);
+    if (this.#guardCompatibility && !this.#canEdit(node)) unsupported();
+    this.#stageReplacement(node, xml, !this.#canReplaceSubtree(node, token => this.#canEdit(token)), true);
   }
 
-  #assertEditableSubtree(node: XmlElement, canEdit: (token: Token) => boolean): void {
-    const check = (element: XmlElement): void => {
+  #canReplaceSubtree(node: XmlElement, canEdit: (token: Token) => boolean): boolean {
+    const check = (element: XmlElement): boolean => {
       this.#budget.charge("work", 1);
       if (this.#guardCompatibility && (!canEdit(element) ||
-        element.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !canEdit(attribute)))) unsupported();
-      for (const child of element.children) check(child);
+        element.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !canEdit(attribute)))) return false;
+      return element.children.every(check);
     };
-    check(node);
+    return check(node);
   }
 
   /** Resolve the selected declaration, retaining its physical compatibility carrier. */
@@ -298,8 +316,8 @@ export class DocumentXmlEditor {
       node.namespace !== this.root.namespace || node.localName !== "style" ||
       !activeXmlChildren(this, this.#budget)(this.root).includes(node)) unsupported();
     const view = new MarkupCompatibility(node, this.#profile, this.#budget);
-    this.#assertEditableSubtree(node, token => view.canEdit(token));
-    this.#stageReplacement(node, xml);
+    if (!this.#canEdit(node)) unsupported();
+    this.#stageReplacement(node, xml, !this.#canReplaceSubtree(node, token => view.canEdit(token)), true);
   }
 
   /** Change native fields in the selected row without reconstructing its carrier. */
@@ -344,17 +362,19 @@ export class DocumentXmlEditor {
     this.#stageReplacement(node, xml);
   }
 
-  #stageReplacement(node:XmlElement,xml:string):void {
+  #stageReplacement(node:XmlElement,xml:string,preserveOpaque=false,checkMath=false):void {
     this.#budget.charge("retainedBytes", xml.length * 8);
     this.#budget.charge("work", xml.length * 4);
     this.#patches.set(node, xml);
     try {
       const bindings = [...node.namespaces].filter(([prefix]) => prefix !== "xml").map(([prefix, value]) => ` ${prefix ? "xmlns:" + prefix : "xmlns"}="${escapeValue(value, true)}"`).join("");
       const before = this.#budget.usage.xmlNodes;
-      parseDocumentXml(new TextEncoder().encode(`<fragment${bindings}>${xml}</fragment>`), this.#limits, this.#budget);
+      const fragment = parseDocumentXml(new TextEncoder().encode(`<fragment${bindings}>${xml}</fragment>`), this.#limits, this.#budget);
+      if (checkMath && containsMath(fragment.root, this.#budget)) preserveOpaque = true;
       this.#budget.charge("insertedNodes", this.#budget.usage.xmlNodes - before - 1);
       const candidate = parseDocumentXml(this.serialize(), this.#limits, this.#budget);
       if (this.#dialect) validateXmlDialect(candidate.root, this.#dialect, this.#profile, this.#budget);
+      if (preserveOpaque && opaqueXmlContent(this.root, this.#budget, this.#profile) !== opaqueXmlContent(candidate.root, this.#budget, this.#profile)) unsupported();
     } catch (error) { this.#patches.delete(node); throw error; }
   }
 
@@ -418,7 +438,7 @@ export class DocumentXmlEditor {
         if (property.valueNode.children.length || node !== property.valueNode &&
           (node.children.length !== 1 || node.children[0] !== property.valueNode)) unsupported();
         const view = new MarkupCompatibility(node, this.#profile, this.#budget);
-        this.#assertEditableSubtree(node, token => view.canEdit(token));
+        if (!this.#canReplaceSubtree(node, token => view.canEdit(token))) unsupported();
         this.#stageReplacement(node, "");
       } else this.#stageScalarText(property.valueNode, value, property.valueContent);
       return;
@@ -489,10 +509,10 @@ export class DocumentXmlEditor {
     if (!this.#elements.has(parent) || (before && !parent.children.includes(before))) unsupported();
     if (this.#guardCompatibility && !this.#canEdit(parent)) unsupported();
     this.assertShapeEditAllowed(parent);
-    this.#stageInsertion(parent,xml,before);
+    this.#stageInsertion(parent,xml,before,true);
   }
 
-  #stageInsertion(parent:XmlElement,xml:string,before?:XmlElement):void {
+  #stageInsertion(parent:XmlElement,xml:string,before?:XmlElement,checkMath=false):void {
     const span = this.#spans.get(parent)!;
     const offset = before ? this.#spans.get(before)!.start : span.contentEnd!;
     const prefix = this.#source.slice(span.start, offset);
@@ -506,6 +526,7 @@ export class DocumentXmlEditor {
       const candidate = parseDocumentXml(this.serialize(), this.#limits, this.#budget);
       if (this.#dialect) validateXmlDialect(candidate.root, this.#dialect, this.#profile, this.#budget);
       const inserted = parseDocumentXml(new TextEncoder().encode(`<root>${xml}</root>`), this.#limits, this.#budget);
+      if (checkMath && containsMath(inserted.root, this.#budget)) unsupported();
       const count = (node: XmlContent): number => node.kind === "element" ? 1 + node.content.reduce((n, child) => n + count(child), 0) : 1;
       this.#budget.charge("insertedNodes", inserted.root.content.reduce((n, node) => n + count(node), 0));
     } catch (error) { this.#patches.delete(parent); throw error; }
@@ -586,17 +607,16 @@ export class DocumentXmlEditor {
 
   /** Qualified attribute insertion/removal preserves unrelated lexical shells. */
   setQualifiedAttribute(element: XmlElement, name: ExpandedXmlName, value: string | null): void {
-    const active = this.#guardCompatibility && !this.#canEdit(element) && this.#activeAttributeOwner(element);
-    this.#assertOwnedEdit(element, active);
+    this.#assertOwnedEdit(element);
     if (name.namespace === "http://www.w3.org/2000/xmlns/" || name.localName === "xmlns") unsupported();
     const existing = element.attributes.find(attribute => attribute.namespace === name.namespace && attribute.localName === name.localName);
     const understood = this.#profile.understoodNamespaces.includes(name.namespace)
       || this.#profile.understoodElements?.some(node => node.namespace === element.namespace && node.localName === element.localName
         && node.attributes.some(attribute => attribute.namespace === name.namespace && attribute.localName === name.localName));
-    if (existing && this.#guardCompatibility && !this.#canEdit(existing) && !(active && understood)) unsupported();
+    if (existing && this.#guardCompatibility && !this.#canEdit(existing)) unsupported();
     if (!existing && this.#guardCompatibility && !understood) unsupported();
     if (!existing && value === null) return;
-    if (existing && value !== null && !active) { this.setAttribute(element, name, value); return; }
+    if (existing && value !== null) { this.setAttribute(element, name, value); return; }
     if (existing?.value === value) return;
     const span = this.#spans.get(element)!;
     let patch: string;
@@ -621,30 +641,8 @@ export class DocumentXmlEditor {
     this.#acceptOwnedPatch(element, patch, existing ? 0 : 1);
   }
 
-  /** Narrow attribute authority does not grant subtree edits or traverse opaque owners. */
-  #activeAttributeOwner(element: XmlElement): boolean {
-    this.#budget.charge("retainedBytes", this.compatibility.content.length * 8);
-    const pending = [...this.compatibility.content];
-    while (pending.length) {
-      this.#budget.charge("work", 1);
-      const item = pending.pop()!;
-      if (!("source" in item) || item.disposition !== "understood") continue;
-      // Paired representations keep the compatibility editor's coordinated-edit barrier.
-      const node = item.source;
-      if (node.localName === "blip" && Object.values(documentDialects).some(dialect => dialect.a === node.namespace)) {
-        this.#budget.charge("work", node.children.length);
-        if (node.children.some(child => child.namespace === node.namespace && child.localName === "extLst")) continue;
-      }
-      if (item.source === element) return true;
-      this.#budget.charge("work", item.content.length);
-      this.#budget.charge("retainedBytes", item.content.length * 8);
-      for (let index = item.content.length - 1; index >= 0; index--) pending.push(item.content[index]!);
-    }
-    return false;
-  }
-
-  #assertOwnedEdit(element: XmlElement, activeAttribute = false): void {
-    if (!this.#elements.has(element) || this.#patches.size || this.#guardCompatibility && !this.#canEdit(element) && !activeAttribute) unsupported();
+  #assertOwnedEdit(element: XmlElement): void {
+    if (!this.#elements.has(element) || this.#patches.size || this.#guardCompatibility && !this.#canEdit(element)) unsupported();
     this.assertShapeEditAllowed(element);
   }
 

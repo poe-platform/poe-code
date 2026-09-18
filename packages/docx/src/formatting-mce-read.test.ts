@@ -73,27 +73,43 @@ for (const strict of [false, true]) for (const route of ["model", "batch", "tabs
   }
 );
 
-for (const strict of [false, true]) it.each(fixtures.filter(item => item.name !== "direct control"))(
-  `retains ${strict ? "Strict" : "Transitional"} $name after refused formatting edits`,
-  async ({ p, r, whole, attrs, wrap }) => {
+for (const strict of [false, true]) for (const action of ["alignment", "bold", "position", "remove", "clear", "add", "raw"] as const)
+it.each(fixtures.filter(item => item.name !== "direct control"))(
+  `retains ${strict ? "Strict" : "Transitional"} $name around native ${action} formatting edits`,
+  async ({ name, p, r, whole, attrs, wrap }) => {
     const body = `<w:p${attrs}>${whole ? p : `<w:pPr>${p}</w:pPr>`}<w:r>${whole ? r : `<w:rPr>${r}</w:rPr>`}<w:t>Original text</w:t></w:r></w:p>`;
     const input = await textFixture(wrap ? wrap(body) : body, {}, strict);
-    const document = await Document(input, textContext), paragraph = document.paragraphs[0]!, font = paragraph.runs[0]!.font;
-    const before = document.element.serialize(), tabs = paragraph.paragraph_format.tab_stops, tab = tabs.at(0);
-    for (const action of [
-      () => { paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT; },
-      () => { font.bold = false; },
-      () => { tab.position = Twips(1440); },
-      () => { tabs.remove(0); },
-      () => { tabs.clear_all(); },
-      () => { tabs.add_tab_stop(Twips(1440)); },
-      () => { tab.element.set_attribute({ namespaceURI: tab.element.namespace, localName: "pos" }, "1440"); }
-    ]) {
-      expect(action).toThrowError(expect.objectContaining({ code: "unsupported-edit" }));
-      expect(document.element.serialize()).toEqual(before);
-      expect(paragraph.alignment?.name).toBe("CENTER");
-      expect(font.bold).toBe(true);
-      expect(tab.position.twips).toBe(720);
+    {
+      const document = await Document(input, textContext), paragraph = document.paragraphs[0]!, font = paragraph.runs[0]!.font;
+      const tabs = paragraph.paragraph_format.tab_stops, tab = tabs.at(0);
+      if (action === "alignment") paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT;
+      else if (action === "bold") font.bold = false;
+      else if (action === "position") tab.position = Twips(1440);
+      else if (action === "remove") tabs.remove(0);
+      else if (action === "clear") tabs.clear_all();
+      else if (action === "add") tabs.add_tab_stop(Twips(1440));
+      else tab.element.set_attribute({ namespaceURI: tab.element.namespace, localName: "pos" }, "1440");
+      const memory = Volume.fromJSON({"/output": ""});
+      await document.save({async write(bytes) {memory.appendFileSync("/output", bytes);}});
+      const output = new Uint8Array(memory.readFileSync("/output") as Buffer), original = await readArchive(input, textContext), saved = await readArchive(output, textContext);
+      for (const part of original.members) if (part.name !== "word/document.xml") expect(saved.members.find(item => item.name === part.name)!.bytes).toEqual(part.bytes);
+      const actual = new TextDecoder().decode(saved.members.find(item => item.name === "word/document.xml")!.bytes);
+      if (name === "selected properties" || name === "fallback properties") {
+        const branch = name === "selected properties" ? "Fallback" : "Choice";
+        expect(actual).toContain(`<mc:${branch}${branch === "Choice" ? ' Requires="f"' : ""}><w:jc w:val="right"/></mc:${branch}>`);
+        expect(actual).toContain(`<mc:${branch}${branch === "Choice" ? ' Requires="f"' : ""}><w:b w:val="0"/></mc:${branch}>`);
+      }
+      for (const checked of [paragraph, (await Document(output, textContext)).paragraphs[0]!]) {
+        expect(checked.text).toBe("Original text");
+        expect(checked.alignment?.name).toBe(action === "alignment" ? "LEFT" : "CENTER");
+        expect(checked.runs[0]!.font.bold).toBe(action !== "bold");
+        expect(checked.runs[0]!.font.color.rgb?.toString()).toBe("123456");
+        expect(checked.paragraph_format.keep_with_next).toBe(true);
+        expect(checked.paragraph_format.left_indent?.twips).toBe(720);
+        const stops = [...checked.paragraph_format.tab_stops];
+        expect(stops.map(stop => stop.position.twips)).toEqual(action === "remove" || action === "clear" ? [] : action === "position" || action === "raw" ? [1440] : action === "add" ? [720, 1440] : [720]);
+        if (stops.length) {expect(stops[0]!.alignment.name).toBe("RIGHT"); expect(stops[0]!.leader.name).toBe("DOTS");}
+      }
     }
   }
 );

@@ -55,7 +55,7 @@ function readView(owner: FormattingXmlOwner, fragment?: DocumentXmlEditor, root?
   return { ...view, children: activeXmlChildren(view.xml, ownerBudget(owner)) };
 }
 const ownerXmlViews = new WeakMap<object, Map<string, XmlElementView>>();
-function ownerView(owner: FormattingXmlOwner, key = "root", resolve: (xml: DocumentXmlEditor, root: XmlElement) => XmlElement = (ignoredXml, root) => root): XmlElementView {
+function ownerView(owner: FormattingXmlOwner, key = "root", resolve: (xml: DocumentXmlEditor, root: XmlElement) => XmlElement = (ignoredXml, root) => root, changed?: () => void, removeRoot?: () => void): XmlElementView {
   const identity = owner.identity, bindingKey = identity !== null && typeof identity === "object" ? identity : owner;
   let views = ownerXmlViews.get(bindingKey);
   if (!views) { views = new Map(); ownerXmlViews.set(bindingKey, views); }
@@ -64,9 +64,14 @@ function ownerView(owner: FormattingXmlOwner, key = "root", resolve: (xml: Docum
     const budget = ownerBudget(owner), binding = formattingXmlOwners.get(owner);
     view = bindXmlElementView({
       budget,
+      ...(removeRoot ? {removeRoot} : {}),
       read: binding?.read ?? (() => editor(owner)),
       resolve: xml => resolve(xml, binding?.resolve(xml) ?? xml.root),
-      change: binding?.change ?? (action => { const xml = editor(owner); action(xml); owner.setXml(new TextDecoder().decode(xml.serialize())); })
+      change: action => {
+        if (binding) binding.change(action);
+        else { const xml = editor(owner); action(xml); owner.setXml(new TextDecoder().decode(xml.serialize())); }
+        changed?.();
+      }
     });
     views.set(key, view);
   }
@@ -79,6 +84,18 @@ function property(owner: FormattingXmlOwner, kind: "rPr" | "pPr", name: string):
 }
 function attr(node: XmlElement | undefined, name = "val"): string | undefined { return node?.attributes.find(a => a.namespace === node.namespace && a.localName === name)?.value; }
 function update(owner: FormattingXmlOwner, kind: "r" | "p", values: DocxOperationArguments<"runs.set"> | DocxOperationArguments<"paragraphs.set">): void {
+  const binding = formattingXmlOwners.get(owner);
+  if (binding) {
+    binding.change(xml => {
+      const root = binding.resolve(xml), children = activeXmlChildren(xml, ownerBudget(owner)), props = child(root, kind + "Pr", children);
+      let replacement = kind === "r" ? formattedRunProperties(xml, root, values as DocxOperationArguments<"runs.set">, children) : paragraphProperties(xml, root, values as DocxOperationArguments<"paragraphs.set">, undefined, children);
+      // Empty internal updates explicitly materialize a documented model owner.
+      if (!replacement && Object.keys(values).length === 0) replacement = `<fmt:${kind}Pr xmlns:fmt="${root.namespace}"/>`;
+      if (props) { if (replacement !== xml.sourceXml(props)) xml.replaceElement(props, replacement); }
+      else if (replacement) xml.insertChildren(root, replacement, root.children[0]);
+    });
+    return;
+  }
   const xml = editor(owner), root = xml.root;
   if (root.localName !== kind) throw new TypeError("Formatting requires the matching admitted owner element.");
   const props = child(root, kind + "Pr");
@@ -219,6 +236,7 @@ export class TabStops implements Iterable<TabStop> {
   private readRoot: XmlElement | undefined;
   private tabSnapshot = "";
   private records: StopRecord[] = [];
+  private retainXmlIds = false;
   private nextId = 0;
   constructor(readonly owner: FormattingXmlOwner) {
     const identity = owner.identity;
@@ -233,7 +251,7 @@ export class TabStops implements Iterable<TabStop> {
   get part(): unknown { return this.owner.part ?? null; }
   equals(other: unknown): boolean { return other instanceof TabStops && (this.owner.identity ?? this.owner) === (other.owner.identity ?? other.owner); }
   elementFor(id: number, xml?: DocumentXmlEditor, ownerRoot?: XmlElement): XmlElement {
-    this.refresh();
+    if (!xml || !this.retainXmlIds) this.refresh();
     const index = this.records.findIndex(record => record.id === id);
     if (index < 0) throw new StaleHandleError("Tab stop handle is no longer valid.");
     const view = readView(this.owner, xml, ownerRoot), root = child(view.root, "pPr", view.children) ?? view.root;
@@ -250,17 +268,36 @@ export class TabStops implements Iterable<TabStop> {
     const { xml, root, children } = view, props = child(root, "pPr", children), tabs = props && child(props, "tabs", children);
     const tabXml = tabs ? xml.sourceXml(tabs) : "";
     if (tabXml === this.tabSnapshot) { this.snapshot = source; return; }
-    this.tabSnapshot = tabXml;
-    this.records = (tabs ? children(tabs).filter(c => c.namespace === root.namespace && c.localName === "tab") : []).map(node => {
+    const nodes = tabs ? children(tabs).filter(c => c.namespace === root.namespace && c.localName === "tab") : [];
+    const retained = this.retainXmlIds && nodes.length === this.records.length ? this.records : undefined;
+    this.records = nodes.map((node, index) => {
       const position = Number(attr(node, "pos"));
       const alignment = alignments[attr(node)! as keyof typeof alignments], leader = leaders[(attr(node, "leader") ?? "none") as keyof typeof leaders];
       if (!Number.isSafeInteger(position) || !alignment || !leader) throw new TypeError("Invalid tab stop properties.");
-      return { id: this.nextId++, value: { position: { value: position, unit: "twip" }, alignment: { enum: "WD_TAB_ALIGNMENT", name: alignment }, leader: { enum: "WD_TAB_LEADER", name: leader } } };
+      return { id: retained?.[index]?.id ?? this.nextId++, value: { position: { value: position, unit: "twip" }, alignment: { enum: "WD_TAB_ALIGNMENT", name: alignment }, leader: { enum: "WD_TAB_LEADER", name: leader } } };
     });
+    this.retainXmlIds = false;
+    this.tabSnapshot = tabXml;
     this.snapshot = source;
   }
   private remember(): void {
-    this.snapshot = this.owner.getXml(); const xml = editor(this.owner), props = child(xml.root, "pPr"), tabs = props && child(props, "tabs"); this.tabSnapshot = tabs ? xml.sourceXml(tabs) : "";
+    this.snapshot = this.owner.getXml(); const view = readView(this.owner), props = child(view.root, "pPr", view.children), tabs = props && child(props, "tabs", view.children);
+    this.readRoot = view.root; this.tabSnapshot = tabs ? view.xml.sourceXml(tabs) : "";
+  }
+  xmlChanged(): void { this.retainXmlIds = true; }
+  removeXml(id: number): void {
+    this.refresh();
+    const index = this.records.findIndex(record => record.id === id);
+    if (index < 0) throw new StaleHandleError("Tab stop handle is no longer valid.");
+    const binding = formattingXmlOwners.get(this.owner);
+    if (binding) binding.change(xml => xml.replaceElement(this.elementFor(id, xml, binding.resolve(xml)), ""));
+    else {
+      const xml = editor(this.owner);
+      xml.replaceElement(this.elementFor(id, xml, xml.root), "");
+      this.owner.setXml(new TextDecoder().decode(xml.serialize()));
+    }
+    this.records.splice(index, 1);
+    this.remember();
   }
   get length(): number { this.refresh(); return this.records.length; }
   at(index: number): TabStop { this.refresh(); const record = this.records[this.index(index)]; return new TabStop(this, record!.id); }
@@ -282,35 +319,31 @@ export class TabStops implements Iterable<TabStop> {
     this.refresh(); const index = this.records.findIndex(r => r.id === id); if (index < 0) throw new StaleHandleError("Tab stop handle is no longer valid.");
     const value = { ...this.records[index]!.value, ...patch, ...(patch.position !== undefined ? { position: plainLength(patch.position) } : {}) };
     if (!validateDocxValue("{position: Length; alignment?: WD_TAB_ALIGNMENT; leader?: WD_TAB_LEADER}", value)) throw new TypeError("Expected valid tab stop properties.");
-    const view = readView(this.owner), activeProps = child(view.root, "pPr", view.children), activeTabs = activeProps && child(activeProps, "tabs", view.children);
-    const activeStop = activeTabs && view.children(activeTabs).filter(node => node.namespace === activeTabs.namespace && node.localName === "tab")[index];
-    if (!activeStop) throw new UnsupportedEditError("The tab stop is inside preserved compatibility content.");
-    // The owning domain validates the complete change. A style definition may
-    // be selected through MCE while its native tab properties remain editable.
-    const xml = editor(this.owner), props = child(xml.root, "pPr"), tabs = props && child(props, "tabs");
-    const node = tabs?.children.filter(c => c.namespace === tabs.namespace && c.localName === "tab")[index];
-    if (!props || !tabs || !node || !xml.compatibility.canEdit(node)) throw new UnsupportedEditError("The tab stop is inside preserved compatibility content.");
-    const values: Record<string, string | null> = {};
-    if (patch.position !== undefined) values.pos = String(paragraphUnits(value.position));
-    if (patch.alignment !== undefined) values.val = Object.keys(alignments).find(key => alignments[key as keyof typeof alignments] === value.alignment!.name)!;
-    if (patch.leader !== undefined) values.leader = value.leader!.name === "SPACES" ? null : Object.keys(leaders).find(key => leaders[key as keyof typeof leaders] === value.leader!.name)!;
-    let prefix = "tf"; while (node.namespaces.has(prefix) && node.namespaces.get(prefix) !== node.namespace) prefix += "f";
-    const attributes = [...node.attributes.filter(attribute => attribute.namespace !== node.namespace || !Object.hasOwn(values, attribute.localName)), ...Object.entries(values).filter(([, text]) => text !== null).map(([name, text]) => ({ name: prefix + ":" + name, localName: name, namespace: node.namespace, value: text! }))];
-    const changed = runElementOpen({ ...node, namespaces: new Map([...node.namespaces, [prefix, node.namespace]]), attributes }) + xml.sourceXml(node, new Map(), true) + `</${node.name}>`;
-    const changedTabs = runElementOpen(tabs) + xml.sourceXml(tabs, new Map([[node, changed]]), true) + `</${tabs.name}>`;
-    const changedProps = runElementOpen(props) + xml.sourceXml(props, new Map([[tabs, changedTabs]]), true) + `</${props.name}>`;
-    let source = runElementOpen(xml.root) + xml.sourceXml(xml.root, new Map([[props, changedProps]]), true) + `</${xml.root.name}>`;
-    if (patch.position !== undefined) {
-      const moved = new DocumentXmlEditor(new TextEncoder().encode(source)), pPr = child(moved.root, "pPr")!, container = child(pPr, "tabs")!;
-      const stops = container.children.filter(c => c.namespace === container.namespace && c.localName === "tab"), moving = stops[index]!;
-      const next = stops.find((stop, offset) => offset !== index && Number(attr(stop, "pos")) > paragraphUnits(value.position));
-      const changes = new Map<XmlElement, string>([[moving, ""]]), markup = moved.sourceXml(moving);
-      if (next) changes.set(next, markup + moved.sourceXml(next));
-      const updatedTabs = runElementOpen(container) + moved.sourceXml(container, changes, true) + (next ? "" : markup) + `</${container.name}>`;
-      const updatedProps = runElementOpen(pPr) + moved.sourceXml(pPr, new Map([[container, updatedTabs]]), true) + `</${pPr.name}>`;
-      source = runElementOpen(moved.root) + moved.sourceXml(moved.root, new Map([[pPr, updatedProps]]), true) + `</${moved.root.name}>`;
+    const binding = formattingXmlOwners.get(this.owner);
+    const apply = (xml: DocumentXmlEditor, root: XmlElement) => {
+      const children = activeXmlChildren(xml, ownerBudget(this.owner)), props = child(root, "pPr", children), tabs = props && child(props, "tabs", children);
+      const stops = tabs ? children(tabs).filter(node => node.namespace === tabs.namespace && node.localName === "tab") : [], node = stops[index];
+      if (!tabs || !node || !xml.compatibility.canEdit(node)) throw new UnsupportedEditError("The tab stop is inside preserved compatibility content.");
+      const values: Record<string, string | null> = {};
+      if (patch.position !== undefined) values.pos = String(paragraphUnits(value.position));
+      if (patch.alignment !== undefined) values.val = Object.keys(alignments).find(key => alignments[key as keyof typeof alignments] === value.alignment!.name)!;
+      if (patch.leader !== undefined) values.leader = value.leader!.name === "SPACES" ? null : Object.keys(leaders).find(key => leaders[key as keyof typeof leaders] === value.leader!.name)!;
+      let prefix = [...node.namespaces].find(([name, namespace]) => name && namespace === node.namespace)?.[0] ?? "tf";
+      while (node.namespaces.has(prefix) && node.namespaces.get(prefix) !== node.namespace) prefix += "f";
+      const attributes = [...node.attributes.filter(attribute => attribute.namespace !== node.namespace || !Object.hasOwn(values, attribute.localName)), ...Object.entries(values).filter(([, text]) => text !== null).map(([name, text]) => ({name: prefix + ":" + name, localName: name, namespace: node.namespace, value: text!}))];
+      const changed = runElementOpen({...node, namespaces: new Map([...node.namespaces, [prefix, node.namespace]]), attributes}) + xml.sourceXml(node, new Map(), true) + `</${node.name}>`;
+      if (patch.position === undefined) xml.replaceElement(node, changed);
+      else {
+        const next = stops.find((stop, offset) => offset !== index && Number(attr(stop, "pos")) > paragraphUnits(value.position));
+        const changes = new Map<XmlElement, string>([[node, ""]]);
+        if (next) changes.set(next, changed + xml.sourceXml(next));
+        xml.replaceElement(tabs, runElementOpen(tabs) + xml.sourceXml(tabs, changes, true) + (next ? "" : changed) + `</${tabs.name}>`);
+      }
+    };
+    if (binding) binding.change(xml => apply(xml, binding.resolve(xml)));
+    else {
+      const xml = editor(this.owner); apply(xml, xml.root); this.owner.setXml(new TextDecoder().decode(xml.serialize()));
     }
-    this.owner.setXml(source);
         const record = { id, value: { ...value, position: { value: paragraphUnits(value.position), unit: "twip" as const } } };
     if (patch.position !== undefined) { this.records.splice(index, 1); this.records.push(record); this.records.sort((a, b) => a.value.position.value - b.value.position.value); }
     else this.records[index] = record;
@@ -320,7 +353,10 @@ export class TabStops implements Iterable<TabStop> {
 Object.defineProperty(TabStops.prototype, "delete", { value: TabStops.prototype.remove });
 export class TabStop {
   constructor(private readonly collection: TabStops, private readonly id: number) {}
-  get element(): XmlElementView { void this.collection.value(this.id); return ownerView(this.collection.owner, `tab:${this.id}`, (xml, root) => this.collection.elementFor(this.id, xml, root)); }
+  get element(): XmlElementView {
+    void this.collection.value(this.id);
+    return ownerView(this.collection.owner, `tab:${this.id}`, (xml, root) => this.collection.elementFor(this.id, xml, root), () => this.collection.xmlChanged(), () => this.collection.removeXml(this.id));
+  }
   get part(): unknown { this.collection.value(this.id); return this.collection.part; }
   equals(other: unknown): boolean { this.collection.value(this.id); if (!(other instanceof TabStop)) return false; other.collection.value(other.id); return this.collection.equals(other.collection) && this.id === other.id; }
   get position(): Length { return Twips(paragraphUnits(this.collection.value(this.id).position)); }

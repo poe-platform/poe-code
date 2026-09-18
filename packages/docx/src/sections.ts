@@ -123,7 +123,7 @@ export function sectionState(document: DocumentLocations, archive: DocumentArchi
     })) as unknown as SectionInfo["headers"];
     return { position: i + 1, owner: owner.owner, location, direct: readSectionProperties(owner.node, children), headers: bindings("headers"), footers: bindings("footers") };
   });
-  return { editor, xml, body, main, owners, items, evenAndOddHeaders, graph, dialect, settingXml, settingEdge };
+  return { editor, xml, body, main, owners, items, evenAndOddHeaders, graph, dialect, settingXml, settingEdge, children };
 }
 function select(items: readonly SectionInfo[], options: DocxOperationArguments<"sections.list">, mutable = false): readonly SectionInfo[] {
   if (options.select !== undefined) {
@@ -176,7 +176,7 @@ export async function editDocumentSections(input: Uint8Array, request: SectionEd
     budget.charge("work", 1);
     const owner = owners[item.position - 1]!;
     const adding = request.operation === "sections.add";
-    const properties = formatSectionProperties(xml, owner.node, adding ? { startType: opts.startType ?? { enum: "WD_SECTION_START", name: "NEW_PAGE" } } : opts, adding, sectionBoolean(sectionChild(current.settingXml?.root, "gutterAtTop")));
+    const properties = formatSectionProperties(xml, owner.node, adding ? { startType: opts.startType ?? { enum: "WD_SECTION_START", name: "NEW_PAGE" } } : opts, adding, sectionBoolean(sectionChild(current.settingXml?.root, "gutterAtTop", current.children)), current.children);
     if (adding) {
       const original = owner.node ? xml.sourceXml(owner.node) : `<sp:sectPr xmlns:sp="${xml.root.namespace}"/>`;
       const boundary = `<sp:p xmlns:sp="${xml.root.namespace}"><sp:pPr>${original}</sp:pPr></sp:p>`;

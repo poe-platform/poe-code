@@ -98,7 +98,8 @@ it("refuses selected and unselected branch edits but permits an unrelated edit w
 it("refuses changes to preservation directives, ignored content and required unsupported documents", () => {
   const editor = new DocumentXmlEditor(bytes(wrap('<x:pass><w:p>guarded</w:p></x:pass><x:hidden a="old"/>', 'mc:Ignorable="x" mc:ProcessContent="x:*"')));
   expect(() => editor.setAttribute(editor.root, "mc:Ignorable", "")).toThrow(UnsupportedEditError);
-  expect(() => editor.setText(editor.root.children[0]!.children[0]!.content[0]!, "changed")).toThrow(UnsupportedEditError);
+  editor.setText(editor.root.children[0]!.children[0]!.content[0]!, "changed");
+  expect(editor.serialize()).toEqual(bytes(wrap('<x:pass><w:p>changed</w:p></x:pass><x:hidden a="old"/>', 'mc:Ignorable="x" mc:ProcessContent="x:*"')));
   expect(() => editor.setAttribute(editor.root.children[1]!, "a", "new")).toThrow(UnsupportedEditError);
   const required = new DocumentXmlEditor(bytes(wrap('<w:p>old</w:p>', 'mc:MustUnderstand="x"')));
   expect(() => required.setText(required.root.children[0]!.content[0]!, "new")).toThrow(UnsupportedProfileError);

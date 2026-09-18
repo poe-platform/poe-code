@@ -75,7 +75,7 @@ for (const strict of [false, true]) it(`reads selected story bindings and page p
 for (const strict of [false, true]) for (const route of ["sdk", "cli"]) it(`${route} preserves selected and inactive sections while editing a plain neighbor (${strict})`, async () => {
   const retained = alternate(boundary, `<w:p><w:pPr><w:sectPr><w:pgSz w:w="7000" w:h="8000"/></w:sectPr></w:pPr>${run("Inactive")}</w:p>`);
   const input = await textFixture(retained + paragraph("Last") + section, {}, strict);
-  const volume = Volume.fromJSON({ "/out": "", "/refused": "" });
+  const volume = Volume.fromJSON({ "/out": "", "/selected": "" });
   const context = { ...textContext, encoding: { order: "input", compression: "store" } as const, stdout: { async write(bytes: Uint8Array) { volume.appendFileSync("/out", bytes); } } };
   let output: Uint8Array;
   if (route === "sdk") {
@@ -92,10 +92,28 @@ for (const strict of [false, true]) for (const route of ["sdk", "cli"]) it(`${ro
     if (member.name !== "word/document.xml") expect(next.bytes).toEqual(member.bytes);
     else expect(new TextDecoder().decode(next.bytes)).toContain(retained);
   }
-  await expect(editDocumentSections(input, { operation: "sections.set", options: { section: 1, orientation: { enum: "WD_ORIENTATION", name: "LANDSCAPE" }, output: "-" } }, {
-    ...textContext, encoding: { order: "input", compression: "store" }, stdout: { async write(bytes) { volume.appendFileSync("/refused", bytes); } }
-  })).rejects.toMatchObject({ code: "unsupported-edit" });
-  expect(volume.readFileSync("/refused").length).toBe(0);
+  const selectedOutput = route === "sdk" ? await (async () => {
+    const changed = await editDocumentSections(input, { operation: "sections.set", options: { section: 1, orientation: { enum: "WD_ORIENTATION", name: "LANDSCAPE" }, output: "-" } }, {
+      ...textContext, encoding: { order: "input", compression: "store" }, stdout: { async write(bytes) { volume.appendFileSync("/selected", bytes); } }
+    });
+    expect(changed.changed).toBe(true);
+    return new Uint8Array(volume.readFileSync("/selected") as Buffer);
+  })() : await command(input, ["sections", "set", "/input.docx", "--section", "1", "--orientation", "LANDSCAPE", "--output", "-"]);
+  const selectedInfo = await inspectDocumentSections(selectedOutput, {}, textContext);
+  expect(selectedInfo.items.map(item => [item.direct.orientation, item.direct.pageWidth])).toEqual([["landscape", 10000], ["portrait", 10000]]);
+  expect(selectedInfo.items.map(item => item.location.value.path)).toEqual(info.items.map(item => item.location.value.path));
+  const selectedArchive = await readArchive(selectedOutput, textContext);
+  expect(selectedArchive.members.map(member => member.name)).toEqual(before.members.map(member => member.name));
+  for (const member of before.members) {
+    const next = selectedArchive.members.find(item => item.name === member.name)!;
+    if (member.name !== "word/document.xml") expect(next.bytes).toEqual(member.bytes);
+    else {
+      const source = new TextDecoder().decode(member.bytes), changed = new TextDecoder().decode(next.bytes);
+      const start = source.indexOf(section), end = start + section.length;
+      expect(changed.startsWith(source.slice(0, start))).toBe(true);
+      expect(changed.endsWith(source.slice(end))).toBe(true);
+    }
+  }
 });
 
 for (const strict of [false, true]) for (const route of ["model", "sdk", "cli"]) for (const selected of [false, true]) it(`${route} retains a header relationship used by an ${selected ? "active" : "inactive"} alternative after unlinking a plain section (${strict})`, async () => {

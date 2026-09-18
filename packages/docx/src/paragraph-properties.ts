@@ -23,11 +23,11 @@ const leaders = { SPACES: "none", DOTS: "dot", DASHES: "hyphen", LINES: "undersc
 export const paragraphLineMultiples: Readonly<Partial<Record<DocxEnumNames["WD_LINE_SPACING"], number>>> = { SINGLE: 1, ONE_POINT_FIVE: 1.5, DOUBLE: 2 };
 
 /** Merge supplied direct properties while retaining untouched lexical content. */
-export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElement, options: DocxOperationArguments<"paragraphs.set">, styleId?: string): string {
+export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElement, options: DocxOperationArguments<"paragraphs.set">, styleId?: string, children: (node: XmlElement) => readonly XmlElement[] = node => node.children): string {
   const w = paragraph.namespace;
   const strict = w === documentDialects.strict.w;
   const directional = (value: string) => strict ? ({ left: "start", right: "end" }[value] ?? value) : value;
-  const containers = paragraph.children.filter(c => c.namespace === w && c.localName === "pPr");
+  const containers = children(paragraph).filter(c => c.namespace === w && c.localName === "pPr");
   if (containers.length > 1) throw new UnsupportedEditError("Duplicate paragraph property containers cannot be edited.");
   const props = containers[0];
   const patches = new Map<XmlElement, string>();
@@ -37,14 +37,14 @@ export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElemen
     let tail = "";
     for (const name of names) {
       const markup = additions.get(name); if (markup === undefined) continue;
-      const next = parent?.children.find(c => c.namespace === w && names.indexOf(c.localName) > names.indexOf(name));
+      const next = parent && children(parent).find(c => c.namespace === w && names.indexOf(c.localName) > names.indexOf(name));
       if (next) prefixes.set(next, (prefixes.get(next) ?? "") + markup); else tail += markup;
     }
     for (const [node, prefix] of prefixes) replacements.set(node, prefix + (replacements.get(node) ?? xml.sourceXml(node)));
     return (parent ? xml.sourceXml(parent, replacements, true) : "") + tail;
   };
   const find = (name: string, parent = props) => {
-    const matches = parent?.children.filter(c => c.namespace === w && c.localName === name) ?? [];
+    const matches = parent ? children(parent).filter(c => c.namespace === w && c.localName === name) : [];
     if (matches.length > 1) throw new UnsupportedEditError("Duplicate paragraph properties cannot be edited.");
     return matches[0];
   };
@@ -110,7 +110,7 @@ export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElemen
   if (options.tabStopsClear === true) set("tabs", null);
   if (options.tabStopAdd !== undefined || options.tabStopDelete !== undefined) {
     const container = find("tabs");
-    const stops = container?.children.filter(c => c.namespace === w && c.localName === "tab") ?? [];
+    const stops = container ? children(container).filter(c => c.namespace === w && c.localName === "tab") : [];
     const changes = new Map<XmlElement, string>();
     let tail = "";
     if (options.tabStopDelete !== undefined) {

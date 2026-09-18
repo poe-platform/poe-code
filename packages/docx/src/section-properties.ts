@@ -46,20 +46,20 @@ export function readSectionProperties(node: XmlElement | undefined, children: (n
 export type SectionDirectProperties = ReturnType<typeof readSectionProperties>;
 
 /** Merge the selected owner only; absence of geometry is not a previous-section default. */
-export function formatSectionProperties(xml: DocumentXmlEditor, node: XmlElement | undefined, options: DocxOperationArguments<"sections.set">, omitReferences = false, gutterAtTop = false): string {
+export function formatSectionProperties(xml: DocumentXmlEditor, node: XmlElement | undefined, options: DocxOperationArguments<"sections.set">, omitReferences = false, gutterAtTop = false, children: (node: XmlElement) => readonly XmlElement[] = node => node.children): string {
   const w = xml.root.namespace;
-  if (sectionChild(node, "sectPrChange")) throw new UnsupportedEditError("Revised section properties require a revision operation.");
-  const direct = readSectionProperties(node);
+  if (sectionChild(node, "sectPrChange", children)) throw new UnsupportedEditError("Revised section properties require a revision operation.");
+  const direct = readSectionProperties(node, children);
   const replacements = new Map<XmlElement, string>();
   const additions = new Map<string, string>();
   const set = (name: string, attrs: Record<string, string>, removeColumns = false) => {
-    const old = sectionChild(node, name);
-    if (old && (!removeColumns || !old.children.some(c => c.namespace === w && c.localName === "col")) && Object.entries(attrs).every(([k, v]) => sectionAttribute(old, k) === v)) return;
+    const old = sectionChild(node, name, children);
+    if (old && (!removeColumns || !children(old).some(c => c.namespace === w && c.localName === "col")) && Object.entries(attrs).every(([k, v]) => sectionAttribute(old, k) === v)) return;
     const prefix = old?.name.includes(":") ? old.name.split(":")[0]! : "sp";
     const namespaces = new Map(old?.namespaces ?? node?.namespaces); namespaces.set(prefix, w);
     const bindings = [...namespaces].filter(([p]) => p !== "xml").map(([p, uri]) => ` ${p ? "xmlns:" + p : "xmlns"}="${xmlValue(uri)}"`).join("");
     const retained = old?.attributes.filter(a => a.namespace !== "http://www.w3.org/2000/xmlns/" && !(a.namespace === w && Object.hasOwn(attrs, a.localName))).map(a => ` ${a.name}="${xmlValue(a.value)}"`).join("") ?? "";
-    const inner = old ? xml.sourceXml(old, new Map(removeColumns ? old.children.filter(c => c.namespace === w && c.localName === "col").map(c => [c, ""] as const) : []), true) : "";
+    const inner = old ? xml.sourceXml(old, new Map(removeColumns ? children(old).filter(c => c.namespace === w && c.localName === "col").map(c => [c, ""] as const) : []), true) : "";
     const value = `<${prefix}:${name}${bindings}${retained}${Object.entries(attrs).map(([k, v]) => ` ${prefix}:${k}="${xmlValue(v)}"`).join("")}>${inner}</${prefix}:${name}>`;
     if (old) replacements.set(old, value); else additions.set(name, value);
   };
@@ -106,12 +106,12 @@ export function formatSectionProperties(xml: DocumentXmlEditor, node: XmlElement
     set("cols", attrs, options.columns !== undefined);
   }
   if (options.differentFirstPage !== undefined && options.differentFirstPage !== direct.differentFirstPage) set("titlePg", { val: String(Number(options.differentFirstPage)) });
-  if (omitReferences) for (const child of node?.children ?? []) if (child.namespace === w && ["headerReference", "footerReference"].includes(child.localName)) replacements.set(child, "");
+  if (omitReferences) for (const child of node ? children(node) : []) if (child.namespace === w && ["headerReference", "footerReference"].includes(child.localName)) replacements.set(child, "");
   let tail = "";
   const prefixes = new Map<XmlElement, string>();
   for (const name of sectionPropertyOrder) {
     const markup = additions.get(name); if (markup === undefined) continue;
-    const next = node?.children.find(c => c.namespace === w && sectionPropertyOrder.indexOf(c.localName) > sectionPropertyOrder.indexOf(name));
+    const next = (node ? children(node) : []).find(c => c.namespace === w && sectionPropertyOrder.indexOf(c.localName) > sectionPropertyOrder.indexOf(name));
     if (next) prefixes.set(next, (prefixes.get(next) ?? "") + markup); else tail += markup;
   }
   for (const [next, prefix] of prefixes) replacements.set(next, prefix + (replacements.get(next) ?? xml.sourceXml(next)));

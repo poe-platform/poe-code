@@ -53,18 +53,29 @@ it("reads an ordinary hundred-paragraph document within an explicit two-megabyte
   expect(budget.usage.retainedBytes).toBeLessThanOrEqual(budget.limits.retainedBytes);
 });
 
-it("refreshes logical reads after an unrelated edit and retains alternatives after a refused edit", async () => {
+it("refreshes logical reads after active and unrelated edits while retaining alternatives", async () => {
   const input = await textFixture(paragraph("Lead") + choice(paragraph("selected"), paragraph("inactive")));
   const document = await Document(input, textContext);
   const [lead, selected] = document.paragraphs;
   expect(selected!.text).toBe("selected");
   const original = document.element.serialize();
-  expect(() => { selected!.text = "forbidden"; }).toThrow();
-  expect(document.element.serialize()).toEqual(original);
-  expect(selected!.text).toBe("selected");
+  selected!.text = "Changed selected";
+  const originalXml = new TextDecoder().decode(original), actualXml = new TextDecoder().decode(document.element.serialize());
+  const opening = '<mc:Choice Requires="w">', closing = '</mc:Choice>';
+  expect(actualXml.slice(0, actualXml.indexOf(opening) + opening.length)).toBe(originalXml.slice(0, originalXml.indexOf(opening) + opening.length));
+  expect(actualXml.slice(actualXml.indexOf(closing))).toBe(originalXml.slice(originalXml.indexOf(closing)));
+  expect(selected!.element.namespace).toBe(w);
+  expect(selected!.element.localName).toBe("p");
+  expect(selected!.runs.map(item => item.text)).toEqual(["Changed selected"]);
+  expect(selected!.text).toBe("Changed selected");
   lead!.text = "Changed";
-  expect(document.paragraphs.map(p => p.text)).toEqual(["Changed", "selected"]);
-  expect(selected!.text).toBe("selected");
+  expect(document.paragraphs.map(p => p.text)).toEqual(["Changed", "Changed selected"]);
+  expect(selected!.text).toBe("Changed selected");
+  const volume = Volume.fromJSON({"/output": ""});
+  await document.save({async write(bytes) {volume.appendFileSync("/output", bytes);}});
+  const output = new Uint8Array(volume.readFileSync("/output") as Buffer), before = await readArchive(input, textContext), after = await readArchive(output, textContext);
+  for (const member of before.members) if (member.name !== "word/document.xml") expect(after.members.find(item => item.name === member.name)!.bytes).toEqual(member.bytes);
+  expect((await Document(output, textContext)).paragraphs.map(item => item.text)).toEqual(["Changed", "Changed selected"]);
 });
 
 it("keeps repeated logical reads bounded, owner-specific and cancellable", async () => {

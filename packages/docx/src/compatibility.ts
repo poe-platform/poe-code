@@ -7,6 +7,9 @@ const mc = "http://schemas.openxmlformats.org/markup-compatibility/2006";
 const xml = "http://www.w3.org/XML/1998/namespace";
 const xmlns = "http://www.w3.org/2000/xmlns/";
 const drawingNamespaces = ["http://schemas.openxmlformats.org/drawingml/2006/main", "http://purl.oclc.org/ooxml/drawingml/main"];
+const graphicNamespaces = [...drawingNamespaces,
+  "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing", "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing",
+  "http://schemas.openxmlformats.org/drawingml/2006/picture", "http://purl.oclc.org/ooxml/drawingml/picture"];
 
 export interface ExpandedXmlName { readonly namespace: string; readonly localName: string; }
 export interface CompatibilityProfile {
@@ -21,11 +24,7 @@ export const documentCompatibilityProfile: CompatibilityProfile = Object.freeze(
     "", xml,
     "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
     "http://purl.oclc.org/ooxml/wordprocessingml/main",
-    ...drawingNamespaces,
-    "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing",
-    "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing",
-    "http://schemas.openxmlformats.org/drawingml/2006/picture",
-    "http://purl.oclc.org/ooxml/drawingml/picture",
+    ...graphicNamespaces,
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
     "http://purl.oclc.org/ooxml/officeDocument/relationships",
     "http://schemas.openxmlformats.org/officeDocument/2006/math",
@@ -99,7 +98,7 @@ export interface CompatibilityBranch {
   readonly alternateContent: XmlElement;
   readonly selected: XmlElement | undefined;
 }
-interface Scope { ignorable: Set<string>; process: ExpandedXmlName[]; }
+interface Scope { ignorable: Set<string>; process: ExpandedXmlName[]; alternate: boolean; }
 
 /** Internal projection metadata; not exported from the public package barrel. */
 export const compatibilityContainers = Symbol("compatibilityContainers");
@@ -173,7 +172,7 @@ export class MarkupCompatibility {
       pairs(element, attribute(element, "PreserveAttributes") ?? "", ignorable);
       for (const a of element.attributes) if (a.namespace === mc &&
         !["Ignorable", "ProcessContent", "MustUnderstand", "PreserveElements", "PreserveAttributes"].includes(a.localName)) invalid();
-      return { ignorable, process };
+      return { ignorable, process, alternate: parent.alternate };
     };
     const mustUnderstand = (element: XmlElement): void => {
       if (namespaces(element, attribute(element, "MustUnderstand") ?? "").some(uri => !understood.has(uri)))
@@ -213,7 +212,7 @@ export class MarkupCompatibility {
         if (element.attributes.some(a => a.namespace === xml && ["base", "lang", "space"].includes(a.localName))) invalid();
         mustUnderstand(element);
         containers.push(element);
-        return visitContent(element, scope, true);
+        return visitContent(element, scope, blocked);
       }
       if (element.namespace === mc) {
         if (element.localName !== "AlternateContent") invalid();
@@ -257,13 +256,19 @@ export class MarkupCompatibility {
         if (!selected) return [];
         mustUnderstand(selected);
         containers.push(element, selected);
-        return visitContent(selected, selectedScope, true);
+        return visitContent(selected, { ...selectedScope, alternate: true }, blocked);
       }
       mustUnderstand(element);
       const known = understood.has(element.namespace) || exact !== undefined;
       const pairedImage = drawingNamespaces.includes(element.namespace) && element.localName === "blip" &&
         element.children.some(child => child.namespace === element.namespace && child.localName === "extLst");
-      const protectedContent = blocked || !known || pairedImage;
+      // Reading a selected graphics representation does not authorize changing
+      // it independently of its retained alternatives.
+      const alternateGraphic = scope.alternate && (graphicNamespaces.includes(element.namespace)
+        || ["http://schemas.openxmlformats.org/wordprocessingml/2006/main", "http://purl.oclc.org/ooxml/wordprocessingml/main"].includes(element.namespace)
+          && ["drawing", "pict", "object"].includes(element.localName));
+      const storedMath = ["http://schemas.openxmlformats.org/officeDocument/2006/math", "http://purl.oclc.org/ooxml/officeDocument/math"].includes(element.namespace);
+      const protectedContent = blocked || !known || pairedImage || alternateGraphic || storedMath;
       const attributes = element.attributes.filter(a => a.namespace !== mc &&
         !(scope.ignorable.has(a.namespace) && !understood.has(a.namespace) && !exactAttribute(a)));
       if (!protectedContent) {
@@ -273,7 +278,7 @@ export class MarkupCompatibility {
       return [Object.freeze({ source: element, disposition: known ? "understood" : "opaque",
         attributes: Object.freeze(attributes), content: Object.freeze(visitContent(element, scope, protectedContent)) })];
     };
-    this.content = Object.freeze(visit(root, { ignorable: new Set(), process: [] }, false));
+    this.content = Object.freeze(visit(root, { ignorable: new Set(), process: [], alternate: false }, false));
     this.branches = Object.freeze(branches);
     this[compatibilityContainers] = Object.freeze(containers);
   }

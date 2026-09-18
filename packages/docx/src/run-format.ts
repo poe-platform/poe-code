@@ -1,4 +1,5 @@
 import { archiveSettings } from "./archive.js";
+import { activeXmlChildren } from "./xml-active-children.js";
 import { validateDocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
 import { openDocumentLocations } from "./locations.js";
@@ -116,9 +117,10 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
     selectedNodes.set(node, target.location);
     if (ancestors.some(n => n.namespace === node.namespace && (["moveFrom", "moveTo", "del"].includes(n.localName) || ["p", "r"].includes(n.localName) && n.children.some(p => p.localName === n.localName + "Pr" && p.children.some(c => c.localName === p.localName + "Change")))))
       throw new UnsupportedEditError("Complex or deleted revision runs cannot be formatted.");
-    const props = node.children.find(c => c.namespace === node.namespace && c.localName === "rPr");
+    const children = activeXmlChildren(xml, budget);
+    const props = children(node).find(c => c.namespace === node.namespace && c.localName === "rPr");
     const original = props ? xml.sourceXml(props) : "";
-    const properties = formattedRunProperties(xml, node, opts);
+    const properties = formattedRunProperties(xml, node, opts, children);
     if (properties === original) continue;
     let markup: string;
     if (target.whole) {

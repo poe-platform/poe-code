@@ -83,22 +83,23 @@ for (const strict of [false, true]) for (const route of ["model", "batch", "sdk"
   }
 );
 
-for (const strict of [false, true]) for (const route of ["sdk", "cli"] as const) it(`rejects affected ${strict ? "Strict" : "Transitional"} latent-default edits through ${route} without output`, async () => {
+for (const strict of [false, true]) for (const route of ["sdk", "cli"] as const) it(`saves selected ${strict ? "Strict" : "Transitional"} latent-default edits through ${route}`, async () => {
   const input = await textFixture('<w:p/>', { styles: { kind: "styles", xml: `<w:styles xmlns:w="${w}" xmlns:mc="${mc}">${alternate('<w:latentStyles w:defLockedState="1"/>')}</w:styles>` } }, strict);
   const volume = Volume.fromJSON({ "/out": "", "/err": "" });
-  if (route === "sdk") await expect(editDocumentStyles(input, { operation: "styles.latent.defaults.set", defaultToLocked: false, output: "-" }, {
+  if (route === "sdk") expect((await editDocumentStyles(input, { operation: "styles.latent.defaults.set", defaultToLocked: false, output: "-" }, {
     ...textContext, encoding: { order: "input", compression: "store" }, stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }
-  })).rejects.toMatchObject({ code: "unsupported-edit" });
+  })).changed).toBe(true);
   else {
     const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
       args: ["styles", "latent", "defaults", "set", "/input.docx", "--default-to-locked", "false", "--output", "-"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
       filesystem: { async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} },
       stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
     });
-    expect(result.exitCode).toBe(1);
-    expect(volume.readFileSync("/err", "utf8")).toContain("unsupported-edit");
+    expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
   }
-  expect(volume.readFileSync("/out")).toHaveLength(0);
+  const output = new Uint8Array(volume.readFileSync("/out") as Buffer), original = readPackage(input), saved = readPackage(output);
+  for (const [part, bytes] of original) expect(saved.get(part)).toEqual(part === "word/styles.xml" ? new TextEncoder().encode(new TextDecoder().decode(bytes).replace('w:defLockedState="1"', 'w:defLockedState="0"')) : bytes);
+  expect((await Document(output, textContext)).styles.latent_styles.default_to_locked).toBe(false);
 });
 
 for (const strict of [false, true]) for (const kind of ["metadata", "latent container", "latent entry"] as const) for (const route of ["model", "sdk", "cli"] as const) it(
@@ -120,16 +121,27 @@ for (const strict of [false, true]) for (const kind of ["metadata", "latent cont
         expect([latent.default_to_locked, latent.load_count, entry.hidden, entry.quick_style, entry.priority]).toEqual([true, 42, true, false, 0]);
         expect(latent.element.localName).toBe("latentStyles");
         expect(entry.element.localName).toBe("lsdException");
-        for (const action of [
-          () => { entry.hidden = false; },
-          () => { entry.delete(); },
-          ...(kind === "latent container" ? [() => { latent.add_latent_style("New Original"); }] : []),
-          () => { latent.default_to_locked = false; }
-        ]) {
-          expect(action).toThrowError(expect.objectContaining({ code: "unsupported-edit" }));
-          expect(latent.length).toBe(1);
-          expect(entry.name).toBe("Latent Original");
-          expect(doc.styles.element.serialize()).toEqual(before);
+        for (const action of ["hidden", "delete", ...(kind === "latent container" ? ["add"] : []), "default"] as const) {
+          const edited = await Document(input, textContext), selected = edited.styles.latent_styles;
+          if (action === "hidden") selected.at("Latent Original").hidden = false;
+          else if (action === "delete") selected.at("Latent Original").delete();
+          else if (action === "add") selected.add_latent_style("New Original");
+          else selected.default_to_locked = false;
+          const memory = Volume.fromJSON({"/out": ""}); await edited.save({async write(bytes) {memory.appendFileSync("/out", bytes);}});
+          const output = new Uint8Array(memory.readFileSync("/out") as Buffer), original = readPackage(input), saved = readPackage(output);
+          for (const [part, bytes] of original) if (part !== "word/styles.xml") expect(saved.get(part)).toEqual(bytes);
+          for (const checked of [selected, (await Document(output, textContext)).styles.latent_styles]) {
+            expect(checked.length).toBe(action === "delete" ? 0 : action === "add" ? 2 : 1);
+            expect(checked.default_to_locked).toBe(action !== "default");
+            expect(checked.load_count).toBe(42);
+            if (action !== "delete") {
+              expect(checked.at("Latent Original").hidden).toBe(action !== "hidden");
+              expect(checked.at("Latent Original").quick_style).toBe(false);
+              expect(checked.at("Latent Original").priority).toBe(0);
+            }
+            if (action === "add") expect(checked.at("New Original").name).toBe("New Original");
+          }
+          expect(new TextDecoder().decode(saved.get("word/styles.xml"))).toContain("<mc:Fallback></mc:Fallback>");
         }
       }
       expect(doc.styles.element.serialize()).toEqual(before);
@@ -154,13 +166,14 @@ for (const strict of [false, true]) for (const kind of ["metadata", "latent cont
   }
 );
 
-for (const strict of [false, true]) it.each(fixtures.filter(fixture => fixture.name !== "direct control"))(
-  `retains ${strict ? "Strict" : "Transitional"} style $name on protected formatting edits`,
+for (const strict of [false, true]) for (const action of ["alignment", "bold", "position", "remove", "clear", "add", "raw"] as const)
+it.each(fixtures.filter(fixture => fixture.name !== "direct control"))(
+  `retains ${strict ? "Strict" : "Transitional"} style $name around native ${action} formatting edits`,
   async ({ name, xml }) => {
     const input = await textFixture('<w:p/>', { styles: { kind: "styles", xml: `<w:styles xmlns:w="${w}" xmlns:mc="${mc}" xmlns:f="urn:original:future" mc:Ignorable="f" mc:ProcessContent="f:pass">${xml}</w:styles>` } }, strict);
-    for (const action of ["alignment", "bold", "position", "remove", "clear", "add", "raw"] as const) {
+    {
       const doc = await Document(input, textContext), selected = doc.styles.at("Original") as ParagraphStyle;
-      const before = doc.styles.element.serialize(), format = selected.paragraph_format, font = selected.font, tabs = format.tab_stops, tab = tabs.at(0);
+      const format = selected.paragraph_format, font = selected.font, tabs = format.tab_stops, tab = tabs.at(0);
       const edit = () => {
         if (action === "alignment") format.alignment = WD_ALIGN_PARAGRAPH.LEFT;
         else if (action === "bold") font.bold = false;
@@ -170,24 +183,27 @@ for (const strict of [false, true]) it.each(fixtures.filter(fixture => fixture.n
         else if (action === "add") tabs.add_tab_stop(Twips(1440));
         else tab.element.set_attribute({ namespaceURI: tab.element.namespace, localName: "pos" }, "1440");
       };
-      if (name !== "selected definition" || action === "raw") {
-        expect(edit).toThrowError(expect.objectContaining({ code: "unsupported-edit" }));
-        expect(doc.styles.element.serialize()).toEqual(before);
-        expect(format.alignment?.name).toBe("CENTER"); expect(font.bold).toBe(true); expect(tab.position.twips).toBe(720);
-      } else {
+      {
         edit();
         const memory = Volume.fromJSON({"/output": ""}); await doc.save({async write(bytes) {memory.appendFileSync("/output", bytes);}});
         const output = new Uint8Array(memory.readFileSync("/output") as Buffer), original = readPackage(input), saved = readPackage(output);
         for (const [part, bytes] of original) if (part !== "word/styles.xml") expect(saved.get(part), part).toEqual(bytes);
         const namespace = strict ? "http://purl.oclc.org/ooxml/wordprocessingml/main" : w;
         const originalStyle = new TextDecoder().decode(original.get("word/styles.xml")), actualStyle = new TextDecoder().decode(saved.get("word/styles.xml"));
-        const fallback = originalStyle.slice(originalStyle.indexOf("<mc:Fallback>"), originalStyle.indexOf("</mc:Fallback>") + "</mc:Fallback>".length);
-        expect(actualStyle).toContain(fallback); expect(actualStyle).toContain(`<w:styles xmlns:w="${namespace}"`);
+        if (name !== "fallback properties" && originalStyle.includes("<mc:Fallback>")) {
+          const fallback = originalStyle.slice(originalStyle.indexOf("<mc:Fallback>"), originalStyle.indexOf("</mc:Fallback>") + "</mc:Fallback>".length);
+          expect(actualStyle).toContain(fallback);
+        }
+        if (name === "fallback properties") {
+          expect(actualStyle).toContain('<mc:Choice Requires="f"><w:jc w:val="right"/></mc:Choice>');
+          expect(actualStyle).toContain('<mc:Choice Requires="f"><w:b w:val="0"/></mc:Choice>');
+        }
+        expect(actualStyle).toContain(`<w:styles xmlns:w="${namespace}"`);
         const reopened = (await Document(output, textContext)).styles.at("Original") as ParagraphStyle;
         expect(reopened.paragraph_format.alignment?.name).toBe(action === "alignment" ? "LEFT" : "CENTER");
         expect(reopened.font.bold).toBe(action !== "bold"); expect(reopened.font.italic).toBe(false); expect(reopened.font.color.rgb?.toString()).toBe("123456");
         const stops = [...reopened.paragraph_format.tab_stops];
-        expect(stops.map(stop => stop.position.twips)).toEqual(action === "remove" || action === "clear" ? [] : action === "position" ? [1440] : action === "add" ? [720, 1440] : [720]);
+        expect(stops.map(stop => stop.position.twips)).toEqual(action === "remove" || action === "clear" ? [] : action === "position" || action === "raw" ? [1440] : action === "add" ? [720, 1440] : [720]);
         if (stops.length) {expect(stops[0]!.alignment.name).toBe("RIGHT"); expect(stops[0]!.leader.name).toBe("DOTS");}
       }
     }

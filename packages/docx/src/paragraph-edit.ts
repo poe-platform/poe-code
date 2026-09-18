@@ -103,7 +103,8 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
     if (ancestors.some(n => n.namespace === w && (["ins", "del", "moveFrom", "moveTo"].includes(n.localName) || n.children.some(c => c.namespace === w && c.localName === "pPr" && c.children.some(p => p.namespace === w && p.localName === "pPrChange")))))
       throw new UnsupportedEditError("Tracked paragraph edits require explicit revision operations.");
     xml.assertShapeEditAllowed(node);
-    const props = node.children.find(c => c.namespace === w && c.localName === "pPr");
+    const children = activeXmlChildren(xml, budget);
+    const props = children(node).find(c => c.namespace === w && c.localName === "pPr");
     const originalProps = props ? xml.sourceXml(props) : "";
     if (request.operation === "paragraphs.set") {
       if (opts.text !== undefined) {
@@ -113,7 +114,7 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
         if (observations.some(observation => before.value.path.every((index, i) => observation.path[i] === index))) throw new UnsupportedDiagramMutationError(before);
         assertOutsideRevisionRanges(xml.root, node, budget, xml.compatibility.branches);
       }
-      const properties = paragraphProperties(xml, node, opts, styleId);
+      const properties = paragraphProperties(xml, node, opts, styleId, children);
       const original = xml.sourceXml(node);
       const replacement = opts.text !== undefined ? replaceParagraphContent(xml, node, properties, opts.text ?? "")
         : props ? xml.sourceXml(node, new Map([[props, properties]]))

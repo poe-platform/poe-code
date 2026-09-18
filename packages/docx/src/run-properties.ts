@@ -16,15 +16,15 @@ export function runElementOpen(node: XmlElement): string {
 }
 
 /** Only supplied direct properties change; absence never resolves the style cascade. */
-export function formattedRunProperties(editor: DocumentXmlEditor, run: XmlElement, options: DocxOperationArguments<"runs.set">): string {
+export function formattedRunProperties(editor: DocumentXmlEditor, run: XmlElement, options: DocxOperationArguments<"runs.set">, children: (node: XmlElement) => readonly XmlElement[] = node => node.children): string {
   const w = run.namespace;
-  const containers = run.children.filter(c => c.namespace === w && c.localName === "rPr");
+  const containers = children(run).filter(c => c.namespace === w && c.localName === "rPr");
   if (containers.length > 1) throw new UnsupportedEditError("Duplicate run property containers cannot be edited.");
   const props = containers[0];
   const patches = new Map<XmlElement, string>();
   const added: { name: string; xml: string }[] = [];
   const property = (name: string, attrs: Record<string, string | null> | null): void => {
-    const matches = props?.children.filter(c => c.namespace === w && c.localName === name) ?? [];
+    const matches = props ? children(props).filter(c => c.namespace === w && c.localName === name) : [];
     if (matches.length > 1) throw new UnsupportedEditError("Duplicate direct properties cannot be edited.");
     const node = matches[0];
     if (attrs === null) { if (node) patches.set(node, ""); return; }
@@ -64,7 +64,7 @@ export function formattedRunProperties(editor: DocumentXmlEditor, run: XmlElemen
   if (options.language !== undefined) property("lang", { val: options.language });
   if (options.color !== undefined) property("color", options.color === null ? null : { val: options.color.toUpperCase(), themeColor: null, themeTint: null, themeShade: null });
   if (options.themeColor !== undefined) {
-    const color = props?.children.find(c => c.namespace === w && c.localName === "color");
+    const color = props && children(props).find(c => c.namespace === w && c.localName === "color");
     property("color", options.themeColor === null ? { themeColor: null, themeTint: null, themeShade: null } : {
       ...(color?.attributes.some(a => a.namespace === w && a.localName === "val") ? {} : { val: "auto" }), themeColor: themes[options.themeColor.name as keyof typeof themes]
     });
@@ -76,7 +76,7 @@ export function formattedRunProperties(editor: DocumentXmlEditor, run: XmlElemen
   let tail = "";
   const insertions = new Map<XmlElement, string>();
   for (const addition of added.sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name))) {
-    const next = props?.children.find(child => child.namespace === w && order.indexOf(child.localName) > order.indexOf(addition.name));
+    const next = props && children(props).find(child => child.namespace === w && order.indexOf(child.localName) > order.indexOf(addition.name));
     if (next) insertions.set(next, (insertions.get(next) ?? "") + addition.xml);
     else tail += addition.xml;
   }

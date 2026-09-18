@@ -51,6 +51,10 @@ export function editLatentStyles(xml: DocumentXmlEditor, operation: string, opti
   }
   if (operation === "styles.latent.defaults.set") {
     if (Object.entries(attributes).every(([key, value]) => value === null ? attr(node, key) === undefined : attr(node, key) === value)) return null;
+    if (existing && Object.keys(attributes).length === 1) {
+      for (const [localName, value] of Object.entries(attributes)) xml.setQualifiedAttribute(existing, {namespace: existing.namespace, localName}, value);
+      return "latentStyles";
+    }
     markup = mergeStyleChildren(fragment, node, new Map(), [], attributes);
   } else {
     const name = options.name as string;

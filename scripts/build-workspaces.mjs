@@ -236,8 +236,32 @@ function selectBuildStages(plan, roots) {
   return { stages: plan.stages.filter(stage => selected.has(stage.name)).map(stage => events.get(stage.name) === "build" ? stage : { ...stage, event: events.get(stage.name) }), noBuild: plan.noBuild.filter(stage => selected.has(stage.name)) };
 }
 
+export function affectedWorkspaceNames(plan, reference, files) {
+  assert.ok(typeof reference === "string" && reference.length && !reference.startsWith("-") && !reference.includes("\0"), "Invalid affected reference");
+  if (files === undefined) {
+    const options = { cwd: plan.root, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 };
+    files = [...execFileSync("git", ["diff", "--name-only", "--no-renames", "-z", reference, "--"], options).split("\0"),
+      ...execFileSync("git", ["ls-files", "--others", "--exclude-standard", "-z"], options).split("\0")].filter(Boolean);
+  }
+  const selected = new Set();
+  for (const file of files) {
+    assert.ok(typeof file === "string" && !path.isAbsolute(file) && !file.split("/").includes(".."), "Invalid affected path");
+    const owner = plan.workspaces.find(workspace => file.startsWith(workspace.path + "/"));
+    if (!owner) return new Set(plan.workspaces.map(workspace => workspace.name));
+    selected.add(owner.name);
+  }
+  let changed;
+  do {
+    changed = false;
+    for (const edge of plan.edges) if (selected.has(edge.to) && !selected.has(edge.from)) {
+      selected.add(edge.from); changed = true;
+    }
+  } while (changed);
+  return selected;
+}
+
 export function createWorkspaceTestPlan(rootDirectory, options = {}) {
-  const { fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup } = options;
+  const { fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup, affected, affectedFiles } = options;
   assert.ok(concurrency === 1 || concurrency === 4, "Unit concurrency must be 1 or 4");
   assert.ok(excludeWorkspace === undefined || excludeWorkspace === "@poe-platform/safe-bash", "Only the Node20 @poe-platform/safe-bash exclusion is supported");
   assert.ok(Array.isArray(testArguments) && testArguments.every(value => typeof value === "string" && !value.includes("\0")), "Invalid test arguments");
@@ -278,6 +302,8 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
     }
     if (task.cache !== undefined) assert.equal(typeof task.cache, "boolean");
   }
+  const affectedNames = affected === undefined ? undefined : affectedWorkspaceNames(plan, affected, affectedFiles);
+  assert.ok(affected === undefined || ciGroup === undefined, "Affected selection does not accept CI groups");
   const candidates = [{ name: plan.rootManifest.name, path: null, manifest: plan.rootManifest }, ...plan.workspaces];
   const testStages = [], noTest = [], buildRoots = new Set();
   for (const workspace of candidates) {
@@ -291,6 +317,7 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
     const id = workspace.path === null ? "//#test:unit" : workspace.name + "#test:unit";
     const settings = { ...tasks["test:unit"], ...tasks[id] };
     if (workspace.path === null) assert.ok(!settings.dependsOn?.length, "Root test build dependencies are unsupported");
+    if (affectedNames && workspace.path !== null && !affectedNames.has(workspace.name)) continue;
     if (workspace.name === excludeWorkspace && workspace.path !== null) continue;
     if (ciGroup !== undefined && (workspace.name === "@poe-platform/safe-bash" || cacheable.has(workspace.name) !== (ciGroup === "cached"))) continue;
     testStages.push({ id, name: workspace.name, path: workspace.path, event: "test:unit" });
@@ -300,7 +327,7 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
     }
   }
   const selected = selectBuildStages(plan, buildRoots);
-  return { ...plan, buildStages: selected.stages, buildNoBuild: selected.noBuild, testStages, noTest, concurrency, testArguments, excludeWorkspace, ...(ciGroup === undefined ? {} : { ciGroup }) };
+  return { ...plan, buildStages: selected.stages, buildNoBuild: selected.noBuild, testStages, noTest, concurrency, testArguments, excludeWorkspace, ...(affected === undefined ? {} : { affected }), ...(ciGroup === undefined ? {} : { ciGroup }) };
 }
 
 function taskEnvironment(environment, stage, unitMode) {
@@ -478,11 +505,12 @@ async function executeStages(plan, { environment, spawn, host, concurrency = 1, 
 }
 
 export async function buildWorkspaces(rootDirectory, options = {}) {
-  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, workspace, concurrency = 2, cache, cacheStore, cacheFiles } = options;
+  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, workspace, concurrency = 2, cache, cacheStore, cacheFiles, affected, affectedFiles } = options;
   assert.ok(concurrency === 1 || concurrency === 2, "Build concurrency must be 1 or 2");
   validateEnvironment(environment);
   const plan = createWorkspaceBuildPlan(rootDirectory, fileSystem);
-  const selected = { ...plan, ...selectBuildStages(plan, workspace === undefined ? plan.workspaces.map(stage => stage.name) : [workspace]) };
+  assert.ok(workspace === undefined || affected === undefined, "Select a workspace or affected reference");
+  const selected = { ...plan, ...selectBuildStages(plan, affected === undefined ? (workspace === undefined ? plan.workspaces.map(stage => stage.name) : [workspace]) : affectedWorkspaceNames(plan, affected, affectedFiles)) };
   let buildCache;
   if (cache !== false && environment.TURBO_FORCE !== "true" && (cacheStore || (spawn === spawnChild && fileSystem === fs))
     && selected.stages.some(stage => stage.manifest.scripts.build.split(" ").includes("tsc"))) {
@@ -497,9 +525,9 @@ export async function buildWorkspaces(rootDirectory, options = {}) {
 }
 
 export async function testWorkspaces(rootDirectory, options = {}) {
-  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup, cache, cacheStore, cacheFiles } = options;
+  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup, cache, cacheStore, cacheFiles, affected, affectedFiles } = options;
   validateEnvironment(environment);
-  const plan = createWorkspaceTestPlan(rootDirectory, { fileSystem, excludeWorkspace, concurrency, testArguments, ciGroup });
+  const plan = createWorkspaceTestPlan(rootDirectory, { fileSystem, excludeWorkspace, concurrency, testArguments, ciGroup, affected, affectedFiles });
   let testStages = plan.testStages;
   if (plan.rootManifest.scripts["test:unit:shared"]) {
     const { sharedVitestStages } = await import("./test-vitest-workspaces.mjs");
@@ -546,6 +574,10 @@ export function parseWorkspaceArguments(args) {
       if (argument === "--no-cache") {
         assert.ok(result.cache === undefined, "Duplicate cache option");
         result.cache = false;
+      } else if (argument.startsWith("--affected=")) {
+        assert.ok(result.affected === undefined, "Duplicate affected option");
+        result.affected = argument.slice("--affected=".length);
+        affectedWorkspaceNames({ workspaces: [], edges: [] }, result.affected, []);
       } else if (argument.startsWith("--concurrency=")) {
         assert.ok(!Object.hasOwn(result, "concurrency"), "Duplicate build concurrency");
         const value = argument.slice("--concurrency=".length);
@@ -558,6 +590,7 @@ export function parseWorkspaceArguments(args) {
         result.workspace = workspace;
       }
     }
+    assert.ok(result.workspace === undefined || result.affected === undefined, "Select a workspace or affected reference");
     return result;
   }
   const result = { mode: "test-unit", concurrency: 1, excludeWorkspace: undefined, testArguments: [] };
@@ -570,6 +603,10 @@ export function parseWorkspaceArguments(args) {
     if (name === "--no-cache") {
       assert.ok(equals < 0 && !seen.has(name), "Invalid or duplicate cache option");
       seen.add(name); result.cache = false;
+    } else if (name === "--affected") {
+      assert.ok(equals >= 0 && !seen.has(name), "Invalid or duplicate affected option");
+      seen.add(name); result.affected = argument.slice(equals + 1);
+      affectedWorkspaceNames({ workspaces: [], edges: [] }, result.affected, []);
     } else if (name === "--concurrency" || name === "--exclude-workspace" || name === "--ci-group") {
       assert.ok(!seen.has(name), "Duplicate runner option"); seen.add(name);
       const value = equals < 0 ? undefined : argument.slice(equals + 1);
@@ -581,6 +618,7 @@ export function parseWorkspaceArguments(args) {
       result.testArguments.push(...args.slice(index)); break;
     }
   }
+  assert.ok(result.affected === undefined || result.ciGroup === undefined, "Affected selection does not accept CI groups");
   assert.ok(result.ciGroup === undefined || (!result.excludeWorkspace && !result.testArguments.length), "CI unit groups do not accept exclusions or test arguments");
   return result;
 }

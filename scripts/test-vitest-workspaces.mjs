@@ -22,7 +22,7 @@ export function sharedVitestStages(plan, fileSystem = fs) {
   const shared = {
     ...root,
     event: "test:unit:shared",
-    testArguments: [...(plan.ciGroup ? [`--ci-group=${plan.ciGroup}`] : []), ...compatible.map(stage => stage.path ?? ".")],
+    testArguments: [...(plan.ciGroup ? [`--ci-group=${plan.ciGroup}`] : []), ...(plan.affected ? [`--affected=${plan.affected}`] : []), ...compatible.map(stage => stage.path ?? ".")],
     phases: compatible.map(stage => ({
       name: stage.name,
       path: stage.path,
@@ -191,10 +191,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const root = fileURLToPath(new URL("../", import.meta.url));
     const expected = process.argv.slice(2);
     const groupArgument = expected[0]?.startsWith("--ci-group=") ? expected.shift() : undefined;
-    const plan = createWorkspaceTestPlan(root, { ciGroup: groupArgument?.slice("--ci-group=".length) });
+    const affectedArgument = expected[0]?.startsWith("--affected=") ? expected.shift() : undefined;
+    const plan = createWorkspaceTestPlan(root, { affected: affectedArgument?.slice("--affected=".length), ciGroup: groupArgument?.slice("--ci-group=".length) });
     const shared = sharedVitestStages(plan).find(stage => stage.event === "test:unit:shared");
     assert.ok(shared, "Shared Vitest is not enabled for this workspace configuration");
-    if (expected.length) assert.deepEqual(shared.testArguments, [...(groupArgument ? [groupArgument] : []), ...expected], "Workspace unit selection changed before shared execution");
+    if (expected.length) assert.deepEqual(shared.testArguments, [...(groupArgument ? [groupArgument] : []), ...(affectedArgument ? [affectedArgument] : []), ...expected], "Workspace unit selection changed before shared execution");
     const { runVitestBatch } = await import("./run-vitest-batch.mjs");
     await runSharedVitest(root, shared.phases, {
       runBatch: runVitestBatch,

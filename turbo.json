@@ -4,9 +4,7 @@
     "scripts/guard-package-dist.mjs",
     "package.json",
     "tsconfig.json",
-    "tsconfig.build.json",
-    "packages/*/package.json",
-    "packages/*/tsconfig.json"
+    "tsconfig.build.json"
   ],
   "tasks": {
     "build": {

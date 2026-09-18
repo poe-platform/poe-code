@@ -1,12 +1,12 @@
 # Issue 746: native asynchronous Python in Cloudflare
 
-## Acceptance and current evidence
+## Acceptance and baseline evidence
 
 Work only in the issue-746 detached worktree. Parent owns cherry-pick, main,
 publication and issue closure. No Docker-backed interpreter is a Cloudflare
 implementation. Do not copy the canonical workspace into the interpreter.
 
-On September 18, 2026, the current source exposes an asynchronous executor
+At the September 18, 2026 investigation baseline, source exposed an asynchronous executor
 contract but only a synchronous Emscripten filesystem mount. The maintained
 workerd consumer uses a transport double, not Python. Previously demonstrated
 native `fd_read` import trampolines in Node are not a complete filesystem.
@@ -50,6 +50,107 @@ evidence that the managed-child requirement is satisfied.
 6. Qualify the public package in a disposable deployment when deployment access
    is available, record assets/startup/memory, delete the deployment, then return
    atomic commits and exact remaining gates to the parent.
+
+## Current qualification checkpoint (September 18, 2026)
+
+The exported `createPythonJspiExecutor` now replaces the qualification-only
+fixture. No workspace snapshot, builtins-only adapter, synchronous JS suspension
+frame, Docker interpreter or replacement of the Pyodide thread-state guard is
+used. Native shutdown has its own standard JSPI boundary. All changes remain
+local for parent integration; no push, deployed release or issue closure is claimed.
+
+Acceptance ledger:
+
+1. **Custom packed consumer passes; managed native mount remains open.** The
+   public Python entry exports the executor and static asset helpers. Installed
+   public packages execute in real workerd without Node threads or a SAB
+   request/reply bridge. The managed child characterization passes ABI, native
+   ephemeral I/O/zlib and canonical service RPC, but ordinary native canonical
+   `open` still fails. No supported pre-instantiation import hook is qualified.
+2. **Pinned custom native path passes.** Ordinary native reads/writes, canonical
+   source imports, `_csv`, zlib, binary stdio, metadata and native shutdown I/O
+   pass. Native wheel downloads/runtime compilation are not qualified.
+3. **Asynchronous backend path passes the maintained matrix.** Delayed serial
+   canonical operations, bounded transfer requests, errno, cooperative terminal
+   cancellation and release ordering pass. Franklin owns #763 descriptor staging
+   and larger native-R2 workloads; those are separate evidence, not inferred here.
+4. **Static recipe passes.** Exact size/SHA-256 admission precedes parsing of
+   pinned assets. All Wasm modules are statically supplied; no `unsafeEval` or
+   runtime Wasm compilation permission is granted.
+5. **Invocation ownership passes.** Background tasks and async generators finish
+   awaited cleanup before shutdown. Owned scheduler queues cannot reenter freed
+   interpreter state. Real Shell disposal waits for retained reads/closes while
+   sibling and borrowed pool survive; subsequent interpreters have fresh modules.
+   Explicit post-finalization globals-proxy destruction passes, not a forced-GC
+   or arbitrary foreign-PyProxy guarantee.
+6. **Packed local workerd passes; deployment is unavailable.** Environment
+   Cloudflare token/account variables and default Wrangler auth config were absent
+   on recheck. Existing Wrangler logs/metrics are not deployment credentials.
+   Do not close this acceptance gate until an authorized disposable deployment
+   runs and is removed, and parent separately verifies publication.
+7. **Limits are documented.** JSPI suspends only at async boundaries; it cannot
+   preempt CPU loops or establish confinement. Same-isolate operation does not
+   require a separate Worker deployment.
+
+The initial finalization, callback-after-free, canceled native retry and service
+close races were reproduced before fixes. Current checks: 66 focused Python
+tests, 37 SafeFS native/filesystem/stat tests, SafeFS typecheck, selected Safe
+Bash workspace build, selected SafeJS build needed by the public assembler,
+input-admission check, source workerd and packed workerd. No root suites or root
+ESLint ran. The latest packed sample reports 31457280 linear-memory bytes,
+1290 ms initialization plus script, 3161441 bundled-JS bytes, 9598218 main-Wasm
+bytes and 2545564 stdlib bytes. These are local observations, not RSS limits or
+production benchmarks.
+
+### Reproduce packed qualification
+
+Build the selected `@poe-platform/safe-bash` and `@poe-code/safe-js` workspace
+closures with `npm run build:workspaces -- --workspace=<name>`. The latter
+generates the Intl data required by the maintained public-package assembler.
+
+```bash
+node scripts/package-safe.mjs --out-dir out/issue-746/assembled --version 0.0.0-issue746.1
+mkdir -p out/issue-746/tarballs out/issue-746/consumer
+for package in safe-fs safe-js safe-bash; do
+  npm pack "./out/issue-746/assembled/$package" --pack-destination out/issue-746/tarballs --json
+done
+npm install --prefix out/issue-746/consumer --workspaces=false --package-lock=true --ignore-scripts --no-audit --no-fund \
+  ./out/issue-746/tarballs/poe-platform-safe-fs-0.0.0-issue746.1.tgz \
+  ./out/issue-746/tarballs/poe-platform-safe-js-0.0.0-issue746.1.tgz \
+  ./out/issue-746/tarballs/poe-platform-safe-bash-0.0.0-issue746.1.tgz
+```
+
+Run the local workerd launcher recorded below with the additional container env
+`-e SAFE_BASH_PYTHON_CONSUMER_ROOT="$PWD/out/issue-746/consumer"`. This uses the
+same test matrix but resolves installed public exports. The test checks there
+are no package symlinks or workspace Python/SafeFS sources in the bundle graph.
+Build-time Wasm generators also come from the installed public Python entry.
+Archive/install operations are local verification, not releases.
+
+### Managed-runtime investigation
+
+Use the same pinned tooling launcher with `python-managed.test.mjs` instead of
+the custom test. Add read-only `-v /etc/ssl/certs:/etc/ssl/certs:ro` and container
+env `SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt`,
+`SSL_CERT_DIR=/etc/ssl/certs`, `NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt`.
+The managed bundle loader uses system trust independently of Miniflare's network
+service; setting only `NODE_EXTRA_CA_CERTS` was insufficient. Certificate
+verification is never disabled. Python 3.14.2 / Pyodide 314.0.6 starts in ~2 seconds
+locally, exposes `syscall_syncify`, and does not expose `wasmImports`.
+
+Pinned workerd source `v1.20260917.1`,
+`src/pyodide/internal/pool/emscriptenSetup.ts`, lines 114–147, constructs the
+imports and instantiates the managed Wasm internally before application code.
+Next managed work requires a documented supported hook or different supported
+native mount API; repeating Python-proxy/synchronous-JS suspension failures is
+not an implementation. This finding does not prove such integration impossible.
+No credential material is written to evidence.
+
+Current evidence lives only in worktree `out/issue-746`, notably
+`python-focused-current.log`, `source-workerd-current.log`, `packed-workerd.log`,
+`package-assembly.log`, `pack.log`, `consumer-install.log`, and
+`managed-system-trust.log`. Preserve the existing read-only
+`/tmp/poe-python-workerd-current` dependencies; create no new output there.
 
 ## Boundaries
 

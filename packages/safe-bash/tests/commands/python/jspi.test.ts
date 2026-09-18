@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createPythonJspiQualificationExecutor } from '../../integration/python-jspi-executor.fixture.js';
-import { createPythonJspiTrampoline, createPythonJspiNativeCall, createPythonJspiStatResult } from '../../../src/commands/python/jspi-trampoline.js';
+import { createPythonJspiExecutor,
+  createPythonJspiTrampoline, createPythonJspiNativeCall, createPythonJspiStatResult } from '../../../src/commands/python/index.js';
 
 const WebAssembly = (globalThis as any).WebAssembly;
 
@@ -11,7 +11,7 @@ const start = () => ({ signal: new AbortController().signal,
 
 test('JSPI executor retires before admission without acquiring or disposing a borrowed loader', async () => {
   let acquisitions = 0;
-  const executor = createPythonJspiQualificationExecutor({trampoline:new WebAssembly.Module(createPythonJspiTrampoline()),
+  const executor = createPythonJspiExecutor({trampoline:new WebAssembly.Module(createPythonJspiTrampoline()),
     nativeCall:new WebAssembly.Module(createPythonJspiNativeCall()),
     statResult:new WebAssembly.Module(createPythonJspiStatResult()),
     async loadRuntime() { acquisitions++; throw new Error('should not load'); }});
@@ -21,10 +21,19 @@ test('JSPI executor retires before admission without acquiring or disposing a bo
 });
 
 test('JSPI executor requires the host to install imports before interpreter startup', async () => {
-  const executor = createPythonJspiQualificationExecutor({trampoline:new WebAssembly.Module(createPythonJspiTrampoline()),
+  const executor = createPythonJspiExecutor({trampoline:new WebAssembly.Module(createPythonJspiTrampoline()),
     nativeCall:new WebAssembly.Module(createPythonJspiNativeCall()),
     statResult:new WebAssembly.Module(createPythonJspiStatResult()),
     async loadRuntime() { return {version:'314.0.6'} as any; }});
   await assert.rejects(executor.run(start()), {category:'runtime-abi'});
+  await executor.terminate();
+});
+
+test('an empty prepared package session does not require dynamic package loading', async () => {
+  const failure = new Error('loader reached');
+  const executor = createPythonJspiExecutor({trampoline:new WebAssembly.Module(createPythonJspiTrampoline()),
+    nativeCall:new WebAssembly.Module(createPythonJspiNativeCall()), statResult:new WebAssembly.Module(createPythonJspiStatResult()),
+    async loadRuntime() { throw failure; }});
+  await assert.rejects(executor.run({...start(), packages:{session:'prepared',requirements:[],offline:true}}), error => error === failure);
   await executor.terminate();
 });

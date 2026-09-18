@@ -402,5 +402,10 @@ export type { PythonPackageManifest, PythonPackageManifestStore } from './manife
 export { createPythonPackageCache } from './cache.js';
 export { createPythonExecutorPool } from './executor-pool.js';
 export type { PythonExecutorPool, PythonExecutorPoolOptions } from './executor-pool.js';
+export { createPythonJspiExecutor } from './jspi.js';
+export type { PythonJspiExecutorOptions, PythonJspiRuntimeConfiguration } from './jspi.js';
+export { createPythonJspiAssets } from './jspi-assets.js';
+export type { PythonJspiAssetsOptions } from './jspi-assets.js';
+export { createPythonJspiTrampoline, createPythonJspiNativeCall, createPythonJspiStatResult } from './jspi-trampoline.js';
 export { PythonFailure, inspectPythonCapabilities } from './diagnostics.js';
 export type { PythonFailureCategory, PythonDiagnostic, PythonDiagnosticObserver, PythonFileSystemRequirement, PythonCapabilityOptions, PythonCapabilityReport } from './diagnostics.js';

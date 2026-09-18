@@ -1,10 +1,11 @@
 import { createPythonNativeSyscalls } from '@poe-code/safe-fs/core';
-import type { PythonAsyncExecutor, PythonExecutorStart } from '../../src/commands/python/index.js';
-import { PythonFailure } from '../../src/commands/python/diagnostics.js';
-import { parsePythonInvocation } from '../../src/commands/python/invocation.js';
-import { pythonExecution } from '../../src/commands/python/execution.js';
-import { pythonJspiSignatures } from '../../src/commands/python/jspi-trampoline.js';
-import { pythonRuntimeRelocation, pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonTreeCleanup } from '../../src/commands/python/runtime-scripts.js';
+import type { PythonAsyncExecutor, PythonExecutorStart } from './index.js';
+import { PythonFailure } from './diagnostics.js';
+import { parsePythonInvocation } from './invocation.js';
+import { pythonExecution } from './execution.js';
+import { pythonJspiSignatures } from './jspi-trampoline.js';
+import { createPythonJspiScheduler, type PythonJspiCallback } from './jspi-scheduler.js';
+import { pythonRuntimeRelocation, pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonTreeCleanup } from './runtime-scripts.js';
 
 export interface PythonJspiRuntimeConfiguration {
   readonly jsglobals: Record<string, never>;
@@ -12,6 +13,7 @@ export interface PythonJspiRuntimeConfiguration {
   readonly env: Readonly<Record<string, string>>;
   bindImports(imports: Record<string, Record<string, any>>): void;
   bindInstance(instance: { exports: Record<string, any> }): void;
+  bindScheduler(api: {scheduleCallback: (callback: PythonJspiCallback, delay?: number) => void}): void;
 }
 
 export interface PythonJspiExecutorOptions {
@@ -21,12 +23,12 @@ export interface PythonJspiExecutorOptions {
   readonly loadRuntime: (configuration: PythonJspiRuntimeConfiguration) => Promise<any>;
 }
 
-export function createPythonJspiQualificationExecutor(options: PythonJspiExecutorOptions): PythonAsyncExecutor {
+export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): PythonAsyncExecutor {
   const engine = (globalThis as any).WebAssembly;
   const active = new engine.Global({value:'i32', mutable:true}, 0);
   const syncify = new engine.Table({element:'anyfunc', initial:1});
-  const interrupted = new Uint8Array(1);
   const controller = new AbortController();
+  const scheduler = createPythonJspiScheduler();
   let admitted = false;
   let running: Promise<number> | undefined;
   let retirement: Promise<void> | undefined;
@@ -35,6 +37,7 @@ export function createPythonJspiQualificationExecutor(options: PythonJspiExecuto
   let native: ReturnType<typeof createPythonNativeSyscalls> | undefined;
   let instanceBound = false;
   let importsBound = false;
+  let schedulerBound = false;
   let methodDefinition = 0;
   let methodPointer: number | undefined;
   let statPointer: number | undefined;
@@ -42,12 +45,10 @@ export function createPythonJspiQualificationExecutor(options: PythonJspiExecuto
 
   const execute = async (start: PythonExecutorStart): Promise<number> => {
     const signal = AbortSignal.any([start.signal, controller.signal]);
-    const interrupt = () => { interrupted[0] = 2; };
-    signal.addEventListener('abort', interrupt, {once:true});
     const configuration = parsePythonInvocation(start.invocation.args, start.invocation.env);
     try {
       signal.throwIfAborted();
-      if (start.packages || start.installOnly) throw new PythonFailure('runtime-assets', {cause:new Error('JSPI runtime requires statically qualified packages')});
+      if (start.packages?.requirements.length || start.installOnly) throw new PythonFailure('runtime-assets', {cause:new Error('JSPI runtime requires statically qualified packages')});
       runtime = await options.loadRuntime({jsglobals:Object.create(null) as Record<string, never>,
         args:configuration.startupArgs, env:configuration.env,
         bindImports(imports) {
@@ -77,10 +78,14 @@ export function createPythonJspiQualificationExecutor(options: PythonJspiExecuto
           syncify.set(0, instance.exports.syscall_syncify);
           instanceBound = true;
         },
+        bindScheduler(api) {
+          if (schedulerBound) throw new PythonFailure('runtime-abi');
+          api.scheduleCallback = scheduler.scheduleCallback;
+          schedulerBound = true;
+        },
       });
-      if (!importsBound || !instanceBound || runtime.version !== '314.0.6' || !runtime._module.jspiSupported) throw new PythonFailure('runtime-abi');
+      if (!importsBound || !instanceBound || !schedulerBound || runtime.version !== '314.0.6' || !runtime._module.jspiSupported) throw new PythonFailure('runtime-abi');
       signal.throwIfAborted();
-      runtime.setInterruptBuffer(interrupted);
       runtime.runPython('import sys, os, json, runpy, traceback, types, warnings, textwrap, io, struct, linecache, importlib.machinery, shutil, stat, pyodide.ffi');
       runtime.globals.set('_safe_runtime_mount', start.runtimeMount);
       const filesystem = runtime.FS;
@@ -184,18 +189,43 @@ def _safe_native_stat_type(values, extras):
 _safe_stat_type = _safe_native_stat_type
 `);
       runtime.globals.set('_safe_invocation_json', JSON.stringify(start.invocation));
+      runtime.globals.set('_safe_execution_code', pythonExecution);
+      runtime.globals.set('_safe_is_cancelled', () => signal.aborted);
       active.value = 1;
       start.onReady();
-      const exitCode = await runtime.runPythonAsync(pythonExecution);
-      signal.throwIfAborted();
+      const exitCode = await runtime.runPythonAsync(`
+try:
+ exec(_safe_execution_code)
+except BaseException:
+ if not _safe_is_cancelled():
+  raise
+ _safe_exit = 130
+_safe_exit
+`);
+      await runtime.runPythonAsync(`
+import asyncio as _safe_asyncio
+async def _safe_quiesce_tasks():
+ current = _safe_asyncio.current_task()
+ while True:
+  pending = [task for task in _safe_asyncio.all_tasks() if task is not current]
+  if not pending:
+   break
+  for task in pending:
+   task.cancel()
+  await _safe_asyncio.gather(*pending, return_exceptions=True)
+ loop = _safe_asyncio.get_running_loop()
+ await loop.shutdown_asyncgens()
+ await loop.shutdown_default_executor()
+await _safe_quiesce_tasks()
+`);
+      await scheduler.close();
       active.value = 2;
       const finalized = await engine.promising(runtime._module._Py_FinalizeEx)();
       signal.throwIfAborted();
       return finalized < 0 ? 120 : Number(exitCode) & 255;
     } finally {
       active.value = 0;
-      signal.removeEventListener('abort', interrupt);
-      cleanup = native?.close();
+      cleanup = scheduler.close().finally(() => native?.close());
       try { await cleanup; }
       finally {
         if (methodDefinition) runtime?._module._free(methodDefinition);
@@ -218,7 +248,6 @@ _safe_stat_type = _safe_native_stat_type
     terminate() {
       retirement ??= (async () => {
         controller.abort();
-        interrupted[0] = 2;
         await running?.catch(() => {});
         await cleanup;
       })();

@@ -3,13 +3,24 @@ import { createHash } from 'node:crypto';
 import { lstatSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { test } from 'node:test';
 import { build } from 'esbuild';
 import ts from 'typescript';
-import { createPythonJspiTrampoline, createPythonJspiNativeCall, createPythonJspiStatResult } from '../../src/commands/python/jspi-trampoline.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
+const consumerRoot = process.env.SAFE_BASH_PYTHON_CONSUMER_ROOT;
+const consumerPackage = consumerRoot && resolve(consumerRoot, 'node_modules/@poe-platform/safe-bash');
+const pythonEntry = consumerRoot
+  ? resolve(consumerPackage, JSON.parse(readFileSync(resolve(consumerPackage, 'package.json'), 'utf8')).exports['./commands/python'].import)
+  : resolve(root, 'packages/safe-bash/src/commands/python/jspi-trampoline.ts');
+const { createPythonJspiTrampoline, createPythonJspiNativeCall, createPythonJspiStatResult } = await import(pathToFileURL(pythonEntry).href);
+if (consumerRoot) {
+  assert.ok(resolve(consumerRoot).startsWith(resolve(root, 'out') + '/'));
+  for (const name of ['safe-bash', 'safe-fs', 'safe-js']) {
+    assert.equal(lstatSync(resolve(consumerRoot, 'node_modules/@poe-platform', name)).isSymbolicLink(), false);
+  }
+}
 const tooling = process.env.SAFE_BASH_CF_RUNTIME_ROOT;
 assert.ok(tooling, 'Set SAFE_BASH_CF_RUNTIME_ROOT to Miniflare 5.20260917.0-alpha / workerd 1.20260917.1');
 assert.ok(process.env.TMPDIR?.startsWith(resolve(root, 'out') + '/'), 'Set TMPDIR to an existing directory under worktree out/');
@@ -58,7 +69,7 @@ import helper from 'helper.wasm';
 import ccall from 'ccall.wasm';
 import empty from 'empty.wasm';
 import stdlib from 'stdlib.bin';
-import { createPythonJspiAssets } from ${JSON.stringify(resolve(root, 'packages/safe-bash/src/commands/python/jspi-assets.ts'))};
+import { createPythonJspiAssets } from '@poe-platform/safe-bash/commands/python';
 const assets = createPythonJspiAssets({ main, stdlib:new Uint8Array(stdlib), modules:[
  { module:helper,bytes:new Uint8Array(${JSON.stringify(Array.from(helper))}) },
  { module:ccall,bytes:new Uint8Array(${JSON.stringify(Array.from(ccall))}) },
@@ -69,17 +80,33 @@ export { WebAssembly, fetch, location };
 `;
   const outputRoot = process.env.TMPDIR;
   const bundle = await build({ entryPoints: [fileURLToPath(new URL('./python-jspi.worker.mjs', import.meta.url))],
-    bundle: true, write: false, platform: 'node', format: 'esm', target: 'es2022', conditions: ['workerd', 'browser'],
+    bundle: true, write: false, metafile: true, platform: 'node', format: 'esm', target: 'es2022', conditions: ['workerd', 'browser'],
     external: ['main.wasm', 'helper.wasm', 'ccall.wasm', 'empty.wasm', 'trampoline.wasm', 'native-call.wasm', 'stat-result.wasm', 'stdlib.bin', 'node:*', 'ws'],
     define: { 'globalThis.process': 'undefined', process: 'undefined' },
     alias: { 'pinned-pyodide-loader': resolve(runtimeRoot, 'pyodide.mjs'),
       'pinned-pyodide-module': resolve(runtimeRoot, 'pyodide.asm.mjs'),
       'pinned-pyodide-lock': resolve(runtimeRoot, 'pyodide-lock.json'),
-      '@poe-code/safe-fs/core': resolve(root, 'packages/safe-fs/src/core.ts') },
+      ...(consumerRoot ? {} : {
+        '@poe-code/safe-fs/core': resolve(root, 'packages/safe-fs/src/core.ts'),
+        '@poe-platform/safe-fs/core': resolve(root, 'packages/safe-fs/src/core.ts'),
+        '@poe-platform/safe-bash/commands/python': resolve(root, 'packages/safe-bash/src/commands/python/index.ts'),
+        '@poe-platform/safe-bash': resolve(root, 'packages/safe-bash/src/shell/shell.ts'),
+      }) },
     inject: ['python-static-assets'], plugins: [{ name: 'python-static-assets', setup(plugin) {
+      if (consumerRoot) plugin.onResolve({ filter: /^@poe-platform\// }, args => {
+        if (args.pluginData?.consumer) return;
+        return plugin.resolve(args.path, {resolveDir:consumerRoot, kind:'import-statement', pluginData:{consumer:true}});
+      });
       plugin.onResolve({ filter: /^python-static-assets$/ }, () => ({ path: 'assets', namespace: 'python-static-assets' }));
       plugin.onLoad({ filter: /.*/, namespace: 'python-static-assets' }, () => ({ contents: injection, loader: 'js', resolveDir: root }));
     } }] });
+  if (consumerRoot) {
+    const inputs = Object.keys(bundle.metafile.inputs).map(path => resolve(root, path));
+    assert.equal(inputs.some(path => path.startsWith(resolve(root, 'packages/safe-bash/src') + '/')), false);
+    assert.equal(inputs.some(path => path.startsWith(resolve(root, 'packages/safe-fs/src') + '/')), false);
+    assert.ok(inputs.some(path => path.startsWith(resolve(consumerRoot, 'node_modules/@poe-platform/safe-bash') + '/')));
+    assert.ok(inputs.some(path => path.startsWith(resolve(consumerRoot, 'node_modules/@poe-platform/safe-fs') + '/')));
+  }
   const modules = [
     { type: 'ESModule', path: resolve(outputRoot, 'main.mjs'), contents: bundle.outputFiles[0].text },
     ...[['main.wasm', files['pyodide.asm.wasm']], ['helper.wasm', helper], ['ccall.wasm', ccall],
@@ -109,7 +136,42 @@ export { WebAssembly, fetch, location };
     assert.deepEqual(finalization.buffered, [255, 0, 43]);
     assert.deepEqual(finalization.destructor, [44]);
     assert.deepEqual(finalization.stdout, [0, 255, 42, 45]);
-    context.diagnostic(JSON.stringify({ sourceQualificationOnly: true, memory: result.memory, elapsedMs: result.elapsedMs,
+    const backgroundResponse = await miniflare.dispatchFetch('http://fixture/background');
+    const background = await backgroundResponse.json();
+    assert.equal(backgroundResponse.status, 200, JSON.stringify(background));
+    assert.deepEqual(background.callbacks, []);
+    assert.deepEqual(background.failures, []);
+    const tasksResponse = await miniflare.dispatchFetch('http://fixture/tasks');
+    const tasks = await tasksResponse.json();
+    assert.equal(tasksResponse.status, 200, JSON.stringify(tasks));
+    assert.equal(tasks.exitCode, 0, JSON.stringify(tasks));
+    assert.deepEqual(tasks.failures, []);
+    assert.deepEqual(tasks.taskFinalized, [46]);
+    assert.deepEqual(tasks.generatorFinalized, [47]);
+    const cancelledResponse = await miniflare.dispatchFetch('http://fixture/cancel');
+    const cancelled = await cancelledResponse.json();
+    assert.equal(cancelledResponse.status, 200, JSON.stringify(cancelled));
+    assert.deepEqual(cancelled.finalizations, ['atexit']);
+    assert.deepEqual(cancelled.failures, []);
+    const shellResponse = await miniflare.dispatchFetch('http://fixture/shell');
+    const shell = await shellResponse.json();
+    assert.equal(shellResponse.status, 200, JSON.stringify(shell));
+    assert.equal(shell.waitedForRead, true);
+    assert.equal(shell.firstError, 'Error: Shell is disposed', JSON.stringify(shell));
+    assert.deepEqual(shell.borrowed, {active:1, capacity:2, closed:false});
+    assert.equal(shell.siblingExit, 0, JSON.stringify(shell));
+    assert.deepEqual(shell.siblingBytes, [255, 0, 49]);
+    assert.equal(shell.freshExit, 0);
+    assert.equal(shell.fresh, 'fresh\n');
+    assert.deepEqual(shell.closed, ['first', 'sibling']);
+    assert.equal(shell.acquisitions, 3);
+    assert.deepEqual(shell.failures, []);
+    assert.deepEqual(shell.finalizations, ['atexit']);
+    const proxyResponse = await miniflare.dispatchFetch('http://fixture/proxy');
+    const proxy = await proxyResponse.json();
+    assert.equal(proxyResponse.status, 200, JSON.stringify(proxy));
+    assert.deepEqual(proxy.failures, []);
+    context.diagnostic(JSON.stringify({ artifact: consumerRoot ? 'installed-public-packages' : 'workspace-source', memory: result.memory, elapsedMs: result.elapsedMs,
       requests: result.requests.length, finalizationFailure: finalization.failures,
       assets: modules.map(module => ({ name: module.path.slice(outputRoot.length + 1), bytes: Buffer.byteLength(module.contents) })) }));
   } finally { await miniflare.dispose(); }

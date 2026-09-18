@@ -1,10 +1,18 @@
-# Python JSPI qualification components
+# Python JSPI executor
 
-There is currently **no supported Cloudflare Python executor exported by this
-package**. The asynchronous executor seam is public, but the candidate runtime
-adapter remains under `tests/integration/python-jspi-executor.fixture.ts`.
-Do not deploy that fixture or treat its passing characterization test as full
-Python executor qualification.
+`@poe-platform/safe-bash/commands/python` exports `createPythonJspiExecutor`,
+`createPythonJspiAssets`, and three build-time Wasm generators. The custom
+same-isolate executor is qualified against pinned Pyodide 314.0.6 in local
+workerd, including an independently installed public-package consumer. This is
+not a Cloudflare-managed Python adapter or a verified deployed release.
+
+Create one executor per invocation through `pythonCommands({createExecutor})`
+or a borrowed `createPythonExecutorPool`. Supply precompiled `trampoline`,
+`nativeCall`, and `statResult` modules and an explicit `loadRuntime` host recipe.
+The loader must call `bindImports` before main-Wasm instantiation, `bindInstance`
+after instantiation, and `bindScheduler` before Python bootstrap. These hooks are
+each single-use and the pinned runtime ABI is checked before guest admission.
+No Node thread or SAB request/reply transport is used.
 
 ## Native and static-asset mechanism
 
@@ -58,12 +66,19 @@ The test uses actual workerd, no Node interpreter substitute, and needs a host
 with compatible glibc. A container used only to launch workerd is test tooling,
 not the Cloudflare Python executor.
 
-## Observed blocker and remaining gates
+For packed qualification, assemble with `scripts/package-safe.mjs`, pack and
+install the public packages into an independent consumer under worktree `out/`,
+then set `SAFE_BASH_PYTHON_CONSUMER_ROOT` to that directory. The same test resolves
+public exports from that installation, rejects package symlinks, and checks the
+bundler inputs exclude workspace Python and SafeFS sources. The pinned Pyodide
+runtime remains an explicit application asset, not an implicit dependency.
 
-On September 18, 2026 the source test passed ordinary native file I/O, canonical
+## Lifecycle and observed qualification
+
+On September 18, 2026 the source and packed tests passed native file I/O, canonical
 source imports, `_csv` reading a canonical file, zlib, binary streams and delayed
 serial backend requests. A sample run used 31457280 bytes of linear memory and
-took 1233 ms including initialization and the script. Neither number is a
+took 1290 ms including initialization and the script in the packed test. Neither number is a
 production memory guarantee or benchmark. Exact asset sizes are emitted by the
 test; the main Wasm is 9598218 bytes and stdlib is 2545564 bytes.
 
@@ -77,17 +92,40 @@ zero does not prove successful interpreter retirement. The current test now
 requires the actual finalizer bytes: delayed native atexit I/O, unclosed buffered
 file flushing, destructor writes and metadata, atexit directory enumeration,
 and binary stdout flushing pass through the new native shutdown boundary.
-The native syscall adapter is still not a complete public executor.
-
 Do not bypass Pyodide's thread-state guard, replay syscalls, copy the workspace,
-or replace only `builtins.open` to hide lifecycle defects. Background-task
-retirement and exclusion of reentry during finalization still need qualification.
-Cancellation and sibling ownership tests of the lower-level adapter do not
-establish that full runtime guarantee.
+or replace only `builtins.open` to hide lifecycle defects.
+
+Before finalization, the executor cancels and gathers Python background tasks,
+shuts down async generators/default executors, drains admitted scheduler calls,
+and releases queued one-shot callback proxies. The scheduler is invocation-owned;
+queued callbacks cannot reenter the finalized interpreter. Actual delayed native
+writes in task and async-generator cleanup are tested. Explicit destruction of
+the retained globals proxy after finalization also passes; this is not a forced-GC
+or arbitrary foreign-proxy lifetime guarantee.
+
+Cancellation is cooperative and terminal `ECANCELED`, not endlessly retried
+`EINTR`. The canceled invocation still retires tasks, callbacks and interpreter.
+Release-only descriptor closes remain admitted after cancellation; content
+operations do not. Shell disposal waits for owned execution and retained handle
+release before retiring the filesystem service. The real-workerd test verifies
+two concurrent shells, canceled-owner atexit, exact-once close, a live borrowed
+pool and sibling, binary output, and fresh subsequent interpreter state.
+
+## Managed runtime and deployment gates
 
 Managed Python child imports remain instantiated before application code, with
-no supported replacement hook qualified here. Packed-public-consumer and managed
-Python gates are outstanding. Cloudflare credentials were unavailable, so no
+no supported replacement hook qualified here. `python-managed.test.mjs` separately
+characterizes an actual managed child: Python 3.14.2 / Pyodide 314.0.6 exposes
+`syscall_syncify`, and native ephemeral binary I/O/zlib and explicit canonical
+service RPC pass. Canonical native `open` still raises `FileNotFoundError`;
+`wasmImports` is not exposed. RPC is not a native filesystem mount. This is not
+proof that managed integration is impossible, but the managed acceptance gate
+remains open rather than being replaced with the custom executor.
+
+Local managed bundle fetching needs a system CA store. The tooling container
+mounts the host CA directory read-only and sets `SSL_CERT_FILE`, `SSL_CERT_DIR`
+and `NODE_EXTRA_CA_CERTS`; certificate verification remains enabled.
+Cloudflare credentials were unavailable in environment/default Wrangler config, so no
 disposable deployment or publication is claimed. JSPI never preempts CPU-only
 guest loops and never establishes guest confinement; obtaining JSPI alone does
 not require a separate Worker deployment.

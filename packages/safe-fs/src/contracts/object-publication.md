@@ -188,3 +188,41 @@ It exercises installed packages on immediate/delayed immutable versions using
 Memory's authoritative conditional-write primitive, including a 16 MiB binary and
 bounded flushed output. This qualifies that integration model, not an untested
 Poe, S3, WebDAV or Cloudflare deployment.
+
+The source-level native staging regression is
+`packages/safe-fs/tests/integration/object-staging-native.test.mjs`. It bundles
+the existing Node `createNodePythonWorker` executor and the candidate SafeFS
+source with one canonical core identity. Install the pinned `pyodide@314.0.6`
+runtime separately, then run from the repository root:
+
+```sh
+SAFE_FS_PYODIDE_ROOT=/absolute/path/to/node_modules/pyodide \
+TMPDIR="$PWD/out/native-staging" \
+node --test packages/safe-fs/tests/integration/object-staging-native.test.mjs
+```
+
+Create the output directory first. The checkout needs its `esbuild` and
+`@noble/hashes` build dependencies; no Python executor source edits or workspace
+mirror are involved. This is an opt-in integration test, not a unit-suite task.
+It runs actual Python `open`/binary `write`/context-manager close, followed by
+native chunked readback and SHA-256, for 9 MiB and 100 MiB on immediate and delayed
+callbacks. It does not call `flush` or `fsync`, or replace Python builtins.
+`maxFileBytes` equals the tested size; staging remains one 64 KiB page.
+The independent Shell `maxOutputBytes` limit is explicitly set to the tested
+size plus 64 KiB, and `maxWallClockMs`/`maxCpuMs` to 75 seconds for the delayed
+100 MiB integration, rather than disabling these limits. Setting
+`SAFE_FS_STAGING_DISABLED=1` removes the fixture's optional primitive and makes
+the same success assertions fail with native `ENOSPC`.
+
+This fixture stores private pages and streamed immutable generations on local
+disk, with a process-local namespace. It checks the output hash, exactly one
+spill write/read/publication pass, unpublished intermediate pages, two
+publications (empty creating open and final close), and resource retirement.
+It is neither an authoritative consumer adapter nor a permission/concurrency
+qualification for that consumer. It measures adapter page admission and I/O
+counters, not process RSS, interpreter memory, host cache bounds or a 128 MiB
+Worker memory envelope. Node's trusted interpreter is not host isolation and
+does not qualify the Cloudflare executor, local workerd integration or deployed
+Cloudflare acceptance. Those still require the qualified executor and the
+actual consumer's `createStaging` implementation plus its authoritative
+publication adapter; existing stores without that primitive remain limited.

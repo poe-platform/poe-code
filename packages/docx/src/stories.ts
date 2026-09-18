@@ -162,7 +162,7 @@ export async function editDocumentStories(input: Uint8Array, request: StoryEditR
       if (index && (child.children.some(c => !["pPr", "r", "hyperlink"].includes(c.localName)) || child.content.some(c => c.kind !== "element" && (c.kind !== "text" || c.text.trim()))))
         throw new UnsupportedEditError("Story text assignment cannot remove paragraph annotations.");
       const props = child.children.find(c => c.namespace === w && c.localName === "pPr");
-      const replacement = replaceParagraphContent(story, child, props ? story.sourceXml(props) : "", index ? "" : opts.text);
+      const replacement = replaceParagraphContent(story, child, props ? story.sourceXml(props) : "", index ? "" : opts.text, budget);
       patches.set(child, index ? "" : replacement);
     }
     const plain = (node: XmlElement): boolean => node.namespace === w && ["p", "r", "t"].includes(node.localName) &&

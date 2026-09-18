@@ -155,7 +155,7 @@ export async function editDocumentComments(input: Uint8Array, request: CommentEd
           if (i && (p.content.some(c => c.kind !== "element" && (c.kind !== "text" || c.text.trim())) || p.children.some(n => !["pPr", "r", "hyperlink"].includes(n.localName))))
             throw new UnsupportedEditError("Comment text assignment cannot discard annotated paragraphs.");
           const properties = p.children.find(n => n.namespace === w && n.localName === "pPr");
-          const replacement = replaceParagraphContent(record.editor, p, properties ? record.editor.sourceXml(properties) : "", i ? "" : options.text);
+          const replacement = replaceParagraphContent(record.editor, p, properties ? record.editor.sourceXml(properties) : "", i ? "" : options.text, budget);
           return i ? "" : replacement;
         });
         if (state.modern && paragraphs.length === 1) {

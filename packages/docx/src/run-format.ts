@@ -1,3 +1,4 @@
+import { assertOutsideRevisionRanges } from "./revision-markup.js";
 import { archiveSettings } from "./archive.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import { validateDocxInvocation } from "./command.js";
@@ -118,6 +119,7 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
     xml.assertShapeEditAllowed(node);
     selectedNodes.set(node, target.location);
     const children = activeXmlChildren(xml, budget);
+    assertOutsideRevisionRanges(xml.root, node, budget, xml.compatibility.branches, children);
     if (ancestors.some(n => n.namespace === node.namespace && (["moveFrom", "moveTo", "del"].includes(n.localName) || ["p", "r"].includes(n.localName) && children(n).some(p => p.namespace === node.namespace && p.localName === n.localName + "Pr" && children(p).some(c => c.namespace === node.namespace && c.localName === p.localName + "Change")))))
       throw new UnsupportedEditError("Complex or deleted revision runs cannot be formatted.");
     const props = children(node).find(c => c.namespace === node.namespace && c.localName === "rPr");

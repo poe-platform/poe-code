@@ -67,12 +67,12 @@ export class Paragraph {
     if (typeof value !== "string") throw new InputTypeError("Expected paragraph text.");
     this.store.change(this.ref.part, (xml) => {
       const p = this.store.node(this.ref);
-      const props = p.children.find(
+      const props = activeModelChildren(this.store, this.ref.part)(p).find(
         (child) => child.namespace === p.namespace && child.localName === "pPr"
       );
       xml.replaceElement(
         p,
-        replaceParagraphContent(xml, p, props ? xml.sourceXml(props) : "", value)
+        replaceParagraphContent(xml, p, props ? xml.sourceXml(props) : "", value, this.store.context.budget)
       );
     });
   }

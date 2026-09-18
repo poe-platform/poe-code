@@ -148,7 +148,7 @@ export async function editDocumentNotes(input: Uint8Array, request: NoteEditRequ
           if (i && p.content.some(content => content.kind !== "element" && (content.kind !== "text" || content.text.trim())))
             throw new UnsupportedEditError("Note text assignment cannot discard XML annotations in removed paragraphs.");
           const props = p.children.find(n => n.namespace === w && n.localName === "pPr");
-          const replacement = replaceParagraphContent(note.editor, p, props ? note.editor.sourceXml(props) : "", i === 0 ? options.text : "");
+          const replacement = replaceParagraphContent(note.editor, p, props ? note.editor.sourceXml(props) : "", i === 0 ? options.text : "", budget);
           if (i && p.children.some(n => !["pPr", "r", "hyperlink"].includes(n.localName) || n.children.some(c => ["footnoteRef", "endnoteRef"].includes(c.localName))))
             throw new UnsupportedEditError("Note text assignment cannot remove annotation-bearing paragraphs.");
           return i ? "" : replacement;

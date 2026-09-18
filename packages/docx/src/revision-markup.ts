@@ -1,3 +1,4 @@
+import { activeXmlChildren } from "./xml-active-children.js";
 import type { CompatibilityBranch } from "./compatibility.js";
 import type { DocumentBudget } from "./budget.js";
 import { UnsupportedEditError } from "./xml-write.js";
@@ -53,7 +54,7 @@ export function containsRevision(node: XmlElement): boolean {
 }
 
 /** A range can start before the selected paragraph, so subtree checks alone are insufficient. */
-export function assertOutsideRevisionRanges(root: XmlElement, target: XmlElement, budget: DocumentBudget, branches: readonly CompatibilityBranch[]): void {
+export function assertOutsideRevisionRanges(root: XmlElement, target: XmlElement, budget: DocumentBudget, branches: readonly CompatibilityBranch[], children = activeXmlChildren(root, budget)): void {
   const selected = new Map(branches.map(branch => [branch.alternateContent, branch.selected]));
   const active = new Set<string>();
   let found = false;
@@ -73,13 +74,14 @@ export function assertOutsideRevisionRanges(root: XmlElement, target: XmlElement
     if (selected.has(node)) {
       const branch = selected.get(node);
       if (branch) visit(branch);
-    } else for (const child of node.children) visit(child);
+    } else for (const child of children(node)) visit(child);
   };
   visit(root);
 }
 
 /** A model property patch cannot reconcile opaque owner or ancestor history. */
 export function assertFormattingHistoryEditable(root: XmlElement, target: XmlElement, children: (node: XmlElement) => readonly XmlElement[], budget: DocumentBudget): void {
+  assertOutsideRevisionRanges(root, target, budget, [], children);
   const visit = (node: XmlElement, blocked: boolean): boolean => {
     budget.charge("work", 1);
     const active = children(node);

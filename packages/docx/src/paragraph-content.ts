@@ -1,4 +1,4 @@
-import { containsRevision, assertFormattingHistoryEditable } from "./revision-markup.js";
+import { revisionInfo, assertFormattingHistoryEditable, assertOutsideRevisionRanges } from "./revision-markup.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import { xmlValue } from "./create-content.js";
 import type { DocumentBudget } from "./budget.js";
@@ -21,13 +21,19 @@ export function paragraphTextRun(w: string, text: string, style?: string, kind?:
 const markers = new Set(["bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "proofErr", "permStart", "permEnd"]);
 
 /** Text assignment intentionally removes runs; annotations and paragraph ownership survive. */
-export function replaceParagraphContent(xml: DocumentXmlEditor, p: XmlElement, properties: string, text: string): string {
-  if (containsRevision(p)) throw new UnsupportedEditError("Whole paragraph text cannot discard review history.");
+export function replaceParagraphContent(xml: DocumentXmlEditor, p: XmlElement, properties: string, text: string, budget: DocumentBudget): string {
+  const children = activeXmlChildren(xml, budget);
+  const containsActiveRevision = (node: XmlElement): boolean => revisionInfo(node) !== undefined || children(node).some(containsActiveRevision);
+  assertOutsideRevisionRanges(xml.root, p, budget, xml.compatibility.branches, children);
+  if (containsActiveRevision(p)) throw new UnsupportedEditError("Whole paragraph text cannot discard review history.");
   const patches = new Map<XmlElement, string>();
+  const containers = children(p).filter(child => child.namespace === p.namespace && child.localName === "pPr");
+  if (containers.length > 1) throw new UnsupportedEditError("Paragraph text requires one owning property container.");
+  const props = containers[0];
   let inserted = false;
-  for (const child of p.children) {
+  for (const child of children(p)) {
     if (child.namespace !== p.namespace) throw new UnsupportedEditError("Whole paragraph text cannot replace opaque content.");
-    if (child.localName === "pPr") { patches.set(child, ""); continue; }
+    if (child === props) { patches.set(child, properties); continue; }
     if (markers.has(child.localName)) continue;
     const check = (node: XmlElement): void => {
       if (["footnoteRef", "endnoteRef"].includes(node.localName) && (child.localName !== "r" || !child.children.includes(node)))
@@ -46,7 +52,7 @@ export function replaceParagraphContent(xml: DocumentXmlEditor, p: XmlElement, p
     patches.set(child, preserved + (inserted || !text || !hasText && noteMarks.length ? "" : paragraphTextRun(p.namespace, text)));
     if (hasText || !noteMarks.length) inserted = true;
   }
-  return runElementOpen(p) + properties + xml.sourceXml(p, patches, true) + (!inserted && text ? paragraphTextRun(p.namespace, text) : "") + `</${p.name}>`;
+  return runElementOpen(p) + (props ? "" : properties) + xml.sourceXml(p, patches, true) + (!inserted && text ? paragraphTextRun(p.namespace, text) : "") + `</${p.name}>`;
 }
 
 /** A scalar caret splits simple runs, copying their formatting to both fragments. */

@@ -112,11 +112,11 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
         const equations=collectEquationUnits(node,mathNamespace(dialect==='strict'),budget);
         if(equations.length)throw new UnsupportedEquationMutationError(before);
         if (observations.some(observation => before.value.path.every((index, i) => observation.path[i] === index))) throw new UnsupportedDiagramMutationError(before);
-        assertOutsideRevisionRanges(xml.root, node, budget, xml.compatibility.branches);
+        assertOutsideRevisionRanges(xml.root, node, budget, xml.compatibility.branches, children);
       }
       const properties = paragraphProperties(xml, node, opts, styleId, children);
       const original = xml.sourceXml(node);
-      const replacement = opts.text !== undefined ? replaceParagraphContent(xml, node, properties, opts.text ?? "")
+      const replacement = opts.text !== undefined ? replaceParagraphContent(xml, node, properties, opts.text ?? "", budget)
         : props ? xml.sourceXml(node, new Map([[props, properties]]))
         : runElementOpen(node) + properties + xml.sourceXml(node, new Map(), true) + `</${node.name}>`;
       if (properties === originalProps && opts.text === undefined || replacement === original) continue;

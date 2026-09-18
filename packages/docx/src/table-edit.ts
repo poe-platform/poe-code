@@ -164,7 +164,7 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
         if (!paragraphs.length) throw new UnsupportedEditError("Cell text replacement requires a paragraph.");
         for (const [i, p] of paragraphs.entries()) {
           const props = one(p, "pPr");
-          const updated = replaceParagraphContent(xml, p, props ? xml.sourceXml(props) : "", i === 0 ? opts.text : "");
+          const updated = replaceParagraphContent(xml, p, props ? xml.sourceXml(props) : "", i === 0 ? opts.text : "", budget);
           if (i > 0 && (p.content.some(c => c.kind !== "element" && c.kind !== "text") || descendants(p).some(c => c.namespace === w && ["bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "permStart", "permEnd", "proofErr"].includes(c.localName)))) throw new UnsupportedEditError("Cell replacement cannot remove annotated paragraphs.");
           targetPatches.set(p, i === 0 ? updated : "");
         }

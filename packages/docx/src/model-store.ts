@@ -706,7 +706,7 @@ export class ModelStore {
         throw new UnsupportedEditError("Whole cell text cannot discard rich blocks.");
       const props = cell.children.find((child) => child.localName === "tcPr");
       const paragraphs = cell.children.filter((child) => child.localName === "p");
-      for (const p of paragraphs) replaceParagraphContent(xml, p, "", "");
+      for (const p of paragraphs) replaceParagraphContent(xml, p, "", "", this.context.budget);
       xml.replaceElement(
         cell,
         runElementOpen(cell) +

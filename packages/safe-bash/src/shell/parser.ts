@@ -567,7 +567,7 @@ class Lexer {
     this.error("Unterminated delimiter expansion syntax");
   }
 
-  word(terminator?: string, enclosingQuoted = false, literal = false, arithmetic = false): Word {
+  word(terminator?: string, enclosingQuoted = false, literal = false, arithmetic = false, arithmeticExpansion = false): Word {
     this.budget.admit();
     const offset = this.position;
     const reduction = this.printedNewlineReduction;
@@ -691,7 +691,7 @@ class Lexer {
         const spelling = expansionSpellings.get(parts.at(-1)!);
         if (spelling) spelling.end = Math.min(this.position + 1, this.source.length);
         if (this.position < this.source.length) this.position++;
-      } else if (current === "\\") {
+      } else if (current === "\\" && (!arithmeticExpansion || ["$", "`", '"', "\\", "\n"].includes(this.source[this.position + 1] ?? ""))) {
         if (this.source[this.position + 1] !== "\n") plain = false;
         this.position++;
         if (this.position === this.source.length) {
@@ -1360,6 +1360,11 @@ export function parseShell(source: string, depth = 0, options: ShellParseOptions
 export function parseArraySubscript(source: string, budget: ParseBudget, byteLocale = false, depth = 0, byteSource = false, syntax: CapturedShellSyntax = defaultSyntax): Word {
   const lexer = new Lexer(budget, source, depth, [], 0, byteLocale, undefined, false, undefined, 0, false, undefined, byteSource, syntax);
   return lexer.word("\0");
+}
+
+export function parseArithmeticExpansion(source: string, budget: ParseBudget, byteLocale = false, depth = 0, line = 1, syntax?: ShellSyntaxDeclarations): Word {
+  const lexer = new Lexer(budget, source, depth, [], line - 1, byteLocale, undefined, false, undefined, 0, false, undefined, false, captureShellSyntax(syntax));
+  return lexer.word("\0", true, false, false, true);
 }
 
 export function parseBraceWord(source: string, opaque: ReadonlyMap<number, ShellValue>, budget: ParseBudget): Word {

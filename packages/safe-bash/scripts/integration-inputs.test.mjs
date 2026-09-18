@@ -899,6 +899,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/realpath-missing-admission.test.ts"));
   assert.ok(files.includes("tests/shell/source-line-nested.test.ts"));
   assert.ok(files.includes("tests/shell/arithmetic-admission.test.ts"));
+  assert.ok(files.includes("tests/shell/arithmetic-expansion.test.ts"));
   assert.ok(files.includes("tests/shell/string-operations.test.ts"));
   assert.ok(files.includes("tests/shell/parameter-depth.test.ts"));
   assert.ok(files.includes("tests/shell/runtime-parameter-depth.test.ts"));

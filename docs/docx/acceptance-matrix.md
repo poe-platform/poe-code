@@ -769,3 +769,11 @@ Whole-run edits retain opaque identity, comments and processing instructions;
 partial unsupported property payloads reject without publication under §6.5.
 All prior failed attempts remain evidence. This closes only named F10/F12 defects;
 complete F08–F15/F18 acceptance remains open.
+
+The [native hyphen correction](text-style-family-acceptance-20260918/special-hyphen-requirement-evidence.json)
+records 44 original failing memfs cases, 179 passing focused cases and 88 rebuilt
+model/SDK/Shell workflows across both dialects and kinds. Native hyphens count one
+logical scalar; formatting, caret insertion and destructive setter scopes now
+agree. The source-compatible model read representation is retained. Untouched
+members and paragraph/run formatting are independently checked. This closes
+named F08/F10/F12/F13 gaps only; full-family acceptance remains open.

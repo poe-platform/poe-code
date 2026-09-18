@@ -32,7 +32,7 @@ export function replaceParagraphContent(xml: DocumentXmlEditor, p: XmlElement, p
         throw new UnsupportedEditError("Whole paragraph text cannot discard nested note markers.");
       if (node.localName !== "rPr" && node.content.some(c => c.kind !== "element" && c.kind !== "text"))
         throw new UnsupportedEditError("Whole paragraph text cannot discard XML annotations.");
-      if (node.namespace !== p.namespace || !["r", "rPr", "t", "tab", "ptab", "br", "cr", "hyperlink", "footnoteRef", "endnoteRef"].includes(node.localName)) {
+      if (node.namespace !== p.namespace || !["r", "rPr", "t", "tab", "ptab", "noBreakHyphen", "softHyphen", "br", "cr", "hyperlink", "footnoteRef", "endnoteRef"].includes(node.localName)) {
         throw new UnsupportedEditError("Whole paragraph text cannot replace fields, objects or review content.");
       }
       if (node.localName !== "rPr") for (const c of node.children) check(c);

@@ -7,8 +7,10 @@ select an alias, not a provider session or a tenant identity.
 
 The host must isolate each controller and its persistence callbacks by trusted
 owner identity. Never use an untrusted alias to select another owner's browser,
-filesystem, or storage namespace. Keep mandatory network enforcement outside
-guest-controlled route handlers.
+filesystem, or storage namespace. Browser networking follows the selected native
+provider and explicit caller configuration. Any application-specific network
+policy must come from that host's documented requirements, not from the presence
+of arbitrary browser JavaScript or an isolated code runner.
 
 ## Native browser adapter
 

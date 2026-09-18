@@ -17,10 +17,10 @@ Concurrency billing is deferred. Do not change README, commit, push or publish.
   an explicitly selected oracle; it is not Playwright's bundled Chromium.
 - For Cloudflare, record deployed Worker name/version, account identifier
   (redacted), Wrangler version, `compatibility_date`, complete
-  `compatibility_flags`, browser binding name, `keep_alive`, service idle/max
-  lifetime and quota policy. Require a real `BrowserWorker` binding supplied by
-  the host, not an ambient token, invented endpoint or mock. Confirm required
-  compatibility settings against the pinned package and deployed manifest.
+  `compatibility_flags`, browser binding name, `keep_alive`, and the provider's
+  documented idle behavior and service limits. Require a real `BrowserWorker`
+  binding supplied by the host, not an ambient token, invented endpoint or mock.
+  Confirm required compatibility settings against the pinned package and deployed manifest.
   An absent manifest/binding means those settings are unknown, not defaults.
 - The pinned Cloudflare package's published configuration requires
   `nodejs_compat` and an explicit `browser = { binding = "MYBROWSER" }`.
@@ -74,14 +74,16 @@ Concurrency billing is deferred. Do not change README, commit, push or publish.
 
 Use `Shell` and `MemoryFileSystem` from `poe-code/safe-bash` and
 `createPlaywrightCli` from its public command export. Install `agentCommands`
-and the explicit plugin. Trusted QA setup may prepare deterministic DOM content;
-guest commands may not execute browser code or use host paths.
+and the explicit plugin. Trusted QA setup may prepare deterministic DOM content.
+Exercise `eval` in the native page and `run-code` through the supplied isolated
+executor; guest source is not evaluated in the trusted controller. Artifacts use
+the canonical virtual filesystem rather than guest-selected host paths.
 
 | Case | Actions and required observations |
 | --- | --- |
-| Unsupported options without effects | Try unconfigured engine/headed mode, `run-code`, `pdf`, `snapshot --depth=3`, `screenshot --quality=90`, bad ref and invalid session. Count acquisition, context/page creation, navigation, releases and VFS entries before/after. Parser rejection changes none. |
+| Unsupported options without effects | Try unconfigured engine/headed mode, capabilities unavailable on the selected provider, malformed options, bad ref and invalid session. Count acquisition, context/page creation, navigation, releases and VFS entries before/after. Parser rejection changes none; supported `eval`, `run-code`, and `pdf` follow their standard APIs. |
 | Ref identity and staleness | Create identical buttons, quoted input and iframe. Snapshot, click the second button, fill the input and click the frame button. Inspect DOM and screenshot. Replace a referenced node; old ref fails without targeting its replacement. Navigation, new snapshot, tab selection/external tabs, close/reopen and generation replacement invalidate old refs. |
-| Canonical artifacts | Save snapshot and PNG via `--filename` and shell redirects/pipelines. Read bytes from the same canonical VFS; PNG stdout and file bytes match. Check no guest filename is passed to browser screenshot APIs and no corresponding host artifact exists. Evidence export is a separate trusted QA operation. Validate failed/limited output does not publish partial artifacts or transfer a new lease. |
+| Canonical artifacts | Save snapshot and PNG via `--filename` and shell redirects/pipelines. Read screenshot bytes from the same canonical VFS and verify the standard CLI artifact report names that file. Check no guest filename is passed to browser screenshot APIs and no corresponding host artifact exists. Evidence export is a separate trusted QA operation. Validate failed/limited output does not publish partial artifacts or transfer a new lease. |
 | Named sessions and tabs | Verify explicit `-s` overrides exported `PLAYWRIGHT_CLI_SESSION`, local unexported value does not select, and names are identifiers. Keep two independent sessions, create/list/select/close tabs, close last tab then create again. Session/tab limits reject allocation before effects and include acquiring/retiring capacity. |
 | Owned and borrowed release | Close owned session, await context-before-host release and confirm end externally. Borrow a browser for two leases; retire one and prove sibling use and remote browser survival. Repeat disposal/release and overlapping calls; one shared completion and no repeated release. |
 | Late acquisition and cancellation | Delay trusted acquisition before returning a real resource; abort while waiting, then settle it and confirm late cleanup. Repeat delayed context creation, late rejection, active navigation cancellation, queued cancellation and abort after successful publication. Queued/old command cancellation preserves unrelated retained leases. Observe late rejections; never claim arbitrary preemption or undone navigation. |

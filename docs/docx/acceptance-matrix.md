@@ -727,3 +727,12 @@ qualified campaigns, ten independently executed built shell-consumer cases,
 large-report edits. Exact source/module hashes and failed verifier attempts are
 retained. Selected schema agreement remains declaration-only evidence. Complete
 gates, exact requirement reconciliation and renderer authorization remain open.
+
+The [current requirement review](f01-f07-current-requirements-20260918.md) binds
+all 370 scoped public rows and 430 source identities to exact current assertions,
+retaining 37 subjects, 21 direct operation contracts, 12 shared types and the
+original 54 clauses. An additional lossless shared-context supplement preserves
+173 historical block identities. All seven family reviews retain their expected
+rejections and byte/relationship postconditions. The original complete DOCX run
+remains failed; later focused corrections passed. Fresh whole-repository gates
+and authorized renderer qualification still prevent complete F01–F07 acceptance.

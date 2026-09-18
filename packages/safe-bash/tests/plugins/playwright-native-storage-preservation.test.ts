@@ -213,7 +213,7 @@ export default { async fetch(request, env) {
   finally { sessionAbsent = await resource.release(); }
   return Response.json({ ...report, sessionAbsent });
 } };`;
-    const bundle = await build({ stdin: { contents: worker, resolveDir: process.cwd() }, alias, nodePaths: [resolve(runtime!, 'node_modules')], bundle: true, write: false, platform: 'node', format: 'esm', target: 'es2022', external: ['cloudflare:*'] });
+    const bundle = await build({ stdin: { contents: worker, resolveDir: process.cwd() }, alias, nodePaths: [resolve(runtime!, 'node_modules')], bundle: true, write: false, platform: 'node', format: 'esm', target: 'es2022', keepNames: true, external: ['cloudflare:*'] });
     const { Miniflare } = require('miniflare');
     const miniflare = new Miniflare({ modules: true, script: bundle.outputFiles[0].text, compatibilityDate: '2026-07-08', compatibilityFlags: ['nodejs_compat'], unsafeEvalBinding: 'EVAL', cf: false, browserRendering: { binding: 'BROWSER' } });
     try {
@@ -223,7 +223,7 @@ export default { async fetch(request, env) {
       report = await response.json();
     } finally { await miniflare.dispose(); }
   } else {
-    const bundle = await build({ stdin: { contents: driver, resolveDir: process.cwd() }, alias, bundle: true, write: false, platform: 'node', format: 'esm', target: 'es2022' });
+    const bundle = await build({ stdin: { contents: driver, resolveDir: process.cwd() }, alias, bundle: true, write: false, platform: 'node', format: 'esm', target: 'es2022', keepNames: true });
     const path = join(directory, 'driver.mjs');
     await writeFile(path, bundle.outputFiles[0].text);
     const { qualify } = await import(pathToFileURL(path).href);

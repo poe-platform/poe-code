@@ -81,7 +81,7 @@ export default { async fetch(request, env) {
 } };` : installedStorageDriver;
   const bundle = await build({ stdin: { contents, resolveDir: admission.consumer }, absWorkingDir: admission.consumer,
     nodePaths: [join(admission.consumer, 'node_modules'), resolve(runtime!, 'node_modules')], bundle: true, write: false, metafile: true,
-    platform: 'node', format: 'esm', target: 'es2022', external: ['cloudflare:*'] });
+    platform: 'node', format: 'esm', target: 'es2022', keepNames: true, external: ['cloudflare:*'] });
   const inputs = [];
   for (const filename of Object.keys(bundle.metafile.inputs)) {
     if (filename === '<stdin>') continue;

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runInNewContext } from 'node:vm';
+import { fileURLToPath } from 'node:url';
+import { build } from 'esbuild';
 import type { PlaywrightContext, PlaywrightPage, PlaywrightStorageState } from '../../src/playwright/adapter.js';
 import { bindPlaywrightStorageContext, readPlaywrightStorageState, replacePlaywrightStorageState, type PlaywrightStorageOriginLease } from '../../src/playwright/native-storage-replacement.js';
 
@@ -40,6 +42,51 @@ function fixture() {
   const cleanups: (() => Promise<void>)[] = [];
   const options = { signal: controller.signal, maxBytes: 1048576, registerCleanup: (cleanup: () => Promise<void>) => { events.push('register'); cleanups.push(cleanup); } };
   return { context, events, lease, prepare, controller, cleanups, options, listeners, pages, setCensus: (value: PlaywrightStorageState) => { census = value; }, setReadback: (value: typeof readback) => { readback = value; } };
+}
+
+for (const minify of [false, true]) {
+  test(`consumer keepNames bundle has self-contained read and restore realms (minify=${minify})`, async context => {
+    const entry = fileURLToPath(new URL('../../src/playwright/native-storage-replacement.ts', import.meta.url));
+    const bundle = await build({ stdin: { contents: `export * from ${JSON.stringify(entry)};`, resolveDir: fileURLToPath(new URL('../../', import.meta.url)) }, bundle: true, write: false,
+      platform: 'node', format: 'cjs', target: 'es2022', keepNames: true, minify });
+    if (!minify) assert.ok(bundle.outputFiles[0]!.text.includes('__name'), 'exercise the consumer name-helper transform');
+    const module = { exports: {} as Record<string, any> };
+    runInNewContext(bundle.outputFiles[0]!.text, { module, exports: module.exports, URL, TextEncoder, AbortController, AbortSignal });
+    const bundled = module.exports;
+    for (const operation of ['read', 'restore']) await context.test(operation, async () => {
+      const item = fixture(); item.setCensus(empty);
+      const values = new Map([['existing', 'current']]);
+      let closedDatabases = 0;
+      const send = item.lease.cdp.send;
+      item.lease.cdp.send = async (method, params) => {
+        if (method !== 'Runtime.evaluate') return send(method, params);
+        try {
+          const value = await runInNewContext(String(params?.expression), { location: { origin }, navigator: {}, TextEncoder, URL,
+            indexedDB: { databases: async () => [], open() {
+              const request = { result: { objectStoreNames: [], close() { closedDatabases++; } }, onsuccess: undefined as (() => void) | undefined };
+              queueMicrotask(() => request.onsuccess?.());
+              return request;
+            } }, localStorage: {
+              get length() { return values.size; }, key(index: number) { return [...values.keys()][index] ?? null; },
+              getItem(name: string) { return values.get(name) ?? null; }, clear() { values.clear(); }, setItem(name: string, value: string) { values.set(name, value); },
+            },
+          });
+          return { result: { value } };
+        } catch (error) { return { exceptionDetails: { exception: { description: String(error) } } }; }
+      };
+      const retire = await bundled.bindPlaywrightStorageContext(item.context, item.prepare, item.controller.signal, operation === 'read' ? [origin] : []);
+      try {
+        if (operation === 'read') {
+          const state = await bundled.readPlaywrightStorageState(item.context, { ...item.options, indexedDB: true });
+          assert.deepEqual(JSON.parse(JSON.stringify(state)), { cookies: [], origins: [{ origin, localStorage: [{ name: 'existing', value: 'current' }], indexedDB: [] }] });
+        } else {
+          await bundled.replacePlaywrightStorageState(item.context, { cookies: [], origins: [{ origin, localStorage: [{ name: 'restored', value: 'yes' }], indexedDB: [{ name: 'restored-db', version: 1, stores: [] }] }] }, item.options);
+          assert.deepEqual([...values], [['restored', 'yes']]);
+          assert.equal(closedDatabases, 1);
+        }
+      } finally { await retire(); }
+    });
+  });
 }
 
 test('bound IndexedDB census uses the owned closing reader instead of the provider collector', async () => {

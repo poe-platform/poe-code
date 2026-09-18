@@ -8,6 +8,7 @@ import ts from "typescript";
 import { assertSafeOutputDirectory } from "../../../scripts/guard-package-dist.mjs";
 import { loadBoundaries, validateBoundaries } from "./integration-inputs.mjs";
 import { assertLiteralInputPath, isHeldInputPath } from "./typecheck-integration-inputs.mjs";
+import { renderNativeStorageSources } from "./generate-native-storage-sources.mjs";
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
 const require = createRequire(import.meta.url);
@@ -497,6 +498,12 @@ export async function buildPackage({ root = packageRoot, args = [], profile = "d
     },
   };
   const program = ts.createProgram(parsed.fileNames, parsed.options, host);
+  const storageRealm = program.getSourceFile(join(root, "src/playwright/native-storage-realm.ts"));
+  const storageSources = program.getSourceFile(join(root, "src/playwright/native-storage-sources.generated.ts"));
+  if (storageRealm || storageSources) {
+    assert.ok(storageRealm && storageSources, "native storage realm sources are incomplete; regenerate literals");
+    assert.equal(storageSources.text, renderNativeStorageSources(storageRealm.text), "native storage realm literals are stale; run scripts/generate-native-storage-sources.mjs");
+  }
   const diagnostics = ts.getPreEmitDiagnostics(program);
   checkCancellation();
   if (optional) {

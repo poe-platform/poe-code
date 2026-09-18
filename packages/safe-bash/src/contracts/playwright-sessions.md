@@ -25,6 +25,13 @@ restoration clears IndexedDB through the verified same-context native target,
 including connections held by provider census or application code. Native
 blocked database requests fail explicitly without reloading live tabs.
 
+Browser-realm read and restore expressions use generated string literals from
+the typed functions in `native-storage-realm.ts`. Consumer naming preservation
+or minification must not introduce bundle-scope dependencies into these strings.
+After changing either canonical function, run
+`node scripts/generate-native-storage-sources.mjs` from the package directory;
+the guarded package build rejects missing or stale literals before emission.
+
 ## Native browser adapter
 
 `createPlaywrightAdapter` accepts native browser capabilities. It forwards

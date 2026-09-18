@@ -7,6 +7,7 @@ import ts from "typescript";
 import { createFsFromVolume, Volume } from "memfs";
 import { buildPackage } from "./build.mjs";
 import { buildOptionalPackage } from "./build-optional.mjs";
+import { renderNativeStorageSources } from "./generate-native-storage-sources.mjs";
 import { bindPeerArtifact, resolvePeerProfile, stagePeerArtifact, assertPeerArtifact } from "../tests/plugins/qualified-current-release/peer.mjs";
 
 const root = "/owned/package";
@@ -39,6 +40,21 @@ function fixture(extra = {}, compilerOptions = {}) {
   fileSystem.closeSync = descriptor => { memory.closeSync(descriptor); descriptors.delete(descriptor); };
   return { volume, memory, fileSystem, reads, metadata, listings, descriptors, writes, output: [], run(args = []) { return buildPackage({ root, tools, fileSystem, args, write: text => this.output.push(text) }); } };
 }
+
+for (const defect of ['none', 'stale', 'canonical-change', 'missing-literal', 'missing-canonical']) test(`native storage literals are synchronized before guarded emission: ${defect}`, async () => {
+  const canonical = 'export function collectStorageOrigin(): number { return 1; }\nexport function restoreStorageOrigin(): boolean { return true; }\n';
+  const sources = renderNativeStorageSources(canonical);
+  const extra = {};
+  if (defect !== 'missing-canonical') extra['src/playwright/native-storage-realm.ts'] = defect === 'canonical-change' ? canonical.replace('return 1', 'return 2') : canonical;
+  if (defect !== 'missing-literal') extra['src/playwright/native-storage-sources.generated.ts'] = defect === 'stale' ? sources + '// stale\n' : sources;
+  const owned = fixture(extra);
+  if (defect === 'none') assert.equal((await owned.run()).status, 0, owned.output.join(''));
+  else {
+    await assert.rejects(owned.run(), defect.startsWith('missing') ? /sources are incomplete/ : /literals are stale/);
+    assert.equal(owned.writes.length, 0);
+  }
+  noHeldReads(owned);
+});
 
 for (const defect of ["none", "pin", "name", "version", "export", "closure", "link", "source-import", "runtime-import", "unapproved-import"]) test(`build explicit Pandoc SDK declaration admission: ${defect}`, async () => {
   const exports = {".": {types: "./dist/index.d.ts", import: "./dist/index.js"}};

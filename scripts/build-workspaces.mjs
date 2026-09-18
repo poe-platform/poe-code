@@ -311,7 +311,7 @@ function taskEnvironment(environment, stage, unitMode) {
   return selected;
 }
 
-async function executeStages(plan, { environment, spawn, host, concurrency = 1, unitMode = false, testArguments = [], dependencyOrder = false }) {
+async function executeStages(plan, { environment, spawn, host, concurrency = 1, unitMode = false, testArguments = [], dependencyOrder = false, taskCache }) {
   assert.equal(host.platform === "win32", false, "Workspace process-group cleanup currently supports POSIX hosts");
   const active = new Set(), registered = [], failures = [];
   const remember = (context, error) => { context?.errors.push(error); failures.push(error); };
@@ -369,6 +369,11 @@ async function executeStages(plan, { environment, spawn, host, concurrency = 1, 
   };
   const handlers = new Map(["SIGINT", "SIGTERM"].map(value => [value, () => stop(value)]));
   const run = async stage => {
+    const startedAt = performance.now();
+    if (taskCache?.restore(stage)) {
+      completed++;
+      return;
+    }
     const context = { stage, child: undefined, stopped: false, errors: [], forceTimer: undefined };
     active.add(context);
     const event = stage.event ?? "build";
@@ -426,7 +431,10 @@ async function executeStages(plan, { environment, spawn, host, concurrency = 1, 
           assert.ok(!exists(), "Workspace process group did not exit");
         } catch (error) { remember(context, error); failure(); }
       }
-      if (!context.errors.length && !context.stopped) completed++;
+      if (!context.errors.length && !context.stopped) {
+        taskCache?.save(stage, Math.round(performance.now() - startedAt));
+        completed++;
+      }
     } finally {
       clearTimeout(context.forceTimer);
       active.delete(context);
@@ -470,17 +478,26 @@ async function executeStages(plan, { environment, spawn, host, concurrency = 1, 
 }
 
 export async function buildWorkspaces(rootDirectory, options = {}) {
-  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, workspace, concurrency = 2 } = options;
+  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, workspace, concurrency = 2, cache, cacheStore, cacheFiles } = options;
   assert.ok(concurrency === 1 || concurrency === 2, "Build concurrency must be 1 or 2");
   validateEnvironment(environment);
   const plan = createWorkspaceBuildPlan(rootDirectory, fileSystem);
   const selected = { ...plan, ...selectBuildStages(plan, workspace === undefined ? plan.workspaces.map(stage => stage.name) : [workspace]) };
-  const completed = await executeStages(selected, { environment, spawn, host, concurrency, dependencyOrder: true });
-  return { workspaces: plan.workspaces.length, builds: completed, edges: plan.edges.length, layers: plan.layers.length, noBuild: selected.noBuild, manifestless: plan.manifestless };
+  let buildCache;
+  if (cache !== false && environment.TURBO_FORCE !== "true" && (cacheStore || (spawn === spawnChild && fileSystem === fs))
+    && selected.stages.some(stage => stage.manifest.scripts.build.split(" ").includes("tsc"))) {
+    const { prepareBuildCache } = await import("./check-cache.mjs");
+    buildCache = prepareBuildCache(plan, selected.stages, { cacheStore, cacheFiles, environment, fileSystem });
+  }
+  const started = performance.now();
+  const completed = await executeStages(selected, { environment, spawn, host, concurrency, dependencyOrder: true, taskCache: buildCache });
+  buildCache?.flush();
+  return { workspaces: plan.workspaces.length, builds: completed, edges: plan.edges.length, layers: plan.layers.length, noBuild: selected.noBuild, manifestless: plan.manifestless,
+    ...(buildCache ? { cache: "SHARED", ...buildCache.stats, executionMs: Math.round(performance.now() - started) } : {}) };
 }
 
 export async function testWorkspaces(rootDirectory, options = {}) {
-  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup } = options;
+  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup, cache, cacheStore, cacheFiles } = options;
   validateEnvironment(environment);
   const plan = createWorkspaceTestPlan(rootDirectory, { fileSystem, excludeWorkspace, concurrency, testArguments, ciGroup });
   let testStages = plan.testStages;
@@ -499,9 +516,26 @@ export async function testWorkspaces(rootDirectory, options = {}) {
   assert.ok(localGitVariables.every(name => name.startsWith("GIT_") && [...name].every(character => "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_".includes(character))), "Invalid Git local environment names");
   gitLocalVariablesByPath.set(gitPath, localGitVariables);
   for (const name of localGitVariables) delete childEnvironment[name];
-  const builds = await executeStages({ ...plan, stages: plan.buildStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency: 2, dependencyOrder: true });
-  await executeStages({ ...plan, stages: testStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency, testArguments });
-  return { workspaces: plan.workspaces.length, builds, tests: plan.testStages.length, concurrency, cache: "UNCACHED", excluded: excludeWorkspace ? [excludeWorkspace] : [], noTest: plan.noTest, noBuild: plan.buildNoBuild, manifestless: plan.manifestless };
+  const caching = cache !== false && ciGroup !== "fresh" && environment.TURBO_FORCE !== "true" && (cacheStore || (spawn === spawnChild && fileSystem === fs));
+  childEnvironment.POE_CHECK_CACHE = caching ? "1" : "0";
+  let buildCache;
+  if (caching && plan.buildStages.some(stage => stage.manifest.scripts.build.split(" ").includes("tsc"))) {
+    const { prepareBuildCache } = await import("./check-cache.mjs");
+    buildCache = prepareBuildCache(plan, plan.buildStages, { cacheStore, cacheFiles, environment: childEnvironment, fileSystem });
+  }
+  const started = performance.now();
+  const builds = await executeStages({ ...plan, stages: plan.buildStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency: 2, dependencyOrder: true, taskCache: buildCache });
+  buildCache?.flush();
+  let unitCache;
+  if (caching && testStages.some(stage => stage.path !== null && stage.event === "test:unit"
+    && plan.workspaces.find(workspace => workspace.name === stage.name).manifest.scripts["test:unit"].split(" ").includes("vitest"))) {
+    const { prepareNativeUnitCache } = await import("./check-cache.mjs");
+    unitCache = prepareNativeUnitCache(plan, testStages, { cacheStore, cacheFiles, environment: childEnvironment, fileSystem });
+  }
+  await executeStages({ ...plan, stages: testStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency, testArguments, taskCache: unitCache });
+  unitCache?.flush();
+  return { workspaces: plan.workspaces.length, builds, tests: plan.testStages.length, concurrency, cache: caching ? "SHARED" : "UNCACHED", ...(unitCache ? unitCache.stats : {}), excluded: excludeWorkspace ? [excludeWorkspace] : [], noTest: plan.noTest, noBuild: plan.buildNoBuild, manifestless: plan.manifestless,
+    ...(buildCache ? { ...buildCache.stats, executionMs: Math.round(performance.now() - started) } : {}) };
 }
 
 export function parseWorkspaceArguments(args) {
@@ -509,7 +543,10 @@ export function parseWorkspaceArguments(args) {
   if (args[0] !== "--test-unit") {
     const result = { mode: "build" };
     for (const argument of args) {
-      if (argument.startsWith("--concurrency=")) {
+      if (argument === "--no-cache") {
+        assert.ok(result.cache === undefined, "Duplicate cache option");
+        result.cache = false;
+      } else if (argument.startsWith("--concurrency=")) {
         assert.ok(!Object.hasOwn(result, "concurrency"), "Duplicate build concurrency");
         const value = argument.slice("--concurrency=".length);
         assert.ok(value === "1" || value === "2", "Build concurrency must be 1 or 2");
@@ -530,7 +567,10 @@ export function parseWorkspaceArguments(args) {
     if (argument === "--") { result.testArguments.push(...args.slice(index + 1)); break; }
     const equals = argument.indexOf("=");
     const name = equals < 0 ? argument : argument.slice(0, equals);
-    if (name === "--concurrency" || name === "--exclude-workspace" || name === "--ci-group") {
+    if (name === "--no-cache") {
+      assert.ok(equals < 0 && !seen.has(name), "Invalid or duplicate cache option");
+      seen.add(name); result.cache = false;
+    } else if (name === "--concurrency" || name === "--exclude-workspace" || name === "--ci-group") {
       assert.ok(!seen.has(name), "Duplicate runner option"); seen.add(name);
       const value = equals < 0 ? undefined : argument.slice(equals + 1);
       if (name === "--concurrency") { assert.ok(value === "1" || value === "4", "Unit concurrency must be 1 or 4"); result.concurrency = Number(value); }

@@ -161,10 +161,52 @@ async function exercise(browser, control, adapter, origin) {
   const finalSibling = await context.newPage();
   await finalSibling.goto(`${origin}/final`);
   check(await finalSibling.evaluate(() => globalThis.initScript && globalThis.lateInitScript && globalThis.documentScript), 'Later public page initialization changed');
+  const { sessionId: retiredSession } = await observer.send('Target.attachToTarget', { targetId: originalInfo.targetId, flatten: true });
+  await observer.send('Target.detachFromTarget', { sessionId: retiredSession });
+  const clientId = -2147483647;
+  const onmessage = adapter.transport.onmessage;
+  const onclose = adapter.transport.onclose;
+  let replyCount = 0;
+  let rejectionCount = 0;
+  let staleReply;
+  let timer;
+  const stale = new Promise((resolve, reject) => {
+    timer = setTimeout(() => reject(new Error('Native stale-session response timed out')), 5000);
+    adapter.transport.onmessage = message => {
+      if (message.id !== clientId) { onmessage?.(message); return; }
+      replyCount++;
+      staleReply = message;
+      if (message.error) {
+        rejectionCount++;
+        reject(Object.assign(new Error(message.error.message), { code: message.error.code }));
+      } else resolve(message.result);
+    };
+    adapter.transport.onclose = reason => {
+      rejectionCount++;
+      reject(new Error(`Transport retired on native stale session: ${reason}`));
+      onclose?.(reason);
+    };
+  });
+  stale.catch(() => {});
+  let staleSession;
+  try {
+    adapter.transport.send({ id: clientId, sessionId: retiredSession, method: 'Runtime.evaluate', params: { expression: '1', returnByValue: true } });
+    const [retired, sibling] = await Promise.allSettled([stale, finalSibling.evaluate(() => 42)]);
+    check(retired.status === 'rejected' && retired.reason.code === -32001 && retired.reason.message === 'Session with given id not found.', 'Native stale-session error was not preserved');
+    check(staleReply.sessionId === retiredSession && staleReply.result === undefined, 'Native stale-session reply lost command ownership');
+    check(sibling.status === 'fulfilled' && sibling.value === 42, 'Sibling pending command was affected by stale-session response');
+    check(await original.evaluate(() => location.href) === `${origin}/original`, 'Original target did not survive stale-session response');
+    check(replyCount === 1 && rejectionCount === 1, 'Native stale-session pending rejection was not one-shot');
+    staleSession = { error: staleReply.error, responseSessionMatched: true, replyCount, rejectionCount, siblingSurvived: true, originalSurvived: true };
+  } finally {
+    clearTimeout(timer);
+    adapter.transport.onmessage = onmessage;
+    adapter.transport.onclose = onclose;
+  }
   await finalSibling.close();
   await observer.detach();
   await context.close();
-  return { outcomes, originalUntouched: true, concurrentAndLaterPagesUnaffected: true };
+  return { outcomes, originalUntouched: true, concurrentAndLaterPagesUnaffected: true, staleSession };
 }
 
 async function openSocket(endpoint) {

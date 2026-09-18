@@ -174,7 +174,7 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
         return;
       }
       if (command.clientId === undefined) throw new Error('Missing client CDP response identity');
-      const reply = { ...message, id: command.clientId };
+      const reply = { ...message, id: command.clientId, ...(command.sessionId ? { sessionId: command.sessionId } : {}) };
       const targetInfo = record(message.result?.targetInfo) ? message.result.targetInfo : undefined;
       if (targets.has(command.targetId ?? '') || sessions.has(command.sessionId ?? '') ||
         targets.has(String(targetInfo?.targetId ?? '')) || targets.has(String(message.result?.targetId ?? ''))) {
@@ -220,7 +220,12 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
           if (message.id > 0 && message.id <= sequence) return;
           throw new Error('Never-issued native CDP reply');
         }
-        if (message.sessionId !== command.sessionId) throw new Error('Native CDP response session mismatch');
+        if (message.sessionId !== command.sessionId) {
+          const sessionNotFound = command.sessionId !== undefined && message.sessionId === undefined &&
+            Object.keys(message).length === 2 && message.error?.code === -32001 &&
+            message.error.message === 'Session with given id not found.' && Object.keys(message.error).length === 2;
+          if (!sessionNotFound) throw new Error('Native CDP response session mismatch');
+        }
         if (command.replied) return;
         command.replied = true;
       }

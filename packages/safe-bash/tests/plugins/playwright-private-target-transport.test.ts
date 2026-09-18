@@ -284,6 +284,104 @@ test('a response cannot be routed into a different native session', () => {
   assert.deepEqual(state.received, []);
 });
 
+test('native session-not-found errors reject only their original pending session once', context => {
+  context.mock.timers.enable({ apis: ['setTimeout'] });
+  const state = fixture({ maxPendingCommands: 2, commandTimeoutMs: 10 });
+  try {
+    state.transport.send({ id: 7, method: 'Runtime.evaluate', sessionId: 'retired' });
+    state.transport.send({ id: 7, method: 'Runtime.evaluate', sessionId: 'sibling' });
+    const error = { code: -32001, message: 'Session with given id not found.' };
+    const reply = { id: state.sent[0]!.id, error };
+    state.receive(reply);
+    state.receive(reply);
+    state.receive({ id: state.sent[1]!.id, sessionId: 'sibling', result: { value: 42 } });
+    assert.deepEqual(state.received, [
+      { id: 7, sessionId: 'retired', error },
+      { id: 7, sessionId: 'sibling', result: { value: 42 } },
+    ]);
+    context.mock.timers.tick(11);
+    assert.equal(state.closes(), 0);
+    state.transport.send({ id: 7, method: 'Runtime.evaluate', sessionId: 'retired' });
+    state.receive(reply);
+    assert.equal(state.received.length, 2);
+    state.receive({ id: state.sent[2]!.id, error });
+    assert.equal(state.received.length, 3);
+    context.mock.timers.tick(11);
+    assert.equal(state.closes(), 0);
+  } finally { state.transport.close(); }
+});
+
+test('native session-not-found completion releases the exact pending byte budget', () => {
+  const state = fixture({ maxPendingCommands: 1, maxPendingBytes: 53 });
+  try {
+    for (let index = 0; index < 3; index++) {
+      state.transport.send({ id: index, method: 'Runtime.enable', sessionId: 'gone' });
+      state.receive({ id: state.sent.at(-1)!.id, error: { code: -32001, message: 'Session with given id not found.' } });
+    }
+    assert.equal(state.received.length, 3);
+    assert.equal(state.closes(), 0);
+  } finally { state.transport.close(); }
+});
+
+test('held native session-not-found replies retain bounded bytes and original ownership', () => {
+  const error = { code: -32001, message: 'Session with given id not found.' };
+  const bytes = new TextEncoder().encode(JSON.stringify({ id: 1, error })).byteLength;
+  const state = fixture({ maxBufferedBytes: bytes, maxBufferedMessages: 1, maxPendingCommands: 1 });
+  try {
+    for (let index = 0; index < 3; index++) {
+      const guard = state.beginCreation();
+      state.transport.send({ id: 7, method: 'Target.getTargetInfo', sessionId: 'retired' });
+      const reply = { id: state.sent.at(-1)!.id, error };
+      state.receive(reply);
+      state.receive(reply);
+      assert.equal(state.received.length, index);
+      assert.equal(state.closes(), 0);
+      guard.commit(`scratch-${index}`);
+      assert.deepEqual(state.received.at(-1), { id: 7, sessionId: 'retired', error });
+    }
+  } finally { state.transport.close(); }
+});
+
+test('sessionless errors cannot bypass native private detach failure', () => {
+  const state = fixture();
+  state.beginCreation().commit('scratch');
+  state.receive(attached('scratch', 'private', 'retired-parent'));
+  state.receive({ id: state.sent[0]!.id, error: { code: -32001, message: 'Session with given id not found.' } });
+  assert.equal(state.closes(), 1);
+  assert.deepEqual(state.reasons, ['Native private target detach failed']);
+  assert.deepEqual(state.received, []);
+});
+
+for (const [name, response] of Object.entries({
+  'root success': { result: {} },
+  'other error': { error: { code: -32000, message: 'Session with given id not found.' } },
+  'other message': { error: { code: -32001, message: 'Target closed' } },
+  'foreign session': { sessionId: 'foreign', error: { code: -32001, message: 'Session with given id not found.' } },
+  'mixed result': { result: {}, error: { code: -32001, message: 'Session with given id not found.' } },
+  'mixed event': { method: 'Target.targetDestroyed', error: { code: -32001, message: 'Session with given id not found.' } },
+  'mixed params': { params: {}, error: { code: -32001, message: 'Session with given id not found.' } },
+  'extra error data': { error: { code: -32001, message: 'Session with given id not found.', data: 'foreign' } },
+  'extra envelope data': { extra: true, error: { code: -32001, message: 'Session with given id not found.' } },
+})) {
+  test(`session-not-found exception still rejects ${name}`, () => {
+    const state = fixture();
+    state.transport.send({ id: 7, method: 'Runtime.evaluate', sessionId: 'retired' });
+    state.receive({ id: state.sent[0]!.id, ...response });
+    assert.equal(state.closes(), 1);
+    assert.deepEqual(state.reasons, ['Native CDP response session mismatch']);
+    assert.deepEqual(state.received, []);
+  });
+}
+
+test('session-not-found without an issued native ID retires instead of guessing an owner', () => {
+  const state = fixture();
+  state.transport.send({ id: 7, method: 'Runtime.evaluate', sessionId: 'retired' });
+  state.receive({ id: 1000, error: { code: -32001, message: 'Session with given id not found.' } });
+  assert.equal(state.closes(), 1);
+  assert.deepEqual(state.reasons, ['Never-issued native CDP reply']);
+  assert.deepEqual(state.received, []);
+});
+
 test('child sessions under private sessions inherit privacy and real detach', () => {
   const state = fixture();
   state.beginCreation().commit('scratch');

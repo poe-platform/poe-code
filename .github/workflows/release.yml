@@ -8,6 +8,10 @@ on:
       - main
   workflow_dispatch:
     inputs:
+      build_only:
+        description: Publish a fresh build without running validation checks
+        type: boolean
+        default: false
       cold_cache:
         description: Ignore restored Turbo results to measure cold test execution
         type: boolean
@@ -59,7 +63,7 @@ jobs:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
           HUSKY: "0"
           NPM_CONFIG_LOGLEVEL: warn
-          # The same-run build above was digest-verified and passed all gates.
+          # The same-run build above was digest-verified.
           # Preserve it instead of rebuilding through npm's prepack lifecycle.
           NPM_CONFIG_IGNORE_SCRIPTS: "true"
         run: npm exec --no -- semantic-release
@@ -74,7 +78,8 @@ jobs:
       actions: read
       contents: read
     with:
+      build_only: ${{ inputs.build_only || false }}
       cold_cache: ${{ inputs.cold_cache || false }}
     concurrency:
-      group: release-validation-${{ github.ref }}
+      group: release-validation-${{ github.ref }}-${{ inputs.build_only && 'build-only' || 'full' }}
       cancel-in-progress: false

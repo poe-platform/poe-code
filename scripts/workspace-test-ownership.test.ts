@@ -16,6 +16,31 @@ function fixture(script?: string, files: Record<string, string> = {}) {
 }
 
 describe("workspace test ownership", () => {
+  it("excludes package-local Vitest includes while retaining the native configuration route", () => {
+    const fileSystem = fixture("vitest run --config vitest.config.ts", {
+      "/repo/packages/example/vitest.config.ts": 'import { defineConfig } from "vitest/config"; export default defineConfig({ test: { include: ["src/**/*.test.ts"] } });'
+    });
+    expect(workspaceUnitSelections("/repo", fileSystem)).toEqual([{
+      path: "packages/example", selectors: [], exclusions: ["packages/example/src/**/*.test.ts"],
+      passWithNoTests: false, hasHooks: false, requiresNativePool: true
+    }]);
+  });
+
+  for (const config of [
+    'import { defineConfig } from "another-library"; export default defineConfig({ test: { include: ["src/**/*.test.ts"] } });',
+    'import { defineConfig } from "vitest/config"; export default defineConfig({ test: { include: ["src/**/*.test.ts"], ["include"]: external } });',
+    'import { defineConfig } from "vitest/config"; export default defineConfig({ test: { include: ["src/**/*.test.ts"] }, test: external });',
+    'export default defineConfig({ test: { include: ["src/**/*.test.ts"] } });',
+    'export default defineConfig({ root: "../other", test: { include: ["src/**/*.test.ts"] } });',
+    'export default defineConfig({ test: { dir: "../other", include: ["src/**/*.test.ts"] } });',
+    'export default defineConfig({ test: { include: importedPatterns } });',
+    'export default defineConfig({ test: { include: ["../other/**/*.test.ts"] } });'
+  ]) it("retains root coverage when a package-local configuration is ambiguous: " + config, () => {
+    expect(workspaceTestExclusions("/repo", fixture("vitest run --config vitest.config.ts", {
+      "/repo/packages/example/vitest.config.ts": config
+    }))).toEqual([]);
+  });
+
   it("builds opt-in tools inside the canonical Safe Bash workspace", () => {
     const manifest = JSON.parse(fs.readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
     expect(manifest.name).toBe("@poe-platform/safe-bash");

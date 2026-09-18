@@ -9,7 +9,7 @@ import { pathContains } from "./location-index.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 import { DocumentArchiveEditor } from "./package-write.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
-import { UnsupportedEditError, replaceSplitTextRunXml, type DocumentXmlEditor } from "./xml-write.js";
+import { UnsupportedEditError, replaceSplitTextRunXml, splitNativeTextRunXml, type DocumentXmlEditor } from "./xml-write.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { replaceRunContent } from "./paragraph-content.js";
 import { equivalentRunKey, formattedRunProperties, runElementOpen } from "./run-properties.js";
@@ -130,6 +130,29 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
     if (opts.text !== undefined) markup = replaceRunContent(xml, node, properties, opts.text, budget);
     else if (target.whole) {
       markup = props ? xml.sourceXml(node, new Map([[props, properties]])) : runElementOpen(node) + properties + xml.sourceXml(node, new Map(), true) + `</${node.name}>`;
+    } else if (node.children.some(child => child.namespace !== node.namespace)) {
+      const fragments = [0, 1, 2].map(index => ({ properties: index === 1 ? properties : original, content: new Map<XmlElement, string>() }));
+      let offset = 0;
+      for (const child of children(node)) {
+        if (child === props) continue;
+        const scalars = ["t", "delText"].includes(child.localName) ? [...child.text] : [" "];
+        const next = offset + scalars.length;
+        const ranges = [[offset, Math.min(next, target.start)], [Math.max(offset, target.start), Math.min(next, target.end)], [Math.max(offset, target.end), next]];
+        for (let i = 0; i < ranges.length; i++) {
+          const [from, to] = ranges[i]!;
+          if (from! >= to!) continue;
+          let content = xml.sourceXml(child);
+          if (from !== offset || to !== next) {
+            const attrs = child.attributes.filter(attribute => !(attribute.namespace === "http://www.w3.org/XML/1998/namespace" && attribute.localName === "space"));
+            content = runElementOpen({ ...child, attributes: attrs }).slice(0, -1) + ' xml:space="preserve">' + xmlValue(scalars.slice(from! - offset, to! - offset).join("")) + `</${child.name}>`;
+          }
+          fragments[i]!.content.set(child, content);
+        }
+        offset = next;
+      }
+      xml[splitNativeTextRunXml](node, fragments.filter(fragment => fragment.content.size));
+      changed.set(target.location.token, target.location);
+      continue;
     } else markup = splitRun(xml, node, target.start, target.end, properties);
     if (markup === xml.sourceXml(node)) continue;
     // Check the selected run, rather than rejecting an opaque unselected sibling.

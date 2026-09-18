@@ -1,3 +1,4 @@
+import { copiedNativeProperties } from "./native-property-copy.js";
 import { InputTypeError, ResourceLimitError } from "./archive.js";
 import { OwnershipError } from "./model-errors.js";
 import { DocumentBudget } from "./budget.js";
@@ -62,13 +63,14 @@ export const splitNativeTextRunXml = Symbol("split-native-text-run-xml");
 
 const cloneableRunProperties = new Set("rStyle rFonts b bCs i iCs caps smallCaps strike dstrike outline shadow emboss imprint noProof snapToGrid vanish webHidden color spacing w kern position sz szCs highlight u effect bdr shd fitText vertAlign rtl cs em lang eastAsianLayout specVanish oMath".split(" "));
 
-function cloneableRunProperty(element: XmlElement, w: string, containers: ReadonlySet<XmlElement>, budget: DocumentBudget): boolean {
+function cloneableRunProperty(element: XmlElement, w: string, containers: ReadonlySet<XmlElement>, budget: DocumentBudget, children: (node: XmlElement) => readonly XmlElement[] = node => node.children): boolean {
   budget.charge("work", 1 + element.attributes.length);
-  return (element.namespace === w && (element.localName === "rPr" || cloneableRunProperties.has(element.localName) && !element.children.length) ||
+  return (element.namespace === w && (element.localName === "rPr" || cloneableRunProperties.has(element.localName) && !children(element).length) ||
     element.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006" || containers.has(element)) &&
     element.attributes.every(attribute => [w, "http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace", "http://schemas.openxmlformats.org/markup-compatibility/2006"].includes(attribute.namespace) ||
       attribute.namespace === "" && element.localName === "Choice" && attribute.localName === "Requires") &&
-    element.children.every(child => cloneableRunProperty(child, w, containers, budget));
+    element.children.every(child => child.namespace === w || containers.has(child)) &&
+    children(element).every(child => cloneableRunProperty(child, w, containers, budget, children));
 }
 
 function unsupported(): never {
@@ -328,7 +330,7 @@ export class DocumentXmlEditor {
     const branchElements = new Set(this.compatibility.branches.flatMap(branch => branch.alternateContent.children).filter(child => child.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006" && ["Choice", "Fallback"].includes(child.localName)));
 
     if (!this.#dialect || node.namespace !== documentDialects[this.#dialect].w || node.localName !== "r" || !this.#canEdit(node) || this.#patches.has(node) || props.length > 1 || !fragments.length ||
-      node.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute)) || props.some(property => !cloneableRunProperty(property, node.namespace, containers, this.#budget)) ||
+      node.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute)) || props.some(property => !cloneableRunProperty(property, node.namespace, containers, this.#budget, children)) ||
       leaves.some(leaf => leaf.namespace !== node.namespace || !["t", "delText", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak"].includes(leaf.localName) ||
         leaf.content.some(content => content.kind !== "text") || leaf.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute))) ||
       fragments.some(fragment => [...fragment.content.keys()].some(leaf => !leaves.includes(leaf)))) unsupported();
@@ -351,7 +353,7 @@ export class DocumentXmlEditor {
     const open = (element: XmlElement, attributes = element.attributes) => `<${element.name}${[...element.namespaces].filter(([prefix]) => prefix !== "xml").map(([prefix, uri]) => ` ${prefix ? "xmlns:" + prefix : "xmlns"}="${escapeValue(uri, true)}"`).join("")}${attributes.filter(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/").map(attribute => ` ${attribute.name}="${escapeValue(attribute.value, true)}"`).join("")}>`;
     const markup = fragments.map((fragment, index) => {
       const patches = new Map<XmlElement, string>(leaves.map(leaf => [leaf, fragment.content.get(leaf) ?? ""]));
-      if (props[0]) patches.set(props[0], fragment.properties);
+      if (props[0]) patches.set(props[0], index ? copiedNativeProperties(fragment.properties, node, this.root, this.#profile, this.#budget) : fragment.properties);
       if (index) {
         const prune = (element: XmlElement) => {
           for (const child of element.children) {

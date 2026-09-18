@@ -330,7 +330,7 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
         runs.set(leaf.run, run);
         continue;
       }
-      if (leaf.run.children.some(child => child.namespace !== leaf.run.namespace)) { nativeSplits.set(leaf.run, leaf.editor); continue; }
+      if (leaf.run.children.some(child => child.namespace !== leaf.run.namespace || child.localName === "rPr" && child.children.some(property => property.namespace !== leaf.run.namespace))) { nativeSplits.set(leaf.run, leaf.editor); continue; }
       markup += textMarkup(leaf.node, original.slice(offset));
       const run = runs.get(leaf.run) ?? { editor: leaf.editor, patches: new Map() };
       run.patches.set(leaf.node, markup); runs.set(leaf.run, run);

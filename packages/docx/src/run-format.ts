@@ -134,7 +134,7 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
     if (opts.text !== undefined) markup = replaceRunContent(xml, node, properties, opts.text, budget);
     else if (target.whole) {
       markup = props ? xml.sourceXml(node, new Map([[props, properties]])) : runElementOpen(node) + properties + xml.sourceXml(node, new Map(), true) + `</${node.name}>`;
-    } else if (node.children.some(child => child.namespace !== node.namespace)) {
+    } else if (node.children.some(child => child.namespace !== node.namespace) || props && props.children.some(child => child.namespace !== node.namespace)) {
       const fragments = [0, 1, 2].map(index => ({ properties: index === 1 ? properties : original, content: new Map<XmlElement, string>() }));
       let offset = 0;
       for (const child of children(node)) {

@@ -1,4 +1,4 @@
-import { assertOutsideRevisionRanges } from "./revision-markup.js";
+import { assertOutsideRevisionRanges, assertFormattingHistoryEditable } from "./revision-markup.js";
 import { archiveSettings } from "./archive.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import { validateDocxInvocation } from "./command.js";
@@ -124,12 +124,15 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
     selectedNodes.set(node, target.location);
     const children = activeXmlChildren(xml, budget);
     assertOutsideRevisionRanges(xml.root, node, budget, xml.compatibility.branches, children);
-    if (ancestors.some(n => n.namespace === node.namespace && (["moveFrom", "moveTo", "del"].includes(n.localName) || ["p", "r"].includes(n.localName) && children(n).some(p => p.namespace === node.namespace && p.localName === n.localName + "Pr" && children(p).some(c => c.namespace === node.namespace && c.localName === p.localName + "Change")))))
+    assertFormattingHistoryEditable(xml.root, node, children, budget);
+    if (ancestors.some(n => n.namespace === node.namespace && ["moveFrom", "moveTo", "del"].includes(n.localName)))
       throw new UnsupportedEditError("Complex or deleted revision runs cannot be formatted.");
     const props = children(node).find(c => c.namespace === node.namespace && c.localName === "rPr");
     const original = props ? xml.sourceXml(props) : "";
     const properties = formattedRunProperties(xml, node, opts, children);
     if (properties === original && opts.text === undefined) continue;
+    if (!target.whole && props && children(props).some(child => child.namespace === node.namespace && child.localName === "rPrChange"))
+      throw new UnsupportedEditError("Partial formatting cannot duplicate an owned property-history identity.");
     let markup: string;
     if (opts.text !== undefined) markup = replaceRunContent(xml, node, properties, opts.text, budget);
     else if (target.whole) {

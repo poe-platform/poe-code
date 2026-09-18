@@ -2,7 +2,7 @@ import { collectDiagramObservations } from "./diagram-observations.js";
 import { UnsupportedDiagramMutationError } from "./diagrams.js";
 import {collectEquationUnits,UnsupportedEquationMutationError} from './equations.js';
 import {mathNamespace} from './equation-fragments.js';
-import { assertOutsideRevisionRanges } from "./revision-markup.js";
+import { assertOutsideRevisionRanges, assertFormattingHistoryEditable } from "./revision-markup.js";
 import { renderInsertedTable } from "./table-insertion.js";
 import { archiveSettings, InvalidValueError } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
@@ -101,10 +101,11 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
     let node = xml.root, parent = node;
     const ancestors = [node];
     for (const index of before.value.path) { parent = node; node = node.children[index]!; ancestors.push(node); }
-    if (ancestors.some(n => n.namespace === w && (["ins", "del", "moveFrom", "moveTo"].includes(n.localName) || n.children.some(c => c.namespace === w && c.localName === "pPr" && c.children.some(p => p.namespace === w && p.localName === "pPrChange")))))
+    if (ancestors.some(n => n.namespace === w && ["ins", "del", "moveFrom", "moveTo"].includes(n.localName)))
       throw new UnsupportedEditError("Tracked paragraph edits require explicit revision operations.");
     xml.assertShapeEditAllowed(node);
     const children = activeXmlChildren(xml, budget);
+    assertFormattingHistoryEditable(xml.root, node, children, budget);
     const props = children(node).find(c => c.namespace === w && c.localName === "pPr");
     const originalProps = props ? xml.sourceXml(props) : "";
     if (request.operation === "paragraphs.set") {

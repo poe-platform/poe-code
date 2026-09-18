@@ -24,13 +24,17 @@ const markers = new Set(["bookmarkStart", "bookmarkEnd", "commentRangeStart", "c
 /** Text assignment intentionally removes runs; annotations and paragraph ownership survive. */
 export function replaceParagraphContent(xml: DocumentXmlEditor, p: XmlElement, properties: string, text: string, budget: DocumentBudget): string {
   const children = activeXmlChildren(xml, budget);
-  const containsActiveRevision = (node: XmlElement): boolean => revisionInfo(node) !== undefined || children(node).some(containsActiveRevision);
   assertOutsideRevisionRanges(xml.root, p, budget, xml.compatibility.branches, children);
-  if (containsActiveRevision(p)) throw new UnsupportedEditError("Whole paragraph text cannot discard review history.");
   const patches = new Map<XmlElement, string>();
   const containers = children(p).filter(child => child.namespace === p.namespace && child.localName === "pPr");
   if (containers.length > 1) throw new UnsupportedEditError("Paragraph text requires one owning property container.");
   const props = containers[0];
+  assertFormattingHistoryEditable(xml.root, p, children, budget);
+  const containsActiveRevision = (node: XmlElement): boolean => {
+    budget.charge("work", 1);
+    return node !== props && (revisionInfo(node) !== undefined || children(node).some(containsActiveRevision));
+  };
+  if (containsActiveRevision(p)) throw new UnsupportedEditError("Whole paragraph text cannot discard review history.");
   let inserted = false;
   for (const child of children(p)) {
     if (child.namespace !== p.namespace) throw new UnsupportedEditError("Whole paragraph text cannot replace opaque content.");

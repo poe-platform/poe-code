@@ -46,6 +46,9 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
   const execute = async (start: PythonExecutorStart): Promise<number> => {
     const signal = AbortSignal.any([start.signal, controller.signal]);
     const configuration = parsePythonInvocation(start.invocation.args, start.invocation.env);
+    let qualified = false;
+    let exitCode = 0;
+    let finalized = 0;
     try {
       signal.throwIfAborted();
       if (start.packages?.requirements.length || start.installOnly) throw new PythonFailure('runtime-assets', {cause:new Error('JSPI runtime requires statically qualified packages')});
@@ -85,6 +88,7 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
         },
       });
       if (!importsBound || !instanceBound || !schedulerBound || runtime.version !== '314.0.6' || !runtime._module.jspiSupported) throw new PythonFailure('runtime-abi');
+      qualified = true;
       signal.throwIfAborted();
       runtime.runPython('import sys, os, json, runpy, traceback, types, warnings, textwrap, io, struct, linecache, importlib.machinery, shutil, stat, pyodide.ffi');
       runtime.globals.set('_safe_runtime_mount', start.runtimeMount);
@@ -193,7 +197,7 @@ _safe_stat_type = _safe_native_stat_type
       runtime.globals.set('_safe_is_cancelled', () => signal.aborted);
       active.value = 1;
       start.onReady();
-      const exitCode = await runtime.runPythonAsync(`
+      exitCode = Number(await runtime.runPythonAsync(`
 try:
  exec(_safe_execution_code)
 except BaseException:
@@ -201,8 +205,12 @@ except BaseException:
   raise
  _safe_exit = 130
 _safe_exit
-`);
-      await runtime.runPythonAsync(`
+`)) & 255;
+    } finally {
+      try {
+        if (qualified) {
+          try {
+            await runtime.runPythonAsync(`
 import asyncio as _safe_asyncio
 async def _safe_quiesce_tasks():
  current = _safe_asyncio.current_task()
@@ -218,25 +226,31 @@ async def _safe_quiesce_tasks():
  await loop.shutdown_default_executor()
 await _safe_quiesce_tasks()
 `);
-      await scheduler.close();
-      active.value = 2;
-      const finalized = await engine.promising(runtime._module._Py_FinalizeEx)();
-      signal.throwIfAborted();
-      return finalized < 0 ? 120 : Number(exitCode) & 255;
-    } finally {
-      active.value = 0;
-      cleanup = scheduler.close().finally(() => native?.close());
-      try { await cleanup; }
-      finally {
-        if (methodDefinition) runtime?._module._free(methodDefinition);
-        if (methodPointer !== undefined) runtime?._module.removeFunction(methodPointer);
-        if (statPointer !== undefined) runtime?._module.removeFunction(statPointer);
-        runtime = undefined;
-        native = undefined;
-        syncify.set(0, null);
-        for (const name of Object.keys(originals)) delete originals[name];
+          } finally {
+            try { await scheduler.close(); }
+            finally {
+              active.value = native ? 2 : 0;
+              finalized = Number(await engine.promising(runtime._module._Py_FinalizeEx)());
+            }
+          }
+        }
+      } finally {
+        active.value = 0;
+        cleanup = scheduler.close().finally(() => native?.close());
+        try { await cleanup; }
+        finally {
+          if (methodDefinition) runtime?._module._free(methodDefinition);
+          if (methodPointer !== undefined) runtime?._module.removeFunction(methodPointer);
+          if (statPointer !== undefined) runtime?._module.removeFunction(statPointer);
+          runtime = undefined;
+          native = undefined;
+          syncify.set(0, null);
+          for (const name of Object.keys(originals)) delete originals[name];
+        }
       }
     }
+    signal.throwIfAborted();
+    return finalized < 0 ? 120 : exitCode;
   };
   return {
     run(start) {

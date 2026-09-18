@@ -13,6 +13,9 @@ The loader must call `bindImports` before main-Wasm instantiation, `bindInstance
 after instantiation, and `bindScheduler` before Python bootstrap. These hooks are
 each single-use and the pinned runtime ABI is checked before guest admission.
 No Node thread or SAB request/reply transport is used.
+After a runtime is returned and its ABI validated, retirement is unconditional,
+including cancellation between loader completion and guest admission. A loader
+that fails before returning a runtime must release its own partial initialization.
 
 ## Native and static-asset mechanism
 

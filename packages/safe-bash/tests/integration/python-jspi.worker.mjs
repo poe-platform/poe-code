@@ -204,6 +204,10 @@ export default {
       runtime.globals.set('_record_late_callback', () => callbacks.push('late'));
       runtime.globals.set('_record_finalization_called', () => finalizations.push('atexit'));
       runtime.runPython('import builtins; builtins._record_finalization_failure = _record_finalization_failure; builtins._record_late_callback = _record_late_callback; builtins._record_finalization_called = _record_finalization_called');
+      if (mode === '/startup-cancel') {
+        runtime.runPython('import atexit; atexit.register(_record_finalization_called)');
+        controller.abort(new Error('startup cancelled'));
+      }
       return runtime;
     } });
     if (mode === '/shell') {
@@ -245,9 +249,9 @@ export default {
         taskFinalized: await backend.readFile('/work/task-finalized').then(bytes => Array.from(bytes), () => null),
         generatorFinalized: await backend.readFile('/work/generator-finalized').then(bytes => Array.from(bytes), () => null),
         elapsedMs: performance.now() - started,
-        qualification: 'source-native-I/O and finalization; not public executor, background-task retirement, managed Python or deployment qualification' });
+        qualification: 'custom native I/O and lifecycle; not managed Python or deployment qualification' });
     } catch (error) {
-      if (mode === '/cancel') {
+      if (mode === '/cancel' || mode === '/startup-cancel') {
         await executor.terminate();
         await new Promise(resolve => setTimeout(resolve, 50));
         return Response.json({error: String(error), finalizations, failures});

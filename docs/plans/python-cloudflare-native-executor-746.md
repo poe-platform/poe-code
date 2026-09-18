@@ -109,15 +109,15 @@ closures with `npm run build:workspaces -- --workspace=<name>`. The latter
 generates the Intl data required by the maintained public-package assembler.
 
 ```bash
-node scripts/package-safe.mjs --out-dir out/issue-746/assembled --version 0.0.0-issue746.1
+node scripts/package-safe.mjs --out-dir out/issue-746/assembled --version 0.0.0-issue746.2
 mkdir -p out/issue-746/tarballs out/issue-746/consumer
 for package in safe-fs safe-js safe-bash; do
   npm pack "./out/issue-746/assembled/$package" --pack-destination out/issue-746/tarballs --json
 done
 npm install --prefix out/issue-746/consumer --workspaces=false --package-lock=true --ignore-scripts --no-audit --no-fund \
-  ./out/issue-746/tarballs/poe-platform-safe-fs-0.0.0-issue746.1.tgz \
-  ./out/issue-746/tarballs/poe-platform-safe-js-0.0.0-issue746.1.tgz \
-  ./out/issue-746/tarballs/poe-platform-safe-bash-0.0.0-issue746.1.tgz
+  ./out/issue-746/tarballs/poe-platform-safe-fs-0.0.0-issue746.2.tgz \
+  ./out/issue-746/tarballs/poe-platform-safe-js-0.0.0-issue746.2.tgz \
+  ./out/issue-746/tarballs/poe-platform-safe-bash-0.0.0-issue746.2.tgz
 ```
 
 Run the local workerd launcher recorded below with the additional container env
@@ -151,6 +151,24 @@ Current evidence lives only in worktree `out/issue-746`, notably
 `package-assembly.log`, `pack.log`, `consumer-install.log`, and
 `managed-system-trust.log`. Preserve the existing read-only
 `/tmp/poe-python-workerd-current` dependencies; create no new output there.
+
+### Startup cancellation follow-up
+
+After freezing `8c3dbbc39` for Franklin's #763 staging matrix, an additional real
+workerd test reproduced missing atexit when cancellation occurred after the
+loader returned but before guest admission (`startup-cancel-red.log`). Qualified
+interpreter retirement now runs unconditionally in `finally`, even if task or
+scheduler cleanup raises. A pre-admission runtime uses its original bootstrap
+filesystem during shutdown; a mounted runtime uses the asynchronous shutdown
+boundary. The same assertion now passes (`startup-cancel.log`). This changes no
+public loader hook or native syscall signature. Loader failures before returning
+a runtime remain the loader's responsibility. The rebuilt/repacked
+`0.0.0-issue746.2` consumer is checked separately in `packed-workerd-current.log`.
+
+Remote-main was rechecked at `ba157f661` after Franklin's staging integration.
+There are no upstream changes to the Python implementation paths relative to
+this worktree base. This worktree does not silently import or claim testing of
+those newer SafeFS staging changes; Franklin owns their frozen workerd matrix.
 
 ## Boundaries
 
@@ -274,7 +292,10 @@ worker tests also passed independently before and after script extraction.
 - `packages/safe-bash/tests/commands/python/jspi-assets.test.ts`
 - `packages/safe-bash/tests/commands/python/jspi-trampoline.test.ts`
 - `packages/safe-bash/tests/commands/python/jspi.test.ts`
-- `packages/safe-bash/tests/integration/python-jspi-executor.fixture.ts`
+- `packages/safe-bash/src/commands/python/jspi.ts`
+- `packages/safe-bash/src/commands/python/jspi-scheduler.ts`
+- `packages/safe-bash/tests/commands/python/jspi-scheduler.test.ts`
+- `packages/safe-bash/tests/integration/python-managed.test.mjs`
 - `packages/safe-bash/tests/integration/python-jspi.test.mjs`
 - `packages/safe-bash/tests/integration/python-jspi.worker.mjs`
 - `packages/safe-bash/scripts/integration-inputs.test.mjs`

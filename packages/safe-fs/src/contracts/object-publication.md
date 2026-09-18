@@ -226,3 +226,54 @@ does not qualify the Cloudflare executor, local workerd integration or deployed
 Cloudflare acceptance. Those still require the qualified executor and the
 actual consumer's `createStaging` implementation plus its authoritative
 publication adapter; existing stores without that primitive remain limited.
+
+The separate native workerd staging regression is
+`packages/safe-fs/tests/integration/object-staging-workerd.test.mjs`. It runs the
+same 9 MiB/100 MiB immediate/delayed native workload through the static JSPI
+executor in local Miniflare, with real R2 private pages and streamed R2 immutable
+versions. Its namespace and compare-and-swap are process-local fixtures, not a
+production authoritative store. It checks native readback hashes, linear
+spill/read/publication byte counts, intermediate visibility and R2 cleanup.
+
+This cross-layer test requires a checkout containing the qualified JSPI/native
+syscall source layout, a specified immutable executor commit, the pinned Pyodide
+assets, Miniflare `5.20260917.0-alpha` and workerd `1.20260917.1`. For example:
+
+```sh
+SAFE_FS_EXECUTOR_ROOT=/absolute/path/to/executor-checkout \
+SAFE_FS_EXECUTOR_REVISION=<qualified-executor-commit> \
+SAFE_FS_STAGING_REVISION=<candidate-staging-commit> \
+SAFE_FS_PYODIDE_ROOT=/absolute/path/to/node_modules/pyodide \
+SAFE_FS_WORKERD_ROOT=/absolute/path/to/installed-miniflare-project \
+TMPDIR="$PWD/out/workerd-staging" \
+node --test packages/safe-fs/tests/integration/object-staging-workerd.test.mjs
+```
+
+Create the output directory first and supply a workerd executable compatible
+with the host, using `MINIFLARE_WORKERD_PATH` if necessary. The test reads
+executor/SafeFS module contents from the frozen Git commit; only the
+object-publication module is replaced by the selected candidate, preserving a
+single canonical core identity. Package resolution metadata must match the
+frozen revision. Omitting `SAFE_FS_STAGING_REVISION` uses the current checkout's
+object-publication source instead. Diagnostics identify the executor commit,
+candidate digest and selected staging commit. Assets are hash-checked and Wasm
+modules are precompiled; no executor source is edited and no workspace data is
+copied. `SAFE_FS_STAGING_DISABLED=1` provides the failing no-spill native control.
+Set `SAFE_FS_EXPORT_WORKER_DIR` to a new directory under checkout `out/` to export
+the exact tested modules and their hash manifest, only after all four cases pass.
+The fixture requires an expiring bearer secret, empty POST requests, fixed sizes
+and profiles, and rejects overlapping work in the same isolate. That guard is
+not a global deployment concurrency limit. Owner-run deployment, bounded request
+instructions and teardown are in
+`docs/plans/issue763-cloudflare-staging-qualification.md`.
+
+Passing this route qualifies the exercised local static-JSPI/R2 fixture only.
+It is not an installed-package staging test, a managed Python Worker native
+mount, a production host adapter or a deployed Cloudflare result. Initial Wasm
+memory capacity in diagnostics is not peak interpreter/Worker memory. The
+consumer still needs an owned `createStaging` implementation, authoritative
+authorization/publication, bounded caches and provider request/memory quotas,
+orphan reclamation, and deployment access. Run the public backend conformance
+and shared-pressure/failure/cancellation matrix on that actual host as well as
+the native workload; success on fresh fixture output does not replace those
+requirements.

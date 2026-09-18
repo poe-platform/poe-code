@@ -15,7 +15,7 @@ import type { DocxOperationArguments } from "./operation-types.js";
 import { activeControlLocks } from "./protection.js";
 import { compatibilityContainers } from "./compatibility.js";
 import { activeXmlChildren } from "./xml-active-children.js";
-import { formattedRunProperties } from "./run-properties.js";
+import { formattedRunProperties, runElementOpen } from "./run-properties.js";
 import type { DocumentBudget } from "./budget.js";
 
 export type DummyTextOptions = DocxOperationArguments<"lorem.set"> & { readonly input?: PublicationInput };
@@ -33,16 +33,18 @@ interface Edit { start: number; end: number; insert: string; }
 export function textMarkup(node: XmlElement, text: string): string {
   const prefix = node.name.includes(":") ? node.name.slice(0, node.name.indexOf(":")) + ":" : "";
   const name = node.localName === "delText" ? "delText" : "t";
-  const namespace = prefix ? `xmlns:${prefix.slice(0, -1)}` : "xmlns";
+  const attributes = node.attributes.filter(attribute => attribute.namespace !== "http://www.w3.org/XML/1998/namespace" || attribute.localName !== "space")
+    .filter(attribute => ["t", "delText"].includes(node.localName) || ["http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace"].includes(attribute.namespace));
+  const open = (localName: string) => runElementOpen({ ...node, name: prefix + localName, localName, attributes });
   let result = "", pending = "";
   const flush = () => {
-    if (pending) result += `<${prefix}${name} ${namespace}="${xmlValue(node.namespace)}" xml:space="preserve">${xmlValue(pending)}</${prefix}${name}>`;
+    if (pending) result += open(name).slice(0, -1) + ` xml:space="preserve">${xmlValue(pending)}</${prefix}${name}>`;
     pending = "";
   };
   for (const char of text) {
     if (char === "\t" || char === "\n" || char === "\r") {
       flush();
-      result += `<${prefix}${char === "\t" ? "tab" : "br"} ${namespace}="${xmlValue(node.namespace)}"/>`;
+      result += open(char === "\t" ? "tab" : "br").slice(0, -1) + "/>";
     } else pending += char;
   }
   flush();

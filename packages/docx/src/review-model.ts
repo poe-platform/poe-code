@@ -1,4 +1,5 @@
 import { InputTypeError, InvalidValueError } from "./archive.js";
+import { OwnershipError } from "./model-errors.js";
 import { activeModelChildren } from "./model-active-children.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import type { ModelStore, ModelRef } from "./model-store.js";
@@ -299,12 +300,20 @@ function validateCommentRange(
   runs: import("./block-model.js").Run | readonly import("./block-model.js").Run[]
 ) {
   const selected = Array.isArray(runs) ? runs : [runs];
-  if (!selected.length || selected.some((run) => !run || run.store !== store))
+  if (!selected.length)
     throw new UnsupportedEditError("Comment endpoints require runs from this document.");
+  if (selected.some((run) => !run || typeof run !== "object" || !run.store || !run.ref))
+    throw new InputTypeError("Expected comment run endpoints.");
+  if (selected.some((run) => run.store !== store))
+    throw new OwnershipError("Comment endpoints require runs from this document.");
   const first = selected[0]!,
     last = selected[selected.length - 1]!;
-  if (selected.some((run) => run.ref.part !== first.ref.part))
+  if (selected.some((run) => run.ref.part !== first.ref.part)) {
+    const owner = store.documentOwnerForStory(first.ref.part);
+    if (selected.some((run) => store.documentOwnerForStory(run.ref.part) !== owner))
+      throw new OwnershipError("Comment endpoints require the same document owner.");
     throw new UnsupportedEditError("Comment endpoints cannot cross stories.");
+  }
   const xml = store.xml(first.ref.part),
     firstNode = store.node(first.ref),
     lastNode = store.node(last.ref);
@@ -437,7 +446,7 @@ export function bindCommentRange(
   if (initials !== null) text(initials);
   const { first, last } = validateCommentRange(store, runs);
   if (documentPart !== undefined && store.documentOwnerForStory(first.ref.part) !== documentPart)
-    throw new UnsupportedEditError("Comment endpoints require runs owned by the receiving document.");
+    throw new OwnershipError("Comment endpoints require runs owned by the receiving document.");
   const comment = new Comments(store, store.ensureComments(first.ref.part)).add_comment(value, author, initials);
   applyCommentRange(store, first, last, comment.comment_id);
   return comment;

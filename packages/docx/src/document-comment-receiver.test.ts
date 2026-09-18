@@ -30,12 +30,12 @@ it(`${route} ${foreign ? "rejects foreign" : "accepts owned"} runs for ${receive
   if (route === "model") {
     const document = await api.Document(input, context), appendix = (document.part.part_related_by("urn:coast:appendix") as api.DocumentPartView).document;
     const documents = { document, appendix }, run = documents[runsOwner].paragraphs[0]!.runs[0]!;
-    if (foreign) expect(() => documents[receiver].add_comment(run, "Owned note", "Coast")).toThrow(expect.objectContaining({ code: "unsupported-edit" }));
+    if (foreign) expect(() => documents[receiver].add_comment(run, "Owned note", "Coast")).toThrow(expect.objectContaining({ code: "conflict" }));
     else expect(documents[receiver].add_comment(run, "Owned note", "Coast").comment_id).toBe(0);
     await document.save({ async write(bytes) { memory.appendFileSync("/output", bytes); } });
   } else if (route === "sdk") {
     const pending = api.applyStyleModelBatch(input, { version: 1, operations }, context);
-    if (foreign) await expect(pending).rejects.toMatchObject({ code: "unsupported-edit", operationIndex: 5 });
+    if (foreign) await expect(pending).rejects.toMatchObject({ code: "conflict", operationIndex: 5 });
     else await (await pending).save({ async write(bytes) { memory.appendFileSync("/output", bytes); } });
   } else {
     const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); await fs.writeFile("/output", enc("Retained destination")); await fs.writeFile("/ops", enc(JSON.stringify({ version: 1, operations })));
@@ -43,7 +43,7 @@ it(`${route} ${foreign ? "rejects foreign" : "accepts owned"} runs for ${receive
     try {
       const result = await shell.exec("docx batch /input --ops-file /ops --output /output --force --json --timestamp 2026-03-04T05:06:07Z");
       expect(result.exitCode, result.stdout + result.stderr).toBe(foreign ? 1 : 0);
-      if (foreign) { expect(JSON.parse(result.stdout)).toMatchObject({ ok: false, data: null, affected: 0, errors: [{ code: "unsupported-edit", operationIndex: 5 }] }); expect(await fs.readFile("/output")).toEqual(enc("Retained destination")); }
+      if (foreign) { expect(JSON.parse(result.stdout)).toMatchObject({ ok: false, data: null, affected: 0, errors: [{ code: "conflict", operationIndex: 5 }] }); expect(await fs.readFile("/output")).toEqual(enc("Retained destination")); }
       else memory.writeFileSync("/output", await fs.readFile("/output"));
       expect(await fs.readFile("/input")).toEqual(input);
     } finally { await shell.dispose(); }

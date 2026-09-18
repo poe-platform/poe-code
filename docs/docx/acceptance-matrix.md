@@ -568,7 +568,9 @@ current base-error and package/XML/style ownership evidence: 973 final focused
 assertions and 226 built ownership workflows pass. Subsequent permission checks
 pass 2,630 assertions and 528 built public workflows; original harness mistakes
 and selected-out variants receive no credit. Additional document/comment
-ownership, complete current gates and family reconciliation remain open. Older
+ownership is now covered by the [comment owner dependency](comment-ownership-error-20260918.md):
+369 focused assertions and 68 built workflows pass. Complete current gates and
+family reconciliation remain open. Older
 full gates interrupted at this dependency receive no credit.
 
 The [current opt-in closure check](opt-in-closure-20260918.md) verifies native and

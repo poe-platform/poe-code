@@ -43,9 +43,16 @@ export function replaceParagraphContent(xml: DocumentXmlEditor, p: XmlElement, p
       if (node.namespace !== p.namespace || !["r", "rPr", "t", "tab", "ptab", "noBreakHyphen", "softHyphen", "br", "cr", "hyperlink", "footnoteRef", "endnoteRef"].includes(node.localName)) {
         throw new UnsupportedEditError("Whole paragraph text cannot replace fields, objects or review content.");
       }
-      if (node.localName !== "rPr") for (const c of node.children) check(c);
+      if (node.localName !== "rPr") for (const c of children(node)) check(c);
     };
     check(child);
+    if (child.localName === "r" && child.children.some(node => node.namespace !== p.namespace)) {
+      // The retained run owns inactive compatibility payload. Remove its active
+      // formatting/content without discarding that physical owner or carrier.
+      patches.set(child, replaceRunContent(xml, child, "", inserted ? "" : text, budget));
+      inserted = true;
+      continue;
+    }
     const noteMarks = child.children.filter(n => n.namespace === p.namespace && ["footnoteRef", "endnoteRef"].includes(n.localName));
     const preserved = noteMarks.length ? runElementOpen(child) + child.children.filter(n => n.localName === "rPr" || noteMarks.includes(n)).map(n => xml.sourceXml(n)).join("") + `</${child.name}>` : "";
     const hasText = child.children.some(n => !["rPr", "footnoteRef", "endnoteRef"].includes(n.localName));

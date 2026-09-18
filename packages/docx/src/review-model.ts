@@ -340,7 +340,8 @@ function validateCommentRange(
       if (type === "end") fieldDepth = Math.max(0, fieldDepth - 1);
     }
     ordered.push({ node, parent, container, safe: safe && !fieldDepth, order: order++ });
-    for (const child of children(node)) visit(child, node, container, safe);
+    if (node.namespace === xml.root.namespace)
+      for (const child of children(node)) visit(child, node, container, safe);
   };
   visit(xml.root, xml.root, xml.root, true);
   const start = ordered.find((n) => n.node === firstNode),

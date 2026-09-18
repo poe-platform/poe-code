@@ -745,3 +745,11 @@ workflows passed across both dialects and macro-free kinds. Active history rejec
 inactive history and opaque barriers retain their contract behavior. The two
 interrupted broad runs grant no acceptance. This closes the named defects only;
 complete F08–F15/F18 acceptance and other interactions remain open.
+
+The [applied-style carrier correction](text-style-family-acceptance-20260918/applied-style-requirement-evidence.json)
+qualifies F14 paragraph/character reference reads, assignment and null reset
+through Choice, Fallback and ProcessContent. All 216 qualified original cases
+failed before the correction. The final seven-file run passed 295 cases, and
+216 independent built public workflows passed. Independent XML assertions exclude
+duplicate active references and retain inactive definitions. These are exact
+scoped cases, not complete-family acceptance.

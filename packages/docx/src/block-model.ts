@@ -129,19 +129,20 @@ export class Paragraph {
   }
   get style(): ParagraphStyle | null {
     const p = this.store.node(this.ref);
-    const id =
-      p.children
-        .find((child) => child.localName === "pPr")
-        ?.children.find((child) => child.localName === "pStyle")
-        ?.attributes.find((a) => a.localName === "val")?.value ?? null;
+    const children = activeModelChildren(this.store, this.ref.part);
+    const props = children(p).find(child => child.namespace === p.namespace && child.localName === "pPr");
+    const id = props ? children(props)
+        .find(child => child.namespace === p.namespace && child.localName === "pStyle")
+        ?.attributes.find(a => a.namespace === p.namespace && a.localName === "val")?.value ?? null : null;
     return this.store.stylesForStory(this.ref.part).get_by_id(id, WD_STYLE_TYPE.PARAGRAPH) as ParagraphStyle | null;
   }
   set style(value: string | ParagraphStyle | null) {
     const id = this.store.stylesForStory(this.ref.part).get_style_id(value, WD_STYLE_TYPE.PARAGRAPH);
     this.store.change(this.ref.part, (xml) => {
+      const children = activeModelChildren(this.store, this.ref.part);
       const p = this.store.node(this.ref),
-        props = p.children.find((child) => child.localName === "pPr");
-      const old = props?.children.find((child) => child.localName === "pStyle");
+        props = children(p).find(child => child.namespace === p.namespace && child.localName === "pPr");
+      const old = props && children(props).find(child => child.namespace === p.namespace && child.localName === "pStyle");
       const replacement =
         id === null ? "" : `<bm:pStyle xmlns:bm="${p.namespace}" bm:val="${xmlValue(id)}"/>`;
       if (old) xml.replaceElement(old, replacement);
@@ -259,19 +260,20 @@ export class Run {
   }
   get style(): CharacterStyle | null {
     const r = this.store.node(this.ref);
-    const id =
-      r.children
-        .find((child) => child.localName === "rPr")
-        ?.children.find((child) => child.localName === "rStyle")
-        ?.attributes.find((a) => a.localName === "val")?.value ?? null;
+    const children = activeModelChildren(this.store, this.ref.part);
+    const props = children(r).find(child => child.namespace === r.namespace && child.localName === "rPr");
+    const id = props ? children(props)
+        .find(child => child.namespace === r.namespace && child.localName === "rStyle")
+        ?.attributes.find(a => a.namespace === r.namespace && a.localName === "val")?.value ?? null : null;
     return this.store.stylesForStory(this.ref.part).get_by_id(id, WD_STYLE_TYPE.CHARACTER) as CharacterStyle | null;
   }
   set style(value: string | CharacterStyle | null) {
     const id = this.store.stylesForStory(this.ref.part).get_style_id(value, WD_STYLE_TYPE.CHARACTER);
     this.store.change(this.ref.part, (xml) => {
+      const children = activeModelChildren(this.store, this.ref.part);
       const r = this.store.node(this.ref),
-        props = r.children.find((child) => child.localName === "rPr");
-      const old = props?.children.find((child) => child.localName === "rStyle");
+        props = children(r).find(child => child.namespace === r.namespace && child.localName === "rPr");
+      const old = props && children(props).find(child => child.namespace === r.namespace && child.localName === "rStyle");
       const replacement =
         id === null ? "" : `<bm:rStyle xmlns:bm="${r.namespace}" bm:val="${xmlValue(id)}"/>`;
       if (old) xml.replaceElement(old, replacement);

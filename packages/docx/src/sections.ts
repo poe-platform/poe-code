@@ -12,10 +12,11 @@ import { DocumentArchiveEditor } from "./package-write.js";
 import { relativePartTarget } from "./part-uri.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { formatSectionProperties, readSectionProperties, sectionAttribute, sectionBoolean, sectionChild, type SectionDirectProperties } from "./section-properties.js";
-import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { appendBodyBlocks, DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import type { DocumentBudget } from "./budget.js";
 import type { XmlElement } from "./package-xml.js";
 import type { CompatibilityContent } from "./compatibility.js";
+import { runElementOpen } from "./run-properties.js";
 
 export interface SectionBinding { readonly linkedToPrevious: boolean; readonly sourceSection: number | null; readonly part: string | null }
 export interface SectionInfo {
@@ -165,7 +166,8 @@ export async function editDocumentSections(input: Uint8Array, request: SectionEd
   let archive = document.snapshot();
   assertDocumentEditable(archive, { ...settings, budget });
   const current = sectionState(document, archive, { ...settings, budget });
-  const { xml, owners, items, main, body, editor } = current;
+  const { owners, items, main, body } = current;
+  let { xml, editor } = current;
   const selected = request.operation === "sections.add" ? [items.at(-1)!] : select(items, opts, true);
   const changes: { kind: "format" | "insert"; before: Location; after: Location }[] = [];
   const geometryFields = ["orientation", "pageWidth", "pageHeight", "topMargin", "bottomMargin", "leftMargin", "rightMargin", "gutter", "headerDistance", "footerDistance", "columns", "columnGap", "startType"];
@@ -178,15 +180,24 @@ export async function editDocumentSections(input: Uint8Array, request: SectionEd
     const adding = request.operation === "sections.add";
     const properties = formatSectionProperties(xml, owner.node, adding ? { startType: opts.startType ?? { enum: "WD_SECTION_START", name: "NEW_PAGE" } } : opts, adding, sectionBoolean(sectionChild(current.settingXml?.root, "gutterAtTop", current.children)), current.children);
     if (adding) {
-      const original = owner.node ? xml.sourceXml(owner.node) : `<sp:sectPr xmlns:sp="${xml.root.namespace}"/>`;
+      const original = owner.node
+        ? runElementOpen(owner.node) + xml.sourceXml(owner.node, new Map(), true) + `</${owner.node.name}>`
+        : `<sp:sectPr xmlns:sp="${xml.root.namespace}"/>`;
       const boundary = `<sp:p xmlns:sp="${xml.root.namespace}"><sp:pPr>${original}</sp:pPr></sp:p>`;
-      if (owner.node) xml.replaceElement(owner.node, boundary + properties);
-      else xml.insertChildren(body, boundary + properties);
+      if (owner.node) {
+        xml.replaceElement(owner.node, properties);
+        const staged = sectionState(document, editor.snapshot(), { ...settings, budget });
+        editor = staged.editor;
+        xml = staged.xml;
+        xml[appendBodyBlocks](staged.body, boundary);
+      } else xml[appendBodyBlocks](body, boundary + properties);
     } else if (properties !== (owner.node ? xml.sourceXml(owner.node) : "")) {
       if (owner.node) xml.replaceElement(owner.node, properties); else xml.insertChildren(body, properties);
     } else if (!policyChanged) continue;
     const bodyPath = document.list("story", { scope: "body" })[0]!.value.path;
-    const path = adding ? [...bodyPath, body.children.length + (owner.node ? 0 : 1)] : !owner.node && properties ? [...bodyPath, body.children.length] : owner.path;
+    const path = adding
+      ? owner.node ? [...owner.path.slice(0, -1), owner.path.at(-1)! + 1] : [...bodyPath, body.children.length + 1]
+      : !owner.node && properties ? [...bodyPath, body.children.length] : owner.path;
     const value = { ...item.location.value, generation: 1, path };
     const after: Location<"section"> = { ...item.location, value, token: encodeLocation(value), positions: { section: adding ? items.length + 1 : item.position } };
     changes.push({ kind: adding ? "insert" : "format", before: item.location, after });

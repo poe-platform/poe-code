@@ -664,3 +664,10 @@ cases and 540 independent built public workflows. Body/header/footer, lexical
 flags, active MCE carriers, label order and retained relationships pass in both
 dialects/kinds. The combined maintained run passes 1,194 cases. Full-family
 acceptance remains open.
+
+The [section-add carrier qualification](section-add-carriers-20260918.md)
+closes active terminal/property and implicit-section defects with 660 original
+passing cases, 4,064 maintained consumers and 660 independent built public
+workflows. Both dialects/kinds and UTF-8/UTF-16BE retain old geometry, inherited
+bindings, inactive content and relationship bytes. Full-family acceptance remains
+open; interrupted verification runs receive no complete-gate credit.

@@ -228,7 +228,7 @@ export class Section {
             : `<sp:type xmlns:sp="${node.namespace}" sp:val="${sectionStarts[value.name]}"/>`;
       xml.replaceElement(
         node,
-        mergeStyleChildren(xml, node, new Map([["type", markup]]), sectionPropertyOrder)
+        mergeStyleChildren(xml, node, new Map([["type", markup]]), sectionPropertyOrder, {}, activeModelChildren(this.store, this.ref.part))
       );
     });
   }

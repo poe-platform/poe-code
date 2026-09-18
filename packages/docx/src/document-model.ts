@@ -18,6 +18,7 @@ import { InlineShapes, insertModelImage } from "./inline-shape-model.js";
 import { Image, type ImageModelInput } from "./image-model.js";
 import { packageAdmitImages, DocumentPartView } from "./package-view.js";
 import { activeModelChildren } from "./model-active-children.js";
+import { appendBodyBlocks } from "./xml-write.js";
 
 export class DocumentView {
   readonly ref: ModelRef;
@@ -117,18 +118,16 @@ export class DocumentView {
     return this.store.transaction(() => {
       this.store.change(this.ref.part, (xml) => {
         const body = this.store.node(this.ref),
-          section = body.children.find(
+          section = activeModelChildren(this.store, this.ref.part)(body).find(
             (node) => node.namespace === body.namespace && node.localName === "sectPr"
           );
         const old = section
           ? runElementOpen(section) + xml.sourceXml(section, new Map(), true) + `</${section.name}>`
           : `<ds:sectPr xmlns:ds="${body.namespace}"/>`;
-        xml.insertChildren(
+        xml[appendBodyBlocks](
           body,
-          `<ds:p xmlns:ds="${body.namespace}"><ds:pPr>${old}</ds:pPr></ds:p>`,
-          section
+          `<ds:p xmlns:ds="${body.namespace}"><ds:pPr>${old}</ds:pPr></ds:p>` + (section ? "" : old)
         );
-        if (!section) xml.insertChildren(body, old);
       });
       this.store.change(this.ref.part, (xml) => {
         const section = this.store.node(this.sections.at(-1).ref);
@@ -141,7 +140,9 @@ export class DocumentView {
               ["headerReference", ""],
               ["footerReference", ""]
             ]),
-            sectionPropertyOrder
+            sectionPropertyOrder,
+            {},
+            activeModelChildren(this.store, this.ref.part)
           )
         );
       });

@@ -273,7 +273,11 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       const external = [...graph.external, "@poe-platform/safe-fs"];
       const recipes = [];
       if (Object.values(source.exports).some(value => value?.browser?.endsWith(".browser.js") || value?.workerd?.endsWith(".browser.js"))) {
-        recipes.push(resolveBrowserShellBuild(rootDir));
+        const browser = resolveBrowserShellBuild(rootDir);
+        recipes.push({ ...browser,
+          alias: { ...browser.alias, "@poe-code/safe-fs": "@poe-platform/safe-fs", "poe-code/safe-fs": "@poe-platform/safe-fs" },
+          external: [...browser.external, "@poe-platform/safe-fs"],
+        });
       }
       for (const command of ["op", "pandoc"]) {
         if (!source.exports["./commands/" + command]) continue;

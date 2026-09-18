@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createFsFromVolume, Volume } from "memfs";
 import ts from "typescript";
+import { build, type BuildOptions } from "esbuild";
 import { packageSafeLibraries, parsePackageSafeArguments, rewriteModuleSpecifiers } from "./package-safe.mjs";
 
 const bashManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
@@ -672,4 +673,21 @@ for (const [specifier, target, failure] of [
   }));
   volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", `export * from ${JSON.stringify(specifier)};`);
   await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow(failure);
+});
+
+
+it.each(["@poe-code/safe-fs/core", "poe-code/safe-fs/core", "@poe-platform/safe-fs/core"])("keeps browser filesystem import %s canonical instead of embedding a private constructor", async specifier => {
+  const { options } = optionalLeftovers();
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const browser = options.bundle.mock.calls.map(([settings]) => settings as BuildOptions)
+    .find(settings => settings.platform === "browser")!;
+  expect(browser).toBeDefined();
+  const result = await build({
+    ...browser, absWorkingDir: process.cwd(), entryPoints: undefined, outdir: undefined,
+    sourcemap: false, splitting: false, inject: [],
+    stdin: { contents: `export { FsError } from ${JSON.stringify(specifier)};`, resolveDir: process.cwd() },
+    plugins: [],
+  });
+  expect(result.outputFiles![0]!.text).toContain('from "@poe-platform/safe-fs/core"');
+  expect(result.outputFiles![0]!.text).not.toContain("extends Error");
 });

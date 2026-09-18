@@ -6,7 +6,7 @@ import { canonicalFsRoutes } from "../packages/package-lint/dist/bundle-policy.j
 export async function rewriteWorkspaceDts(
   directory,
   workspaces,
-  { rootDir, profile = "node", files = fileSystem, excludedPaths = [] }
+  { rootDir, profile = "node", files = fileSystem, excludedPaths = [], includedFiles = /** @type {ReadonlySet<string> | undefined} */ (undefined) }
 ) {
   if (excludedPaths.some(excluded => directory === excluded || directory.startsWith(excluded + path.sep))) return;
   if (profile !== "node" && profile !== "browser")
@@ -19,10 +19,10 @@ export async function rewriteWorkspaceDts(
     const filename = path.join(directory, entry.name);
     if (excludedPaths.includes(filename)) continue;
     if (entry.isDirectory()) {
-      await rewriteWorkspaceDts(filename, workspaces, { rootDir, profile, files, excludedPaths });
+      await rewriteWorkspaceDts(filename, workspaces, { rootDir, profile, files, excludedPaths, includedFiles });
       continue;
     }
-    if (!entry.name.endsWith(".d.ts")) continue;
+    if (!entry.name.endsWith(".d.ts") || includedFiles && !includedFiles.has(filename)) continue;
     const text = await files.readFile(filename, "utf8");
     const source = ts.createSourceFile(filename, text, ts.ScriptTarget.Latest, true);
     const replacements = [];

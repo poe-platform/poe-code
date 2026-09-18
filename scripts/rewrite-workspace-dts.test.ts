@@ -1,11 +1,34 @@
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 vi.mock(
   "../packages/package-lint/dist/bundle-policy.js",
   () => import("../packages/package-lint/src/bundle-policy.js")
 );
 
 describe("profile-specific emitted workspace declarations", () => {
+  it("does not rewrite separately published outputs after their root exclusions are removed", async () => {
+    const source = 'export type Value = import("@poe-platform/safe-bash/optional-host").Value;';
+    const optional = "/repo/packages/safe-bash/dist/opt-in/optional.d.ts";
+    const published = "/repo/packages/memory/dist/included.d.ts";
+    const volume = Volume.fromJSON({ [optional]: source, [published]: source });
+    const files = createFsFromVolume(volume).promises;
+    const manifest = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+    const { collectPackageFiles } = await import("../packages/package-lint/src/bundle-policy.js");
+    const packed = await collectPackageFiles("/repo", manifest.files.filter((entry: string) => !entry.startsWith("!")), {
+      readdir: directory => files.readdir(directory, { withFileTypes: true }),
+      stat: filename => files.stat(filename),
+    });
+    const { rewriteWorkspaceDts } = await import("./rewrite-workspace-dts.mjs");
+    await rewriteWorkspaceDts("/repo/packages", [{ dir: "safe-bash", pkg: { name: "@poe-platform/safe-bash" } }], {
+      rootDir: "/repo", files,
+      includedFiles: new Set([...packed].map(filename => path.resolve("/repo", filename))),
+    });
+    expect(volume.readFileSync(optional, "utf8")).toBe(source);
+    expect(volume.readFileSync(published, "utf8")).toContain('import("../../safe-bash/dist/optional-host.js")');
+  });
+
   it("preserves excluded distribution declarations while rewriting included ones", async () => {
     const source = 'export type Value = import("@poe-platform/safe-bash/optional-host").Value;';
     const volume = Volume.fromJSON({

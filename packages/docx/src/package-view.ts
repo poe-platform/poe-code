@@ -1,3 +1,8 @@
+import type { ModelStore } from "./model-store.js";
+import type { Styles } from "./styles-model.js";
+import type { Comments } from "./review-model.js";
+import type { Settings } from "./settings-model.js";
+import { originalModelDefaults } from "./default-model-styles.js";
 import { parseMediaType } from "./media-type.js";
 import { archiveSettings, InputTypeError, InvalidValueError, ResourceLimitError, type ArchiveContext, type ArchiveMember, type DocumentArchive } from "./archive.js";
 import { DocumentPackage, type PackagePart, type PackageRelationship } from "./package.js";
@@ -29,7 +34,8 @@ import { compatibilityProfileForPart } from "./compatibility.js";
 const relNamespace = "http://schemas.openxmlformats.org/package/2006/relationships";
 const relContentType = "application/vnd.openxmlformats-package.relationships+xml";
 const packageRegister = Symbol("register");
-const packagePart = Symbol("part");
+/** Internal canonical lookup includes admitted unlinked parts. */
+export const packagePart = Symbol("part");
 const packageMetadata = Symbol("metadata");
 const packageRelationships = Symbol("relationships");
 const packageEdges = Symbol("edges");
@@ -42,6 +48,10 @@ const packageRename = Symbol("rename");
 const packageValidate = Symbol("validate");
 const packageAdmitPart = Symbol("admit-part");
 const packageNumbering = Symbol("numbering");
+const packageCreateNative = Symbol("create-native");
+const packageModel = Symbol("model");
+/** Internal binding for the shared styles owner; not exported from the public barrel. */
+export const packageBindStyles = Symbol("bind-styles");
 const packageCore = Symbol("core-properties");
 const coreRead = Symbol("core-read");
 const coreWrite = Symbol("core-write");
@@ -55,9 +65,11 @@ export const packageBindImage = Symbol("bind-image");
 export const packageOwnerCheckpoint = Symbol("owner-checkpoint");
 const packageLoadImage = Symbol("load-image");
 const partNames = new WeakMap<PartView, string>();
+const validateNativePartType = Symbol("validate-native-part-type");
 
 /** Internal binding to the admitted model; publication remains with that owner. */
 export interface PackageViewBinding {
+  readonly model?: ModelStore;
   readonly context: ArchiveContext;
   snapshot(): DocumentArchive;
   stage(archive: DocumentArchive, rename?: { from: string; to: string }): void;
@@ -78,6 +90,7 @@ export class PackageView {
   readonly #parts = new Map<string, PartView>();
   readonly #relationships = new Map<string, Relationships>();
   #revision = 0;
+  #admitting: Pick<PackagePart, "partname" | "content_type"> | undefined;
   #cached: { version: string; archive: DocumentArchive; graph: DocumentPackage } | undefined;
   #imageParts: ImageParts | undefined;
   readonly #images = new Map<string, Image>();
@@ -94,6 +107,11 @@ export class PackageView {
     return store.package;
   }
   get revision(): number { return this.#revision; }
+  [packageModel](part: PartView): ModelStore {
+    this[packageMetadata](part);
+    if (!this.#binding.model) throw new UnsupportedEditError("This package does not have a live document model binding.");
+    return this.#binding.model;
+  }
   [packageOwnerCheckpoint](): () => void {
     const parts = new Map(this.#parts), relationships = new Map(this.#relationships), images = new Map(this.#images), revision = this.#revision;
     const names = new Map([...parts.values()].map(part => [part, partNames.get(part)!]));
@@ -126,6 +144,8 @@ export class PackageView {
   [packageRegister](part: PartView, name: string): void {
     name = normalizePartName(name);
     if (this.#parts.has(asciiKey(name))) throw new InvalidValueError("The part already has an owner view.");
+    const metadata = this.#admitting && asciiKey(this.#admitting.partname) === asciiKey(name) ? this.#admitting : this.current().graph.getPart(name);
+    if (part instanceof XmlPartView) XmlPartView[validateNativePartType](part, metadata.content_type);
     partNames.set(part, name);
     this.#parts.set(asciiKey(name), part);
   }
@@ -138,6 +158,11 @@ export class PackageView {
         : type === "application/vnd.openxmlformats-package.core-properties+xml" ? new CorePropertiesPartView(this, metadata.partname)
         : Object.values(documentTypes).includes(type) ? new DocumentPartView(this, metadata.partname)
         : type === "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml" ? new NumberingPart(this, metadata.partname)
+        : type === "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml" ? new HeaderPart(this, metadata.partname)
+        : type === "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml" ? new FooterPart(this, metadata.partname)
+        : type === "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml" ? new CommentsPart(this, metadata.partname)
+        : type === "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml" ? new SettingsPart(this, metadata.partname)
+        : type === "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml" ? new StylesPart(this, metadata.partname)
         : isXmlContentType(type) ? new XmlPartView(this, metadata.partname) : new PartView(this, metadata.partname);
     }
     return part;
@@ -275,13 +300,31 @@ export class PackageView {
     const restore = this[packageOwnerCheckpoint]();
     try {
       // Bind before staging so no budgeted graph lookup can fail after the owner changes.
-      const part = this[packagePart](name, { partname: name, content_type });
+      this.#admitting = { partname: name, content_type };
+      let part: PartView;
+      try { part = this[packagePart](name, this.#admitting); }
+      finally { this.#admitting = undefined; }
       this.commit({ ...archive, members });
       return part;
     } catch (error) {
       restore();
       throw error;
     }
+  }
+  [packageCreateNative](kind: "header" | "footer" | "comments" | "settings" | "styles"): XmlPartView {
+    this.#binding.writable();
+    const owner = this.main_document_part, root = owner.element.tag;
+    const { graph } = this.current(), { budget } = archiveSettings(this.#binding.context);
+    const tag = { header: "hdr", footer: "ftr", comments: "comments", settings: "settings", styles: "styles" }[kind];
+    const content = kind === "header" || kind === "footer" ? "<w:p/>" : kind === "styles" ? originalModelDefaults(root.namespaceURI) : "";
+    const base = owner.partname.toString();
+    const name = graph.allocatePartName(base.slice(0, base.lastIndexOf("/") + 1) + kind, ".xml");
+    const bytes = new TextEncoder().encode(`<w:${tag} xmlns:w="${root.namespaceURI}">${content}</w:${tag}>`);
+    const parsed = parseDocumentXml(bytes, {}, budget);
+    let nodes = 0; const pending = [parsed.root];
+    while (pending.length) { const node = pending.pop()!; nodes++; pending.push(...node.children); }
+    budget.charge("insertedNodes", nodes);
+    return this[packageAdmitPart](name, `application/vnd.openxmlformats-officedocument.wordprocessingml.${kind}+xml`, bytes) as XmlPartView;
   }
   [packageNumbering](owner: DocumentPartView): NumberingPart {
     const metadata = this[packageMetadata](owner), { graph } = this.current();
@@ -519,16 +562,105 @@ export class PartView {
 }
 
 export class XmlPartView extends PartView {
+  protected static readonly nativeTypes: readonly string[] | undefined = undefined;
+  static [validateNativePartType](part: XmlPartView, contentType: string): void {
+    const type = parseMediaType(contentType);
+    for (const owner of [StoryPart, HeaderPart, FooterPart, CommentsPart, SettingsPart, StylesPart, DocumentPartView, NumberingPart, CorePropertiesPartView] as readonly (typeof XmlPartView)[]) {
+      if (part instanceof owner && owner.nativeTypes && !owner.nativeTypes.includes(type))
+        throw new InputTypeError("The native part view does not match the admitted content type.");
+    }
+  }
   #element: XmlElementView | undefined;
   static override async load(partname: string | PackURI, content_type: string, blob: Uint8Array, owner: PackageView): Promise<XmlPartView> {
     if (!(owner instanceof PackageView) || !isXmlContentType(content_type)) throw new InputTypeError("Expected an admitted XML owner package and content type.");
+    if (this.nativeTypes && !this.nativeTypes.includes(parseMediaType(content_type)))
+      throw new InputTypeError("The content type does not match the native part role.");
     return owner[packageAdmitPart](partname, content_type, blob) as XmlPartView;
   }
   get element(): XmlElementView { return this.#element ??= this.package[packageBindXml](this); }
   get part(): this { return this; }
 }
 
-export class DocumentPartView extends XmlPartView {
+export class StoryPart extends XmlPartView {
+  protected static override readonly nativeTypes: readonly string[] = [
+    ...Object.values(documentTypes),
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"
+  ];
+}
+
+export class HeaderPart extends StoryPart {
+  static new(owner: PackageView): HeaderPart {
+    if (!(owner instanceof PackageView)) throw new InputTypeError("Expected an admitted owner package.");
+    return owner[packageCreateNative]("header") as HeaderPart;
+  }
+  protected static override readonly nativeTypes = ["application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"];
+}
+export class FooterPart extends StoryPart {
+  static new(owner: PackageView): FooterPart {
+    if (!(owner instanceof PackageView)) throw new InputTypeError("Expected an admitted owner package.");
+    return owner[packageCreateNative]("footer") as FooterPart;
+  }
+  protected static override readonly nativeTypes = ["application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"];
+}
+export class CommentsPart extends StoryPart {
+  static override async load(partname: string | PackURI, content_type: string, blob: Uint8Array, owner: PackageView): Promise<CommentsPart> {
+    if (!(owner instanceof PackageView) || typeof content_type !== "string" || !this.nativeTypes.includes(parseMediaType(content_type)))
+      throw new InputTypeError("Expected an admitted owner and the native part content type.");
+    return owner[packageAdmitPart](partname, content_type, blob) as CommentsPart;
+  }
+  #comments: Comments | undefined;
+  get comments(): Comments { return this.#comments ??= this.package[packageModel](this).nativeComments(this); }
+  static default(owner: PackageView): CommentsPart {
+    if (!(owner instanceof PackageView)) throw new InputTypeError("Expected an admitted owner package.");
+    return owner[packageCreateNative]("comments") as CommentsPart;
+  }
+  protected static override readonly nativeTypes = ["application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"];
+}
+export class SettingsPart extends XmlPartView {
+  static override async load(partname: string | PackURI, content_type: string, blob: Uint8Array, owner: PackageView): Promise<SettingsPart> {
+    if (!(owner instanceof PackageView) || typeof content_type !== "string" || !this.nativeTypes.includes(parseMediaType(content_type)))
+      throw new InputTypeError("Expected an admitted owner and the native part content type.");
+    return owner[packageAdmitPart](partname, content_type, blob) as SettingsPart;
+  }
+  #settings: Settings | undefined;
+  get settings(): Settings { return this.#settings ??= this.package[packageModel](this).nativeSettings(this); }
+  static default(owner: PackageView): SettingsPart {
+    if (!(owner instanceof PackageView)) throw new InputTypeError("Expected an admitted owner package.");
+    return owner[packageCreateNative]("settings") as SettingsPart;
+  }
+  protected static override readonly nativeTypes = ["application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"];
+}
+export class StylesPart extends XmlPartView {
+  static override async load(partname: string | PackURI, content_type: string, blob: Uint8Array, owner: PackageView): Promise<StylesPart> {
+    if (!(owner instanceof PackageView) || typeof content_type !== "string" || !this.nativeTypes.includes(parseMediaType(content_type)))
+      throw new InputTypeError("Expected an admitted owner and the native part content type.");
+    return owner[packageAdmitPart](partname, content_type, blob) as StylesPart;
+  }
+  #styles: Styles | undefined;
+  #styleElement: (() => XmlElementView) | undefined;
+  [packageBindStyles](styles: Styles, element: () => XmlElementView): void {
+    if (this.#styles) throw new InvalidValueError("The styles part already has a live binding.");
+    this.#styles = styles; this.#styleElement = element;
+  }
+  get styles(): Styles { return this.#styles ?? this.package[packageModel](this).nativeStyles(this); }
+  override get element(): XmlElementView { return this.#styleElement ? this.#styleElement() : super.element; }
+  static default(owner: PackageView): StylesPart {
+    if (!(owner instanceof PackageView)) throw new InputTypeError("Expected an admitted owner package.");
+    return owner[packageCreateNative]("styles") as StylesPart;
+  }
+  protected static override readonly nativeTypes = ["application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"];
+}
+
+export class DocumentPartView extends StoryPart {
+  protected static override readonly nativeTypes = Object.values(documentTypes);
+  get document() { return this.package[packageModel](this).document; }
+  get comments() { return this.package[packageModel](this).document.comments; }
+  get settings() { return this.package[packageModel](this).document.settings; }
+  get styles() { return this.package[packageModel](this).styles; }
+  get inline_shapes() { return this.package[packageModel](this).document.inline_shapes; }
+  get core_properties() { this.package[packageMetadata](this); return this.package.core_properties; }
   static override async load(partname: string | PackURI, content_type: string, blob: Uint8Array, owner: PackageView): Promise<DocumentPartView> {
     if (typeof content_type !== "string" || !Object.values(documentTypes).includes(parseMediaType(content_type))) throw new InputTypeError("Expected a macro-free document or template content type.");
     return await super.load(partname, content_type, blob, owner) as DocumentPartView;
@@ -539,6 +671,7 @@ export class DocumentPartView extends XmlPartView {
 }
 
 export class NumberingPart extends XmlPartView {
+  protected static override readonly nativeTypes = ["application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"];
   #definitions: _NumberingDefinitions | undefined;
   static override async load(partname: string | PackURI, content_type: string, blob: Uint8Array, owner: PackageView): Promise<NumberingPart> {
     if (typeof content_type !== "string" || parseMediaType(content_type) !== "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml") throw new InputTypeError("Expected the numbering content type.");
@@ -572,6 +705,7 @@ export class _NumberingDefinitions {
 }
 
 export class CorePropertiesPartView extends XmlPartView {
+  protected static override readonly nativeTypes = ["application/vnd.openxmlformats-package.core-properties+xml"];
   static default(owner: PackageView): CorePropertiesPartView {
     if (!(owner instanceof PackageView)) throw new InputTypeError("Expected an admitted owner package.");
     const part = owner.core_properties.part;

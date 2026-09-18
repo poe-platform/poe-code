@@ -1,7 +1,7 @@
 import { docxOperationSchemas } from "./operation-schema.js";
 import { resolveDocumentModelContext } from "./model-transport-context.js";
 import { acquireDocumentTransportInput } from "./model-input.js";
-import { PackageView, PartView, XmlPartView, DocumentPartView, NumberingPart, _NumberingDefinitions, Relationships, RelationshipView, CoreProperties, CorePropertiesPartView, ImageParts, ImagePartView } from "./package-view.js";
+import { PackageView, PartView, XmlPartView, StoryPart, HeaderPart, FooterPart, CommentsPart, SettingsPart, StylesPart, DocumentPartView, NumberingPart, _NumberingDefinitions, Relationships, RelationshipView, CoreProperties, CorePropertiesPartView, ImageParts, ImagePartView } from "./package-view.js";
 import { Image, acquireImageModelInput, type ImageModelContext, type ImageModelInput } from "./image-model.js";
 import type { DocxBinaryInput, DocxTransportContext } from "./operation-types.js";
 import type { PackURI } from "./pack-uri.js";
@@ -33,7 +33,7 @@ for (const prefix of ["model.package.Package", "model.opc.package.OpcPackage"]) 
   action(`${prefix}.load_rel.call`, PackageView, (receiver, args) => receiver.load_rel(args.reltype as string, args.target as PartView | string, args.rId as string, args.isExternal as boolean | undefined));
   action(`${prefix}.next_partname.call`, PackageView, (receiver, args) => receiver.next_partname(args.template as string));
 }
-for (const [prefix, owner] of [["model.opc.part.Part", PartView], ["model.opc.part.XmlPart", XmlPartView], ["model.parts.document.DocumentPart", DocumentPartView], ["model.parts.numbering.NumberingPart", NumberingPart], ["model.parts.styles.StylesPart", XmlPartView], ["model.parts.image.ImagePart", ImagePartView], ["model.opc.parts.coreprops.CorePropertiesPart", CorePropertiesPartView]] as const) {
+for (const [prefix, owner] of [["model.opc.part.Part", PartView], ["model.opc.part.XmlPart", XmlPartView], ["model.parts.document.DocumentPart", DocumentPartView], ["model.parts.story.StoryPart", StoryPart], ["model.parts.hdrftr.HeaderPart", HeaderPart], ["model.parts.hdrftr.FooterPart", FooterPart], ["model.parts.comments.CommentsPart", CommentsPart], ["model.parts.settings.SettingsPart", SettingsPart], ["model.parts.numbering.NumberingPart", NumberingPart], ["model.parts.styles.StylesPart", StylesPart], ["model.parts.image.ImagePart", ImagePartView], ["model.opc.parts.coreprops.CorePropertiesPart", CorePropertiesPartView]] as const) {
   for (const name of ["blob", "content_type", "partname", "package", "rels", "related_parts"] as const) action(`${prefix}.${name}.get`, owner, receiver => receiver[name]);
   action(`${prefix}.partname.set`, owner, (receiver, args) => { receiver.partname = args.value as string | PackURI; });
   action(`${prefix}.part_related_by.call`, owner, (receiver, args) => receiver.part_related_by(args.reltype as string));
@@ -44,7 +44,7 @@ for (const [prefix, owner] of [["model.opc.part.Part", PartView], ["model.opc.pa
   action(`${prefix}.before_marshal.call`, owner, receiver => receiver.before_marshal());
   action(`${prefix}.after_unmarshal.call`, owner, receiver => receiver.after_unmarshal());
 }
-for (const prefix of ["model.opc.part.XmlPart", "model.parts.document.DocumentPart", "model.parts.numbering.NumberingPart", "model.parts.styles.StylesPart", "model.opc.parts.coreprops.CorePropertiesPart"]) {
+for (const prefix of ["model.opc.part.XmlPart", "model.parts.document.DocumentPart", "model.parts.story.StoryPart", "model.parts.hdrftr.HeaderPart", "model.parts.hdrftr.FooterPart", "model.parts.comments.CommentsPart", "model.parts.settings.SettingsPart", "model.parts.numbering.NumberingPart", "model.parts.styles.StylesPart", "model.opc.parts.coreprops.CorePropertiesPart"]) {
   action(`${prefix}.element.get`, XmlPartView, receiver => receiver.element);
   action(`${prefix}.part.get`, XmlPartView, receiver => receiver.part);
 }
@@ -81,12 +81,16 @@ action("model.opc.parts.coreprops.CorePropertiesPart.core_properties.get", CoreP
 action("model.opc.coreprops.CoreProperties.part.get", CoreProperties, receiver => receiver.part);
 action("model.opc.coreprops.CoreProperties.element.get", CoreProperties, receiver => receiver.element);
 
-for (const [prefix, owner] of [["model.opc.part.Part", PartView], ["model.opc.part.XmlPart", XmlPartView], ["model.parts.document.DocumentPart", DocumentPartView], ["model.parts.numbering.NumberingPart", NumberingPart], ["model.parts.image.ImagePart", ImagePartView], ["model.opc.parts.coreprops.CorePropertiesPart", CorePropertiesPartView]] as const) {
+for (const [prefix, owner] of [["model.opc.part.Part", PartView], ["model.opc.part.XmlPart", XmlPartView], ["model.parts.document.DocumentPart", DocumentPartView], ["model.parts.story.StoryPart", StoryPart], ["model.parts.hdrftr.HeaderPart", HeaderPart], ["model.parts.hdrftr.FooterPart", FooterPart], ["model.parts.comments.CommentsPart", CommentsPart], ["model.parts.settings.SettingsPart", SettingsPart], ["model.parts.numbering.NumberingPart", NumberingPart], ["model.parts.styles.StylesPart", StylesPart], ["model.parts.image.ImagePart", ImagePartView], ["model.opc.parts.coreprops.CorePropertiesPart", CorePropertiesPartView]] as const) {
   packageActions.set(`${prefix}.load.call`, async (_receiver, args, context) => {
     const acquired = await acquireImageModelInput(args.blob as Uint8Array | DocxBinaryInput, context);
     return owner.load(args.partname as string, args.contentType as string, acquired.bytes, args.ownerPackage as PackageView);
   });
 }
+for (const [prefix, owner] of [["model.parts.hdrftr.HeaderPart", HeaderPart], ["model.parts.hdrftr.FooterPart", FooterPart]] as const)
+  packageActions.set(`${prefix}.new.call`, (_receiver, args) => owner.new(args.ownerPackage as PackageView));
+for (const [prefix, owner] of [["model.parts.comments.CommentsPart", CommentsPart], ["model.parts.settings.SettingsPart", SettingsPart], ["model.parts.styles.StylesPart", StylesPart]] as const)
+  packageActions.set(`${prefix}.default.call`, (_receiver, args) => owner.default(args.ownerPackage as PackageView));
 packageActions.set("model.opc.parts.coreprops.CorePropertiesPart.default.call", (_receiver, args) => CorePropertiesPartView.default(args.ownerPackage as PackageView));
 for (const name of ["default_cx", "default_cy", "filename", "image", "sha1"] as const) action(`model.parts.image.ImagePart.${name}.get`, ImagePartView, receiver => receiver[name]);
 action("model.package.ImageParts.__contains__.call", ImageParts, (receiver, args) => receiver.has(args.value));
@@ -104,6 +108,10 @@ for (const [id, owner] of [["model.package.Package.get_or_add_image_part.call", 
 }
 packageActions.set("model.parts.image.ImagePart.from_image.call", (_receiver, args) => ImagePartView.from_image(args.image as Image, args.partname as string, args.ownerPackage as PackageView));
 
+action("model.parts.comments.CommentsPart.comments.get", CommentsPart, receiver => receiver.comments);
+action("model.parts.settings.SettingsPart.settings.get", SettingsPart, receiver => receiver.settings);
+for (const name of ["document", "comments", "settings", "styles", "inline_shapes", "core_properties"] as const)
+  action(`model.parts.document.DocumentPart.${name}.get`, DocumentPartView, receiver => receiver[name]);
 action("model.parts.document.DocumentPart.numbering_part.get", DocumentPartView, receiver => receiver.numbering_part);
 action("model.parts.numbering.NumberingPart.numbering_definitions.get", NumberingPart, receiver => receiver.numbering_definitions);
 action("model.parts.numbering._NumberingDefinitions.__len__.get", _NumberingDefinitions, receiver => receiver.length);

@@ -169,7 +169,7 @@ export async function Document(
   const { archive, settings, source } = await admitDocumentModel(input, context);
   const store = new ModelStore(archive, settings, archive.mainPart, source);
   await store.package[packageAdmitImages]();
-  return new DocumentView(store);
+  return store.document;
 }
 
 export { Paragraph, Run } from "./block-model.js";

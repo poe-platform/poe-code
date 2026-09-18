@@ -1,10 +1,13 @@
+import { DocumentView } from "./document-model.js";
+import { Settings } from "./settings-model.js";
+import { Comments } from "./review-model.js";
 import { originalModelDefaults } from "./default-model-styles.js";
 import type { DocumentArchive } from "./archive.js";
 import { InputTypeError, archiveSettings, type ArchiveLimits } from "./archive.js";
 import type { AdmittedModelContext } from "./model-context.js";
 import { appendBodyBlocks, DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
-import { PackageView, XmlPartView, packageOwnerCheckpoint } from "./package-view.js";
+import { PackageView, XmlPartView, StylesPart, packagePart, type SettingsPart, type CommentsPart, packageOwnerCheckpoint } from "./package-view.js";
 import { bindXmlElementView, type XmlElementView } from "./xml-element-view.js";
 import { validateDocumentArchive, SemanticValidationError } from "./validation.js";
 import { StaleHandleError } from "./model-errors.js";
@@ -51,6 +54,8 @@ export class ModelStore {
   readonly package: PackageView;
   readonly mainPart: string;
   private boundStyles: Styles | undefined;
+  private boundDocument: DocumentView | undefined;
+  get document(): DocumentView { return this.boundDocument ??= new DocumentView(this); }
   private styleBindingToken: object | null = null;
   private archive: DocumentArchive;
   private readonly editors = new Map<string, DocumentXmlEditor>();
@@ -70,6 +75,7 @@ export class ModelStore {
     this.archive = archive;
     this.mainPart = mainPart.startsWith("/") ? mainPart : "/" + mainPart;
     this.package = new PackageView({
+      model: this,
       context,
       snapshot: () => this.snapshot(),
       version: () => this.revision,
@@ -133,6 +139,26 @@ export class ModelStore {
         this.writable();
       }
     });
+  }
+  nativeStyles(part: StylesPart): Styles {
+    if (part.package !== this.package) throw new InputTypeError("Expected this document's styles part.");
+    return bindDocumentStyles({
+      context: this.context, package: this.package, partname: part.partname.toString(), part,
+      read: () => this.xml(part.partname.toString()).serialize(),
+      write: bytes => this.setPart(part.partname.toString(), bytes),
+      writable: () => { void part.content_type; this.writable(); }
+    });
+  }
+  nativeSettings(part: SettingsPart): Settings {
+    if (part.package !== this.package) throw new InputTypeError("Expected this document's settings part.");
+    return new Settings(this, part.partname.toString());
+  }
+  nativeComments(part: CommentsPart): Comments {
+    if (part.package !== this.package) throw new InputTypeError("Expected this document's comments part.");
+    const name = part.partname.toString(), root = this.xml(name).root;
+    if (root.localName !== "comments" || root.namespace !== this.xml(this.mainPart).root.namespace)
+      throw new InputTypeError("Expected an owned comments root.");
+    return new Comments(this, this.ref(name, root));
   }
   get styles(): Styles {
     if (!this.boundStyles) {
@@ -461,7 +487,7 @@ export class ModelStore {
   }
   part(part: string): XmlPartView {
     const name = normalizePartName(part.startsWith("/") ? part : "/" + part);
-    const view = this.package.parts.find((view) => asciiKey(view.partname.toString()) === asciiKey(name));
+    const view = this.package[packagePart](name);
     if (!(view instanceof XmlPartView)) throw new StaleHandleError("The XML part is detached.");
     return view;
   }

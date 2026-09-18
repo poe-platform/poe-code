@@ -12,16 +12,16 @@ import { sectionBoolean } from "./section-properties.js";
 /** Live document settings; external resources remain inert. */
 export class Settings {
   private readonly ref: ModelRef;
-  constructor(private readonly store: ModelStore) {
+  constructor(private readonly store: ModelStore, partname?: string) {
     const graph = new DocumentPackage(store.snapshot(), store.context.limits, store.context.budget);
     const w = store.xml(store.mainPart).root.namespace;
     const r = documentDialects[dialectForNamespace(w)!].r;
     const edges = graph
       .relationships(store.mainPart)
       .filter((edge) => edge.reltype === r + "/settings");
-    if (edges.length > 1 || edges[0]?.is_external)
+    if (partname === undefined && (edges.length > 1 || edges[0]?.is_external))
       throw new UnsupportedEditError("Expected one internal settings part.");
-    let part = edges[0]?.target_part.partname;
+    let part = partname ?? edges[0]?.target_part.partname;
     if (!part)
       part = store.transaction(() => {
         const created = graph.allocatePartName(

@@ -507,6 +507,12 @@ Adapters may expose both implicit prefixes and explicit directory markers. Flags
 do not promise transactions, arbitrary file sizes, preserved inode identity,
 successful cross-device operations, or deployed server feature availability.
 
+For creation capability queries, the default device view lets a selected backend
+with `implicitDirectories: true` decide whether missing parents are permitted.
+It preserves device-path protection and forwards the original path and creation
+intent without creating directories. The backend still enforces ancestor types,
+permissions and exclusive creation; implicit prefixes alone do not authorize a write.
+
 `independentWriteStreams: true` explicitly admits multiple simultaneous sequential
 writers to the same path without one writer replacing, truncating or invalidating
 another writer's output. Each writer retains its own lifetime and cancellation.

@@ -123,16 +123,34 @@ export class DeviceFileSystem implements FileSystem {
   }
 
   async capabilitiesFor(path: string, options: CapabilityQueryOptions = {}): Promise<FileSystemCapabilities> {
-    const resolved = await this.#resolve(path, options, true, options.create);
+    let resolved: string;
+    let selected: FileSystemCapabilities | undefined;
+    try { resolved = await this.#resolve(path, options, true, options.create); }
+    catch (error) {
+      options.signal?.throwIfAborted();
+      if (options.create !== true || !isFsError(error, "ENOENT")) throw error;
+      // Implicit prefixes need not exist before the authoritative backend opens
+      // a new file. Resolve device aliases without creating namespace entries.
+      resolved = await this.#resolve(path, options);
+      options.signal?.throwIfAborted();
+      if (reserved(resolved)) throw error;
+      const query = this.#filesystem.capabilitiesFor;
+      options.signal?.throwIfAborted();
+      selected = (query === undefined || query === null ? undefined : await Reflect.apply(query, this.#filesystem, [path, options])) ?? this.#filesystem.capabilities;
+      options.signal?.throwIfAborted();
+      if (selected.implicitDirectories !== true) throw error;
+    }
     options.signal?.throwIfAborted();
     if (options.create !== undefined && (resolved === deviceDirectory || resolved === "/")) throw new FsError("EISDIR", { syscall: "capabilitiesFor", path });
     if (resolved === nullPath) return deviceCapabilities;
     if (resolved === deviceDirectory) return { ...deviceCapabilities, open: false, readdir: true, write: false, append: false,
       exclusiveCreate: false, streamingWrite: false, streamingAppend: false, independentWriteStreams: false, descriptorWriteStream: false,
       retainedRead: false, retainedResize: false, streamingRead: false, copy: false, exclusiveCopy: false };
-    const query = this.#filesystem.capabilitiesFor;
-    options.signal?.throwIfAborted();
-    const selected = query === undefined || query === null ? undefined : await Reflect.apply(query, this.#filesystem, [path, options]);
+    if (selected === undefined) {
+      const query = this.#filesystem.capabilitiesFor;
+      options.signal?.throwIfAborted();
+      selected = query === undefined || query === null ? undefined : await Reflect.apply(query, this.#filesystem, [path, options]);
+    }
     options.signal?.throwIfAborted();
     const observed = ownedMutationCapabilities(this.#filesystem, selected ?? this.#filesystem.capabilities);
     options.signal?.throwIfAborted();

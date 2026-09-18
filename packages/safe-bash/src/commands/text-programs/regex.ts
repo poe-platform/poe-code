@@ -382,7 +382,9 @@ export class Pattern {
   }
 }
 
-async function replacementLength(replacement: string, match: Match, budget: Budget, available: number): Promise<number> {
+type ReplacementSyntax = "sed" | "awk";
+
+async function replacementLength(replacement: string, match: Match, budget: Budget, available: number, syntax: ReplacementSyntax): Promise<number> {
   let length = 0;
   let tokens = 0;
   for (let index = 0; index < replacement.length; index++) {
@@ -396,7 +398,9 @@ async function replacementLength(replacement: string, match: Match, budget: Budg
     } else if (character === "\\" && index + 1 < replacement.length) {
       budget.step();
       const next = replacement[++index]!;
-      if (next >= "1" && next <= "9") {
+      if (syntax === "awk") {
+        size = next === "&" || next === "\\" ? 1 : 2;
+      } else if (next >= "1" && next <= "9") {
         budget.step();
         size = match.groups[Number(next)]?.length ?? 0;
       }
@@ -407,7 +411,7 @@ async function replacementLength(replacement: string, match: Match, budget: Budg
   return length;
 }
 
-async function replacementText(replacement: string, match: Match, buffer: ReplacementBuffer, budget: Budget): Promise<void> {
+async function replacementText(replacement: string, match: Match, buffer: ReplacementBuffer, budget: Budget, syntax: ReplacementSyntax): Promise<void> {
   let literal = 0;
   let tokens = 0;
   for (let index = 0; index < replacement.length; index++) {
@@ -422,7 +426,9 @@ async function replacementText(replacement: string, match: Match, buffer: Replac
     } else {
       budget.step();
       const next = replacement[++index]!;
-      if (next >= "1" && next <= "9") {
+      if (syntax === "awk") {
+        await buffer.append(replacement, next === "&" || next === "\\" ? index : index - 1, index + 1);
+      } else if (next >= "1" && next <= "9") {
         budget.step();
         await buffer.append(match.groups[Number(next)] ?? "");
       } else await buffer.append(next === "n" ? "\n" : next === "t" ? "\t" : next);
@@ -432,7 +438,7 @@ async function replacementText(replacement: string, match: Match, buffer: Replac
   await buffer.append(replacement, literal);
 }
 
-export async function substitute(text: string, pattern: Pattern, replacement: string, budget: Budget, global: boolean, occurrence = 1): Promise<{ text: string; count: number }> {
+export async function substitute(text: string, pattern: Pattern, replacement: string, budget: Budget, global: boolean, occurrence = 1, syntax: ReplacementSyntax = "sed"): Promise<{ text: string; count: number }> {
   let search = 0;
   let consumed = 0;
   let previousEnd = -1;
@@ -450,10 +456,10 @@ export async function substitute(text: string, pattern: Pattern, replacement: st
       if (encountered >= occurrence) {
         const prefix = match.start - consumed;
         result.admit(prefix);
-        const length = await replacementLength(replacement, match, budget, result.remaining - prefix);
+        const length = await replacementLength(replacement, match, budget, result.remaining - prefix, syntax);
         result.admit(prefix + length);
         await result.append(text, consumed, match.start);
-        await replacementText(replacement, match, result, budget);
+        await replacementText(replacement, match, result, budget, syntax);
         consumed = match.end; count++;
         if (!global) break;
       }

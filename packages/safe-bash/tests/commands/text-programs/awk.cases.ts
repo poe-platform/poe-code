@@ -5,6 +5,68 @@ import { standardCommands } from "../../../src/commands/index.js";
 import { textProgramCommands } from "../../../src/commands/text-programs/index.js";
 import { byteChunks, makeFileSystem, runVirtual } from "./helpers.js";
 
+for (const [name, replacement, expected] of [
+  ["plain text", "plain", "plain"],
+  ["literal backslash n", String.raw`\\n`, String.raw`\n`],
+  ["literal backslash t", String.raw`\\t`, String.raw`\t`],
+  ["literal backslash comma", String.raw`\\,`, String.raw`\,`],
+  ["literal backslash semicolon", String.raw`\\;`, String.raw`\;`],
+  ["literal backslash q", String.raw`\\q`, String.raw`\q`],
+  ["literal backslash 1", String.raw`\\1`, String.raw`\1`],
+  ["literal backslash 2", String.raw`\\2`, String.raw`\2`],
+  ["literal backslash 3", String.raw`\\3`, String.raw`\3`],
+  ["literal backslash 4", String.raw`\\4`, String.raw`\4`],
+  ["literal backslash 5", String.raw`\\5`, String.raw`\5`],
+  ["literal backslash 6", String.raw`\\6`, String.raw`\6`],
+  ["literal backslash 7", String.raw`\\7`, String.raw`\7`],
+  ["literal backslash 8", String.raw`\\8`, String.raw`\8`],
+  ["literal backslash 9", String.raw`\\9`, String.raw`\9`],
+  ["decoded octal", String.raw`\1`, "\x01"],
+  ["decoded newline", String.raw`\n`, "\n"],
+  ["decoded tab", String.raw`\t`, "\t"],
+  ["matched text", "<&>", "<x>"],
+  ["escaped ampersand", String.raw`\\&`, "&"],
+  ["backslash and matched text", String.raw`\\\\&`, "\\x"],
+  ["backslash and escaped ampersand", String.raw`\\\\\\&`, "\\&"],
+  ["trailing backslash", String.raw`\\`, "\\"],
+  ["escaped backslash", String.raw`\\\\`, "\\"],
+  ["escaped backslash before n", String.raw`\\\\n`, String.raw`\n`],
+] as const) {
+  for (const operation of ["sub", "gsub"]) {
+    for (const variable of [false, true]) {
+      test(`awk ${operation} replacement ${name}, variable=${variable}`, async () => {
+        const setup = variable ? `replacement="${replacement}";` : "";
+        const argument = variable ? "replacement" : `"${replacement}"`;
+        const program = `BEGIN { ${setup} value="xx"; count=${operation}(/x/,${argument},value); printf "%s\\n%d\\n",value,count }`;
+        const result = await runVirtual("awk", { args: [program] });
+        assert.equal(result.exitCode, 0, result.stderr.toString());
+        assert.equal(result.stderr.length, 0);
+        assert.deepEqual(result.stdout, Buffer.from(operation === "sub" ? `${expected}x\n1\n` : `${expected}${expected}\n2\n`));
+      });
+    }
+  }
+}
+
+test("awk program files preserve literal replacement backslashes through the shell", async () => {
+  const fs = await makeFileSystem({ "program.awk": String.raw`BEGIN {s="x"; gsub(/x/,"\\n",s); printf "%s\n",s}` });
+  const shell = new Shell({ fs, cwd: "/work" }).use(textProgramCommands());
+  try {
+    const result = await shell.exec("awk -f program.awk");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(Buffer.from(result.stdout), Buffer.from([0x5c, 0x6e, 0x0a]));
+  } finally {
+    await shell.dispose();
+  }
+});
+
+test("awk substitution without a match preserves its target", async () => {
+  const result = await runVirtual("awk", { args: [String.raw`BEGIN {value="unchanged"; print sub(/x/,"\\n",value),gsub(/x/,"\\t",value); print value}`] });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.toString(), "0 0\nunchanged\n");
+  assert.equal(result.stderr.length, 0);
+});
+
 for (const separator of ["", " ", "\t", ";", "\n"]) {
   test(`awk accepts a pattern after an action with separator ${JSON.stringify(separator)}`, async () => {
     const fs = await makeFileSystem();

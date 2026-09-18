@@ -158,13 +158,21 @@ test('cookies use native context operations and standard filtering/defaults', as
 
 test('state save uses standard no-IndexedDB defaults and load replaces instead of merging', async () => {
   const f = fixture();
+  f.context.setStorageState = async state => { f.effects.push(['set', state]); };
   await f.run('state-save', ['/auth.json']);
   assert.deepEqual(JSON.parse(new TextDecoder().decode(f.files.get('/auth.json'))), { cookies: [], origins: [] });
   await f.run('state-load', ['/auth.json']);
-  assert.deepEqual(f.effects, [undefined, ['replace', { cookies: [], origins: [] }]]);
+  assert.deepEqual(f.effects, [undefined, ['set', { cookies: [], origins: [] }]]);
   f.files.set('/bad.json', new TextEncoder().encode('{"cookies":[],"origins":[{"origin":"file:///etc","localStorage":[]}]}'));
   await assert.rejects(f.run('state-load', ['/bad.json']), /Invalid/);
   assert.equal(f.effects.length, 2);
+});
+
+test('state load without native storage control never resets the context', async () => {
+  const f = fixture();
+  f.files.set('/empty.json', new TextEncoder().encode('{"cookies":[],"origins":[]}'));
+  await assert.rejects(f.run('state-load', ['/empty.json']), /trusted acquired native storage control/);
+  assert.deepEqual(f.effects, []);
 });
 
 test('PDF uses native byte output and a virtual artifact rather than a host path', async () => {

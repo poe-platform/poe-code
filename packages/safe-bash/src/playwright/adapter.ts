@@ -1,5 +1,6 @@
 import { PlaywrightResourceLimitError } from './resource-limit.js';
 import { canonicalPlaywrightDevices } from './devices.js';
+import { bindPlaywrightStorageContext } from './native-storage-replacement.js';
 import type { FrameSnapshotCapsule, FrameSnapshotInput } from './frame-snapshot.js';
 
 export type BrowserEngine = "chromium" | "firefox" | "webkit";
@@ -138,6 +139,7 @@ export interface PlaywrightIndexedDBDatabase {
 }
 
 export interface PlaywrightContext {
+  newCDPSession?(page: PlaywrightPage): Promise<import('./native-storage-replacement.js').PlaywrightStorageCDP>;
   addInitScript?(script: string | { content: string }): Promise<unknown>;
   _startRecording?(options: { language: string }, sink: PlaywrightRecorderSink): Promise<void>;
   _stopRecording?(): Promise<void>;
@@ -282,6 +284,7 @@ export interface PlaywrightBrowserSource {
   // returns a pool resource. It must never terminate a borrowed browser.
   acquireBrowser(options: PlaywrightAcquireOptions): Promise<{
     readonly browser: PlaywrightBrowser;
+    readonly prepareStorageOrigin?: import('./native-storage-replacement.js').PlaywrightStorageOriginPreparer;
     readonly captureArtifact?: PlaywrightArtifactCapture;
     readonly captureDownload?: PlaywrightDownloadCapture;
     readonly captureTrace?: PlaywrightTraceCapture;
@@ -411,6 +414,7 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
       let browserDisconnectedObserved = false;
       let releasing: Promise<void> | undefined;
       let replacement: Promise<PlaywrightContext> | undefined;
+      let retireStorage: (() => Promise<void>) | undefined;
       const retiringContexts = new Set<PlaywrightContext>();
       const captures = new Set<Promise<unknown>>();
       const executions = new Set<Promise<unknown>>();
@@ -436,6 +440,7 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
           try { browserDisconnectedObserved ||= !resource.browser.isConnected(); }
           catch (error) { errors.push(error); }
           const interruption = Promise.resolve().then(() => resource.interrupt?.()).catch(error => { errors.push(error); });
+          try { await retireStorage?.(); } catch (error) { errors.push(error); }
           await replacement?.catch(() => {});
           await Promise.allSettled([...captures]);
           await Promise.allSettled([...executions]);
@@ -474,6 +479,7 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
         if (closed) throw new Error("Playwright browser is closed");
         context = await resource.browser.newContext(contextOptions);
         context.on("close", onContextClosed);
+        if (!context.setStorageState && resource.prepareStorageOrigin) retireStorage = await bindPlaywrightStorageContext(context, resource.prepareStorageOrigin, options.signal);
         options.signal.throwIfAborted();
         if (!resource.browser.isConnected()) onDisconnected();
         if (closed) throw new Error("Playwright browser closed during context acquisition");

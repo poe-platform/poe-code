@@ -157,6 +157,33 @@ service RPC pass. Canonical native `open` still raises `FileNotFoundError`;
 proof that managed integration is impossible, but the managed acceptance gate
 remains open rather than being replaced with the custom executor.
 
+There is a working managed static-module boundary: `WorkerCode.modules` accepts
+Wasm alongside a Python main, and `workers.import_from_javascript` imports it
+inside a request. The maintained managed test executes a Wasm export and a
+native CPython C-API callable. The latter awaits a deliberately delayed canonical
+SafeFS source read through raw service-binding/Promise methods and a static Wasm
+adapter; an independent Python timer runs while the native call is suspended.
+It uses neither dynamic JavaScript compilation nor a synchronous JS filesystem
+callback. This qualifies a native extension/request boundary for UTF-8 source,
+not ordinary native file descriptors, binary stdio, or a full managed executor.
+
+Two alternate hooks are tested explicitly: replacing the exposed
+`___syscall_openat` export changes calls to that export but leaves native
+`os.open` unchanged; passing a compiled Wasm module through the child `env`
+fails deserialization in the pinned runtime. Use static module imports instead.
+`mountNativeFS` is exposed, but its pinned implementation mounts MEMFS and
+reconciles files through `syncfs`; that copy/synchronization model does not meet
+the live canonical-filesystem contract.
+
+The next managed-native route is a runtime-supported pre-instantiation import
+adapter (or equivalent runtime-owned native backend), connected to an explicit
+filesystem service capability. The working static import/request boundary can
+supply its native extension transport, but cannot retroactively replace the
+main interpreter's captured syscall imports. Such a runtime integration needs
+its own native-open/import/binary-I/O and lifecycle qualification before being
+exposed as a managed executor. This is a concrete remaining interface gap, not
+a claim that managed integration is impossible.
+
 Local managed bundle fetching needs a system CA store. The tooling container
 mounts the host CA directory read-only and sets `SSL_CERT_FILE`, `SSL_CERT_DIR`
 and `NODE_EXTRA_CA_CERTS`; certificate verification remains enabled.

@@ -207,6 +207,66 @@ Their existence is not a supported replacement boundary for its captured native
 imports. The maintained probe continues to demonstrate canonical RPC success
 and native canonical-open failure without copying files or installing a shim.
 
+### Managed static import and native request boundary
+
+Follow-up from frozen `19193f4db` tests concrete public module/FFI boundaries,
+not the already-failed synchronous Emscripten filesystem callback design.
+The maintained `python-managed.test.mjs` now has three independently asserted
+cases. The original ABI/RPC baseline remains explicitly incomplete.
+
+| Boundary | Evidence and limit |
+| --- | --- |
+| Static Wasm in `WorkerCode.modules` plus `workers.import_from_javascript` | Managed Python imports a supplied precompiled module and calls its native export, returning `42`. A JavaScript-child control uses the same bytes. No runtime compilation/eval permission is added. |
+| Compiled Wasm through `WorkerCode.env` | The pinned child rejects it with `Unable to deserialize cloned data`. This does not reject static Wasm modules or ordinary service bindings. |
+| Exposed `___syscall_openat` export replacement | The replacement export returns the native PID (`42`), but ordinary `os.open` on a nonexistent file still raises `FileNotFoundError`. Assignment does not change the native caller's captured import. The original export is restored in `finally`. |
+| Native C-API callable through static Wasm | A real `PyCFunction` enters the existing native-call adapter, obtains canonical SafeFS UTF-8 source through a directly bound service fetch and Promise chain, and suspends through `_syscall_syncify`. The delayed request is observed exactly once and a one-shot Python timer runs while it waits. Native method, module reference, callback-table entry and allocation are released after the call. |
+| `mountNativeFS` | Existence is tested. The pinned Pyodide `314.0.6/src/js/nativefs.ts` implementation was inspected separately: its `mount` delegates to MEMFS and `syncfs` reconciles local and remote files. That is an excluded snapshot/synchronization approach, not a tested live canonical mount. |
+
+The direct request fixture imports raw `cloudflare:workers` bindings rather than
+the SDK's Python fetch wrapper, uses bound native JavaScript methods (no user JS
+helper module or generated JS function), and statically supplies both Wasm
+modules through `WorkerCode.modules`. It proves UTF-8 source transport through a
+native C-API callable, not a general POSIX descriptor adapter or binary transport.
+Neither `builtins.open` nor libc imports are patched by that fixture.
+
+An initial probe's endlessly rescheduled zero-delay heartbeat starved I/O and
+timed out. Replacing it with a one-shot 1 ms timer fixes the test. Those timeouts
+are not evidence of a runtime or Python-coroutine callback limitation. Only the
+final direct-binding native-call result is qualified; no unresolved timeout is
+left in the maintained tests.
+
+Next viable managed route, requiring runtime-owner support rather than an
+application-side workaround:
+
+1. Add an explicit filesystem capability to the managed runtime setup contract.
+   The current `WorkerCode` API does not advertise this option; do not invent or
+   ship it as if available. A service binding is the demonstrated capability
+   transport, while static Wasm is the demonstrated native-module transport.
+2. Install the native import adapter in workerd's
+   `src/pyodide/internal/pool/emscriptenSetup.ts:getInstantiateWasm` before the
+   main module is instantiated. Bind the real `syscall_syncify` export only after
+   instantiation. Preserve private bootstrap/stdlib I/O and keep application
+   canonical handles separate. An equivalent runtime-owned native backend would
+   also qualify; rewriting exposed exports after startup does not.
+3. Bind request authority after snapshot restoration and before guest execution,
+   with invocation-scoped descriptor identity, terminal cancellation, exact
+   errno, bounded binary transfers, backpressure and release-only cleanup.
+   Do not capture a previous request's service binding in a reusable snapshot.
+4. Qualify ordinary `open`/`os.read`/`os.write`, canonical source and ZIP imports,
+   C-extension paths and binary stdio against delayed canonical storage. The
+   direct C-API callable test is a reusable positive control, not a replacement
+   for those acceptance cases.
+5. Qualify runtime-owned retirement after the response is copied out. An
+   application must not finalize the managed interpreter while workerd still
+   needs it to marshal its response. Test buffered-file/atexit cleanup,
+   cancellation and sibling ownership independently of the custom executor.
+
+The exact current evidence is `out/issue-746/managed-boundaries-current.log`.
+All probes run only in this worktree; named probe containers have bounded outer
+deadlines and do not restart or interfere with the parent's live `npm test`.
+No deployment access is used. Basic custom-JSPI artifacts and README remain
+unchanged in this follow-up.
+
 ## Boundaries
 
 Do not fabricate absent canonical POSIX metadata. Native stat must reject values

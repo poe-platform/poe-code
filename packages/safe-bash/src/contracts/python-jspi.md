@@ -75,6 +75,12 @@ then set `SAFE_BASH_PYTHON_CONSUMER_ROOT` to that directory. The same test resol
 public exports from that installation, rejects package symlinks, and checks the
 bundler inputs exclude workspace Python and SafeFS sources. The pinned Pyodide
 runtime remains an explicit application asset, not an implicit dependency.
+Set `SAFE_BASH_PYTHON_ASSET_DIR` to a new directory under worktree `out/` to
+export the exact qualified packed-consumer module set after the tests pass.
+The manifest records module types, sizes and SHA-256 digests plus pinned runtime
+inputs. Existing directories/files are not overwritten. This handoff neither
+reads deployment credentials nor deploys anything; a deployment owner must
+verify the hashes, upload these module types and run the same assertions.
 
 ## Lifecycle and observed qualification
 

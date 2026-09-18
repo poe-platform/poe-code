@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { lstatSync, readFileSync } from 'node:fs';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -10,6 +11,11 @@ import ts from 'typescript';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const consumerRoot = process.env.SAFE_BASH_PYTHON_CONSUMER_ROOT;
+const assetDirectory = process.env.SAFE_BASH_PYTHON_ASSET_DIR;
+if (assetDirectory) {
+  assert.ok(consumerRoot, 'Deployable qualification assets require installed public packages');
+  assert.ok(resolve(assetDirectory).startsWith(resolve(root, 'out') + '/'), 'Write qualification assets only under worktree out/');
+}
 const consumerPackage = consumerRoot && resolve(consumerRoot, 'node_modules/@poe-platform/safe-bash');
 const pythonEntry = consumerRoot
   ? resolve(consumerPackage, JSON.parse(readFileSync(resolve(consumerPackage, 'package.json'), 'utf8')).exports['./commands/python'].import)
@@ -176,6 +182,23 @@ export { WebAssembly, fetch, location };
     const proxy = await proxyResponse.json();
     assert.equal(proxyResponse.status, 200, JSON.stringify(proxy));
     assert.deepEqual(proxy.failures, []);
+    if (assetDirectory) {
+      await mkdir(assetDirectory, {recursive:false});
+      const assets = [];
+      for (const module of modules) {
+        const name = module.path.slice(outputRoot.length + 1);
+        const bytes = Buffer.from(module.contents);
+        await writeFile(resolve(assetDirectory, name), bytes, {flag:'wx'});
+        assets.push({name, type:module.type, bytes:bytes.length, sha256:createHash('sha256').update(bytes).digest('hex')});
+      }
+      await writeFile(resolve(assetDirectory, 'manifest.json'), JSON.stringify({
+        packageVersion:JSON.parse(readFileSync(resolve(consumerPackage, 'package.json'), 'utf8')).version,
+        mainModule:'main.mjs', compatibilityDate:'2026-09-17', compatibilityFlags:[],
+        miniflare:require('miniflare/package.json').version, workerd:require('workerd/package.json').version,
+        pyodide:'314.0.6', pinnedInputs:manifest, assets,
+        qualification:'local installed-public-package workerd only; no deployment claim',
+      }, null, 2) + '\n', {flag:'wx'});
+    }
     context.diagnostic(JSON.stringify({ artifact: consumerRoot ? 'installed-public-packages' : 'workspace-source', memory: result.memory, elapsedMs: result.elapsedMs,
       requests: result.requests.length, finalizationFailure: finalization.failures,
       assets: modules.map(module => ({ name: module.path.slice(outputRoot.length + 1), bytes: Buffer.byteLength(module.contents) })) }));

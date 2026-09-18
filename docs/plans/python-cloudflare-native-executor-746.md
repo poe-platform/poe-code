@@ -170,6 +170,34 @@ There are no upstream changes to the Python implementation paths relative to
 this worktree base. This worktree does not silently import or claim testing of
 those newer SafeFS staging changes; Franklin owns their frozen workerd matrix.
 
+### Disposable deployment handoff
+
+Parent has requested a credential-owning external agent execute the disposable
+deployment; no credentials are copied into this worktree. The maintained packed
+test accepts `SAFE_BASH_PYTHON_ASSET_DIR`, exporting only after all local runtime
+assertions pass, only under worktree `out/`, into a new directory with exclusive
+file creation. It writes the exact module bytes and a type/size/SHA-256 manifest.
+This is a local artifact, not deployment or consumer-staging acceptance.
+
+The `e0dfa9b1e` runtime handoff is `out/issue-746/deployment-e0dfa9b1e`, generated
+from independent `0.0.0-issue746.2` public packages. Deployment must preserve the
+manifest's module names/types, main module, date, and empty compatibility flags,
+then run all routes/assertions from `python-jspi.test.mjs`, record startup/linear
+memory/asset sizes, and delete the disposable Worker. The test fixture uses a
+canonical MemoryFileSystem; actual consumer staging authority is a separate gate
+owned by the parent/consumer agent. Do not equate the fixture with that hookup.
+
+Managed investigation additionally reviewed the current Dynamic Workers
+`WorkerCode` reference and Python Worker startup description. Neither documents
+a native import-replacement/filesystem hook; the pinned implementation captures
+the imports before the application. A supported managed solution needs a
+pre-instantiation host hook or a runtime-provided asynchronous native descriptor
+mount. Its acceptance test must use the real canonical service binding for
+native open/import/C-extension I/O, not only direct awaited RPC. Arbitrary
+pointer/wasm-table mutation, JS-frame suspension, or Python builtins wrappers
+are not substitutes. Await upstream/runtime-owner guidance on that interface
+while independently qualifying the custom static implementation.
+
 ## Boundaries
 
 Do not fabricate absent canonical POSIX metadata. Native stat must reject values

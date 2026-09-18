@@ -420,12 +420,15 @@ export function bindCommentRange(
   runs: import("./block-model.js").Run | readonly import("./block-model.js").Run[],
   value = "",
   author = "",
-  initials: string | null = ""
+  initials: string | null = "",
+  documentPart?: string
 ): Comment {
   text(value);
   text(author);
   if (initials !== null) text(initials);
   const { first, last } = validateCommentRange(store, runs);
+  if (documentPart !== undefined && store.documentOwnerForStory(first.ref.part) !== documentPart)
+    throw new UnsupportedEditError("Comment endpoints require runs owned by the receiving document.");
   const comment = new Comments(store, store.ensureComments(first.ref.part)).add_comment(value, author, initials);
   applyCommentRange(store, first, last, comment.comment_id);
   return comment;

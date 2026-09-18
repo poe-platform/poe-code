@@ -77,7 +77,7 @@ export class DocumentView {
     author = "",
     initials: string | null = ""
   ) {
-    return this.store.transaction(() => bindCommentRange(this.store, runs, text, author, initials));
+    return this.store.transaction(() => bindCommentRange(this.store, runs, text, author, initials, this.ref.part));
   }
   get sections() {
     return new Sections(this.store, this.ref);

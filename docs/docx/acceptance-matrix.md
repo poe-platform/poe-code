@@ -26,7 +26,7 @@ before later dependencies and still requires current-source reconciliation.
 | Utility operation IDs inside native ordered batches | [Batch identity qualification](text-resource-batch-identity-20260917.md) |
 | Active cached-break presence/order and all detached fragments | [Cached-break carriers](cached-break-carriers-20260918.md), [inactive-only fragment boundaries](cached-break-inactive-fragments-20260918.md) |
 | Inherited package methods on every native part type, including returned XML and keyed part-map views | [Native inherited routes and strengthened handle assertions](native-inherited-package-routes-20260918.md) |
-| Current large-report edits and independent ZIP/XML retention | [Six current public edit workflows](f01-f07-corpus-current-20260918.md) |
+| Current large-report edits, ZIP64/template workflows and independent ZIP/XML retention | [Six corpus and 216 foundation replays after collection validation](f01-f07-structural-relationships-20260918.md) |
 
 The save-discovery consumer's original rejection assertion failed in the broad
 repository run and was independently reproduced and corrected. That broad

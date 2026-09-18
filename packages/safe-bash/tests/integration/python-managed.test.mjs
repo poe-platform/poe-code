@@ -30,6 +30,7 @@ const fetchBridge = new Uint8Array([0,97,115,109,1,0,0,0,
 const python = `
 import json, sys, pyodide, pyodide_js, zlib
 from js import Object
+from pyodide.ffi import to_js
 from workers import WorkerEntrypoint, Response
 class Default(WorkerEntrypoint):
  async def fetch(self, request):
@@ -57,6 +58,10 @@ class Default(WorkerEntrypoint):
     result['native_after_export_replacement'] = 'opened'
   finally:
    setattr(module, '___syscall_openat', original_open)
+  imported_open = module.resolveGlobalSymbol('__syscall_openat').sym
+  assert imported_open is not None
+  module.mergeLibSymbols(to_js({'__syscall_openat':getattr(module, '___syscall_getpid')}, dict_converter=Object.fromEntries), 'native-route-probe')
+  result['linker_preserves_existing_syscall'] = getattr(Object, 'is')(imported_open, module.resolveGlobalSymbol('__syscall_openat').sym)
   response = await self.env.FS.fetch('https://canonical/work/local_module.py')
   result['canonical_rpc'] = await response.text()
   try:
@@ -100,6 +105,7 @@ return child.getEntrypoint().fetch(request);
     assert.ok(result.filesystem_backends.includes('MEMFS'));
     assert.equal(result.replaced_export_result, result.native_pid);
     assert.equal(result.native_after_export_replacement, 'FileNotFoundError');
+    assert.equal(result.linker_preserves_existing_syscall, true);
     assert.equal(result.canonical_rpc, 'answer = 42\n');
     assert.deepEqual(result.native_bytes, [0, 255, 42]);
     assert.equal(result.canonical_native_error, 'FileNotFoundError');

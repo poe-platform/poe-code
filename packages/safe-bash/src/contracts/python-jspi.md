@@ -171,6 +171,10 @@ Two alternate hooks are tested explicitly: replacing the exposed
 `___syscall_openat` export changes calls to that export but leaves native
 `os.open` unchanged; passing a compiled Wasm module through the child `env`
 fails deserialization in the pinned runtime. Use static module imports instead.
+The dynamic linker's `mergeLibSymbols` also preserves the existing
+`__syscall_openat` import: its identity before and after an attempted merge is
+asserted in the managed test. Loading or calling a new native function is not
+equivalent to interposing the main interpreter's existing native calls.
 `mountNativeFS` is exposed, but its pinned implementation mounts MEMFS and
 reconciles files through `syncfs`; that copy/synchronization model does not meet
 the live canonical-filesystem contract.

@@ -219,6 +219,7 @@ cases. The original ABI/RPC baseline remains explicitly incomplete.
 | Static Wasm in `WorkerCode.modules` plus `workers.import_from_javascript` | Managed Python imports a supplied precompiled module and calls its native export, returning `42`. A JavaScript-child control uses the same bytes. No runtime compilation/eval permission is added. |
 | Compiled Wasm through `WorkerCode.env` | The pinned child rejects it with `Unable to deserialize cloned data`. This does not reject static Wasm modules or ordinary service bindings. |
 | Exposed `___syscall_openat` export replacement | The replacement export returns the native PID (`42`), but ordinary `os.open` on a nonexistent file still raises `FileNotFoundError`. Assignment does not change the native caller's captured import. The original export is restored in `finally`. |
+| Dynamic-linker symbol merging | `resolveGlobalSymbol('__syscall_openat')` exposes the existing import; attempting to merge a replacement through `mergeLibSymbols` leaves its function identity unchanged. The normal native canonical `open` assertion still fails. This tests existing-symbol merging, not every possible future runtime linker design. |
 | Native C-API callable through static Wasm | A real `PyCFunction` enters the existing native-call adapter, obtains canonical SafeFS UTF-8 source through a directly bound service fetch and Promise chain, and suspends through `_syscall_syncify`. The delayed request is observed exactly once and a one-shot Python timer runs while it waits. Native method, module reference, callback-table entry and allocation are released after the call. |
 | `mountNativeFS` | Existence is tested. The pinned Pyodide `314.0.6/src/js/nativefs.ts` implementation was inspected separately: its `mount` delegates to MEMFS and `syncfs` reconciles local and remote files. That is an excluded snapshot/synchronization approach, not a tested live canonical mount. |
 
@@ -266,6 +267,17 @@ All probes run only in this worktree; named probe containers have bounded outer
 deadlines and do not restart or interfere with the parent's live `npm test`.
 No deployment access is used. Basic custom-JSPI artifacts and README remain
 unchanged in this follow-up.
+
+The subsequent native-linker follow-up adds no managed executor or native mount.
+`out/issue-746/managed-linker-current.log` records all three maintained cases
+passing with `linker_preserves_existing_syscall: true`. Together with the
+pre-instantiation source boundary, this rules out the tested application-level
+export-reassignment and normal symbol-merge approaches on the pinned runtime.
+The next implementation dependency is a runtime-owner-approved native import
+adapter/backend, with the explicit service-capability and lifecycle contract
+listed above. Do not substitute an application `open` wrapper, syscall replay,
+or private table/pointer mutation to label this gate complete. No parent full
+test/lint handles are stopped or restarted by these focused runs.
 
 ## Boundaries
 

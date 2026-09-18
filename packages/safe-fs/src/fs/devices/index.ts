@@ -68,7 +68,7 @@ export class DeviceFileSystem implements FileSystem {
     Object.defineProperty(this, pathNamespace, { get: () => Reflect.get(filesystem, pathNamespace) });
     this.capabilities = globalCapabilities(filesystem);
     const identityScope = Object.freeze({});
-    const stat = { mode: 0o020666, size: 0, allocatedBytes: 0,
+    const stat = { mode: 0o020666, size: 0, allocatedBytes: 0, uid: 0, gid: 0,
       mtimeMs: 0, atimeMs: 0, ctimeMs: 0, birthtimeMs: 0, identityScope, ino: 1, dev: 0, nlink: 1 };
     this.#nullStat = Object.freeze({ ...stat, type: "character", preferredIoBlockSize: 4096 });
     this.#directoryStat = Object.freeze({ ...stat, type: "directory", mode: 0o040755, ino: 2 });

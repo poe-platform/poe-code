@@ -4,7 +4,7 @@ import lockFileContents from 'pinned-pyodide-lock';
 import trampoline from 'trampoline.wasm';
 import nativeCall from 'native-call.wasm';
 import statResult from 'stat-result.wasm';
-import { MemoryFileSystem, PythonFileSystem, PythonStatTranslator } from '@poe-platform/safe-fs/core';
+import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator } from '@poe-platform/safe-fs/core';
 import { createPythonJspiExecutor, pythonCommands, createPythonExecutorPool } from '@poe-platform/safe-bash/commands/python';
 import { Shell } from '@poe-platform/safe-bash';
 
@@ -69,9 +69,34 @@ async function qualifyShells(backend, createExecutor) {
 }
 
 const program = `
-import os, sys, zlib, _csv, local_module
+import os, stat, sys, zlib, _csv, local_module
 assert local_module.answer == 42
 assert os.stat('/work/input.bin').st_size == 3
+device_stat = os.stat('/dev/null')
+assert stat.S_ISCHR(device_stat.st_mode)
+assert device_stat.st_mode == 0o020666
+assert device_stat.st_uid == device_stat.st_gid == 0
+assert device_stat.st_size == 0 and device_stat.st_nlink == 1
+assert device_stat.st_atime_ns == device_stat.st_mtime_ns == device_stat.st_ctime_ns == 0
+assert os.lstat('/dev/null') == device_stat
+assert os.stat('/dev/null') == device_stat
+for flags in (os.O_RDONLY, os.O_WRONLY, os.O_RDWR):
+ descriptor = os.open('/dev/null', flags)
+ try:
+  assert os.fstat(descriptor) == device_stat
+ finally:
+  os.close(descriptor)
+directory_stat = os.stat('/dev')
+assert stat.S_ISDIR(directory_stat.st_mode)
+assert directory_stat.st_mode == 0o040755
+assert directory_stat.st_uid == directory_stat.st_gid == 0
+assert directory_stat.st_size == 0 and directory_stat.st_nlink == 1
+assert directory_stat.st_atime_ns == directory_stat.st_mtime_ns == directory_stat.st_ctime_ns == 0
+assert os.lstat('/dev') == directory_stat
+assert os.stat('/dev') == directory_stat
+assert device_stat.st_dev == directory_stat.st_dev
+assert device_stat.st_ino != directory_stat.st_ino
+assert device_stat.st_dev != os.stat('/work/input.bin').st_dev
 with open('/work/input.bin', 'rb') as source:
  data = source.read()
 with open('/work/data.csv', 'r') as source:
@@ -163,7 +188,7 @@ export default {
     await backend.writeFile('/work/data.csv', new TextEncoder().encode('a,b\n1,2\n'));
     await backend.writeFile('/work/local_module.py', new TextEncoder().encode('answer = 42'));
     await backend.writeFile('/work/cancel', new Uint8Array([48]));
-    const filesystem = new PythonFileSystem(backend, { cwd: '/work' });
+    const filesystem = new PythonFileSystem(createDeviceFileSystem(backend), { cwd: '/work' });
     const metadata = new PythonStatTranslator();
     const stdout = [];
     const stderr = [];

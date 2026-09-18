@@ -17,6 +17,17 @@ destruction or session detach confirmations release that identity's capacity.
 Bounded recent retirement tombstones suppress late messages; active private
 identities never age out or get evicted to admit another target/session.
 
+The trusted control supplied to `createPlaywrightStorageOriginPreparer` must
+report whole-control disconnection as `Inspector.detached` without `sessionId`,
+including when its socket reaches EOF. This rejects loading and pending private
+target retirement with `Native storage control disconnected`, removes control
+and abort subscriptions, and blocks new native lease work. It does not
+confirm target destruction or release private target capacity. Session-scoped
+`Inspector.detached` is not whole-control loss; during expected target closure,
+retirement still joins the owned `Target.targetDestroyed` confirmation. Hosts
+must settle outstanding control requests; disconnect notification does not
+preempt an opaque, uncooperative `send` promise.
+
 Bound storage contexts enumerate IndexedDB through the owned reader, which
 closes its database connections. They retain visited frame origins after tabs
 close and seed origins from initial storage state. Public

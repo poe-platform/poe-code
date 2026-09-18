@@ -23,15 +23,26 @@ export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorage
     let destroyed = false;
     let retirement: Promise<void> | undefined;
     let detachOperation: Promise<void> | undefined;
+    let controlFailure: Error | undefined;
+    let observing = true;
     let resolveDestroyed!: () => void;
+    let rejectRemoved!: (error: unknown) => void;
     let resolveLoaded!: () => void;
     let rejectLoaded!: (error: unknown) => void;
-    const removed = new Promise<void>(resolve => { resolveDestroyed = resolve; });
+    const removed = new Promise<void>((resolve, reject) => { resolveDestroyed = resolve; rejectRemoved = reject; });
+    void removed.catch(() => {});
     const loaded = new Promise<void>((resolve, reject) => { resolveLoaded = resolve; rejectLoaded = reject; });
     void loaded.catch(() => {});
     const pending = new Set<Promise<unknown>>();
     let eventFailure: unknown;
     const unsubscribe = control.subscribe(event => {
+      if (event.method === 'Inspector.detached' && event.sessionId === undefined) {
+        controlFailure ??= new Error('Native storage control disconnected');
+        rejectLoaded(controlFailure);
+        rejectRemoved(controlFailure);
+        stopObserving();
+        return;
+      }
       if (event.method === 'Target.targetDestroyed' && targetId && event.params?.targetId === targetId) {
         destroyed = true;
         resolveDestroyed();
@@ -50,20 +61,30 @@ export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorage
     });
     const detach = (): Promise<void> => detachOperation ??= (async () => {
       if (retirement) { await retirement; detached = true; return; }
+      if (controlFailure) throw controlFailure;
       if (sessionId && !detached && !destroyed) await control.send('Target.detachFromTarget', { sessionId });
       detached = true;
     })();
     const release = (): Promise<void> => retirement ??= (async () => {
       try {
+        if (controlFailure) throw controlFailure;
         if (targetId && !destroyed) {
           const result = await control.send('Target.closeTarget', { targetId });
+          if (controlFailure) throw controlFailure;
           if (result.success !== true && !destroyed) throw new Error('Native storage target retirement rejected');
           await removed;
         }
         await Promise.allSettled(pending);
-      } finally { unsubscribe(); signal.removeEventListener('abort', abort); }
+        if (controlFailure) throw controlFailure;
+      } finally { stopObserving(); }
     })();
     const abort = () => { rejectLoaded(signal.reason); if (targetId) void release().catch(() => {}); };
+    const stopObserving = () => {
+      if (!observing) return;
+      observing = false;
+      unsubscribe();
+      signal.removeEventListener('abort', abort);
+    };
     signal.addEventListener('abort', abort, { once: true });
     try {
       await control.send('Target.setDiscoverTargets', { discover: true });
@@ -95,7 +116,9 @@ export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorage
       if (eventFailure) throw eventFailure;
       signal.throwIfAborted();
       await control.send('Fetch.disable', {}, sessionId);
+      if (controlFailure) throw controlFailure;
       return { targetId, browserContextId, cdp: { send(method, params) {
+        if (controlFailure) return Promise.reject(controlFailure);
         if (detached || destroyed || retirement) return Promise.reject(new Error('Native storage target is closed'));
         return control.send(method, params, sessionId);
       }, detach }, release };

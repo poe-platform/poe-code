@@ -3,11 +3,39 @@ import test from 'node:test';
 import { runInNewContext } from 'node:vm';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
-import type { PlaywrightContext, PlaywrightPage, PlaywrightStorageState } from '../../src/playwright/adapter.js';
-import { bindPlaywrightStorageContext, readPlaywrightStorageState, replacePlaywrightStorageState, type PlaywrightStorageOriginLease } from '../../src/playwright/native-storage-replacement.js';
+import type { PlaywrightContext, PlaywrightFrame, PlaywrightPage, PlaywrightStorageState } from '../../src/playwright/adapter.js';
+import { bindPlaywrightStorageContext, readPlaywrightStorageState, replacePlaywrightStorageState, type PlaywrightStorageCDP, type PlaywrightStorageOriginLease } from '../../src/playwright/native-storage-replacement.js';
 
 const empty: PlaywrightStorageState = { cookies: [], origins: [] };
 const origin = 'https://storage.example';
+
+interface NativeTargetInfo {
+  targetId: string;
+  url: string;
+  browserContextId?: string;
+}
+
+interface NativeIdentityResponse { targetInfo: NativeTargetInfo }
+interface NativeEvaluationResponse { result: { type: string; value?: unknown } }
+interface NativeCommandParameters {
+  'Target.getTargetInfo': { targetId?: string };
+  'Runtime.evaluate': { expression: string };
+}
+interface NativeCommandReturnValues {
+  'Target.getTargetInfo': NativeIdentityResponse;
+  'Runtime.evaluate': NativeEvaluationResponse;
+}
+interface NativeProtocolSession {
+  send<Method extends keyof NativeCommandParameters>(method: Method, params?: NativeCommandParameters[Method]): Promise<NativeCommandReturnValues[Method]>;
+  detach(): Promise<void>;
+}
+
+export function nativeIdentityTypeContract(session: NativeProtocolSession, factory: (page: PlaywrightPage | PlaywrightFrame) => Promise<NativeProtocolSession>, custom: PlaywrightStorageCDP) {
+  const context: Pick<PlaywrightContext, 'newCDPSession'> = { newCDPSession: factory };
+  const send: Awaited<ReturnType<NonNullable<PlaywrightContext['newCDPSession']>>>['send'] = session.send;
+  const customContext: Pick<PlaywrightContext, 'newCDPSession'> = { newCDPSession: async () => custom };
+  return { context, send, customContext };
+}
 
 function fixture() {
   const events: string[] = [];
@@ -42,6 +70,50 @@ function fixture() {
   const cleanups: (() => Promise<void>)[] = [];
   const options = { signal: controller.signal, maxBytes: 1048576, registerCleanup: (cleanup: () => Promise<void>) => { events.push('register'); cleanups.push(cleanup); } };
   return { context, events, lease, prepare, controller, cleanups, options, listeners, pages, setCensus: (value: PlaywrightStorageState) => { census = value; }, setReadback: (value: typeof readback) => { readback = value; } };
+}
+
+test('storage identity binding requires only getTargetInfo and detach', async () => {
+  const item = fixture();
+  const methods: string[] = [];
+  item.context.newCDPSession = async () => ({
+    async send(method: 'Target.getTargetInfo'): Promise<NativeIdentityResponse> {
+      methods.push(method);
+      return { targetInfo: { targetId: 'public', browserContextId: 'owned', url: origin } };
+    },
+    async detach() { methods.push('detach'); },
+  });
+  const retire = await bindPlaywrightStorageContext(item.context, item.prepare, item.controller.signal);
+  await retire();
+  assert.deepEqual(methods, ['Target.getTargetInfo', 'detach']);
+});
+
+test('storage identity binding accepts a custom generic record sender', async () => {
+  const item = fixture();
+  const methods: string[] = [];
+  const session: PlaywrightStorageCDP = {
+    async send(method, params) {
+      methods.push(method);
+      assert.equal(params, undefined);
+      return { targetInfo: { targetId: 'public', browserContextId: 'owned', url: origin } };
+    },
+    async detach() { methods.push('detach'); },
+  };
+  item.context.newCDPSession = async () => session;
+  const retire = await bindPlaywrightStorageContext(item.context, item.prepare, item.controller.signal);
+  await retire();
+  assert.deepEqual(methods, ['Target.getTargetInfo', 'detach']);
+});
+
+for (const targetInfo of [undefined, null, 'invalid', {}, { targetId: 'public' }, { targetId: '', browserContextId: 'owned' }, { targetId: 'public', browserContextId: '' }, { targetId: 7, browserContextId: 'owned' }, { targetId: 'public', browserContextId: 7 }]) {
+  test(`storage identity binding rejects invalid custom targetInfo ${JSON.stringify(targetInfo)}`, async () => {
+    const item = fixture();
+    item.context.newCDPSession = async () => ({
+      async send(): Promise<{ targetInfo: unknown }> { return { targetInfo }; },
+      async detach() { item.events.push('identity.detach'); },
+    });
+    await assert.rejects(bindPlaywrightStorageContext(item.context, item.prepare, item.controller.signal), { message: 'Invalid native storage context identity' });
+    assert.deepEqual(item.events, ['page', 'identity.detach', 'page.close']);
+  });
 }
 
 for (const minify of [false, true]) {

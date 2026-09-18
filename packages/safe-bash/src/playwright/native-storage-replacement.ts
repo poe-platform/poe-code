@@ -8,6 +8,11 @@ export interface PlaywrightStorageCDP {
   detach(): Promise<void>;
 }
 
+export interface PlaywrightStorageIdentityCDP {
+  send(method: 'Target.getTargetInfo'): Promise<{ readonly targetInfo?: unknown }>;
+  detach(): Promise<void>;
+}
+
 export interface PlaywrightStorageOriginLease {
   readonly cdp: PlaywrightStorageCDP;
   readonly targetId: string;
@@ -46,14 +51,13 @@ export async function bindPlaywrightStorageContext(context: PlaywrightContext, p
   if (bindings.has(context)) throw new Error('Native storage context is already bound');
   const existing = context.pages()[0];
   const page = existing ?? await context.newPage();
-  let cdp: PlaywrightStorageCDP | undefined;
+  let cdp: PlaywrightStorageIdentityCDP | undefined;
   let browserContextId: string;
   try {
     signal.throwIfAborted();
     cdp = await context.newCDPSession(page);
-    const { targetInfo } = await cdp.send('Target.getTargetInfo');
-    const identity = targetInfo as { browserContextId?: unknown; targetId?: unknown } | undefined;
-    if (typeof identity?.browserContextId !== 'string' || !identity.browserContextId || typeof identity.targetId !== 'string' || !identity.targetId) throw new Error('Invalid native storage context identity');
+    const { targetInfo: identity } = await cdp.send('Target.getTargetInfo');
+    if (typeof identity !== 'object' || identity === null || !('browserContextId' in identity) || typeof identity.browserContextId !== 'string' || !identity.browserContextId || !('targetId' in identity) || typeof identity.targetId !== 'string' || !identity.targetId) throw new Error('Invalid native storage context identity');
     browserContextId = identity.browserContextId;
   } finally { await finish([async () => cdp?.detach(), async () => { if (!existing) await page.close(); }]); }
   signal.throwIfAborted();

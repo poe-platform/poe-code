@@ -139,7 +139,7 @@ export interface PlaywrightIndexedDBDatabase {
 }
 
 export interface PlaywrightContext {
-  newCDPSession?(page: PlaywrightPage): Promise<import('./native-storage-replacement.js').PlaywrightStorageCDP>;
+  newCDPSession?(page: PlaywrightPage): Promise<import('./native-storage-replacement.js').PlaywrightStorageIdentityCDP>;
   addInitScript?(script: string | { content: string }): Promise<unknown>;
   _startRecording?(options: { language: string }, sink: PlaywrightRecorderSink): Promise<void>;
   _stopRecording?(): Promise<void>;

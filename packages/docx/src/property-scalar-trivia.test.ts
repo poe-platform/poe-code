@@ -14,7 +14,7 @@ async function fixture(strict: boolean, kind: "docx" | "dotx", group: "core" | "
   const inner = group === "core" ? `<dc:title xml:space="preserve">${scalar}</dc:title>` : group === "extended" ? `<p:Company xml:space="preserve">${scalar}</p:Company>` : `<p:property fmtid="{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" pid="2" name="Audit"><v:lpwstr xml:space="preserve">${scalar}</v:lpwstr></p:property>`;
   const namespace = group === "core" ? "http://schemas.openxmlformats.org/package/2006/metadata/core-properties" : office + (strict ? group + "Properties" : group + "-properties");
   const tag = group === "core" ? "coreProperties" : "Properties";
-  const source = `<?xml version="1.0" encoding="${encoding.startsWith("UTF-8") ? "UTF-8" : encoding}"?><!--prolog--><p:${tag} xmlns:p="${namespace}" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:v="${office}docPropsVTypes">${inner}<!--sibling--></p:${tag}><?audit epilog?>`;
+  const source = `<?xml version="1.0" encoding="${encoding.startsWith("UTF-8") ? "UTF-8" : group === "core" ? "UTF-16" : encoding}"?><!--prolog--><p:${tag} xmlns:p="${namespace}" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:v="${office}docPropsVTypes">${inner}<!--sibling--></p:${tag}><?audit epilog?>`;
   const parts = readPackage(await textFixture('<w:p><w:r><w:t>Body retained</w:t></w:r></w:p>', {}, strict)), name = `docProps/${group}.data`;
   parts.set(name, fidelityBytes(source, encoding));
   const type = group === "core" ? "application/vnd.openxmlformats-package.core-properties+xml" : `application/vnd.openxmlformats-officedocument.${group}-properties+xml;audit=coast`;

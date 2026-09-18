@@ -24,6 +24,17 @@ import { relationshipXmlRows, relationshipXmlIds } from "./relationship-xml.js";
 const contentTypesNamespace = "http://schemas.openxmlformats.org/package/2006/content-types";
 const relationshipContentType = "application/vnd.openxmlformats-package.relationships+xml";
 
+function assertOpcXmlDeclaration(root: XmlElement, part: string, budget: DocumentBudget): void {
+  if (!root.declaration) return;
+  budget.charge("work", root.declaration.length);
+  budget.charge("retainedBytes", root.declaration.length * 2);
+  // The XML parser has already validated the declaration's closed grammar.
+  // OPC §6.2.5 permits UTF-16 but not explicit byte-order encoding labels.
+  const declaration = root.declaration.toUpperCase();
+  if (declaration.includes("UTF-16LE") || declaration.includes("UTF-16BE"))
+    throw new InvalidPackageError("OPC XML declarations must name UTF-8 or UTF-16.", part, "/", "opc-xml-encoding");
+}
+
 export interface PackagePart extends ArchiveMember {
   readonly partname: string;
   readonly content_type: string;
@@ -126,6 +137,7 @@ export class DocumentPackage {
       (tag, depth) => {
         if (tag.namespace !== contentTypesNamespace) invalidPackage();
         if (depth === 1) {
+          assertOpcXmlDeclaration(tag, "/[Content_Types].xml", budget);
           if (tag.localName !== "Types") invalidPackage();
           attributes(tag, []);
           return;
@@ -189,13 +201,17 @@ export class DocumentPackage {
     // ECMA-376-2 §8.3.2 forbids physical MCE markup in core properties,
     // including markup hidden from an application's selected compatibility view.
     for (const part of parts) {
-      if (parseMediaType(part.content_type) !== "application/vnd.openxmlformats-package.core-properties+xml") continue;
+      const type = parseMediaType(part.content_type);
+      if (type !== "application/vnd.openxmlformats-package.core-properties+xml" && type !== "application/vnd.openxmlformats-package.digital-signature-xmlsignature+xml") continue;
+      const root = parsed.get(part.bytes) ?? parseDocumentXml(part.bytes, {}, budget).root;
+      assertOpcXmlDeclaration(root, part.partname, budget);
+      if (type !== "application/vnd.openxmlformats-package.core-properties+xml") continue;
       xml(part.bytes, tag => {
         budget.charge("work", tag.attributes.length);
         const mce = "http://schemas.openxmlformats.org/markup-compatibility/2006";
         if (tag.namespace === mce || tag.attributes.some(attribute => attribute.namespace === mce))
           throw new InvalidPackageError("Core properties cannot contain markup compatibility elements or attributes.", part.partname, "/", "core-properties-mce");
-      }, false, budget, parsed.get(part.bytes));
+      }, false, budget, root);
     }
     for (const part of parts) {
       const owner = relationshipOwner(part.partname);
@@ -208,6 +224,7 @@ export class DocumentPackage {
         invalidPackage();
       const relationships: PackageRelationship[] = [];
       const root = parsed.get(part.bytes) ?? parseDocumentXml(part.bytes, {}, budget).root;
+      assertOpcXmlDeclaration(root, part.partname, budget);
       const ids = relationshipXmlIds(root, budget);
       for (const {rId, reltype, target_ref, is_external} of relationshipXmlRows(root, budget, part.partname)) {
         ids.add(rId);

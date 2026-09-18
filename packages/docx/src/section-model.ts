@@ -106,7 +106,7 @@ export class Section {
   }
   get part() {
     this.store.node(this.ref);
-    return this.store.part(this.ref.part);
+    return this.store.part(this.ref.part, true);
   }
   equals(other: unknown): boolean {
     this.store.node(this.ref);
@@ -449,7 +449,7 @@ class HeaderFooter {
     });
   }
   get part() {
-    return this.section.store.part(this.resolve()!.part);
+    return this.section.store.part(this.resolve()!.part, true);
   }
   get element() {
     return this.section.store.element(this.resolve()!);

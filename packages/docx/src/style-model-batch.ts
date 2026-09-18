@@ -120,6 +120,13 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
         const receiver = item.receiver;
         if (!(receiver?.resultHandle === "document" && Object.keys(receiver).length === 1) && (receiver?.id !== "document" || receiver.type !== "DocumentModel" || receiver.owner !== "document" || receiver.revision !== 0)) throw new DocxUsageError("The root receiver must be this document's initial handle.");
         value = model.styles;
+      } else if (item.operation === "model.types.ProvidesStoryPart.part.get" || item.operation === "model.types.ProvidesXmlPart.part.get") {
+        const receiver = resolve(item.receiver);
+        if (!isModel(receiver) || !("part" in receiver)) throw new DocxUsageError("Expected an admitted part provider.");
+        const part = receiver.part;
+        if (!(part instanceof XmlPartView) || item.operation === "model.types.ProvidesStoryPart.part.get" && !(part instanceof StoryPart))
+          throw new DocxUsageError("The provider does not own the required native part role.");
+        value = part;
       } else {
         const args = Object.fromEntries(Object.entries(item.arguments).map(([key, value]) => [key, resolve(value)]));
         const imageAction = imageBatchActions.get(item.operation), packageAction = packageViewBatchActions.get(item.operation);

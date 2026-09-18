@@ -1,5 +1,5 @@
 import { archiveSettings, InputTypeError, type DocumentArchive } from "./archive.js";
-import { validateDocxBatch, validateDocxInvocation, type DocxBatch } from "./command.js";
+import { docxBatchMutates, validateDocxBatch, validateDocxInvocation, type DocxBatch } from "./command.js";
 import { documentBatchActions } from "./batch-operations.js";
 import { DocumentSession } from "./document-session.js";
 import { docxOperationSchemas } from "./operation-schema.js";
@@ -65,7 +65,7 @@ export async function executeDocumentBatch(input: Uint8Array, value: unknown, op
       ...(context.fontResolver ? {fontResolver: context.fontResolver} : {}),
       ...(options.timestamp === undefined ? {} : {timestamp: new Date(options.timestamp)}),
       ...(options.author === undefined ? {} : {author: options.author}) });
-    const mutates = batch.operations.some(item => docxOperationSchemas[item.operation]!.mutates);
+    const mutates = docxBatchMutates(batch);
     const publication: DocumentBatchData["publication"] = mutates ? {changed: model.affected > 0, changes: model.changes, dryRun: options.dryRun ?? false, output: null} : null;
     const prospective = publication ? {...publication, output: options.dryRun ? null : {path: options.inPlace ? identity?.path ?? null : options.output === "-" ? null : options.output ?? null, bytes: settings.limits.maxArchiveBytes, sha256: "0".repeat(64)}} : null;
     budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({version: 1, operation: "batch", ok: true,
@@ -110,7 +110,7 @@ export async function executeDocumentBatch(input: Uint8Array, value: unknown, op
       throw error;
     }
   }
-  const mutates = batch.operations.some(item => docxOperationSchemas[item.operation]!.mutates);
+  const mutates = docxBatchMutates(batch);
   const changes = results.flatMap(result => {
     const data = result.data as { changes?: readonly { kind: string; before?: Location | null; after?: Location | null }[] };
     return (data.changes ?? []).map(change => ({ kind: (change.kind === "insert" ? "add" : change.kind === "format" ? "set" : change.kind === "delete" ? "remove" : change.kind) as "add" | "set" | "remove" | "replace", before: change.before ?? null, after: change.after ?? null }));

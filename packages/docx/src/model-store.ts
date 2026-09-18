@@ -7,7 +7,7 @@ import { InputTypeError, archiveSettings, type ArchiveLimits } from "./archive.j
 import type { AdmittedModelContext } from "./model-context.js";
 import { appendBodyBlocks, DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
-import { PackageView, XmlPartView, StylesPart, packagePart, type SettingsPart, type CommentsPart, packageOwnerCheckpoint } from "./package-view.js";
+import { PackageView, XmlPartView, StoryPart, StylesPart, packagePart, type SettingsPart, type CommentsPart, packageOwnerCheckpoint } from "./package-view.js";
 import { bindXmlElementView, type XmlElementView } from "./xml-element-view.js";
 import { validateDocumentArchive, SemanticValidationError } from "./validation.js";
 import { StaleHandleError } from "./model-errors.js";
@@ -489,10 +489,13 @@ export class ModelStore {
   tableStyleId(value: string | TableStyle | null): string | null {
     return this.styles.get_style_id(value, WD_STYLE_TYPE.TABLE);
   }
-  part(part: string): XmlPartView {
+  part(part: string, story: true): StoryPart;
+  part(part: string): XmlPartView;
+  part(part: string, story = false): XmlPartView {
     const name = normalizePartName(part.startsWith("/") ? part : "/" + part);
     const view = this.package[packagePart](name);
     if (!(view instanceof XmlPartView)) throw new StaleHandleError("The XML part is detached.");
+    if (story && !(view instanceof StoryPart)) throw new InputTypeError("Expected a native story part owner.");
     return view;
   }
   element(ref: ModelRef): XmlElementView {

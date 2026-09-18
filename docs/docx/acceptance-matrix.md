@@ -537,3 +537,12 @@ workflows. Both dialects/kinds retain complete invalid-grid inventory under the
 original 500000-byte ceiling; the 1000-byte refusal remains enforced. Historical
 fixture/product failures are preserved. This closes the named F06 budget
 dependency only. Full F01–F07 acceptance remains open.
+
+The [native part-provider qualification](part-provider-protocol-20260917.md)
+records 457 exact provider cases within 2,774 passing maintained consumer cases,
+24 built public workflows and unchanged captured inputs. It closes the reproduced
+protocol dispatch, detached native `.part`, story return typing and creating
+header/footer publication defects. Exact bindings are in
+[requirement-evidence.json.gz](part-provider-protocol-20260917/requirement-evidence.json.gz).
+This is scoped evidence; owner/rename liveness, save staging, resource reads and
+complete F01–F07 variant reconciliation remain open.

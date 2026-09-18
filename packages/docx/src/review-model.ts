@@ -72,7 +72,7 @@ export class Comment {
   ) {}
   get part() {
     this.store.node(this.ref);
-    return this.store.part(this.ref.part);
+    return this.store.part(this.ref.part, true);
   }
   get element() {
     return this.store.element(this.ref);

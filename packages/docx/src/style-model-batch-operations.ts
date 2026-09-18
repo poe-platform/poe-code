@@ -1,3 +1,4 @@
+import { partProviderReceivers } from "./part-provider.js";
 import { StylesPart } from "./package-view.js";
 import { packageViewBatchActions } from "./package-view-batch-operations.js";
 import { XmlElementView, type XmlViewName } from "./xml-element-view.js";
@@ -146,4 +147,4 @@ export const styleModelBatchActions = new Map(
   })
 );
 export const styleModelBatchBootstrap = "model.document.Document.styles.get";
-export const styleModelBatchOperations: readonly string[] = Object.freeze([styleModelBatchBootstrap, ...styleModelBatchActions.keys(), ...imageBatchActions.keys()].filter(id => docxOperationSchemas[id]));
+export const styleModelBatchOperations: readonly string[] = Object.freeze([styleModelBatchBootstrap, ...[...partProviderReceivers.keys()].map(type => `model.types.${type}.part.get`), ...styleModelBatchActions.keys(), ...imageBatchActions.keys()].filter(id => docxOperationSchemas[id]));

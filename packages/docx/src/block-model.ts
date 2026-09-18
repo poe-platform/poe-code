@@ -59,7 +59,7 @@ export class Paragraph {
   }
   get part() {
     this.store.node(this.ref);
-    return this.store.part(this.ref.part);
+    return this.store.part(this.ref.part, true);
   }
   get text(): string {
     return modelText(this.store.node(this.ref), activeModelChildren(this.store, this.ref.part));
@@ -225,7 +225,7 @@ export class Run {
   }
   get part() {
     this.store.node(this.ref);
-    return this.store.part(this.ref.part);
+    return this.store.part(this.ref.part, true);
   }
   get text(): string {
     return modelText(this.store.node(this.ref), activeModelChildren(this.store, this.ref.part));

@@ -198,3 +198,5 @@ export { Paragraph, Run } from "./block-model.js";
 export { Table, _Cell, _Row, _Column, _Rows, _Columns } from "./table-model.js";
 export { Section, Sections, _Header, _Footer } from "./section-model.js";
 export { Comment, Comments, Hyperlink, RenderedPageBreak } from "./review-model.js";
+
+export type { ProvidesStoryPart, ProvidesXmlPart } from "./part-provider.js";

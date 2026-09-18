@@ -647,7 +647,7 @@ export class XmlPartView extends PartView {
     return owner[packageAdmitPart](partname, content_type, blob) as XmlPartView;
   }
   get element(): XmlElementView { return this.#element ??= this.package[packageBindXml](this); }
-  get part(): this { return this; }
+  get part(): this { this.package[packageMetadata](this); return this; }
 }
 
 export class StoryPart extends XmlPartView {

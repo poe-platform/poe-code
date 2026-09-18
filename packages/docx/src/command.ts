@@ -1,3 +1,4 @@
+import { partProviderReceivers } from "./part-provider.js";
 import { escapeTerminalText } from "toolcraft-design/escape-terminal-text";
 import { getDocxDiscovery } from "./discovery.js";
 import { DocumentBudget, type DocumentLimits } from "./budget.js";
@@ -377,7 +378,7 @@ function validateInvocation(value: unknown, budget: DocumentBudget, fromCli: boo
   if (options.output === "-" && options.json === true && options.dryRun !== true) usage("Binary stdout conflicts with JSON.");
   if (options.raw === true && (options.json === true || options.pretty === true)) usage("Raw XML conflicts with JSON or pretty output.");
   for (const key of ["output", "outputDir"]) if (options[key] !== undefined) path(options[key]);
-  const mutable = ["edit", "selectedEdit", "create"].includes(schema.profile) || operation === "batch" && batchMutates(options);
+  const mutable = ["edit", "selectedEdit", "create"].includes(schema.profile) || operation === "batch" && docxBatchMutates(options);
   if (operation === "batch" && !deferred.has("operations") && !mutable && ["output", "inPlace", "force"].some(key => options[key] !== undefined)) usage("Read-only batch rejects publication options.");
   if (mutable && options.dryRun !== true && options.output === undefined && options.inPlace !== true) usage("Mutation requires a destination.");
   if (schema.profile === "extract" && options.outputDir === undefined) usage("Extraction requires an output directory.");
@@ -390,11 +391,18 @@ function validateInvocation(value: unknown, budget: DocumentBudget, fromCli: boo
 export function validateDocxInvocation(value: unknown, budget = new DocumentBudget()): DocxInvocation {
   return validateInvocation(value, budget, false);
 }
-function batchMutates(value: unknown): boolean {
+export function docxBatchMutates(value: unknown): boolean {
   if (!value || typeof value !== "object" || !Object.hasOwn(value, "operations")) return false;
+  const handles = new Map<string, string>([["document", "DocumentModel"]]);
   return (value as DocxBatch).operations.some(item => {
     const schema = schemaFor(item.operation);
-    return schema.mutates;
+    if (schema.mutates) return true;
+    if (partProviderReceivers.has(schema.receiver ?? "") && item.receiver) {
+      const type = item.receiver.resultHandle === undefined ? item.receiver.type as string : handleType(item.receiver, handles);
+      if (splitDocxType(type).some(type => type === "_Header" || type === "_Footer")) return true;
+    }
+    if (item.resultHandle) handles.set(item.resultHandle, schema.resultHandle!.type);
+    return false;
   });
 }
 function handleType(receiver: Record<string, unknown>, handles: ReadonlyMap<string, string>): string {
@@ -481,7 +489,7 @@ export function validateDocxBatch(value: unknown, budget = new DocumentBudget(),
         const type = handleType(receiver, handles);
         const styleReceivers: Readonly<Record<string, readonly string[]>> = { BaseStyle: ["CharacterStyle", "ParagraphStyle", "_TableStyle", "_NumberingStyle"], CharacterStyle: ["BaseStyle", "ParagraphStyle", "_TableStyle"], ParagraphStyle: ["BaseStyle", "CharacterStyle", "_TableStyle"], _TableStyle: ["BaseStyle", "CharacterStyle", "ParagraphStyle"], _NumberingStyle: ["BaseStyle"] };
         const packageReceivers: Readonly<Record<string, readonly string[]>> = { XmlPartView: ["XmlPart", "Part", "PartView", "StylesPart", "StoryPart", "HeaderPart", "FooterPart", "CommentsPart", "SettingsPart", "NumberingPart", "DocumentPart", "CorePropertiesPart"], PartView: ["Part", "XmlPart", "XmlPartView", "StylesPart", "StoryPart", "HeaderPart", "FooterPart", "CommentsPart", "SettingsPart", "NumberingPart", "DocumentPart", "CorePropertiesPart", "ImagePart"], PackageView: ["Package", "OpcPackage"], RelationshipView: ["_Relationship"], DocumentPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], StoryPart: ["Part", "XmlPart", "PartView", "XmlPartView"], HeaderPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], FooterPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], CommentsPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], SettingsPart: ["Part", "XmlPart", "PartView", "XmlPartView"], NumberingPart: ["Part", "XmlPart", "PartView", "XmlPartView"], StylesPart: ["Part", "XmlPart", "PartView", "XmlPartView"], CorePropertiesPart: ["Part", "XmlPart", "PartView", "XmlPartView"], ImagePart: ["Part", "PartView"] };
-        if (!type.split(" | ").some(candidate => candidate === schema.receiver || styleReceivers[candidate]?.includes(schema.receiver!) || packageReceivers[candidate]?.includes(schema.receiver!))) usage("Handle type does not match receiver.");
+        if (!type.split(" | ").some(candidate => candidate === schema.receiver || partProviderReceivers.get(schema.receiver!)?.has(candidate) || styleReceivers[candidate]?.includes(schema.receiver!) || packageReceivers[candidate]?.includes(schema.receiver!))) usage("Handle type does not match receiver.");
       } else if (typeof receiver.id !== "string" || !receiver.id || typeof receiver.type !== "string" || !receiver.type || typeof receiver.owner !== "string" || !receiver.owner || typeof receiver.revision !== "number" || !Number.isSafeInteger(receiver.revision) || receiver.revision < 0) usage("Invalid model receiver.");
       else if (receiver.type !== schema.receiver) usage("Receiver type does not match operation.");
     }

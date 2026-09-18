@@ -32,6 +32,12 @@ settles. Noncooperative provider work cannot be forcibly interrupted, and close
 waits for it. A failed close is observable and does not prove the provider released
 its external resource. An owner must register cleanup before the first dispatch.
 
+Before service retirement begins, a canceled caller may still dispatch a
+validated descriptor `close` request. Content operations retain cancellation
+precedence. This release path cannot open, read or mutate files and does not
+reopen service admission after `close()` has begun. The transport must drain a
+descriptor's admitted work before releasing it.
+
 `translatePythonOpenFlags` translates the pinned Emscripten flag ABI. Exclusive
 creation delegates directly to canonical acquisition; O_NOFOLLOW is supported
 only with O_CREAT|O_EXCL. Other unsupported flags refuse before effects. General

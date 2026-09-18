@@ -60,9 +60,9 @@ export class PythonFileSystem {
     if (this.#closing) return Promise.reject(new FsError("EBADF"));
     let request: PythonFsRequest;
     try {
-      this.#scope.signal.throwIfAborted();
       request = parsePythonFsRequest(value, this.#transfer);
-    } catch (error) { return Promise.reject(error); }
+      if (request.op !== "close") this.#scope.signal.throwIfAborted();
+    } catch (error) { return Promise.reject(this.#scope.signal.aborted ? this.#scope.signal.reason : error); }
     const operation = this.#execute(request);
     this.#pending.add(operation);
     void operation.then(() => this.#pending.delete(operation), () => this.#pending.delete(operation));
@@ -87,6 +87,13 @@ export class PythonFileSystem {
   }
 
   async #execute(request: PythonFsRequest): Promise<unknown> {
+    if (request.op === "close") {
+      const [id] = request.args;
+      const handle = this.#handle(id);
+      this.#handles.delete(id);
+      await handle.close();
+      return;
+    }
     const signal = this.#scope.signal;
     signal.throwIfAborted();
     const options = { signal };
@@ -116,13 +123,6 @@ export class PythonFileSystem {
           signal.throwIfAborted();
           throw error;
         } finally { this.#acquiring--; }
-      }
-      case "close": {
-        const [id] = request.args;
-        const handle = this.#handle(id);
-        this.#handles.delete(id);
-        await handle.close();
-        return;
       }
       case "descriptorCapabilities": return { ...this.#handle(request.args[0]).capabilities };
       case "fstat": return this.#handle(request.args[0]).stat(options);

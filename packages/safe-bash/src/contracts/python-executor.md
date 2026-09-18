@@ -39,6 +39,13 @@ globals. Configuration validity is not proof that a host supports native Python
 I/O, a particular ABI, CPU preemption, heap/RSS limits or guest isolation. Unsupported
 hosts must refuse instead of falling back to ambient execution.
 
+Cancellation closes content-operation admission, but an active executor may
+still dispatch validated `close` requests to release its retained descriptors.
+These are release-only requests, not renewed filesystem authority. Shell waits
+for executor termination before retiring the filesystem service; the service
+then releases any remaining handles even when executor termination failed.
+Already-admitted cooperative I/O must settle before its descriptor is released.
+
 This seam does not by itself qualify Cloudflare managed Python or a custom JSPI
 build. Those hosts still need real native-syscall/import/stdio and artifact tests.
 JSPI suspension does not preempt CPU-only loops, and a cooperative AbortSignal

@@ -46,6 +46,34 @@ test('async capability inspection does not require the worker shared-memory tran
   assert.throws(() => pythonCommands({ createExecutor, createWorker: () => ({} as never) }), /executor|transport/i);
 });
 
+test('Shell cancellation lets the asynchronous executor release descriptors before retiring its filesystem service', async () => {
+  const filesystem = new MemoryFileSystem();
+  await filesystem.writeFile('/input', new Uint8Array([42]));
+  let entered!: () => void;
+  let finished!: () => void;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  const retired = new Promise<void>(resolve => { finished = resolve; });
+  let released = false;
+  const shell = new Shell({fs:filesystem}).use(pythonCommands({createExecutor: () => ({
+    async run(start) {
+      try {
+        const handle = await start.dispatch({op:'open',args:['/input',{access:'read'}]});
+        entered();
+        await new Promise<void>(resolve => { start.signal.addEventListener('abort', () => resolve(), {once:true}); });
+        await start.dispatch({op:'close',args:[handle]});
+        released = true;
+        return 130;
+      } finally { finished(); }
+    },
+    terminate() { return retired; },
+  })}));
+  const execution = shell.exec('python -c pass').catch(() => undefined);
+  await started;
+  await shell.dispose();
+  await execution;
+  assert.equal(released, true);
+});
+
 test('async executor failures expose safe diagnostics and retire only their invocation', async () => {
   let retired = 0;
   let attempts = 0;

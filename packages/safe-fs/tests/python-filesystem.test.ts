@@ -33,6 +33,25 @@ it("preserves cancellation precedence over an oversized Python directory reply",
     await expect(service.dispatch({ op: "readdir", args: ["/"] })).rejects.toBe(false);
   } finally { await service.close(); }
 });
+
+it("permits descriptor release after cancellation without reopening content operations", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/file", bytes("data"));
+  const retained = await fs.open("/file", { access: "read" });
+  const closed = vi.spyOn(retained, "close");
+  vi.spyOn(fs, "open").mockResolvedValue(retained);
+  const controller = new AbortController();
+  const service = new PythonFileSystem(fs, { cwd: "/", signal: controller.signal });
+  const descriptor = await service.dispatch({ op: "open", args: ["/file", { access: "read" }] });
+  controller.abort(false);
+  try {
+    await expect(service.dispatch({ op: "read", args: [descriptor, 1, 0] })).rejects.toBe(false);
+    await expect(service.dispatch({ op: "close", args: [descriptor] })).resolves.toBeUndefined();
+    expect(closed).toHaveBeenCalledTimes(1);
+  } finally { await service.close(); }
+  expect(closed).toHaveBeenCalledTimes(1);
+  await expect(service.dispatch({ op: "close", args: [descriptor] })).rejects.toMatchObject({ code: "EBADF" });
+});
 it("preserves read-only rmdir errors through mounted canonical Python filesystems", async () => {
   const storage = new MemoryFileSystem();
   await storage.mkdir("/empty");

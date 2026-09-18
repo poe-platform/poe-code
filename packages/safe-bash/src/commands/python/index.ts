@@ -137,7 +137,8 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
         signal.removeEventListener('abort', aborted);
         const subscription = Promise.resolve().then(() => unsubscribe?.());
         const termination = Promise.resolve().then(() => executor ? executor.terminate() : endpoint?.terminate());
-        const results = await Promise.allSettled([subscription, termination, service.close(), stdoutOperation?.close(), stderrOperation?.close(), ...pending]);
+        const filesystemRetirement = termination.finally(() => service.close());
+        const results = await Promise.allSettled([subscription, termination, filesystemRetirement, stdoutOperation?.close(), stderrOperation?.close(), ...pending]);
         await input.return?.(undefined);
         fragment = undefined;
         if (packages) environment.finish(packages);
@@ -177,6 +178,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
         }
       };
       const dispatch = async (request: { op: string; args: unknown[] }): Promise<unknown> => {
+        if (request.op === 'close') return service.dispatch(request);
         signal.throwIfAborted();
         if (request.op.startsWith('package-')) return environment.dispatch(request.op, request.args, {fs:context.fs, cwd:context.cwd, signal});
         if (request.op === 'stdin') {
@@ -234,10 +236,13 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
             catch (reason) { running = false; rejectRun?.(reason); throw reason; }
           },
           async dispatch(request) {
-            signal.throwIfAborted();
-            if (closed || !running || requesting || !request || typeof request.op !== 'string' || !Array.isArray(request.args)) throw reportPythonFailure('transport-unavailable', undefined, options.onDiagnostic);
+            if (!request || typeof request.op !== 'string' || !Array.isArray(request.args)) throw reportPythonFailure('transport-unavailable', undefined, options.onDiagnostic);
+            const releasing = request.op === 'close';
+            if (!releasing) signal.throwIfAborted();
+            if (closed && !releasing || !running || requesting) throw reportPythonFailure('transport-unavailable', undefined, options.onDiagnostic);
             requesting = true;
             const operation = Promise.resolve().then(() => dispatch(request)).catch(async error => {
+              if (releasing) throw error;
               signal.throwIfAborted();
               if (error instanceof PythonInputChunkError) rejectRun?.(error);
               if (request.op.startsWith('package-')) throw Object.assign(reportPythonFailure('runtime-assets', error, options.onDiagnostic), { code: 'EPACKAGE' });

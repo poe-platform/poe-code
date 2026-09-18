@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
 import { MemoryFileSystem } from "../src/fs/memory/index.js";
 import { ReadOnlyFileSystem } from "../src/fs/readonly/index.js";
+import { createDeviceFileSystem } from "../src/fs/devices/index.js";
 import { PythonFileSystem } from "../src/python/index.js";
 import { FsError } from "../src/contracts/errors.js";
 import { dirname } from "../src/contracts/virtual-path.js";
@@ -79,6 +80,41 @@ it("supports Python reads over an explicitly configured whole-file object backen
   } finally { await service.close(); }
   expect(events.released).toBe(events.acquired);
   expect(events.largestRead).toBeLessThanOrEqual(4);
+});
+
+it("keeps Python null descriptors outside the authoritative object publication store", async () => {
+  const storage = new MemoryFileSystem();
+  await storage.writeFile("/file", Uint8Array.of(1));
+  const { store, events } = publicationStore(storage);
+  let acquisitions = 0;
+  const acquire = store.acquire;
+  store.acquire = (path, options) => { acquisitions++; return acquire(path, options); };
+  const fs = createDeviceFileSystem(withObjectFileDescriptors(storage, store));
+  const service = new PythonFileSystem(fs, { cwd: "/" });
+  try {
+    for (const options of [
+      { access: "read" },
+      { access: "write", creation: "ifMissing", truncate: true },
+      { access: "write", creation: "ifMissing", append: true },
+      { access: "readwrite" },
+    ]) {
+      const id = await service.dispatch({ op: "open", args: ["/dev/null", options] });
+      expect(await service.dispatch({ op: "fstat", args: [id] })).toMatchObject({ type: "character", size: 0 });
+      if (options.access !== "read") expect(await service.dispatch({ op: "write", args: [id, Uint8Array.of(0, 255, 42), null] })).toBe(3);
+      if (options.access !== "write") expect(await service.dispatch({ op: "read", args: [id, 3, null] })).toEqual(new Uint8Array());
+      await service.dispatch({ op: "close", args: [id] });
+    }
+    expect(acquisitions).toBe(0);
+    expect(events.publications).toBe(0);
+    const descriptor = await fs.open("/file", { access: "write" });
+    expect(descriptor.capabilities.publication).toBe("conditional");
+    await descriptor.write(Uint8Array.of(2), 0);
+    expect(await storage.readFile("/file")).toEqual(Uint8Array.of(1));
+    await descriptor.close();
+    expect(await storage.readFile("/file")).toEqual(Uint8Array.of(2));
+    expect(acquisitions).toBe(1);
+    expect(events.publications).toBe(1);
+  } finally { await service.close(); }
 });
 
 it("pins old read versions and publishes private writer changes only on flush or close", async () => {

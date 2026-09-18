@@ -11,9 +11,10 @@ import type { ByteSource } from "../../contracts/io.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import { compareEntries, registerEntryAuthority, registerEntryView } from "../mount/comparison.js";
 import { deviceDirectory, lexicalDevicePath, nullPath, resolveDevicePath } from "./path.js";
-import { deviceReadStream, drainDeviceFile, drainDeviceInput } from "./stream.js";
+import { createDeviceYield, deviceReadStream, drainDeviceFile, drainDeviceInput } from "./stream.js";
 import { openRetainedReadFile, openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "../capabilities.js";
 import { pathNamespace } from "../path-namespace.js";
+import { openFileDescriptor } from "../descriptor.js";
 
 const views = new WeakMap<FileSystem, DeviceFileSystem>();
 const deviceCapabilities: FileSystemCapabilities = Object.freeze({
@@ -23,7 +24,7 @@ const deviceCapabilities: FileSystemCapabilities = Object.freeze({
   remove: false, removeDirectory: false, recursiveRemove: false, rename: false,
   mkdir: false, recursiveMkdir: false, symlinks: false, hardlinks: false, readlink: false,
   permissions: false, timestamps: false, truncate: false, randomAccessWrite: false,
-  open: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicTreeRemoval: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
+  open: true, atomicFileMutation: false, atomicEntryRemoval: false, atomicTreeRemoval: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
   atomicRename: false, atomicRenameNoReplace: false, descriptorWriteStream: true, retainedResize: true, atomicResize: false,
 });
 
@@ -126,7 +127,7 @@ export class DeviceFileSystem implements FileSystem {
     options.signal?.throwIfAborted();
     if (options.create !== undefined && (resolved === deviceDirectory || resolved === "/")) throw new FsError("EISDIR", { syscall: "capabilitiesFor", path });
     if (resolved === nullPath) return deviceCapabilities;
-    if (resolved === deviceDirectory) return { ...deviceCapabilities, readdir: true, write: false, append: false,
+    if (resolved === deviceDirectory) return { ...deviceCapabilities, open: false, readdir: true, write: false, append: false,
       exclusiveCreate: false, streamingWrite: false, streamingAppend: false, independentWriteStreams: false, descriptorWriteStream: false,
       retainedRead: false, retainedResize: false, streamingRead: false, copy: false, exclusiveCopy: false };
     const query = this.#filesystem.capabilitiesFor;
@@ -228,7 +229,27 @@ export class DeviceFileSystem implements FileSystem {
     if (!options || typeof options !== "object") throw new FsError("EINVAL", { syscall: "open", path });
     const resolved = await this.#resolve(path, options, options.creation !== "exclusive");
     options.signal?.throwIfAborted();
-    if (resolved === nullPath || resolved === deviceDirectory) throw new FsError("ENOTSUP", { syscall: "open", path });
+    if (resolved === nullPath) return openFileDescriptor<FileStat>(path, options, {
+      position: true, positionedRead: true, positionedWrite: true, positionedAppendWrite: true,
+      openTruncate: true, delegateZeroLengthWrite: true, truncate: false, synchronization: "none",
+    }, async admitted => {
+      if (admitted.creation === "exclusive") throw new FsError("EEXIST", { syscall: "open", path });
+      const yieldAfterWrite = createDeviceYield();
+      return {
+        resource: this.#nullStat,
+        getPosition: async () => 0,
+        stat: async stat => ({ ...stat }),
+        read: async () => 0,
+        write: async (_stat, buffer, _position, forwarded) => {
+          await yieldAfterWrite(buffer.byteLength, forwarded.signal);
+          return buffer.byteLength;
+        },
+        truncate: async () => { throw new FsError("ENOTSUP", { syscall: "ftruncate", path }); },
+        sync: async () => { throw new FsError("ENOTSUP", { syscall: "fsync", path }); },
+        close: async () => {},
+      };
+    });
+    if (resolved === deviceDirectory) throw new FsError("ENOTSUP", { syscall: "open", path });
     const query = this.#filesystem.capabilitiesFor;
     options.signal?.throwIfAborted();
     const capabilities = query && options.creation !== "exclusive" ? await Reflect.apply(query, this.#filesystem, [path, options]) : this.#filesystem.capabilities;

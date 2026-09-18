@@ -68,6 +68,8 @@ cause. Preserve cancellation/control exceptions separately. Cross-family
 
 All required methods must exist, but a backend may reject an operation with `FsError`, such as `EROFS` for a write or `ENOTSUP` for unsupported semantics. Check optional methods and `capabilities` rather than assuming every backend behaves like a local disk. Errors expose `code` and may include `syscall`, `path`, `dest`, and `cause`.
 
+`createDeviceFileSystem(fs)` adds portable `/dev/null` whole-file, stream, and descriptor I/O. Descriptor reads return EOF and writes discard bytes; stat remains a zero-size character device and descriptor position remains zero. Truncating opens are accepted, exclusive creation fails with `EEXIST`, and descriptor resizing and synchronization are unsupported. Access modes, cancellation, and closed handles use the normal descriptor checks. With an authoritative object store, use `createDeviceFileSystem(withObjectFileDescriptors(fs, store))` so null-device I/O never acquires or publishes an object version; ordinary files retain conditional publication. The device wrapper must be outermost for this composition.
+
 | Backend or wrapper | Use it for |
 | --- | --- |
 | `createMemoryFileSystem()` | Isolated, nonpersistent storage with links, permissions, timestamps, and streams |

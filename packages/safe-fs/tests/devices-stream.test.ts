@@ -13,7 +13,7 @@ function deferred<Value>() {
 it("advertises independent null writers and completes one while another remains open", async () => {
   const view = createDeviceFileSystem(new MemoryFileSystem());
   expect((await view.capabilitiesFor("/dev/null")).independentWriteStreams).toBe(true);
-  expect((await view.capabilitiesFor("/dev/null")).open).toBe(false);
+  expect((await view.capabilitiesFor("/dev/null")).open).toBe(true);
   const started = deferred<void>();
   const release = deferred<void>();
   let firstClosed = false;

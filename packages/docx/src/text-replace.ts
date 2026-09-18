@@ -9,7 +9,7 @@ import { resolveDocxSelection } from "./simple-selection.js";
 import { stageTrackedText, type TrackedTextEdit } from "./tracked-text.js";
 import { DocumentArchiveEditor } from "./package-write.js";
 import { type XmlElement } from "./package-xml.js";
-import { UnsupportedEditError, replaceSplitTextRunXml, type DocumentXmlEditor } from "./xml-write.js";
+import { UnsupportedEditError, replaceSplitTextRunXml, splitNativeTextRunXml, type DocumentXmlEditor } from "./xml-write.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { activeControlLocks } from "./protection.js";
@@ -244,7 +244,14 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
   }
   if (chosen.some(match => document.references(match.paragraph.token).length > 1)) throw new SelectionError("ambiguous-selection");
   const explicit = opts.bold !== undefined || opts.italic !== undefined;
-  const changedMatches = chosen.filter(match => dummy ? match.insert !== match.leaves.map(item => item.leaf.text).join("") : opts.find !== opts.with || explicit || match.leaves.some(item => item.leaf.run !== match.leaves[0]!.leaf.run));
+  const changedMatches = chosen.filter(match => {
+    if (dummy) return match.insert !== match.leaves.map(item => item.leaf.text).join("");
+    if (opts.find !== opts.with || match.leaves.some(item => item.leaf.run !== match.leaves[0]!.leaf.run)) return true;
+    if (!explicit) return false;
+    const first = match.leaves[0]!.leaf, children = activeXmlChildren(first.editor, budget);
+    const props = children(first.run).find(child => child.namespace === first.run.namespace && child.localName === "rPr");
+    return formattedRunProperties(first.editor, first.run, { ...(opts.bold === undefined ? {} : { bold: opts.bold }), ...(opts.italic === undefined ? {} : { italic: opts.italic }) }, children) !== (props ? first.editor.sourceXml(props) : "");
+  });
   const edits = new Map<Leaf["node"], { leaf: Leaf; edits: Edit[] }>();
   for (const match of changedMatches) {
     if (match.empty) match.empty.editor.insertChildren(match.empty.node, `<w:r xmlns:w="${xmlValue(match.empty.node.namespace)}"><w:t xml:space="preserve">${xmlValue(match.insert!)}</w:t></w:r>`);
@@ -283,6 +290,7 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
     }
     stageTrackedText(editor, tracked, { author: opts.author!, timestamp: opts.timestamp! }, budget, settings.limits);
   }
+  const nativeSplits = new Map<XmlElement, DocumentXmlEditor>();
   const runs = new Map<XmlElement, { editor: DocumentXmlEditor; patches: Map<XmlElement, string>; whole?: { properties: string; props?: XmlElement } }>();
   for (const { leaf, edits: changes } of opts.trackChanges ? [] : edits.values()) {
     const original = leaf.node.localName === "t" || leaf.node.localName === "delText" ? leaf.node.text : leaf.text;
@@ -320,10 +328,38 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
         runs.set(leaf.run, run);
         continue;
       }
+      if (leaf.run.children.some(child => child.namespace !== leaf.run.namespace)) { nativeSplits.set(leaf.run, leaf.editor); continue; }
       markup += textMarkup(leaf.node, original.slice(offset));
       const run = runs.get(leaf.run) ?? { editor: leaf.editor, patches: new Map() };
       run.patches.set(leaf.node, markup); runs.set(leaf.run, run);
     }
+  }
+  for (const [run, xml] of nativeSplits) {
+    const children = activeXmlChildren(xml, budget), props = children(run).find(child => child.namespace === run.namespace && child.localName === "rPr");
+    const originalProperties = props ? xml.sourceXml(props) : "";
+    const changedProperties = formattedRunProperties(xml, run, { ...(opts.bold === undefined ? {} : { bold: opts.bold }), ...(opts.italic === undefined ? {} : { italic: opts.italic }) }, children);
+    const fragments: { formatted: boolean; properties: string; content: Map<XmlElement, string> }[] = [];
+    const append = (leaf: XmlElement, markup: string, formatted: boolean) => {
+      if (!markup) return;
+      let fragment = fragments.at(-1);
+      if (!fragment || fragment.formatted !== formatted) { fragment = { formatted, properties: formatted ? changedProperties : originalProperties, content: new Map() }; fragments.push(fragment); }
+      fragment.content.set(leaf, (fragment.content.get(leaf) ?? "") + markup);
+    };
+    for (const leaf of children(run)) {
+      if (leaf === props) continue;
+      const item = edits.get(leaf);
+      if (!item) { append(leaf, xml.sourceXml(leaf), false); continue; }
+      const original = ["t", "delText"].includes(leaf.localName) ? leaf.text : item.leaf.text;
+      let offset = 0;
+      for (const change of item.edits) {
+        append(leaf, textMarkup(leaf, original.slice(offset, change.start)), false);
+        append(leaf, textMarkup(leaf, change.insert), true);
+        offset = change.end;
+      }
+      append(leaf, textMarkup(leaf, original.slice(offset)), false);
+    }
+    if (!fragments.length) fragments.push({ formatted: false, properties: originalProperties, content: new Map() });
+    xml[splitNativeTextRunXml](run, fragments);
   }
   for (const [run, { editor: xml, patches, whole }] of runs) {
     const markup = whole && !whole.props ? runOpen(run) + whole.properties + xml.sourceXml(run, patches, true) + `</${run.name}>` : xml.sourceXml(run, patches);

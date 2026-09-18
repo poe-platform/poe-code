@@ -57,7 +57,19 @@ export const editActivePropertyXml = Symbol("edit-active-property-xml");
 /** Internal text-domain split; opaque payloads retain the generic refusal. */
 export const replaceSplitTextRunXml = Symbol("replace-split-text-run-xml");
 
+/** Internal native text fragments; retained inactive content belongs to the first fragment. */
+export const splitNativeTextRunXml = Symbol("split-native-text-run-xml");
+
 const cloneableRunProperties = new Set("rStyle rFonts b bCs i iCs caps smallCaps strike dstrike outline shadow emboss imprint noProof snapToGrid vanish webHidden color spacing w kern position sz szCs highlight u effect bdr shd fitText vertAlign rtl cs em lang eastAsianLayout specVanish oMath".split(" "));
+
+function cloneableRunProperty(element: XmlElement, w: string, containers: ReadonlySet<XmlElement>, budget: DocumentBudget): boolean {
+  budget.charge("work", 1 + element.attributes.length);
+  return (element.namespace === w && (element.localName === "rPr" || cloneableRunProperties.has(element.localName) && !element.children.length) ||
+    element.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006" || containers.has(element)) &&
+    element.attributes.every(attribute => [w, "http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace", "http://schemas.openxmlformats.org/markup-compatibility/2006"].includes(attribute.namespace) ||
+      attribute.namespace === "" && element.localName === "Choice" && attribute.localName === "Requires") &&
+    element.children.every(child => cloneableRunProperty(child, w, containers, budget));
+}
 
 function unsupported(): never {
   throw new UnsupportedEditError("The XML edit cannot establish faithful preservation.");
@@ -307,22 +319,64 @@ export class DocumentXmlEditor {
     this.#stageReplacement(node, xml, !this.#canReplaceSubtree(node, token => this.#canEdit(token)), true);
   }
 
+  [splitNativeTextRunXml](node: XmlElement, fragments: readonly { readonly properties: string; readonly content: ReadonlyMap<XmlElement, string> }[]): void {
+    this.#assertOwnedElement(node);
+    const children = activeXmlChildren(this, this.#budget), active = children(node);
+    const props = active.filter(child => child.namespace === node.namespace && child.localName === "rPr");
+    const leaves = active.filter(child => !props.includes(child));
+    const containers = new Set(this.compatibility[compatibilityContainers]);
+    const branchElements = new Set(this.compatibility.branches.flatMap(branch => branch.alternateContent.children).filter(child => child.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006" && ["Choice", "Fallback"].includes(child.localName)));
+
+    if (!this.#dialect || node.namespace !== documentDialects[this.#dialect].w || node.localName !== "r" || !this.#canEdit(node) || this.#patches.has(node) || props.length > 1 || !fragments.length ||
+      node.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute)) || props.some(property => !cloneableRunProperty(property, node.namespace, containers, this.#budget)) ||
+      leaves.some(leaf => leaf.namespace !== node.namespace || !["t", "delText", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen"].includes(leaf.localName) ||
+        leaf.content.some(content => content.kind !== "text") || leaf.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute))) ||
+      fragments.some(fragment => [...fragment.content.keys()].some(leaf => !leaves.includes(leaf)))) unsupported();
+    const selected = new Set<XmlElement>([...leaves, ...props]);
+    const paths = new Set<XmlElement>();
+    const collect = (element: XmlElement): boolean => {
+      this.#budget.charge("work", 1);
+      if (selected.has(element)) { paths.add(element); return true; }
+      const found = element.children.map(collect).some(Boolean);
+      if (found) {
+        if (element !== node && !containers.has(element)) unsupported();
+        if (element.content.some(content => content.kind !== "element" && (content.kind !== "text" || content.text.trim())) ||
+          element !== node && element.attributes.some(attribute => !["http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace", "http://schemas.openxmlformats.org/markup-compatibility/2006"].includes(attribute.namespace) &&
+            !(attribute.namespace === "" && element.localName === "Choice" && attribute.localName === "Requires"))) unsupported();
+        paths.add(element);
+      }
+      return found;
+    };
+    collect(node);
+    const open = (element: XmlElement, attributes = element.attributes) => `<${element.name}${[...element.namespaces].filter(([prefix]) => prefix !== "xml").map(([prefix, uri]) => ` ${prefix ? "xmlns:" + prefix : "xmlns"}="${escapeValue(uri, true)}"`).join("")}${attributes.filter(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/").map(attribute => ` ${attribute.name}="${escapeValue(attribute.value, true)}"`).join("")}>`;
+    const markup = fragments.map((fragment, index) => {
+      const patches = new Map<XmlElement, string>(leaves.map(leaf => [leaf, fragment.content.get(leaf) ?? ""]));
+      if (props[0]) patches.set(props[0], fragment.properties);
+      if (index) {
+        const prune = (element: XmlElement) => {
+          for (const child of element.children) {
+            if (selected.has(child)) continue;
+            if (paths.has(child)) prune(child);
+            else patches.set(child, branchElements.has(child) ? open(child, child.attributes.filter(attribute => ["http://www.w3.org/2000/xmlns/", "http://schemas.openxmlformats.org/markup-compatibility/2006"].includes(attribute.namespace) || attribute.namespace === "" && child.localName === "Choice" && attribute.localName === "Requires")) + `</${child.name}>` : "");
+          }
+        };
+        prune(node);
+      }
+      return open(node) + (props.length ? "" : fragment.properties) + this.sourceXml(node, patches, true) + `</${node.name}>`;
+    }).join("");
+    this.assertShapeEditAllowed(node);
+    this.#stageReplacement(node, markup, false, true);
+  }
+
   /** Native formatting alternatives can follow each fragment of a split run. */
   [replaceSplitTextRunXml](node: XmlElement, xml: string): void {
     this.#assertOwnedElement(node);
     const containers = new Set(this.compatibility[compatibilityContainers]);
-    const cloneable = (element: XmlElement): boolean => {
-      this.#budget.charge("work", 1 + element.attributes.length);
-      return (element.namespace === node.namespace && (element.localName === "rPr" || cloneableRunProperties.has(element.localName) && !element.children.length) ||
-        element.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006" || containers.has(element)) &&
-        element.attributes.every(attribute => [node.namespace, "http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace", "http://schemas.openxmlformats.org/markup-compatibility/2006"].includes(attribute.namespace) ||
-          attribute.namespace === "" && element.localName === "Choice" && attribute.localName === "Requires") &&
-        element.children.every(cloneable);
-    };
+
     if (!this.#dialect || node.namespace !== documentDialects[this.#dialect].w || node.localName !== "r" ||
       node.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute)) ||
       node.children.some(child => child.namespace !== node.namespace || !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen"].includes(child.localName) ||
-        (child.localName === "rPr" ? !cloneable(child) : child.children.length > 0 || child.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute))))) {
+        (child.localName === "rPr" ? !cloneableRunProperty(child, node.namespace, containers, this.#budget) : child.children.length > 0 || child.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute))))) {
       this.replaceElement(node, xml);
       return;
     }

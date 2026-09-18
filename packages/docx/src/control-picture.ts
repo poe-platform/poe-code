@@ -16,13 +16,13 @@ export interface ControlPicture { readonly relationshipId: string; readonly targ
 function unsupported(message = "The picture control has no verified occurrence structure."): never { throw new UnsupportedEditError(message); }
 function u32(bytes: Uint8Array, offset: number): number { return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(offset); }
 function adler(bytes: Uint8Array): number { let a = 1, b = 0; for (const byte of bytes) { a = (a + byte) % 65521; b = (b + a) % 65521; } return (b << 16 | a) >>> 0; }
-/** Admits only non-interlaced eight-bit RGB/RGBA PNG with complete portable payload verification. */
-export async function admitControlPng(input: Uint8Array, context: ArchiveContext): Promise<Uint8Array> {
+/** Verifies portable PNG pixels; replacement controls retain their narrower profile. */
+export async function admitControlPng(input: Uint8Array, context: ArchiveContext, profile: "picture-control" | "retained-image" = "picture-control"): Promise<Uint8Array> {
   const { limits, signal, budget } = archiveSettings(context);
   if (!(input instanceof Uint8Array) || input.length > limits.maxEntryBytes) throw new InvalidValueError("Expected bounded PNG bytes.");
   budget.charge("work", input.length); budget.charge("retainedBytes", input.length); const bytes = new Uint8Array(input);
   if (bytes.length < 57 || ![137, 80, 78, 71, 13, 10, 26, 10].every((byte, i) => bytes[i] === byte)) unsupported("Expected an admitted PNG picture.");
-  let offset = 8, width = 0, height = 0, channels = 0, ended = false, sawData = false, closedData = false; const data: Uint8Array[] = []; let compressedLength = 0;
+  let offset = 8, width = 0, height = 0, channels = 0, depth = 0, interlace = 0, ended = false, sawData = false, closedData = false; const data: Uint8Array[] = []; let compressedLength = 0;
   while (offset < bytes.length) {
     budget.charge("work", 1); if (offset + 12 > bytes.length) unsupported("Truncated PNG chunk.");
     const length = u32(bytes, offset); if (length > bytes.length - offset - 12) unsupported("Invalid PNG chunk length.");
@@ -31,8 +31,11 @@ export async function admitControlPng(input: Uint8Array, context: ArchiveContext
     const payload = bytes.subarray(offset + 8, offset + 8 + length);
     if (type === "IHDR") {
       if (offset !== 8 || length !== 13) unsupported("Invalid PNG header order.");
-      width = u32(payload, 0); height = u32(payload, 4); channels = payload[9] === 2 ? 3 : payload[9] === 6 ? 4 : 0;
-      if (!width || !height || !channels || payload[8] !== 8 || payload[10] !== 0 || payload[11] !== 0 || payload[12] !== 0) unsupported("Unsupported PNG pixel profile.");
+      width = u32(payload, 0); height = u32(payload, 4); depth = payload[8]!; interlace = payload[12]!;
+      const color = payload[9]!, depths: Readonly<Record<number, readonly number[]>> = { 0: [1, 2, 4, 8, 16], 2: [8, 16], 3: [1, 2, 4, 8], 4: [8, 16], 6: [8, 16] };
+      channels = ({ 0: 1, 2: 3, 3: 1, 4: 2, 6: 4 } as Readonly<Record<number, number>>)[color] ?? 0;
+      if (!width || !height || !depths[color]?.includes(depth) || payload[10] !== 0 || payload[11] !== 0 || ![0, 1].includes(interlace)
+        || profile === "picture-control" && (depth !== 8 || ![2, 6].includes(color) || interlace !== 0)) unsupported("Unsupported PNG pixel profile.");
     } else if (!width) unsupported("Missing PNG header.");
     else if (type === "IDAT") { if (closedData) unsupported("PNG data chunks must be contiguous."); data.push(payload); compressedLength += payload.length; sawData = true; }
     else if (type === "IEND") { if (length !== 0 || !sawData || offset + 12 !== bytes.length) unsupported("Invalid PNG end marker."); ended = true; }
@@ -40,7 +43,13 @@ export async function admitControlPng(input: Uint8Array, context: ArchiveContext
     offset += length + 12;
   }
   if (!ended || compressedLength < 6) unsupported("Incomplete PNG payload.");
-  const expected = height * (1 + width * channels); if (!Number.isSafeInteger(expected) || expected > limits.maxEntryBytes) unsupported("PNG expanded pixel limit exceeded.");
+  const passes = interlace ? [[0, 0, 8, 8], [4, 0, 8, 8], [0, 4, 4, 8], [2, 0, 4, 4], [0, 2, 2, 4], [1, 0, 2, 2], [0, 1, 1, 2]] : [[0, 0, 1, 1]];
+  const scanlines = passes.map(([x, y, dx, dy]) => {
+    const columns = Math.max(0, Math.ceil((width - x!) / dx!)), rows = Math.max(0, Math.ceil((height - y!) / dy!));
+    return { rows: columns ? rows : 0, stride: 1 + Math.ceil(columns * channels * depth / 8) };
+  });
+  const expected = scanlines.reduce((total, pass) => total + pass.rows * pass.stride, 0);
+  if (!Number.isSafeInteger(expected) || expected > limits.maxEntryBytes) unsupported("PNG expanded pixel limit exceeded.");
   budget.check("expandedPackage", expected); budget.charge("retainedBytes", compressedLength + expected); budget.charge("work", expected);
   const compressed = new Uint8Array(compressedLength); offset = 0; for (const chunk of data) { compressed.set(chunk, offset); offset += chunk.length; }
   if ((compressed[0]! & 15) !== 8 || compressed[0]! >> 4 > 7 || (compressed[0]! * 256 + compressed[1]!) % 31 !== 0 || compressed[1]! & 32) unsupported("Invalid PNG zlib header.");
@@ -50,7 +59,8 @@ export async function admitControlPng(input: Uint8Array, context: ArchiveContext
   catch (error) { budget.check("work", 0); if (error instanceof UnsupportedEditError) throw error; unsupported("Invalid PNG compressed pixels."); }
   finally { await reader.close(); }
   if (offset !== expected || adler(raw) !== u32(compressed, compressed.length - 4)) unsupported("PNG pixel length or checksum mismatch.");
-  for (let row = 0; row < height; row++) if (raw[row * (1 + width * channels)]! > 4) unsupported("Invalid PNG row filter.");
+  offset = 0;
+  for (const pass of scanlines) for (let row = 0; row < pass.rows; row++) { if (raw[offset]! > 4) unsupported("Invalid PNG row filter."); offset += pass.stride; }
   return bytes;
 }
 export async function acquireControlPng(input: DocxBinaryInput, context: ArchiveContext & { readonly binaryResolver?: ControlBinaryResolver }): Promise<Uint8Array> {

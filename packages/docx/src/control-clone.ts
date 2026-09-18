@@ -137,7 +137,7 @@ export class ControlClonePlanner {
         this.#context.budget.charge("embeddedMediaBytes", edge.target_part.bytes.length);
         const header = characterizeRasterHeader(edge.target_part.bytes, this.#context);
         if (parseMediaType(edge.target_part.content_type) !== header.mime) throw new UnsupportedEditError("The cloned raster declaration does not match its bytes.");
-        if (header.mime === "image/png") await admitControlPng(edge.target_part.bytes, this.#context);
+        if (header.mime === "image/png") await admitControlPng(edge.target_part.bytes, this.#context, "retained-image");
         this.#admittedMedia.add(edge.target_part.partname);
       }
       for (const node of nodes(drawing, this.#context.budget)) if (!(word.includes(node.namespace) && node.localName === "drawing" || drawings.includes(node.namespace) && ["inline", "extent", "docPr"].includes(node.localName) || pictures.includes(node.namespace) && ["pic", "nvPicPr", "cNvPr", "cNvPicPr", "blipFill", "spPr"].includes(node.localName) || drawingMain.includes(node.namespace) && ["graphic", "graphicData", "blip", "stretch", "fillRect", "xfrm", "off", "ext", "prstGeom", "avLst"].includes(node.localName))) throw new UnsupportedEditError("The picture contains unverified drawing markup.");

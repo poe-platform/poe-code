@@ -2,6 +2,7 @@ import { parseXmlSteps, XmlLimitError, type XmlElement, type XmlLimits } from "@
 import { CancellationError, InputTypeError, InvalidValueError, ResourceLimitError } from "./archive.js";
 import { documentXmlCache, DocumentBudget } from "./budget.js";
 import { parseMediaType } from "./media-type.js";
+import { DocumentError } from "./document-error.js";
 export type { XmlElement, XmlContent, XmlAttribute } from "@poe-code/safe-fs/xml";
 
 /** Internal XML part classification; MIME spelling remains in package metadata. */
@@ -10,18 +11,17 @@ export function isXmlContentType(contentType: string): boolean {
   return type === "application/xml" || type === "text/xml" || type.endsWith("+xml");
 }
 
-export class InvalidPackageError extends Error {
-  readonly code = "invalid-package";
+export class InvalidPackageError extends DocumentError {
   constructor(message: string, readonly part?: string, readonly location = "/", readonly diagnosticCode = "package-structure") {
     super(message);
   }
 }
-export class InvalidXmlError extends Error {
-  readonly code = "invalid-xml";
+export class InvalidXmlError extends DocumentError {
+  override readonly code = "invalid-xml";
 }
 
-export class UnsupportedProfileError extends Error {
-  readonly code = "unsupported-profile";
+export class UnsupportedProfileError extends DocumentError {
+  override readonly code = "unsupported-profile";
 }
 
 export interface DocumentXmlLimits extends Pick<XmlLimits,

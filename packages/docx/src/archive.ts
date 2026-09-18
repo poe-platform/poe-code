@@ -1,6 +1,7 @@
 import { CodecError, createZipCodec, type ZipLimits } from "@poe-code/office-package";
 import { DocumentBudget } from "./budget.js";
 import { documentByteView } from "./byte-input.js";
+import { DocumentError } from "./document-error.js";
 
 export interface ArchiveLimits {
   readonly maxArchiveBytes: number;
@@ -50,8 +51,8 @@ export class InvalidValueError extends RangeError {
 export class ResourceLimitError extends Error {
   readonly code = "limit-exceeded";
 }
-export class InvalidContainerError extends Error {
-  readonly code = "invalid-container";
+export class InvalidContainerError extends DocumentError {
+  override readonly code = "invalid-container";
 }
 export class CancellationError extends Error {
   readonly code = "cancelled";

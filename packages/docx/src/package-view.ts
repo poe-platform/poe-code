@@ -23,7 +23,7 @@ import { documentDialects, type DocumentDialect } from "./dialect.js";
 import { validateDocxValue } from "./operation-schema.js";
 import type { DocumentBudget } from "./budget.js";
 import { isXmlContentType, parseDocumentXml } from "./package-xml.js";
-import { Image, type ImageModelInput, type ImageModelContext } from "./image-model.js";
+import { Image, copyImageForOwner, type ImageModelInput, type ImageModelContext } from "./image-model.js";
 import type { DocxEnumValue } from "./operation-types.js";
 import type { DocumentModelInput } from "./model-input.js";
 import { admitDocumentModel } from "./model-admission.js";
@@ -224,7 +224,7 @@ export class PackageView {
   async [packageLoadImage](name: string | PackURI, contentType: string, bytes: Uint8Array | Image): Promise<ImagePartView> {
     this.#binding.writable();
     const revision = this.#revision, ownerVersion = this.#binding.version();
-    const image = bytes instanceof Image ? await Image.from_blob(bytes.blob, this.#binding.context as ImageModelContext) : await Image.from_blob(bytes, this.#binding.context as ImageModelContext);
+    const image = bytes instanceof Image ? await Image[copyImageForOwner](bytes, this.#binding.context as ImageModelContext) : await Image.from_blob(bytes, this.#binding.context as ImageModelContext);
     if (revision !== this.#revision || ownerVersion !== this.#binding.version()) throw new PublicationError("conflict", "Package changed during image admission.");
     if (typeof contentType !== "string" || image.content_type !== parseMediaType(contentType)) throw new InvalidValueError("Image part content type conflicts with its byte signature.");
     const part = this[packageAdmitPart](name, contentType, image.blob) as ImagePartView;

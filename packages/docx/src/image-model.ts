@@ -6,6 +6,8 @@ import { asciiKey } from "./part-uri.js";
 import type { DocxLength } from "./operation-types.js";
 export { acquireImageModelInput, type ImageModelContext, type ImageModelInput } from "./image-model-input.js";
 const imageAdmission = Symbol("image admission");
+/** Internal value import rebinds admission and reads to the destination budget. */
+export const copyImageForOwner = Symbol("copy-image-for-owner");
 
 function sha1(bytes: Uint8Array, context: ArchiveContext): string {
   const { budget } = archiveSettings(context), padded = Math.ceil((bytes.length + 9) / 64) * 64;
@@ -55,6 +57,10 @@ export class Image {
   static async from_file(input: ImageModelInput, context?: ImageModelContext): Promise<Image> {
     if (input && typeof input === "object" && Object.hasOwn(input, "kind")) throw new InputTypeError("Primary image input requires bytes, a byte source or an explicit path.");
     return new Image(await acquireImageModelInput(input, context), imageAdmission);
+  }
+  static async [copyImageForOwner](image: Image, context: ImageModelContext): Promise<Image> {
+    const acquired = await acquireImageModelInput(image.blob, context);
+    return new Image({ ...acquired, filename: image.filename }, imageAdmission);
   }
   get blob(): Uint8Array { const { budget } = archiveSettings(this.#context); budget.charge("retainedBytes", this.#bytes.length); budget.charge("work", this.#bytes.length); return new Uint8Array(this.#bytes); }
   get content_type(): RasterHeader["mime"] { return this.#header.mime; }

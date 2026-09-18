@@ -644,3 +644,9 @@ collections. Untouched bytes, outgoing edges, typed lengths and native kind
 retention pass. Two harness mistakes are preserved with no product-defect
 credit. This closes the named verification gap; full-family reconciliation
 remains open.
+
+The [named image-part import qualification](image-part-import-variants-20260918.md)
+closes filename loss with 308 original passing memfs cases, 11,786 affected
+consumer cases and 300 independent built public workflows. Original failures
+and unchanged controls remain preserved. Destination budgets, owned bytes and
+package retention pass; full F01–F07 reconciliation remains open.

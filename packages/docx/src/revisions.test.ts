@@ -41,7 +41,6 @@ it("inventories move pairs, property history and opaque revisions without exposi
 
 it.each([
   `<w:p><w:r>${history}<w:t>Harbor</w:t></w:r></w:p>`,
-  `<w:p><w:pPr><w:rPr><w:del ${identity}/></w:rPr></w:pPr>${run("Harbor")}</w:p>`,
   `<w:p><w:moveFromRangeStart ${identity}/>${run("Harbor")}<w:moveFromRangeEnd w:id="7"/></w:p>`
 ])("rejects removal of review history before publication: %s", async body => {
   const input = await textFixture(body);
@@ -166,4 +165,15 @@ it.each(['<w:b w:val="banana"/>', '<w:b/><w:b w:val="0"/>', '<w:b>Opaque</w:b>',
 it("rejects a historical style reference missing its required value", async () => {
   const bytes = await textFixture(`<w:p><w:r><w:rPr><w:rPrChange w:id="7"><w:rPr><w:rStyle/></w:rPr></w:rPrChange></w:rPr><w:t>Harbor</w:t></w:r></w:p>`);
   await expect(docx.inspectDocumentRevisions(bytes, {}, textContext)).rejects.toMatchObject({ code: "invalid-package" });
+});
+
+// Paragraph-mark history belongs to the retained pPr, not discarded glyph runs.
+it.each([false, true])("clears glyph text while retaining paragraph-mark review identity (%s)", async strict => {
+  const metadata = `<w:pPr><w:rPr><w:del ${identity}/></w:rPr></w:pPr>`;
+  const input = await textFixture(`<w:p>${metadata}${run("Harbor")}</w:p>`, {}, strict), volume = Volume.fromJSON({ "/out": "" });
+  await docx.editDocumentParagraphs(input, { operation: "paragraphs.set", options: { paragraph: 1, text: "", output: "-" } }, { ...textContext, encoding: { order: "input", compression: "store" }, stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } } });
+  const output = new Uint8Array(volume.readFileSync("/out") as Buffer), xml = new TextDecoder().decode(await docx.getDocumentXml(output, textContext, { part: "/word/document.xml", raw: true }) as Uint8Array);
+  expect(xml).toContain(metadata); expect(xml.split(identity)).toHaveLength(2); expect(xml).not.toContain("Harbor");
+  expect((await docx.Document(output, textContext)).paragraphs[0]!.text).toBe("");
+  expect((await docx.inspectDocumentRevisions(output, {}, textContext)).items).toEqual([expect.objectContaining({ id: "7", author: "Mira", timestamp: "2025-02-03T04:05:06Z", type: "delete" })]);
 });

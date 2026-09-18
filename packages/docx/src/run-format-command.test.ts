@@ -21,7 +21,7 @@ it("executes the same formatting operation through CLI flags and the SDK", async
 
 it("advertises formatting support and its limits through help, schema and capabilities", () => {
   const discovery = (...args: string[]) => getDocxDiscovery(parseDocxArguments(args.map(a => new TextEncoder().encode(a))))!;
-  expect(discovery("schema", "runs", "set").data).toMatchObject({ operations: [{ id: "runs.set", support: "edit", result: { oneOf: [{ properties: { affected: { type: "integer" }, data: { properties: { changes: { items: { properties: { kind: { const: "format" } } } } } } } }, {}] } }] });
+  expect(discovery("schema", "runs", "set").data).toMatchObject({ operations: [{ id: "runs.set", support: "edit", result: { oneOf: [{ properties: { affected: { type: "integer" }, data: { properties: { changes: { items: { properties: { kind: { enum: ["format", "replace"] } } } } } } } }, {}] } }] });
   expect(discovery("help", "runs", "set").human).toContain("null removes");
   expect(discovery("capabilities").data).toMatchObject({ features: expect.arrayContaining([{ operationIds: expect.arrayContaining(["runs.set"]), id: "F12", level: "edit", subsets: expect.any(Array), detected: null }]) });
 });

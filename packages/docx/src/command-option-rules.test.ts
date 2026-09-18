@@ -79,7 +79,8 @@ it.each([
   ["lists.levels.set", { levels: [{ level: 0, start: 0, restartAfter: 0 }] }],
   ["lists.levels.set", { levels: [{ level: 0, start: 0, restartAfter: 1 }, { level: 1, start: 0, restartAfter: 0 }] }],
   ["lists.levels.set", { levels: [{ level: 0, start: 0, restartAfter: 1 }, { level: 1, start: 0, restartAfter: 2 }, { level: 2, start: 0, restartAfter: 0 }] }],
-  ["runs.fonts.set", { language: "" }],
+  ["runs.set", { language: "" }],
+  ["runs.fonts.set", { language: { latin: "" } }],
   ["runs.set", { language: "en_US" }],
   ["runs.set", { language: "en--US" }],
   ["runs.set", { language: "en-a" }],
@@ -95,7 +96,7 @@ it.each([
   ["images.add", { width: { value: 0.5, unit: "emu" } }],
   ["sections.columns.set", { equalWidth: true, columns: [{ width: { value: 1, unit: "in" } }, { width: { value: 72, unit: "pt" }, gapAfter: { value: 0, unit: "emu" } }] }],
   ["lists.levels.set", { levels: [{ level: 0, start: 0 }, { level: 1, start: 0, restartAfter: 0 }, { level: 2, start: 0, restartAfter: null }] }],
-  ...["en-US", "zh-Hant-TW", "es-419", "de-DE-u-co-phonebk", "x-coastal", "i-klingon", "zh-cmn-Hans-CN"].map(language => ["runs.fonts.set", { language }]),
+  ...["en-US", "zh-Hant-TW", "es-419", "de-DE-u-co-phonebk", "x-coastal", "i-klingon", "zh-cmn-Hans-CN"].flatMap(language => [["runs.set", { language }], ...["latin", "eastAsia", "bidi"].map(slot => ["runs.fonts.set", { language: { [slot]: language } }])]),
 ] as [string, Record<string, unknown>][]) ("accepts rounded safe geometry and explicit language tags: %s", (operation, options) => {
   expect(() => validateDocxOptionRules(operation, options)).not.toThrow();
 });

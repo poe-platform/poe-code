@@ -77,11 +77,28 @@ for (const strict of [false, true]) for (const carrier of ["choice", "fallback",
 
 for (const strict of [false, true]) for (const carrier of ["choice", "fallback", "process"] as const) for (const resource of ["opaque-properties", "nested-drawing", "carrier-annotation"] as const)
  for (const route of ["sdk", "shell"] as const)
- it(`${route} rejects partial ${carrier} replacement with ${resource} before publication; strict=${strict}`, async () => {
+ it(`${route} ${resource === "carrier-annotation" ? "preserves" : "rejects"} partial ${carrier} replacement with ${resource} before publication; strict=${strict}`, async () => {
   const content = resource === "nested-drawing" ? '<w:t>coast<w:drawing/></w:t>' : '<w:t>coast</w:t>';
   const active = content + (resource === "carrier-annotation" ? '<!--retained carrier--><?review keep?>' : ""), inactive = '<w:t>Inactive coast</w:t>';
   const wrapped = carrier === "process" ? `<f:pass>${active}</f:pass><f:opaque>${inactive}</f:opaque>` : `<mc:AlternateContent><mc:Choice Requires="${carrier === "choice" ? "w" : "f"}">${carrier === "choice" ? active : inactive}</mc:Choice><mc:Fallback>${carrier === "fallback" ? active : inactive}</mc:Fallback></mc:AlternateContent>`;
   const props = `<w:rPr><w:b/>${resource === "opaque-properties" ? '<f:opaque f:identity="retain">Stored</f:opaque>' : ""}</w:rPr>`, input = await textFixture(`<w:p xmlns:mc="${mc}" xmlns:f="${future}" mc:Ignorable="f" mc:ProcessContent="f:pass"><w:r>${props}${wrapped}</w:r></w:p>`, {}, strict), memory = Volume.fromJSON({ "/out": "" });
+  if (resource === "carrier-annotation") {
+    const context = { ...textContext, encoding: { order: "input" as const, compression: "store" as const }, stdout: { async write(bytes: Uint8Array) { memory.appendFileSync("/out", bytes); } } };
+    if (route === "sdk") await replaceDocumentText(input, { find: "oas", with: "shore", all: true, bold: false, output: "-" }, context);
+    else {
+      const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); const shell = new Shell({ fs }).use(docxCommands({ engine: createDocxInspectionCommandEngine({ limits: textContext.limits }) }));
+      try { const result = await shell.exec("docx text replace /input --find oas --with shore --all --bold false --output - > /out"); expect(result.exitCode, result.stdout + result.stderr).toBe(0); expect(await fs.readFile("/input")).toEqual(input); memory.writeFileSync("/out", await fs.readFile("/out")); } finally { await shell.dispose(); }
+    }
+    const output = new Uint8Array(memory.readFileSync("/out") as Buffer), before = readPackage(input), after = readPackage(output); assertPackageLinks(after); expect(after.size).toBe(before.size);
+    for (const [name, bytes] of before) if (name !== "word/document.xml") expect(after.get(name), name).toEqual(bytes);
+    const xml = new TextDecoder().decode(after.get("word/document.xml"));
+    expect(xml.split("<!--retained carrier-->")).toHaveLength(2); expect(xml.split("<?review keep?>")).toHaveLength(2); expect(xml.split(inactive)).toHaveLength(2);
+    const document = await Document(output, textContext), paragraph = document.paragraphs[0]!;
+    expect(paragraph.runs.map(r => [r.text, r.bold])).toEqual([["c", true], ["shore", false], ["t", true]]);
+    const ownerXml = new TextDecoder().decode(paragraph.runs[0]!.element.serialize()); expect(ownerXml).toContain("<!--retained carrier-->"); expect(ownerXml).toContain("<?review keep?>");
+    for (const other of paragraph.runs.slice(1)) { expect(new TextDecoder().decode(other.element.serialize())).not.toContain("<!--retained carrier-->"); expect(new TextDecoder().decode(other.element.serialize())).not.toContain("<?review keep?>"); }
+    return;
+  }
   if (route === "sdk") await expect(replaceDocumentText(input, { find: "oas", with: "shore", all: true, bold: false, output: "-" }, { ...textContext, encoding: { order: "input", compression: "store" }, stdout: { async write(bytes) { memory.appendFileSync("/out", bytes); } } })).rejects.toMatchObject({ code: "unsupported-edit" });
   else { const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); const shell = new Shell({ fs }).use(docxCommands({ engine: createDocxInspectionCommandEngine({ limits: textContext.limits }) }));
    try { const result = await shell.exec("docx text replace /input --find oas --with shore --all --bold false --output - > /out"); expect(result.exitCode, result.stdout + result.stderr).toBe(1); expect(result.stderr).toContain("unsupported-edit"); expect(await fs.readFile("/input")).toEqual(input); memory.writeFileSync("/out", await fs.readFile("/out")); } finally { await shell.dispose(); }

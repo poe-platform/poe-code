@@ -1,3 +1,4 @@
+import { setParagraphListLevels } from "./list-levels.js";
 import { docxOperationSchemas, docxEnumCanonicalNames } from "./operation-schema.js";
 import { DocxUsageError } from "./argument-json.js";
 import { Settings } from "./settings-model.js";
@@ -28,6 +29,7 @@ function register(key: string, owner: OwnerProvider, action: Action): void {
     return action(receiver, args);
   });
 }
+register("lists.levels.set", () => Paragraph, (receiver, args) => setParagraphListLevels(receiver as Paragraph, args as DocxOperationArguments<"lists.levels.set">));
 for (const operation of ["paragraphs.format.set", "runs.fonts.set"] as const) {
   register(operation, () => operation === "paragraphs.format.set" ? Paragraph : Run, (receiver, args) => {
     const owner = receiver as Paragraph | Run, budget = owner.store.context.budget;

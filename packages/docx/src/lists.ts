@@ -144,7 +144,7 @@ export async function editDocumentLists(input: Uint8Array, request: ListEditRequ
   return { changed: changes.length > 0, changes, dryRun: options.dryRun ?? false, output: result.published.length ? { path: result.published[0]!.path, bytes: result.published[0]!.bytes, sha256: result.archiveSha256! } : null };
 }
 
-function listProperties(xml: DocumentXmlEditor | undefined, props: XmlElement | undefined, id: number, level: number, w: string, graph?: NumberingGraph): string {
+export function listProperties(xml: DocumentXmlEditor | undefined, props: XmlElement | undefined, id: number, level: number, w: string, graph?: NumberingGraph): string {
   const children = (node: XmlElement | undefined) => graph ? graph.children(node) : node?.children ?? [];
   const find = (node: XmlElement | undefined, name: string) => graph ? graph.child(node, name) : child(node, name);
   const old = find(props, "numPr");

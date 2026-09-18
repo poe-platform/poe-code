@@ -1,3 +1,9 @@
+import { InvalidValueError } from "./archive.js";
+import type { DocxOperationArguments } from "./operation-types.js";
+import { styleStoredName } from "./style-names.js";
+import { mergeStyleChildren } from "./style-properties.js";
+import { paragraphUnits, paragraphProperties } from "./paragraph-properties.js";
+import { plainLength } from "./formatting-values.js";
 import type { DocumentBudget } from "./budget.js";
 import { xmlValue } from "./create-content.js";
 import type { XmlElement, XmlAttribute } from "./package-xml.js";
@@ -229,6 +235,16 @@ export class NumberingGraph {
       const level = this.child(node, "lvl");
       if (level) levels.set(index, level);
     }
+    for (const start of levels.keys()) {
+      const seen = new Set<number>(); let current: number | undefined = start;
+      while (current !== undefined && levels.has(current)) {
+        this.budget.charge("work", 1);
+        if (seen.has(current)) throw new UnsupportedEditError("Cyclic numbering restart dependency.");
+        seen.add(current);
+        const restart = this.child(levels.get(current), "lvlRestart"), ordinal = restart ? integer(numberingAttribute(restart), 9) : 0;
+        current = ordinal === 0 ? undefined : ordinal - 1;
+      }
+    }
     return { num, definition, levels, overrides, starts };
   }
   private attributes(node: XmlElement, allowed: readonly string[]): void {
@@ -251,7 +267,7 @@ export class NumberingGraph {
     const start = this.child(node, "start");
     if (start) integer(numberingAttribute(start));
     const restart = this.child(node, "lvlRestart");
-    if (restart && integer(numberingAttribute(restart), 9) > index) throw new UnsupportedEditError("Invalid numbering restart dependency.");
+    if (restart) integer(numberingAttribute(restart), 9);
     const style = numberingAttribute(this.child(node, "pStyle"));
     if (style !== undefined) this.style(style, "paragraph");
   }
@@ -292,6 +308,80 @@ export class NumberingGraph {
     const abstractId = this.abstract(Array.from({ length: 9 }, () => kind));
     const id = this.allocate(false);
     this.newInstances.push(`<nl:num xmlns:nl="${w}" nl:numId="${id}"><nl:abstractNumId nl:val="${abstractId}"/>${start === 1 ? '' : `<nl:lvlOverride nl:ilvl="${level}"><nl:startOverride nl:val="${start}"/></nl:lvlOverride>`}</nl:num>`);
+    return id;
+  }
+  /** Fork the selected occurrence; retain every effective unedited level and source graph. */
+  setLevels(graph: ResolvedNumbering, options: DocxOperationArguments<"lists.levels.set">): number {
+    const w = this.xml.root.namespace, children = (node: XmlElement) => this.children(node);
+    const scalar = (name: string, value: string | number) => `<nl:${name} xmlns:nl="${w}" nl:val="${xmlValue(String(value))}"/>`;
+    const styleId = (name: string, type: string): string => {
+      const matches = this.children(this.styles).filter(node => node.namespace === w && node.localName === "style" && styleStoredName(numberingAttribute(this.child(node, "name")) ?? "") === styleStoredName(name));
+      if (matches.length !== 1 || (numberingAttribute(matches[0], "type") ?? "paragraph") !== type) throw new InvalidValueError("Expected one named style of the required numbering relationship type.");
+      const id = numberingAttribute(matches[0], "styleId");
+      if (!id) throw new UnsupportedEditError("Numbering styles require a stored style ID.");
+      this.style(id, type); return id;
+    };
+    let changed = false;
+    const supplied = new Map((options.levels ?? []).map(level => [level.level, level]));
+    const restarts = new Map<number, number | null>();
+    const levelMarkup = new Map<number, string>();
+    const levelOrder = "start numFmt lvlRestart pStyle isLgl suff lvlText lvlJc pPr rPr".split(" ");
+    for (const index of new Set([...graph.levels.keys(), ...supplied.keys()])) {
+      this.budget.charge("work", 1);
+      const old = graph.levels.get(index), patch = supplied.get(index);
+      const source = old ? this.xml : new DocumentXmlEditor(new TextEncoder().encode(`<nl:lvl xmlns:nl="${w}" nl:ilvl="${index}"/>`), {}, undefined, this.budget);
+      const node = old ?? source.root, updates = new Map<string, string>();
+      const oldRestart = old && this.child(old, "lvlRestart"), restart = patch?.restartAfter === undefined ? oldRestart ? integer(numberingAttribute(oldRestart), 9) - 1 : null : patch.restartAfter;
+      restarts.set(index, restart === -1 ? null : restart);
+      if (patch) {
+        changed ||= !old || Number(numberingAttribute(graph.starts.get(index) ?? this.child(old, "start")) ?? 1) !== patch.start || numberingAttribute(this.child(old, "numFmt")) !== patch.format || numberingAttribute(this.child(old, "lvlText")) !== patch.text;
+        updates.set("start", scalar("start", patch.start)); updates.set("numFmt", scalar("numFmt", patch.format)); updates.set("lvlText", scalar("lvlText", patch.text));
+        if (patch.restartAfter !== undefined) changed ||= patch.restartAfter !== (oldRestart ? Number(numberingAttribute(oldRestart)) - 1 : null);
+        if (patch.paragraphStyle !== undefined) changed ||= styleId(patch.paragraphStyle, "paragraph") !== numberingAttribute(this.child(old, "pStyle"));
+        if (patch.restartAfter !== undefined) updates.set("lvlRestart", patch.restartAfter === null ? "" : scalar("lvlRestart", patch.restartAfter + 1));
+        if (patch.paragraphStyle !== undefined) updates.set("pStyle", scalar("pStyle", styleId(patch.paragraphStyle, "paragraph")));
+        if (patch.indent !== undefined || patch.hanging !== undefined) {
+          const hanging = patch.hanging === undefined ? undefined : paragraphUnits(plainLength(patch.hanging), 1);
+          const props = paragraphProperties(source, node, {
+            ...(patch.indent === undefined ? {} : { leftIndent: { value: paragraphUnits(plainLength(patch.indent), 1), unit: "emu" as const } }),
+            ...(hanging === undefined ? {} : { firstLineIndent: { value: -hanging, unit: "emu" as const } })
+          }, undefined, old ? children : undefined);
+          const previous = old && this.child(old, "pPr"); changed ||= props !== (previous ? source.sourceXml(previous) : ""); updates.set("pPr", props);
+        }
+      } else if (graph.starts.has(index)) updates.set("start", scalar("start", numberingAttribute(graph.starts.get(index))!));
+      const markup = mergeStyleChildren(source, node, updates, levelOrder, {}, old ? children : undefined);
+      const envelope = runElementOpen({ ...node, attributes: [] }) + markup + `</${node.name}>`;
+      const editor = new DocumentXmlEditor(new TextEncoder().encode(envelope), {}, undefined, this.budget);
+      levelMarkup.set(index, old ? this.fragment(old, editor.sourceXml(editor.root.children[0]!, new Map(), true)) : markup);
+    }
+    for (const start of restarts.keys()) {
+      const seen = new Set<number>(); let current: number | null | undefined = start;
+      while (current !== null && current !== undefined && restarts.has(current)) {
+        this.budget.charge("work", 1);
+        if (seen.has(current)) throw new InvalidValueError("List restart dependencies cannot contain cycles.");
+        seen.add(current); current = restarts.get(current);
+      }
+    }
+    const priorLink = this.child(graph.definition, "styleLink");
+    if (options.numberingStyle !== undefined) changed ||= (options.numberingStyle === null ? undefined : styleId(options.numberingStyle, "numbering")) !== numberingAttribute(priorLink);
+    if (!changed) return integer(numberingAttribute(graph.num, "numId"));
+    const id = this.allocate(false), abstractId = this.allocate(true), definitionPatches = new Map<XmlElement, string>();
+    const originalLevels = new Set<number>();
+    for (const old of this.children(graph.definition)) if (old.namespace === w && old.localName === "lvl") {
+      const index = integer(numberingAttribute(old, "ilvl"), 8); originalLevels.add(index); definitionPatches.set(old, levelMarkup.get(index)!);
+    }
+    const link = this.child(graph.definition, "styleLink"), newLink = options.numberingStyle === undefined ? undefined : options.numberingStyle === null ? "" : scalar("styleLink", styleId(options.numberingStyle, "numbering"));
+    if (link && newLink !== undefined) definitionPatches.set(link, newLink);
+    const firstLevel = this.children(graph.definition).find(node => node.namespace === w && node.localName === "lvl");
+    if (!link && newLink && firstLevel) definitionPatches.set(firstLevel, newLink + definitionPatches.get(firstLevel)!);
+    const addedLevels = [...levelMarkup].filter(([index]) => !originalLevels.has(index)).sort(([a], [b]) => a - b).map(([,markup]) => markup).join("");
+    const definition = this.fragment(graph.definition, this.xml.sourceXml(graph.definition, definitionPatches, true) + (link || firstLevel || newLink === undefined ? "" : newLink) + addedLevels);
+    const definitionEditor = new DocumentXmlEditor(new TextEncoder().encode(definition), {}, undefined, this.budget);
+    this.newAbstracts.push(mergeStyleChildren(definitionEditor, definitionEditor.root, new Map(), [], { abstractNumId: String(abstractId) }));
+    const numPatches = new Map<XmlElement, string>([[this.child(graph.num, "abstractNumId")!, scalar("abstractNumId", abstractId)]]);
+    for (const override of this.children(graph.num)) if (override.namespace === w && override.localName === "lvlOverride") numPatches.set(override, mergeStyleChildren(this.xml, override, new Map([["startOverride", ""], ["lvl", ""]]), ["startOverride", "lvl"], {}, children));
+    const num = this.fragment(graph.num, this.xml.sourceXml(graph.num, numPatches, true)), numEditor = new DocumentXmlEditor(new TextEncoder().encode(num), {}, undefined, this.budget);
+    this.newInstances.push(mergeStyleChildren(numEditor, numEditor.root, new Map(), [], { numId: String(id) }));
     return id;
   }
   mixUnusedLevel(graph: ResolvedNumbering, level: number, kind: typeof numberingFormats[number]): boolean {

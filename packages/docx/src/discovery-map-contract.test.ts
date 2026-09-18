@@ -187,6 +187,9 @@ it("keeps the current evidence snapshot joined to live declarations and every AP
   Object.assign(native.apis, textResources.apis);
   Object.assign(native.runtimeMembers, textResources.runtimeMembers);
   native.runtimeExports = textResources.runtimeExports;
+  const neutralErrors = JSON.parse(readFileSync(new URL("../../../docs/docx/neutral-error-discovery-20260918/discovery-map-update.json", import.meta.url), "utf8")) as typeof native;
+  Object.assign(native.runtimeMembers, neutralErrors.runtimeMembers);
+  native.runtimeExports = neutralErrors.runtimeExports;
   Object.assign(audit.operations, native.operations);
   Object.assign(audit.apis, native.apis);
   audit.runtimeExports = native.runtimeExports;

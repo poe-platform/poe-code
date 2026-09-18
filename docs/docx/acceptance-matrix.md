@@ -1,5 +1,14 @@
 # DOCX acceptance matrix
 
+The [native document story qualification](native-document-stories-20260917.md)
+records 284 exact header/footer behavior cases within a complete 2,326-case,
+14-file maintained consumer run, zero skips and 1,060 unchanged captured inputs.
+Twenty-four built model/SDK/actual Shell workflows pass across both dialects and
+kinds. Native creation, lookup, removal, shared/inactive relationship retention,
+handle invalidation and allocation rollback are qualified. Provider protocols,
+save, document-owner liveness and explicit text-resource reads have separately
+reproduced open failures; full F01–F07 acceptance and complete gates remain open.
+
 The [native StoryPart qualification](native-story-part-20260917.md) records 677
 exact behavior assertions within a 3,211-assertion maintained consumer run, with
 zero skips and 1,070 unchanged captured inputs. Sixty built model/SDK/actual

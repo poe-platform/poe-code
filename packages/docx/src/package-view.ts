@@ -32,6 +32,7 @@ import type { Length } from "./formatting-values.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import { documentTypes } from "./admission.js";
 import { compatibilityProfileForPart } from "./compatibility.js";
+import { retainedRelationshipTargets } from "./relationship-part.js";
 
 const relNamespace = "http://schemas.openxmlformats.org/package/2006/relationships";
 const relContentType = "application/vnd.openxmlformats-package.relationships+xml";
@@ -69,6 +70,7 @@ const packageLoadImage = Symbol("load-image");
 const packageStoryImage = Symbol("story-image");
 const partNames = new WeakMap<PartView, string>();
 const validateNativePartType = Symbol("validate-native-part-type");
+const invalidateRelationshipViews = Symbol("invalidate-relationship-views");
 
 /** Internal binding to the admitted model; publication remains with that owner. */
 export interface PackageViewBinding {
@@ -349,20 +351,25 @@ export class PackageView {
       throw error;
     }
   }
-  [packageCreateNative](kind: "header" | "footer" | "comments" | "settings" | "styles"): XmlPartView {
+  [packageCreateNative](kind: "header" | "footer" | "comments" | "settings" | "styles", relationship?: { owner: DocumentPartView; rId: string }): XmlPartView {
     this.#binding.writable();
-    const owner = this.main_document_part, root = owner.element.tag;
-    const { graph } = this.current(), { budget } = archiveSettings(this.#binding.context);
-    const tag = { header: "hdr", footer: "ftr", comments: "comments", settings: "settings", styles: "styles" }[kind];
-    const content = kind === "header" || kind === "footer" ? "<w:p/>" : kind === "styles" ? originalModelDefaults(root.namespaceURI) : "";
-    const base = owner.partname.toString();
-    const name = graph.allocatePartName(base.slice(0, base.lastIndexOf("/") + 1) + kind, ".xml");
-    const bytes = new TextEncoder().encode(`<w:${tag} xmlns:w="${root.namespaceURI}">${content}</w:${tag}>`);
-    const parsed = parseDocumentXml(bytes, {}, budget);
-    let nodes = 0; const pending = [parsed.root];
-    while (pending.length) { const node = pending.pop()!; nodes++; pending.push(...node.children); }
-    budget.charge("insertedNodes", nodes);
-    return this[packageAdmitPart](name, `application/vnd.openxmlformats-officedocument.wordprocessingml.${kind}+xml`, bytes) as XmlPartView;
+    const restore = this[packageOwnerCheckpoint]();
+    try {
+      const owner = relationship?.owner ?? this.main_document_part, root = owner.element.tag;
+      const { graph } = this.current(), { budget } = archiveSettings(this.#binding.context);
+      const tag = { header: "hdr", footer: "ftr", comments: "comments", settings: "settings", styles: "styles" }[kind];
+      const content = kind === "header" || kind === "footer" ? "<w:p/>" : kind === "styles" ? originalModelDefaults(root.namespaceURI) : "";
+      const base = owner.partname.toString();
+      const name = graph.allocatePartName(base.slice(0, base.lastIndexOf("/") + 1) + kind, ".xml");
+      const bytes = new TextEncoder().encode(`<w:${tag} xmlns:w="${root.namespaceURI}">${content}</w:${tag}>`);
+      const parsed = parseDocumentXml(bytes, {}, budget);
+      let nodes = 0; const pending = [parsed.root];
+      while (pending.length) { const node = pending.pop()!; nodes++; pending.push(...node.children); }
+      budget.charge("insertedNodes", nodes);
+      const dialect = Object.values(documentDialects).find(dialect => dialect.w === root.namespaceURI)!;
+      return this[packageAdmitPart](name, `application/vnd.openxmlformats-officedocument.wordprocessingml.${kind}+xml`, bytes,
+        relationship ? { owner, rId: relationship.rId, reltype: `${dialect.r}/${kind}` } : undefined) as XmlPartView;
+    } catch (error) { restore(); throw error; }
   }
   [packageNumbering](owner: DocumentPartView): NumberingPart {
     const metadata = this[packageMetadata](owner), { graph } = this.current();
@@ -412,7 +419,7 @@ export class PackageView {
     while (ids.has(`rId${ordinal}`)) { budget.charge("work", 1); ordinal++; }
     return `rId${ordinal}`;
   }
-  [packageEditRelationships](owner: PartView | null, rows: readonly RelationshipRow[]): void {
+  [packageEditRelationships](owner: PartView | null, rows: readonly RelationshipRow[], removeUnsharedPart?: PartView): void {
     this.#binding.writable();
     const { archive } = this.current(), settings = archiveSettings(this.#binding.context);
     const name = relationshipName(owner ? this[packageMetadata](owner).partname : "/");
@@ -462,9 +469,33 @@ export class PackageView {
       xml.insertChildren(xml.root, `<Relationship xmlns="${relNamespace}" Id="${xmlValue(row.rId)}" Type="${xmlValue(row.reltype)}" Target="${xmlValue(row.target_ref)}"${row.is_external ? ' TargetMode="External"' : ""}/>`);
       bytes = xml.serialize();
     }
-    const members = archive.members.map(member => member === existing ? { ...member, bytes } : member);
+    let members = archive.members.map(member => member === existing ? { ...member, bytes } : member);
     if (!existing) members.push({ name, bytes, directory: false, modified: new Date("1980-01-01T00:00:00Z") });
+    const deleted = new Set<string>();
+    if (removeUnsharedPart) {
+      const metadata = this[packageMetadata](removeUnsharedPart), graph = this.current().graph;
+      const excluded = [...removed].map(id => ({ owner: owner ? this[packageMetadata](owner).partname : "/", id }));
+      if (!retainedRelationshipTargets(graph, settings.budget, excluded).has(asciiKey(metadata.partname))) {
+        deleted.add(asciiKey(metadata.partname));
+        const deletedNames = new Set([metadata.name]);
+        const outgoing = this.relationshipMember(metadata.partname);
+        if (outgoing) { deleted.add(asciiKey(normalizePartName("/" + outgoing.name))); deletedNames.add(outgoing.name); }
+        const types = members.find(member => asciiKey(member.name) === "[content_types].xml")!;
+        const xml = new DocumentXmlEditor(types.bytes, {}, undefined, settings.budget);
+        for (const node of [...xml.root.children]) {
+          const partname = node.attributes.find(attribute => !attribute.namespace && attribute.localName === "PartName")?.value;
+          if (partname && deleted.has(asciiKey(normalizePartName(partname)))) xml.replaceElement(node, "");
+        }
+        members = members.filter(member => !deletedNames.has(member.name))
+          .map(member => member === types ? { ...member, bytes: xml.serialize() } : member);
+      }
+    }
     this.commit({ ...archive, members });
+    this.#relationships.get(owner ? asciiKey(owner.partname.toString()) : "/")?.[invalidateRelationshipViews](removed);
+    for (const key of deleted) {
+      const part = this.#parts.get(key); if (part) partNames.delete(part);
+      this.#parts.delete(key); this.#relationships.delete(key);
+    }
   }
   [packageBindXml](part: PartView): XmlElementView {
     return bindXmlElementView({ budget: archiveSettings(this.#binding.context).budget,
@@ -767,6 +798,32 @@ export class DocumentPartView extends StoryPart {
   get styles() { return this.package[packageModel](this).styles; }
   get inline_shapes() { return this.package[packageModel](this).document.inline_shapes; }
   get core_properties() { this.package[packageMetadata](this); return this.package.core_properties; }
+  add_header_part(): readonly [HeaderPart, string] {
+    const rId = this.package[packageNextRelationshipId](this);
+    const part = this.package[packageCreateNative]("header", { owner: this, rId }) as HeaderPart;
+    return Object.freeze([part, rId]);
+  }
+  add_footer_part(): readonly [FooterPart, string] {
+    const rId = this.package[packageNextRelationshipId](this);
+    const part = this.package[packageCreateNative]("footer", { owner: this, rId }) as FooterPart;
+    return Object.freeze([part, rId]);
+  }
+  header_part(rId: string): HeaderPart {
+    const edge = this.rels.at(rId), dialect = Object.values(documentDialects).find(dialect => dialect.w === this.element.namespace)!;
+    if (edge.is_external || edge.reltype !== `${dialect.r}/header` || !(edge.target_part instanceof HeaderPart))
+      throw new InvalidValueError("Expected an owned native header relationship.");
+    return edge.target_part;
+  }
+  footer_part(rId: string): FooterPart {
+    const edge = this.rels.at(rId), dialect = Object.values(documentDialects).find(dialect => dialect.w === this.element.namespace)!;
+    if (edge.is_external || edge.reltype !== `${dialect.r}/footer` || !(edge.target_part instanceof FooterPart))
+      throw new InvalidValueError("Expected an owned native footer relationship.");
+    return edge.target_part;
+  }
+  drop_header_part(rId: string): void {
+    const part = this.header_part(rId), rows = this.package[packageEdges](this).filter(row => row.rId !== rId);
+    this.package[packageEditRelationships](this, rows, part);
+  }
   static override async load(partname: string | PackURI, content_type: string, blob: Uint8Array, owner: PackageView): Promise<DocumentPartView> {
     if (typeof content_type !== "string" || !Object.values(documentTypes).includes(parseMediaType(content_type))) throw new InputTypeError("Expected a macro-free document or template content type.");
     return await super.load(partname, content_type, blob, owner) as DocumentPartView;
@@ -941,6 +998,7 @@ export class Relationships implements Iterable<string> {
   readonly #views = new Map<string, { token: object; view: RelationshipView }>();
   constructor(ownerPackage: PackageView, owner: PartView | null) { this.#package = ownerPackage; this.#owner = owner; }
   get package(): PackageView { return this.#package; }
+  [invalidateRelationshipViews](ids: ReadonlySet<string>): void { for (const id of ids) this.#views.delete(id); }
   private rows(): readonly PackageRelationship[] { return this.#package[packageEdges](this.#owner); }
   row(id: string, token: object): PackageRelationship {
     const row = this.rows().find(row => row.rId === id);

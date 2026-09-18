@@ -178,7 +178,7 @@ it("keeps the current evidence snapshot joined to live declarations and every AP
     apis: Record<string, { declaredOperationIds: string[]; cliCapabilityOperationIds: string[] }>;
     runtimeExports: string[];
   };
-  const native = JSON.parse(readFileSync(new URL("../../../docs/docx/native-story-part-20260917/discovery-map-update.json", import.meta.url), "utf8")) as {
+  const native = JSON.parse(readFileSync(new URL("../../../docs/docx/native-document-stories-20260917/discovery-map-update.json", import.meta.url), "utf8")) as {
     operations: typeof audit.operations; apis: typeof audit.apis; runtimeExports: string[];
     runtimeMembers: Record<string, { operationIds: string[]; members: { operationIds: string[]; evidenceKind: string }[] }>;
   };

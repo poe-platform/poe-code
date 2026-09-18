@@ -132,6 +132,10 @@ action("model.parts.settings.SettingsPart.settings.get", SettingsPart, receiver 
 for (const name of ["document", "comments", "settings", "styles", "inline_shapes", "core_properties"] as const)
   action(`model.parts.document.DocumentPart.${name}.get`, DocumentPartView, receiver => receiver[name]);
 action("model.parts.document.DocumentPart.numbering_part.get", DocumentPartView, receiver => receiver.numbering_part);
+for (const method of ["add_header_part", "add_footer_part"] as const)
+  action(`model.parts.document.DocumentPart.${method}.call`, DocumentPartView, receiver => receiver[method]());
+for (const method of ["header_part", "footer_part", "drop_header_part"] as const)
+  action(`model.parts.document.DocumentPart.${method}.call`, DocumentPartView, (receiver, args) => receiver[method](args.rId as string));
 action("model.parts.numbering.NumberingPart.numbering_definitions.get", NumberingPart, receiver => receiver.numbering_definitions);
 action("model.parts.numbering._NumberingDefinitions.__len__.get", _NumberingDefinitions, receiver => receiver.length);
 action("model.NumberingDefinitionsView.length.get", _NumberingDefinitions, receiver => receiver.length);

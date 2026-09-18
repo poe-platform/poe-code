@@ -101,6 +101,7 @@ export class Paragraph {
   }
   get rendered_page_breaks(): readonly RenderedPageBreak[] {
     const p = this.store.node(this.ref);
+    const children = activeModelChildren(this.store, this.ref.part);
     const result: RenderedPageBreak[] = [];
     const visit = (node: XmlElement) => {
       this.store.context.budget.charge("work", 1);
@@ -109,7 +110,7 @@ export class Paragraph {
         result.push(
           new RenderedPageBreak(this.store, this.store.ref(this.ref.part, node), this.ref)
         );
-      else for (const child of node.children) visit(child);
+      else for (const child of children(node)) visit(child);
     };
     visit(p);
     return result;
@@ -354,7 +355,7 @@ export class Run {
   }
   get contains_page_break(): boolean {
     const r = this.store.node(this.ref);
-    return r.children.some(
+    return activeModelChildren(this.store, this.ref.part)(r).some(
       (child) => child.localName === "lastRenderedPageBreak" && child.namespace === r.namespace
     );
   }

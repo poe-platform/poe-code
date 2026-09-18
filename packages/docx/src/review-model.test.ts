@@ -310,13 +310,17 @@ it("anchors all intervening paragraph runs and publishes rich comments in memory
   expect(data.items[0]?.issues).toEqual([]);
   expect(data.items[0]?.range).not.toBeNull();
 });
-it("rejects extracting a later cached break until its preceding fragment is selected", () => {
-  const m = admitted(
-      `<w:p xmlns:w="${w}"><w:r><w:t>a</w:t><w:lastRenderedPageBreak/><w:t>b</w:t><w:lastRenderedPageBreak/><w:t>c</w:t></w:r></w:p>`
-    ),
-    b = new RenderedPageBreak(m.store, m.ref([0, 3]), m.root);
-  expect(() => b.preceding_paragraph_fragment).toThrow(UnsupportedEditError);
-  expect(() => b.following_paragraph_fragment).toThrow(UnsupportedEditError);
+it("extracts a later cached break while retaining the earlier marker in its detached prefix", async () => {
+  const doc = await Document(await textFixture(
+    "<w:p><w:r><w:t>a</w:t><w:lastRenderedPageBreak/><w:t>b</w:t><w:lastRenderedPageBreak/><w:t>c</w:t></w:r></w:p>"
+  ), textContext);
+  const source = doc.part.blob, b = doc.paragraphs[0]!.rendered_page_breaks[1]!;
+  const before = b.preceding_paragraph_fragment!, after = b.following_paragraph_fragment!;
+  expect(before.text).toBe("ab");
+  expect(after.text).toBe("c");
+  expect(before.rendered_page_breaks).toHaveLength(1);
+  expect(after.rendered_page_breaks).toHaveLength(0);
+  expect(doc.part.blob).toEqual(source);
 });
 it("removes the extracted cached marker from the detached whole hyperlink", () => {
   const m = admitted(

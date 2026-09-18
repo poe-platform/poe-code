@@ -187,9 +187,10 @@ export class Hyperlink {
   }
   get contains_page_break(): boolean {
     const node = this.store.node(this.ref),
+      children = activeModelChildren(this.store, this.ref.part),
       visit = (n: XmlElement): boolean =>
-        (n.namespace === node.namespace && n.localName === "lastRenderedPageBreak") ||
-        n.children.some(visit);
+        n.namespace === node.namespace &&
+        (n.localName === "lastRenderedPageBreak" || children(n).some(visit));
     return visit(node);
   }
   get history(): boolean {
@@ -219,43 +220,47 @@ export class RenderedPageBreak {
     const xml = this.store.xml(this.ref.part),
       p = this.store.node(this.paragraphRef),
       marker = this.store.node(this.ref);
+    const children = activeModelChildren(this.store, this.ref.part);
     const breaks: XmlElement[] = [];
     const collect = (n: XmlElement): void => {
-      if (n.namespace === p.namespace && n.localName === "lastRenderedPageBreak") breaks.push(n);
-      for (const child of n.children) collect(child);
+      if (n.namespace !== p.namespace) return;
+      if (n.localName === "lastRenderedPageBreak") breaks.push(n);
+      for (const child of children(n)) collect(child);
     };
     collect(p);
-    if (breaks[0] !== marker)
+    if (!breaks.includes(marker))
       throw new UnsupportedEditError(
-        "Fragment extraction requires the first cached break in its paragraph."
+        "Fragment extraction requires an active cached break in its paragraph."
       );
-    const contains = (n: XmlElement): boolean => n === marker || n.children.some(contains);
-    const owner = p.children.find(contains);
+    const contains = (n: XmlElement): boolean => n === marker || children(n).some(contains);
+    const owner = children(p).find(contains);
     if (!owner) throw new InvalidValueError("Cached break is not in its paragraph.");
-    const properties = p.children.find((n) => n.namespace === p.namespace && n.localName === "pPr");
-    const content = p.children.filter((n) => n !== properties),
+    const properties = children(p).find((n) => n.namespace === p.namespace && n.localName === "pPr");
+    const content = children(p).filter((n) => n !== properties),
       index = content.indexOf(owner),
       patches = new Map<XmlElement, string>();
+    const standalone = (node: XmlElement): string =>
+      runElementOpen(node) + (node.content.length ? xml.sourceXml(node, new Map(), true) : "") + `</${node.name}>`;
     let fragment = "";
     if (owner.localName === "hyperlink") {
       const removeMarker = (node: XmlElement): string =>
         node === marker
           ? ""
           : !contains(node)
-            ? xml.sourceXml(node)
-            : runElementOpen(node) + node.children.map(removeMarker).join("") + `</${node.name}>`;
+            ? standalone(node)
+            : runElementOpen(node) + children(node).map(removeMarker).join("") + `</${node.name}>`;
       patches.set(owner, removeMarker(owner));
       fragment = content
         .slice(preceding ? 0 : index + 1, preceding ? index + 1 : undefined)
-        .map((n) => patches.get(n) ?? xml.sourceXml(n))
+        .map((n) => patches.get(n) ?? standalone(n))
         .join("");
     } else {
       const split = (node: XmlElement): string => {
         if (node === marker) return "";
-        if (!contains(node)) return xml.sourceXml(node);
+        if (!contains(node)) return standalone(node);
         let seen = false,
           inner = "";
-        for (const child of node.children) {
+        for (const child of children(node)) {
           const has = contains(child);
           if (has) {
             inner += split(child);
@@ -264,18 +269,18 @@ export class RenderedPageBreak {
             (child.namespace === node.namespace && child.localName === "rPr") ||
             (preceding ? !seen : seen)
           )
-            inner += xml.sourceXml(child);
+            inner += standalone(child);
         }
         return runElementOpen(node) + inner + `</${node.name}>`;
       };
       patches.set(owner, split(owner));
       fragment = content
         .slice(preceding ? 0 : index, preceding ? index + 1 : undefined)
-        .map((n) => patches.get(n) ?? xml.sourceXml(n))
+        .map((n) => patches.get(n) ?? standalone(n))
         .join("");
     }
     const candidate =
-      runElementOpen(p) + (properties ? xml.sourceXml(properties) : "") + fragment + `</${p.name}>`;
+      runElementOpen(p) + (properties ? standalone(properties) : "") + fragment + `</${p.name}>`;
     const meaningful = (n: XmlElement): boolean =>
       (n.namespace === p.namespace &&
         ["t", "tab", "br", "cr", "drawing", "pict", "object"].includes(n.localName)) ||

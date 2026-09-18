@@ -15,7 +15,7 @@ interface PageEvents {
   requests: RequestRecord[]; generation: number; console: ConsoleRecord[];
   startedAt: number; nextRequestIndex: number; nextConsoleIndex: number; consoleCursor: number; log?: ConsoleLog;
 }
-interface EventState { pages: WeakMap<object, PageEvents>; failure?: Error; maxBytes: number; maxArtifactBytes: number }
+interface EventState { pages: WeakMap<object, PageEvents>; failure?: Error; maxBytes: number; maxArtifactBytes: number; forget(record: object): void }
 const states = new WeakMap<PlaywrightContext, EventState>();
 
 // A host may wrap Page navigation methods while native events retain the raw Page.
@@ -25,8 +25,6 @@ function pageIdentity(page: PlaywrightPage): object { return page.mainFrame?.() 
 export function observePlaywrightCapabilities(context: PlaywrightContext, registerCleanup: (cleanup: () => Promise<void>) => void,
   limits: { maxCommandBytes: number; maxArtifactBytes: number }): void {
   if (states.has(context)) return;
-  const state: EventState = { pages: new WeakMap(), maxBytes: limits.maxCommandBytes, maxArtifactBytes: limits.maxArtifactBytes };
-  states.set(context, state);
   const requests = new WeakMap<PlaywrightNetworkRequest, RequestRecord>();
   const history = new Map<object, { bytes: number; evict(): void }>();
   let bytes = 0, closed = false;
@@ -35,6 +33,8 @@ export function observePlaywrightCapabilities(context: PlaywrightContext, regist
     if (!retained) return;
     history.delete(record); bytes -= retained.bytes; retained.evict();
   };
+  const state: EventState = { pages: new WeakMap(), maxBytes: limits.maxCommandBytes, maxArtifactBytes: limits.maxArtifactBytes, forget };
+  states.set(context, state);
   // Diagnostic retention rolls independently of browser traffic and session lifetime.
   const retain = (record: object, size: number, evict: () => void): void => {
     const previous = history.get(record);
@@ -144,7 +144,10 @@ function observed(request: PlaywrightAbilityRequest) {
   const state = states.get(session.context);
   if (!state) unsupported('browser event observation');
   if (state.failure) throw state.failure;
-  return { state, events: state.pages.get(pageIdentity(requirePage(request))) ?? { requests: [], generation: 0, console: [] } };
+  const events: PageEvents = state.pages.get(pageIdentity(requirePage(request))) ?? {
+    requests: [], generation: 0, console: [], startedAt: Date.now(), nextRequestIndex: 0, nextConsoleIndex: 0, consoleCursor: 0,
+  };
+  return { state, events };
 }
 
 async function textResult(request: PlaywrightAbilityRequest, text: string, label: string, prefix: string) {
@@ -162,7 +165,12 @@ function requestLine(record: RequestRecord): string {
 }
 
 const requestsAbility: PlaywrightAbility = { scope: 'session', options: 'all', async execute(request) {
-  const { events } = observed(request);
+  const { state, events } = observed(request);
+  if (request.options.clear) {
+    for (const record of [...events.requests]) state.forget(record);
+    events.nextRequestIndex = 0;
+    return capabilityResult('');
+  }
   let matches: boolean[] | undefined;
   if (request.options.filter !== undefined) {
     const page = requirePage(request);
@@ -224,7 +232,13 @@ const requestAbility: PlaywrightAbility = { scope: 'session', options: 'all', as
 } };
 
 const consoleAbility: PlaywrightAbility = { scope: 'session', options: 'all', async execute(request) {
-  const { events } = observed(request);
+  const { state, events } = observed(request);
+  if (request.options.clear) {
+    for (const record of [...events.console]) state.forget(record);
+    events.consoleCursor = events.nextConsoleIndex;
+    delete events.log;
+    return capabilityResult('');
+  }
   const level = request.args[0] ?? 'info';
   if (!consoleLevels.includes(level as typeof consoleLevels[number])) throw new Error(`Invalid console level: ${level}`);
   const all = request.options.all ? events.console : events.console.filter(message => message.generation === events.generation);

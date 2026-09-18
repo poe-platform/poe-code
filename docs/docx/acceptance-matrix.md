@@ -683,3 +683,9 @@ missing synchronous public method. All 52 original cases, 474 maintained owner
 consumers and 76 independent built workflows pass, including native and renamed
 owners. Read-only comparisons retain zero affected changes and no publication.
 Full-family acceptance remains open.
+
+The [Document construction qualification](document-construction-carriers-20260918.md)
+restores primary table-style semantics and page-derived default width, retaining
+explicit width overload parity. All 460 original cases, 2,588 affected consumers
+and 472 independent built workflows pass. These scoped checks retain both
+macro-free kinds/dialects and five body carriers; full F01–F07 acceptance remains open.

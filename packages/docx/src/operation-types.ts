@@ -259,7 +259,7 @@ interface MaintainedDocxOperationArgumentMap {
   "model.document.Document.add_paragraph.call": Readonly<{ "text"?: string | undefined; "style"?: string | DocxModelHandle<"ParagraphStyle"> | null | undefined }>;
   "model.document.Document.add_picture.call": Readonly<{ "input": Uint8Array | DocxBinaryInput | Readonly<{ path: string; capability: string }>; "width"?: number | DocxLength | null | undefined; "height"?: number | DocxLength | null | undefined }>;
   "model.document.Document.add_section.call": Readonly<{ "startType"?: DocxEnumValue<"WD_SECTION"> | undefined }>;
-  "model.document.Document.add_table.call": Readonly<{ "rows": number; "cols": number; "style"?: string | DocxModelHandle<"_TableStyle"> | null | undefined }>;
+  "model.document.Document.add_table.call": Readonly<{ "rows": number; "cols": number; "style"?: string | DocxModelHandle<"_TableStyle"> | null | undefined; "width"?: DocxLength | undefined }>;
   "model.document.Document.comments.get": Readonly<Record<string, never>>;
   "model.document.Document.core_properties.get": Readonly<Record<string, never>>;
   "model.document.Document.inline_shapes.get": Readonly<Record<string, never>>;
@@ -1785,7 +1785,7 @@ interface DocxLiteralBatchArgumentMap extends
   "model.document.Document.add_paragraph.call": Readonly<{ "text"?: string | undefined; "style"?: string | DocxModelHandle<"ParagraphStyle"> | null | undefined }>;
   "model.document.Document.add_picture.call": Readonly<{ "input": Uint8Array | DocxBinaryInput | Readonly<{ path: string; capability: string }>; "width"?: number | DocxLength | null | undefined; "height"?: number | DocxLength | null | undefined }>;
   "model.document.Document.add_section.call": Readonly<{ "startType"?: DocxEnumValue<"WD_SECTION"> | undefined }>;
-  "model.document.Document.add_table.call": Readonly<{ "rows": number; "cols": number; "style"?: string | DocxModelHandle<"_TableStyle"> | null | undefined }>;
+  "model.document.Document.add_table.call": Readonly<{ "rows": number; "cols": number; "style"?: string | DocxModelHandle<"_TableStyle"> | null | undefined; "width"?: DocxLength | undefined }>;
   "model.document.Document.comments.get": Readonly<Record<string, never>>;
   "model.document.Document.core_properties.get": Readonly<Record<string, never>>;
   "model.document.Document.inline_shapes.get": Readonly<Record<string, never>>;

@@ -7,8 +7,8 @@ import { Comments, bindCommentRange } from "./review-model.js";
 import type { Length } from "./formatting-values.js";
 import type { DocumentOutput, DocumentSaveOptions } from "./model-output.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
-import { WD_BREAK, WD_SECTION_START, Emu, Inches } from "./formatting-values.js";
-import { resolveHeadingStyle } from "./styles-model.js";
+import { WD_BREAK, WD_SECTION_START, Emu, Inches, isLength } from "./formatting-values.js";
+import { resolveHeadingStyle, type TableStyle } from "./styles-model.js";
 import type { DocxEnumValue } from "./operation-types.js";
 import { mergeStyleChildren } from "./style-properties.js";
 import { sectionPropertyOrder } from "./section-properties.js";
@@ -155,7 +155,15 @@ export class DocumentView {
       return section;
     });
   }
-  add_table(rows: number, cols: number, width?: Length) {
+  add_table(rows: number, cols: number, style?: string | TableStyle | null, width?: Length): import("./table-model.js").Table;
+  add_table(rows: number, cols: number, width: Length): import("./table-model.js").Table;
+  add_table(rows: number, cols: number, style?: string | TableStyle | Length | null, width?: Length) {
+    if (isLength(style)) {
+      if (width !== undefined) throw new InputTypeError("Choose one table width.");
+      width = style;
+      style = undefined;
+    }
+    if (width !== undefined && !isLength(width)) throw new InputTypeError("Expected a table width length.");
     if (width === undefined) {
       const section = this.sections.at(-1);
       const page = section.page_width,
@@ -163,7 +171,11 @@ export class DocumentView {
         right = section.right_margin;
       width = Emu((page ?? Inches(8.5)).emu - (left ?? Inches(1)).emu - (right ?? Inches(1)).emu);
     }
-    return this.store.addTable(this.ref, rows, cols, width);
+    return this.store.transaction(() => {
+      const table = this.store.addTable(this.ref, rows, cols, width);
+      if (style !== undefined && style !== null) table.style = style;
+      return table;
+    });
   }
   async save(output: DocumentOutput, options?: DocumentSaveOptions): Promise<void> {
     await this.store.save(output, options);

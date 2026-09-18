@@ -830,3 +830,5 @@ qualifications and interrupted executions remain retained. The complete workspac
 run was interrupted for newly reproduced section-transfer, supported-history and
 note-marker dependencies; zero workspace acceptance is claimed. Direct paragraph
 annotations also require separate execution. All nine full-family entries stay open.
+
+The [direct paragraph annotation correction](text-style-family-acceptance-20260918/native-direct-annotations-requirement-evidence.json) records eight original failures, eight current same-case passes and 288 rebuilt public passes. Direct/ordered SDK and actual opt-in Shell execute both kinds/dialects, namespace spellings, both caret insertion operations and all scalar boundaries. Comments/PIs remain once on the original owner; formatting, exact Unicode, input/member bytes and package relationships survive. The current screenshot was inspected. Full-family and workspace acceptance remain separate and open.

@@ -65,7 +65,7 @@ export function replaceParagraphContent(xml: DocumentXmlEditor, p: XmlElement, p
 
 /** Split active scalar content while retaining each physical inactive owner once. */
 export function splitParagraphContent(xml: DocumentXmlEditor, p: XmlElement, caret: number, budget: DocumentBudget, properties: readonly [string, string]): readonly [string, string] {
-  if (p.content.some(c => c.kind !== "element" && (c.kind !== "text" || c.text.trim())))
+  if (p.content.some(c => !["element", "comment", "processing-instruction"].includes(c.kind) && (c.kind !== "text" || c.text.trim())))
     throw new UnsupportedEditError("Caret insertion requires simple paragraph content.");
   const children = activeXmlChildren(xml, budget), active = children(p);
   if (active.filter(node => node.namespace === p.namespace && node.localName === "pPr").length > 1) throw new UnsupportedEditError("Caret insertion requires one paragraph-property owner.");
@@ -121,7 +121,8 @@ export function splitParagraphContent(xml: DocumentXmlEditor, p: XmlElement, car
     if (side) return runElementOpen(node) + node.content.map(item => item.kind === "element" ? direct.get(item) : item.kind === "text" || item.kind === "cdata" ? xmlValue(item.text) : "").join("") + `</${node.name}>`;
     return xml.sourceXml(node, direct);
   };
-  return [0, 1].map(side => p.content.map(item => item.kind === "element" ? render(item, side) : item.kind === "text" ? xmlValue(item.text) : "").join("")) as [string, string];
+  return [xml.sourceXml(p, new Map(p.children.map(child => [child, render(child, 0)])), true),
+    p.content.map(item => item.kind === "element" ? render(item, 1) : item.kind === "text" ? xmlValue(item.text) : "").join("")];
 }
 
 /** Whole run assignment removes native content and retains its owning properties. */

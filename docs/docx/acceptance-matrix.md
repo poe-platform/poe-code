@@ -817,3 +817,16 @@ The [required advanced style-link correction](text-style-family-acceptance-20260
 The [required advanced list-level correction](text-style-family-acceptance-20260918/advanced-list-levels-requirement-evidence.json) binds six original missing-executor cases, 24 unchanged-allocation failures, four restart metadata failures and 144 native child-order failures. Qualified focused verification passed 1,408 cases; all 1,008 rebuilt public workflows passed (864 nine-level edits across all six formats, 144 exact unchanged-byte cases). Native carriers, dialects/kinds/namespace spellings and model-batch/SDK/actual Shell execute scoped isolation, typed style references, nullable restart/link reset, optional preservation, starts and indentation. Independent ZIP/CRC/OPC and untouched relationship/resource bytes remain verified. Authored verifier mistakes and interrupted public remainder remain historical evidence, with every qualified authored case rerun. Build/lint and inspected screenshot passed. Full F18 and all family entries remain open.
 
 The [inner native run-property correction](text-style-family-acceptance-20260918/run-property-inner-carriers-requirement-evidence.json) binds original formatting and preserving-replacement failures for Choice/Fallback/ProcessContent property leaves inside rPr at depths one and two. Qualified verification passed 428 focused cases, 576 rebuilt admitted public workflows and 288 rebuilt required opaque-property rejections. Direct/ordered SDK and actual Shell cover both dialects/kinds/namespace spellings, exact prefix/suffix flags, selected overrides, XML language, RTL/color, inactive identities once and untouched resource/relationship bytes. Original opaque fixtures remain explicit rejection cases rather than being removed; admitted ProcessContent fixtures execute separately. Missing-Requires and guard-regression attempts remain recorded. Build/lint and inspected screenshot passed. All nine full-family entries remain open.
+
+The [native scalar caret correction](text-style-family-acceptance-20260918/native-caret-requirement-evidence.json)
+binds the original native caret, property ownership, context, annotation and
+bookmark failures. The fresh fourteen-file focused execution passed 1,083 cases;
+stable built matrices passed 6,048 admitted insertion, 864 local-property, 1,152
+bookmark, 864 required-rejection, 576 shared-property and 288 property-guard cases.
+Independent CRC/ZIP/OPC, untouched members, original input, native properties,
+sections, scalar text, cached breaks and inactive identities remain asserted.
+Build/lint and inspected screenshot passed. All original failures, verifier
+qualifications and interrupted executions remain retained. The complete workspace
+run was interrupted for newly reproduced section-transfer, supported-history and
+note-marker dependencies; zero workspace acceptance is claimed. Direct paragraph
+annotations also require separate execution. All nine full-family entries stay open.

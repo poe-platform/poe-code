@@ -61,15 +61,26 @@ export const replaceSplitTextRunXml = Symbol("replace-split-text-run-xml");
 /** Internal native text fragments; retained inactive content belongs to the first fragment. */
 export const splitNativeTextRunXml = Symbol("split-native-text-run-xml");
 
+/** Internal preserving caret assembly after native scalar splitting. */
+export const replaceSplitParagraphXml = Symbol("replace-split-paragraph-xml");
+
+/** Copy supported paragraph properties to the suffix without duplicating inert data. */
+export const copiedSplitParagraphProperties = Symbol("copied-split-paragraph-properties");
+
 const cloneableRunProperties = new Set("rStyle rFonts b bCs i iCs caps smallCaps strike dstrike outline shadow emboss imprint noProof snapToGrid vanish webHidden color spacing w kern position sz szCs highlight u effect bdr shd fitText vertAlign rtl cs em lang eastAsianLayout specVanish oMath".split(" "));
+const cloneableParagraphProperties = new Set("pPr pStyle keepNext keepLines pageBreakBefore framePr widowControl numPr ilvl numId suppressLineNumbers pBdr top left bottom right between bar start end shd tabs tab suppressAutoHyphens kinsoku wordWrap overflowPunct topLinePunct autoSpaceDE autoSpaceDN bidi adjustRightInd snapToGrid spacing ind contextualSpacing mirrorIndents suppressOverlap jc textDirection textAlignment textboxTightWrap outlineLvl divId cnfStyle rPr sectPr headerReference footerReference footnotePr endnotePr type pgSz pgMar paperSrc pgBorders lnNumType pgNumType cols col formProt vAlign noEndnote titlePg textDirection bidi rtlGutter docGrid printerSettings".split(" "));
 
 function cloneableRunProperty(element: XmlElement, w: string, containers: ReadonlySet<XmlElement>, budget: DocumentBudget, children: (node: XmlElement) => readonly XmlElement[] = node => node.children): boolean {
   budget.charge("work", 1 + element.attributes.length);
+  const storedProperty = (node: XmlElement): boolean => {
+    budget.charge("work", 1);
+    return (node.namespace !== w || node.localName === "rPr" || cloneableRunProperties.has(node.localName)) && node.children.every(storedProperty);
+  };
   return (element.namespace === w && (element.localName === "rPr" || cloneableRunProperties.has(element.localName) && !children(element).length) ||
     element.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006" || containers.has(element)) &&
     element.attributes.every(attribute => [w, "http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace", "http://schemas.openxmlformats.org/markup-compatibility/2006"].includes(attribute.namespace) ||
       attribute.namespace === "" && element.localName === "Choice" && attribute.localName === "Requires") &&
-    element.children.every(child => child.namespace === w || containers.has(child)) &&
+    element.children.every(child => (child.namespace === w || containers.has(child)) && storedProperty(child)) &&
     children(element).every(child => cloneableRunProperty(child, w, containers, budget, children));
 }
 
@@ -321,7 +332,7 @@ export class DocumentXmlEditor {
     this.#stageReplacement(node, xml, !this.#canReplaceSubtree(node, token => this.#canEdit(token)), true);
   }
 
-  [splitNativeTextRunXml](node: XmlElement, fragments: readonly { readonly properties: string; readonly content: ReadonlyMap<XmlElement, string> }[]): void {
+  [splitNativeTextRunXml](node: XmlElement, fragments: readonly { readonly properties: string; readonly content: ReadonlyMap<XmlElement, string> }[], stage = true): readonly string[] {
     this.#assertOwnedElement(node);
     const children = activeXmlChildren(this, this.#budget), active = children(node);
     const props = active.filter(child => child.namespace === node.namespace && child.localName === "rPr");
@@ -342,7 +353,7 @@ export class DocumentXmlEditor {
       const found = element.children.map(collect).some(Boolean);
       if (found) {
         if (element !== node && !containers.has(element)) unsupported();
-        if (element.content.some(content => content.kind !== "element" && (content.kind !== "text" || content.text.trim())) ||
+        if (element.content.some(content => (content.kind === "text" || content.kind === "cdata") && content.text.trim()) ||
           element !== node && element.attributes.some(attribute => !["http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace", "http://schemas.openxmlformats.org/markup-compatibility/2006"].includes(attribute.namespace) &&
             !(attribute.namespace === "" && element.localName === "Choice" && attribute.localName === "Requires"))) unsupported();
         paths.add(element);
@@ -353,7 +364,7 @@ export class DocumentXmlEditor {
     const open = (element: XmlElement, attributes = element.attributes) => `<${element.name}${[...element.namespaces].filter(([prefix]) => prefix !== "xml").map(([prefix, uri]) => ` ${prefix ? "xmlns:" + prefix : "xmlns"}="${escapeValue(uri, true)}"`).join("")}${attributes.filter(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/").map(attribute => ` ${attribute.name}="${escapeValue(attribute.value, true)}"`).join("")}>`;
     const markup = fragments.map((fragment, index) => {
       const patches = new Map<XmlElement, string>(leaves.map(leaf => [leaf, fragment.content.get(leaf) ?? ""]));
-      if (props[0]) patches.set(props[0], index ? copiedNativeProperties(fragment.properties, node, this.root, this.#profile, this.#budget) : fragment.properties);
+      if (props[0]) patches.set(props[0], index ? copiedNativeProperties(fragment.properties, props[0], this.root, this.#profile, this.#budget) : fragment.properties);
       if (index) {
         const prune = (element: XmlElement) => {
           for (const child of element.children) {
@@ -364,10 +375,45 @@ export class DocumentXmlEditor {
         };
         prune(node);
       }
-      return open(node) + (props.length ? "" : fragment.properties) + this.sourceXml(node, patches, true) + `</${node.name}>`;
-    }).join("");
+      const render = (element: XmlElement): string => {
+        this.#budget.charge("work", 1 + element.content.length);
+        const replacement = patches.get(element); if (replacement !== undefined) return replacement;
+        if (!paths.has(element)) return this.sourceXml(element);
+        return open(element) + element.content.map(content => content.kind === "element" ? render(content) : content.kind === "text" || content.kind === "cdata" ? escapeValue(content.text, false) : "").join("") + `</${element.name}>`;
+      };
+      const content = index ? node.content.map(content => content.kind === "element" ? render(content) : content.kind === "text" || content.kind === "cdata" ? escapeValue(content.text, false) : "").join("") : this.sourceXml(node, patches, true);
+      return open(node) + (props.length ? "" : fragment.properties) + content + `</${node.name}>`;
+    });
+    this.assertShapeEditAllowed(node);
+    if (stage) this.#stageReplacement(node, markup.join(""), false, true);
+    return markup;
+  }
+
+  [replaceSplitParagraphXml](node: XmlElement, markup: string): void {
+    this.#assertOwnedElement(node);
+    const children = activeXmlChildren(this, this.#budget);
+    if (!this.#dialect || node.namespace !== documentDialects[this.#dialect].w || node.localName !== "p" || !this.#canEdit(node) || this.#patches.has(node) ||
+      children(node).some(child => child.namespace !== node.namespace || !["pPr", "r", "bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "proofErr", "permStart", "permEnd"].includes(child.localName))) unsupported();
+    for (const run of children(node).filter(child => child.localName === "r")) {
+      if (children(run).some(child => child.namespace !== node.namespace || !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak"].includes(child.localName))) unsupported();
+    }
     this.assertShapeEditAllowed(node);
     this.#stageReplacement(node, markup, false, true);
+  }
+
+  [copiedSplitParagraphProperties](paragraph: XmlElement, props: XmlElement): string {
+    this.#assertOwnedElement(paragraph);
+    this.#assertOwnedElement(props);
+    const children = activeXmlChildren(this, this.#budget), containers = new Set(this.compatibility[compatibilityContainers]);
+    const validate = (node: XmlElement): void => {
+      this.#budget.charge("work", 1 + node.attributes.length);
+      if (!this.#canEdit(node) || node.namespace !== paragraph.namespace || !(cloneableParagraphProperties.has(node.localName) || cloneableRunProperties.has(node.localName)) || node.attributes.some(attribute => !["http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace", "http://schemas.openxmlformats.org/markup-compatibility/2006"].includes(attribute.namespace) && !this.#canEdit(attribute)) ||
+        node.children.some(child => child.namespace !== paragraph.namespace && !containers.has(child)) || node.content.some(item => item.kind !== "element" && (item.kind !== "text" || item.text.trim()))) unsupported();
+      for (const child of children(node)) validate(child);
+    };
+    if (props.localName !== "pPr" || !children(paragraph).includes(props)) unsupported();
+    validate(props);
+    return copiedNativeProperties(this.sourceXml(props), props, this.root, this.#profile, this.#budget);
   }
 
   /** Native formatting alternatives can follow each fragment of a split run. */

@@ -16,6 +16,7 @@ import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentPackage } from "./package.js";
 import { DocumentArchiveEditor } from "./package-write.js";
 import { parseDocumentXml } from "./package-xml.js";
+import { copiedSplitParagraphProperties, replaceSplitParagraphXml } from "./xml-write.js";
 import { paragraphTextRun, replaceParagraphContent, splitParagraphContent } from "./paragraph-content.js";
 import { paragraphProperties } from "./paragraph-properties.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
@@ -131,8 +132,8 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
     if (request.operation === "runs.add") {
       if (before.kind !== "paragraph") throw new DocxUsageError("Inline insertion requires a paragraph.");
       if (range) {
-        const [prefix, suffix] = splitParagraphContent(xml, node, range.start);
-        xml.replaceElement(node, runElementOpen(node) + originalProps + prefix + run + suffix + `</${node.name}>`);
+        const [prefix, suffix] = splitParagraphContent(xml, node, range.start, budget, [originalProps, ""]);
+        xml[replaceSplitParagraphXml](node, runElementOpen(node) + prefix + run + suffix + `</${node.name}>`);
       } else xml.insertChildren(node, run);
       updates.push({ before, path: before.value.path, kind: "insert" });
       continue;
@@ -143,10 +144,14 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
       if (!["body", "tc", "hdr", "ftr", "footnote", "endnote", "comment", "txbxContent", "sdtContent"].includes(parent.localName) || parent.namespace !== w)
         throw new UnsupportedEditError("Paragraph insertion requires a supported block container.");
       if (range) {
-        const [prefix, suffix] = splitParagraphContent(xml, node, range.start);
-        const section = props?.children.find(c => c.namespace === w && c.localName === "sectPr");
+        if (node.attributes.some(attribute => ![w, "http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace", "http://schemas.openxmlformats.org/markup-compatibility/2006"].includes(attribute.namespace))) throw new UnsupportedEditError("Caret insertion cannot duplicate opaque paragraph attributes.");
+        const sections = props ? children(props).filter(c => c.namespace === w && c.localName === "sectPr") : [];
+        if (sections.length > 1) throw new UnsupportedEditError("Caret insertion requires one section-property owner.");
+        const section = sections[0];
         const prefixProps = props && section ? xml.sourceXml(props, new Map([[section, ""]])) : originalProps;
-        xml.replaceElement(node, runElementOpen(node) + prefixProps + prefix + `</${node.name}>` + markup + runElementOpen(node) + originalProps + suffix + `</${node.name}>`);
+        const suffixProps = props ? xml[copiedSplitParagraphProperties](node, props) : "";
+        const [prefix, suffix] = splitParagraphContent(xml, node, range.start, budget, [prefixProps, suffixProps]);
+        xml[replaceSplitParagraphXml](node, runElementOpen(node) + prefix + `</${node.name}>` + markup + runElementOpen(node) + suffix + `</${node.name}>`);
         updates.push({ before, path: [...before.value.path.slice(0, -1), position + 1], kind: "insert" });
       } else {
         const original = xml.sourceXml(node);

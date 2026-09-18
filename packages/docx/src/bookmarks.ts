@@ -11,11 +11,13 @@ import { openDocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentPackage } from "./package.js";
 import { isXmlContentType, type XmlElement } from "./package-xml.js";
-import { splitParagraphContent } from "./paragraph-content.js";
+import { activeXmlChildren } from "./xml-active-children.js";
+import { compatibilityContainers } from "./compatibility.js";
+import { assertFormattingHistoryEditable } from "./revision-markup.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { runElementOpen } from "./run-properties.js";
 import { resolveDocxSelection } from "./simple-selection.js";
-import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { DocumentXmlEditor, UnsupportedEditError, splitNativeTextRunXml, replaceSplitParagraphXml } from "./xml-write.js";
 
 export type BookmarkEditOperation = "bookmarks.add" | "bookmarks.set" | "bookmarks.remove";
 export type BookmarkEditRequest = { [K in BookmarkEditOperation]: { readonly operation: K; readonly options: DocxOperationArguments<K>; readonly input?: PublicationInput } }[BookmarkEditOperation];
@@ -42,6 +44,7 @@ function inventory(editors: ReadonlyMap<string, DocumentXmlEditor>, budget: Docu
   const starts: Marker[] = [], ends: Marker[] = [], issues: string[] = [];
   const report = (marker: Marker, issue: string) => { marker.issues.push(issue); issues.push(`${marker.part}: ${issue} (${marker.id})`); };
   for (const [part, editor] of editors) {
+    const containers = new Set(editor.compatibility[compatibilityContainers]);
     let order = 0;
     const fieldDepth = new Map<XmlElement, number>();
     const visit = (node: XmlElement, parent: XmlElement, path: readonly number[], container: XmlElement, unsafe: boolean) => {
@@ -63,7 +66,7 @@ function inventory(editors: ReadonlyMap<string, DocumentXmlEditor>, budget: Docu
         if (unsafe || (fieldDepth.get(container) ?? 0) > 0 || parent.namespace !== node.namespace || parent.localName !== "p" || node.children.length || node.content.some(c => c.kind !== "text" || c.text.trim()) || attr(node, "colFirst") !== undefined || attr(node, "colLast") !== undefined) report(marker, "illegal-boundary");
         if (node.localName === "bookmarkStart" && !validName(marker.name)) report(marker, "invalid-name");
       }
-      node.children.forEach((child, index) => visit(child, node, [...path, index], container, unsafe));
+      node.children.forEach((child, index) => visit(child, containers.has(node) ? parent : node, [...path, index], container, unsafe));
     };
     visit(editor.root, editor.root, [], editor.root, false);
   }
@@ -142,34 +145,48 @@ function insertRange(editor: DocumentXmlEditor, p: XmlElement, from: number, to:
   let offset = 0, began = false, ended = false;
   const start = `<bm:bookmarkStart xmlns:bm="${p.namespace}" bm:id="${id}" bm:name="${xmlValue(name)}"/>`;
   const end = `<bm:bookmarkEnd xmlns:bm="${p.namespace}" bm:id="${id}"/>`;
-  for (const child of p.children) {
+  const children = activeXmlChildren(editor, budget);
+  for (const child of children(p)) {
     budget.charge("work", 1);
     if (child.namespace === p.namespace && (child.localName === "pPr" || markers.has(child.localName))) continue;
     if (child.namespace !== p.namespace || child.localName !== "r") throw new UnsupportedEditError("Bookmark creation requires simple runs without fields, links or controlled content.");
-    const count = child.children.reduce((sum, leaf) => sum + (leaf.localName === "rPr" ? 0 : leaf.localName === "t" ? [...leaf.text].length : 1), 0);
-    // The existing scalar splitter validates supported run leaves and preserves formatting.
-    const single = { ...p, children: [child], content: [child] };
-    splitParagraphContent(editor, single, 0);
+    const active = children(child), props = active.filter(leaf => leaf.namespace === p.namespace && leaf.localName === "rPr"), leaves = active.filter(leaf => !props.includes(leaf));
+    if (props.length > 1 || leaves.some(leaf => leaf.namespace !== p.namespace || !["t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak"].includes(leaf.localName) || leaf.content.some(item => item.kind !== "text"))) throw new UnsupportedEditError("Bookmark creation requires supported scalar run content.");
+    const count = leaves.reduce((sum, leaf) => sum + (leaf.localName === "lastRenderedPageBreak" ? 0 : leaf.localName === "t" ? [...leaf.text].length : 1), 0);
     const left = Math.max(0, Math.min(count, from - offset));
     const right = Math.max(0, Math.min(count, to - offset));
     const startHere: boolean = !began && from >= offset && from < offset + count;
     const endHere: boolean = !ended && to > offset && to <= offset + count;
     if (startHere || endHere) {
-      let content = "";
-      if (startHere && endHere) {
-        const [prefix, rest] = splitParagraphContent(editor, single, left);
-        const temporary = new DocumentXmlEditor(new TextEncoder().encode(runElementOpen(p) + rest + `</${p.name}>`), {}, undefined, budget);
-        const [middle, suffix] = splitParagraphContent(temporary, temporary.root, right - left);
-        content = prefix + start + middle + end + suffix;
-      } else if (startHere) { const [prefix, suffix] = splitParagraphContent(editor, single, left); content = prefix + start + suffix; }
-      else { const [prefix, suffix] = splitParagraphContent(editor, single, right); content = prefix + end + suffix; }
+      assertFormattingHistoryEditable(editor.root, child, children, budget);
+      let content: string;
+      if ((!startHere || left === 0) && (!endHere || right === count)) content = (startHere ? start : "") + editor.sourceXml(child) + (endHere ? end : "");
+      else {
+        const fragments = [new Map<XmlElement, string>(), new Map<XmlElement, string>(), new Map<XmlElement, string>()];
+        let scalarOffset = 0;
+        for (const leaf of leaves) {
+          budget.charge("work", 1);
+          if (leaf.localName === "lastRenderedPageBreak") { fragments[scalarOffset < left ? 0 : scalarOffset < right ? 1 : 2]!.set(leaf, editor.sourceXml(leaf)); continue; }
+          const scalars = leaf.localName === "t" ? [...leaf.text] : [" "], next = scalarOffset + scalars.length;
+          const ranges = [[scalarOffset, Math.min(next, left)], [Math.max(scalarOffset, left), Math.min(next, right)], [Math.max(scalarOffset, right), next]];
+          ranges.forEach(([from, to], side) => {
+            if (from! >= to!) return;
+            const markup = to! - from! === scalars.length ? editor.sourceXml(leaf) : runElementOpen({ ...leaf, attributes: leaf.attributes.filter(attribute => !(attribute.namespace === "http://www.w3.org/XML/1998/namespace" && attribute.localName === "space")) }).slice(0, -1) + ` xml:space="preserve">${xmlValue(scalars.slice(from! - scalarOffset, to! - scalarOffset).join(""))}</${leaf.name}>`;
+            fragments[side]!.set(leaf, markup);
+          });
+          scalarOffset = next;
+        }
+        const sides = [0, 1, 2].filter(side => fragments[side]!.size), rendered = editor[splitNativeTextRunXml](child, sides.map(side => ({ properties: props[0] ? editor.sourceXml(props[0]) : "", content: fragments[side]! })), false), output = ["", "", ""];
+        sides.forEach((side, index) => output[side] = rendered[index]!);
+        content = output[0] + (startHere ? start : "") + output[1] + (endHere ? end : "") + output[2];
+      }
       patches.set(child, content);
       began ||= startHere; ended ||= endHere;
     }
     offset += count;
   }
   if (!began || !ended) throw new UnsupportedEditError("Bookmark range exceeds admitted paragraph text.");
-  editor.replaceElement(p, runElementOpen(p) + editor.sourceXml(p, patches, true) + `</${p.name}>`);
+  editor[replaceSplitParagraphXml](p, runElementOpen(p) + editor.sourceXml(p, patches, true) + `</${p.name}>`);
 }
 
 export async function editDocumentBookmarks(input: Uint8Array, request: BookmarkEditRequest, context: PublicationContext): Promise<BookmarkEditData> {

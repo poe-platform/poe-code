@@ -16,6 +16,8 @@ import { assertDocumentEditable, publishDocumentArchive, type PublicationContext
 import { runElementOpen } from "./run-properties.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 import { DocumentXmlEditor, editActiveRelationshipXml, UnsupportedEditError } from "./xml-write.js";
+import { activeXmlChildren } from "./xml-active-children.js";
+import { hyperlinkHistory } from "./hyperlink-history.js";
 
 export type LinkEditOperation = "links.add" | "links.set" | "links.remove";
 export type LinkEditRequest = { [K in LinkEditOperation]: { readonly operation: K; readonly options: DocxOperationArguments<K>; readonly input?: PublicationInput } }[LinkEditOperation];
@@ -54,18 +56,20 @@ export async function inspectDocumentLinks(input: Uint8Array, options: DocxOpera
     const edge = id === undefined ? undefined : graph.relationships(location.value.part).find(e => e.rId === id);
     if (edge && (edge.reltype !== r + "/hyperlink" || !edge.is_external)) throw new UnsupportedEditError("Link target relationship must be external or use an internal anchor.");
     const address = edge?.target_ref ?? "", fragment = attribute(node, w, "anchor") ?? "";
+    const children = activeXmlChildren(root, budget);
     let text = "", contains_page_break = false;
     const visit = (current: XmlElement) => {
       budget.charge("work", 1);
       if (current.namespace !== w) return;
       if (current.localName === "t") text += current.text;
-      else if (current.localName === "tab") text += "\t";
+      else if (current.localName === "tab" || current.localName === "ptab") text += "\t";
+      else if (current.localName === "noBreakHyphen") text += "-";
       else if (current.localName === "cr" || current.localName === "br" && (!attribute(current, w, "type") || attribute(current, w, "type") === "textWrapping")) text += "\n";
       else if (current.localName === "lastRenderedPageBreak") contains_page_break = true;
-      else if (["hyperlink", "r"].includes(current.localName)) for (const child of current.children) visit(child);
+      else if (["hyperlink", "r"].includes(current.localName)) for (const child of children(current)) visit(child);
     };
     visit(node);
-    items.push({ location: location as Location<"link">, text, address, fragment, url: address ? address + (fragment ? "#" + fragment : "") : "", history: !["0", "false", "off"].includes(attribute(node, w, "history") ?? "true"), contains_page_break });
+    items.push({ location: location as Location<"link">, text, address, fragment, url: address ? address + (fragment ? "#" + fragment : "") : "", history: hyperlinkHistory(attribute(node, w, "history")), contains_page_break });
   }
   const data = { items };
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation: "links.list", ok: true, data, affected: 0, locations: items.map(i => i.location), warnings: [], errors: [] }) + "\n").length);

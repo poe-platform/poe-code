@@ -671,3 +671,9 @@ passing cases, 4,064 maintained consumers and 660 independent built public
 workflows. Both dialects/kinds and UTF-8/UTF-16BE retain old geometry, inherited
 bindings, inactive content and relationship bytes. Full-family acceptance remains
 open; interrupted verification runs receive no complete-gate credit.
+
+The [hyperlink-label qualification](hyperlink-label-carriers-20260918.md)
+closes direct inspection gaps for active MCE run/text carriers and malformed
+history flags. All 620 original cases, 1,923 maintained consumers and 620
+independent built workflows pass. Exact labels, cached markers and retained
+relationships agree through model/SDK/actual CLI. Full-family acceptance stays open.

@@ -15,6 +15,7 @@ import { documentDialects, dialectForNamespace } from "./dialect.js";
 import { DocumentPackage } from "./package.js";
 import { relationshipOwner } from "./part-uri.js";
 import { nextCommentId } from "./comment-id.js";
+import { hyperlinkHistory } from "./hyperlink-history.js";
 
 function text(value: unknown): asserts value is string {
   if (typeof value !== "string") throw new InputTypeError("Expected comment text.");
@@ -195,10 +196,7 @@ export class Hyperlink {
     return visit(node);
   }
   get history(): boolean {
-    const value = commentAttribute(this.store.node(this.ref), "history");
-    if (value === undefined || ["1", "true", "on"].includes(value)) return true;
-    if (["0", "false", "off"].includes(value)) return false;
-    throw new InvalidValueError("Expected a hyperlink history flag.");
+    return hyperlinkHistory(commentAttribute(this.store.node(this.ref), "history"));
   }
 }
 export class RenderedPageBreak {

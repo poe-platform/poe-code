@@ -176,7 +176,7 @@ test('invalid limits and overlapping navigation during capture fail closed', asy
   await assert.rejects(engine.capture(f.page), /stale/);
   await assert.rejects(engine.resolve('e1'), /stale/);
   assert.deepEqual(f.actions, []);
-  assert.equal(f.snapshots[0]!.disposedCapsules.length, 1);
+  assert.equal(f.snapshots[0]!.disposedCapsules.length, 2);
   for (const snapshot of f.snapshots) assert.deepEqual(snapshot.disposedCapsules, snapshot.capsules);
 });
 

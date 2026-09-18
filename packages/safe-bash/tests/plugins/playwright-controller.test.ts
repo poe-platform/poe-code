@@ -253,6 +253,32 @@ test('navigation forwards native URL schemes and normalizes bare hostnames', asy
   } finally { await f.controller.dispose(); }
 });
 
+test('navigation retries its stale automatic snapshot without replaying the navigation', async () => {
+  const f = fixture();
+  const acquire = f.adapter.acquire.bind(f.adapter);
+  let captures = 0;
+  f.adapter.acquire = async request => {
+    const lease = await acquire(request);
+    const listeners = new Set<() => void>();
+    Object.assign(lease.context.pages()[0]!, {
+      on(event: string, listener: () => void) { if (event === 'framenavigated') listeners.add(listener); },
+      off(event: string, listener: () => void) { if (event === 'framenavigated') listeners.delete(listener); },
+      async _snapshotForAI() {
+        if (++captures === 2) for (const listener of listeners) listener();
+        return { full: '- button "Ready" [ref=e1]' };
+      },
+    });
+    return lease;
+  };
+  try {
+    await f.run(['open']);
+    await f.run(['goto', 'https://example.test']);
+    assert.equal(captures, 3);
+    assert.equal(f.events.filter(event => event === 'goto:default:https://example.test').length, 1);
+    assert.equal(f.leases[0]!.releases, 0);
+  } finally { await f.controller.dispose(); }
+});
+
 test('invalid arguments, unsupported engines/options and invalid limits have no effects', async () => {
   const f = fixture();
   for (const args of [['open', '--browser=webkit'], ['open', '--headed'], ['open', '--browser=unknown'], ['open', '--idle-timeout=-1'], ['open', '--session=../bad'], ['goto'], ['close', 'extra'], ['open', '--browser']]) {

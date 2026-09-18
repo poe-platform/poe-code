@@ -13,6 +13,24 @@ type SnapshotReference = {
   native?: PlaywrightElementHandle;
 } | { readonly kind: 'native'; readonly page: PlaywrightPage; readonly ref: string; native?: PlaywrightElementHandle };
 
+class SnapshotStaleCaptureError extends Error {
+  constructor() { super('Snapshot stale during capture'); }
+}
+
+async function captureStable<Result, Options extends { timeout?: number; root?: PlaywrightElementHandle }>(capture: (options: Options) => Promise<Result>, options: Options, signal?: AbortSignal): Promise<Result> {
+  const timeout = options.timeout ?? 5000;
+  const deadline = timeout === 0 ? undefined : Date.now() + timeout;
+  try { return await capture(options); }
+  catch (error) {
+    // Retry only the read; a root handle may belong to the document that navigated away.
+    if (!(error instanceof SnapshotStaleCaptureError) || options.root) throw error;
+    signal?.throwIfAborted();
+    const remaining = deadline === undefined ? 0 : deadline - Date.now();
+    if (deadline !== undefined && remaining <= 0) throw error;
+    return capture({ ...options, timeout: remaining });
+  }
+}
+
 export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => string) {
   for (const value of [limits?.maxSnapshotBytes, limits?.maxSnapshotRefs]) if (!Number.isSafeInteger(value) || value < 1) throw new RangeError('Invalid snapshot limit');
   const { maxSnapshotBytes, maxSnapshotRefs } = limits;
@@ -69,7 +87,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
       await retire([]);
     }
   };
-  const capture = async (page: PlaywrightPage, signal?: AbortSignal, options: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number } = {}): Promise<string> => {
+  const capture = async (page: PlaywrightPage, signal?: AbortSignal, options: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number } = {}): Promise<string> => captureStable(async options => {
     signal?.throwIfAborted();
     if (!page.ariaSnapshot && !page._snapshotForAI && (options.root || options.depth || options.boxes)) throw new Error('Native snapshot options unsupported by this browser');
     if (page.ariaSnapshot || page._snapshotForAI) {
@@ -80,7 +98,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
         ...options,
       });
       signal?.throwIfAborted();
-      if (capturedEpoch !== epoch) throw new Error('Snapshot stale during capture');
+      if (capturedEpoch !== epoch) throw new SnapshotStaleCaptureError();
       for (const [issued, ref] of captured.refs) refs.set(issued, { kind: 'native', page, ref });
       return captured.text;
     }
@@ -121,7 +139,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
         text += rendered.text;
       }
       signal?.throwIfAborted();
-      if (capturedEpoch !== epoch) throw new Error('Snapshot stale during capture');
+      if (capturedEpoch !== epoch) throw new SnapshotStaleCaptureError();
       for (const resource of acquired) resources.add(resource);
       for (const [ref, reference] of pending) refs.set(ref, reference);
       return text;
@@ -132,7 +150,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
       }
       throw error;
     }
-  };
+  }, options, signal);
   const resolve = async (ref: string): Promise<PlaywrightElementHandle> => {
     const reference = refs.get(ref);
     if (!reference) throw new Error(`Unknown or stale snapshot ref: ${ref}; snapshot again`);
@@ -174,16 +192,16 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     }
     return reference.native;
   };
-  const captureJSON = async (page: PlaywrightPage, signal?: AbortSignal, options: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number; captureJSON?: PlaywrightSnapshotJSONCapture } = {}) => {
+  const captureJSON = async (page: PlaywrightPage, signal?: AbortSignal, options: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number; captureJSON?: PlaywrightSnapshotJSONCapture } = {}) => captureStable(async options => {
     await invalidate();
     const capturedEpoch = epoch;
     const captured = await captureNativePlaywrightJSON(page, { maxBytes: maxSnapshotBytes, maxRefs: maxSnapshotRefs,
       nextRef: nextRef ?? (() => `e${++sequence}`), ...(signal ? { signal } : {}), ...options });
     signal?.throwIfAborted();
-    if (capturedEpoch !== epoch) throw new Error('Snapshot stale during capture');
+    if (capturedEpoch !== epoch) throw new SnapshotStaleCaptureError();
     for (const [issued, ref] of captured.refs) refs.set(issued, { kind: 'native', page, ref });
     return captured.tree;
-  };
+  }, options, signal);
   return { capture, captureJSON, resolve, invalidate, withReferences, nativeSelector(ref: string): string | undefined {
     const reference = refs.get(ref);
     return reference?.kind === 'native' ? `aria-ref=${reference.ref}` : undefined;

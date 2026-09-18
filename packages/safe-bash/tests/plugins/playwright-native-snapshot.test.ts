@@ -64,6 +64,55 @@ test('native JSON fallback uses the provider tree with depth and bounded atomic 
   await assert.rejects(f.engine.resolve('e102'), /stale/);
 });
 
+for (const format of ['yaml', 'json'] as const) test(`${format} retries one navigation-invalidated capture without publishing its stale refs`, async () => {
+  const f = fixture();
+  const timeouts: number[] = [];
+  let captures = 0;
+  const nativeCapture = async (options: { timeout?: number }) => {
+    timeouts.push(options.timeout!);
+    if (++captures === 1) await f.engine.invalidate();
+    return captures === 1 ? 'Old' : 'Current';
+  };
+  f.page.ariaSnapshot = async options => `- button "${await nativeCapture(options ?? {})}" [ref=e1]`;
+  f.page.ariaSnapshotJSON = async options => [{ role: 'button', name: await nativeCapture(options ?? {}), ref: 'e1' }];
+  const result = format === 'yaml' ? await f.engine.capture(f.page, undefined, { timeout: 1500 }) : await f.engine.captureJSON(f.page, undefined, { timeout: 1500 });
+  assert.match(JSON.stringify(result), /Current/);
+  assert.equal(captures, 2);
+  assert.ok(timeouts[1]! > 0 && timeouts[1]! <= timeouts[0]!);
+  await assert.rejects(f.engine.resolve('e101'), /stale/);
+  await f.engine.resolve('e102');
+  assert.deepEqual(f.selected, ['aria-ref=e1']);
+});
+
+test('continuously navigating snapshots stop after one retry and publish no refs', async () => {
+  const f = fixture();
+  let captures = 0;
+  f.page.ariaSnapshot = async () => { captures++; await f.engine.invalidate(); return '- button [ref=e1]'; };
+  await assert.rejects(f.engine.capture(f.page), /Snapshot stale during capture/);
+  assert.equal(captures, 2);
+  await assert.rejects(f.engine.resolve('e101'), /stale/);
+  await assert.rejects(f.engine.resolve('e102'), /stale/);
+});
+
+for (const boundary of ['root', 'deadline', 'native-error', 'abort'] as const) test(`snapshot retry preserves the ${boundary} boundary`, async t => {
+  const f = fixture();
+  const abort = new AbortController();
+  let now = 1000, captures = 0;
+  t.mock.method(Date, 'now', () => now);
+  const root = await f.page.locator('button').elementHandle!();
+  assert.ok(root);
+  f.page.ariaSnapshot = async () => {
+    captures++;
+    if (boundary === 'native-error') throw new Error('Snapshot stale during capture');
+    if (boundary === 'deadline') now += 20;
+    if (boundary === 'abort') abort.abort(new Error('capture cancelled'));
+    await f.engine.invalidate();
+    return '';
+  };
+  await assert.rejects(f.engine.capture(f.page, abort.signal, { timeout: 10, ...(boundary === 'root' ? { root } : {}) }), /Snapshot stale during capture|capture cancelled/);
+  assert.equal(captures, 1);
+});
+
 test('unquoted YAML text values never become native references or affect following node headers', async () => {
   const f = fixture();
   f.setSnapshot({ full: '- text: Page says "use [ref=e99]\n- button "Real" [ref=e2]\n- paragraph [ref=e3]: use [ref=e100]' });

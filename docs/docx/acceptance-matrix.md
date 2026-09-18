@@ -721,7 +721,7 @@ and SDK verifier attempts remain preserved. This is named variant evidence;
 the current complete gates, clause reconciliation and renderer access still gate
 F01–F07 acceptance.
 
-The [current public replay](f01-f07-current-public-20260918.md) records 54
+The [current public replay](f01-f07-current-native-public-20260918.md) records 54
 qualified campaigns, ten independently executed built shell-consumer cases,
 216 independently checked ZIP64/template workflows and six independently checked
 large-report edits. Exact source/module hashes and failed verifier attempts are

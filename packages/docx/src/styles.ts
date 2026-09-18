@@ -134,14 +134,14 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
   let part = stylePart(archive);
   const absentPart = part === undefined;
   let writable = archive;
-  if (!part && !(operation === "styles.remove" && opts.allowEmpty)) {
+  if (!part) {
     if (operation !== "styles.defaults.set" && !operation.startsWith("styles.latent.")) throw new SelectionError("missing-selection");
     const materialized = addDocumentStylesPart(archive, archive, "", budget);
     part = materialized.name;
     writable = { ...archive, ...materialized.archive };
   }
   const editor = new DocumentArchiveEditor(writable, {}, undefined, budget);
-  const xml = part ? editor.xml(part) : new DocumentXmlEditor(new TextEncoder().encode(`<st:styles xmlns:st="${documentDialects[archive.dialect].w}"/>`), {}, undefined, budget), w = xml.root.namespace;
+  const xml = editor.xml(part), w = xml.root.namespace;
   const children = activeXmlChildren(xml, budget);
   const child = (node: XmlElement | undefined, name: string) => styleChild(node, name, children);
   const nodes = children(xml.root).filter(n => n.namespace === w && n.localName === "style");
@@ -172,11 +172,9 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
     const id = editLatentStyles(xml, operation, invocation.options, activeXmlChildren(xml, budget));
     if (id !== null) changes.push({ kind: "style", id });
   } else if (operation === "styles.remove") {
-    const selected = opts.allowEmpty && !nodes.some(node => styleStoredName(attr(child(node, "name"), "val") ?? "") === styleStoredName(opts.name)) ? undefined : resolve(opts.name);
-    if (selected) {
-      xml[replaceActiveStyleXml](selected, "");
-      changes.push({ kind: "style", id: attr(selected, "styleId")! });
-    }
+    const selected = resolve(opts.name);
+    xml[replaceActiveStyleXml](selected, "");
+    changes.push({ kind: "style", id: attr(selected, "styleId")! });
   } else if (operation === "styles.defaults.set") {
     const defaults = child(xml.root, "docDefaults");
     const defaultsXml = defaults ? xml : new DocumentXmlEditor(new TextEncoder().encode(`<st:docDefaults xmlns:st="${w}"/>`), {}, undefined, budget);

@@ -10,7 +10,7 @@ for (const strict of [false, true]) for (const part of ["absent", "empty", "ambi
 it(`${route} enforces named removal cardinality with ${part} styles allowEmpty=${allowEmpty}; strict=${strict}`, async () => {
   const definition = '<w:style w:type="paragraph" w:styleId="first"><w:name w:val="Original Selected"/></w:style>';
   const input = await textFixture('<w:p><w:r><w:t>Retained é 日本 עברית 🌊</w:t></w:r></w:p>', part === "absent" ? {} : { styles: { kind: "styles", xml: `<w:styles xmlns:w="${w}">${part === "ambiguous" ? definition + definition.replace('styleId="first"', 'styleId="second"') : ""}</w:styles>` } }, strict), volume = Volume.fromJSON({ "/out": "" });
-  const accepted = part !== "ambiguous" && allowEmpty, code = part === "ambiguous" ? "ambiguous-selection" : "missing-selection", arguments_ = { name: "Original Selected", allowEmpty }, batch = { version: 1, operations: [{ operation: "styles.remove", arguments: arguments_ }] }, context = { ...textContext, encoding: { order: "input" as const, compression: "store" as const }, stdout: { async write(bytes: Uint8Array) { volume.appendFileSync("/out", bytes); } } };
+  const accepted = false, code = allowEmpty ? "usage" : part === "ambiguous" ? "ambiguous-selection" : "missing-selection", arguments_ = { name: "Original Selected", ...(allowEmpty ? { allowEmpty } : {}) }, batch = { version: 1, operations: [{ operation: "styles.remove", arguments: arguments_ }] }, context = { ...textContext, encoding: { order: "input" as const, compression: "store" as const }, stdout: { async write(bytes: Uint8Array) { volume.appendFileSync("/out", bytes); } } };
   if (route === "sdk" || route === "sdk-batch") {
     const result = route === "sdk" ? api.editDocumentStyles(input, { operation: "styles.remove", ...arguments_, output: "-" }, context) : api.executeDocumentBatch(input, batch, { output: "-" }, context);
     if (accepted) { const data = await result; if ("changed" in data) { expect(data.changed).toBe(false); expect(data.changes).toHaveLength(0); } else { expect(data.results[0]!.affected).toBe(0); expect(data.publication?.changed).toBe(false); } }
@@ -19,7 +19,7 @@ it(`${route} enforces named removal cardinality with ${part} styles allowEmpty=$
     const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); await fs.writeFile("/dest", new TextEncoder().encode("Existing destination")); const shell = new Shell({ fs }).use(docxCommands({ engine: api.createDocxInspectionCommandEngine({ limits: textContext.limits }) }));
     try {
       const command = route === "shell" ? `docx styles remove /input --name 'Original Selected' ${allowEmpty ? "--allow-empty " : ""}--output /dest --force --json` : `docx batch /input --ops-json '${JSON.stringify(batch)}' --output /dest --force --json`;
-      const result = await shell.exec(command), envelope = JSON.parse(result.stdout); expect(result.exitCode, result.stdout + result.stderr).toBe(accepted ? 0 : 1); expect(await fs.readFile("/input")).toEqual(input);
+      const result = await shell.exec(command), envelope = JSON.parse(result.stdout); expect(result.exitCode, result.stdout + result.stderr).toBe(accepted ? 0 : code === "usage" ? 2 : 1); expect(await fs.readFile("/input")).toEqual(input);
       if (accepted) { expect(envelope.affected).toBe(0); volume.writeFileSync("/out", await fs.readFile("/dest")); }
       else { expect(envelope.errors[0].code).toBe(code); expect(new TextDecoder().decode(await fs.readFile("/dest"))).toBe("Existing destination"); }
     } finally { await shell.dispose(); }

@@ -48,16 +48,16 @@ describe("run dashboard information hierarchy", () => {
     expect(result.outputRect.y + result.outputRect.height).toBeLessThan(result.cursor!.y);
   });
 
-  it("keeps the edited line and validation error separate in a short terminal", () => {
+  it.each([12, 16, 18])("keeps the edited line and validation error separate with %s rows", (height) => {
     const text = "First line\nSecond line\nEdited line";
-    const { rows, result } = screen(60, 12, {
+    const { rows, result } = screen(40, height, {
       output: [{ kind: "info", role: "agent", text: "Latest result", ts: 0 }],
       composer: { ...createComposerState("message", "first"), text, cursor: text.length, error: "Plan file was not found" }
     });
     expect(rows[result.cursor!.y]).toContain("Edited line");
     expect(rows[result.cursor!.y + 1]).toContain("Plan file was not found");
     expect(rows.join("\n")).toContain("Latest result");
-    expect(rows.slice(-2).join("\n")).toContain("Esc Browse");
+    expect(rows.slice(-3).join("\n")).toContain("Esc Browse");
   });
 
   it("renders readable conversation blocks and keeps raw action detail collapsed", () => {

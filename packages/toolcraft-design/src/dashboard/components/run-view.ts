@@ -34,7 +34,7 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   const composer = options.showQueue && !options.composer?.focused ? undefined : options.composer;
   const run = stats.run;
   const theme = getTheme().styles;
-  const compactHeight = buffer.height < 18;
+  const compactHeight = buffer.height < 20;
   const width = Math.max(0, Math.min(164, buffer.width - 4));
   const x = Math.max(0, Math.floor((buffer.width - width) / 2));
   const sidebarWidth = !compactHeight && !options.showQueue && width >= 106 ? Math.min(40, Math.floor(width * 0.29)) : 0;
@@ -47,7 +47,6 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   const progress = plans.length > 0 ? ` · Plan ${activePlanIndex + 1}/${plans.length}` : "";
   put(buffer, { x, y: 0, width, height: 1 }, 0, `${options.title}${progress}`, { bold: true });
   const context = [run?.agent, run?.model ?? (run?.agent ? "default model" : undefined), run?.cwd].filter(Boolean).join(" · ");
-  put(buffer, { x, y: 1, width, height: 1 }, 0, context, theme.muted);
 
   const draft = composer ? layoutComposer(composer, Math.max(1, transcriptWidth - 3)) : undefined;
   const inputLines = draft ? Math.min(compactHeight ? 1 : 3, draft.lines.length) : 0;
@@ -69,7 +68,9 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   const footerY = Math.max(0, buffer.height - footerLines.length);
   const composerY = Math.max(0, footerY - composerHeight);
   const contentBottom = composer ? composerY - 1 : footerY - 1;
-  let outputY = compactHeight ? 2 : 3;
+  const showContext = !compactHeight || contentBottom >= 6;
+  if (showContext) put(buffer, { x, y: 1, width, height: 1 }, 0, context, theme.muted);
+  let outputY = compactHeight ? showContext ? 2 : 1 : 3;
 
   if (sidebarWidth === 0) {
     if (activePlan?.kind === "plan") {

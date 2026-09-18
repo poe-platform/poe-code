@@ -309,12 +309,31 @@ noninteractive route supplies no password or volume-prompt capability. ZIP
 switches remain identical in shell source across CLI and SDK; host callbacks
 are SDK capabilities rather than shell flags.
 
-Archive file creation and updates require atomic owned file staging from the
-selected filesystem. Without it, publication returns status 2 and preserves the
+Archive file creation and updates require atomic owned file staging or direct
+conditional byte publication from the selected filesystem. Without either,
+publication returns status 2 and preserves the
 input archive. This also applies to the CLI's real filesystem adapter on hosts
 where that capability is unavailable. Streaming an archive to stdout and reading
 members with `unzip -p` do not require archive-file publication; SDK callers can
-explicitly supply a filesystem with the required staging contract.
+explicitly supply a filesystem with either publication contract.
+
+An immutable flat-store host can declare `atomicFilePublication: true` and
+implement `publishFileConditional(path, source, options)`. The operation consumes
+the complete bounded byte source privately, then atomically creates a missing
+binding (`options.expected === null`) or replaces the exact observed
+`opaqueVersion`. File stats provide `identityScope`, `opaqueIdentity` and
+`opaqueVersion`; aliases share the actual backing identity, while namespace
+generations change on replacement and delete/recreate. With `hardlinks: false`,
+ZIP does not require inode numbers or link counts. Implicit directories and
+`permissions: false` are supported; mode metadata remains advisory.
+
+This path supports ordinary single-file ZIP creation and update without temporary
+directory paths, rename or delete-before-write. The host enforces authorization,
+backend quotas, complete-source consumption, cancellation before commit and
+private-upload cleanup. Conflicts and producer/upload failures preserve the old
+archive. Cancellation cannot undo a committed publication. `-b`, `-T`/`-TT` and
+split-volume publication still require their explicit staging capabilities.
+See the Safe FS conditional publication contract for host requirements.
 
 No new environment variables are introduced. DOS timestamps follow the runtime's
 local timezone; extended Unix timestamps preserve absolute seconds. No host

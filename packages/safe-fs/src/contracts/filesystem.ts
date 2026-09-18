@@ -19,6 +19,10 @@ export interface FileStat {
   readonly birthtimeMs?: number;
   readonly revision?: number;
   readonly identityScope?: object | symbol;
+  /** Authoritative backing identity within identityScope; aliases share this key. */
+  readonly opaqueIdentity?: string;
+  /** ABA-safe namespace generation, changed by replacement and delete/recreate. */
+  readonly opaqueVersion?: string;
   readonly ino?: number;
   readonly dev?: number;
   readonly rdevMajor?: number;
@@ -66,6 +70,7 @@ export interface FileSystemCapabilities {
   readonly timestamps?: boolean;
   readonly atomicRename?: boolean;
   readonly atomicFileStaging?: boolean;
+  readonly atomicFilePublication?: boolean;
   readonly atomicFileMutation?: boolean;
   readonly atomicEntryRemoval?: boolean;
   readonly atomicTreeRemoval?: boolean;
@@ -227,7 +232,18 @@ export interface PrepareDirectoryOptions extends FsOptions {
   readonly mtimeMs?: number;
 }
 
+export interface ConditionalFilePublicationOptions extends FsOptions {
+  readonly expected: FileStat | null;
+  readonly parent: FileStat;
+  readonly maxBytes: number;
+  readonly mode?: number;
+  readonly mtimeMs?: number;
+}
+
 export interface FileSystem {
+  /** Consume the complete source privately, then atomically compare/publish.
+   * Failures before commit preserve the destination. No stat/write fallback. */
+  publishFileConditional?(path: string, source: ByteSource, options: ConditionalFilePublicationOptions): Promise<FileStat>;
   writeFileConditional?(path: string, data: Uint8Array, options: ConditionalWriteFileOptions): Promise<FileStat>;
   removeEntryConditional?(path: string, options: ConditionalRemoveEntryOptions): Promise<void>;
   removeTreeConditional?(path: string, options: ConditionalRemoveEntryOptions): Promise<void>;

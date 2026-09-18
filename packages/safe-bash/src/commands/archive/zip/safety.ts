@@ -1,7 +1,29 @@
 import { readBytes, type ByteSource, type CommandContext, type FileStat, type FileStaging } from "../../../contracts/index.js";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { writeFileOutput } from "../../../contracts/filesystem-output.js";
-import { checkPath, fail, type ArchiveLimits } from "../internal.js";
+import { checkPath, fail, hasIdentity as hasPosixIdentity, sameIdentity as samePosixIdentity, type ArchiveLimits } from "../internal.js";
+
+export function hasZipIdentity(stat: FileStat): boolean {
+  return hasPosixIdentity(stat) || ((typeof stat.identityScope === "object" && stat.identityScope !== null || typeof stat.identityScope === "symbol")
+    && typeof stat.opaqueIdentity === "string" && stat.opaqueIdentity.length > 0 && stat.opaqueIdentity.length <= 4096
+    && hasZipVersion(stat));
+}
+
+function hasZipVersion(stat: FileStat): boolean {
+  return typeof stat.opaqueVersion === "string" && stat.opaqueVersion.length > 0 && stat.opaqueVersion.length <= 4096;
+}
+
+export function sameZipIdentity(first: FileStat, second: FileStat): boolean {
+  return samePosixIdentity(first, second) || hasZipIdentity(first) && hasZipIdentity(second)
+    && first.opaqueIdentity !== undefined && first.identityScope === second.identityScope && first.opaqueIdentity === second.opaqueIdentity;
+}
+
+export async function safeZipFile(scope: ZipScope, path: string, stat: FileStat): Promise<boolean> {
+  if (stat.type !== "file" || !hasZipIdentity(stat)) return false;
+  if (stat.nlink !== undefined) return stat.nlink === 1;
+  const capabilities = await scope.operation(() => scope.context.fs.capabilitiesFor?.(path, { signal: scope.context.signal }) ?? scope.context.fs.capabilities);
+  return stat.opaqueIdentity !== undefined && capabilities.hardlinks === false;
+}
 
 export class ZipScope {
   readonly context: CommandContext;
@@ -181,6 +203,40 @@ export async function stageZip(scope: ZipScope, prepared: ZipStaging, consume: (
 export async function publishZip(scope: ZipScope, prepared: ZipPublication): Promise<void> {
   const { fs, signal } = scope.context;
   const capabilities = await scope.operation(() => fs.capabilitiesFor?.(prepared.output, { signal, create: true }) ?? fs.capabilities);
+  if (capabilities.atomicFilePublication === true && fs.publishFileConditional && !prepared.validate && prepared.stagingName === undefined) {
+    if (capabilities.readOnly === true || capabilities.write === false) fail("ZIP destination is not writable");
+    if (prepared.existing && (!hasZipIdentity(prepared.existing) || !hasZipVersion(prepared.existing))) fail("ZIP conditional publication requires an observed opaque version");
+    const parent = await scope.operation(() => fs.realpath(prepared.parentName, { signal }));
+    if (parent !== prepared.parent) fail("archive parent changed before publication");
+    let size = 0;
+    let completed = false;
+    let active = true;
+    const input = prepared.source ?? { async *[Symbol.asyncIterator]() { yield prepared.bytes ?? new Uint8Array(); } };
+    const source = scope.source((async function* (): ByteSource {
+      for await (const chunk of readBytes(input, signal)) {
+        if (!active) fail("ZIP publication source is closed");
+        if (chunk.length > scope.limits.maxArchiveBytes - size) fail("archive byte limit exceeded");
+        size += chunk.length;
+        let owned = chunk;
+        if (prepared.source) await writeFileOutput(scope.context, chunk, async bytes => { owned = Uint8Array.from(bytes); });
+        yield owned;
+      }
+      completed = true;
+    })());
+    try {
+      const receipt = await scope.operation(() => fs.publishFileConditional!(prepared.output, source, {
+        signal, parent: prepared.parentStat, expected: prepared.existing ?? null, maxBytes: scope.limits.maxArchiveBytes,
+        ...(prepared.existing && capabilities.permissions !== false ? { mode: prepared.existing.mode & 0o7777 } : {}),
+        ...(prepared.mtimeMs === undefined ? {} : { mtimeMs: prepared.mtimeMs }),
+      }));
+      if (!completed || receipt.type !== "file" || receipt.size !== size || !hasZipIdentity(receipt)
+        || !hasZipVersion(receipt) || prepared.existing?.opaqueVersion === receipt.opaqueVersion) fail("Invalid ZIP conditional publication acknowledgement");
+    } finally {
+      active = false;
+      await scope.closeInputs();
+    }
+    return;
+  }
   if (capabilities.atomicFileStaging !== true || !fs.publishStagedFile) fail("ZIP publication requires atomic owned file staging");
   await stageZip(scope, {
     ...prepared, reservedPath: prepared.output, parent: prepared.stagingParent ?? prepared.parent, parentStat: prepared.stagingParentStat ?? prepared.parentStat,

@@ -8,7 +8,7 @@ import { openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabi
 
 const originals = new WeakMap<FileSystem, { filesystem: FileSystem; signal: AbortSignal; cleanupCharge: () => void }>();
 const operations = new Set<keyof FileSystem>([
-  "removeEntryConditional", "removeTreeConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory",
+  "publishFileConditional", "removeEntryConditional", "removeTreeConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory",
   "access", "appendFile", "canonicalizeMissingTarget", "capabilitiesFor", "chmod", "compareEntry",
   "copyFile", "link", "lstat", "mkdir", "openReadFile", "openResizeFile", "readFile", "readStream", "readdir",
   "readlink", "realpath", "rename", "resizeFile", "rm", "rmdir", "unlink", "stat", "symlink", "truncate", "utimes",
@@ -167,12 +167,16 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           const options = args.at(-1);
           admit(options && typeof options === "object" && "signal" in options ? options as FsOptions : undefined);
         }
-        if (["removeEntryConditional", "removeTreeConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory"].includes(String(property))) return (async () => {
+        if (["publishFileConditional", "removeEntryConditional", "removeTreeConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory"].includes(String(property))) return (async () => {
           const path = typeof args[0] === "string" ? args[0] : (args[0] as FileStaging).directory.path;
-          const options = args[property === "createStagedFile" ? 3 : property === "publishStagedFile" || property === "writeFileConditional" ? 2 : 1] as FsOptions | undefined;
-          const create = property === "createStagedFile" || (property === "writeFileConditional" || property === "prepareDirectory") && options !== undefined && "expected" in options && options.expected === null;
-          await requireOwnedMutation(original, path, property === "removeEntryConditional" ? "atomicEntryRemoval" : property === "removeTreeConditional" ? "atomicTreeRemoval" : property === "prepareDirectory" ? "atomicDirectoryMetadata" : property === "writeFileConditional" || property === "removeFileConditional" ? "atomicFileMutation" : "atomicFileStaging", options ?? {}, create);
+          const options = args[property === "createStagedFile" ? 3 : property === "publishFileConditional" || property === "publishStagedFile" || property === "writeFileConditional" ? 2 : 1] as FsOptions | undefined;
+          const create = property === "createStagedFile" || (property === "publishFileConditional" || property === "writeFileConditional" || property === "prepareDirectory") && options !== undefined && "expected" in options && options.expected === null;
+          await requireOwnedMutation(original, path, property === "publishFileConditional" ? "atomicFilePublication" : property === "removeEntryConditional" ? "atomicEntryRemoval" : property === "removeTreeConditional" ? "atomicTreeRemoval" : property === "prepareDirectory" ? "atomicDirectoryMetadata" : property === "writeFileConditional" || property === "removeFileConditional" ? "atomicFileMutation" : "atomicFileStaging", options ?? {}, create);
           assertOpen(options);
+          if (property === "publishFileConditional") {
+            args[1] = wrapStream(args[1] as ByteSource, options);
+            args[2] = resizeOptions(options ?? {});
+          }
           return Reflect.apply(method, original, args);
         })();
         if (property === "compareEntry") {

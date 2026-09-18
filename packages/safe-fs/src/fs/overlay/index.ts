@@ -55,7 +55,7 @@ interface LinkOrigin {
 type LinkMetadata = Pick<FileStat, "mode" | "atimeMs" | "mtimeMs">;
 
 function snapshotStat(stat: FileStat): FileStat {
-  const { type, size, allocatedBytes, ioBlockSize, preferredIoBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, revision, identityScope, ino, dev, rdevMajor, rdevMinor, nlink, uid, gid } = stat;
+  const { type, size, allocatedBytes, ioBlockSize, preferredIoBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, revision, identityScope, opaqueIdentity, opaqueVersion, ino, dev, rdevMajor, rdevMinor, nlink, uid, gid } = stat;
   return {
     type, size, mode, mtimeMs, atimeMs, ctimeMs,
     ...(allocatedBytes === undefined ? {} : { allocatedBytes }),
@@ -64,6 +64,8 @@ function snapshotStat(stat: FileStat): FileStat {
     ...(birthtimeMs === undefined ? {} : { birthtimeMs }),
     ...(revision === undefined ? {} : { revision }),
     ...(identityScope === undefined ? {} : { identityScope }),
+    ...(opaqueIdentity === undefined ? {} : { opaqueIdentity }),
+    ...(opaqueVersion === undefined ? {} : { opaqueVersion }),
     ...(ino === undefined ? {} : { ino }),
     ...(dev === undefined ? {} : { dev }),
     ...(rdevMajor === undefined ? {} : { rdevMajor }),
@@ -170,7 +172,7 @@ export class OverlayFileSystem implements FileSystem {
     this.capabilities = Object.freeze({
       ...semantics,
       open: false,
-      atomicFileMutation: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
+      atomicFilePublication: false, atomicFileMutation: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
       implicitDirectories: false,
       readlink: upper.readlink === true && this.#lower.capabilities.readlink === true ? true
         : upper.readlink === false && this.#lower.capabilities.readlink === false ? false : undefined,

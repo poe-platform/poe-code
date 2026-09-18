@@ -13,6 +13,7 @@ for (const args of [["-h2"], ["--more-help"], ["--more"], ["-qh2"], ["-h2", "--u
     assert.equal(result.exitCode, 0, result.stderr);
     const output = result.stdout.toString();
     for (const section of ["Usage:", "Selection", "Archive operations", "Streaming", "ZIPOPT"]) assert.ok(output.includes(section), output);
+    assert.ok(output.includes("conditional byte publication"), output);
     assert.equal(result.stderr, "");
   });
 }

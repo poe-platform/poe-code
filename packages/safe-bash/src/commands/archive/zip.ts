@@ -18,10 +18,10 @@ import { createOutputOperation } from "../../contracts/output.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { escapeText } from "../../escaping.js";
-import { Budget, checkPath, display, fail, hasIdentity, sameIdentity, settings, text, vfsPath, type ArchiveCommandsOptions, type ArchiveLimits } from "./internal.js";
+import { Budget, checkPath, display, fail, settings, text, vfsPath, type ArchiveCommandsOptions, type ArchiveLimits } from "./internal.js";
 import { decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, streamZipArchive, updateZipExtras, setZipEntryComment, type ZipArchive, type ZipEntry } from "./zip-format.js";
 import { zipHelp, zipExtendedHelp, zipVersion, zipLicense } from "./zip/help.js";
-import { publishZip, stageZip, ZipScope, type ZipPublication } from "./zip/safety.js";
+import { publishZip, stageZip, ZipScope, hasZipIdentity as hasIdentity, sameZipIdentity as sameIdentity, safeZipFile, type ZipPublication } from "./zip/safety.js";
 import { splitSize, splitZipVolumes, resolveZipVolumes, publishZipVolumes, volumeName } from "./zip/volumes.js";
 import { Selection } from "./unzip/arguments.js";
 import { normalizeZipOption, reservedZipShortOptions, ZipFailure, parseZipDotSize, zipLongOptions, zipNegatableOptions, zipDisplaySize, zipPublicText, zipPasswordArgument } from "./zip/options.js";
@@ -519,7 +519,8 @@ function memberName(path: string, limits: ArchiveLimits): string {
 function unchanged(before: FileStat, after: FileStat): boolean {
   return before.type === after.type && before.size === after.size && before.mode === after.mode
     && before.mtimeMs === after.mtimeMs && before.ctimeMs === after.ctimeMs
-    && before.nlink === after.nlink && (!hasIdentity(before) || sameIdentity(before, after));
+    && before.nlink === after.nlink && before.opaqueVersion === after.opaqueVersion && before.revision === after.revision
+    && (!hasIdentity(before) || sameIdentity(before, after));
 }
 
 async function inspectSource(scope: ZipScope, path: string, storeLinks: boolean): Promise<{ canonical: string; stat: FileStat }> {
@@ -597,9 +598,9 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
     }
   }
   if ((parsed.action === "copy" || parsed.showFiles !== undefined && !parsed.operands.length || parsed.output !== undefined && parsed.archive !== "-") && !existing) throw new ZipFailure(18, "File not found or no read permission", parsed.archive);
-  if (publication?.existing && (publication.existing.type !== "file" || !hasIdentity(publication.existing) || publication.existing.nlink !== 1)) fail("output archive requires a regular, single-link file with known backing identity");
+  if (publication?.existing && !await safeZipFile(scope, publication.output, publication.existing)) fail("output archive requires a regular, single-link file with known backing identity");
   if (parsed.archive === "-" && parsed.test && !parsed.quiet) await budget.output("\tzip warning: can't use -T on stdout, -T ignored\n");
-  if (existing && (existing.type !== "file" || !hasIdentity(existing) || existing.nlink !== 1)) fail("updating archive requires a regular, single-link file with known backing identity; archive aliases are unsupported");
+  if (existing && !await safeZipFile(scope, input!, existing)) fail("updating archive requires a regular, single-link file with known backing identity; archive aliases are unsupported");
   let archive: ZipArchive = { entries: [], comment: new Uint8Array() };
   let originalBytes: Uint8Array | undefined;
   let inputPaths: readonly string[] = [];
@@ -767,8 +768,8 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
       if (!parsed.quiet) await budget.output(`\tzip warning: ignoring special file: ${zipPublicText(source)}\n`);
       return;
     }
-    if ((existing || publication?.existing) && !hasIdentity(stat)) fail("cannot exclude archive aliases when source backing identity is unknown");
     const directory = stat.type === "directory";
+    if ((existing || publication?.existing) && !directory && !hasIdentity(stat)) fail("cannot exclude archive aliases when source backing identity is unknown");
     if (directory && name && !name.endsWith("/")) name += "/";
     const dateIncluded = zipDateMatches(new Date(stat.mtimeMs), parsed.fromDate, parsed.beforeDate);
     const nameIncluded = (dateIncluded || parsed.entryComments) && await filterName(name, selection, parsed.includes.length) && (!recursiveSelection || await recursiveSelection.matches(name, true));

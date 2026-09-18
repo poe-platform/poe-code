@@ -86,7 +86,8 @@ Archive operations
   Removal needs atomic filesystem support; excluded/nonempty directories remain.
   -DF writes size/time differences and new members to required separate -O output.
   -g grows by retaining validated local records when only adding members;
-  replacements/deletions rebuild. Publication always uses owned atomic staging.
+  replacements/deletions rebuild. Publication uses owned atomic staging or
+  conditional byte publication with opaque host identities and versions.
   -b directory selects the VFS staging directory, also spooling stdout archives.
   Cross-provider publication must be supported by the filesystem; no host copy.
   -J removes a prefix only after validating the complete embedded ZIP and CRCs.

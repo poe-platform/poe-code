@@ -64,14 +64,16 @@ export function parseInvocation(invocation: PlaywrightInvocation, abilities: Rea
     if (literal || !arg.startsWith('-') || numeric) { positional.push(arg); continue; }
     const separator = arg.indexOf('=');
     const flag = separator === -1 ? arg : arg.slice(0, separator);
-    const key = flag === '-s' ? 'session' : flag === '-g' ? 'global' : flag === '-v' ? 'version' : flag.slice(2);
+    let key = flag === '-s' ? 'session' : flag === '-g' ? 'global' : flag === '-v' ? 'version' : flag.slice(2);
     if ((flag === '-h' || flag === '--help') && separator === -1) { help = true; continue; }
+    const negated = flag.startsWith('--no-') && !knownOptions.has(key) && knownOptions.get(key.slice(3))?.type === 'boolean';
+    if (negated) key = key.slice(3);
     const definition = knownOptions.get(key);
     if (!definition || flag !== '-s' && flag !== '-g' && flag !== '-v' && !flag.startsWith('--')) throw new Error(`Unknown option: ${arg}`);
     let value: string | boolean;
     if (definition.type === 'boolean') {
       if (separator !== -1) throw new Error(`Invalid option: ${arg}`);
-      value = true;
+      value = !negated;
     } else if (definition.optionalValue && separator === -1 && (invocation.args[index + 1] === undefined || invocation.args[index + 1]!.startsWith('-'))) {
       value = true;
     } else {
@@ -79,14 +81,14 @@ export function parseInvocation(invocation: PlaywrightInvocation, abilities: Rea
       if (candidate === undefined || candidate.includes('\0') || separator === -1 && candidate.startsWith('-') && !Number.isFinite(Number(candidate))) throw new Error(`Missing or invalid value: ${flag}`);
       value = candidate;
     }
-    const values = supplied.get(key) ?? [];
+    const values = definition.type === 'boolean' ? [] : supplied.get(key) ?? [];
     values.push(value);
     supplied.set(key, values);
   }
   if (positional[0] === 'help') { help = true; positional.shift(); }
-  const json = supplied.has('json');
-  const raw = supplied.has('raw');
-  if (supplied.has('version')) return { command: 'version', json, raw };
+  const json = supplied.get('json')?.[0] === true;
+  const raw = supplied.get('raw')?.[0] === true;
+  if (supplied.get('version')?.[0] === true) return { command: 'version', json, raw };
   supplied.delete('json'); supplied.delete('raw');
   if (!positional.length) help = true;
   if (help && (positional.length === 0 || positional.length === 1 && positional[0] === 'tab')) return { command: 'help', json, raw, ...(positional[0] === 'tab' ? { topic: 'tab' } : {}) };

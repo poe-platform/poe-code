@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
-import { Document, DocumentXmlEditor, NumberingPart, CorePropertiesPartView, ImagePartView, InputTypeError, InvalidValueError, UnsupportedEditError, readArchive, writeArchive, applyStyleModelBatch, createDocxInspectionCommandEngine, type DocxBatchOperation } from "./index.js";
+import { Document, DocumentXmlEditor, NumberingPart, CorePropertiesPartView, ImagePartView, InputTypeError, InvalidValueError, OwnershipError, UnsupportedEditError, readArchive, writeArchive, applyStyleModelBatch, createDocxInspectionCommandEngine, type DocxBatchOperation } from "./index.js";
 import { textFixture, textContext, w } from "../tests/fixtures/text.js";
 import { rasterPng } from "../tests/fixtures/raster.js";
 import { readPackage, xmlStructure } from "../tests/assertions.js";
@@ -126,9 +126,13 @@ it.each(["image/jpeg", "IMAGE/JPEG"])("rejects real image MIME mismatch %s witho
 it("keeps newly admitted uppercase image owners separate", async () => {
   const first = await Document(undefined, textContext), second = await Document(undefined, textContext);
   const image = await ImagePartView.load("/word/media/a.png", "IMAGE/PNG", rasterPng(10, 20), first.part.package);
+  const firstBefore = readPackage(await saved(first)), secondBefore = readPackage(await saved(second));
   expect(first.part.package.image_parts.has(image)).toBe(true);
   expect(second.part.package.image_parts.has(image)).toBe(false);
-  expect(() => second.part.package.image_parts.append(image)).toThrow(InputTypeError);
+  expect(() => second.part.package.image_parts.append(image)).toThrow(OwnershipError);
+  expect(() => second.part.package.image_parts.append(image)).toThrow(expect.objectContaining({ code: "conflict" }));
+  expect(readPackage(await saved(first))).toEqual(firstBefore);
+  expect(readPackage(await saved(second))).toEqual(secondBefore);
 });
 
 it.each(["IMAGE/JPEG", "IMAGE/X-ORIGINAL-INERT"])("preserves a mismatched or unsupported image declaration %s without characterizing it", async type => {

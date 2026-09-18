@@ -689,3 +689,41 @@ restores primary table-style semantics and page-derived default width, retaining
 explicit width overload parity. All 460 original cases, 2,588 affected consumers
 and 472 independent built workflows pass. These scoped checks retain both
 macro-free kinds/dialects and five body carriers; full F01–F07 acceptance remains open.
+
+The [native story-ID qualification](native-story-id-variants-20260918.md) adds
+660 exact memfs cases and 660 independent built workflows for owner-local IDs,
+malformed/qualified values, inactive MCE content and safe-integer exhaustion.
+All five native story receivers, dialects, kinds and public routes pass.
+
+The [native style lookup qualification](native-story-style-variants-20260918.md)
+adds 1,140 exact cases and 1,140 independent built workflows, including defaults,
+missing/wrong-kind inputs and exact native SDK/Shell foreign-owner discriminators.
+Expected failures preserve both source packages and existing destinations.
+
+The [native factory qualification](native-factory-carriers-20260918.md) adds
+360 exact cases and 360 independent built workflows for repeated native core and
+numbering factories, five relationship carriers, custom numbering styles and
+builtin paragraph styles. Metadata uses the declared SDK option location.
+
+The [native drawing-ID qualification](native-drawing-id-variants-20260918.md)
+adds 240 exact cases and 240 independent built workflows for the final unsigned
+32-bit ID and exhaustion on all native stories, including inactive-branch
+reservations. Detached fragments, media and owner-local edges pass independent
+XML and byte checks. All four qualifications passed lint/types with unchanged
+captured inputs; verifier mistakes remain recorded. These records close named
+variant gaps only. Fresh complete gates and full-family reconciliation remain open.
+
+The [native empty-name lookup qualification](native-empty-style-name-20260918.md)
+adds 600 passing original cases and 600 independent model/SDK/Shell workflows for
+all five native receivers, five carriers and both kinds/dialects. Explicit empty
+names resolve separately from absent names and null/default. The failed fixture
+and SDK verifier attempts remain preserved. This is named variant evidence;
+the current complete gates, clause reconciliation and renderer access still gate
+F01–F07 acceptance.
+
+The [current public replay](f01-f07-current-public-20260918.md) records 54
+qualified campaigns, ten independently executed built shell-consumer cases,
+216 independently checked ZIP64/template workflows and six independently checked
+large-report edits. Exact source/module hashes and failed verifier attempts are
+retained. Selected schema agreement remains declaration-only evidence. Complete
+gates, exact requirement reconciliation and renderer authorization remain open.

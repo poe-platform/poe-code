@@ -1,3 +1,4 @@
+import { editDocumentStyles, type StyleEditOptions } from "./styles.js";
 import { editDocumentBookmarks, type BookmarkEditRequest } from "./bookmarks.js";
 import type { PublicationContext } from "./publication.js";
 import type { DocxBatchOperation } from "./command.js";
@@ -26,6 +27,7 @@ for (const operation of ["paragraphs.add", "paragraphs.set", "runs.add", "tables
   documentBatchActions.set(operation, (input, item, context) => editDocumentParagraphs(input, { operation: item.operation, options: item.arguments } as ParagraphEditRequest, context));
 for (const operation of ["tables.set", "tables.rows.add", "tables.rows.remove", "tables.columns.add", "tables.columns.remove", "tables.merge", "tables.split"])
   documentBatchActions.set(operation, (input, item, context) => editDocumentTables(input, { operation: item.operation, options: item.arguments } as TableEditRequest, context));
+documentBatchActions.set("styles.remove", (input, item, context) => editDocumentStyles(input, { ...item.arguments, operation: "styles.remove" } as StyleEditOptions, context));
 documentBatchActions.set("text.replace", (input, item, context) => replaceDocumentText(input, item.arguments as TextReplaceOptions, context));
 documentBatchActions.set("lorem.set", (input, item, context) => setDocumentDummyText(input, item.arguments as DummyTextOptions, context));
 documentBatchActions.set("runs.set", (input, item, context) => formatDocumentRuns(input, item.arguments as RunFormatOptions, context));

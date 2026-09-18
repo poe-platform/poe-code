@@ -10,7 +10,7 @@ export async function executeStylesCommand(invocation: DocxInvocation, bytes: Ui
   request: DocxInspectionCommandRequest, context: ArchiveContext): Promise<Uint8Array> {
   const options = invocation.options;
   const humanJson = (value: unknown): string => JSON.stringify(value, null, 2).split("\n").map(line => escapeTerminalText(line)).join("\n");
-  const edit = ["styles.add", "styles.set", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set"].includes(invocation.operation);
+  const edit = ["styles.add", "styles.set", "styles.remove", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set"].includes(invocation.operation);
   if (edit && (options.inPlace || options.output !== undefined && options.output !== "-") && invocation.inputs[0] !== "-" && !input)
     throw new PublicationError("unsupported-publication", "File publication requires admitted input identity.");
   const output = options.output === undefined ? undefined : options.output === "-" ? "-" : resolvePath(request.cwd, options.output as string);

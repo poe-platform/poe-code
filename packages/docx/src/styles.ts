@@ -22,6 +22,7 @@ import type { DocxOperationArguments } from "./operation-types.js";
 
 export type StyleInspectionOptions = Partial<Pick<DocxOperationArguments<"styles.get">, "name" | "json" | "limit">> & { readonly latent?: boolean };
 export type StyleEditOptions = ({ readonly operation: "styles.add" } & DocxOperationArguments<"styles.add"> |
+  { readonly operation: "styles.remove" } & DocxOperationArguments<"styles.remove"> |
   { readonly operation: "styles.set" } & DocxOperationArguments<"styles.set"> |
   { readonly operation: "styles.defaults.set" } & DocxOperationArguments<"styles.defaults.set"> |
   { readonly operation: "styles.latent.add" } & DocxOperationArguments<"styles.latent.add"> |
@@ -116,7 +117,7 @@ const styleOrder = "name aliases basedOn next link autoRedefine hidden uiPriorit
 export async function editDocumentStyles(input: Uint8Array, options: StyleEditOptions, context: PublicationContext): Promise<StyleMutationData> {
   const settings = archiveSettings(context);
   const { operation, input: identity, ...args } = options;
-  if (!["styles.add", "styles.set", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set"].includes(operation)) throw new InvalidValueError("Expected a style edit operation.");
+  if (!["styles.add", "styles.set", "styles.remove", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set"].includes(operation)) throw new InvalidValueError("Expected a style edit operation.");
   const invocation = validateDocxInvocation({ operation, inputs: [identity?.path ?? "document"], options: args }, settings.budget);
   const opts = invocation.options as DocxOperationArguments<"styles.set"> & Partial<DocxOperationArguments<"styles.add">>;
   const budget = settings.budget.lower(Object.fromEntries((opts.limit ?? []).map(v => [v.name, v.value])));
@@ -133,14 +134,14 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
   let part = stylePart(archive);
   const absentPart = part === undefined;
   let writable = archive;
-  if (!part) {
+  if (!part && !(operation === "styles.remove" && opts.allowEmpty)) {
     if (operation !== "styles.defaults.set" && !operation.startsWith("styles.latent.")) throw new SelectionError("missing-selection");
     const materialized = addDocumentStylesPart(archive, archive, "", budget);
     part = materialized.name;
     writable = { ...archive, ...materialized.archive };
   }
   const editor = new DocumentArchiveEditor(writable, {}, undefined, budget);
-  const xml = editor.xml(part), w = xml.root.namespace;
+  const xml = part ? editor.xml(part) : new DocumentXmlEditor(new TextEncoder().encode(`<st:styles xmlns:st="${documentDialects[archive.dialect].w}"/>`), {}, undefined, budget), w = xml.root.namespace;
   const children = activeXmlChildren(xml, budget);
   const child = (node: XmlElement | undefined, name: string) => styleChild(node, name, children);
   const nodes = children(xml.root).filter(n => n.namespace === w && n.localName === "style");
@@ -170,6 +171,12 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
   if (operation.startsWith("styles.latent.")) {
     const id = editLatentStyles(xml, operation, invocation.options, activeXmlChildren(xml, budget));
     if (id !== null) changes.push({ kind: "style", id });
+  } else if (operation === "styles.remove") {
+    const selected = opts.allowEmpty && !nodes.some(node => styleStoredName(attr(child(node, "name"), "val") ?? "") === styleStoredName(opts.name)) ? undefined : resolve(opts.name);
+    if (selected) {
+      xml[replaceActiveStyleXml](selected, "");
+      changes.push({ kind: "style", id: attr(selected, "styleId")! });
+    }
   } else if (operation === "styles.defaults.set") {
     const defaults = child(xml.root, "docDefaults");
     const defaultsXml = defaults ? xml : new DocumentXmlEditor(new TextEncoder().encode(`<st:docDefaults xmlns:st="${w}"/>`), {}, undefined, budget);

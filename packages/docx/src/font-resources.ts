@@ -8,6 +8,7 @@ import type { DocumentPackage } from "./package.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { displayXml } from "./xml-display.js";
 import { UnsupportedEditError } from "./xml-write.js";
+import { activeXmlChildren } from "./xml-active-children.js";
 
 export class UnsupportedEmbeddedFontMutationError extends UnsupportedEditError {
   constructor() { super("Embedded font mutation is unsupported; preserve font definitions, obfuscation metadata and relationships."); }
@@ -168,7 +169,8 @@ export function embeddedFontState(graph: DocumentPackage, budget: DocumentBudget
     budget.charge("work", 1);
     if (parseMediaType(part.content_type) === "application/vnd.openxmlformats-officedocument.wordprocessingml.fonttable+xml") {
       const root = parseDocumentXml(part.bytes, {}, budget).root;
-      for (const font of root.children) if (font.namespace === root.namespace && font.localName === "font" && font.children.some(n => n.namespace === root.namespace && embeddedNames.has(n.localName))) state.push([part.partname, displayXml(font, budget, false)]);
+      const children = activeXmlChildren(root, budget);
+      for (const font of children(root)) if (font.namespace === root.namespace && font.localName === "font" && children(font).some(n => n.namespace === root.namespace && embeddedNames.has(n.localName))) state.push([part.partname, displayXml(font, budget, false)]);
     }
     if (part.content_type.toLowerCase() === "application/vnd.openxmlformats-package.relationships+xml") continue;
     for (const edge of graph.relationships(part.partname)) if (Object.values(documentDialects).some(dialect => edge.reltype === `${dialect.r}/font` || edge.reltype === `${dialect.r}/fontTable`)) state.push([part.partname, edge.rId, edge.reltype, edge.target_ref, edge.is_external]);

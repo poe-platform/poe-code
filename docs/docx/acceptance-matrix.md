@@ -9,6 +9,7 @@ before later dependencies and still requires current-source reconciliation.
 
 | Required behavior or dependency | Current named evidence |
 | --- | --- |
+| Embedded-font definitions in active MCE reject raw replacement | [Native font guard qualification](embedded-font-mce-replacement-20260918.md) |
 | XML replacement retains MIME parameter identity and admits equivalent declarations | [MIME identity qualification](xml-content-type-identity-20260918.md) |
 | Current container, limit, native declaration, dialect and template assertions | [7,754 named foundation passes and independent built replay](f01-f03-foundation-replay-20260918.md) |
 | Core-property MCE publication with both admitted UTF-16 byte orders | [Corrected publication fixture and preserved declaration refusals](core-mce-publication-consumer-20260918.md) |

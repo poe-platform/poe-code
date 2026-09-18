@@ -1,5 +1,6 @@
 import { InputTypeError, InvalidValueError } from "./archive.js";
 import { activeModelChildren } from "./model-active-children.js";
+import { activeXmlChildren } from "./xml-active-children.js";
 import type { ModelStore, ModelRef } from "./model-store.js";
 import { sectionAttribute as commentAttribute } from "./section-properties.js";
 import { xmlValue } from "./create-content.js";
@@ -281,12 +282,13 @@ export class RenderedPageBreak {
     }
     const candidate =
       runElementOpen(p) + (properties ? standalone(properties) : "") + fragment + `</${p.name}>`;
+    const parsed = new DocumentXmlEditor(new TextEncoder().encode(candidate));
+    const fragmentChildren = activeXmlChildren(parsed, this.store.context.budget);
     const meaningful = (n: XmlElement): boolean =>
       (n.namespace === p.namespace &&
         ["t", "tab", "br", "cr", "drawing", "pict", "object"].includes(n.localName)) ||
-      n.children.some(meaningful);
-    const parsed = new DocumentXmlEditor(new TextEncoder().encode(candidate));
-    if (!parsed.root.children.some((n) => n.localName !== "pPr" && meaningful(n))) return null;
+      fragmentChildren(n).some(meaningful);
+    if (!fragmentChildren(parsed.root).some((n) => n.localName !== "pPr" && meaningful(n))) return null;
     return this.store.detachedParagraph(candidate, this.ref.part);
   }
 }

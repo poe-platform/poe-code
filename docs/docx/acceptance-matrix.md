@@ -1,5 +1,30 @@
 # DOCX acceptance matrix
 
+The 2026-09-18 continuation adds the scoped evidence below. Each linked record
+names executed assertions, public routes and retained failures. Later closures
+supersede only the specific open dependency cited by older entries; those older
+observations remain historical evidence. No complete F01–F07 family is accepted
+by these associations or by a passing capability label. The broad replay began
+before later dependencies and still requires current-source reconciliation.
+
+| Required behavior or dependency | Current named evidence |
+| --- | --- |
+| Explicit selected paragraph/run reads and typed resource handles | [Resource read qualification](text-resource-read-20260917.md) |
+| Native provider protocol execution | [Provider qualification](part-provider-protocol-20260917.md) |
+| Native and typed batch save, snapshot/publication behavior | [Save qualification](document-part-save-20260917.md), [current schema/save consumer](save-discovery-consumer-20260918.md) |
+| All declared raster header variants on native story image APIs | [Native story raster variants](native-story-raster-variants-20260917.md) |
+| Comment marker namespace authority, native receiving document and active carriers | [Namespace authority](comment-namespace-authority-20260917.md), [receiver ownership](document-comment-receiver-20260917.md), [active carriers](comment-active-carriers-20260917.md) |
+| Opaque nested markers remain inert outside the selected range | [Opaque marker scope](comment-opaque-marker-scope-20260918.md) |
+| Utility operation IDs inside native ordered batches | [Batch identity qualification](text-resource-batch-identity-20260917.md) |
+| Active cached-break presence/order and all detached fragments | [Cached-break carriers](cached-break-carriers-20260918.md), [inactive-only fragment boundaries](cached-break-inactive-fragments-20260918.md) |
+| Inherited package methods on every native part type, including returned XML and keyed part-map views | [Native inherited routes and strengthened handle assertions](native-inherited-package-routes-20260918.md) |
+| Current large-report edits and independent ZIP/XML retention | [Six current public edit workflows](f01-f07-corpus-current-20260918.md) |
+
+The save-discovery consumer's original rejection assertion failed in the broad
+repository run and was independently reproduced and corrected. That broad
+receipt remains failed. Scoped passes do not convert it into a passing gate;
+unexecuted required variants and unresolved family reconciliation remain open.
+
 The [document owner qualification](document-owner-liveness-20260917.md) records
 452 exact observations within a fresh 4,952-case, 36-file passing run, zero skips
 and 1,087 unchanged captured inputs. All 24 built model/SDK/actual Shell workflows

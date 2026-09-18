@@ -66,25 +66,14 @@ async function bundlePublicConsumer(contents: string) {
   return consumer.outputFiles![0]!.text;
 }
 
-it.each([["xml", "createXmlCommands"], ["yq", "createYqCommands"], ["network", "createNetworkCommands"], ["llm", "createLlmCommands"], ["llm", "llmCommands"], ["llm", "createOpenAiProvider"], ["llm", "createElevenLabsProvider"], ["csplit", "createCsplitCommands"], ["pr", "createPrCommands"], ["tsort", "createTsortCommands"], ["factor", "createFactorCommands"], ["getopt", "createGetoptCommands"], ["hexdump", "createHexdumpCommands"], ["iconv", "createIconvCommands"], ["line-endings", "createDos2unixCommand"], ["line-endings", "createUnix2dosCommand"], ["line-endings", "createLineEndingCommands"], ["line-endings", "lineEndingCommands"]])("shares the public %s command factory across portable root and subpath entries", async (command, factory) => {
+const commandFactories = [["xml", "createXmlCommands"], ["yq", "createYqCommands"], ["network", "createNetworkCommands"], ["llm", "createLlmCommands"], ["llm", "llmCommands"], ["llm", "createOpenAiProvider"], ["llm", "createElevenLabsProvider"], ["csplit", "createCsplitCommands"], ["pr", "createPrCommands"], ["tsort", "createTsortCommands"], ["factor", "createFactorCommands"], ["getopt", "createGetoptCommands"], ["hexdump", "createHexdumpCommands"], ["iconv", "createIconvCommands"], ["line-endings", "createDos2unixCommand"], ["line-endings", "createUnix2dosCommand"], ["line-endings", "createLineEndingCommands"], ["line-endings", "lineEndingCommands"]];
+let factoryIdentity: boolean[];
+
+it.each(commandFactories.map(([command, factory], index) => [command, factory, index] as const))("shares the public %s command factory across portable root and subpath entries", async (command, _factory, index) => {
   const manifest = JSON.parse(await readFile(path.join(root, "packages/safe-bash/package.json"), "utf8"));
   expect(manifest.exports[`./commands/${command}`]?.browser).toBe(`./dist/commands/${command}/index.browser.js`);
   expect(manifest.exports[`./commands/${command}`]?.workerd).toBe(`./dist/commands/${command}/index.browser.js`);
-  const compiled = await bundlePublicConsumer(`
-    import { ${factory} as fromRoot } from "@poe-platform/safe-bash";
-    import { ${factory} as fromSubpath } from "@poe-platform/safe-bash/commands/${command}";
-    export const shared = fromRoot === fromSubpath;
-  `);
-  const sandbox = createContext({
-    TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
-    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
-    require(name: string) {
-      if (name !== "@poe-platform/safe-fs/core") throw new Error(name);
-      return filesystem;
-    },
-  });
-  const consumer = runInContext(`(function(){ const module = { exports: {} }; ${compiled}; return module.exports; })()`, sandbox);
-  expect(consumer.shared).toBe(true);
+  expect(factoryIdentity[index]).toBe(true);
 });
 
 it.each(["nodeCommands", "safeJsCommands"])("registers only sandboxed node through the portable %s API", async factory => {
@@ -223,17 +212,11 @@ it("runs both reference llm transports without Node globals in a browser consume
   expect(result.temperature).toBe(0.7);
 });
 
-it("runs nested env/xargs, truncate, csplit, pr, tsort, factor, getopt, hexdump and hd through the public default browser entry", async () => {
-  const consumer = await bundlePublicConsumer(await readFile(path.join(root, "scripts/fixtures/safe-packages-mixed-entry-runtime.mjs"), "utf8"));
-  const sandbox = createContext({
-    TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
-    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
-    require(name: string) {
-      if (name !== "@poe-platform/safe-fs/core") throw new Error(name);
-      return filesystem;
-    },
-  });
-  const publicConsumer = runInContext(`(function(){ const module = { exports: {} }; ${consumer}; return module.exports; })()`, sandbox);
+let mixedConsumer: typeof import("./fixtures/safe-packages-mixed-entry-runtime.mjs");
+
+
+it("runs nested env/xargs through the public default browser entry", async () => {
+  const publicConsumer = mixedConsumer;
   for (const options of [{}, { regexExecutor: publicConsumer.defaultEntry.createBoundedRegexProvider() }]) {
     const { results, failures } = await publicConsumer.runNestedCommands(publicConsumer.defaultEntry, options);
     for (const result of results) {
@@ -244,20 +227,16 @@ it("runs nested env/xargs, truncate, csplit, pr, tsort, factor, getopt, hexdump 
     expect(failures).toEqual([]);
   }
   const entry = publicConsumer.defaultEntry;
-  expect(entry.MemoryFileSystem).toBe(filesystem.MemoryFileSystem);
-  await publicConsumer.verifyTruncateCommands(entry);
-  await publicConsumer.verifyCsplitCommands(entry);
-  await publicConsumer.verifyPrCommands(entry);
-  await publicConsumer.verifyTsortCommands(entry);
-  await publicConsumer.verifyFactorCommands(entry);
-  await publicConsumer.verifyGetoptCommands(entry);
-  await publicConsumer.verifyHexdumpCommands(entry);
   const argumentsFromBrowser = entry.createCommandArguments(["nested"]);
   expect(entry.getCommandArguments({ args: argumentsFromBrowser.args, argumentValues: argumentsFromBrowser })).toBe(argumentsFromBrowser);
   expect(() => entry.getCommandArguments({ args: argumentsFromBrowser.args, argumentValues: { ...argumentsFromBrowser } })).toThrow("Expected owned command arguments");
   expect(() => entry.getCommandArguments({ args: [...argumentsFromBrowser.args], argumentValues: argumentsFromBrowser })).toThrow(entry.CommandArgumentIdentityError);
   const bytesFromBrowser = argumentsFromBrowser.withValues([new Uint8Array([255, 0])]);
   expect(Array.from(entry.createCommandArguments(bytesFromBrowser.values).bytes(0))).toEqual([255, 0]);
+});
+
+it.each(["verifyTruncateCommands", "verifyCsplitCommands", "verifyPrCommands", "verifyTsortCommands", "verifyFactorCommands", "verifyGetoptCommands", "verifyHexdumpCommands"] as const)("executes %s through the public default browser entry", async verify => {
+  await mixedConsumer[verify](mixedConsumer.defaultEntry);
 });
 
 it("bundles the opt-in op plugin with browser crypto and no Node implementation", async () => {
@@ -408,7 +387,14 @@ beforeAll(async () => {
 });
 
 beforeAll(async () => {
-  const compiled = await bundlePublicConsumer('export * from "@poe-platform/safe-bash";');
+  const compiled = await bundlePublicConsumer(`
+    export * from "@poe-platform/safe-bash";
+    ${commandFactories.map(([command, factory], index) => `
+      import { ${factory} as root${index} } from "@poe-platform/safe-bash";
+      import { ${factory} as leaf${index} } from "@poe-platform/safe-bash/commands/${command}";
+    `).join("\n")}
+    export const factoryIdentity = [${commandFactories.map((_, index) => `root${index} === leaf${index}`).join(",")}];
+  `);
   const sandbox = createContext({
     TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
@@ -416,7 +402,21 @@ beforeAll(async () => {
   filesystem = runInContext(`(function(){ const module = { exports: {} }; ${filesystemBuild.outputFiles![0]!.text}; return module.exports; })()`, sandbox) as CoreFs;
   sandbox.canonical = filesystem;
   browser = runInContext(`(function(){ const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${compiled}; return module.exports; })()`, sandbox) as BrowserShell;
+  factoryIdentity = (browser as BrowserShell & { factoryIdentity: boolean[] }).factoryIdentity;
   expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof setImmediate", sandbox)).toBe("undefined:undefined:undefined");
+});
+
+beforeAll(async () => {
+  const consumer = await bundlePublicConsumer(await readFile(path.join(root, "scripts/fixtures/safe-packages-mixed-entry-runtime.mjs"), "utf8"));
+  const sandbox = createContext({
+    TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
+    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
+    require(name: string) {
+      if (name !== "@poe-platform/safe-fs/core") throw new Error(name);
+      return filesystem;
+    },
+  });
+  mixedConsumer = runInContext(`(function(){ const module = { exports: {} }; ${consumer}; return module.exports; })()`, sandbox);
 });
 
 it("executes the maintained browser fixture with all top-level workflows in a Node VM", async () => {
@@ -455,6 +455,7 @@ it("executes the maintained browser fixture with all top-level workflows in a No
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, URL, TypeError,
     crypto: globalThis.crypto, performance, console,
   });
+  factoryIdentity = (browser as BrowserShell & { factoryIdentity: boolean[] }).factoryIdentity;
   expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof require", sandbox)).toBe("undefined:undefined:undefined");
   await runInContext(`(async () => { ${result.outputFiles![0]!.text} })()`, sandbox);
 });
@@ -499,13 +500,14 @@ it("rejects duplicate portable registration unless replacement is explicit", asy
   }
 });
 
-it("enforces command and output budgets in the portable runtime", async () => {
-  for (const limits of [{ maxCommands: 1 }, { maxOutputBytes: 2 }]) {
-    const shell = new browser.Shell({ fs: new filesystem.MemoryFileSystem(), limits }).use(browser.agentCommands());
-    try { await expect(shell.exec("echo first; echo second")).rejects.toBeInstanceOf(browser.ShellLimitError); }
-    finally { await shell.dispose(); }
-  }
-  const looping = new browser.Shell({ fs: new filesystem.MemoryFileSystem(), limits: { maxLoopIterations: 300 } });
+it.each([{ maxCommands: 1 }, { maxOutputBytes: 2 }])("enforces portable command/output budget %j", async limits => {
+  const shell = new browser.Shell({ fs: new filesystem.MemoryFileSystem(), limits }).use(browser.agentCommands());
+  try { await expect(shell.exec("echo first; echo second")).rejects.toBeInstanceOf(browser.ShellLimitError); }
+  finally { await shell.dispose(); }
+});
+
+it("enforces the loop budget in the portable runtime", async () => {
+  const looping = new browser.Shell({ fs: new filesystem.MemoryFileSystem(), limits: { maxLoopIterations: 3 } });
   try { await expect(looping.exec("while :; do :; done")).rejects.toBeInstanceOf(browser.ShellLimitError); }
   finally { await looping.dispose(); }
 });

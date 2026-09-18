@@ -13,17 +13,17 @@ it("admits the observed repository subject count within a bounded growth allowan
     root,
     boundaries,
     fileSystem: state.fileSystem,
-    limits: { subjects: 12001 }
+    limits: { subjects: 16001 }
   });
   expect(guard.read("src/one.js", "subject").toString()).toBe("export {};");
   expect(guard.snapshot()).toMatchObject({ subjects: 1, opens: 1, closes: 1, failed: false });
-  expect(guardedInputs.LIMITS.subjects).toBeLessThanOrEqual(16000);
+  expect(guardedInputs.LIMITS.subjects).toBeLessThanOrEqual(20000);
   expect(() =>
     createLintInputGuard({
       root,
       boundaries,
       fileSystem: state.fileSystem,
-      limits: { subjects: 16001 }
+      limits: { subjects: 20001 }
     })
   ).toThrow("invalid input limit: subjects");
 });

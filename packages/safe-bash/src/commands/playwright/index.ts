@@ -3,6 +3,7 @@ import type { VirtualShellPlugin } from '../../contracts/plugin.js';
 import { dirname, resolvePath } from '../../contracts/path.js';
 import { writeBytes } from '../../contracts/io.js';
 import { isPlaywrightResourceLimitError } from '../../playwright/resource-limit.js';
+import { PlaywrightReportedError } from '../../playwright/response.js';
 
 export type PlaywrightCliOptions = PlaywrightControllerOptions & { readonly replace?: boolean };
 
@@ -92,6 +93,7 @@ export function createPlaywrightCli(options: PlaywrightCliOptions = {}) {
             return { exitCode: 0 };
           } catch (error) {
             context.signal.throwIfAborted();
+            if (error instanceof PlaywrightReportedError) return { exitCode: 1 };
             let json = false;
             for (const arg of context.args) {
               if (arg === '--') break;

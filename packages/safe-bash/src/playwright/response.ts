@@ -8,6 +8,12 @@ export interface PlaywrightResultSection {
 
 export interface PlaywrightCommandResult {
   readonly sections: readonly PlaywrightResultSection[];
+  readonly isError?: boolean;
+  readonly rawErrorHeader?: boolean;
+}
+
+export class PlaywrightReportedError extends Error {
+  override readonly name = 'PlaywrightReportedError';
 }
 
 export const playwrightCliCompatibilityVersion = '0.1.20';
@@ -16,8 +22,9 @@ export function serializePlaywrightResult(result: PlaywrightCommandResult, optio
   const sections = options.raw ? result.sections.filter(section => ['Error', 'Result', 'Snapshot'].includes(section.title)) : result.sections;
   if (options.json) {
     const payload: { [key: string]: PlaywrightJsonValue } = {};
-    if (sections.some(section => section.title === 'Error')) payload.isError = true;
+    if (result.isError || sections.some(section => section.title === 'Error')) payload.isError = true;
     for (const section of sections) {
+      if (section.title === 'Ran Playwright code') continue;
       if (typeof section.content !== 'string') payload[section.title.toLowerCase()] = section.content.json;
       else if (section.content) {
         const prefix = '- [Snapshot](';
@@ -31,9 +38,9 @@ export function serializePlaywrightResult(result: PlaywrightCommandResult, optio
   for (const section of sections) {
     const text = typeof section.content === 'string' ? section.content : JSON.stringify(section.content.json, null, 2);
     if (!text) continue;
-    if (!options.raw) {
+    if (!options.raw || result.rawErrorHeader && section.title === 'Error') {
       lines.push(`### ${section.title}`);
-      if (section.codeframe) lines.push('```' + section.codeframe);
+      if (!options.raw && section.codeframe) lines.push('```' + section.codeframe);
     }
     lines.push(text);
     if (!options.raw && section.codeframe) lines.push('```');

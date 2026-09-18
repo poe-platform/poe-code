@@ -6,7 +6,7 @@ import { formatPlaywrightHelp } from './help.js';
 import { registerPlaywrightAbilities, type PlaywrightAbilities, type PlaywrightAbilityRequest } from './abilities.js';
 import { executePlaywrightAbility } from './ability-execution.js';
 import { createPlaywrightCommandBudget } from './command-budget.js';
-import { playwrightCliCompatibilityVersion, playwrightCodeString, serializePlaywrightResult, type PlaywrightCommandResult, type PlaywrightResultSection } from './response.js';
+import { PlaywrightReportedError, playwrightCliCompatibilityVersion, playwrightCodeString, serializePlaywrightResult, type PlaywrightCommandResult, type PlaywrightResultSection } from './response.js';
 import { capabilityArtifactName } from './capability-result.js';
 import { isPlaywrightSnapshotRef, resolvePlaywrightTarget } from './targets.js';
 import type { PlaywrightElementHandle, PlaywrightStorageState } from './adapter.js';
@@ -391,6 +391,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   };
   const run = async (invocation: PlaywrightInvocation): Promise<void> => {
     const commandBudget = createPlaywrightCommandBudget(maxCommandBytes);
+    let reportedError = false;
     const writtenFiles = new Set<string>();
     const original = invocation;
     if (original.writeArtifact) invocation = { ...original, async writeArtifact(bytes, filename) {
@@ -459,10 +460,11 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     const writeResult = async (result: PlaywrightCommandResult) => {
       check();
       await write(serializePlaywrightResult(configuredResult(result), parsed));
+      if (result.isError || result.sections.some(section => section.title === 'Error')) reportedError = true;
     };
     const configuredResult = (result: PlaywrightCommandResult): PlaywrightCommandResult => {
       const language = active?.configuration?.codegen ?? 'typescript';
-      return { sections: result.sections.flatMap(section => section.title !== 'Ran Playwright code' ? [section] : language === 'none' ? [] : [{ ...section, codeframe: language === 'typescript' ? 'js' : language }]) };
+      return { ...result, sections: result.sections.flatMap(section => section.title !== 'Ran Playwright code' ? [section] : language === 'none' ? [] : [{ ...section, codeframe: language === 'typescript' ? 'js' : language }]) };
     };
     const actionCode = (session: Session, action: PlaywrightCodegenAction, fallback: string) => {
       const language = session.configuration?.codegen ?? 'typescript';
@@ -865,10 +867,10 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               active.pages = [...active.lease!.context.pages()];
               if (active.pages.length > maxTabs) throw new PlaywrightResourceLimitError('Playwright tab limit exceeded');
               await checkpoint(active, local.signal);
-              if (active.page && getPlaywrightModal(active.page)) result = { sections: [...result?.sections ?? [], ...(await pageResult(active, undefined)).sections] };
+              if (active.page && getPlaywrightModal(active.page)) result = { ...result, sections: [...result?.sections ?? [], ...(await pageResult(active, undefined)).sections] };
               else {
                 const downloads = await downloadSections(active);
-                if (downloads.length) result = { sections: [...result?.sections ?? [], ...downloads] };
+                if (downloads.length) result = { ...result, sections: [...result?.sections ?? [], ...downloads] };
               }
               const traceLinks = await flushTrace(active);
               traceFlushed = true;
@@ -877,7 +879,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
                 const index = sections.findIndex(section => section.title === 'Result');
                 if (index === -1) sections.push({ title: 'Result', content: traceLinks.join('\n') });
                 else sections[index] = { ...sections[index]!, content: sections[index]!.content + '\n' + traceLinks.join('\n') };
-                result = { sections };
+                result = { ...result, sections };
               }
             }
             if (result) await writeResult(result);
@@ -1158,6 +1160,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       throw cleanupError;
     } finally { work.delete(operation); }
     if (failure) throw failure.error;
+    if (reportedError) throw new PlaywrightReportedError('Playwright command error was reported');
   };
   const dispose = (): Promise<void> => {
     if (disposal) return disposal;

@@ -192,6 +192,12 @@ honor cancellation and implement their backend's action timeout policy. Opaque,
 uncooperative host work cannot be forcibly preempted by this library.
 Budget failures produce a nonzero CLI result and a stderr diagnostic, including
 in JSON mode; the diagnostic is not charged to the exhausted command budget.
+Custom results can set `isError: true` with an `Error` section to return exit1
+after the response is fully written, without duplicate stderr. `rawErrorHeader`
+retains the error heading in raw mode for target-resolution errors. Failed writes,
+cancellation and cleanup remain failures rather than already-reported responses.
+Standard JSON omits generated Playwright code; normal text retains it. The CLI
+`--version` reports the compatibility dialect `0.1.20`, not the npm package version.
 
 Built-in snapshots require public frame `evaluateHandle`. They retain nodes in a
 browser-side object and transfer only bounded status and rendered text; they do

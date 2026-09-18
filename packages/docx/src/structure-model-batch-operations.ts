@@ -9,9 +9,12 @@ import { Paragraph, Run } from "./block-model.js";
 import { Table, _Cell, _Row, _Column, _Rows, _Columns } from "./table-model.js";
 import { Section, Sections, _Header, _Footer } from "./section-model.js";
 import { Comment, Comments, Hyperlink, RenderedPageBreak } from "./review-model.js";
-import { Length, isLength, enumFamilies, isEnumMember } from "./formatting-values.js";
-import { paragraphUnits } from "./paragraph-properties.js";
-import type { DocxLength } from "./operation-types.js";
+import { Length, isLength, enumFamilies, isEnumMember, plainLength } from "./formatting-values.js";
+import { paragraphUnits, paragraphProperties } from "./paragraph-properties.js";
+import type { DocxLength, DocxOperationArguments } from "./operation-types.js";
+import { activeXmlChildren } from "./xml-active-children.js";
+import { formattedRunProperties, runElementOpen } from "./run-properties.js";
+import { assertFormattingHistoryEditable } from "./revision-markup.js";
 
 type Action = (receiver: unknown, args: Readonly<Record<string, unknown>>) => unknown;
 type Owner = abstract new (...args: never[]) => object;
@@ -23,6 +26,25 @@ function register(key: string, owner: OwnerProvider, action: Action): void {
     if (!(receiver instanceof owner()))
       throw new DocxUsageError("The receiver does not support this model operation.");
     return action(receiver, args);
+  });
+}
+for (const operation of ["paragraphs.format.set", "runs.fonts.set"] as const) {
+  register(operation, () => operation === "paragraphs.format.set" ? Paragraph : Run, (receiver, args) => {
+    const owner = receiver as Paragraph | Run, budget = owner.store.context.budget;
+    owner.store.change(owner.ref.part, xml => {
+      const node = owner.store.node(owner.ref), children = activeXmlChildren(xml, budget);
+      assertFormattingHistoryEditable(xml.root, node, children, budget);
+      const name = node.localName + "Pr", props = children(node).find(child => child.namespace === node.namespace && child.localName === name);
+      const paragraph = args as DocxOperationArguments<"paragraphs.format.set">;
+      const paragraphOptions = {
+        ...(paragraph.borders === undefined ? {} : { borders: paragraph.borders === null ? null : Object.fromEntries(Object.entries(paragraph.borders).map(([name, border]) => [name, { ...border, width: plainLength(border.width), ...(border.space === undefined ? {} : { space: plainLength(border.space) }) }])) }),
+        ...(paragraph.shading === undefined ? {} : { shading: paragraph.shading === null ? null : { ...paragraph.shading, color: paragraph.shading.color ?? "000000" } })
+      };
+      const properties = operation === "runs.fonts.set" ? formattedRunProperties(xml, node, {}, children, args as DocxOperationArguments<"runs.fonts.set">)
+        : paragraphProperties(xml, node, paragraphOptions, undefined, children);
+      if (properties === (props ? xml.sourceXml(props) : "")) return;
+      xml.replaceElement(node, props ? xml.sourceXml(node, new Map([[props, properties]])) : runElementOpen(node) + properties + xml.sourceXml(node, new Map(), true) + `</${node.name}>`);
+    });
   });
 }
 function surface(

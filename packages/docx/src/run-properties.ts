@@ -16,7 +16,7 @@ export function runElementOpen(node: XmlElement): string {
 }
 
 /** Only supplied direct properties change; absence never resolves the style cascade. */
-export function formattedRunProperties(editor: DocumentXmlEditor, run: XmlElement, options: DocxOperationArguments<"runs.set">, children: (node: XmlElement) => readonly XmlElement[] = node => node.children): string {
+export function formattedRunProperties(editor: DocumentXmlEditor, run: XmlElement, options: DocxOperationArguments<"runs.set">, children: (node: XmlElement) => readonly XmlElement[] = node => node.children, metadata: DocxOperationArguments<"runs.fonts.set"> = {}): string {
   const w = run.namespace;
   const containers = children(run).filter(c => c.namespace === w && c.localName === "rPr");
   if (containers.length > 1) throw new UnsupportedEditError("Duplicate run property containers cannot be edited.");
@@ -60,8 +60,19 @@ export function formattedRunProperties(editor: DocumentXmlEditor, run: XmlElemen
   if (options.font !== undefined) Object.assign(fonts, { ascii: options.font, hAnsi: options.font });
   for (const [key, attr] of [["ascii", "ascii"], ["highAnsi", "hAnsi"], ["eastAsia", "eastAsia"], ["complexScript", "cs"], ["asciiTheme", "asciiTheme"], ["highAnsiTheme", "hAnsiTheme"], ["eastAsiaTheme", "eastAsiaTheme"], ["complexScriptTheme", "cstheme"]] as const)
     if (options[key] !== undefined) fonts[attr] = options[key];
+  for (const [key, attr] of [["ascii", "ascii"], ["highAnsi", "hAnsi"], ["eastAsia", "eastAsia"], ["complexScript", "cs"]] as const) {
+    if (metadata[key] !== undefined) fonts[attr] = metadata[key];
+    if (metadata.theme === null) fonts[attr === "cs" ? "cstheme" : attr + "Theme"] = null;
+    else if (metadata.theme?.[key] !== undefined) fonts[attr === "cs" ? "cstheme" : attr + "Theme"] = metadata.theme[key];
+  }
   if (Object.keys(fonts).length) property("rFonts", fonts);
-  if (options.language !== undefined) property("lang", { val: options.language });
+  const language: Record<string, string | null> = {};
+  if (options.language !== undefined) language.val = options.language;
+  for (const [key, attr] of [["latin", "val"], ["eastAsia", "eastAsia"], ["bidi", "bidi"]] as const) {
+    if (metadata.language === null) language[attr] = null;
+    else if (metadata.language?.[key] !== undefined) language[attr] = metadata.language[key];
+  }
+  if (Object.keys(language).length) property("lang", language);
   if (options.color !== undefined) property("color", options.color === null ? null : { val: options.color.toUpperCase(), themeColor: null, themeTint: null, themeShade: null });
   if (options.themeColor !== undefined) {
     const color = props && children(props).find(c => c.namespace === w && c.localName === "color");

@@ -144,7 +144,7 @@ export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElemen
       for (const name of ["top", "left", "bottom", "right", "between"] as const) {
         const border = options.borders[name]; if (!border) continue;
         const node = find(name, container);
-        const markup = element(name, { val: border.style, sz: String(paragraphUnits(border.width, 12700 / 8)), color: border.color.toUpperCase(), space: border.space === undefined ? null : String(paragraphUnits(border.space, 12700)), themeColor: null, themeTint: null, themeShade: null }, node);
+        const markup = element(name, { val: border.style, sz: String(paragraphUnits(border.width, 12700 / 8)), color: border.color.toUpperCase(), ...(border.space === undefined ? node ? {} : { space: "0" } : { space: String(paragraphUnits(border.space, 12700)) }), themeColor: null, themeTint: null, themeShade: null }, node);
         if (node) replacements.set(node, markup); else additions.set(name, markup);
       }
       set("pBdr", {}, mergeOrdered(container, replacements, additions, ["top", "left", "bottom", "right", "between", "bar"]));

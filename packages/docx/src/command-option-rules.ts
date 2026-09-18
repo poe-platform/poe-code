@@ -197,8 +197,9 @@ export function validateDocxOptionRules(operation: string, options: Readonly<Rec
     const value = magnitude(options[name]);
     if (value !== undefined && (!(value >= 0) || Number((options[name] as { value: number }).value) < 0)) reject("Spacing and margins must be nonnegative.");
   }
-  if (["runs.set", "runs.fonts.set"].includes(operation) && has("language") && options.language !== null && !languageTag(options.language)) reject("Font language must be a nonempty BCP-47 tag.");
-  if (operation === "runs.set" || ["styles.add", "styles.set", "styles.defaults.set"].includes(operation)) {
+  if (operation === "runs.set" && has("language") && options.language !== null && !languageTag(options.language)) reject("Font language must be a nonempty BCP-47 tag.");
+  if (operation === "runs.fonts.set" && options.language !== undefined && options.language !== null && Object.values(options.language as Record<string, unknown>).some(value => !languageTag(value))) reject("Font language must be a nonempty BCP-47 tag.");
+  if (["runs.set", "runs.fonts.set", "styles.add", "styles.set", "styles.defaults.set"].includes(operation)) {
     for (const key of ["underline", "highlight"]) if ((options[key] as { name?: string } | null)?.name === "INHERITED") reject("Use null for inherited formatting.");
     const size = magnitude(options.size);
     if (size !== undefined && (Math.round(size / 6350) < 1 || Math.round(size / 6350) > 3276)) reject("Font size must round to 1 through 3276 half-points.");

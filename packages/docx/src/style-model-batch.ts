@@ -23,6 +23,7 @@ import { DocxUsageError } from "./argument-json.js";
 import { BoundsError } from "./model-errors.js";
 import { validateDocxBatch } from "./command.js";
 import { ModelBatchEffects, type ModelBatchItemResult } from "./model-batch-effects.js";
+import type { DocumentBatchItemResult } from "./batch.js";
 import { documentByteView } from "./byte-input.js";
 import { BaseStyle, CharacterStyle, ParagraphStyle, TableStyle, Styles, LatentStyles, LatentStyle } from "./styles-model.js";
 import { Font, ParagraphFormat, TabStops, TabStop, ColorFormat, RGBColor } from "./formatting-model.js";
@@ -45,7 +46,7 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
   const named = new Map<string, unknown>();
   const objectIds = new Map<object, string>();
   const results: { operation: string; value: unknown }[] = [];
-  const operationResults: ModelBatchItemResult[] = [];
+  const operationResults: (ModelBatchItemResult | DocumentBatchItemResult)[] = [];
   settings.budget.charge("work", source.length);
   const sourceSha256 = [...new Uint8Array(await crypto.subtle.digest("SHA-256", source))].map(byte => byte.toString(16).padStart(2, "0")).join("");
   const effects = new ModelBatchEffects(document.store.snapshot(), sourceSha256, settings.budget);
@@ -119,6 +120,7 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
     return Object.fromEntries(Object.entries(record).map(([key, item]) => [key, resolve(item)]));
   }
   for (const [index, item] of batch.operations.entries()) {
+    const utilityId = item.operation === "paragraphs.get" || item.operation === "runs.get" ? item.id ?? `step${index + 1}` : undefined;
     try {
       await settings.budget.checkpoint();
       let value: unknown;
@@ -166,12 +168,13 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
       if (readSession && changes.length) await readSession.stage(document.store.snapshot());
       const count = changes.length ? 1 : 0;
       affected += count;
-      operationResults.push({version: 1, operation: item.operation, ok: true, data: encoded, affected: count,
-        warnings: [], errors: [], locations: readLocations ?? changes.flatMap(change => change.after ? [change.after] : [])});
+      const result: ModelBatchItemResult = {version: 1, operation: item.operation, ok: true, data: encoded, affected: count,
+        warnings: [], errors: [], locations: readLocations ?? changes.flatMap(change => change.after ? [change.after] : [])};
+      operationResults.push(utilityId === undefined ? result : { ...result, id: utilityId });
       revision = nextRevision;
     } catch (cause) {
       const error = cause instanceof Error ? cause : new Error("Document model batch operation failed.", {cause});
-      Object.assign(error, {operationIndex: index});
+      Object.assign(error, {operationIndex: index, ...(utilityId === undefined ? {} : {operationId: utilityId})});
       throw error;
     }
   }

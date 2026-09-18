@@ -362,6 +362,14 @@
       "types": "./dist/commands/playwright/index.d.ts",
       "browser": "./dist/commands/playwright/index.js",
       "import": "./dist/commands/playwright/index.js"
+    },
+    "./commands/wkhtmltopdf": {
+      "types": "./dist/commands/wkhtmltopdf/index.d.ts",
+      "import": "./dist/commands/wkhtmltopdf/index.js"
+    },
+    "./commands/exiftool": {
+      "types": "./dist/commands/exiftool/index.d.ts",
+      "import": "./dist/commands/exiftool/index.js"
     }
   },
   "files": [
@@ -447,7 +455,10 @@
     "pptx": "*",
     "@poe-platform/op": "*",
     "@poe-code/pandoc": "*",
-    "@poe-code/safe-playwright": "*"
+    "@poe-code/safe-playwright": "*",
+    "safe-bash-contracts": "*",
+    "safe-bash-command-wkhtmltopdf": "*",
+    "safe-bash-command-exiftool": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -508,6 +519,30 @@
       "standalonePeer": {
         "range": ">=13.0.0",
         "developmentVersion": "13.0.0"
+      },
+      "privateWorkspaces": {
+        "safe-bash-contracts": {
+          "version": "0.0.1",
+          "dependencies": {
+            "@poe-code/safe-fs": "*"
+          },
+          "devDependencies": {}
+        },
+        "safe-bash-command-wkhtmltopdf": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-command-exiftool": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          }
+        }
       }
     }
   },

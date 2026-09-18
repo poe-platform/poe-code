@@ -107,6 +107,10 @@ test("hazardous expansion cases have a one-second killable outer deadline", asyn
   const prepared = await build({
     entryPoints: [fileURLToPath(new URL("./hazard-worker.ts", import.meta.url))],
     bundle: true, packages: "external", platform: "node", format: "esm", target: "es2022", write: false,
+    alias: {
+      "safe-bash-contracts": fileURLToPath(new URL("../../../../safe-bash-contracts/dist", import.meta.url)),
+      "@poe-code/safe-fs": fileURLToPath(new URL("../../../../safe-fs/src", import.meta.url)),
+    },
   });
   for (const scenario of ["source", "json", "expansion", "allocation", "cancel"]) {
     const result = spawnSync(process.execPath, ["--input-type=module", "-", scenario], { input: prepared.outputFiles[0]!.text, encoding: "utf8", timeout: 1000, maxBuffer: 4096 });

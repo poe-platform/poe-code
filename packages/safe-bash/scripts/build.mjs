@@ -233,6 +233,35 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
         assert.equal(yaml.version, manifest.peerDependencies.yaml, "YAML declaration version must match the fixed peer");
       }
       let peerPaths;
+      // Explicit private workspace profiles admit declarations only, never sibling source.
+      for (const [name, profile] of Object.entries(manifest.poeCode?.integration?.privateWorkspaces ?? {})) {
+        assert.ok(name === "safe-bash-contracts" || name.startsWith("safe-bash-command-"), "private workspace must own command contracts or a command");
+        assertLiteralInputPath(name);
+        assert.ok(!name.includes("/"), "private workspace name must be a literal directory");
+        assert.equal(manifest.devDependencies?.[name], "*", "private workspace must be an explicit local build dependency");
+        const implementationRoot = resolve(root, "../" + name);
+        peerMetadata.add(join(implementationRoot, "package.json"));
+        const implementation = JSON.parse(read(join(implementationRoot, "package.json"), 65536));
+        assert.equal(implementation.name, name, "private workspace identity");
+        assert.equal(implementation.private, true, "command implementation must remain private");
+        assert.equal(implementation.version, profile.version, "private workspace version");
+        assert.equal(implementation.type, "module", "private workspace must use ESM");
+        assert.deepEqual(implementation.dependencies ?? {}, profile.dependencies, "private workspace runtime closure");
+        assert.deepEqual(implementation.devDependencies ?? {}, profile.devDependencies, "private workspace build closure");
+        assert.ok(!Object.keys(implementation.peerDependencies ?? {}).length && !Object.keys(implementation.optionalDependencies ?? {}).length, "private workspace has no implicit dependency closure");
+        const routes = Object.entries(implementation.exports ?? {});
+        assert.ok(routes.length > 0 && routes.length <= 32, "private workspace has bounded explicit exports");
+        for (const [route, target] of routes) {
+          assert.ok(route === "." || route.startsWith("./"), "private export route must be relative");
+          if (route !== ".") assertLiteralInputPath(route.slice(2));
+          assert.ok(typeof target?.types === "string" && target.types.startsWith("./dist/") && target.types.endsWith(".d.ts"), "private workspace declarations must remain below dist");
+          assertLiteralInputPath(target.types.slice(2));
+          assert.equal(target.import, target.types.slice(0, -5) + ".js", "private workspace runtime/declaration route pair");
+          peerPaths ??= {};
+          peerPaths[name + (route === "." ? "" : route.slice(1))] = [resolve(implementationRoot, target.types)];
+        }
+        toolRoots.push(join(implementationRoot, "dist"));
+      }
       if (manifest.peerDependencies?.["poe-code"]) {
         const checkout = manifest.poeCode?.integration?.peerProfile === "checkout-root";
         if (checkout) assert.equal(manifest.devDependencies?.["poe-code"], "file:../..", "checkout peer must use the explicit local root");
@@ -248,7 +277,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
         assert.equal(target, "./packages/safe-fs/dist/index.d.ts", "canonical public SafeFS declaration entry");
         if (checkout && !detached) assert.equal(exported.import, "./packages/safe-js/dist/safe-fs.js", "canonical public SafeFS must use the shared SafeJS runtime");
         toolRoots.push(join(peerRoot, "packages/safe-fs/dist"));
-        peerPaths = { "poe-code/safe-fs": [resolve(peerRoot, target)] };
+        peerPaths = { ...peerPaths, "poe-code/safe-fs": [resolve(peerRoot, target)] };
         const core = detached
           ? { types: "./packages/safe-fs/dist/core.d.ts" }
           : peer.exports?.["./safe-fs/core"];

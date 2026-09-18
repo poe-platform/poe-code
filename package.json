@@ -330,7 +330,10 @@
     "@petamoriken/float16": "^3.9.3",
     "@kayahr/text-encoding": "^2.2.0",
     "temporal-polyfill": "1.0.4",
-    "oxlint": "1.83.0"
+    "oxlint": "1.83.0",
+    "safe-bash-contracts": "*",
+    "safe-bash-command-wkhtmltopdf": "*",
+    "safe-bash-command-exiftool": "*"
   },
   "repository": {
     "type": "git",

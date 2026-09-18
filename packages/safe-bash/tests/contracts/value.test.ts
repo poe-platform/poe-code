@@ -2,6 +2,20 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { concatShellValues, shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueRetainedBytes, shellValueText } from "../../src/contracts/value.js";
 import type { ValueAllocation } from "../../src/contracts/value.js";
+import { createCommandArguments, getCommandArguments, commandRuntimeIdentity } from "safe-bash-contracts/command";
+import * as shellCommands from "../../src/contracts/command.js";
+import * as canonicalValues from "safe-bash-contracts/value";
+
+test("private commands share canonical argument brands and runtime identity with the shell", () => {
+  assert.equal(commandRuntimeIdentity, shellCommands.commandRuntimeIdentity);
+  assert.equal(createCommandArguments, shellCommands.createCommandArguments);
+  assert.equal(shellValueFromBytes, canonicalValues.shellValueFromBytes);
+  const bytes = Uint8Array.of(0xff, 0xfe);
+  const carrier = shellCommands.createCommandArguments([shellValueFromBytes(bytes)]);
+  assert.equal(getCommandArguments({ args: carrier.args, argumentValues: carrier }), carrier);
+  assert.deepEqual(carrier.bytes(0), bytes);
+  assert.throws(() => getCommandArguments({ args: [...carrier.args], argumentValues: carrier }), shellCommands.CommandArgumentIdentityError);
+});
 
 const ResizableArrayBuffer = ArrayBuffer as unknown as new (length: number, options: { maxByteLength: number }) => ArrayBuffer & { resize(length: number): void };
 

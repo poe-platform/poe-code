@@ -8,6 +8,83 @@ import { packageSafeLibraries, parsePackageSafeArguments, rewriteModuleSpecifier
 
 const bashManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
 
+it("ships the ExifTool implementation and declarations without an unpublished dependency", async () => {
+  const { volume, options } = optionalLeftovers();
+  const name = "safe-bash-command-exiftool";
+  const manifest = structuredClone(bashManifest);
+  manifest.poeCode.integration.privateWorkspaces = {
+    [name]: { version: "0.0.1", dependencies: {}, devDependencies: { "safe-bash-contracts": "*", "@poe-code/safe-fs": "*" } },
+  };
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+  const commandManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash-command-exiftool/package.json", import.meta.url), "utf8"));
+  volume.mkdirSync("/repo/packages/" + name + "/dist", { recursive: true });
+  volume.writeFileSync("/repo/packages/" + name + "/package.json", JSON.stringify(commandManifest));
+  volume.writeFileSync("/repo/packages/" + name + "/LICENSE", "Original first-party implementation\n");
+  // Exercise a real source module through the artifact rather than an empty export.
+  const scalarSource = readFileSync(new URL("../packages/safe-bash-command-exiftool/src/scalar.ts", import.meta.url), "utf8");
+  volume.writeFileSync("/repo/packages/" + name + "/dist/index.js", 'export { encodeJsonScalar } from "./scalar.js";');
+  volume.writeFileSync("/repo/packages/" + name + "/dist/index.d.ts", 'export { encodeJsonScalar } from "./scalar.js";');
+  volume.writeFileSync("/repo/packages/" + name + "/dist/scalar.js", ts.transpileModule(scalarSource, {
+    compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 },
+  }).outputText);
+  volume.writeFileSync("/repo/packages/" + name + "/dist/scalar.d.ts", "export declare function encodeJsonScalar(value: string): string;");
+  for (const suffix of ["js", "d.ts"]) volume.writeFileSync("/repo/packages/safe-bash/dist/commands/exiftool/index." + suffix, 'export * from "safe-bash-command-exiftool";');
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const read = (path: string) => volume.readFileSync("/output/safe-bash/" + path, "utf8");
+  const shipped = JSON.parse(read("package.json"));
+  expect(shipped.dependencies).toEqual({});
+  expect(shipped.exports["./commands/exiftool"]).toEqual({ types: "./dist/safe-bash/commands/exiftool/index.d.ts", import: "./dist/safe-bash/commands/exiftool/index.js" });
+  expect(read("dist/safe-bash/commands/exiftool/index.js")).toContain('"../../../safe-bash-command-exiftool/index.js"');
+  expect(read("dist/safe-bash/commands/exiftool/index.d.ts")).toContain('"../../../safe-bash-command-exiftool/index.js"');
+  const consumer = await import("data:text/javascript;base64," + Buffer.from(read("dist/safe-bash-command-exiftool/scalar.js")).toString("base64"));
+  expect(consumer.encodeJsonScalar("1e999")).toBe("1e999");
+  expect(consumer.encodeJsonScalar("a\0b\x7f")).toBe('"ab\\u007F"');
+});
+
+it("packs qualified private command and contract modules into one canonical relative graph", async () => {
+  const { volume, options } = optionalLeftovers();
+  for (const [name, dependencies, devDependencies] of [
+    ["safe-bash-contracts", {}, {}],
+    ["safe-bash-command-wkhtmltopdf", {}, { "safe-bash-contracts": "*" }],
+  ] as const) {
+    volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
+    volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify({
+      name, version: "0.0.1", private: true, type: "module", dependencies, devDependencies,
+      exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+    }));
+    volume.writeFileSync(`/repo/packages/${name}/dist/index.d.ts`, name === "safe-bash-contracts"
+      ? "export declare const identity: object;" : 'export { identity } from "safe-bash-contracts";');
+    volume.writeFileSync(`/repo/packages/${name}/dist/index.js`, name === "safe-bash-contracts"
+      ? "export const identity = {};" : 'export { identity } from "safe-bash-contracts";');
+  }
+  const manifest = structuredClone(bashManifest);
+  manifest.poeCode.integration.privateWorkspaces = {
+    "safe-bash-contracts": { version: "0.0.1", dependencies: {}, devDependencies: {} },
+    "safe-bash-command-wkhtmltopdf": { version: "0.0.1", dependencies: {}, devDependencies: { "safe-bash-contracts": "*" } },
+  };
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+  volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'export { identity } from "safe-bash-contracts";');
+  volume.writeFileSync("/repo/packages/safe-bash/dist/index.d.ts", 'export { identity } from "safe-bash-contracts";');
+  volume.writeFileSync("/repo/packages/safe-bash/dist/commands/wkhtmltopdf/index.js", 'export * from "safe-bash-command-wkhtmltopdf";');
+  volume.writeFileSync("/repo/packages/safe-bash/dist/commands/wkhtmltopdf/index.d.ts", 'export * from "safe-bash-command-wkhtmltopdf";');
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const read = (path: string) => volume.readFileSync("/output/safe-bash/dist/" + path, "utf8");
+  expect(read("safe-bash/index.js")).toContain('"../safe-bash-contracts/index.js"');
+  expect(read("safe-bash/commands/wkhtmltopdf/index.js")).toContain('"../../../safe-bash-command-wkhtmltopdf/index.js"');
+  expect(read("safe-bash-command-wkhtmltopdf/index.js")).toContain('"../safe-bash-contracts/index.js"');
+  expect(read("safe-bash-command-wkhtmltopdf/index.d.ts")).toContain('"../safe-bash-contracts/index.js"');
+  const shipped = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
+  expect(shipped.dependencies).toEqual({});
+  expect(shipped.exports["./commands/wkhtmltopdf"]).toEqual({
+    types: "./dist/safe-bash/commands/wkhtmltopdf/index.d.ts", import: "./dist/safe-bash/commands/wkhtmltopdf/index.js",
+  });
+  volume.writeFileSync("/repo/packages/safe-bash-command-wkhtmltopdf/package.json", JSON.stringify({
+    name: "safe-bash-command-wkhtmltopdf", private: false, type: "module", version: "0.0.1",
+    dependencies: {}, devDependencies: { "safe-bash-contracts": "*" }, exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+  }));
+  await expect(packageSafeLibraries({ ...options, outDir: "/invalid" })).rejects.toThrow("Qualified private workspace profile mismatch");
+});
+
 function optionalLeftovers() {
   const data: Record<string, string> = {
     "/repo/package.json": JSON.stringify({ license: "MIT", exports: {

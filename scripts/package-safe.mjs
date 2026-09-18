@@ -2,7 +2,7 @@ import * as fs from "node:fs/promises";
 import path from "node:path";
 import { builtinModules } from "node:module";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { parseArgs } from "node:util";
+import { parseArgs, isDeepStrictEqual } from "node:util";
 import semver from "semver";
 import glob from "fast-glob";
 import ts from "typescript";
@@ -272,11 +272,18 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       const alias = Object.fromEntries(Object.entries(graph.alias).map(([specifier, target]) => [specifier, publicSpecifier(specifier) !== specifier ? publicSpecifier(specifier) : target]));
       const external = [...graph.external, "@poe-platform/safe-fs"];
       const recipes = [];
+      // One canonical relative runtime owns command/value brands across entrypoints.
+      // Keep it out of independently built browser and opt-in command bundles.
+      const canonical = Object.keys(source.poeCode?.integration?.privateWorkspaces ?? {});
+      for (const specifier of Object.keys(alias)) {
+        if (canonical.some(name => specifier === name || specifier.startsWith(name + "/"))) delete alias[specifier];
+      }
+      external.push(...canonical);
       if (Object.values(source.exports).some(value => value?.browser?.endsWith(".browser.js") || value?.workerd?.endsWith(".browser.js"))) {
         const browser = resolveBrowserShellBuild(rootDir);
         recipes.push({ ...browser,
           alias: { ...browser.alias, "@poe-code/safe-fs": "@poe-platform/safe-fs", "poe-code/safe-fs": "@poe-platform/safe-fs" },
-          external: [...browser.external, "@poe-platform/safe-fs"],
+          external: [...browser.external, "@poe-platform/safe-fs", ...canonical],
         });
       }
       for (const command of ["op", "pandoc"]) {
@@ -397,7 +404,20 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
             return specifier;
           }
           let publicName = publicSpecifier(specifier);
-          if (declaration || name === "safe-bash" && (publicName === "@poe-code/office-package" || publicName.startsWith("@poe-code/office-package/"))) {
+          const qualifiedName = name === "safe-bash" && Object.keys(source.poeCode?.integration?.privateWorkspaces ?? {})
+            .find(candidate => publicName === candidate || publicName.startsWith(candidate + "/"));
+          if (qualifiedName) {
+            const workspace = workspaces.find(({ pkg }) => pkg.name === qualifiedName);
+            const profile = source.poeCode.integration.privateWorkspaces[qualifiedName];
+            const pkg = workspace?.pkg;
+            if (!pkg || workspace.dir !== qualifiedName || pkg.private !== true || pkg.type !== "module" || pkg.version !== profile.version ||
+                !isDeepStrictEqual(pkg.dependencies ?? {}, profile.dependencies) ||
+                !isDeepStrictEqual(pkg.devDependencies ?? {}, profile.devDependencies) ||
+                Object.keys(pkg.peerDependencies ?? {}).length || Object.keys(pkg.optionalDependencies ?? {}).length) {
+              throw new Error("Qualified private workspace profile mismatch: " + qualifiedName);
+            }
+          }
+          if (declaration || qualifiedName || name === "safe-bash" && (publicName === "@poe-code/office-package" || publicName.startsWith("@poe-code/office-package/"))) {
             const workspace = workspaces.find(({ pkg }) => pkg.private && (publicName === pkg.name || publicName.startsWith(pkg.name + "/")));
             if (workspace) {
               const route = "." + publicName.slice(workspace.pkg.name.length);

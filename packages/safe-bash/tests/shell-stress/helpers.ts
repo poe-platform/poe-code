@@ -50,6 +50,10 @@ async function executeVirtual(request: ChildRequest | BatchRequest, dependencies
   const bundled = await build({
     entryPoints: [fileURLToPath(new URL("./virtual-child.ts", import.meta.url))],
     bundle: true, packages: "external", platform: "node", format: "esm", target: "es2022", write: false,
+    alias: {
+      "safe-bash-contracts": fileURLToPath(new URL("../../../safe-bash-contracts/dist", import.meta.url)),
+      "@poe-code/safe-fs": fileURLToPath(new URL("../../../safe-fs/src", import.meta.url)),
+    },
     plugins: [{
       name: "preserve-source-module-urls",
       setup(builder) {

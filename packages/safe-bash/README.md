@@ -49,7 +49,8 @@ filesystem changes persist in the supplied `fs`.
 - Pipelines (`|`, `|&`), lists (`;`, `&&`, `||`, `!`), file redirection (`<`, `>`,
   `>>`), descriptor redirection such as `2>&1`, here-documents, and here-strings.
 - `if`/`elif`/`else`, `case`, `for name in …`, `while`, `until`, functions,
-  groups `{ …; }`, subshells `( … )`, `[[ … ]]`, `(( … ))`, and indexed arrays.
+  groups `{ …; }`, subshells `( … )` (including adjacent nested subshells),
+  `[[ … ]]`, arithmetic commands `(( … ))`, and indexed arrays.
 - Virtual script files through `sh`, `bash`, or executable paths; `source`/`.`
   runs a script in the current shell. `set -e`, `set -u`, and `set -o pipefail`
   control failures; `shopt -s dotglob` includes dotfiles in globs.

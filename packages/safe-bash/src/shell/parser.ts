@@ -1064,6 +1064,8 @@ class Parser {
 
   commandInner(): Command {
     this.budget.admit();
+    const arithmeticCommandEnd = this.is("(") && this.lexer.source.startsWith("((", this.current.offset)
+      ? arithmeticEnd(this.lexer.source, this.current.offset + 2, true) : -1;
     let command: Command;
     if (this.is("[[")) {
       const start = this.current.end;
@@ -1116,9 +1118,9 @@ class Parser {
       this.lexer.conditional = false;
       this.advance();
       command = { kind: "conditional", expression, source, redirects: [] };
-    } else if (this.is("(") && this.lexer.source.startsWith("((", this.current.offset)) {
+    } else if (arithmeticCommandEnd !== -1) {
       const start = this.current.offset + 2;
-      const end = arithmeticEnd(this.lexer.source, start);
+      const end = arithmeticCommandEnd;
       const source = this.lexer.source.slice(start, end);
       command = { kind: "arithmetic", expression: prepareArithmetic(source, this.budget), source, redirects: [] };
       this.lexer.position = end + 2;

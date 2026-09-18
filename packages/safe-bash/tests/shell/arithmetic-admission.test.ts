@@ -1,10 +1,22 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { evaluateArithmetic, parseArithmetic, prepareArithmetic } from "../../src/shell/arithmetic.js";
+import { arithmeticEnd, evaluateArithmetic, parseArithmetic, prepareArithmetic } from "../../src/shell/arithmetic.js";
 import { ParseBudget } from "../../src/shell/parse-budget.js";
 import { ShellLimitError, ShellSyntaxError } from "../../src/shell/types.js";
 
 const parseLimit = (error: unknown): boolean => error instanceof ShellLimitError && error.limit === "maxParseUnits";
+
+test("arithmetic delimiter fallback is command-only and retains incomplete diagnostics", () => {
+  assert.equal(arithmeticEnd("(1 + 2)))", 0, true), 7);
+  assert.equal(arithmeticEnd("echo inner); echo outer)", 0, true), -1);
+  assert.throws(() => arithmeticEnd("echo inner); echo outer)", 0), { message: "Unterminated arithmetic expression at offset 0" });
+  assert.throws(() => arithmeticEnd("((1 +", 2, true), { message: "Unterminated arithmetic expression at offset 2" });
+});
+
+test("arithmetic command lookahead bounds nested quoted substitutions", () => {
+  const source = '"$('.repeat(65) + "1" + ')"'.repeat(65) + "))";
+  assert.throws(() => arithmeticEnd(source, 0, true), error => error instanceof ShellSyntaxError && error.reason === "Syntax nesting exceeds 64");
+});
 
 for (const [source, units] of [["", 1], ["1", 2], ["1+2", 6], ["(1)", 4], ["-1", 4], ["name++", 4], ["1?2:3", 9]] as const) {
   test(`arithmetic counts actual tokens and nodes: ${JSON.stringify(source)}`, () => {

@@ -74,14 +74,9 @@ export function shellValueText(value: ShellValue): string {
 export function shellValueByteLength(value: ShellValue): number {
   if (typeof value !== "string") return record(value).bytes.byteLength;
   let bytes = 0;
-  for (let index = 0; index < value.length; index++) {
-    const code = value.codePointAt(index)!;
-    if (code < 128) bytes++;
-    else if (code < 2048) bytes += 2;
-    else if (code > 0xffff) {
-      bytes += 4;
-      index++;
-    } else bytes += 3;
+  for (const character of value) {
+    const code = character.charCodeAt(0);
+    bytes += code < 128 ? 1 : code < 2048 ? 2 : character.length === 2 ? 4 : 3;
   }
   return bytes;
 }

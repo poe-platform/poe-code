@@ -42,6 +42,7 @@ function optionalLeftovers() {
   data["/repo/packages/safe-bash/dist/index.js.map"] = "{}\n";
   data["/repo/packages/safe-bash/dist/opt-in/optional.js"] = "export {};\n";
   data["/repo/packages/safe-bash/dist/opt-in/optional.d.ts"] = "export {};\n";
+  for (const filename of ["LICENSE", "NOTICE"]) data["/repo/packages/safe-bash/third-party/playwright/" + filename] = readFileSync(new URL("../packages/safe-bash/third-party/playwright/" + filename, import.meta.url), "utf8");
   const volume = Volume.fromJSON(data);
   const files = createFsFromVolume(volume).promises;
   const bundle = vi.fn(async (settings: { outdir?: string }) => ({ outputFiles: settings.outdir === "/repo/packages/safe-js/dist" ? [{ path: "/repo/packages/safe-js/dist/index.js", contents: Buffer.from(volume.readFileSync("/repo/packages/safe-js/dist/index.js")) }] : [] }));
@@ -74,6 +75,21 @@ it("preserves conditional private imports and ships their runtime and declaratio
 });
 
 describe("scoped safe package artifacts", () => {
+  it("ships the complete Playwright license and notice as npm-included package files", async () => {
+    const { volume, options } = optionalLeftovers();
+    await packageSafeLibraries({ ...options, outDir: "/output" });
+    const manifest = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
+    expect(manifest.files).toContain("third-party");
+    for (const filename of ["LICENSE", "NOTICE"]) expect(volume.readFileSync("/output/safe-bash/third-party/playwright/" + filename, "utf8"))
+      .toBe(readFileSync(new URL("../packages/safe-bash/third-party/playwright/" + filename, import.meta.url), "utf8"));
+  });
+
+  for (const filename of ["LICENSE", "NOTICE"]) it(`refuses to package Playwright without its ${filename}`, async () => {
+    const { volume, options } = optionalLeftovers();
+    volume.unlinkSync("/repo/packages/safe-bash/third-party/playwright/" + filename);
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow(filename);
+  });
+
   it("ships the Playwright chunk and controller without adding it to the default entry", async () => {
     const { volume, options } = optionalLeftovers();
     volume.mkdirSync("/repo/packages/safe-bash/dist/playwright", { recursive: true });
@@ -308,7 +324,7 @@ describe("explicit optional safe package artifact", () => {
     expect(result.map(entry => entry.name)).toEqual(["@poe-platform/safe-fs", "@poe-platform/safe-js", "@poe-platform/safe-bash"]);
     const manifest = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
     expect(manifest).toMatchObject({
-      name: "@poe-platform/safe-bash", version: "0.1.0", type: "module", license: "MIT", engines: { node: ">=22" }, files: ["dist"],
+      name: "@poe-platform/safe-bash", version: "0.1.0", type: "module", license: "MIT", engines: { node: ">=22" }, files: ["dist", "third-party"],
       exports: { "./yq": { types: "./dist/safe-bash/opt-in/commands/yq/mike.d.ts", import: "./dist/safe-bash/opt-in/commands/yq/mike.js" } },
       peerDependencies: { yaml: "2.9.0" },
       peerDependenciesMeta: { yaml: { optional: true } }, publishConfig: { access: "public" },

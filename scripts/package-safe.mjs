@@ -459,6 +459,14 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
         await files.writeFile(target, bytes);
       }
     }
+    if (name === "safe-bash" && manifest.exports["./commands/playwright"]) {
+      manifest.files.push("third-party");
+      const attribution = path.join("third-party", "playwright");
+      await files.mkdir(path.join(directory, attribution), { recursive: true });
+      for (const filename of ["LICENSE", "NOTICE"]) {
+        await files.copyFile(path.join(packageDir, attribution, filename), path.join(directory, attribution, filename));
+      }
+    }
     await files.mkdir(directory, { recursive: true });
     await files.writeFile(path.join(directory, "package.json"), JSON.stringify(manifest, null, 2) + "\n");
     await files.copyFile(path.join(packageDir, "README.md"), path.join(directory, "README.md"));

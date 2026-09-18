@@ -23,7 +23,7 @@ tasks:
 
       Main JSON output chooses token from tag/group policy and suppresses duplicate tokens even when extraction duplicates are enabled; group-family qualification is required to expose otherwise colliding entries. Source presence of all duplicates does not imply one JSON member per source tag, and writing parsed JSON with collapsed keys is not lossless metadata preservation. Preserve raw tag identity/group/index/offset and interpreted value separately in the engine. Readers and writers remain independently admitted per format; zero-runtime-dependency JS design uses declarative format/tag registries and first-party parsers, never Perl evaluation of arbitrary expressions or implicit user config.
     status:
-      implement: open
+      implement: done
   - id: engine-exiftool
     title: Implement exiftool parsing and engine contracts
     prompt: |
@@ -43,9 +43,9 @@ tasks:
 
       Main JSON output chooses token from tag/group policy and suppresses duplicate tokens even when extraction duplicates are enabled; group-family qualification is required to expose otherwise colliding entries. Source presence of all duplicates does not imply one JSON member per source tag, and writing parsed JSON with collapsed keys is not lossless metadata preservation. Preserve raw tag identity/group/index/offset and interpreted value separately in the engine. Readers and writers remain independently admitted per format; zero-runtime-dependency JS design uses declarative format/tag registries and first-party parsers, never Perl evaluation of arbitrary expressions or implicit user config.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
   - id: behavior-exiftool
     title: Implement exiftool intended behavior
     prompt: |
@@ -65,9 +65,9 @@ tasks:
 
       Main JSON output chooses token from tag/group policy and suppresses duplicate tokens even when extraction duplicates are enabled; group-family qualification is required to expose otherwise colliding entries. Source presence of all duplicates does not imply one JSON member per source tag, and writing parsed JSON with collapsed keys is not lossless metadata preservation. Preserve raw tag identity/group/index/offset and interpreted value separately in the engine. Readers and writers remain independently admitted per format; zero-runtime-dependency JS design uses declarative format/tag registries and first-party parsers, never Perl evaluation of arbitrary expressions or implicit user config.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
   - id: command-exiftool
     title: Wire exiftool CLI SDK and safe-bash export
     prompt: |
@@ -87,9 +87,9 @@ tasks:
 
       Main JSON output chooses token from tag/group policy and suppresses duplicate tokens even when extraction duplicates are enabled; group-family qualification is required to expose otherwise colliding entries. Source presence of all duplicates does not imply one JSON member per source tag, and writing parsed JSON with collapsed keys is not lossless metadata preservation. Preserve raw tag identity/group/index/offset and interpreted value separately in the engine. Readers and writers remain independently admitted per format; zero-runtime-dependency JS design uses declarative format/tag registries and first-party parsers, never Perl evaluation of arbitrary expressions or implicit user config.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
   - id: safety-exiftool
     title: Verify exiftool VFS resource and failure boundaries
     prompt: |
@@ -109,7 +109,7 @@ tasks:
 
       Main JSON output chooses token from tag/group policy and suppresses duplicate tokens even when extraction duplicates are enabled; group-family qualification is required to expose otherwise colliding entries. Source presence of all duplicates does not imply one JSON member per source tag, and writing parsed JSON with collapsed keys is not lossless metadata preservation. Preserve raw tag identity/group/index/offset and interpreted value separately in the engine. Readers and writers remain independently admitted per format; zero-runtime-dependency JS design uses declarative format/tag registries and first-party parsers, never Perl evaluation of arbitrary expressions or implicit user config.
     status:
-      test: open
+      test: done
   - id: compatibility-exiftool
     title: Qualify exiftool against independent controls
     prompt: |
@@ -129,7 +129,7 @@ tasks:
 
       Main JSON output chooses token from tag/group policy and suppresses duplicate tokens even when extraction duplicates are enabled; group-family qualification is required to expose otherwise colliding entries. Source presence of all duplicates does not imply one JSON member per source tag, and writing parsed JSON with collapsed keys is not lossless metadata preservation. Preserve raw tag identity/group/index/offset and interpreted value separately in the engine. Readers and writers remain independently admitted per format; zero-runtime-dependency JS design uses declarative format/tag registries and first-party parsers, never Perl evaluation of arbitrary expressions or implicit user config.
     status:
-      test: open
+      test: done
   - id: ship-exiftool
     title: Verify packed exports and document exiftool capabilities
     prompt: |
@@ -149,13 +149,18 @@ tasks:
 
       Main JSON output chooses token from tag/group policy and suppresses duplicate tokens even when extraction duplicates are enabled; group-family qualification is required to expose otherwise colliding entries. Source presence of all duplicates does not imply one JSON member per source tag, and writing parsed JSON with collapsed keys is not lossless metadata preservation. Preserve raw tag identity/group/index/offset and interpreted value separately in the engine. Readers and writers remain independently admitted per format; zero-runtime-dependency JS design uses declarative format/tag registries and first-party parsers, never Perl evaluation of arbitrary expressions or implicit user config.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
+finalization: completed
+name: safe-bash-exiftool
+state: archived
 ---
 
 
 # Document and media metadata inspection and editing
+
+Research deliverable: [pinned behavior and format/tag acceptance contract](safe-bash-exiftool-research.md), with [independent compatibility QA](safe-bash-exiftool-compatibility-qa.md). These distinguish fresh controls, supplied observations, source semantics and pending qualification; implementation and integration tasks remain open.
 
 Read, write and remove metadata across common document/media formats using declarative format/tag definitions.
 

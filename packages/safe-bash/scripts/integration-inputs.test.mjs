@@ -2626,6 +2626,14 @@ test("Python object publication public acceptance remains admitted current input
   assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
 });
 
+test("Playwright private target transport native acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  const path = "tests/integration/playwright-private-target-transport.test.mjs";
+  assertAdmittedInputPath(path, boundaries);
+  assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+});
+
 test("Playwright session restoration public acceptance remains admitted current input", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const boundaries = loadBoundaries(root);

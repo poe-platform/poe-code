@@ -4,6 +4,8 @@ import type { PlaywrightCommand } from './catalog.js';
 import { capabilityAction, capabilityActionCode, capabilityArtifact, capabilityLocator, capabilityResult, numeric, requirePage, requireSession, unsupported } from './capability-result.js';
 import { playwrightLocatorSelector } from './locator-selector.js';
 import { playwrightStorageAbilities } from './storage-capabilities.js';
+import { evaluateNativeExpression } from './native-evaluation.js';
+import { playwrightCodeString } from './response.js';
 import { playwrightEventAbilities } from './capability-events.js';
 import { playwrightTracingStart, playwrightTracingStop } from './tracing-capabilities.js';
 import { playwrightModalAbilities } from './modal-capabilities.js';
@@ -106,37 +108,21 @@ const drag: PlaywrightAbility = { scope: 'session', async execute(request) {
 } };
 
 const evaluate: PlaywrightAbility = { scope: 'session', options: 'all', async execute(request) {
-  const page = requirePage(request);
   const expression = request.args[0]!;
-  const maxBytes = request.limits?.maxCommandBytes ?? 1048576;
-  const input = { expression, maxBytes };
-  let serialized: string | null | undefined;
-  await capabilityAction(request, async () => {
-  if (request.args[1] !== undefined) {
-    const element = await requireSession(request).resolveTarget(request.args[1]);
-    serialized = await element.evaluate(async (element, { expression, maxBytes }) => {
-      // This function executes in the isolated page, never in the host runtime.
-      const value: unknown = eval(`(${expression})`);
-      const result: unknown = await (typeof value === 'function' ? value(element) : value);
-      const text = JSON.stringify(result, null, 2) ?? 'undefined';
-      if (text.length > maxBytes || new TextEncoder().encode(text).length > maxBytes) return null;
-      return text;
-    }, input);
-  } else {
-    if (!page.evaluate) unsupported('evaluate');
-    serialized = await page.evaluate(async ({ expression, maxBytes }) => {
-      const value: unknown = eval(`(${expression})`);
-      const result: unknown = await (typeof value === 'function' ? value() : value);
-      const text = JSON.stringify(result, null, 2) ?? 'undefined';
-      if (text.length > maxBytes || new TextEncoder().encode(text).length > maxBytes) return null;
-      return text;
-    }, input);
+  const serialized = await evaluateNativeExpression(request);
+  const codeExpression = serialized && !serialized.isFunction ? `() => (${expression})` : expression;
+  const code = serialized?.executed === false ? '' : `await ${request.args[1] ? capabilityLocator(request.args[1], request) : 'page'}.evaluate(${playwrightCodeString(codeExpression)});`;
+  if (serialized?.status === 'error') return {
+    isError: true,
+    ...(serialized.rawErrorHeader ? { rawErrorHeader: true } : {}),
+    sections: [{ title: 'Error', content: serialized.text }, ...(serialized.executed ? capabilityResult(code).sections : [])],
+  };
+  if (typeof request.options.filename === 'string' && serialized) {
+    const filename = request.options.filename;
+    const link = filename.includes('/') || filename.startsWith('.') ? filename : `./${filename}`;
+    return capabilityArtifact(request, new TextEncoder().encode(serialized.text), 'result', 'json', 'Evaluation result', () => code, link);
   }
-    if (serialized === null) throw new PlaywrightResourceLimitError('Playwright evaluation result byte limit exceeded');
-  });
-  const code = `await ${request.args[1] ? capabilityLocator(request.args[1], request) : 'page'}.evaluate(${JSON.stringify(expression)});`;
-  if (request.options.filename && typeof serialized === 'string') return capabilityArtifact(request, new TextEncoder().encode(serialized), 'result', 'json', 'Evaluation result', () => code, request.options.filename as string);
-  return capabilityResult(code, serialized ?? undefined);
+  return capabilityResult(code, serialized?.text);
 } };
 
 export const playwrightStandardAbilities: Partial<Record<PlaywrightCommand, PlaywrightAbility>> = {

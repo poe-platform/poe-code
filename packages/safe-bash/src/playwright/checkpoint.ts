@@ -1,6 +1,6 @@
 /** Trusted storage readers may emit this only after confirmed owned-target
  * destruction with healthy control. Never use it for cancellation, uncertain
- * acquisition, ownership validation, or failed cleanup. No profile was saved.
+ * acquisition, ownership validation, resource limits, or failed cleanup. No profile was saved.
  */
 export class PlaywrightStorageReadError extends Error {
   override readonly name = 'PlaywrightStorageReadError';

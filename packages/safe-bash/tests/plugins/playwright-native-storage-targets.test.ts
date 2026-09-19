@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { getEventListeners } from 'node:events';
 import test from 'node:test';
+import { PlaywrightResourceLimitError } from '../../src/playwright/resource-limit.js';
 import { PlaywrightStorageReadError } from '../../src/playwright/checkpoint.js';
 import { createPlaywrightStorageOriginPreparer, type PlaywrightStorageControlEvent } from '../../src/playwright/native-storage-targets.js';
 import type { PlaywrightContext } from '../../src/playwright/adapter.js';
@@ -268,4 +269,14 @@ test('unconfirmed destruction has a bounded fatal cleanup outcome', async () => 
   await assert.rejects(fixture.prepare(), error => error instanceof AggregateError && error.errors[1].message === 'Native storage target retirement timed out');
   assert.equal(fixture.listeners.size, 0);
   fixture.emit({ method: 'Target.targetDestroyed', params: { targetId: 'hidden' } });
+});
+
+test('confirmed target cleanup does not downgrade a resource boundary failure', async () => {
+  const cause = new PlaywrightResourceLimitError('control resource budget exceeded');
+  const fixture = storageControlFixture({ navigateError: cause });
+  const outcome = fixture.prepare().catch(error => error);
+  await flushControlOperations();
+  fixture.emit({ method: 'Target.targetDestroyed', params: { targetId: 'hidden' } });
+  assert.equal(await outcome, cause);
+  assert.equal(fixture.listeners.size, 0);
 });

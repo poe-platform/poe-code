@@ -1,4 +1,5 @@
 import { PlaywrightStorageReadError } from './checkpoint.js';
+import { isPlaywrightResourceLimitError } from './resource-limit.js';
 import type { PlaywrightPrivateTargetCreation } from './private-target-transport.js';
 import type { PlaywrightStorageOriginPreparer } from './native-storage-replacement.js';
 
@@ -146,7 +147,7 @@ export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorage
     } catch (error) {
       const cleanup = await Promise.allSettled([release()]);
       if (cleanup[0]!.status === 'rejected') throw new AggregateError([error, cleanup[0]!.reason], 'Native storage preparation and retirement failed');
-      if (navigationReadFailed && destroyed && !controlFailure && !signal.aborted && !eventFailure) throw new PlaywrightStorageReadError(error);
+      if (navigationReadFailed && destroyed && !controlFailure && !signal.aborted && !eventFailure && !isPlaywrightResourceLimitError(error)) throw new PlaywrightStorageReadError(error);
       throw error;
     }
   };

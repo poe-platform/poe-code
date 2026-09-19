@@ -32,6 +32,35 @@ function screen(width: number, height: number, overrides: Partial<Parameters<typ
 }
 
 describe("run dashboard information hierarchy", () => {
+  it.each([[30, 10], [40, 8], [80, 8]])("preserves activity and editing at %s columns and %s rows", (width, height) => {
+    const { text, rows, result } = screen(width!, height!, {
+      output: [{ kind: "info", role: "agent", text: "Latest result", ts: 0 }],
+      composer: { ...createComposerState("message", "first"), text: "Review result", cursor: 13 }
+    });
+    expect(result.outputRect.height).toBeGreaterThan(0);
+    expect(text).toContain("Latest result");
+    expect(text).toContain("7/30 tasks");
+    expect(rows[result.cursor!.y]).toContain("Review result");
+    expect(text).toContain("Esc Browse");
+    expect(result.outputRect.y + result.outputRect.height).toBeLessThan(result.cursor!.y);
+  });
+
+  it("keeps progress visible beside a long phase and step in a narrow terminal", () => {
+    const { text } = screen(30, 10, { stats: {
+      ...stats, run: { ...stats.run, phase: "Validate all package relationships", activeStep: "implementation" }
+    } });
+    expect(text).toContain("7/30 tasks");
+  });
+
+  it.each([false, true])("preserves browsing space in a short terminal (work list: %s)", (showQueue) => {
+    const { text, result } = screen(40, 8, {
+      showQueue, composer: undefined,
+      output: [{ kind: "tool", role: "action", text: "Latest result", ts: 0 }]
+    });
+    expect(result.outputRect.height).toBeGreaterThan(2);
+    expect(text).toContain(showQueue ? "PLANS" : "Latest result");
+    expect(text).toContain("q Quit");
+  });
   it.each([40, 60, 80, 140])("preserves output, input, and controls in a short terminal at %s columns", (width) => {
     const { rows, result } = screen(width, 12, {
       output: [{ kind: "info", role: "agent", text: "Latest result", ts: 0 }],

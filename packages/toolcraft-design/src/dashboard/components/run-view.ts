@@ -35,6 +35,7 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   const run = stats.run;
   const theme = getTheme().styles;
   const compactHeight = buffer.height < 20;
+  const tight = buffer.height < 12 || buffer.width < 40;
   const width = Math.max(0, Math.min(164, buffer.width - 4));
   const x = Math.max(0, Math.floor((buffer.width - width) / 2));
   const sidebarWidth = !compactHeight && !options.showQueue && width >= 106 ? Math.min(40, Math.floor(width * 0.29)) : 0;
@@ -52,7 +53,8 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   const inputLines = draft ? Math.min(compactHeight ? 1 : 3, draft.lines.length) : 0;
   const inputRow = compactHeight ? 1 : 2;
   const composerHeight = composer ? inputLines + inputRow + (!compactHeight || composer.error || options.feedback ? 1 : 0) : 0;
-  const hint = composer?.focused
+  const hint = tight ? composer?.focused ? "Enter Queue  Esc Browse" : "i Message  v Tasks  q Quit"
+    : composer?.focused
     ? composer.kind === "plan" ? "Enter Queue plan  Ctrl+P Message  Esc Browse"
       : "Enter Queue  Alt+Enter Newline  Ctrl+P Plan  Alt+↑↓ Target  Esc Browse"
     : options.showQueue ? "↑↓ Scroll  PgUp/PgDn Page  Home/End Jump  f Current  v Activity  i Message  q Quit"
@@ -68,12 +70,12 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   const footerY = Math.max(0, buffer.height - footerLines.length);
   const composerY = Math.max(0, footerY - composerHeight);
   const contentBottom = composer ? composerY - 1 : footerY - 1;
-  const showContext = !compactHeight || contentBottom >= 6;
+  const showContext = !tight && (!compactHeight || contentBottom >= 6);
   if (showContext) put(buffer, { x, y: 1, width, height: 1 }, 0, context, theme.muted);
   let outputY = compactHeight ? showContext ? 2 : 1 : 3;
 
   if (sidebarWidth === 0) {
-    if (activePlan?.kind === "plan") {
+    if (activePlan?.kind === "plan" && !tight) {
       put(buffer, { x, y: outputY++, width, height: 1 }, 0,
         `${marker(activePlan.status)} ${activePlanIndex + 1}. ${basename(activePlan.path)}`, { bold: true });
     }
@@ -86,7 +88,8 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
   const tasks = run?.tasks ?? [];
   const completed = tasks.filter((task) => task.status === "completed").length;
   const taskCount = tasks.length > 0 ? `${completed}/${tasks.length} tasks` : `${stats.iterationsLabel ?? "Iterations"} ${stats.iterations}`;
-  const step = run?.activeStep ? truncateToWidth(plainTerminalText(run.activeStep), Math.max(8, Math.floor(transcriptWidth / 4))) : undefined;
+  const step = run?.activeStep ? truncateToWidth(plainTerminalText(run.activeStep), Math.max(0,
+    Math.min(Math.max(8, Math.floor(transcriptWidth / 4)), transcriptWidth - displayWidth(taskCount) - 12))) : undefined;
   const progressLabel = [step, taskCount].filter(Boolean).join(" · ");
   let phaseLabel = run?.phase ?? stats.currentAction ?? stats.status;
   if (phaseLabel === "Follow-up") {
@@ -94,7 +97,7 @@ export function renderRunView(buffer: ScreenBuffer, options: RunViewOptions): {
     const active = messages.findIndex((item) => item.status === "running");
     if (active >= 0) phaseLabel += ` ${active + 1}/${messages.length}`;
   }
-  const phase = truncateToWidth(plainTerminalText(phaseLabel), Math.max(8, transcriptWidth - progressLabel.length - 7));
+  const phase = truncateToWidth(plainTerminalText(phaseLabel), Math.max(0, transcriptWidth - displayWidth(progressLabel) - 7));
   const statusMarker = { running: "●", error: "!", paused: "Ⅱ", idle: "○", done: "✓" }[stats.status];
   put(buffer, { x, y: outputY++, width: transcriptWidth, height: 1 }, 0,
     `${statusMarker} ${phase} · ${progressLabel}${run?.activity ? ` · ${run.activity}` : ""}`, stats.status === "error" ? theme.error : { bold: true });

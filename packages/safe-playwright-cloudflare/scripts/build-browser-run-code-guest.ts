@@ -3,10 +3,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 import { buildBrowserCodegen } from "./build-browser-codegen.js";
+import { buildBrowserScreenshot } from './build-browser-screenshot.js';
 
 /** Bundle the pinned native client once; guest source is data in the host bundle. */
 export async function buildBrowserRunCodeGuest() {
 	await buildBrowserCodegen();
+	await buildBrowserScreenshot();
 	const output = join(
 		dirname(fileURLToPath(import.meta.url)),
 		"../src/browser-run-code-guest.generated.js",

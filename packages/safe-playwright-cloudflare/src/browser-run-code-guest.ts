@@ -13,6 +13,7 @@ import {
 	runCodePageTarget,
 } from "./browser-run-code-native.js";
 import { serializeRunCodeState } from "./browser-run-code-state.js";
+import { prepareBrowserScreenshots } from './browser-screenshot.js';
 
 class Receiver extends RpcTarget {
 	#socket: WebSocket;
@@ -116,6 +117,8 @@ export default class BrowserRunCodeGuest extends WorkerEntrypoint {
 				metadata.state.context,
 			);
 			const page = await selectedPage(browser, metadata);
+			prepareBrowserScreenshots(page);
+			page.context().on('page', prepareBrowserScreenshots);
 			let json: string;
 			try {
 				const { default: userCode } = await import("browser-user-code.js");

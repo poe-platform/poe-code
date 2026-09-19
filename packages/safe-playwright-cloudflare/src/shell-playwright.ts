@@ -20,6 +20,7 @@ import { captureBrowserSnapshotJSON } from "./browser-snapshot-json.js";
 import { captureBrowserTrace } from "./browser-trace.js";
 import { acquireCloudflareBrowser } from "./shell-browser-resource.js";
 import { browserProfileRuntime } from './browser-profile-runtime.js';
+import { prepareBrowserScreenshots } from './browser-screenshot.js';
 
 /** Cloudflare owns Chromium; the released CLI owns sessions, refs and artifacts. */
 type BrowserStorageState = Awaited<ReturnType<BrowserContext["storageState"]>>;
@@ -118,6 +119,8 @@ function publicBrowser(browser: Browser) {
       // The acquired portable lease restores origins through held private targets.
       const { storageState: ignoredStorageState, ...contextOptions } = options ?? {};
       const context = await browser.newContext(contextOptions);
+      context.on('page', prepareBrowserScreenshots);
+      for (const page of context.pages()) prepareBrowserScreenshots(page);
       Object.defineProperty(context, 'browserProfile', { value: browserProfileRuntime(browser, context) });
 			const acquireCDP = context.newCDPSession.bind(context);
 			return Object.assign(context, {

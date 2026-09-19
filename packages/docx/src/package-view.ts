@@ -34,6 +34,7 @@ import { activeXmlChildren } from "./xml-active-children.js";
 import { documentTypes } from "./admission.js";
 import { compatibilityProfileForPart } from "./compatibility.js";
 import { retainedRelationshipTargets } from "./relationship-part.js";
+import { embeddedFontState, UnsupportedEmbeddedFontMutationError } from "./font-resources.js";
 
 const relNamespace = "http://schemas.openxmlformats.org/package/2006/relationships";
 const relContentType = "application/vnd.openxmlformats-package.relationships+xml";
@@ -507,11 +508,16 @@ export class PackageView {
       resolve: xml => xml.root,
       change: action => {
         this.#binding.writable();
-        const metadata = this[packageMetadata](part), { archive } = this.current();
-        const xml = new DocumentXmlEditor(metadata.bytes, {}, compatibilityProfileForPart(metadata.partname), archiveSettings(this.#binding.context).budget);
+        const metadata = this[packageMetadata](part), { archive, graph } = this.current();
+        const { budget, limits } = archiveSettings(this.#binding.context);
+        const xml = new DocumentXmlEditor(metadata.bytes, {}, compatibilityProfileForPart(metadata.partname), budget);
         action(xml);
         const bytes = xml.serialize();
-        this.commit({ ...archive, members: archive.members.map(member => member.name === metadata.name ? { ...member, bytes } : member) });
+        const candidate = { ...archive, members: archive.members.map(member => member.name === metadata.name ? { ...member, bytes } : member) };
+        if (parseMediaType(metadata.content_type) === "application/vnd.openxmlformats-officedocument.wordprocessingml.fonttable+xml" &&
+            embeddedFontState(graph, budget) !== embeddedFontState(new DocumentPackage(candidate, limits, budget), budget))
+          throw new UnsupportedEmbeddedFontMutationError();
+        this.commit(candidate);
       }
     });
   }

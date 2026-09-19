@@ -1,4 +1,4 @@
-import { commands, execute, OwnedArguments, defaultLimits, virtualPath, CsvkitCleanupError, type CsvkitContext, type CsvkitLimits } from "poe-code/csvkit";
+import { commands, execute, OwnedArguments, defaultLimits, virtualPath, CsvkitCleanupError, type CsvkitContext, type CsvkitLimits } from "@poe-code/csvkit";
 import { createOutputOperation, getCommandArguments, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
 import { writeFileOutput, openFileOutput } from "../../contracts/filesystem-output.js";
 import { isFsError } from "../../contracts/errors.js";

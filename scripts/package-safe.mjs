@@ -443,7 +443,10 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
               throw new Error("Qualified private workspace profile mismatch: " + qualifiedName);
             }
           }
-          if (declaration || qualifiedName || name === "safe-bash" && (publicName === "@poe-code/office-package" || publicName.startsWith("@poe-code/office-package/"))) {
+          const declaredWorkspace = workspaces.find(({ pkg }) => pkg.private &&
+            (publicName === pkg.name || publicName.startsWith(pkg.name + "/")) &&
+            Object.hasOwn(source.devDependencies ?? {}, pkg.name));
+          if (declaration || qualifiedName || name === "safe-bash" && declaredWorkspace) {
             const workspace = workspaces.find(({ pkg }) => pkg.private && (publicName === pkg.name || publicName.startsWith(pkg.name + "/")));
             if (workspace) {
               const route = "." + publicName.slice(workspace.pkg.name.length);

@@ -307,6 +307,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           assert.equal(exported?.types, "./packages/csvkit/dist/index.d.ts", "canonical public CSV declaration entry");
           assert.equal(exported?.import, "./packages/csvkit/dist/index.js", "canonical public CSV runtime entry");
           peerPaths["poe-code/csvkit"] = [resolve(peerRoot, exported.types)];
+          peerPaths["@poe-code/csvkit"] = [resolve(peerRoot, exported.types)];
           toolRoots.push(join(peerRoot, "packages/csvkit/dist"));
         }
       }

@@ -8,6 +8,25 @@ import { packageSafeLibraries, parsePackageSafeArguments, rewriteModuleSpecifier
 
 const bashManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
 
+it("ships an explicitly declared private command SDK with its runtime graph", async () => {
+  const { volume, options } = optionalLeftovers();
+  const manifest = structuredClone(bashManifest);
+  manifest.devDependencies["@poe-code/csvkit"] = "*";
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+  volume.mkdirSync("/repo/packages/csvkit/dist", { recursive: true });
+  volume.writeFileSync("/repo/packages/csvkit/package.json", JSON.stringify({
+    name: "@poe-code/csvkit", private: true, type: "module",
+    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+  }));
+  volume.writeFileSync("/repo/packages/csvkit/dist/index.js", "export const commands = ['csvcut'];");
+  volume.writeFileSync("/repo/packages/csvkit/dist/index.d.ts", "export declare const commands: string[];");
+  for (const suffix of ["js", "d.ts"]) volume.writeFileSync("/repo/packages/safe-bash/dist/commands/csvkit/index." + suffix, 'export { commands } from "@poe-code/csvkit";');
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/commands/csvkit/index.js", "utf8")).toContain('"../../../csvkit/index.js"');
+  expect(volume.readFileSync("/output/safe-bash/dist/csvkit/index.js", "utf8")).toContain("csvcut");
+  expect(JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8")).dependencies).not.toHaveProperty("@poe-code/csvkit");
+});
+
 it("preserves public contract exports when the browser bundle externalizes their canonical runtime", async () => {
   const entry = readFileSync(new URL("../packages/safe-bash/src/core.browser.ts", import.meta.url), "utf8");
   const publicContracts = {

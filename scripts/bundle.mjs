@@ -217,6 +217,20 @@ consumerBuilds.push(
   })
 );
 
+// The public CSV SDK must inline its private office-package implementation.
+for (const entryPoint of ["index", "codecs/utf8", "codecs/python"]) {
+  consumerBuilds.push(await esbuild.build({
+    entryPoints: [path.join(rootDir, "packages/csvkit/src", entryPoint + ".ts")],
+    bundle: true,
+    platform: "node",
+    target: "node22",
+    format: "esm",
+    outfile: path.join(rootDir, "packages/csvkit/dist", entryPoint + ".js"),
+    ...consumerBuildOptions,
+    sourcemap: true,
+  }));
+}
+
 // The superintendent MCP entry is shipped as a root bin, so inline its
 // private workspace dependencies instead of requiring them from the install.
 consumerBuilds.push(

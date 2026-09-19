@@ -12,8 +12,8 @@ capabilities and has no native-process or Python csvkit fallback.
 ## Usage
 
 ```ts
-import { Shell } from "poe-code/safe-bash";
-import { csvkitCommands } from "poe-code/safe-bash/commands/csvkit";
+import { Shell } from "@poe-platform/safe-bash";
+import { csvkitCommands } from "@poe-platform/safe-bash/commands/csvkit";
 import { utf8Codec } from "poe-code/csvkit";
 
 // Bind fs, locale, clock and terminal through your authorized application.
@@ -207,13 +207,14 @@ full parity.
 
 Current scoped compiled consumer and visual checks are recorded in
 `docs/csvkit/current-user-edge-validation.md`. Comprehensive operation/effect
-coverage, complete optional profiles and current repository acceptance remain
-pending under the plan-only scope. Detailed completion procedures are in
+coverage and complete optional profiles remain pending. Release delivery was
+separately authorized on September 19, 2026; current repository checks are being
+run for that delivery. Detailed completion procedures are in
 `docs/plans/csvkit-parity-completion.md`; reference/status records are in
 `docs/csvkit`. Build-time descriptor discovery generates static inventories;
 there is no runtime product filesystem discovery.
 
 README approval is required for incorporating this concrete draft into a package
-README. No README additions, staging, commits, pushes or publication have been
-performed. Local commit, verified remote-main delivery and successful release
-would be reported separately after future explicit authorization.
+README. The implementation has local commits; remote delivery and publication
+are pending. Local commit, verified remote-main delivery and successful release
+are separate outcomes.

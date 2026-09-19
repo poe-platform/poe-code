@@ -29,6 +29,10 @@ export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorage
     let rejectRemoved!: (error: unknown) => void;
     let resolveLoaded!: () => void;
     let rejectLoaded!: (error: unknown) => void;
+    let navigationLoaderId: unknown;
+    let navigationReplied = false;
+    let unqualifiedLoaded = false;
+    const loadedLoaders = new Set<string>();
     const removed = new Promise<void>((resolve, reject) => { resolveDestroyed = resolve; rejectRemoved = reject; });
     void removed.catch(() => {});
     const loaded = new Promise<void>((resolve, reject) => { resolveLoaded = resolve; rejectLoaded = reject; });
@@ -49,7 +53,14 @@ export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorage
         rejectLoaded(new Error('Native storage target closed'));
       }
       if (!sessionId || event.sessionId !== sessionId) return;
-      if (event.method === 'Page.loadEventFired') resolveLoaded();
+      if (event.method === 'Page.loadEventFired') {
+        unqualifiedLoaded = true;
+        if (navigationReplied && navigationLoaderId === undefined) resolveLoaded();
+      }
+      if (event.method === 'Page.lifecycleEvent' && event.params?.name === 'load' && typeof event.params.loaderId === 'string') {
+        loadedLoaders.add(event.params.loaderId);
+        if (event.params.loaderId === navigationLoaderId) resolveLoaded();
+      }
       if (event.method !== 'Fetch.requestPaused') return;
       const operation = Promise.resolve().then(async () => {
         const request = event.params?.request as { url?: unknown } | undefined;
@@ -106,11 +117,15 @@ export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorage
       signal.throwIfAborted();
       await control.send('Emulation.setScriptExecutionDisabled', { value: true }, sessionId);
       await control.send('Page.enable', {}, sessionId);
+      await control.send('Page.setLifecycleEventsEnabled', { enabled: true }, sessionId);
       await control.send('Network.setBypassServiceWorker', { bypass: true }, sessionId);
       await control.send('Fetch.enable', { patterns: [{ resourceType: 'Document', requestStage: 'Request' }] }, sessionId);
       signal.throwIfAborted();
       const navigation = await control.send('Page.navigate', { url }, sessionId);
       if (navigation.errorText) throw new Error('Native storage synthetic navigation failed');
+      navigationLoaderId = navigation.loaderId;
+      navigationReplied = true;
+      if (typeof navigationLoaderId === 'string' ? loadedLoaders.has(navigationLoaderId) : navigationLoaderId === undefined && unqualifiedLoaded) resolveLoaded();
       await loaded;
       await Promise.all(pending);
       if (eventFailure) throw eventFailure;

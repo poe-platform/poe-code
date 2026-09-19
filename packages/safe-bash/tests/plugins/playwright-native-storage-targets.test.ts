@@ -58,7 +58,7 @@ test('detachment during owned target retirement joins destruction without issuin
   assert.ok(!calls.includes('Target.detachFromTarget'));
 });
 
-function storageControlFixture(options: { load?: boolean; navigateError?: Error; closeError?: Error; deferClose?: boolean } = {}) {
+function storageControlFixture(options: { load?: boolean; staleLoad?: boolean; navigateError?: Error; closeError?: Error; deferClose?: boolean } = {}) {
   const controller = new AbortController();
   const listeners = new Set<(event: PlaywrightStorageControlEvent) => void>();
   const calls: string[] = [];
@@ -72,9 +72,17 @@ function storageControlFixture(options: { load?: boolean; navigateError?: Error;
       if (method === 'Target.createTarget') return { targetId: 'hidden' };
       if (method === 'Target.attachToTarget') return { sessionId: 'control' };
       if (method === 'Target.getTargetInfo') return { targetInfo: { targetId: 'hidden', browserContextId: 'owned' } };
+      if (method === 'Page.enable' && options.staleLoad) {
+        emit({ method: 'Page.loadEventFired', sessionId: 'control' });
+        emit({ method: 'Page.lifecycleEvent', sessionId: 'control', params: { name: 'load', loaderId: 'blank-loader' } });
+      }
       if (method === 'Page.navigate') {
         if (options.navigateError) throw options.navigateError;
         if (options.load !== false) emit({ method: 'Page.loadEventFired', sessionId: 'control' });
+        if (options.staleLoad) {
+          if (options.load !== false) emit({ method: 'Page.lifecycleEvent', sessionId: 'control', params: { name: 'load', loaderId: 'origin-loader' } });
+          return { loaderId: 'origin-loader' };
+        }
       }
       if (method === 'Target.closeTarget') {
         if (options.closeError) throw options.closeError;
@@ -90,6 +98,27 @@ function storageControlFixture(options: { load?: boolean; navigateError?: Error;
 async function flushControlOperations() {
   for (let turn = 0; turn < 20; turn += 1) await Promise.resolve();
 }
+
+test('initial blank-page load cannot complete synthetic origin navigation', async () => {
+  const fixture = storageControlFixture({ staleLoad: true, load: false });
+  let settled = false;
+  const preparation = fixture.prepare().then(lease => { settled = true; return lease; });
+  await flushControlOperations();
+  assert.equal(settled, false, 'Preparation must wait for the requested navigation loader');
+  fixture.emit({ method: 'Page.lifecycleEvent', sessionId: 'control', params: { name: 'load', loaderId: 'origin-loader' } });
+  const lease = await preparation;
+  const retirement = lease.release();
+  fixture.emit({ method: 'Target.targetDestroyed', params: { targetId: 'hidden' } });
+  await retirement;
+});
+
+test('requested loader may finish before the navigation reply arrives', async () => {
+  const fixture = storageControlFixture({ staleLoad: true });
+  const lease = await fixture.prepare();
+  const retirement = lease.release();
+  fixture.emit({ method: 'Target.targetDestroyed', params: { targetId: 'hidden' } });
+  await retirement;
+});
 
 test('whole-control disconnection rejects pending retirement without claiming target destruction', async () => {
   const fixture = storageControlFixture();

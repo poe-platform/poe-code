@@ -151,7 +151,7 @@ export class Font {
   constructor(readonly owner: FormattingXmlOwner) { void owner.identity; this.colorFormat = new ColorFormat(owner); }
   get color(): ColorFormat { void this.owner.identity; return this.colorFormat; }
   get part(): unknown { return this.owner.part ?? null; }
-  equals(other: unknown): boolean { return other instanceof Font && (this.owner.identity ?? this.owner) === (other.owner.identity ?? other.owner); }
+  equals(other: unknown): boolean { const identity = this.owner.identity ?? this.owner; return other instanceof Font && identity === (other.owner.identity ?? other.owner); }
   get element(): XmlElementView { return ownerView(this.owner); }
   get name(): string | null { return attr(property(this.owner, "rPr", "rFonts"), "ascii") ?? null; }
   set name(value: string | null) { if (value !== null && typeof value !== "string") throw new InputTypeError("Expected a font name or null."); update(this.owner, "r", { font: value }); }
@@ -196,7 +196,7 @@ export class ParagraphFormat {
   constructor(readonly owner: FormattingXmlOwner) { void owner.identity; }
   get tab_stops(): TabStops { const view = readView(this.owner); if (!child(view.root, "pPr", view.children)) update(this.owner, "p", {}); return this.tabs ??= new TabStops(this.owner); }
   get part(): unknown { return this.owner.part ?? null; }
-  equals(other: unknown): boolean { return other instanceof ParagraphFormat && (this.owner.identity ?? this.owner) === (other.owner.identity ?? other.owner); }
+  equals(other: unknown): boolean { const identity = this.owner.identity ?? this.owner; return other instanceof ParagraphFormat && identity === (other.owner.identity ?? other.owner); }
   get element(): XmlElementView { return ownerView(this.owner); }
   get alignment(): EnumMember<"WD_PARAGRAPH_ALIGNMENT"> | null {
     const node = property(this.owner, "pPr", "jc"), value = attr(node); if (!node) return null;
@@ -254,7 +254,7 @@ export class TabStops implements Iterable<TabStop> {
   }
   get element(): XmlElementView { return ownerView(this.owner, "tabs", (xml, root) => child(root, "pPr", readView(this.owner, xml, root).children) ?? root); }
   get part(): unknown { return this.owner.part ?? null; }
-  equals(other: unknown): boolean { return other instanceof TabStops && (this.owner.identity ?? this.owner) === (other.owner.identity ?? other.owner); }
+  equals(other: unknown): boolean { const identity = this.owner.identity ?? this.owner; return other instanceof TabStops && identity === (other.owner.identity ?? other.owner); }
   elementFor(id: number, xml?: DocumentXmlEditor, ownerRoot?: XmlElement): XmlElement {
     if (!xml || !this.retainXmlIds) this.refresh();
     const index = this.records.findIndex(record => record.id === id);
@@ -418,7 +418,7 @@ export class RGBColor implements Iterable<number> {
 export class ColorFormat {
   constructor(readonly owner: FormattingXmlOwner) {}
   get part(): unknown { return this.owner.part ?? null; }
-  equals(other: unknown): boolean { return other instanceof ColorFormat && (this.owner.identity ?? this.owner) === (other.owner.identity ?? other.owner); }
+  equals(other: unknown): boolean { const identity = this.owner.identity ?? this.owner; return other instanceof ColorFormat && identity === (other.owner.identity ?? other.owner); }
   get element(): XmlElementView { return ownerView(this.owner); }
   get rgb(): RGBColor | null { const value = attr(property(this.owner, "rPr", "color")); if (value === undefined || value === "auto") return null; if (!validateDocxValue("RGBColor", value)) throw new InvalidDocumentError("Invalid stored RGB color."); return RGBColor.from_string(value); }
   set rgb(value: RGBColor | null) { if (value !== null && !(value instanceof RGBColor)) throw new InputTypeError("Expected RGBColor or null."); if (value === null && !property(this.owner, "rPr", "color")) return; update(this.owner, "r", { color: value === null ? null : value.toString() }); }

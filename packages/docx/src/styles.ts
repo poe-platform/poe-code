@@ -182,18 +182,20 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
     const defaults = child(xml.root, "docDefaults");
     const defaultsXml = defaults ? xml : new DocumentXmlEditor(new TextEncoder().encode(`<st:docDefaults xmlns:st="${w}"/>`), {}, undefined, budget);
     const target = defaults ?? defaultsXml.root;
+    const defaultsChildren = activeXmlChildren(defaultsXml, budget);
     const updates = new Map<string, string>();
     for (const [container, property] of [["rPrDefault", "rPr"], ["pPrDefault", "pPr"]] as const) {
-      const existing = child(target, container);
+      const existing = styleChild(target, container, defaultsChildren);
       const fragment = existing ? defaultsXml : new DocumentXmlEditor(new TextEncoder().encode(`<st:${container} xmlns:st="${w}"/>`), {}, undefined, budget);
       const owner = existing ?? fragment.root;
-      const props = property === "rPr" ? formattedRunProperties(fragment, owner, { ...opts, hidden: opts.fontHidden }) : paragraphProperties(fragment, owner, opts);
-      const old = child(owner, property);
+      const fragmentChildren = activeXmlChildren(fragment, budget);
+      const props = property === "rPr" ? formattedRunProperties(fragment, owner, { ...opts, hidden: opts.fontHidden }, fragmentChildren) : paragraphProperties(fragment, owner, opts, undefined, fragmentChildren);
+      const old = styleChild(owner, property, fragmentChildren);
       if (props === (old ? fragment.sourceXml(old) : "")) continue;
-      updates.set(container, mergeStyleChildren(fragment, owner, new Map([[property, props]]), [property]));
+      updates.set(container, mergeStyleChildren(fragment, owner, new Map([[property, props]]), [property], {}, fragmentChildren));
     }
     if (updates.size) {
-      const markup = mergeStyleChildren(defaultsXml, target, updates, ["rPrDefault", "pPrDefault"]);
+      const markup = mergeStyleChildren(defaultsXml, target, updates, ["rPrDefault", "pPrDefault"], {}, defaultsChildren);
       if (defaults) xml.replaceElement(defaults, markup); else xml.insertChildren(xml.root, markup, xml.root.children[0]);
       changes.push({ kind: "style", id: "docDefaults" });
     }

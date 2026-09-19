@@ -1,0 +1,104 @@
+name: Compare published Safe Bash work budgets
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - name: Install the two published stacks
+        run: |
+          for version in 0.1.694 0.1.700; do
+            npm install --prefix "out/work-budget-comparison/$version" --workspaces=false --ignore-scripts --no-audit --no-fund --save-exact \
+              "@poe-platform/safe-bash@$version" "@poe-platform/safe-fs@$version" "@poe-platform/safe-js@$version"
+          done
+      - name: Prepare public controls
+        run: |
+          cat > out/work-budget-comparison/compare.mjs <<'JS'
+          import assert from 'node:assert/strict';
+          import { cpus, availableParallelism, loadavg, platform, arch } from 'node:os';
+          import { setTimeout as delay } from 'node:timers/promises';
+
+          const versions = ['0.1.694', '0.1.700'];
+          const modules = new Map(await Promise.all(versions.map(async version => [version,
+            await import(`./${version}/node_modules/@poe-platform/safe-bash/dist/safe-bash/index.js`)
+          ])));
+          const host = () => ({ platform: platform(), arch: arch(), cpus: cpus().length,
+            availableParallelism: availableParallelism(), loadavg: loadavg() });
+          const cpuTimes = () => cpus().reduce((sum, cpu) => ({
+            idle: sum.idle + cpu.times.idle,
+            total: sum.total + Object.values(cpu.times).reduce((total, value) => total + value, 0)
+          }), { idle: 0, total: 0 });
+          const before = cpuTimes();
+          await delay(5_000);
+          const after = cpuTimes();
+          const backgroundBusyFraction = 1 - (after.idle - before.idle) / (after.total - before.total);
+          const baselineHost = host();
+          console.log(JSON.stringify({ kind: 'baseline', node: process.version,
+            bun: process.versions.bun ?? null, backgroundBusyFraction, host: baselineHost }));
+          assert.ok(backgroundBusyFraction <= 0.2, 'Host baseline exceeds 20% background CPU; no quiet-host claim');
+          assert.ok(baselineHost.loadavg[0] <= baselineHost.availableParallelism / 2,
+            'Host baseline load exceeds half its available CPUs; no quiet-host claim');
+
+          const scripts = [
+            'for ((i=0; i<1000; i++)); do :; :; :; done',
+            'while true; do :; done; : > /after'
+          ];
+          for (let repetition = 0; repetition < 3; repetition++) {
+            const order = repetition % 2 ? [...versions].reverse() : versions;
+            for (const version of order) {
+              const { Shell, MemoryFileSystem, CommandRegistry, ShellLimitError } = modules.get(version);
+              for (const script of scripts) {
+                const fs = new MemoryFileSystem();
+                const shell = new Shell({ fs, commands: new CommandRegistry(),
+                  limits: { maxCommands: 10_000, maxLoopIterations: 10_000 } });
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(new Error('Five-second control deadline exceeded')), 5_000);
+                const start = performance.now();
+                const cpu = process.cpuUsage();
+                let rejectedLimit = null;
+                let passed = false;
+                try {
+                  if (script.startsWith('while')) {
+                    await assert.rejects(shell.exec(script, { signal: controller.signal }), error => {
+                      rejectedLimit = error.limit ?? null;
+                      return error instanceof ShellLimitError && error.limit === 'maxCommands';
+                    });
+                    await assert.rejects(fs.stat('/after'), error => error.code === 'ENOENT');
+                  } else {
+                    assert.equal((await shell.exec(script, { signal: controller.signal })).exitCode, 0);
+                  }
+                  assert.equal((await shell.exec(': > /healthy', { signal: controller.signal })).exitCode, 0);
+                  assert.equal((await fs.stat('/healthy')).size, 0);
+                  passed = true;
+                } finally {
+                  clearTimeout(timer);
+                  // Every invocation is awaited before disposal and before deleting evidence.
+                  await shell.dispose();
+                  console.log(JSON.stringify({ kind: 'control', version, node: process.version,
+                    bun: process.versions.bun ?? null, repetition, script, passed, rejectedLimit,
+                    deadlineExceeded: controller.signal.aborted, settlementMs: performance.now() - start,
+                    cpu: process.cpuUsage(cpu), host: host() }));
+                }
+              }
+            }
+          }
+          JS
+      - name: Compare on Node
+        run: node out/work-budget-comparison/compare.mjs
+      - name: Compare on Bun
+        run: bun out/work-budget-comparison/compare.mjs
+      - name: Purge temporary evidence
+        if: always()
+        run: rm -f out/work-budget-comparison/compare.mjs

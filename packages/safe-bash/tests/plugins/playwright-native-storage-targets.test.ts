@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { getEventListeners } from 'node:events';
 import test from 'node:test';
+import { PlaywrightStorageReadError } from '../../src/playwright/checkpoint.js';
 import { createPlaywrightStorageOriginPreparer, type PlaywrightStorageControlEvent } from '../../src/playwright/native-storage-targets.js';
 import type { PlaywrightContext } from '../../src/playwright/adapter.js';
 
@@ -58,7 +59,7 @@ test('detachment during owned target retirement joins destruction without issuin
   assert.ok(!calls.includes('Target.detachFromTarget'));
 });
 
-function storageControlFixture(options: { load?: boolean; staleLoad?: boolean; navigateError?: Error; closeError?: Error; deferClose?: boolean } = {}) {
+function storageControlFixture(options: { load?: boolean; staleLoad?: boolean; navigateError?: Error; closeError?: Error; deferClose?: boolean; timeoutMs?: number } = {}) {
   const controller = new AbortController();
   const listeners = new Set<(event: PlaywrightStorageControlEvent) => void>();
   const calls: string[] = [];
@@ -91,7 +92,7 @@ function storageControlFixture(options: { load?: boolean; staleLoad?: boolean; n
       }
       return {};
     },
-  }, { beginCreation() { return { commit() {}, fail() {}, rollback() {} }; } });
+  }, { beginCreation() { return { commit() {}, fail() {}, rollback() {} }; } }, { timeoutMs: options.timeoutMs ?? 10000 });
   return { controller, listeners, calls, emit, resolveClose, prepare: () => prepare({ context: {} as PlaywrightContext, browserContextId: 'owned', origin: 'https://storage.example', signal: controller.signal }) };
 }
 
@@ -240,3 +241,31 @@ for (const scopedSession of ['global', 'foreign', 'control']) {
     assert.ok(!fixture.calls.includes('Target.detachFromTarget'));
   });
 }
+
+test('navigation read failure is recoverable only after confirmed destruction', async () => {
+  const cause = new Error('held navigation reply deadline');
+  const fixture = storageControlFixture({ navigateError: cause });
+  const outcome = fixture.prepare().catch(error => error);
+  await flushControlOperations();
+  fixture.emit({ method: 'Target.targetDestroyed', params: { targetId: 'hidden' } });
+  const error = await outcome;
+  assert.ok(error instanceof PlaywrightStorageReadError);
+  assert.equal(error.cause, cause);
+  assert.equal(fixture.listeners.size, 0);
+});
+
+test('cancellation wins over safely cleaned navigation failure', async () => {
+  const fixture = storageControlFixture({ navigateError: new Error('navigation failed') });
+  const outcome = fixture.prepare().catch(error => error);
+  await flushControlOperations();
+  fixture.controller.abort(new Error('cancelled'));
+  fixture.emit({ method: 'Target.targetDestroyed', params: { targetId: 'hidden' } });
+  assert.ok(!((await outcome) instanceof PlaywrightStorageReadError));
+});
+
+test('unconfirmed destruction has a bounded fatal cleanup outcome', async () => {
+  const fixture = storageControlFixture({ navigateError: new Error('navigation failed'), timeoutMs: 5 });
+  await assert.rejects(fixture.prepare(), error => error instanceof AggregateError && error.errors[1].message === 'Native storage target retirement timed out');
+  assert.equal(fixture.listeners.size, 0);
+  fixture.emit({ method: 'Target.targetDestroyed', params: { targetId: 'hidden' } });
+});

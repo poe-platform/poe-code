@@ -14,3 +14,5 @@ export { parsePlaywrightSessionConfiguration, type PlaywrightSessionConfiguratio
 export type { PlaywrightCommandResult } from './response.js';
 export type { PlaywrightAbilities, PlaywrightAbility, PlaywrightAbilityRequest } from './abilities.js';
 export type { PlaywrightInvocation } from './invocation.js';
+
+export { PlaywrightCheckpointError, PlaywrightStorageReadError, type PlaywrightCheckpointOutcome } from './checkpoint.js';

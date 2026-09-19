@@ -5,6 +5,7 @@ import { createPlaywrightController, type PlaywrightSessionPersistence } from '.
 import type { PlaywrightAdapter, PlaywrightContext, PlaywrightElementHandle, PlaywrightLease, PlaywrightPage } from '../../src/playwright/adapter.js';
 import { createSnapshotFrame } from '../helpers/playwright-snapshot.js';
 import { serializePlaywrightResult } from '../../src/playwright/response.js';
+import { PlaywrightStorageReadError } from '../../src/playwright/checkpoint.js';
 import { PlaywrightResourceLimitError } from '../../src/playwright/resource-limit.js';
 
 function fixture(persistence?: PlaywrightSessionPersistence) {
@@ -370,4 +371,102 @@ test('a settled native action error leaves its healthy browser available for the
     assert.equal(f.controller.inspectSessions().length, 1);
     await f.run('snapshot');
   } finally { await f.controller.dispose(); }
+});
+
+for (const command of ['open', 'goto', 'reload', 'snapshot']) test(`completed ${command} survives a cleaned checkpoint failure without replay`, async () => {
+  let failing = false;
+  let committed = 'previous';
+  const f = fixture({ async restore() { return undefined; }, async delete() {}, async checkpoint(session) {
+    if (failing) throw new PlaywrightStorageReadError(new Error('synthetic navigation timeout'));
+    committed = session.selectedPage!.url();
+  } });
+  try {
+    if (command !== 'open') await f.run('open', 'https://previous.example');
+    const previous = committed;
+    const context = command === 'open' ? undefined : f.context;
+    failing = true;
+    await assert.rejects(f.run(command, ...(['open', 'goto'].includes(command) ? ['https://completed.example'] : [])), /Action completed.*persistence failed/);
+    assert.equal(f.controller.inspectSessions().length, 1);
+    if (context) assert.equal(f.context, context);
+    assert.equal(committed, previous);
+    assert.ok(!f.events.includes('release'));
+    assert.equal(f.events.filter(event => event === 'goto:https://completed.example').length, ['reload', 'snapshot'].includes(command) ? 0 : 1);
+    failing = false;
+    await f.run('snapshot');
+    assert.equal(committed, f.context.pages()[0]!.url());
+    await f.run('close');
+    assert.equal(f.controller.inspectSessions().length, 0);
+  } finally { failing = false; await f.controller.dispose(); }
+});
+
+test('unsafe checkpoint failure retires a session after a normal snapshot action', async () => {
+  let failing = false;
+  const f = fixture({ async restore() { return undefined; }, async delete() {}, async checkpoint() {
+    if (failing) throw new Error('cleanup unconfirmed');
+  } });
+  try {
+    await f.run('open');
+    failing = true;
+    await assert.rejects(f.run('snapshot'), /cleanup unconfirmed/);
+    assert.equal(f.controller.inspectSessions().length, 0);
+    assert.ok(f.events.includes('release'));
+  } finally { failing = false; await f.controller.dispose(); }
+});
+
+test('typed checkpoint outcome preserves a custom ability result and retires on explicit close', async () => {
+  const f = fixture();
+  let failing = false;
+  let executions = 0;
+  const controller = createPlaywrightController({
+    adapter: { browsers: { chromium: { headed: false } }, async acquire() { return f.lease(); } },
+    abilities: { open: true, close: true, eval: { scope: 'session', async execute() {
+      executions++;
+      return { sections: [{ title: 'Result', content: 'completed custom action' }] };
+    } } },
+    persistence: { async restore() { return undefined; }, async delete() {}, async checkpoint() {
+      return failing ? { status: 'storage-read-failed', error: new PlaywrightStorageReadError(new Error('read failed')) } : { status: 'committed' };
+    } },
+  });
+  let output = '';
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write(text) { output += text; } });
+  try {
+    await run(['open']);
+    output = '';
+    failing = true;
+    await assert.rejects(run(['eval', '() => undefined']), /Action completed; persistence failed/);
+    assert.equal(executions, 1);
+    assert.match(output, /completed custom action/);
+    assert.equal(controller.inspectSessions().length, 1);
+    await assert.rejects(run(['close']), PlaywrightStorageReadError);
+    assert.equal(controller.inspectSessions().length, 0);
+  } finally { failing = false; await controller.dispose(); await f.controller.dispose(); }
+});
+
+test('graceful disposal releases the session even when the final checkpoint is recoverable', async () => {
+  let failing = false;
+  const f = fixture({ async restore() { return undefined; }, async delete() {}, async checkpoint() {
+    if (failing) throw new PlaywrightStorageReadError(new Error('read failed'));
+  } });
+  await f.run('open');
+  failing = true;
+  await assert.rejects(f.controller.dispose(), AggregateError);
+  assert.equal(f.controller.inspectSessions().length, 0);
+  assert.ok(f.events.includes('release'));
+});
+
+test('expiration after a recoverable checkpoint still retires the live browser', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: 1000 });
+  let failing = false;
+  const f = fixture({ async restore() { return undefined; }, async delete() {}, async checkpoint() {
+    if (failing) throw new PlaywrightStorageReadError(new Error('read failed'));
+  } });
+  try {
+    await f.run('open', '--idle-timeout=100');
+    failing = true;
+    await assert.rejects(f.run('snapshot'), /Action completed/);
+    t.mock.timers.setTime(1200);
+    await f.run('list');
+    assert.equal(f.controller.inspectSessions().length, 0);
+    assert.ok(f.events.includes('release'));
+  } finally { failing = false; await f.controller.dispose(); }
 });

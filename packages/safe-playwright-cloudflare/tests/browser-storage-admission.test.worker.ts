@@ -266,6 +266,96 @@ export default {
 				return Response.json({ ok: true });
 			}
 			switch (pathname) {
+				case "/checkpoint-navigation-timeout":
+				case "/checkpoint-navigation-cancel": {
+					const relay = controlFaultBinding(env.BROWSER);
+					const f = fixture(env, pathname, relay.binding);
+					try {
+						await f.run(["open", input.origin, "--json"]);
+						const before = f.client.inspectSessions()[0]!;
+						await seed(before.selectedPage!, "checkpoint-original-tab");
+						assert.equal(
+							(await f.run(["eval", "() => undefined", "--json"])).exitCode,
+							0,
+						);
+						const previous = await f.profiles.load(before.name);
+						assert.ok(previous);
+						relay.holdNextNavigation();
+						const abort = new AbortController();
+						const pending = f.run(
+							["goto", input.origin + "/completed", "--json"],
+							abort.signal,
+						);
+						await relay.navigationHeld;
+						assert.equal(
+							before.selectedPage!.url(),
+							input.origin + "/completed",
+						);
+						await before.selectedPage!.evaluate!(() => {
+							document.documentElement.dataset.checkpointWitness = "completed";
+						}, undefined);
+						// This is a completed guest navigation plus a deliberately withheld
+						// hidden-target reply, not a reproduction of the historical stall.
+						if (pathname.endsWith("cancel")) {
+							abort.abort(new Error("checkpoint-navigation-cancelled"));
+							relay.resumeNavigation();
+							const outcome = await Promise.allSettled([pending]);
+							assertCommandFailure(
+								outcome[0]!,
+								/checkpoint-navigation-cancelled/,
+							);
+							assert.equal(f.client.inspectSessions().length, 0);
+						} else {
+							const result = await pending;
+							assert.equal(result.exitCode, 1);
+							assert.match(
+								result.stderr,
+								/Action completed; persistence failed/,
+							);
+							assert.ok(JSON.parse(result.stdout).page.includes("/completed"));
+							const after = f.client.inspectSessions()[0]!;
+							assert.equal(after.context, before.context);
+							assert.equal(after.selectedPage, before.selectedPage);
+							assert.equal(
+							await after.selectedPage!.title!(),
+								"Storage admission",
+							);
+							assert.deepEqual(await f.profiles.load(before.name), previous);
+							const destroyed = relay.destroyedTargets;
+							assert.ok(destroyed > 0);
+							assert.equal(relay.activeTargetCount, 0);
+							assert.equal(
+								await before.selectedPage!.evaluate!(
+									() => document.documentElement.dataset.checkpointWitness,
+									undefined,
+								),
+								"completed",
+							);
+							relay.resumeNavigation();
+							assert.equal(
+								(await f.run(["eval", "() => undefined", "--json"])).exitCode,
+								0,
+							);
+							assert.equal(
+								await before.selectedPage!.evaluate!(
+									() => document.documentElement.dataset.checkpointWitness,
+									undefined,
+								),
+								"completed",
+							);
+							assert.equal(
+								f.client.inspectSessions()[0]!.selectedPage,
+								before.selectedPage,
+							);
+							assert.notDeepEqual(await f.profiles.load(before.name), previous);
+							assert.ok(relay.destroyedTargets > destroyed);
+						}
+					} finally {
+						await f.client.dispose();
+					}
+					await relay.assertNativeRetirement();
+					return Response.json({ ok: true });
+				}
 				case "/native-cdp-ownership":
 					await nativeCDPOwnership((owner) => fixture(env, owner), input);
 					return Response.json({ ok: true });

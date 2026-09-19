@@ -85,7 +85,13 @@ Ordinary command errors preserve a healthy session.
 Optional persistence callbacks operate within the host's trusted owner scope:
 
 - `checkpoint` receives the current context, selected page, validated context
-  settings, effective configuration, and idle/expiry metadata.
+  settings, effective configuration, and idle/expiry metadata. It commits
+  atomically after a complete read and returns `void` or `{ status: 'committed' }`.
+  A trusted reader may throw `PlaywrightStorageReadError`, or return
+  `{ status: 'storage-read-failed', error }`, only after confirmed owned-target
+  destruction with healthy control. Cancellation, uncertain ownership,
+  disconnection, and failed cleanup remain fatal. The native origin preparer
+  bounds load and retirement waits (10 seconds by default).
 - `restore` returns a newly owned lease and selected page. Its optional
   `initialize` callback runs after controller observers attach and startup
   scripts are registered, before the restored session is published.
@@ -94,6 +100,16 @@ Optional persistence callbacks operate within the host's trusted owner scope:
 - `close` suppresses automatic restoration without requiring storage deletion.
   An undefined name closes all saved aliases for that owner.
 - `delete` removes the named profile.
+
+After a recoverable checkpoint failure, the completed action and live session
+remain usable. The SDK throws `PlaywrightCheckpointError` with
+`actionCompleted: true` and `profileCommitted: false`. The CLI keeps the completed
+result on stdout, reports persistence failure on stderr, and exits 1. Retry
+persistence with a later command; do not replay the completed action. The last
+committed profile stays unchanged. Cold restore resumes that older committed
+state; it cannot recover changes from the failed checkpoint. Hosts must not mark
+the old profile as newly saved. Explicit close, disposal, cancellation, and
+expiration still retire the live session.
 
 The controller checkpoints before graceful disposal. Explicit close is
 distinct from disposal: later explicit open may reuse saved storage, while

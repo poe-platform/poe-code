@@ -55,6 +55,8 @@ afterAll(async () => {
 });
 
 for (const scenario of [
+	"checkpoint-navigation-timeout",
+	"checkpoint-navigation-cancel",
 	"profile-store",
 	"checkpoint-census",
 	"same-context-load",

@@ -1,4 +1,4 @@
-import { createPlaywrightController, type PlaywrightControllerOptions } from '../../playwright/index.js';
+import { PlaywrightCheckpointError, createPlaywrightController, type PlaywrightControllerOptions } from '../../playwright/index.js';
 import type { VirtualShellPlugin } from '../../contracts/plugin.js';
 import { dirname, resolvePath } from '../../contracts/path.js';
 import { writeBytes } from '../../contracts/io.js';
@@ -93,6 +93,10 @@ export function createPlaywrightCli(options: PlaywrightCliOptions = {}) {
             return { exitCode: 0 };
           } catch (error) {
             context.signal.throwIfAborted();
+            if (error instanceof PlaywrightCheckpointError) {
+              await writeBytes(context.stderr, new TextEncoder().encode(`playwright-cli: ${error.message}\n`), context.signal);
+              return { exitCode: 1 };
+            }
             if (error instanceof PlaywrightReportedError) return { exitCode: 1 };
             let json = false;
             for (const arg of context.args) {

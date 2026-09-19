@@ -21,6 +21,24 @@ type Reply = {
 
 class ControlRelay {
 	private intercepted = false;
+	private holdingNavigation = false;
+	private heldNavigationId: number | undefined;
+	private heldNavigation: { client: WebSocket; frame: string } | undefined;
+	private navigation = Promise.withResolvers<void>();
+	private started = performance.now();
+	private timings = new Map<number, { method: string; started: number }>();
+	holdNextNavigation() {
+		this.holdingNavigation = true;
+		this.navigation = Promise.withResolvers<void>();
+	}
+	get navigationHeld() {
+		return this.navigation.promise;
+	}
+	resumeNavigation() {
+		assert.ok(this.heldNavigation);
+		this.heldNavigation.client.send(this.heldNavigation.frame);
+		this.heldNavigation = undefined;
+	}
 	private failingClose = false;
 	private holdingEvaluation = false;
 	private held: { client: WebSocket; frame: string } | undefined;
@@ -50,6 +68,9 @@ class ControlRelay {
 	private sessionURL: string | undefined;
 	closeResponses = 0;
 	injectedResponses = 0;
+	get activeTargetCount() {
+		return this.activeTargets.size;
+	}
 	destroyedTargets = 0;
 	suppressedDestructions = 0;
 	forwardedEOFReplies = 0;
@@ -112,6 +133,14 @@ class ControlRelay {
 		method: string;
 		params?: { targetId?: string };
 	}) {
+		this.timings.set(frame.id, {
+			method: frame.method,
+			started: performance.now(),
+		});
+		if (this.holdingNavigation && frame.method === "Page.navigate") {
+			this.holdingNavigation = false;
+			this.heldNavigationId = frame.id;
+		}
 		if (frame.method === "Target.createTarget") this.creations.add(frame.id);
 		if (frame.method === "Target.closeTarget") {
 			this.trackClose(frame);
@@ -160,6 +189,45 @@ class ControlRelay {
 	private deliver(client: WebSocket, upstream: WebSocket, data: string) {
 		const frame: Reply = JSON.parse(data);
 		this.recordNativeTargets(frame);
+		if (frame.id !== undefined) {
+			const timing = this.timings.get(frame.id);
+			if (
+				timing &&
+				[
+					"Target.createTarget",
+					"Target.closeTarget",
+					"Fetch.fulfillRequest",
+					"Page.navigate",
+				].includes(timing.method)
+			)
+				console.log(
+					JSON.stringify({
+						diagnostic: "storage-checkpoint-timing",
+						method: timing.method,
+						elapsedMs: performance.now() - timing.started,
+						atMs: performance.now() - this.started,
+						withheld: frame.id === this.heldNavigationId,
+					}),
+				);
+			this.timings.delete(frame.id);
+		}
+		if (
+			frame.method === "Fetch.requestPaused" ||
+			frame.method === "Page.loadEventFired"
+		)
+			console.log(
+				JSON.stringify({
+					diagnostic: "storage-checkpoint-event",
+					method: frame.method,
+					elapsedMs: performance.now() - this.started,
+				}),
+			);
+		if (frame.id !== undefined && frame.id === this.heldNavigationId) {
+			this.heldNavigationId = undefined;
+			this.heldNavigation = { client, frame: data };
+			this.navigation.resolve();
+			return;
+		}
 		if (this.holdForEOF(client, upstream, frame, data)) return;
 		if (frame.id !== undefined && frame.id === this.heldCommand) {
 			this.heldCommand = undefined;

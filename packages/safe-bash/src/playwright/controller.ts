@@ -24,6 +24,7 @@ import { initializePlaywrightWorkspace } from './workspace.js';
 import { parsePlaywrightSessionConfiguration, type PlaywrightSessionConfiguration } from './session-configuration.js';
 import { installPlaywrightConfiguredNetwork, playwrightInitPageSource } from './session-runtime.js';
 import { flushPlaywrightTrace, preparePlaywrightTraceRelease } from './tracing-capabilities.js';
+import { PlaywrightCheckpointError, PlaywrightStorageReadError, type PlaywrightCheckpointOutcome } from './checkpoint.js';
 import { resolvePath } from '../contracts/path.js';
 
 export interface PlaywrightControllerOptions {
@@ -70,7 +71,12 @@ export interface PlaywrightSessionPersistence {
     readonly configuration?: PlaywrightSessionConfiguration;
     initialize?(options: { readonly signal: AbortSignal }): Promise<void>;
   } | undefined>;
-  checkpoint(session: PlaywrightSessionCheckpoint, signal: AbortSignal): Promise<void>;
+  /** Commit atomically only after a complete profile read. A failed read must
+   * leave the previous committed profile unchanged. Restore returns that last
+   * committed profile, never the live state from an unsuccessful checkpoint.
+   * Legacy void means committed; a trusted reader may throw StorageReadError.
+   */
+  checkpoint(session: PlaywrightSessionCheckpoint, signal: AbortSignal): Promise<void | PlaywrightCheckpointOutcome>;
   /** Explicit closure suppresses automatic resume without deleting saved state. */
   close?(name: string | undefined, signal: AbortSignal): Promise<void>;
   delete(name: string, signal: AbortSignal): Promise<void>;
@@ -162,12 +168,25 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     if (!options.persistence || session.state !== 'open' || !session.lease || session.failure) return;
     if (session.lease.context.pages().some(page => getPlaywrightModal(page))) return;
     signal.throwIfAborted();
-    await options.persistence.checkpoint({ name: session.name, context: session.lease.context,
-      ...(session.page ? { selectedPage: session.page } : {}), ...(session.expiresAt === undefined ? {} : { expiresAt: session.expiresAt }),
-      ...(session.idleTimeoutMs === undefined ? {} : { idleTimeoutMs: session.idleTimeoutMs }),
-      ...(session.contextOptions === undefined ? {} : { contextOptions: structuredClone(session.contextOptions) }),
-      ...(session.configuration === undefined ? {} : { configuration: structuredClone(session.configuration) }) }, signal);
-    signal.throwIfAborted();
+    try {
+      const outcome = await options.persistence.checkpoint({ name: session.name, context: session.lease.context,
+        ...(session.page ? { selectedPage: session.page } : {}), ...(session.expiresAt === undefined ? {} : { expiresAt: session.expiresAt }),
+        ...(session.idleTimeoutMs === undefined ? {} : { idleTimeoutMs: session.idleTimeoutMs }),
+        ...(session.contextOptions === undefined ? {} : { contextOptions: structuredClone(session.contextOptions) }),
+        ...(session.configuration === undefined ? {} : { configuration: structuredClone(session.configuration) }) }, signal);
+      signal.throwIfAborted();
+      if (outcome?.status === 'storage-read-failed') {
+        if (!(outcome.error instanceof PlaywrightStorageReadError)) throw new TypeError('Invalid checkpoint failure outcome');
+        throw outcome.error;
+      }
+      if (outcome !== undefined && outcome.status !== 'committed') throw new TypeError('Invalid checkpoint outcome');
+    } catch (error) {
+      if (!(error instanceof PlaywrightStorageReadError) || signal.aborted) {
+        try { await release(session); }
+        catch (cleanup) { throw new AggregateError([error, cleanup], 'Playwright checkpoint and retirement failed'); }
+      }
+      throw error;
+    }
   };
   const release = (session: Session): Promise<void> => {
     if (session.releasing) return session.releasing;
@@ -520,6 +539,19 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         ...(invocation.workspace ? { mkdir: (path: string) => invocation.workspace!.mkdir(path) } : {}),
       });
     };
+    const checkpointCompletedAction = async (session: Session, result?: void | PlaywrightCommandResult) => {
+      try { await checkpoint(session, local.signal); }
+      catch (error) {
+        retained = false;
+        if (error instanceof PlaywrightStorageReadError) {
+          checkSession(session);
+          if (result) await writeResult(result);
+          retained = true;
+          throw new PlaywrightCheckpointError(error);
+        }
+        throw error;
+      }
+    };
     const retireForCommand = async (session: Session, force = false) => {
       const errors: unknown[] = [];
       if (!force) try { await flushTrace(session); } catch (error) { errors.push(error); }
@@ -871,7 +903,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               checkSession(active);
               active.pages = [...active.lease!.context.pages()];
               if (active.pages.length > maxTabs) throw new PlaywrightResourceLimitError('Playwright tab limit exceeded');
-              await checkpoint(active, local.signal);
+              await checkpointCompletedAction(active, result);
               if (active.page && getPlaywrightModal(active.page)) result = { ...result, sections: [...result?.sections ?? [], ...(await pageResult(active, undefined)).sections] };
               else {
                 const downloads = await downloadSections(active);
@@ -951,7 +983,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               : `### Browser \`${session.name}\` opened.\n` + rendered);
             checkSession(session);
             session.state = 'open';
-            await checkpoint(session, local.signal);
+            await checkpointCompletedAction(session);
             retained = true;
           } else {
             const session = sessions.get(parsed.session);
@@ -965,7 +997,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               checkSession(session);
               await writeResult(await pageResult(session, actionCode(session, { name: 'navigate', url: parsed.url! }, `await page.goto(${playwrightCodeString(parsed.url!)});`), 'file'));
               checkSession(session);
-              await checkpoint(session, local.signal);
+              await checkpointCompletedAction(session);
               retained = true;
               return;
             }
@@ -1122,7 +1154,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               }
               await writeResult(await pageResult(session, code, 'file'));
             }
-            await checkpoint(session, local.signal);
+            await checkpointCompletedAction(session);
             retained = true;
           }
         })().catch(error => {

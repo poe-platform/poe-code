@@ -1,3 +1,4 @@
+import { PlaywrightStorageReadError } from './checkpoint.js';
 import type { PlaywrightPrivateTargetCreation } from './private-target-transport.js';
 import type { PlaywrightStorageOriginPreparer } from './native-storage-replacement.js';
 
@@ -12,11 +13,14 @@ export interface PlaywrightStorageControl {
   subscribe(listener: (event: PlaywrightStorageControlEvent) => void): () => void;
 }
 
-export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorageControl, privateTargets: { beginCreation(): PlaywrightPrivateTargetCreation }): PlaywrightStorageOriginPreparer {
+export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorageControl, privateTargets: { beginCreation(): PlaywrightPrivateTargetCreation }, options: { readonly timeoutMs?: number } = {}): PlaywrightStorageOriginPreparer {
+  const timeoutMs = options.timeoutMs ?? 10_000;
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1) throw new RangeError('Invalid native storage deadline');
   return async ({ browserContextId, origin, signal }) => {
     signal.throwIfAborted();
     if (!browserContextId || new URL(origin).origin !== origin) throw new Error('Invalid native storage target request');
     const url = origin + '/';
+    let navigationReadFailed = false;
     let targetId: string | undefined;
     let sessionId: string | undefined;
     let detached = false;
@@ -76,7 +80,7 @@ export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorage
       if (sessionId && !detached && !destroyed) await control.send('Target.detachFromTarget', { sessionId });
       detached = true;
     })();
-    const release = (): Promise<void> => retirement ??= (async () => {
+    const release = (): Promise<void> => retirement ??= withDeadline((async () => {
       try {
         if (controlFailure) throw controlFailure;
         if (targetId && !destroyed) {
@@ -88,7 +92,7 @@ export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorage
         await Promise.allSettled(pending);
         if (controlFailure) throw controlFailure;
       } finally { stopObserving(); }
-    })();
+    })(), timeoutMs, 'Native storage target retirement timed out').finally(stopObserving);
     const abort = () => { rejectLoaded(signal.reason); if (targetId) void release().catch(() => {}); };
     const stopObserving = () => {
       if (!observing) return;
@@ -121,12 +125,14 @@ export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorage
       await control.send('Network.setBypassServiceWorker', { bypass: true }, sessionId);
       await control.send('Fetch.enable', { patterns: [{ resourceType: 'Document', requestStage: 'Request' }] }, sessionId);
       signal.throwIfAborted();
-      const navigation = await control.send('Page.navigate', { url }, sessionId);
-      if (navigation.errorText) throw new Error('Native storage synthetic navigation failed');
-      navigationLoaderId = navigation.loaderId;
-      navigationReplied = true;
-      if (typeof navigationLoaderId === 'string' ? loadedLoaders.has(navigationLoaderId) : navigationLoaderId === undefined && unqualifiedLoaded) resolveLoaded();
-      await loaded;
+      try {
+        const navigation = await withDeadline(control.send('Page.navigate', { url }, sessionId), timeoutMs, 'Native storage navigation reply timed out');
+        if (navigation.errorText) throw new Error('Native storage synthetic navigation failed');
+        navigationLoaderId = navigation.loaderId;
+        navigationReplied = true;
+        if (typeof navigationLoaderId === 'string' ? loadedLoaders.has(navigationLoaderId) : navigationLoaderId === undefined && unqualifiedLoaded) resolveLoaded();
+        await withDeadline(loaded, timeoutMs, 'Native storage navigation load timed out');
+      } catch (error) { navigationReadFailed = true; throw error; }
       await Promise.all(pending);
       if (eventFailure) throw eventFailure;
       signal.throwIfAborted();
@@ -140,7 +146,17 @@ export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorage
     } catch (error) {
       const cleanup = await Promise.allSettled([release()]);
       if (cleanup[0]!.status === 'rejected') throw new AggregateError([error, cleanup[0]!.reason], 'Native storage preparation and retirement failed');
+      if (navigationReadFailed && destroyed && !controlFailure && !signal.aborted && !eventFailure) throw new PlaywrightStorageReadError(error);
       throw error;
     }
   };
+}
+
+async function withDeadline<T>(operation: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([operation, new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+    })]);
+  } finally { clearTimeout(timer); }
 }

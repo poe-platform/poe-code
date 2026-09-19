@@ -88,6 +88,7 @@ for (const scenario of [
 						}),
 					},
 				);
+				expect(response.status, await response.clone().text()).toBe(200);
 				const receipt = await response.json();
 				console.log(
 					JSON.stringify({
@@ -118,6 +119,7 @@ for (const scenario of [
 					}),
 				},
 			);
+			expect(saved.status, await saved.clone().text()).toBe(200);
 			const receipt = await saved.json();
 			console.log(
 				JSON.stringify({
@@ -140,9 +142,9 @@ for (const scenario of [
 				imported: imported.url.origin,
 			}),
 		});
+		expect(response.status, await response.clone().text()).toBe(200);
 		const result = await response.json();
 		console.log(JSON.stringify({ scenario, status: response.status, result }));
-		expect(response.status).toBe(200);
 		expect(result).toEqual({ ok: true });
 	}, 30000);
 }

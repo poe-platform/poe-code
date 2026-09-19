@@ -384,7 +384,7 @@ export default {
 				case "/cold-owner-save":
 				case "/cold-owner-restore":
 					await coldRestore(
-						(owner) => fixture(env, owner),
+						(owner) => fixture(env, owner, controlFaultBinding(env.BROWSER).binding),
 						input,
 						pathname === "/cold-owner-save" ? "save" : "restore",
 					);

@@ -86,10 +86,8 @@ export async function coldRestore(
 			await history.goto(input.history);
 			await seed(history, "historical", "historical-db", false);
 			await history.close();
-			assert.equal(
-				(await first.run(["tab-new", input.origin, "--json"])).exitCode,
-				0,
-			);
+			const created = await first.run(["tab-new", input.origin, "--json"]);
+			assert.equal(created.exitCode, 0, JSON.stringify(created));
       await seed(
         first.client.inspectSessions()[0]!.selectedPage!,
 				"second",

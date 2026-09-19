@@ -968,3 +968,23 @@ The [direct numbering-style creation dependency](text-style-family-acceptance-20
 The [inactive style-ID allocation dependency](text-style-family-acceptance-20260918/style-id-inert-allocation-requirement-evidence.json) preserves48 original controls/120 genuine failures, then passes all168 original cases and504 independently built public variants, including72 required numbering content-declaration refusals. Stored inactive Choice/Fallback/opaque IDs reserve storage identities without activating those definitions. Active Style1/inert Style2 yields new Style3 through every applicable native/typed/direct/content route, retaining the prior paragraph reference, exact inactive XML and all nondirty member/relationship/Unicode/comment/PI/input bytes. Settled focused2184, heading/style consumers1529 and numbering/format/enum consumers447 pass with no skips. Maintained lint/selected build and inspected readable actual CLI screenshots pass. All nine families and their whole-source/member/protocol/context/stable final gates remain open.
 
 The [custom-name link/numbering interaction replay](text-style-family-acceptance-20260918/custom-style-name-cross-family-public-requirement-evidence.json) independently passes3456 built typed model-batch/ordered SDK/actual opt-in CLI observations after all creation dependencies, without failures or skips. Both exact custom caption/Caption names, all three accepted customStyle true spellings, both kinds/dialects/three prefixes/four carriers/two field placements execute reciprocal links and selected list-level paragraph-style IDs. The other custom definition and unselected numbering occurrence, exact relocated owner/member/relationship/Unicode/comment/PI/input/OPC/CRC evidence remain intact. The original192 failing cross-family cases and all historical receipts are retained; settled192 owned unit cases pass. Full family/source/member/protocol/context/final gates remain open.
+
+### Returned formatting enum symbols and alias receivers — 2026-09-19
+
+The original 262 native memfs cases recorded 256 mutable-symbol failures and six
+underline boolean/null controls. The native getter correction passed 4015 focused
+cases plus 253 setter/guide/protocol consumers. Its first lint type failure is
+retained; explicit JSON-aware Paragraph.alignment/Run.underline setter unions
+passed lint and the selected DOCX build.
+
+A separate original 192-case memfs run reproduced 64 valid theme-color alias
+receiver failures and retained 128 null/wrong-family refusals. Canonical alias
+matching passed all 935 focused handle/enum/batch cases. The built native/SDK/actual
+opt-in CLI replay passed all 2304 eight-getter cases, across both macro-free
+kinds/dialects, three prefixes, four carriers and both property placements. The
+actual CLI screenshot was inspected. Named receipts are
+[the native getter evidence](text-style-family-acceptance-20260918/formatting-returned-enum-symbols-native-requirement-evidence.json)
+and [alias/public getter evidence](text-style-family-acceptance-20260918/formatting-enum-alias-receiver-requirement-evidence.json).
+These complete the named behaviors, not any entire family. Cancelled predecessor
+checkpoints are not passes; the new stable source and whole-DOCX checkpoints are
+running and require completed exact evidence before acceptance.

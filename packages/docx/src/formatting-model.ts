@@ -153,7 +153,6 @@ export class Font {
   get color(): ColorFormat { return this.colorFormat; }
   get part(): unknown { return this.owner.part ?? null; }
   equals(other: unknown): boolean { return other instanceof Font && (this.owner.identity ?? this.owner) === (other.owner.identity ?? other.owner); }
-  private get rawElement(): XmlElement { return editor(this.owner).root; }
   get element(): XmlElementView { return ownerView(this.owner); }
   get name(): string | null { return attr(property(this.owner, "rPr", "rFonts"), "ascii") ?? null; }
   set name(value: string | null) { if (value !== null && typeof value !== "string") throw new TypeError("Expected a font name or null."); update(this.owner, "r", { font: value }); }
@@ -178,8 +177,7 @@ export class Font {
   set subscript(value: boolean | null) { this.baseline("subscript", value); }
   private baseline(mode: "subscript" | "superscript", value: boolean | null): void {
     tri(value);
-    if (value === false && attr(property(this.owner, "rPr", "vertAlign")) !== mode) { if (!child(this.rawElement, "rPr")) update(this.owner, "r", {}); return; }
-    update(this.owner, "r", { baseline: value === true ? mode : null });
+    update(this.owner, "r", { baseline: value === true ? mode : value === false ? "baseline" : null });
   }
 }
 for (const [name, [option, tag]] of Object.entries(fontFlags)) Object.defineProperty(Font.prototype, name, {

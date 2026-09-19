@@ -76,7 +76,8 @@ it(`rejects ${scenario} native result references before publication`, async () =
   const shell = new Shell({ fs }).use(docxCommands({ engine: api.createDocxInspectionCommandEngine({ limits: textContext.limits }) }));
   try {
     const result = await shell.exec("docx batch /input --ops-file /ops --output /output --force --json");
-    expect(result.exitCode).toBe(2); expect(JSON.parse(result.stdout).errors[0].code).toBe("usage");
+    expect(result.exitCode).toBe(scenario === "past-end" ? 1 : 2); expect(JSON.parse(result.stdout).errors[0].code).toBe(scenario === "past-end" ? "missing-selection" : "usage");
+    if (scenario === "past-end") expect(JSON.parse(result.stdout).errors[0].operationIndex).toBe(2);
     expect(await fs.readFile("/output")).toEqual(enc("owned sentinel")); expect(await fs.readFile("/input")).toEqual(input);
   } finally { await shell.dispose(); }
 });

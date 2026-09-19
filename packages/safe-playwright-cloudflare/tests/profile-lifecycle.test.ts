@@ -16,7 +16,7 @@ function fixture() {
   const navigations: string[] = [];
   const pages = profile.tabs.map(() => ({ goto: vi.fn(async (url: string) => { navigations.push(url); }) }) as unknown as PlaywrightPage);
   let index = 0;
-  const lease = { context: { newPage: vi.fn(async () => pages[index++]!) }, release: vi.fn(async () => {}) } as unknown as PlaywrightLease;
+  const lease = { context: { pages: () => pages.slice(0, index), newPage: vi.fn(async () => pages[index++]!) }, release: vi.fn(async () => {}) } as unknown as PlaywrightLease;
   const adapter = { acquire: vi.fn(async () => lease) } as unknown as PlaywrightAdapter;
   return { lease, adapter, pages, navigations };
 }

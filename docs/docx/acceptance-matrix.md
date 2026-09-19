@@ -1018,3 +1018,14 @@ spellings or type placements, alongside independently executed required positive
 counterparts. Exact input, destination and package graph retention is observed;
 the first creating-getter publication-intent observer failure remains historical.
 These justified refusals complete their named requirements, not any entire family.
+
+### Six selected public guide workflows — 2026-09-19
+
+[Current guide evidence](text-style-family-acceptance-20260918/guide-workflows-current-requirement-evidence.json)
+records all 864 native/SDK/actual opt-in CLI cases after the getter/receiver
+corrections. A further full replay adds independent dirty relationship/content-type
+and exact original paragraph/Normal subtree retention assertions. Each of the
+six requirements has 144 exact passing record lines. Original observer failures,
+preimages and the genuine independently reproduced enum defect remain preserved.
+These close the named guide behaviors only; complete API/source/context/family
+acceptance still requires the settled checkpoint outcomes and remaining audit.

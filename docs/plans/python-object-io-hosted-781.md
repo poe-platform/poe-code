@@ -23,6 +23,16 @@ justify an improvement without weakening descriptor semantics.
 - On success or failure, authenticate Worker ownership, drain scratch objects,
   confirm emptiness, recheck ownership, then delete only the fresh resources.
   Preserve resources if ownership or deletion safety cannot be established.
+- Verify the actual `SCRATCH` R2 binding targets the freshly created bucket both
+  before cleanup and before deleting resources; an unchanged owner string is
+  insufficient authority if the binding has changed.
+- Diagnose API access with read-only probes before installing native tooling.
+  Report only resource kind, numeric HTTP status, and bounded numeric Cloudflare
+  error codes, never account paths or upstream error bodies. Non-404 responses
+  remain refusals until genuine resource-absence semantics are established.
+- Validate canonical stream reads against the actual number of decoded chunk
+  records plus the terminal EOF read. BYOB is allowed to return less than the
+  requested 64 KiB; fixed-size read-count assumptions cannot gate hosted success.
 
 ## Implementation and validation
 

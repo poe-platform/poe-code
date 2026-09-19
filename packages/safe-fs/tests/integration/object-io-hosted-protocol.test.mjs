@@ -33,6 +33,19 @@ test('hosted protocol hashes bounded canonical chunks and admits only a post-dra
   assert.equal(row.canonicalBytes,bytes.length);
 });
 
+test('hosted protocol admits short BYOB reads by counting actual canonical records plus EOF', async () => {
+  const summary=records()[1];
+  summary.phases.canonicalStream.operations['stream.read'].count=3;
+  const values=[
+    {type:'chunk',offset:0,base64:bytes.subarray(0,1).toString('base64')},
+    {type:'chunk',offset:1,base64:bytes.subarray(1).toString('base64')},
+    summary,
+  ];
+  assert.equal((await consumeObjectIoResponse(inputs(values))).canonicalHash,hash);
+  summary.phases.canonicalStream.operations['stream.read'].count=4;
+  await assert.rejects(consumeObjectIoResponse(inputs(values)));
+});
+
 test('hosted protocol rejects missing or non-final summaries and noncontiguous bytes', async () => {
   for (const values of [records().slice(0,1),[...records(),records()[0]],
     [{...records()[0],offset:1},records()[1]], [{...records()[0],base64:'AP8qAA=='},records()[1]]]) {

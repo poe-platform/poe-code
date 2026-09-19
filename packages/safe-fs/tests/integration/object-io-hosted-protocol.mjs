@@ -9,6 +9,7 @@ export async function consumeObjectIoResponse({ response, expectedBytes, sequent
   const digest = createHash('sha256');
   const decoder = new TextDecoder('utf-8', { fatal: true });
   let bytes = 0;
+  let canonicalRecords = 0;
   let buffered = '';
   let summary;
   for await (const chunk of response.body) {
@@ -28,6 +29,7 @@ export async function consumeObjectIoResponse({ response, expectedBytes, sequent
         bytes += decoded.length;
         assert.ok(bytes <= expectedBytes, 'Canonical stream exceeds expected bytes');
         digest.update(decoded);
+        canonicalRecords++;
       } else {
         assert.equal(record.type, 'summary');
         assert.equal(record.completed, true, 'Summary must follow completed readback and cleanup');
@@ -54,7 +56,7 @@ export async function consumeObjectIoResponse({ response, expectedBytes, sequent
   assert.equal(summary.events?.peakWrites, 1);
   assert.ok(Number.isSafeInteger(summary.events?.largestChunk) && summary.events.largestChunk > 0);
   assert.equal(summary.phases?.canonicalStream?.operations?.['stream.read']?.count,
-    Math.ceil(bytes / 65536) + 1);
+    canonicalRecords + 1);
   assert.ok(summary.phases?.fixtureCleanup, 'Final summary requires cleanup phase evidence');
   const canonicalHash = digest.digest('hex');
   assert.equal(canonicalHash, positionedSha256, 'Independent canonical hash must match Python');

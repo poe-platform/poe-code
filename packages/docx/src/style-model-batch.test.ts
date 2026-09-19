@@ -23,7 +23,7 @@ it("executes typed live style, font and tab edits and publishes only to the supp
   const volume = Volume.fromJSON({ "/result": "" });
   await applied.save({ async write(bytes: Uint8Array) { volume.appendFileSync("/result", bytes); } });
   const styles = (await inspectDocumentStyles(new Uint8Array(volume.readFileSync("/result") as Buffer), {}, textContext)).styles;
-  expect(styles.map(style => style.name).sort()).toEqual(["Default Paragraph Font", "Harbor", "Normal", "Normal Table"]);
+  expect(styles.map(style => style.name).sort()).toEqual(["Default Paragraph Font", "Harbor", "No List", "Normal", "Normal Table"]);
   expect(styles.find(style => style.name === "Harbor")).toMatchObject({ name: "Harbor", direct: { allCaps: true, tabStops: [{ position: 72 }] } });
 });
 it("rejects unowned literal receivers and unsupported methods before publication", async () => {

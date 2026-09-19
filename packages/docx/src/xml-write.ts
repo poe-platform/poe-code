@@ -544,7 +544,7 @@ export class DocumentXmlEditor {
       const before = this.#budget.usage.xmlNodes;
       const fragment = parseDocumentXml(new TextEncoder().encode(`<fragment${bindings}>${xml}</fragment>`), this.#limits, this.#budget);
       if (checkMath && containsMath(fragment.root, this.#budget)) preserveOpaque = true;
-      this.#budget.charge("insertedNodes", this.#budget.usage.xmlNodes - before - 1);
+      this.#budget.charge("insertedNodes", this.#budget.usage.xmlNodes - before - 1 - fragment.root.attributes.length);
       const candidate = parseDocumentXml(this.serialize(), this.#limits, this.#budget);
       if (this.#dialect) validateXmlDialect(candidate.root, this.#dialect, this.#profile, this.#budget);
       if (preserveOpaque && opaqueXmlContent(this.root, this.#budget, this.#profile) !== opaqueXmlContent(candidate.root, this.#budget, this.#profile)) unsupported();

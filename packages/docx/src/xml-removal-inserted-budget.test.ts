@@ -1,0 +1,19 @@
+import { Volume } from "memfs";
+import { expect, it } from "vitest";
+import { Shell, MemoryFileSystem } from "virtual-bash";
+import { docxCommands } from "virtual-bash/commands/docx";
+import * as api from "./index.js";
+import { textFixture, textContext, w } from "../tests/fixtures/text.js";
+import { readPackage } from "../tests/assertions.js";
+const ref = (resultHandle: string, index?: number) => ({ resultHandle, ...(index === undefined ? {} : { index }) });
+for (const strict of [false, true]) for (const target of ["Paragraph", "Run", "LatentStyles"] as const) for (const route of ["model", "sdk", "cli"] as const)
+it(`${route} deletes ${target} with zero inserted-node budget; strict=${strict}`, async () => {
+  const input = await textFixture('<w:p><w:r><w:t>Removed</w:t></w:r></w:p><w:p><w:r><w:t>Retained 日本 עברית é 🌊</w:t></w:r></w:p>', { styles: { kind: "styles", xml: `<w:styles xmlns:w="${w}"><w:latentStyles><w:lsdException w:name="Removed"/></w:latentStyles><w:style w:type="paragraph" w:styleId="Keep"><w:name w:val="Keep"/></w:style></w:styles>` } }, strict), memory = Volume.fromJSON({ "/out": "" }), sink = { async write(bytes: Uint8Array) { memory.appendFileSync("/out", bytes); } }, context = { ...textContext, budget: new api.DocumentBudget({ insertedNodes: 0 }, textContext.signal) };
+  const operations: Array<{ operation: string; receiver: ReturnType<typeof ref>; arguments: Record<string, unknown>; resultHandle?: string }> = target === "LatentStyles" ? [{ operation: "model.document.Document.styles.get", receiver: ref("document"), arguments: {}, resultHandle: "styles" }, { operation: "model.styles.styles.Styles.latent_styles.get", receiver: ref("styles"), arguments: {}, resultHandle: "target" }] : [{ operation: "model.document.Document.paragraphs.get", receiver: ref("document"), arguments: {}, resultHandle: "paragraphs" }, ...(target === "Run" ? [{ operation: "model.text.paragraph.Paragraph.runs.get", receiver: ref("paragraphs", 0), arguments: {}, resultHandle: "runs" }] : [])];
+  operations.push({ operation: `model.${target === "Paragraph" ? "text.paragraph.Paragraph" : target === "Run" ? "text.run.Run" : "styles.latent.LatentStyles"}.element.get`, receiver: target === "Paragraph" ? ref("paragraphs", 0) : target === "Run" ? ref("runs", 0) : ref("target"), arguments: {}, resultHandle: "element" }, { operation: "model.XmlElementView.remove.call", receiver: ref("element"), arguments: {} });
+  if (route === "model") { const d = await api.Document(input, context); const selected = target === "Paragraph" ? d.paragraphs[0]! : target === "Run" ? d.paragraphs[0]!.runs[0]! : d.styles.latent_styles; selected.element.remove(); expect(context.budget.usage.insertedNodes).toBe(0); await d.save(sink); }
+  else if (route === "sdk") await api.executeDocumentBatch(input, { version: 1, operations }, { output: "-" }, { ...context, encoding: { order: "input", compression: "store" } as const, stdout: sink });
+  else { const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); const shell = new Shell({ fs }).use(docxCommands({ engine: api.createDocxInspectionCommandEngine({ limits: textContext.limits }) })); try { const r = await shell.exec(`docx batch /input --ops-json '${JSON.stringify({ version: 1, operations })}' --output /out --json --limit insertedNodes=0`); expect(r.exitCode, r.stdout + r.stderr).toBe(0); expect(await fs.readFile("/input")).toEqual(input); memory.writeFileSync("/out", await fs.readFile("/out")); } finally { await shell.dispose(); } }
+  const saved = readPackage(new Uint8Array(memory.readFileSync("/out") as Buffer)); for (const [name, bytes] of readPackage(input)) if (name !== (target === "LatentStyles" ? "word/styles.xml" : "word/document.xml")) expect(saved.get(name), name).toEqual(bytes);
+  const d = await api.Document(new Uint8Array(memory.readFileSync("/out") as Buffer), textContext); expect(d.paragraphs.at(-1)!.text).toBe("Retained 日本 עברית é 🌊");
+});

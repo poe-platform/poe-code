@@ -64,8 +64,8 @@ export class Paragraph {
   get text(): string {
     return modelText(this.store.node(this.ref), activeModelChildren(this.store, this.ref.part));
   }
-  set text(value: string) {
-    if (typeof value !== "string") throw new InputTypeError("Expected paragraph text.");
+  set text(value: string | null) {
+    if (value !== null && typeof value !== "string") throw new InputTypeError("Expected paragraph text or null.");
     this.store.change(this.ref.part, (xml) => {
       const p = this.store.node(this.ref);
       const props = activeModelChildren(this.store, this.ref.part)(p).find(
@@ -73,7 +73,7 @@ export class Paragraph {
       );
       xml.replaceElement(
         p,
-        replaceParagraphContent(xml, p, props ? xml.sourceXml(props) : "", value, this.store.context.budget)
+        replaceParagraphContent(xml, p, props ? xml.sourceXml(props) : "", value ?? "", this.store.context.budget)
       );
     });
   }
@@ -157,8 +157,8 @@ export class Paragraph {
       }
     });
   }
-  add_run(text?: string, style?: string | CharacterStyle | null): Run {
-    if (text !== undefined && typeof text !== "string")
+  add_run(text?: string | null, style?: string | CharacterStyle | null): Run {
+    if (text !== undefined && text !== null && typeof text !== "string")
       throw new InputTypeError("Expected run text.");
     const styleId =
       style === undefined || style === null

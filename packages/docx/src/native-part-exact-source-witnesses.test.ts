@@ -86,7 +86,18 @@ it(`${route} independently executes exact native part witness R${c.row}; ${kind}
   expect(typeof root).not.toBe("string"); if (typeof root === "string") throw new Error("Missing root");
   expect(root.name).toBe(`{${f.w}}${c.root}`);
   if (!loading) {
-    expect(root.children.filter(child => typeof child !== "string")).toHaveLength(c.kind === "settings" || c.kind === "comments" ? 0 : c.kind === "styles" ? 4 : 1);
+    expect(root.children.filter(child => typeof child !== "string")).toHaveLength(c.kind === "settings" || c.kind === "comments" ? 0 : c.kind === "styles" ? 5 : 1);
+    if (c.kind === "styles") {
+      const definitions = root.children.filter(child => typeof child !== "string");
+      expect(definitions.map(node => node.name)).toEqual([`{${f.w}}docDefaults`, ...Array.from({ length: 4 }, () => `{${f.w}}style`)]);
+      expect(definitions.slice(1).map(node => [node.attributes[`{${f.w}}type`], node.attributes[`{${f.w}}styleId`], node.attributes[`{${f.w}}default`],
+        node.children.filter(child => typeof child !== "string").map(child => [child.name, child.attributes[`{${f.w}}val`]])])).toEqual([
+        ["paragraph", "Normal", "1", [[`{${f.w}}name`, "Normal"]]],
+        ["character", "DefaultParagraphFont", "1", [[`{${f.w}}name`, "Default Paragraph Font"]]],
+        ["table", "NormalTable", "1", [[`{${f.w}}name`, "Normal Table"]]],
+        ["numbering", "NoList", "1", [[`{${f.w}}name`, "No List"]]]
+      ]);
+    }
     if (c.kind === "header" || c.kind === "footer") expect(root.children).toEqual([{ name: `{${f.w}}p`, attributes: {}, children: [] }]);
   }
   const reopened = await api.Document(new Uint8Array(volume.readFileSync("/out") as Buffer), context);

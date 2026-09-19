@@ -367,9 +367,15 @@ export class TabStop {
   get part(): unknown { this.collection.value(this.id); return this.collection.part; }
   equals(other: unknown): boolean { this.collection.value(this.id); if (!(other instanceof TabStop)) return false; other.collection.value(other.id); return this.collection.equals(other.collection) && this.id === other.id; }
   get position(): Length { return Twips(paragraphUnits(this.collection.value(this.id).position)); }
-  set position(value: DocxLength) { this.collection.change(this.id, { position: value }); }
+  set position(value: DocxLength) {
+    if (value === undefined) throw new InputTypeError("Expected a tab position length.");
+    this.collection.change(this.id, { position: value });
+  }
   get alignment(): EnumMember<"WD_TAB_ALIGNMENT"> { return enumFamilies.WD_TAB_ALIGNMENT[this.collection.value(this.id).alignment!.name]; }
-  set alignment(value: DocxEnumValue<"WD_TAB_ALIGNMENT">) { this.collection.change(this.id, { alignment: value }); }
+  set alignment(value: DocxEnumValue<"WD_TAB_ALIGNMENT">) {
+    if (value === undefined) throw new InputTypeError("Expected a tab alignment.");
+    this.collection.change(this.id, { alignment: value });
+  }
   get leader(): EnumMember<"WD_TAB_LEADER"> { return enumFamilies.WD_TAB_LEADER[this.collection.value(this.id).leader!.name]; }
   set leader(value: DocxEnumValue<"WD_TAB_LEADER"> | null) {
     if (value === undefined) throw new InputTypeError("Expected a tab leader or explicit null reset.");

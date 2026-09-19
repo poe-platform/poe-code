@@ -5,6 +5,7 @@ import { textContext, textFixture, paragraph, w } from "../tests/fixtures/text.j
 import type { XmlElementView } from "./xml-element-view.js";
 import { readPackage } from "../tests/assertions.js";
 import { enumValue, enumFromValue, enumFromXml, enumXml } from "./formatting-values.js";
+import { InvalidValueError } from "./archive.js";
 
 const metadata = { hidden: "semiHidden", locked: "locked", quick_style: "qFormat", unhide_when_used: "unhideWhenUsed" } as const;
 const types = ["paragraph", "character", "table", "numbering"] as const;
@@ -57,8 +58,14 @@ it("retains nullable names and IDs across every style class", async () => {
   }
 });
 it.each([null, ""])("uses the default for an absent lookup ID even when a style has ID %s", async id => {
-  const { styles } = await model(definition("Detail") + definition("Default", "paragraph", "", ' w:default="1"'));
-  styles.at("Detail").style_id = id;
+  // M-VALUES rejects an empty assigned identifier; stored reads retain the fallback.
+  const detail = id === "" ? definition("Detail").replace('w:styleId="Detail"', 'w:styleId=""') : definition("Detail");
+  const { styles } = await model(detail + definition("Default", "paragraph", "", ' w:default="1"'));
+  if (id === "") {
+    const before = styles.part.blob;
+    expect(() => { styles.at("Detail").style_id = id; }).toThrow(InvalidValueError);
+    expect(styles.part.blob).toEqual(before);
+  } else styles.at("Detail").style_id = id;
   expect(styles.get_by_id(id, WD_STYLE_TYPE.PARAGRAPH)?.name).toBe("Default");
   expect(styles.get_by_id(id, WD_STYLE_TYPE.CHARACTER)).toBeNull();
 });
@@ -213,8 +220,12 @@ it("distinguishes absent style names from explicit empty names during keyed look
   const absent = styles.at("MissingName"), empty = styles.at("EmptyName");
   absent.name = null;
   expect(styles.has("")).toBe(false); expect(() => styles.at("")).toThrow();
-  empty.name = "";
-  expect(styles.has("")).toBe(true); expect(styles.at("").style_id).toBe("EmptyName");
+  const before = styles.part.blob;
+  expect(() => { empty.name = ""; }).toThrow(InvalidValueError);
+  expect(styles.part.blob).toEqual(before);
+  // Existing explicit empty XML names remain observable; native assignment rejects.
+  const imported = await model(definition("EmptyName").replace('w:val="EmptyName"', 'w:val=""'));
+  expect(imported.styles.has("")).toBe(true); expect(imported.styles.at("").style_id).toBe("EmptyName");
 });
 
 const formattingEnumFacts = [

@@ -26,12 +26,15 @@ import { WD_STYLE_TYPE } from "./formatting-values.js";
 export { WD_STYLE_TYPE } from "./formatting-values.js";
 const types = { PARAGRAPH: "paragraph", CHARACTER: "character", TABLE: "table", LIST: "numbering" };
 function typeName(type: DocxEnumValue<"WD_STYLE_TYPE">): string {
-  if (!type || type.enum !== "WD_STYLE_TYPE" || !Object.hasOwn(types, type.name)) throw new TypeError("Expected a style type.");
+  if (!type || type.enum !== "WD_STYLE_TYPE" || !Object.hasOwn(types, type.name)) throw new InputTypeError("Expected a style type.");
   return types[type.name];
 }
 const order = "name aliases basedOn next link autoRedefine hidden uiPriority semiHidden unhideWhenUsed qFormat locked personal personalCompose personalReply rsid pPr rPr tblPr trPr tcPr tblStylePr".split(" ");
-function tri(value: unknown): asserts value is boolean | null { if (value !== null && typeof value !== "boolean") throw new TypeError("Expected true, false or null."); }
-function nullableInteger(value: unknown): asserts value is number | null { if (value !== null && (!Number.isSafeInteger(value) || (value as number) < 0)) throw new RangeError("Expected a nonnegative safe integer or null."); }
+function tri(value: unknown): asserts value is boolean | null { if (value !== null && typeof value !== "boolean") throw new InputTypeError("Expected true, false or null."); }
+function nullableInteger(value: unknown): asserts value is number | null {
+  if (value !== null && typeof value !== "number") throw new InputTypeError("Expected a nonnegative safe integer or null.");
+  if (value !== null && (!Number.isSafeInteger(value) || value < 0)) throw new InvalidValueError("Expected a nonnegative safe integer or null.");
+}
 
 class StyleStore {
   revision = 0;
@@ -160,11 +163,11 @@ export class Styles implements Iterable<BaseStyle> {
     return kind === "table" ? new TableStyle(this.store, token, this) : kind === "paragraph" ? new ParagraphStyle(this.store, token, this) : kind === "character" ? new CharacterStyle(this.store, token, this) : new BaseStyle(this.store, token, this);
   }
   has(name: string): boolean {
-    if (typeof name !== "string") throw new TypeError("Styles are keyed by name.");
+    if (typeof name !== "string") throw new InputTypeError("Styles are keyed by name.");
     return [...this].some(style => style.name !== null && (style.name === name || style.builtin && styleStoredName(style.name) === styleStoredName(name)));
   }
   at(name: string): BaseStyle {
-    if (typeof name !== "string") throw new TypeError("Styles are keyed by name.");
+    if (typeof name !== "string") throw new InputTypeError("Styles are keyed by name.");
     const styles = [...this], exact = styles.filter(style => style.name === name);
     const matches = exact.length ? exact : styles.filter(style => style.builtin && style.name !== null && styleStoredName(style.name) === styleStoredName(name));
     if (matches.length === 1) return matches[0]!;
@@ -190,7 +193,8 @@ export class Styles implements Iterable<BaseStyle> {
   add_style(name: string, style_type: typeof WD_STYLE_TYPE.CHARACTER, builtin?: boolean): CharacterStyle;
   add_style(name: string, style_type: DocxEnumValue<"WD_STYLE_TYPE">, builtin?: boolean): BaseStyle;
   add_style(name: string, style_type: DocxEnumValue<"WD_STYLE_TYPE">, builtin = false): BaseStyle {
-    if (typeof name !== "string" || !name.length || typeof builtin !== "boolean") throw new TypeError("Expected a style name and builtin flag.");
+    if (typeof name !== "string" || typeof builtin !== "boolean") throw new InputTypeError("Expected a style name and builtin flag.");
+    if (!name.length) throw new InvalidValueError("Expected a nonempty style name.");
     const type = typeName(style_type);
     if ([...this].some(style => style.name === styleDisplayName(name, builtin))) throw new InvalidValueError("The style name already exists.");
     const ids = styleIds(this.rawElement, archiveSettings(this.store.context).budget);
@@ -203,7 +207,7 @@ export class Styles implements Iterable<BaseStyle> {
     return [...this].filter(s => types[s.type.name as keyof typeof types] === type && ["1", "true", "on"].includes([...s.element.attributes].find(([name]) => name.namespaceURI === s.element.namespace && name.localName === "default")?.[1] ?? "0")).at(-1) ?? null;
   }
   get_by_id(style_id: string | null, style_type: DocxEnumValue<"WD_STYLE_TYPE">): BaseStyle | null {
-    if (style_id !== null && typeof style_id !== "string") throw new TypeError("Expected a style ID or null.");
+    if (style_id !== null && typeof style_id !== "string") throw new InputTypeError("Expected a style ID or null.");
     const type = typeName(style_type);
     if (style_id === null || style_id === "") return this.default(style_type);
     return [...this].find(s => s.style_id === style_id && types[s.type.name as keyof typeof types] === type) ?? this.default(style_type);
@@ -253,9 +257,17 @@ export class BaseStyle {
     });
   }
   get name(): string | null { const value = attr(this.store.readChild(this.rawElement, "name"), "val"); return value === undefined ? null : styleDisplayName(value, this.builtin); }
-  set name(value: string | null) { if (value !== null && typeof value !== "string") throw new TypeError("Expected a style name or null."); this.setValue("name", value); }
+  set name(value: string | null) {
+    if (value !== null && typeof value !== "string") throw new InputTypeError("Expected a style name or null.");
+    if (value === "") throw new InvalidValueError("Expected a nonempty style name or null.");
+    this.setValue("name", value);
+  }
   get style_id(): string | null { return attr(this.rawElement, "styleId") ?? null; }
-  set style_id(value: string | null) { if (value !== null && typeof value !== "string") throw new TypeError("Expected a style ID or null."); this.setAttribute("styleId", value); }
+  set style_id(value: string | null) {
+    if (value !== null && typeof value !== "string") throw new InputTypeError("Expected a style ID or null.");
+    if (value === "") throw new InvalidValueError("Expected a nonempty style ID or null.");
+    this.setAttribute("styleId", value);
+  }
   get type(): DocxEnumValue<"WD_STYLE_TYPE"> {
     const type = attr(this.rawElement, "type") ?? "paragraph";
     const key = (Object.keys(types) as (keyof typeof types)[]).find(k => types[k] === type);
@@ -347,15 +359,16 @@ export class LatentStyles implements Iterable<LatentStyle> {
   private info() { const xml = this.store.editor(); return readLatentStyles(xml.root, undefined, activeXmlChildren(xml, archiveSettings(this.store.context).budget))!; }
   get length(): number { return this.info().entries.length; }
   *[Symbol.iterator](): Iterator<LatentStyle> { for (const token of [...this.store.latentTokens]) yield new LatentStyle(this, token); }
-  has(name: string): boolean { if (typeof name !== "string") throw new TypeError("Latent styles are keyed by name."); return this.info().entries.some(s => styleStoredName(s.name) === styleStoredName(name)); }
+  has(name: string): boolean { if (typeof name !== "string") throw new InputTypeError("Latent styles are keyed by name."); return this.info().entries.some(s => styleStoredName(s.name) === styleStoredName(name)); }
   at(name: string): LatentStyle {
-    if (typeof name !== "string") throw new TypeError("Latent styles are keyed by name.");
+    if (typeof name !== "string") throw new InputTypeError("Latent styles are keyed by name.");
     const index = this.info().entries.findIndex(entry => styleStoredName(entry.name) === styleStoredName(name));
     if (index < 0) throw new MissingKeyError("Latent style name was not found.");
     return new LatentStyle(this, this.store.latentTokens[index]!);
   }
   add_latent_style(name: string): LatentStyle {
-    if (typeof name !== "string" || !name.length) throw new TypeError("Expected a latent style name.");
+    if (typeof name !== "string") throw new InputTypeError("Expected a latent style name.");
+    if (!name.length) throw new InvalidValueError("Expected a nonempty latent style name.");
     this.store.change(xml => { const node = this.store.readChild(xml.root, "latentStyles")!; xml.insertChildren(node, `<st:lsdException xmlns:st="${node.namespace}" st:name="${xmlValue(styleStoredName(name))}"/>`); });
     const token = this.store.nextLatentToken++; this.store.latentTokens.push(token);
     return new LatentStyle(this, token);
@@ -381,13 +394,13 @@ export class LatentStyles implements Iterable<LatentStyle> {
   }
   private setDefault(key: string, value: boolean | number | null): void { this.store.change(xml => { editLatentStyles(xml, "styles.latent.defaults.set", { [key]: value }, activeXmlChildren(xml, archiveSettings(this.store.context).budget)); }); }
   get default_to_hidden(): boolean { return this.info().defaults.defaultToHidden; }
-  set default_to_hidden(value: boolean) { if (typeof value !== "boolean") throw new TypeError("Expected a boolean."); this.setDefault("defaultToHidden", value); }
+  set default_to_hidden(value: boolean) { if (typeof value !== "boolean") throw new InputTypeError("Expected a boolean."); this.setDefault("defaultToHidden", value); }
   get default_to_locked(): boolean { return this.info().defaults.defaultToLocked; }
-  set default_to_locked(value: boolean) { if (typeof value !== "boolean") throw new TypeError("Expected a boolean."); this.setDefault("defaultToLocked", value); }
+  set default_to_locked(value: boolean) { if (typeof value !== "boolean") throw new InputTypeError("Expected a boolean."); this.setDefault("defaultToLocked", value); }
   get default_to_quick_style(): boolean { return this.info().defaults.defaultToQuickStyle; }
-  set default_to_quick_style(value: boolean) { if (typeof value !== "boolean") throw new TypeError("Expected a boolean."); this.setDefault("defaultToQuickStyle", value); }
+  set default_to_quick_style(value: boolean) { if (typeof value !== "boolean") throw new InputTypeError("Expected a boolean."); this.setDefault("defaultToQuickStyle", value); }
   get default_to_unhide_when_used(): boolean { return this.info().defaults.defaultToUnhideWhenUsed; }
-  set default_to_unhide_when_used(value: boolean) { if (typeof value !== "boolean") throw new TypeError("Expected a boolean."); this.setDefault("defaultToUnhideWhenUsed", value); }
+  set default_to_unhide_when_used(value: boolean) { if (typeof value !== "boolean") throw new InputTypeError("Expected a boolean."); this.setDefault("defaultToUnhideWhenUsed", value); }
   get default_priority(): number | null { return this.info().defaults.defaultPriority; }
   set default_priority(value: number | null) { nullableInteger(value); this.setDefault("defaultPriority", value); }
   get load_count(): number | null { return this.info().defaults.loadCount; }

@@ -420,7 +420,7 @@ function applyCommentRange(
       finish = store.node(last.ref),
       w = begin.namespace;
     const beginMarkup = `<cm:commentRangeStart xmlns:cm="${w}" cm:id="${commentId}"/>`,
-      endMarkup = `<cm:commentRangeEnd xmlns:cm="${w}" cm:id="${commentId}"/><cm:r xmlns:cm="${w}"><cm:commentReference cm:id="${commentId}"/></cm:r>`;
+      endMarkup = `<cm:commentRangeEnd xmlns:cm="${w}" cm:id="${commentId}"/><cm:r xmlns:cm="${w}"><cm:rPr><cm:rStyle cm:val="CommentReference"/></cm:rPr><cm:commentReference cm:id="${commentId}"/></cm:r>`;
     if (begin === finish)
       editor.replaceElement(begin, beginMarkup + editor.sourceXml(begin) + endMarkup);
     else {

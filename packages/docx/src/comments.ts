@@ -127,7 +127,7 @@ export async function editDocumentComments(input: Uint8Array, request: CommentEd
     if (state.records.some(n => n.start?.part === before.value.part && n.end && compare(n.start.path, lastPath) < 0 && compare(firstPath, n.end.path) < 0)) throw new UnsupportedEditError("Comment ranges cannot overlap existing comments.");
     const id = nextCommentId(state.records.map(n => n.id), budget);
     const patches = new Map([[first, `<cm:commentRangeStart xmlns:cm="${w}" cm:id="${id}"/>` + editor.sourceXml(first)]]);
-    patches.set(last, (patches.get(last) ?? editor.sourceXml(last)) + `<cm:commentRangeEnd xmlns:cm="${w}" cm:id="${id}"/><cm:r xmlns:cm="${w}"><cm:commentReference cm:id="${id}"/></cm:r>`);
+    patches.set(last, (patches.get(last) ?? editor.sourceXml(last)) + `<cm:commentRangeEnd xmlns:cm="${w}" cm:id="${id}"/><cm:r xmlns:cm="${w}"><cm:rPr><cm:rStyle cm:val="CommentReference"/></cm:rPr><cm:commentReference cm:id="${id}"/></cm:r>`);
     editor.replaceElement(p, editor.sourceXml(p, patches));
     if (!part) {
       part = graph.allocatePartName(main.slice(0, main.lastIndexOf("/") + 1) + "comments", ".xml");

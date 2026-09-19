@@ -1,4 +1,5 @@
 import { styleFontFlags } from "./style-font-flags.js";
+import { InvalidDocumentError } from "./document-error.js";
 export { styleFontFlags } from "./style-font-flags.js";
 import { Length } from "./formatting-values.js";
 import type { DocumentBudget } from "./budget.js";
@@ -33,14 +34,14 @@ export function styleToggle(node: XmlElement | undefined): boolean | null {
   const value = styleAttribute(node, "val") ?? "1";
   if (["1", "true", "on"].includes(value)) return true;
   if (["0", "false", "off"].includes(value)) return false;
-  throw new TypeError("Invalid style boolean value.");
+  throw new InvalidDocumentError("Invalid style boolean value.");
 }
 
 export const styleToggleFlags: readonly (keyof typeof styleFontFlags)[] = ["bold", "italic", "csBold", "csItalic", "allCaps", "smallCaps", "strike", "doubleStrike", "outline", "shadow", "emboss", "imprint", "fontHidden"];
 export function styleInteger(raw: string | undefined): number | null {
   if (raw === undefined) return null;
   const text = raw.trim(), digits = text[0] === "+" || text[0] === "-" ? text.slice(1) : text;
-  if (!digits.length || [...digits].some(char => char < "0" || char > "9") || !Number.isSafeInteger(Number(text))) throw new TypeError("Invalid integer style property.");
+  if (!digits.length || [...digits].some(char => char < "0" || char > "9") || !Number.isSafeInteger(Number(text))) throw new InvalidDocumentError("Invalid integer style property.");
   return Number(text);
 }
 export interface StyleTabStop { readonly position: number; readonly alignment: string; readonly leader: string }

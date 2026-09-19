@@ -126,7 +126,7 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
   const report = validateDocumentArchive(archive, {}, budget);
   if (!report.valid) throw new SemanticValidationError(report.diagnostics);
   let added = false;
-  if (operation === "styles.add") {
+  if (operation === "styles.add" && opts.type !== "numbering") {
     if (!["paragraph", "character", "table"].includes(opts.type!)) throw new UnsupportedEditError("Creation supports paragraph, character and table styles.");
     archive = await createDocumentArchive({ template: input, content: { version: 1, blocks: [], styles: [{ name: opts.name, type: opts.type as "paragraph" | "character" | "table" }] } }, { ...settings, budget });
     added = true;
@@ -135,10 +135,28 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
   const absentPart = part === undefined;
   let writable = archive;
   if (!part) {
-    if (operation !== "styles.defaults.set" && !operation.startsWith("styles.latent.")) throw new SelectionError("missing-selection");
+    if (operation !== "styles.defaults.set" && !operation.startsWith("styles.latent.") && !(operation === "styles.add" && opts.type === "numbering")) throw new SelectionError("missing-selection");
     const materialized = addDocumentStylesPart(archive, archive, "", budget);
     part = materialized.name;
     writable = { ...archive, ...materialized.archive };
+  }
+  if (operation === "styles.add" && opts.type === "numbering") {
+    const insertion = new DocumentArchiveEditor(writable, {}, undefined, budget), xml = insertion.xml(part), children = activeXmlChildren(xml, budget);
+    const definitions = children(xml.root).filter(node => node.namespace === xml.root.namespace && node.localName === "style");
+    if (definitions.some(node => {
+      const stored = attr(styleChild(node, "name", children), "val");
+      return stored !== undefined && styleDisplayName(stored, !["1", "true", "on"].includes(attr(node, "customStyle") ?? "0")) === opts.name;
+    })) throw new InvalidValueError("A declared style name already exists.");
+    const ids = new Set<string>(), stack = [xml.root];
+    while (stack.length) {
+      const node = stack.pop()!; budget.charge("work", 1 + node.children.length);
+      if (node.namespace === xml.root.namespace && node.localName === "style") { const id = attr(node, "styleId"); if (id !== undefined) ids.add(id); }
+      stack.push(...node.children);
+    }
+    let serial = 1; while (ids.has(`Style${serial}`)) { budget.charge("work", 1); serial++; }
+    const w = xml.root.namespace;
+    xml.insertChildren(xml.root, `<st:style xmlns:st="${w}" st:type="numbering" st:customStyle="1" st:styleId="Style${serial}"><st:name st:val="${xmlValue(opts.name)}"/></st:style>`);
+    writable = { ...writable, ...insertion.snapshot() }; added = true;
   }
   const editor = new DocumentArchiveEditor(writable, {}, undefined, budget);
   const xml = editor.xml(part), w = xml.root.namespace;

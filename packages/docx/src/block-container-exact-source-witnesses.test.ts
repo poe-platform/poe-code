@@ -10,8 +10,8 @@ const cases:Case[]=[
  ...[['',null],['Foo',null],['','Bar'],['Foo','Bar']].map(([text,style],i)=>({row:772+i,body:'',member:'add_paragraph',text:text as string,style})),
  {row:776,body:'',member:'add_table'},
  {row:777,body:'<w:p><w:r><w:t>First authored block</w:t></w:r></w:p><w:tbl><w:tblPr/><w:tblGrid><w:gridCol/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>Middle authored cell</w:t></w:r></w:p></w:tc></w:tr></w:tbl><w:p><w:r><w:t>Last authored block</w:t></w:r></w:p>',member:'iter_inner_content'},
- ...['','<w:p/>','<w:p/><w:p/>','<w:p/><w:tbl/>','<w:p/><w:tbl/><w:p/>'].map((body,i)=>({row:778+i,body,member:'paragraphs',expected:[0,1,2,1,2][i],invalidTable:body.includes('<w:tbl/>')})),
- ...['','<w:tbl/>','<w:tbl/><w:tbl/>','<w:p/><w:tbl/>','<w:tbl/><w:tbl/><w:p/>'].map((body,i)=>({row:783+i,body,member:'tables',expected:[0,1,2,1,2][i],invalidTable:body.includes('<w:tbl/>')})),
+ ...['','<w:p/>','<w:p/><w:p/>','<w:p/><w:tbl/>','<w:p/><w:tbl/><w:p/>'].map((body,i)=>({row:778+i,body,member:'paragraphs',expected:[0,1,2,1,2][i]!,invalidTable:body.includes('<w:tbl/>')})),
+ ...['','<w:tbl/>','<w:tbl/><w:tbl/>','<w:p/><w:tbl/>','<w:tbl/><w:tbl/><w:p/>'].map((body,i)=>({row:783+i,body,member:'tables',expected:[0,1,2,1,2][i]!,invalidTable:body.includes('<w:tbl/>')})),
  {row:788,body:'',member:'add_paragraph',text:'',style:null}
 ];
 expect(cases.map(c=>c.row)).toEqual(Array.from({length:17},(_,i)=>772+i));

@@ -25,7 +25,7 @@ export interface RunFormatData {
 interface Target { location: Location; run: Location; start: number; end: number; whole: boolean; }
 
 function splitRun(editor: DocumentXmlEditor, run: XmlElement, start: number, end: number, properties: string): string {
-  if (run.content.some(c => c.kind !== "element") || run.children.some(c => c.namespace !== run.namespace || !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak", "footnoteRef", "endnoteRef"].includes(c.localName)
+  if (run.content.some(c => c.kind !== "element") || run.children.some(c => c.namespace !== run.namespace || !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak", "footnoteRef", "endnoteRef", "annotationRef"].includes(c.localName)
     || c.localName !== "rPr" && c.content.some(child => child.kind !== "text")))
     throw new UnsupportedEditError("Partial formatting requires a simple text run without opaque content or field markers.");
   const props = run.children.find(c => c.localName === "rPr");
@@ -34,7 +34,7 @@ function splitRun(editor: DocumentXmlEditor, run: XmlElement, start: number, end
   let offset = 0;
   for (const child of run.children) {
     if (child === props) continue;
-    if (["lastRenderedPageBreak", "footnoteRef", "endnoteRef"].includes(child.localName)) {
+    if (["lastRenderedPageBreak", "footnoteRef", "endnoteRef", "annotationRef"].includes(child.localName)) {
       fragments[offset < start ? 0 : offset < end ? 1 : 2] += editor.sourceXml(child);
       continue;
     }
@@ -131,7 +131,7 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
     const original = props ? xml.sourceXml(props) : "";
     const properties = formattedRunProperties(xml, node, opts, children);
     if (properties === original && opts.text === undefined) continue;
-    const preserveMarkers = target.location.value.range !== null && children(node).some(child => child.namespace === node.namespace && ["footnoteRef", "endnoteRef"].includes(child.localName));
+    const preserveMarkers = target.location.value.range !== null && children(node).some(child => child.namespace === node.namespace && ["footnoteRef", "endnoteRef", "annotationRef"].includes(child.localName));
     if ((!target.whole || preserveMarkers) && props && children(props).some(child => child.namespace === node.namespace && child.localName === "rPrChange"))
       throw new UnsupportedEditError("Partial formatting cannot duplicate an owned property-history identity.");
     let markup: string;
@@ -151,7 +151,7 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
       let offset = 0;
       for (const child of children(node)) {
         if (child === props) continue;
-        if (["lastRenderedPageBreak", "footnoteRef", "endnoteRef"].includes(child.localName)) {
+        if (["lastRenderedPageBreak", "footnoteRef", "endnoteRef", "annotationRef"].includes(child.localName)) {
           append(child, xml.sourceXml(child), child.localName === "lastRenderedPageBreak" && offset >= target.start && offset < target.end);
           continue;
         }

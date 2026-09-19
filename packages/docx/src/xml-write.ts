@@ -348,7 +348,7 @@ export class DocumentXmlEditor {
 
     if (!this.#dialect || node.namespace !== documentDialects[this.#dialect].w || node.localName !== "r" || !this.#canEdit(node) || this.#patches.has(node) || props.length > 1 || !fragments.length ||
       node.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute)) || props.some(property => !cloneableRunProperty(property, node.namespace, containers, this.#budget, children)) ||
-      leaves.some(leaf => leaf.namespace !== node.namespace || !["t", "delText", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak", "footnoteRef", "endnoteRef"].includes(leaf.localName) ||
+      leaves.some(leaf => leaf.namespace !== node.namespace || !["t", "delText", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak", "footnoteRef", "endnoteRef", "annotationRef"].includes(leaf.localName) ||
         leaf.content.some(content => content.kind !== "text") || leaf.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute))) ||
       fragments.some(fragment => [...fragment.content.keys()].some(leaf => !leaves.includes(leaf)))) unsupported();
     const selected = new Set<XmlElement>([...leaves, ...props]);
@@ -401,7 +401,7 @@ export class DocumentXmlEditor {
     if (!this.#dialect || node.namespace !== documentDialects[this.#dialect].w || node.localName !== "p" || !this.#canEdit(node) || this.#patches.has(node) ||
       children(node).some(child => child.namespace !== node.namespace || !["pPr", "r", "bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "proofErr", "permStart", "permEnd"].includes(child.localName))) unsupported();
     for (const run of children(node).filter(child => child.localName === "r")) {
-      if (children(run).some(child => child.namespace !== node.namespace || !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak", "footnoteRef", "endnoteRef"].includes(child.localName))) unsupported();
+      if (children(run).some(child => child.namespace !== node.namespace || !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak", "footnoteRef", "endnoteRef", "annotationRef"].includes(child.localName))) unsupported();
     }
     this.assertShapeEditAllowed(node);
     this.#stageReplacement(node, markup, false, true);
@@ -431,7 +431,7 @@ export class DocumentXmlEditor {
 
     if (!this.#dialect || node.namespace !== documentDialects[this.#dialect].w || node.localName !== "r" ||
       node.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute)) ||
-      node.children.some(child => child.namespace !== node.namespace || !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak", "footnoteRef", "endnoteRef"].includes(child.localName) ||
+      node.children.some(child => child.namespace !== node.namespace || !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak", "footnoteRef", "endnoteRef", "annotationRef"].includes(child.localName) ||
         (child.localName === "rPr" ? !cloneableRunProperty(child, node.namespace, containers, this.#budget) : child.children.length > 0 || child.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute))))) {
       this.replaceElement(node, xml);
       return;

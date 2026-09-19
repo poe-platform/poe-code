@@ -1,3 +1,4 @@
+import { documentDialects, dialectForNamespace } from "./dialect.js";
 import { compatibilityContainers } from "./compatibility.js";
 import { revisionInfo, assertFormattingHistoryEditable, assertOutsideRevisionRanges } from "./revision-markup.js";
 import { activeXmlChildren } from "./xml-active-children.js";
@@ -35,40 +36,55 @@ export function replaceParagraphContent(xml: DocumentXmlEditor, p: XmlElement, p
     return node !== props && (revisionInfo(node) !== undefined || children(node).some(containsActiveRevision));
   };
   if (containsActiveRevision(p)) throw new UnsupportedEditError("Whole paragraph text cannot discard review history.");
-  const containsNoteMarker = (node: XmlElement): boolean => {
+  const wordDrawingNamespace = documentDialects[dialectForNamespace(p.namespace)!].wp;
+  const commentOwnsParagraph = (node: XmlElement, owner = false): boolean | undefined => {
     budget.charge("work", 1);
-    return node.namespace === p.namespace && ["footnoteRef", "endnoteRef"].includes(node.localName) || children(node).some(containsNoteMarker);
+    if (node.namespace === p.namespace && ["body", "hdr", "ftr", "comment", "footnote", "endnote", "txbxContent"].includes(node.localName) || node.namespace === wordDrawingNamespace && node.localName === "txbxContent") owner = node.localName === "comment";
+    if (node === p) return owner;
+    for (const child of node.children) {
+      const found = commentOwnsParagraph(child, owner);
+      if (found !== undefined) return found;
+    }
+    return undefined;
   };
-  const hasNoteMarker = children(p).some(containsNoteMarker);
-  const assigned = hasNoteMarker ? "" : text;
+  const ownCommentParagraph = xml.root.namespace === p.namespace && xml.root.localName === "comments" && commentOwnsParagraph(xml.root) === true;
+  const isReferenceMarker = (node: XmlElement): boolean =>
+    node.namespace === p.namespace && (["footnoteRef", "endnoteRef"].includes(node.localName) ||
+      node.localName === "annotationRef" && ownCommentParagraph && !node.children.length && !node.text.trim());
+  const containsReferenceMarker = (node: XmlElement): boolean => {
+    budget.charge("work", 1);
+    return isReferenceMarker(node) || children(node).some(containsReferenceMarker);
+  };
+  const hasReferenceMarker = children(p).some(containsReferenceMarker);
+  const assigned = hasReferenceMarker ? "" : text;
   let inserted = false;
   for (const child of children(p)) {
     if (child.namespace !== p.namespace) throw new UnsupportedEditError("Whole paragraph text cannot replace opaque content.");
     if (child === props) { patches.set(child, properties); continue; }
     if (markers.has(child.localName)) continue;
     const check = (node: XmlElement): void => {
-      if (["footnoteRef", "endnoteRef"].includes(node.localName) && child.localName !== "r")
-        throw new UnsupportedEditError("Whole paragraph text cannot discard linked note markers.");
+      if (isReferenceMarker(node) && child.localName !== "r")
+        throw new UnsupportedEditError("Whole paragraph text cannot discard linked reference markers.");
       if (node.localName !== "rPr" && node.content.some(c => c.kind !== "element" && c.kind !== "text"))
         throw new UnsupportedEditError("Whole paragraph text cannot discard XML annotations.");
-      if (node.namespace !== p.namespace || !["r", "rPr", "t", "tab", "ptab", "noBreakHyphen", "softHyphen", "br", "cr", "lastRenderedPageBreak", "hyperlink", "footnoteRef", "endnoteRef"].includes(node.localName)) {
+      if (node.namespace !== p.namespace || !["r", "rPr", "t", "tab", "ptab", "noBreakHyphen", "softHyphen", "br", "cr", "lastRenderedPageBreak", "hyperlink", "footnoteRef", "endnoteRef", "annotationRef"].includes(node.localName) || node.localName === "annotationRef" && !isReferenceMarker(node)) {
         throw new UnsupportedEditError("Whole paragraph text cannot replace fields, objects or review content.");
       }
       if (node.localName !== "rPr") for (const c of children(node)) check(c);
     };
     check(child);
     const retained = new Map<XmlElement, string>();
-    let noteMarker = false;
+    let referenceMarker = false;
     const preserveSlots = child.children.some(node => node.namespace !== p.namespace);
     const collect = (node: XmlElement): void => {
       budget.charge("work", 1);
       if (node.localName === "rPr") return;
-      if (["footnoteRef", "endnoteRef"].includes(node.localName)) { noteMarker = true; return; }
+      if (isReferenceMarker(node)) { referenceMarker = true; return; }
       if (!["r", "hyperlink"].includes(node.localName)) { retained.set(node, preserveSlots ? `<pc:t xmlns:pc="${p.namespace}"/>` : ""); return; }
       children(node).forEach(collect);
     };
     collect(child);
-    if (noteMarker) {
+    if (referenceMarker) {
       patches.set(child, xml.sourceXml(child, retained));
       continue;
     }
@@ -82,7 +98,7 @@ export function replaceParagraphContent(xml: DocumentXmlEditor, p: XmlElement, p
     patches.set(child, inserted || !assigned ? "" : paragraphTextRun(p.namespace, assigned));
     inserted = true;
   }
-  return runElementOpen(p) + (props ? "" : properties) + xml.sourceXml(p, patches, true) + ((hasNoteMarker || !inserted) && text ? paragraphTextRun(p.namespace, text) : "") + `</${p.name}>`;
+  return runElementOpen(p) + (props ? "" : properties) + xml.sourceXml(p, patches, true) + ((hasReferenceMarker || !inserted) && text ? paragraphTextRun(p.namespace, text) : "") + `</${p.name}>`;
 }
 
 /** Split active scalar content while retaining each physical inactive owner once. */
@@ -102,11 +118,11 @@ export function splitParagraphContent(xml: DocumentXmlEditor, p: XmlElement, car
       for (const side of [0, 1]) patches[side]!.set(node, side === (offset < caret ? 0 : 1) ? xml.sourceXml(node) : ""); continue;
     }
     const props = children(node).filter(child => child.namespace === p.namespace && child.localName === "rPr"), leaves = children(node).filter(child => !props.includes(child));
-    if (node.localName !== "r" || props.length > 1 || leaves.some(leaf => leaf.namespace !== p.namespace || !["t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak", "footnoteRef", "endnoteRef"].includes(leaf.localName) || leaf.content.some(item => item.kind !== "text"))) throw new UnsupportedEditError("Caret insertion cannot split fields, objects, links or review content.");
+    if (node.localName !== "r" || props.length > 1 || leaves.some(leaf => leaf.namespace !== p.namespace || !["t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak", "footnoteRef", "endnoteRef", "annotationRef"].includes(leaf.localName) || leaf.content.some(item => item.kind !== "text"))) throw new UnsupportedEditError("Caret insertion cannot split fields, objects, links or review content.");
     const fragments = [new Map<XmlElement, string>(), new Map<XmlElement, string>()];
     for (const leaf of leaves) {
       budget.charge("work", 1);
-      if (["lastRenderedPageBreak", "footnoteRef", "endnoteRef"].includes(leaf.localName)) { fragments[(leaf.localName === "lastRenderedPageBreak" ? offset < caret : offset <= caret) ? 0 : 1]!.set(leaf, xml.sourceXml(leaf)); continue; }
+      if (["lastRenderedPageBreak", "footnoteRef", "endnoteRef", "annotationRef"].includes(leaf.localName)) { fragments[(leaf.localName === "lastRenderedPageBreak" ? offset < caret : offset <= caret) ? 0 : 1]!.set(leaf, xml.sourceXml(leaf)); continue; }
       const scalars = leaf.localName === "t" ? [...leaf.text] : [" "], count = Math.max(0, Math.min(scalars.length, caret - offset));
       for (const [side, from, to] of [[0, 0, count], [1, count, scalars.length]] as const) {
         if (from === to) continue;

@@ -1,3 +1,4 @@
+import { documentDialects, dialectForNamespace } from "./dialect.js";
 import { assertOutsideRevisionRanges, revisionInfo } from "./revision-markup.js";
 import { archiveSettings } from "./archive.js";
 import { validateDocxInvocation } from "./command.js";
@@ -95,6 +96,9 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
     const ancestors: XmlElement[] = [node];
     for (const index of paragraph.value.path) { node = node.children[index]!; ancestors.push(node); }
     const w = node.namespace;
+    const wordDrawingNamespace = documentDialects[dialectForNamespace(w)!].wp;
+    let storyOwner: XmlElement | undefined;
+    for (const owner of ancestors) if (owner.namespace === w && ["body", "hdr", "ftr", "comment", "footnote", "endnote", "txbxContent"].includes(owner.localName) || owner.namespace === wordDrawingNamespace && owner.localName === "txbxContent") storyOwner = owner;
     const attr = (element: XmlElement, name: string) => element.attributes.find(a => a.namespace === w && a.localName === name)?.value;
     const visible = (name: string) => !(opts.view === "original" && ["ins", "moveTo"].includes(name) ||
       (opts.view ?? "final") === "final" && ["del", "moveFrom"].includes(name));
@@ -162,6 +166,9 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
         return;
       }
       if (["rPr", "pPr", "sdtPr", "sdtEndPr", "lastRenderedPageBreak"].includes(name)) return;
+      if ((name === "annotationRef" && storyOwner?.localName === "comment" ||
+        name === "footnoteRef" && storyOwner?.localName === "footnote" ||
+        name === "endnoteRef" && storyOwner?.localName === "endnote") && !current.children.length && !current.text.trim()) return;
       if (name === "fldChar") {
         flush();
         const type = attr(current, "fldCharType");

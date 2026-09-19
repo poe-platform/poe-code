@@ -151,8 +151,8 @@ function insertRange(editor: DocumentXmlEditor, p: XmlElement, from: number, to:
     if (child.namespace === p.namespace && (child.localName === "pPr" || markers.has(child.localName))) continue;
     if (child.namespace !== p.namespace || child.localName !== "r") throw new UnsupportedEditError("Bookmark creation requires simple runs without fields, links or controlled content.");
     const active = children(child), props = active.filter(leaf => leaf.namespace === p.namespace && leaf.localName === "rPr"), leaves = active.filter(leaf => !props.includes(leaf));
-    if (props.length > 1 || leaves.some(leaf => leaf.namespace !== p.namespace || !["t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak", "footnoteRef", "endnoteRef"].includes(leaf.localName) || leaf.content.some(item => item.kind !== "text"))) throw new UnsupportedEditError("Bookmark creation requires supported scalar run content.");
-    const count = leaves.reduce((sum, leaf) => sum + (["lastRenderedPageBreak", "footnoteRef", "endnoteRef"].includes(leaf.localName) ? 0 : leaf.localName === "t" ? [...leaf.text].length : 1), 0);
+    if (props.length > 1 || leaves.some(leaf => leaf.namespace !== p.namespace || !["t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak", "footnoteRef", "endnoteRef", "annotationRef"].includes(leaf.localName) || leaf.content.some(item => item.kind !== "text"))) throw new UnsupportedEditError("Bookmark creation requires supported scalar run content.");
+    const count = leaves.reduce((sum, leaf) => sum + (["lastRenderedPageBreak", "footnoteRef", "endnoteRef", "annotationRef"].includes(leaf.localName) ? 0 : leaf.localName === "t" ? [...leaf.text].length : 1), 0);
     const left = Math.max(0, Math.min(count, from - offset));
     const right = Math.max(0, Math.min(count, to - offset));
     const startHere: boolean = !began && from >= offset && from < offset + count;
@@ -166,7 +166,7 @@ function insertRange(editor: DocumentXmlEditor, p: XmlElement, from: number, to:
         let scalarOffset = 0;
         for (const leaf of leaves) {
           budget.charge("work", 1);
-          if (["lastRenderedPageBreak", "footnoteRef", "endnoteRef"].includes(leaf.localName)) { fragments[scalarOffset < left ? 0 : scalarOffset < right ? 1 : 2]!.set(leaf, editor.sourceXml(leaf)); continue; }
+          if (["lastRenderedPageBreak", "footnoteRef", "endnoteRef", "annotationRef"].includes(leaf.localName)) { fragments[scalarOffset < left ? 0 : scalarOffset < right ? 1 : 2]!.set(leaf, editor.sourceXml(leaf)); continue; }
           const scalars = leaf.localName === "t" ? [...leaf.text] : [" "], next = scalarOffset + scalars.length;
           const ranges = [[scalarOffset, Math.min(next, left)], [Math.max(scalarOffset, left), Math.min(next, right)], [Math.max(scalarOffset, right), next]];
           ranges.forEach(([from, to], side) => {

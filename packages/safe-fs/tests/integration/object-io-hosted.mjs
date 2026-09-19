@@ -57,9 +57,12 @@ export async function runHostedObjectIoQualification({
   const account = `/accounts/${accountId}`;
   const worker = `${account}/workers/scripts/${name}`;
   const bucket = `${account}/r2/buckets/${name}`;
-  for (const path of [worker, bucket]) {
+  for (const [resource, path] of [['worker', worker], ['bucket', bucket]]) {
     const existing = await api(path);
-    if (existing.status !== 404) throw new Error('Hosted preflight requires absent resources');
+    if (existing.status !== 404) {
+      const codes = (existing.errorCodes ?? []).filter(code => Number.isSafeInteger(code) && code >= 0).slice(0, 20);
+      throw new Error(`Hosted ${resource} preflight cannot prove absence (HTTP ${existing.status}; Cloudflare codes: ${codes.join(',') || 'none'})`);
+    }
   }
   const subdomain = await api(`${account}/workers/subdomain`);
   if (!subdomain.success || typeof subdomain.result?.subdomain !== 'string'
@@ -117,12 +120,20 @@ export async function runHostedObjectIoQualification({
         if (!settings.success || owner?.type !== 'plain_text' || owner.text !== nonce) {
           throw new Error('Hosted worker ownership changed or unverifiable; resources preserved');
         }
+        const scratch = settings.result.bindings.find(binding => binding.name === 'SCRATCH');
+        if (scratch?.type !== 'r2_bucket' || scratch.bucket_name !== name) {
+          throw new Error('Hosted scratch binding changed or unverifiable; resources preserved');
+        }
         const drained = await clean({ url, token });
         if (drained?.empty !== true) throw new Error('Hosted bucket cleanup did not verify emptiness');
         const current = await api(`${worker}/settings`);
         const currentOwner = current.result?.bindings?.find(binding => binding.name === 'QUALIFICATION_OWNER');
         if (!current.success || currentOwner?.type !== 'plain_text' || currentOwner.text !== nonce) {
           throw new Error('Hosted worker ownership changed during cleanup; resources preserved');
+        }
+        const currentScratch = current.result.bindings.find(binding => binding.name === 'SCRATCH');
+        if (currentScratch?.type !== 'r2_bucket' || currentScratch.bucket_name !== name) {
+          throw new Error('Hosted scratch binding changed during cleanup; resources preserved');
         }
         const removed = await api(worker, { method: 'DELETE' });
         if (!removed.success) throw new Error('Hosted worker deletion failed');

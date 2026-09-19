@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createCloudflareQualificationApi } from './object-io-cloudflare-api.mjs';
+import { createCloudflareQualificationApi, probeCloudflareQualificationApi } from './object-io-cloudflare-api.mjs';
 
 test('qualification API authenticates JSON requests and never follows redirects', async () => {
   const calls=[];
@@ -45,4 +45,28 @@ test('qualification API bounds upstream response bodies', async () => {
   const api=createCloudflareQualificationApi({token:'synthetic',fetch:async () =>
     new Response('x'.repeat(1048577))});
   await assert.rejects(api('/accounts/test/workers/scripts/owned'),/byte limit/);
+});
+
+test('qualification API retains only bounded numeric upstream error codes for diagnosis', async () => {
+  const api=createCloudflareQualificationApi({token:'synthetic',fetch:async () => Response.json({success:false,
+    errors:[{code:9109,message:'synthetic-private-upstream-content'},{code:9109},
+      {code:'private-string'},{code:-1},{code:10007}]},{status:403})});
+  const result=await api('/accounts/test/workers/scripts/owned');
+  assert.deepEqual(result.errorCodes,[9109,10007]);
+  assert.equal(JSON.stringify(result).includes('synthetic-private'),false);
+});
+
+test('qualification access probe is read-only and reports no account, path, or resource identifiers', async () => {
+  const calls=[];
+  const accountId='0123456789abcdef0123456789abcdef';
+  const result=await probeCloudflareQualificationApi({accountId,runId:'1234',api:async (path,options={}) => {
+    calls.push({path,method:options.method??'GET'});
+    return {status:403,success:false,errorCodes:[9109],result:{secret:'synthetic-private-content'}};
+  }});
+  assert.equal(result.length,3);
+  assert.deepEqual(result.map(row=>row.resource),['worker','bucket','subdomain']);
+  assert.ok(result.every(row=>row.status===403&&row.errorCodes[0]===9109));
+  assert.ok(calls.every(call=>call.method==='GET'));
+  assert.equal(JSON.stringify(result).includes(accountId),false);
+  assert.equal(JSON.stringify(result).includes('synthetic-private'),false);
 });

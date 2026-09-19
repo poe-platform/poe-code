@@ -24,7 +24,8 @@ function fixture(failure) {
     if (failure === method + ' ' + path.split('/').at(-1)) return {status:500,success:false};
     if (path.endsWith('/workers/subdomain')) return {status:200,success:true,result:{subdomain:'isolated-test'}};
     if (method === 'GET' && path.endsWith('/settings')) return {status:200,success:true,
-      result:{bindings:[{name:'QUALIFICATION_OWNER',type:'plain_text',text:owner}]}};
+      result:{bindings:[{name:'QUALIFICATION_OWNER',type:'plain_text',text:owner},
+        {name:'SCRATCH',type:'r2_bucket',bucket_name:'poe-code-io-1234-abcdef012345'}]}};
     if (method === 'GET') return {status:404,success:false};
     return {status:200,success:true,result:{}};
   };
@@ -97,6 +98,18 @@ test('hosted preflight refusal performs no writes', async () => {
   assert.ok(inputs.calls.every(call => call.method === 'GET'));
 });
 
+test('hosted preflight failure identifies resource kind, HTTP status and numeric codes without paths', async () => {
+  const inputs=fixture();
+  inputs.api=async (path,options={}) => {
+    inputs.calls.push({path,method:options.method??'GET'});
+    return {status:403,success:false,errorCodes:[9109]};
+  };
+  await assert.rejects(runHostedObjectIoQualification({...inputs,artifact:await admitObjectIoArtifacts(artifacts())}),
+    error => error.message==='Hosted worker preflight cannot prove absence (HTTP 403; Cloudflare codes: 9109)'
+      && !error.message.includes(accountId));
+  assert.ok(inputs.calls.every(call=>call.method==='GET'));
+});
+
 test('hosted cleanup refuses deletion when bucket draining cannot verify emptiness', async () => {
   const inputs = fixture();
   inputs.clean = async () => ({empty:false});
@@ -137,4 +150,35 @@ test('hosted cleanup checks ownership again after draining before deleting resou
   await assert.rejects(runHostedObjectIoQualification({...inputs,artifact:await admitObjectIoArtifacts(artifacts())}),
     /ownership/);
   assert.equal(inputs.calls.filter(call => call.method === 'DELETE').length, 0);
+});
+
+test('hosted cleanup refuses a changed scratch binding even when the owner is unchanged', async () => {
+  const inputs = fixture();
+  const api = inputs.api;
+  let cleanCalls = 0;
+  inputs.clean = async () => {cleanCalls++;return {empty:true};};
+  inputs.api = async (path, options) => {
+    const response = await api(path,options);
+    if (path.endsWith('/settings')) response.result.bindings[1].bucket_name = 'unowned-existing-bucket';
+    return response;
+  };
+  await assert.rejects(runHostedObjectIoQualification({...inputs,artifact:await admitObjectIoArtifacts(artifacts())}),
+    /scratch binding/);
+  assert.equal(cleanCalls,0);
+  assert.equal(inputs.calls.filter(call => call.method === 'DELETE').length,0);
+});
+
+test('hosted cleanup rechecks the scratch binding after draining before deleting either resource', async () => {
+  const inputs = fixture();
+  const api = inputs.api;
+  let drained = false;
+  inputs.clean = async () => {drained=true;return {empty:true};};
+  inputs.api = async (path, options) => {
+    const response = await api(path,options);
+    if (drained && path.endsWith('/settings')) response.result.bindings[1].bucket_name = 'unowned-existing-bucket';
+    return response;
+  };
+  await assert.rejects(runHostedObjectIoQualification({...inputs,artifact:await admitObjectIoArtifacts(artifacts())}),
+    /scratch binding/);
+  assert.equal(inputs.calls.filter(call => call.method === 'DELETE').length,0);
 });

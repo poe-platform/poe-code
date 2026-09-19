@@ -252,6 +252,16 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       for (const entry of nativeAssets.entries) copied.add(path.join(nativeAssets.directory, entry.name));
     }
     const dependencies = {};
+    const companions = workspaces.filter(({ pkg }) => pkg.poeCode?.safeLibraryExports?.[name]);
+    const companionPeers = new Map();
+    for (const { pkg } of companions) {
+      if (pkg.private !== true || pkg.type !== 'module') throw new Error('Companion must be a private ESM workspace: ' + pkg.name);
+      for (const [peer, range] of Object.entries(pkg.peerDependencies ?? {})) {
+        if (pkg.peerDependenciesMeta?.[peer]?.optional !== true) throw new Error('Companion provider peer must be optional: ' + peer);
+        if (companionPeers.has(peer) && companionPeers.get(peer) !== range) throw new Error('Conflicting companion provider peer: ' + peer);
+        companionPeers.set(peer, range);
+      }
+    }
     const bundled = new Map();
     if (name === "safe-js") {
       const graph = await resolveBundleGraph(rootDir, workspaces, files);
@@ -317,6 +327,17 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       return value;
     };
     const exports = {};
+    for (const { dir, pkg } of companions) {
+      for (const [route, entry] of Object.entries(pkg.poeCode.safeLibraryExports[name])) {
+        if (!route.startsWith('./') || Object.hasOwn(source.exports, route)) throw new Error('Invalid companion public route: ' + route);
+        const exported = pkg.exports?.[entry];
+        if (!exported || typeof exported.import !== 'string' || typeof exported.types !== 'string') throw new Error('Missing companion entry: ' + entry);
+        exports[route] = Object.fromEntries(Object.entries(exported).map(([condition, target]) => {
+          if (typeof target !== 'string' || !target.startsWith('./dist/') || target.split('/').includes('..') || target.includes('*')) throw new Error('Invalid companion entry target: ' + target);
+          return [condition, enqueueExport('./packages/' + dir + '/' + target.slice(2))];
+        }));
+      }
+    }
     const imports = {};
     const workspaceTarget = value => typeof value === "string" ? value.replace("./dist/", `./packages/${name}/dist/`) : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).map(([key, item]) => [key, workspaceTarget(item)])) : value;
     const importTarget = (value, types = false) => {
@@ -369,6 +390,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
     const addDependency = specifier => {
       const dependency = specifier.startsWith("@") ? specifier.split("/").slice(0, 2).join("/") : specifier.split("/")[0];
       if (dependency === `@poe-platform/${name}`) return;
+      if (companionPeers.has(dependency)) return;
       if (dependency === "@poe-platform/safe-js" || dependency === "@poe-platform/safe-fs") { dependencies[dependency] = version; return; }
       if (dependency === "poe-code" || privateNames.has(dependency)) throw new Error(`Private or CLI dependency leaked: ${specifier}`);
       const range = ranges[dependency];
@@ -386,6 +408,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       if (filename.endsWith(".js") || filename.endsWith(".mjs") || filename.endsWith(".ts")) {
         const declaration = filename.endsWith(".d.ts") || filename.endsWith(".d.mts");
         contents = rewriteModuleSpecifiers(filename, contents.toString(), specifier => {
+          if (specifier === 'cloudflare:workers') return specifier;
           if (specifier.startsWith("node:") || builtinModules.includes(specifier)) {
             if (declaration && ranges["@types/node"]) addDependency("@types/node");
             return specifier;
@@ -464,6 +487,10 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       publishConfig: { access: "public" }, dependencies,
     };
     if (Object.keys(imports).length) manifest.imports = imports;
+    if (companionPeers.size) {
+      manifest.peerDependencies = Object.fromEntries(companionPeers);
+      manifest.peerDependenciesMeta = Object.fromEntries([...companionPeers.keys()].map(peer => [peer, { optional: true }]));
+    }
     if (name === "safe-fs") manifest.imports = { "#safe-fs-platform": { types: { browser: "./dist/safe-fs/platform/browser.d.ts", default: "./dist/safe-fs/platform/node.d.ts" }, browser: "./dist/safe-fs/platform/browser.js", default: "./dist/safe-fs/platform/node.js" } };
     if (name === "safe-fs" && nativeAssets) manifest.imports[nativeAssets.registry.specifier] = nativeImportMapping(nativeAssets.registry,
       artifactPath(rootDir, path.join(rootDir, "packages/safe-fs/dist")));
@@ -471,8 +498,8 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       if (source.bin) manifest.bin = Object.fromEntries(Object.entries(source.bin).map(([command, target]) => [command, "./" + artifactPath(rootDir, path.resolve(packageDir, target))]));
     }
     if (name === "safe-bash" && optional) {
-      manifest.peerDependencies = { yaml: source.peerDependencies.yaml };
-      manifest.peerDependenciesMeta = { yaml: { optional: true } };
+      manifest.peerDependencies = { ...manifest.peerDependencies, yaml: source.peerDependencies.yaml };
+      manifest.peerDependenciesMeta = { ...manifest.peerDependenciesMeta, yaml: { optional: true } };
       for (const [filename, bytes] of optional.contents) {
         const target = path.join(directory, "dist/safe-bash/opt-in", filename);
         await files.mkdir(path.dirname(target), { recursive: true });
@@ -485,6 +512,15 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       await files.mkdir(path.join(directory, attribution), { recursive: true });
       for (const filename of ["LICENSE", "NOTICE"]) {
         await files.copyFile(path.join(packageDir, attribution, filename), path.join(directory, attribution, filename));
+      }
+    }
+    for (const { dir, pkg } of companions) {
+      for (const notice of pkg.poeCode?.safeLibraryNotices?.[name] ?? []) {
+        if (typeof notice !== 'string' || !notice.startsWith('./') || notice.split('/').includes('..')) throw new Error('Invalid companion notice: ' + notice);
+        const target = path.join(directory, 'third-party', dir, notice.slice(2));
+        await files.mkdir(path.dirname(target), { recursive: true });
+        await files.copyFile(path.join(rootDir, 'packages', dir, notice), target);
+        if (!manifest.files.includes('third-party')) manifest.files.push('third-party');
       }
     }
     await files.mkdir(directory, { recursive: true });

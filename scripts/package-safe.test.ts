@@ -176,6 +176,48 @@ function optionalLeftovers() {
   return { volume, data, excluded, options: { rootDir: "/repo", version: "0.1.0", files, bundle } };
 }
 
+it('ships an optional browser companion with generated assets and optional provider peers', async () => {
+  const { volume, options } = optionalLeftovers();
+  const directory = '/repo/packages/cloudflare-browser';
+  volume.mkdirSync(directory + '/dist', { recursive: true });
+  volume.writeFileSync(directory + '/package.json', JSON.stringify({
+    name: '@poe-code/cloudflare-browser', private: true, type: 'module',
+    exports: { '.': { types: './dist/index.d.ts', import: './dist/index.js' } },
+    peerDependencies: { '@cloudflare/playwright': '1.3.6' },
+    peerDependenciesMeta: { '@cloudflare/playwright': { optional: true } },
+    poeCode: { safeLibraryExports: { 'safe-bash': { './playwright/cloudflare': '.' } } },
+  }));
+  volume.writeFileSync(directory + '/dist/index.js', 'export { guestSource } from "./guest.js"; import "cloudflare:workers";');
+  volume.writeFileSync(directory + '/dist/index.d.ts', 'export declare const guestSource: string;');
+  volume.writeFileSync(directory + '/dist/guest.js', 'export const guestSource = "minified worker source";');
+  volume.writeFileSync(directory + '/dist/guest.d.ts', 'export declare const guestSource: string;');
+  await packageSafeLibraries({ ...options, outDir: '/output' });
+  const manifest = JSON.parse(volume.readFileSync('/output/safe-bash/package.json', 'utf8'));
+  expect(manifest.exports['./playwright/cloudflare']).toEqual({
+    types: './dist/cloudflare-browser/index.d.ts', import: './dist/cloudflare-browser/index.js',
+  });
+  expect(manifest.peerDependencies['@cloudflare/playwright']).toBe('1.3.6');
+  expect(manifest.peerDependenciesMeta['@cloudflare/playwright']).toEqual({ optional: true });
+  expect(manifest.dependencies).not.toHaveProperty('@cloudflare/playwright');
+  expect(volume.readFileSync('/output/safe-bash/dist/cloudflare-browser/guest.js', 'utf8')).toContain('minified worker source');
+});
+
+it('ships companion license notices as included archive files', async () => {
+  const { volume, options } = optionalLeftovers();
+  const directory = '/repo/packages/browser-companion';
+  volume.mkdirSync(directory + '/dist', {recursive: true});
+  volume.writeFileSync(directory + '/package.json', JSON.stringify({
+    name: '@poe-code/browser-companion', private: true, type: 'module',
+    exports: {'.': {types: './dist/index.d.ts', import: './dist/index.js'}},
+    poeCode: {safeLibraryExports: {'safe-bash': {'./playwright/cloudflare': '.'}}, safeLibraryNotices: {'safe-bash': ['./LICENSE.provider']}},
+  }));
+  volume.writeFileSync(directory + '/dist/index.js', 'export {};');
+  volume.writeFileSync(directory + '/dist/index.d.ts', 'export {};');
+  volume.writeFileSync(directory + '/LICENSE.provider', 'Full provider license');
+  await packageSafeLibraries({...options, outDir: '/output'});
+  expect(volume.readFileSync('/output/safe-bash/third-party/browser-companion/LICENSE.provider', 'utf8')).toBe('Full provider license');
+});
+
 it("preserves conditional private imports and ships their runtime and declaration targets", async () => {
   const { volume, options } = optionalLeftovers();
   volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify({

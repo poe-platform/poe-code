@@ -36,6 +36,11 @@ installed with optional dependencies omitted and a second consumer with exactly
 the explicit yq profile. The strict TypeScript fixture checks these public import
 paths. A second independent tarball installation verifies distinct core identities.
 Existing browser, historical-root coexistence and filesystem-only checks remain.
+The optional `/playwright/cloudflare` adapter is staged from the private
+safe-playwright-cloudflare workspace using its declared companion exports and
+optional provider peers. Releases verify the installed adapter's generated
+Worker/codegen assets, license notices, Worker host types, and native Chromium
+conformance. Portable profiles ship through `/playwright`.
 
 The next shared version is selected from the three existing registry versions.
 Registry failures stop version selection. After publishing, the workflow verifies

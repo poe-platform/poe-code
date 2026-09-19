@@ -66,6 +66,8 @@ jobs:
           appendFileSync(process.env.GITHUB_OUTPUT, `next=${next}\n`);
           NODE
       - run: npm run build
+      - name: Verify Cloudflare Worker transport and resource lifecycle
+        run: npm run test:workers --workspace=@poe-code/safe-playwright-cloudflare
       - run: npx vitest run scripts/package-safe.test.ts scripts/root-optional-package.test.ts scripts/safe-bash-optional-build.test.ts scripts/safe-bash-optional-lifecycle.test.ts scripts/verify-safe-publication.test.ts
       - run: npm run lint:packages
       - name: Prepare scoped artifacts
@@ -116,6 +118,14 @@ jobs:
           npm install --ignore-scripts --no-audit --no-fund "$TARBALLS"/poe-platform-safe-fs-*.tgz
           node safe-packages-fs-only.mjs
           bun safe-packages-fs-only.mjs
+          CLOUDFLARE_CONSUMER=$(mktemp -d)
+          cp "$GITHUB_WORKSPACE/scripts/fixtures/safe-packages-cloudflare-types.mts" "$CLOUDFLARE_CONSUMER/"
+          cd "$CLOUDFLARE_CONSUMER"
+          npm init --yes
+          npm install --ignore-scripts --no-audit --no-fund --save-exact "$TARBALLS"/poe-platform-safe-fs-*.tgz "$TARBALLS"/poe-platform-safe-bash-[0-9]*.tgz @cloudflare/playwright@1.3.6 @cloudflare/workers-types@4.20260415.1
+          "$GITHUB_WORKSPACE/node_modules/.bin/tsc" --noEmit --strict --skipLibCheck --exactOptionalPropertyTypes --noUncheckedIndexedAccess --module ESNext --moduleResolution Bundler --target ES2024 --types node,@cloudflare/workers-types safe-packages-cloudflare-types.mts
+          cd "$GITHUB_WORKSPACE"
+          node scripts/verify-safe-cloudflare.mjs "$CLOUDFLARE_CONSUMER"
       - name: Publish SafeFS with provenance
         run: npm publish "$RUNNER_TEMP/safe-npm/safe-fs" --provenance --access public
       - name: Publish SafeJS with provenance

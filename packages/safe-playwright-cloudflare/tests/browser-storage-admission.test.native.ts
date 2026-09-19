@@ -61,6 +61,7 @@ for (const scenario of [
 	"checkpoint-census",
 	"same-context-load",
 	"cold-owner-restore",
+	"large-script-restore",
 	"two-replacements",
 	"checkpoint-failures",
 	"public-reader-limit",
@@ -106,9 +107,9 @@ for (const scenario of [
 			}, Promise.resolve());
 			return;
 		}
-		if (scenario === "cold-owner-restore") {
+		if (scenario === "cold-owner-restore" || scenario === "large-script-restore") {
 			const saved = await worker.dispatchFetch(
-				"http://fixture/cold-owner-save",
+				`http://fixture/${scenario === "large-script-restore" ? "large-script-save" : "cold-owner-save"}`,
 				{
 					method: "POST",
 					body: JSON.stringify({
@@ -123,7 +124,7 @@ for (const scenario of [
 			const receipt = await saved.json();
 			console.log(
 				JSON.stringify({
-					scenario: "cold-owner-save",
+					scenario: scenario === "large-script-restore" ? "large-script-save" : "cold-owner-save",
 					status: saved.status,
 					result: receipt,
 				}),

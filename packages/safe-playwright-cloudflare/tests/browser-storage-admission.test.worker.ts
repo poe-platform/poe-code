@@ -11,6 +11,7 @@ import {
 import { createBrowserProfileStore } from "./browser-profile-store.fixture";
 import {
 	coldRestore,
+	largeScriptRestore,
 	twoReplacements,
 	nativeCDPOwnership,
 	profileLifecycle,
@@ -381,6 +382,10 @@ export default {
 						input,
 					);
 					return Response.json({ ok: true });
+				case "/large-script-save":
+				case "/large-script-restore":
+          await largeScriptRestore(fixture(env, 'large-script'), pathname === '/large-script-save' ? 'save' : 'restore');
+          return Response.json({ ok: true });
 				case "/cold-owner-save":
 				case "/cold-owner-restore":
 					await coldRestore(

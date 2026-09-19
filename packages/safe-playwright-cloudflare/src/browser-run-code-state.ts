@@ -121,7 +121,11 @@ export function parseRunCodeState(json: string): RunCodeState {
 		new TextEncoder().encode(json).byteLength > MAX_PAGE_STATE_BYTES
 	)
 		throw new Error("Run-code page state byte limit exceeded");
-	const value: unknown = JSON.parse(json);
+	return validateRunCodeState(JSON.parse(json));
+}
+
+/** Shared native schema; portable profiles enforce their total byte budget separately. */
+export function validateRunCodeState(value: unknown): RunCodeState {
 	if (
 		!allowedObject(value, [
 			"pages",

@@ -348,3 +348,25 @@ export async function profileLifecycle(
 	assert.equal((await f.run(["delete-data", "--json"])).exitCode, 0);
 	assert.equal(await f.profiles.load("default"), undefined);
 }
+
+export async function largeScriptRestore(f: Fixture, phase: 'save' | 'restore') {
+  const script = `window.largeProfileScript = true; /*${'a'.repeat(70 * 1024)}*/`;
+  try {
+    if (phase === 'save') {
+      await f.fs.writeFile('/profile-init.js', new TextEncoder().encode(script));
+      await f.fs.writeFile('/cli.config.json', new TextEncoder().encode(JSON.stringify({ browser: { initScript: ['profile-init.js'] } })));
+      const opened = await f.run(['open', 'about:blank', '--config=cli.config.json', '--json']);
+      assert.equal(opened.exitCode, 0, JSON.stringify(opened));
+    } else {
+      const resumed = await f.run(['eval', '() => window.largeProfileScript', '--json']);
+      assert.equal(resumed.exitCode, 0, JSON.stringify(resumed));
+    }
+    const session = f.client.inspectSessions()[0]!;
+    assert.ok(session.selectedPage);
+    assert.equal(await session.selectedPage.evaluate(() => Reflect.get(window, 'largeProfileScript'), undefined), true);
+    const checkpoint = parseBrowserProfile((await f.profiles.load('default'))!, PROFILE_LIMITS);
+    assert.deepEqual(checkpoint.configuration?.initScripts, [script]);
+  } finally {
+    await f.client.dispose();
+  }
+}

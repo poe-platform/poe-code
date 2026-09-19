@@ -91,6 +91,8 @@ function update(owner: FormattingXmlOwner, kind: "r" | "p", values: DocxOperatio
       const root = binding.resolve(xml), children = activeXmlChildren(xml, ownerBudget(owner)), props = child(root, kind + "Pr", children);
       assertFormattingHistoryEditable(xml.root, root, children, ownerBudget(owner));
       let replacement = kind === "r" ? formattedRunProperties(xml, root, values as DocxOperationArguments<"runs.set">, children) : paragraphProperties(xml, root, values as DocxOperationArguments<"paragraphs.set">, undefined, children);
+      // Model resets retain an existing run-property owner, even when empty.
+      if (!replacement && kind === "r" && props) replacement = runElementOpen(props) + `</${props.name}>`;
       // Empty internal updates explicitly materialize a documented model owner.
       if (!replacement && Object.keys(values).length === 0) replacement = `<fmt:${kind}Pr xmlns:fmt="${root.namespace}"/>`;
       if (props) { if (replacement !== xml.sourceXml(props)) xml.replaceElement(props, replacement); }
@@ -410,8 +412,7 @@ export class ColorFormat {
     if (!name) throw new TypeError("Invalid theme color."); return { enum: "MSO_THEME_COLOR", name };
   }
   set theme_color(value: DocxEnumValue<"MSO_THEME_COLOR"> | null) { if (!validateDocxValue("MSO_THEME_COLOR | null", value) || value !== null && !Object.hasOwn(themes, value.name)) throw new TypeError("Invalid theme color."); if (value === null && !property(this.owner, "rPr", "color")) return; if (value !== null && !property(this.owner, "rPr", "color")) {
-      let source = this.owner.getXml(); const staged = { getXml: () => source, setXml: (xml: string) => { source = xml; } };
-      update(staged, "r", { color: "000000" }); update(staged, "r", { themeColor: value }); this.owner.setXml(source);
+      update(this.owner, "r", { color: "000000", themeColor: value });
     } else update(this.owner, "r", value === null ? { color: null } : { themeColor: value }); }
   get type(): DocxEnumValue<"MSO_COLOR_TYPE"> | null { const node = property(this.owner, "rPr", "color"); return node === undefined ? null : { enum: "MSO_COLOR_TYPE", name: attr(node, "themeColor") !== undefined ? "THEME" : attr(node) === "auto" ? "AUTO" : "RGB" }; }
 }

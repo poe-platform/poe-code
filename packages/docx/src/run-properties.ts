@@ -80,11 +80,11 @@ export function formattedRunProperties(editor: DocumentXmlEditor, run: XmlElemen
     else if (metadata.language?.[key] !== undefined) language[attr] = metadata.language[key];
   }
   if (Object.keys(language).length) property("lang", language);
-  if (options.color !== undefined) property("color", options.color === null ? null : { val: options.color.toUpperCase(), themeColor: null, themeTint: null, themeShade: null });
+  if (options.color !== undefined && options.themeColor === undefined) property("color", options.color === null ? null : { val: options.color.toUpperCase(), themeColor: null, themeTint: null, themeShade: null });
   if (options.themeColor !== undefined) {
     const color = props && children(props).find(c => c.namespace === w && c.localName === "color");
     property("color", options.themeColor === null ? { themeColor: null, themeTint: null, themeShade: null } : {
-      ...(color?.attributes.some(a => a.namespace === w && a.localName === "val") ? {} : { val: "auto" }), themeColor: themes[options.themeColor.name as keyof typeof themes]
+      ...(color?.attributes.some(a => a.namespace === w && a.localName === "val") ? {} : { val: options.color ?? "auto" }), themeColor: themes[options.themeColor.name as keyof typeof themes]
     });
   }
   const baseline = options.baseline !== undefined ? options.baseline : options.superscript === true ? "superscript" : options.subscript === true ? "subscript"

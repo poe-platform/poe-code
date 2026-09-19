@@ -1,0 +1,35 @@
+import { expect, it } from "vitest";
+import { Volume } from "memfs";
+import { MemoryFileSystem, Shell } from "virtual-bash";
+import { docxCommands } from "virtual-bash/commands/docx";
+import * as api from "./index.js";
+import { nativeStoryFixture } from "../tests/fixtures/native-parts.js";
+import { textContext } from "../tests/fixtures/text.js";
+import { readPackage } from "../tests/assertions.js";
+
+type Color = { val?: string; themeColor?: string };
+type Case = { id: number; rPr: boolean; before?: Color; member: "type" | "rgb" | "theme_color"; value?: readonly [number, number, number] | string | null; expected?: string | null; after?: Color | null };
+const cases: readonly Case[] = [
+  { id: 12, rPr: false, member: "rgb", value: [10, 20, 30], after: { val: "0A141E" } },
+  { id: 17, rPr: true, before: { val: "234bcd", themeColor: "dark1" }, member: "rgb", value: null, after: null },
+  { id: 25, rPr: false, member: "theme_color", value: "ACCENT_1", after: { val: "000000", themeColor: "accent1" } },
+  { id: 26, rPr: true, member: "theme_color", value: "ACCENT_2", after: { val: "000000", themeColor: "accent2" } },
+  { id: 29, rPr: true, before: { val: "234bcd", themeColor: "dark1" }, member: "theme_color", value: null, after: null }
+];
+for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const) for (const carrier of ["direct", "choice", "fallback", "process"]) for (const c of cases) for (const route of ["model", "sdk", "shell"] as const)
+it(`${route} independently executes native ${carrier} color source witness C${String(c.id).padStart(2, "0")}; strict=${strict}; kind=${kind}`, async () => {
+  const wrap = (active: string) => carrier === "direct" ? active : carrier === "process" ? `<f:pass>${active}</f:pass><f:opaque f:identity="retained"/>` : `<mc:AlternateContent><mc:Choice Requires="${carrier === "choice" ? "w" : "f"}"${carrier === "fallback" ? ' f:identity="retained"' : ""}>${carrier === "choice" ? active : ""}</mc:Choice><mc:Fallback${carrier === "choice" ? ' f:identity="retained"' : ""}>${carrier === "fallback" ? active : ""}</mc:Fallback></mc:AlternateContent>`;
+  const colorXml = c.before ? `<w:color ${Object.entries(c.before).map(([key, value]) => `w:${key}="${value}"`).join(" ")}/>` : "", { input } = await nativeStoryFixture("document.DocumentPart", strict, kind, `<w:p xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:f="urn:original:color" mc:Ignorable="f" mc:ProcessContent="f:pass"><w:r w:rsidR="00ABCDEF">${wrap(c.rPr ? `<w:rPr>${colorXml}</w:rPr>` : "")}<w:t>Original é 日本 עברית 🌊</w:t></w:r><!--retain--><?audit keep?></w:p>`), memory = Volume.fromJSON({ "/out": "" }), sink = { async write(bytes: Uint8Array) { memory.appendFileSync("/out", bytes); } }, edits = Object.hasOwn(c, "value");
+  const operations: api.DocxBatchOperation[] = [{ operation: "runs.get", arguments: { paragraph: 1, run: 1 }, resultHandle: "run" }, { operation: "model.text.run.Run.font.get", receiver: { resultHandle: "run" }, arguments: {}, resultHandle: "font" }, { operation: "model.text.run.Font.color.get", receiver: { resultHandle: "font" }, arguments: {}, resultHandle: "color" }];
+  if (edits) operations.push({ operation: `model.dml.color.ColorFormat.${c.member}.set`, receiver: { resultHandle: "color" }, arguments: { value: c.value === null ? null : typeof c.value === "string" ? { enum: "MSO_THEME_COLOR", name: c.value } : c.value!.map(v => v.toString(16).padStart(2, "0")).join("") } });
+  else operations.push({ operation: `model.dml.color.ColorFormat.${c.member}.get`, receiver: { resultHandle: "color" }, arguments: {}, ...(c.member === "rgb" && c.expected !== null ? { resultHandle: "rgb" } : {}) });
+  if (!edits && c.member === "rgb" && c.expected !== null) operations.push({ operation: "model.shared.RGBColor.tuple_value_protocol.call", receiver: { resultHandle: "rgb" }, arguments: {} });
+  const expectedRead = !edits && c.member === "rgb" && c.expected !== null ? [0, 2, 4].map(i => Number.parseInt(c.expected!.slice(i, i + 2), 16)) : c.expected;
+  if (route === "model") { const document = await api.Document(input, textContext), color = document.paragraphs[0]!.runs[0]!.font.color; if (edits) Reflect.set(color, c.member, c.value === null ? null : typeof c.value === "string" ? { enum: "MSO_THEME_COLOR", name: c.value } : new api.RGBColor(...c.value!)); else { expect(c.member === "rgb" ? color.rgb?.toArray() ?? null : c.member === "type" ? color.type?.name ?? null : color.theme_color?.name ?? null).toEqual(expectedRead); } await document.save(sink); }
+  else if (route === "sdk") { const result = await api.applyStyleModelBatch(input, { version: 1, operations }, textContext); if (!edits) { const value = result.results.at(-1)!.value; expect(c.member === "rgb" ? value : (value as { name: string } | null)?.name ?? null).toEqual(expectedRead); } await result.save(sink); }
+  else { const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); const shell = new Shell({ fs }).use(docxCommands({ engine: api.createDocxInspectionCommandEngine({ limits: textContext.limits }) })); try { const result = await shell.exec(`docx batch /input --ops-json '${JSON.stringify({ version: 1, operations })}' --json${edits ? " --output /out" : ""}`); expect(result.exitCode, result.stdout + result.stderr).toBe(0); if (edits) memory.writeFileSync("/out", await fs.readFile("/out")); else { const value = JSON.parse(result.stdout).data.results.at(-1).data; expect(c.member === "rgb" ? value : value?.name ?? null).toEqual(expectedRead); memory.writeFileSync("/out", input); } expect(await fs.readFile("/input")).toEqual(input); } finally { await shell.dispose(); } }
+  const output = new Uint8Array(memory.readFileSync("/out") as Buffer), before = readPackage(input), after = readPackage(output); for (const [name, bytes] of before) if (!edits || name !== "word/document.xml") expect(after.get(name), name).toEqual(bytes);
+  const document = await api.Document(output, textContext), run = document.paragraphs[0]!.runs[0]!; expect(run.text).toBe("Original é 日本 עברית 🌊"); const xml = new api.DocumentXmlEditor(after.get("word/document.xml")!), node = xml.root.children[0]!.children[0]!.children[0]!, rPr = node.children.flatMap(n => n.localName === "AlternateContent" ? n.children.find(b => b.localName === (carrier === "choice" ? "Choice" : "Fallback"))!.children : n.localName === "pass" ? n.children : [n]).find(n => n.localName === "rPr"), color = rPr?.children.find(n => n.localName === "color");
+  if (edits) { expect(color ? Object.fromEntries(color.attributes.filter(a => a.namespace === node.namespace).map(a => [a.localName, a.value])) : null).toEqual(c.after); expect(Boolean(rPr)).toBe(c.rPr || c.after !== null); }
+  const text = new TextDecoder().decode(after.get("word/document.xml")); if (carrier !== "direct") expect(text.split('f:identity="retained"')).toHaveLength(2); expect(text).toContain('w:rsidR="00ABCDEF"'); expect(text.split("<!--retain-->")).toHaveLength(2); expect(text.split("<?audit keep?>")).toHaveLength(2);
+});

@@ -16,10 +16,13 @@ import { setDocumentImageLayout, type ImageLayoutRequest } from "./image-layout.
 import { inspectDocumentImages, type ImageInspectionOptions } from "./images.js";
 import { editDocumentProperties, inspectDocumentProperties, type PropertyEditOptions, type PropertyInspectionOptions } from "./document-properties.js";
 import { extractDocumentText, type TextOptions } from "./text.js";
+import { editDocumentLists, type ListEditRequest } from "./lists.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 
 type Action = (input: Uint8Array, item: DocxBatchOperation, context: PublicationContext & Pick<ImageInsertionContext, "binaryResolver">) => Promise<unknown>;
 export const documentBatchActions = new Map<string, Action>();
+for (const operation of ["lists.add", "lists.set"])
+  documentBatchActions.set(operation, (input, item, context) => editDocumentLists(input, { operation: item.operation, options: item.arguments } as ListEditRequest, context));
 documentBatchActions.set("bookmarks.add", (input, item, context) => editDocumentBookmarks(input, { operation: item.operation, options: item.arguments } as BookmarkEditRequest, context));
 for (const operation of ["fields.add", "fields.set", "toc.add", "toc.set", "captions.add", "captions.set"])
   documentBatchActions.set(operation, (input, item, context) => editDocumentFields(input, { operation: item.operation, options: item.arguments } as FieldEditRequest, context));

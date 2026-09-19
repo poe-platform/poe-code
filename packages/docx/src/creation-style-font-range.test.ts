@@ -26,7 +26,7 @@ for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const
    const archive = await api.createDocumentArchive({ kind, dialect: strict ? "strict" : "transitional", template: input, content }, textContext);
    await api.writeDocumentArchive(archive, sink, { order: "input", compression: "store" }, textContext);
   } else if (route === "sdk") {
-   await api.createDocument({ kind, dialect: strict ? "strict" : "transitional", template: input, content }, { output: "-" }, { ...textContext, stdout: sink });
+   await api.createDocument({ kind, dialect: strict ? "strict" : "transitional", template: input, content }, { output: "-" }, { ...textContext, encoding: { order: "input", compression: "store" }, stdout: sink });
   } else {
    const fs = new MemoryFileSystem(); await fs.writeFile("/input", input);
    const shell = new Shell({ fs }).use(docxCommands({ engine: api.createDocxInspectionCommandEngine({ limits: textContext.limits }) }));

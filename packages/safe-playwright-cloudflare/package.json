@@ -17,6 +17,7 @@
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && node --import tsx scripts/build-browser-run-code-guest.ts && tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "pretest:unit": "node --import tsx scripts/build-browser-run-code-guest.ts",
     "test:unit": "vitest run --config vitest.config.ts",
     "test": "npm run test:unit",
     "test:native": "vitest run --config vitest.native.config.ts",

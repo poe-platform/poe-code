@@ -220,7 +220,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
       issue(node, "latent-name", "A latent style exception requires its native name attribute.");
     if (!Object.hasOwn(definitionNames, name)) continue;
     const raw = attr(node, definitionNames[name]!);
-    const id = name === "style" ? raw : integer(raw, name === "footnote" || name === "endnote" ? -1 : 0);
+    const id = name === "style" ? raw : integer(raw, name === "footnote" || name === "endnote" ? -1 : 0, name === "num" || name === "abstractNum" ? Number.MAX_SAFE_INTEGER : 2147483647);
     const key = `${node.part}:${name}`;
     const entries = definitions.get(key) ?? new Map<string, Node>();
     if (name === "style") {
@@ -295,7 +295,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     let target: Node | undefined;
     if (name === "num") {
       const id = children(node, "abstractNumId")[0];
-      target = id && lookup("abstractNum", integer(attr(id, "val")), node.part);
+      target = id && lookup("abstractNum", integer(attr(id, "val"), 0, Number.MAX_SAFE_INTEGER), node.part);
     } else if (name === "abstractNum") {
       const link = children(node, "numStyleLink")[0];
       target = link && lookup("style", attr(link, "val"));
@@ -303,7 +303,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
       const pPr = children(node, "pPr")[0];
       const numPr = pPr && children(pPr, "numPr")[0];
       const id = numPr && children(numPr, "numId")[0];
-      target = id && lookup("num", integer(attr(id, "val")));
+      target = id && lookup("num", integer(attr(id, "val"), 0, Number.MAX_SAFE_INTEGER));
     }
     if (target) numberingNext.set(node, target);
   }
@@ -383,18 +383,18 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     if (name === "numPr") {
       const numId = children(node, "numId")[0];
       const level = children(node, "ilvl")[0];
-      const id = numId && integer(attr(numId, "val"));
+      const id = numId && integer(attr(numId, "val"), 0, Number.MAX_SAFE_INTEGER);
       const ilvl = level ? integer(attr(level, "val"), 0, 8) : "0";
       const num = lookup("num", id);
       const abstractId = num && children(num, "abstractNumId")[0];
-      const direct = abstractId && lookup("abstractNum", integer(attr(abstractId, "val")), abstractId.part);
+      const direct = abstractId && lookup("abstractNum", integer(attr(abstractId, "val"), 0, Number.MAX_SAFE_INTEGER), abstractId.part);
       const abstract = direct && (resolvedNumbering.has(direct) ? resolvedNumbering.get(direct) : direct);
       const override = num && children(num, "lvlOverride").find(l => integer(attr(l, "ilvl")) === ilvl && children(l, "lvl").length === 1);
       if (ilvl === undefined || (id !== undefined && id !== "0" && num && !override &&
         (!abstract || !children(abstract, "lvl").some(l => integer(attr(l, "ilvl")) === ilvl)))) issue(node, "numbering-level", "Numbering level has no matching definition.");
     }
-    if (name === "numId" && integer(attr(node, "val")) !== "0" && !lookup("num", integer(attr(node, "val")))) issue(node, "numbering-reference", "Numbering reference has no instance.");
-    if (name === "abstractNumId" && !lookup("abstractNum", integer(attr(node, "val")), node.part)) issue(node, "numbering-reference", "Abstract numbering reference has no definition.");
+    if (name === "numId" && integer(attr(node, "val"), 0, Number.MAX_SAFE_INTEGER) !== "0" && !lookup("num", integer(attr(node, "val"), 0, Number.MAX_SAFE_INTEGER))) issue(node, "numbering-reference", "Numbering reference has no instance.");
+    if (name === "abstractNumId" && !lookup("abstractNum", integer(attr(node, "val"), 0, Number.MAX_SAFE_INTEGER), node.part)) issue(node, "numbering-reference", "Abstract numbering reference has no definition.");
     if (["footnoteReference", "endnoteReference", "commentReference", "commentRangeStart", "commentRangeEnd"].includes(name)) {
       const type = name.startsWith("footnote") ? "footnote" : name.startsWith("endnote") ? "endnote" : "comment";
       if (!lookup(type, integer(attr(node, "id")))) issue(node, type === "comment" ? "comment-reference" : "note-reference", "Annotation reference has no definition.");

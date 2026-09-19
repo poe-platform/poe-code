@@ -23,7 +23,7 @@ it(`${route} resolves DocumentPart.${property} through the same document owner; 
             : property === "inline_shapes" ? { operation: "model.shape.InlineShapes.__len__.get", receiver: ref("view"), arguments: {} }
               : { operation: "model.opc.coreprops.CoreProperties.title.get", receiver: ref("view"), arguments: {} }
   ];
-  const expected = property === "styles" ? 3 : property === "settings" ? false : property === "core_properties" ? "Document" : 0;
+  const expected = property === "styles" ? 4 : property === "settings" ? false : property === "core_properties" ? "Document" : 0;
   if (route === "model") {
     const doc = await api.Document(input, ctx), main = doc.part as api.DocumentPartView & Pick<api.DocumentView, "styles" | "settings" | "comments" | "inline_shapes" | "core_properties"> & { document: api.DocumentView };
     expect(main[property], property).toBeDefined();

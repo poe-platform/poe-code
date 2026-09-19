@@ -27,7 +27,7 @@ for (const route of ["model", "sdk", "shell"] as const)
 it(`${route} consumes native template DocumentPart.${property} and retains its kind; strict=${strict}`, async () => {
   const input = await templateFixture(strict, "<w:p><w:r><w:t>Estuary template</w:t></w:r></w:p>");
   const before = readPackage(input), memory = Volume.fromJSON({ "/input": Buffer.from(input), "/output": "" });
-  const expected = property === "styles" ? 3 : property === "settings" ? false : property === "core_properties" ? "Document" : 0;
+  const expected = property === "styles" ? 4 : property === "settings" ? false : property === "core_properties" ? "Document" : 0;
   const reader = property === "document" ? "model.document.Document.paragraphs.get"
     : property === "styles" ? "model.styles.styles.Styles.__len__.get"
       : property === "settings" ? "model.settings.Settings.odd_and_even_pages_header_footer.get"

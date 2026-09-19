@@ -3575,7 +3575,7 @@ it("workflow-066 observes original property collection variant", async () => {
 
 it("workflow-067 observes original property collection variant", async () => {
  const document = await Document(await textFixture("<w:p/>"),{...textContext,timestamp:new Date("2026-09-15T00:00:00Z")});
- const styles=document.styles; expect(styles.length).toBe(3); expect([...styles]).toHaveLength(3); for(const style of styles){expect(styles.at(style.name!).equals(style)).toBe(true); expect(styles.get_by_id(style.style_id,style.type)!.equals(style)).toBe(true);}
+ const styles=document.styles; expect(styles.length).toBe(4); expect([...styles]).toHaveLength(4); for(const style of styles){expect(styles.at(style.name!).equals(style)).toBe(true); expect(styles.get_by_id(style.style_id,style.type)!.equals(style)).toBe(true);}
 });
 it("workflow-030 observes shared document workflow variant", async () => {
  const document = await Document(undefined,textContext);

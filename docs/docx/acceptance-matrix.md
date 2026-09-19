@@ -1029,3 +1029,15 @@ six requirements has 144 exact passing record lines. Original observer failures,
 preimages and the genuine independently reproduced enum defect remain preserved.
 These close the named guide behaviors only; complete API/source/context/family
 acceptance still requires the settled checkpoint outcomes and remaining audit.
+
+### Default numbering style dependency (2026-09-19)
+
+Missing-style bootstrap now includes the built-in No List numbering default,
+retaining the exact four-definition source BDD expectation. Original six memfs
+failures preceded the domain correction; the maintained six-file focused route
+passed 770 cases, and DOCX lint/build and the inspected actual Strict-template CLI
+screenshot passed. Named observations and historical count preimages are in
+[text/style evidence](text-style-family-acceptance-20260918/default-numbering-style-bootstrap-requirement-evidence.json).
+The newly discovered dependency cancelled partial whole/source checkpoints; their
+results remain historical, and expanded BDD/current stable reruns remain required.
+All F08–F15/F18 families remain open.

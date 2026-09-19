@@ -1053,3 +1053,9 @@ identities has 288 exact passing public model/SDK/actual opt-in CLI records.
 Package lint/build and the inspected Strict-template CLI screenshot passed.
 The surrounding public-owner replay and whole/source stable checkpoints remain
 pending; this entry does not establish full F13 or any other family acceptance.
+
+The completed [native-owner replay](text-style-family-acceptance-20260918/tab-native-owner-clear-admission-requirement-evidence.json)
+independently verifies all 6,912 combinations: 5,760 positive edits and 1,152
+contract-defined opaque selected-stop refusals. Its complete variant array and
+helper snapshot are preserved. A subsequently discovered section-inheritance
+dependency still requires settled whole/source checkpoint requalification.

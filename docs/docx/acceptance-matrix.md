@@ -1059,3 +1059,17 @@ independently verifies all 6,912 combinations: 5,760 positive edits and 1,152
 contract-defined opaque selected-stop refusals. Its complete variant array and
 helper snapshot are preserved. A subsequently discovered section-inheritance
 dependency still requires settled whole/source checkpoint requalification.
+
+### Six-story section inheritance dependency (2026-09-19)
+
+[Named dependency evidence](text-style-family-acceptance-20260918/section-all-story-variants-requirement-evidence.json)
+preserves twelve original failing memfs cases. Distinct default/first/even header
+and footer bindings now survive section creation and inherit through the new
+section; ambiguous duplicate and opaque selected bindings still reject without
+mutation/publication. The maintained six-file scope passed 886 cases. The expanded
+block/document replay passed all 4,896 exact records for 16 source identities and
+17 behavior variants, with independent inherited story text, length-unit and
+section-start observations. DOCX lint/build and the inspected Strict-template
+actual CLI screenshot passed. This newly discovered dependency cancelled the
+partial whole/source checkpoints; their logs remain historical and final settled
+gates remain required. All F08–F15/F18 families remain open.

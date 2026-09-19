@@ -11,15 +11,14 @@ import { InputTypeError, InvalidValueError } from "./archive.js";
 import { WD_BREAK, WD_SECTION_START, Emu, Inches, isLength } from "./formatting-values.js";
 import { resolveHeadingStyle, type TableStyle } from "./styles-model.js";
 import type { DocxEnumValue } from "./operation-types.js";
-import { mergeStyleChildren } from "./style-properties.js";
-import { sectionPropertyOrder } from "./section-properties.js";
+import { sectionAttribute } from "./section-properties.js";
 import { runElementOpen } from "./run-properties.js";
 import { Settings } from "./settings-model.js";
 import { InlineShapes, insertModelImage } from "./inline-shape-model.js";
 import { Image, type ImageModelInput } from "./image-model.js";
 import { packageAdmitImages, DocumentPartView } from "./package-view.js";
 import { activeModelChildren } from "./model-active-children.js";
-import { appendBodyBlocks } from "./xml-write.js";
+import { appendBodyBlocks, UnsupportedEditError } from "./xml-write.js";
 
 export class DocumentView {
   readonly ref: ModelRef;
@@ -136,20 +135,18 @@ export class DocumentView {
       });
       this.store.change(this.ref.part, (xml) => {
         const section = this.store.node(this.sections.at(-1).ref);
-        xml.replaceElement(
-          section,
-          mergeStyleChildren(
-            xml,
-            section,
-            new Map([
-              ["headerReference", ""],
-              ["footerReference", ""]
-            ]),
-            sectionPropertyOrder,
-            {},
-            activeModelChildren(this.store, this.ref.part)
-          )
+        const bindings = activeModelChildren(this.store, this.ref.part)(section).filter(
+          node => node.namespace === section.namespace &&
+            ["headerReference", "footerReference"].includes(node.localName)
         );
+        const variants = new Set<string>();
+        for (const binding of bindings) {
+          const variant = sectionAttribute(binding, "type"), key = binding.localName + ":" + variant;
+          if (!variant || !["default", "first", "even"].includes(variant) || variants.has(key))
+            throw new UnsupportedEditError("Ambiguous section story bindings cannot be inherited.");
+          variants.add(key);
+        }
+        xml.replaceElement(section, xml.sourceXml(section, new Map(bindings.map(binding => [binding, ""]))));
       });
       const section = this.sections.at(-1);
       section.start_type = start_type;

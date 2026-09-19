@@ -97,7 +97,17 @@ function validateProfileLimits(limits: BrowserProfileLimits) {
 }
 
 export function encodeBrowserProfile(profile: BrowserProfile, limits: BrowserProfileLimits): Uint8Array {
- const bytes = new TextEncoder().encode(JSON.stringify(profile));
+ validateProfileLimits(limits);
+ const tabs = Object.getOwnPropertyDescriptor(profile, 'tabs')?.value;
+ if (Array.isArray(tabs) && tabs.length > limits.maxTabs) throw new Error('Browser profile tab limit exceeded');
+ const serialized = JSON.stringify(profile);
+ let byteLength = 0;
+ for (const character of serialized) {
+  const point = character.codePointAt(0)!;
+  byteLength += point <= 0x7f ? 1 : point <= 0x7ff ? 2 : point <= 0xffff ? 3 : 4;
+  if (byteLength > limits.maxBytes) throw new Error('Browser profile byte limit exceeded');
+ }
+ const bytes = new TextEncoder().encode(serialized);
  parseBrowserProfile(bytes, limits);
  return bytes;
 }
@@ -115,8 +125,10 @@ export async function restoreBrowserProfile(options: {
     contextOptions: { ...profile.contextOptions, storageState: profile.state }, signal,
   });
   try {
+    signal.throwIfAborted();
     const pages: PlaywrightPage[] = [];
     const urls = profile.tabs.length ? profile.tabs : ['about:blank'];
+    if (lease.context.pages().length + urls.length > limits.maxTabs) throw new Error('Browser profile tab limit exceeded');
     for (const ignoredUrl of urls) {
       signal.throwIfAborted();
       pages.push(await lease.context.newPage());
@@ -152,6 +164,7 @@ export async function restoreBrowserProfile(options: {
 export async function checkpointBrowserProfile(session: PlaywrightSessionCheckpoint, limits: BrowserProfileLimits, signal: AbortSignal): Promise<Uint8Array> {
   validateProfileLimits(limits);
   signal.throwIfAborted();
+  checkpointPages(session, limits);
   const cleanups: (() => Promise<void>)[] = [];
   const [result] = await Promise.allSettled([readPlaywrightStorageState(session.context, {
     signal, indexedDB: true, maxBytes: limits.maxBytes, registerCleanup: cleanup => cleanups.push(cleanup),
@@ -162,18 +175,26 @@ export async function checkpointBrowserProfile(session: PlaywrightSessionCheckpo
   if (failures.length === 1) throw failures[0];
   if (failures.length > 1) throw new AggregateError(failures, 'Browser profile checkpoint and cleanup failed');
   if (result!.status !== 'fulfilled') throw new Error('Browser profile checkpoint failed');
-  const pages = session.context.pages();
   const contextOptions = { ...session.contextOptions };
   delete contextOptions.storageState;
   const runtime = (session.context as BrowserProfileContext).browserProfile;
   const runtimeState = await runtime?.capture(signal);
   signal.throwIfAborted();
+  const { pages, selected } = checkpointPages(session, limits);
   return encodeBrowserProfile({
     state: result!.value, contextOptions,
-    tabs: pages.map(page => page.url()), selected: Math.max(0, session.selectedPage ? pages.indexOf(session.selectedPage) : 0),
+    tabs: pages.map(page => page.url()), selected,
     ...(session.configuration === undefined ? {} : { configuration: session.configuration }),
     ...(session.expiresAt === undefined ? {} : { expiresAt: session.expiresAt }),
     ...(session.idleTimeoutMs === undefined ? {} : { idleTimeoutMs: session.idleTimeoutMs }),
     ...(runtimeState === undefined ? {} : { runtimeState }),
   }, limits);
+}
+
+function checkpointPages(session: PlaywrightSessionCheckpoint, limits: BrowserProfileLimits) {
+  const pages = session.context.pages();
+  if (pages.length > limits.maxTabs) throw new Error('Browser profile tab limit exceeded');
+  const selected = session.selectedPage === undefined ? 0 : pages.indexOf(session.selectedPage);
+  if (selected < 0) throw new Error('Browser profile selected page does not belong to the context');
+  return { pages, selected };
 }

@@ -1,5 +1,5 @@
 import { originalModelDefaults } from "./default-model-styles.js";
-import { archiveSettings, InvalidValueError, type ArchiveContext, type DocumentArchive } from "./archive.js";
+import { archiveSettings, documentSession, InvalidValueError, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
 import { writeDocumentArchive } from "./document-write.js";
 import { documentDialects, type DocumentDialect } from "./dialect.js";
@@ -98,7 +98,8 @@ async function admitCreated(archive: DocumentArchive, context: ArchiveContext): 
   const bytes = new Uint8Array(size);
   let offset = 0;
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
-  return readDocumentArchive(bytes, { ...context, budget });
+  const { [documentSession]: ignoredSession, ...admissionContext } = context;
+  return readDocumentArchive(bytes, { ...admissionContext, budget });
 }
 
 async function populateTemplate(template: AdmittedDocumentArchive, content: DocxContent, options: DocumentCreateOptions, context: ArchiveContext): Promise<AdmittedDocumentArchive> {

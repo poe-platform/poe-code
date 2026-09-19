@@ -1,0 +1,24 @@
+import { expect, it } from 'vitest';
+import { Volume } from 'memfs';
+import { MemoryFileSystem, Shell } from 'virtual-bash';
+import { docxCommands } from 'virtual-bash/commands/docx';
+import * as api from './index.js';
+import { textFixture, textContext, w } from '../tests/fixtures/text.js';
+import { readPackage, assertPackageLinks } from '../tests/assertions.js';
+for (const strict of [false, true]) for (const kind of ['docx', 'dotx'] as const)
+for (const outer of ['direct', 'choice', 'fallback', 'process']) for (const inner of ['direct', 'choice', 'fallback', 'process'])
+for (const route of ['model', 'sdk', 'cli', 'sdk-batch', 'cli-batch'])
+it(`removes native style only when nested inert markup survives; ${outer}/${inner}; ${route}; ${kind}; strict=${strict}`, async () => {
+  const wrap = (xml: string, carrier: string) => carrier === 'direct' ? xml : carrier === 'process' ? `<f:pass>${xml}</f:pass>` : `<mc:AlternateContent><mc:Choice Requires="${carrier === 'choice' ? 'w' : 'f'}">${carrier === 'choice' ? xml : ''}</mc:Choice><mc:Fallback>${carrier === 'fallback' ? xml : ''}</mc:Fallback></mc:AlternateContent>`;
+  const content = wrap(`<w:style w:type="paragraph" w:customStyle="1" w:styleId="Atlas"><w:name w:val="Atlas"/><w:rPr>${wrap('<w:b/>', inner)}</w:rPr></w:style>`, outer), parts = readPackage(await textFixture('<w:p><w:r><w:t>Retain 日本 עברית é 🌊</w:t></w:r></w:p>', { styles: { kind: 'styles', xml: `<w:styles xmlns:w="${w}" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:f="urn:original:removal" mc:Ignorable="f" mc:ProcessContent="f:pass">${content}<!--retain--><?policy keep?></w:styles>` } }, strict));
+  if (kind === 'dotx') parts.set('[Content_Types].xml', new TextEncoder().encode(new TextDecoder().decode(parts.get('[Content_Types].xml')).replace('document.main+xml', 'template.main+xml')));
+  const volume = Volume.fromJSON({ '/input': '', '/out': '' }); await api.writeArchive({ comment: new Uint8Array(), members: [...parts].map(([name, bytes]) => ({ name, bytes, directory: false, modified: new Date('2026-01-02T03:04:06Z') })) }, { async write(b) { volume.appendFileSync('/input', b); } }, { order: 'input', compression: 'store' }, textContext);
+  const input = new Uint8Array(volume.readFileSync('/input') as Buffer), reject = inner !== 'direct', sink = { async write(b: Uint8Array) { volume.appendFileSync('/out', b); } }, pub = { ...textContext, stdout: sink, encoding: { order: 'input', compression: 'store' } as const }, batch = { version: 1, operations: [{ operation: 'styles.remove', arguments: { name: 'Atlas' } }] };
+  if (route === 'model') { const d = await api.Document(input, textContext); if (reject) { expect(() => d.styles.at('Atlas').delete()).toThrowError(api.UnsupportedEditError); expect((d.styles.at('Atlas') as api.ParagraphStyle).font.bold).toBe(true); } else { d.styles.at('Atlas').delete(); await d.save(sink); } }
+  else if (route === 'sdk') { const run = api.editDocumentStyles(input, { operation: 'styles.remove', name: 'Atlas', output: '-' }, pub); if (reject) await expect(run).rejects.toMatchObject({ code: 'unsupported-edit' }); else await run; }
+  else if (route === 'sdk-batch') { const run = api.executeDocumentBatch(input, batch, { output: '-' }, pub); if (reject) await expect(run).rejects.toMatchObject({ code: 'unsupported-edit' }); else await run; }
+  else { const fs = new MemoryFileSystem(); await fs.writeFile('/input', input); await fs.writeFile('/out', new TextEncoder().encode('Original destination')); const shell = new Shell({ fs }).use(docxCommands({ engine: api.createDocxInspectionCommandEngine({ limits: textContext.limits }) })); try { const r = await shell.exec(route === 'cli' ? 'docx styles remove /input --name Atlas --output /out --force --json' : `docx batch /input --ops-json '${JSON.stringify(batch)}' --output /out --force --json`); expect(r.exitCode, r.stdout + r.stderr).toBe(reject ? 1 : 0); if (reject) { expect(JSON.parse(r.stdout).errors[0].code).toBe('unsupported-edit'); expect(new TextDecoder().decode(await fs.readFile('/out'))).toBe('Original destination'); } else volume.writeFileSync('/out', await fs.readFile('/out')); expect(await fs.readFile('/input')).toEqual(input); } finally { await shell.dispose(); } }
+  if (reject) expect(volume.readFileSync('/out').length).toBe(0);
+  else { const output = new Uint8Array(volume.readFileSync('/out') as Buffer), saved = readPackage(output); assertPackageLinks(saved); expect(saved.size).toBe(parts.size); for (const [name, bytes] of parts) if (name !== 'word/styles.xml') expect(saved.get(name), name).toEqual(bytes); expect((await api.inspectDocumentStyles(output, {}, textContext)).styles).toHaveLength(0); expect(new TextDecoder().decode(saved.get('word/styles.xml'))).toContain('<!--retain--><?policy keep?>'); }
+  expect(new Uint8Array(volume.readFileSync('/input') as Buffer)).toEqual(input);
+});

@@ -1,3 +1,4 @@
+import { BoundsError } from "./model-errors.js";
 import { partProviderReceivers } from "./part-provider.js";
 import { escapeTerminalText } from "toolcraft-design/escape-terminal-text";
 import { getDocxDiscovery } from "./discovery.js";
@@ -415,7 +416,8 @@ function handleType(receiver: Record<string, unknown>, handles: ReadonlyMap<stri
   if (receiver.index !== undefined && receiver.key !== undefined) usage("Choose index or key lookup.");
   if (type.startsWith("readonly [") && type.endsWith("]")) {
     const items = splitDocxType(type.slice(10, -1), ",");
-    if (receiver.key !== undefined || typeof receiver.index !== "number" || receiver.index >= items.length) usage("Tuple handles require an in-range index.");
+    if (receiver.key !== undefined || typeof receiver.index !== "number") usage("Tuple handles require an index.");
+    if (receiver.index >= items.length) throw new BoundsError("Tuple handle index is out of bounds.");
     return items[receiver.index]!;
   }
   if ((type.startsWith("ReadonlyArray<") || type.startsWith("IterableIterator<")) && type.endsWith(">")) {
@@ -446,61 +448,66 @@ export function validateDocxBatch(value: unknown, budget = new DocumentBudget(),
   const handles = new Map([["document", "DocumentModel"]]);
   const ids = new Set<string>();
   const operations = batch.operations.map((value, index) => {
-    const item = record(value, ["id", "operation", "arguments", "receiver", "resultHandle"]);
-    const id = item.id === undefined ? `step${index + 1}` : item.id;
-    if (typeof id !== "string" || !id || id.length > 64 || !"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".includes(id[0]!) || [...id].some(c => !"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-".includes(c)) || ids.has(id)) usage("Invalid or duplicate batch operation ID.");
-    ids.add(id);
-    if (typeof item.operation !== "string") usage("Batch operation is required.");
-    const schema = schemaFor(item.operation);
-    if (schema.transport === "direct") usage("Operation is not available in batch.");
-    const fields = { ...(schema.batchFields ?? schema.sdkFields) };
-    for (const name of schema.commonOptions) if (!publication.includes(name)) fields[name] = docxCommonOptions[name]!;
-    const arguments_ = record(item.arguments);
-    if (item.operation === "text.replace" && arguments_.trackChanges === true) {
-      for (const key of ["author", "timestamp"]) if (context[key] !== undefined) {
-        if (arguments_[key] !== undefined && arguments_[key] !== context[key]) usage("Conflicting batch context metadata.");
-        arguments_[key] = context[key];
+    try {
+      const item = record(value, ["id", "operation", "arguments", "receiver", "resultHandle"]);
+      const id = item.id === undefined ? `step${index + 1}` : item.id;
+      if (typeof id !== "string" || !id || id.length > 64 || !"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".includes(id[0]!) || [...id].some(c => !"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-".includes(c)) || ids.has(id)) usage("Invalid or duplicate batch operation ID.");
+      ids.add(id);
+      if (typeof item.operation !== "string") usage("Batch operation is required.");
+      const schema = schemaFor(item.operation);
+      if (schema.transport === "direct") usage("Operation is not available in batch.");
+      const fields = { ...(schema.batchFields ?? schema.sdkFields) };
+      for (const name of schema.commonOptions) if (!publication.includes(name)) fields[name] = docxCommonOptions[name]!;
+      const arguments_ = record(item.arguments);
+      if (item.operation === "text.replace" && arguments_.trackChanges === true) {
+        for (const key of ["author", "timestamp"]) if (context[key] !== undefined) {
+          if (arguments_[key] !== undefined && arguments_[key] !== context[key]) usage("Conflicting batch context metadata.");
+          arguments_[key] = context[key];
+        }
       }
+      if (item.operation === "properties.set") Object.assign(arguments_, normalizeDocxPropertyOptions(arguments_, false));
+      assertDocxFields(fields, arguments_, (type, value) => {
+        if (schema.transport !== "typed-batch" || type === "unknown" || !value || typeof value !== "object" || !Object.hasOwn(value, "resultHandle")) return undefined;
+        const source = handleType(value as Record<string, unknown>, handles);
+        if (validateDocxValue(type, value)) return true;
+        const targets = splitDocxType(type);
+        return splitDocxType(source).every(candidate => targets.includes(candidate));
+      });
+      for (const [name, value] of Object.entries(arguments_)) if (fields[name]?.type !== "unknown") checkArgumentHandles(value, handles);
+      validateSelections(item.operation, arguments_);
+      if (schema.transport !== "typed-batch") {
+        validateDocxSelection(item.operation, arguments_);
+        validateEffects(item.operation, arguments_, schema);
+      }
+      validateDocxOptionRules(item.operation, arguments_);
+      let receiver: Record<string, unknown> | undefined;
+      if (schema.receiver && item.receiver === undefined) usage("This operation requires a typed receiver.");
+      if (!schema.receiver && item.receiver !== undefined) usage("This operation does not accept a receiver.");
+      if (item.receiver !== undefined) {
+        receiver = record(item.receiver, ["id", "type", "owner", "revision", "resultHandle", "index", "key"]);
+        if (!validateDocxValue("Receiver", receiver)) usage("Invalid model receiver.");
+        if (receiver.resultHandle !== undefined) {
+          if (typeof receiver.resultHandle !== "string" || !handles.has(receiver.resultHandle) || receiver.index !== undefined && receiver.key !== undefined || ["id", "type", "owner", "revision"].some(key => receiver![key] !== undefined)) usage("Invalid batch handle reference.");
+          if (receiver.index !== undefined && (typeof receiver.index !== "number" || !Number.isSafeInteger(receiver.index) || receiver.index < 0)) usage("Invalid handle index.");
+          if (receiver.key !== undefined && typeof receiver.key !== "string") usage("Invalid handle key.");
+          const type = handleType(receiver, handles);
+          const styleReceivers: Readonly<Record<string, readonly string[]>> = { BaseStyle: ["CharacterStyle", "ParagraphStyle", "_TableStyle", "_NumberingStyle"], CharacterStyle: ["BaseStyle", "ParagraphStyle", "_TableStyle"], ParagraphStyle: ["BaseStyle", "CharacterStyle", "_TableStyle"], _TableStyle: ["BaseStyle", "CharacterStyle", "ParagraphStyle"], _NumberingStyle: ["BaseStyle"] };
+          const packageReceivers: Readonly<Record<string, readonly string[]>> = { _Text: ["XmlElementView"], XmlPartView: ["XmlPart", "Part", "PartView", "StylesPart", "StoryPart", "HeaderPart", "FooterPart", "CommentsPart", "SettingsPart", "NumberingPart", "DocumentPart", "CorePropertiesPart"], PartView: ["Part", "XmlPart", "XmlPartView", "StylesPart", "StoryPart", "HeaderPart", "FooterPart", "CommentsPart", "SettingsPart", "NumberingPart", "DocumentPart", "CorePropertiesPart", "ImagePart"], PackageView: ["Package", "OpcPackage"], RelationshipView: ["_Relationship"], DocumentPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], StoryPart: ["Part", "XmlPart", "PartView", "XmlPartView"], HeaderPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], FooterPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], CommentsPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], SettingsPart: ["Part", "XmlPart", "PartView", "XmlPartView"], NumberingPart: ["Part", "XmlPart", "PartView", "XmlPartView"], StylesPart: ["Part", "XmlPart", "PartView", "XmlPartView"], CorePropertiesPart: ["Part", "XmlPart", "PartView", "XmlPartView"], ImagePart: ["Part", "PartView"] };
+          if (!type.split(" | ").some(candidate => candidate === schema.receiver || partProviderReceivers.get(schema.receiver!)?.has(candidate) || styleReceivers[candidate]?.includes(schema.receiver!) || packageReceivers[candidate]?.includes(schema.receiver!))) usage("Handle type does not match receiver.");
+        } else if (typeof receiver.id !== "string" || !receiver.id || typeof receiver.type !== "string" || !receiver.type || typeof receiver.owner !== "string" || !receiver.owner || typeof receiver.revision !== "number" || !Number.isSafeInteger(receiver.revision) || receiver.revision < 0) usage("Invalid model receiver.");
+        else if (receiver.type !== schema.receiver) usage("Receiver type does not match operation.");
+      }
+      if (item.resultHandle !== undefined) {
+        if (!schema.resultHandle?.allowed) usage("This operation cannot bind a result handle.");
+        const name = item.resultHandle;
+        if (typeof name !== "string" || !validateDocxValue("BatchHandleName", name) || handles.has(name)) usage("Invalid or duplicate result handle.");
+        handles.set(name, schema.resultHandle.type);
+      }
+      return Object.freeze({ ...(typeof item.id === "string" ? { id: item.id } : {}), operation: item.operation, arguments: Object.freeze(arguments_), ...(receiver ? { receiver: Object.freeze(receiver) } : {}), ...(typeof item.resultHandle === "string" ? { resultHandle: item.resultHandle } : {}) });
+    } catch (error) {
+      if (error instanceof BoundsError) Object.assign(error, { operationIndex: index });
+      throw error;
     }
-    if (item.operation === "properties.set") Object.assign(arguments_, normalizeDocxPropertyOptions(arguments_, false));
-    assertDocxFields(fields, arguments_, (type, value) => {
-      if (schema.transport !== "typed-batch" || type === "unknown" || !value || typeof value !== "object" || !Object.hasOwn(value, "resultHandle")) return undefined;
-      const source = handleType(value as Record<string, unknown>, handles);
-      if (validateDocxValue(type, value)) return true;
-      const targets = splitDocxType(type);
-      return splitDocxType(source).every(candidate => targets.includes(candidate));
-    });
-    for (const [name, value] of Object.entries(arguments_)) if (fields[name]?.type !== "unknown") checkArgumentHandles(value, handles);
-    validateSelections(item.operation, arguments_);
-    if (schema.transport !== "typed-batch") {
-      validateDocxSelection(item.operation, arguments_);
-      validateEffects(item.operation, arguments_, schema);
-    }
-    validateDocxOptionRules(item.operation, arguments_);
-    let receiver: Record<string, unknown> | undefined;
-    if (schema.receiver && item.receiver === undefined) usage("This operation requires a typed receiver.");
-    if (!schema.receiver && item.receiver !== undefined) usage("This operation does not accept a receiver.");
-    if (item.receiver !== undefined) {
-      receiver = record(item.receiver, ["id", "type", "owner", "revision", "resultHandle", "index", "key"]);
-      if (!validateDocxValue("Receiver", receiver)) usage("Invalid model receiver.");
-      if (receiver.resultHandle !== undefined) {
-        if (typeof receiver.resultHandle !== "string" || !handles.has(receiver.resultHandle) || receiver.index !== undefined && receiver.key !== undefined || ["id", "type", "owner", "revision"].some(key => receiver![key] !== undefined)) usage("Invalid batch handle reference.");
-        if (receiver.index !== undefined && (typeof receiver.index !== "number" || !Number.isSafeInteger(receiver.index) || receiver.index < 0)) usage("Invalid handle index.");
-        if (receiver.key !== undefined && typeof receiver.key !== "string") usage("Invalid handle key.");
-        const type = handleType(receiver, handles);
-        const styleReceivers: Readonly<Record<string, readonly string[]>> = { BaseStyle: ["CharacterStyle", "ParagraphStyle", "_TableStyle", "_NumberingStyle"], CharacterStyle: ["BaseStyle", "ParagraphStyle", "_TableStyle"], ParagraphStyle: ["BaseStyle", "CharacterStyle", "_TableStyle"], _TableStyle: ["BaseStyle", "CharacterStyle", "ParagraphStyle"], _NumberingStyle: ["BaseStyle"] };
-        const packageReceivers: Readonly<Record<string, readonly string[]>> = { _Text: ["XmlElementView"], XmlPartView: ["XmlPart", "Part", "PartView", "StylesPart", "StoryPart", "HeaderPart", "FooterPart", "CommentsPart", "SettingsPart", "NumberingPart", "DocumentPart", "CorePropertiesPart"], PartView: ["Part", "XmlPart", "XmlPartView", "StylesPart", "StoryPart", "HeaderPart", "FooterPart", "CommentsPart", "SettingsPart", "NumberingPart", "DocumentPart", "CorePropertiesPart", "ImagePart"], PackageView: ["Package", "OpcPackage"], RelationshipView: ["_Relationship"], DocumentPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], StoryPart: ["Part", "XmlPart", "PartView", "XmlPartView"], HeaderPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], FooterPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], CommentsPart: ["Part", "XmlPart", "PartView", "XmlPartView", "StoryPart"], SettingsPart: ["Part", "XmlPart", "PartView", "XmlPartView"], NumberingPart: ["Part", "XmlPart", "PartView", "XmlPartView"], StylesPart: ["Part", "XmlPart", "PartView", "XmlPartView"], CorePropertiesPart: ["Part", "XmlPart", "PartView", "XmlPartView"], ImagePart: ["Part", "PartView"] };
-        if (!type.split(" | ").some(candidate => candidate === schema.receiver || partProviderReceivers.get(schema.receiver!)?.has(candidate) || styleReceivers[candidate]?.includes(schema.receiver!) || packageReceivers[candidate]?.includes(schema.receiver!))) usage("Handle type does not match receiver.");
-      } else if (typeof receiver.id !== "string" || !receiver.id || typeof receiver.type !== "string" || !receiver.type || typeof receiver.owner !== "string" || !receiver.owner || typeof receiver.revision !== "number" || !Number.isSafeInteger(receiver.revision) || receiver.revision < 0) usage("Invalid model receiver.");
-      else if (receiver.type !== schema.receiver) usage("Receiver type does not match operation.");
-    }
-    if (item.resultHandle !== undefined) {
-      if (!schema.resultHandle?.allowed) usage("This operation cannot bind a result handle.");
-      const name = item.resultHandle;
-      if (typeof name !== "string" || !validateDocxValue("BatchHandleName", name) || handles.has(name)) usage("Invalid or duplicate result handle.");
-      handles.set(name, schema.resultHandle.type);
-    }
-    return Object.freeze({ ...(typeof item.id === "string" ? { id: item.id } : {}), operation: item.operation, arguments: Object.freeze(arguments_), ...(receiver ? { receiver: Object.freeze(receiver) } : {}), ...(typeof item.resultHandle === "string" ? { resultHandle: item.resultHandle } : {}) });
   });
   return owned({ version: 1, operations }, budget) as DocxBatch;
 }
@@ -573,12 +580,12 @@ export function createDocxCommandEngine<Request extends DocxCommandRequest, Resu
       }
       catch (error) {
         if (request.signal.aborted) return { exitCode: 130 } as DocxCommandEngineResult<Result>;
-        if (!(error instanceof DocxUsageError) && !(error instanceof ResourceLimitError) && !(error instanceof SourceError) && !(error instanceof PermissionError)) throw error;
+        if (!(error instanceof DocxUsageError) && !(error instanceof BoundsError) && !(error instanceof ResourceLimitError) && !(error instanceof SourceError) && !(error instanceof PermissionError)) throw error;
         const context = errorContexts.get(error) ?? { operation: invocation?.operation ?? "help", json: invocation?.options.json === true, budget };
-        const code = error instanceof ResourceLimitError ? "limit-exceeded" : error instanceof PermissionError ? "permission" : error instanceof SourceError ? "source-failure" : "usage";
+        const code = error instanceof BoundsError ? error.code : error instanceof ResourceLimitError ? "limit-exceeded" : error instanceof PermissionError ? "permission" : error instanceof SourceError ? "source-failure" : "usage";
         const diagnostic = commandDiagnostic(error.message, code, context.budget.limits.diagnosticBytes);
         try {
-          if (context.json || context.operation === "schema") await request.stdout.write(new TextEncoder().encode(JSON.stringify({ version: 1, operation: context.operation, ok: false, data: null, warnings: [], errors: [{ code, message: diagnostic.message }], affected: 0, locations: [] }) + "\n"));
+          if (context.json || context.operation === "schema") await request.stdout.write(new TextEncoder().encode(JSON.stringify({ version: 1, operation: context.operation, ok: false, data: null, warnings: [], errors: [{ code, message: diagnostic.message, ...(error instanceof BoundsError && "operationIndex" in error ? { operationIndex: error.operationIndex } : {}) }], affected: 0, locations: [] }) + "\n"));
           if (request.signal.aborted) return { exitCode: 130 } as DocxCommandEngineResult<Result>;
           await request.stderr.write(new TextEncoder().encode(diagnostic.human));
         } catch (transportError) {
@@ -586,7 +593,7 @@ export function createDocxCommandEngine<Request extends DocxCommandRequest, Resu
           throw transportError;
         }
         if (request.signal.aborted) return { exitCode: 130 } as DocxCommandEngineResult<Result>;
-        return { exitCode: context.operation === "diff" ? 2 : error instanceof ResourceLimitError ? 4 : error instanceof SourceError || error instanceof PermissionError ? 3 : 2 } as DocxCommandEngineResult<Result>;
+        return { exitCode: context.operation === "diff" ? 2 : error instanceof BoundsError ? 1 : error instanceof ResourceLimitError ? 4 : error instanceof SourceError || error instanceof PermissionError ? 3 : 2 } as DocxCommandEngineResult<Result>;
       }
       if (discoveryOutput) {
         if (request.signal.aborted) return { exitCode: 130 } as DocxCommandEngineResult<Result>;

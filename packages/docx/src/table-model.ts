@@ -1,7 +1,7 @@
 import type { ModelStore, ModelRef } from "./model-store.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
 import { BoundsError } from "./model-errors.js";
-import { numericSequence } from "./numeric-index.js";
+import { numericSequence, snapshotSequence } from "./numeric-index.js";
 import type { XmlElement } from "./package-xml.js";
 import { UnsupportedEditError } from "./xml-write.js";
 import { mergedTableGrid, editMergedTable } from "./table-merge.js";
@@ -233,19 +233,19 @@ export class Table {
     if (!owner) throw new BoundsError("The selected grid slot is omitted.");
     return this.logicalCell(grid.original(owner.node));
   }
-  row_cells(row_idx: number): _Cell[] {
+  row_cells(row_idx: number): readonly _Cell[] {
     const grid = this.grid(),
       row = index(grid.rows.length, row_idx);
-    return grid.slots[row]!.filter((o) => o !== undefined).map((o) =>
+    return snapshotSequence(grid.slots[row]!.filter((o) => o !== undefined).map((o) =>
       this.logicalCell(grid.original(o.node))
-    );
+    ));
   }
-  column_cells(column_idx: number): _Cell[] {
+  column_cells(column_idx: number): readonly _Cell[] {
     const grid = this.grid(),
       column = index(grid.columns.length, column_idx);
-    return grid.slots.flatMap((row) =>
+    return snapshotSequence(grid.slots.flatMap((row) =>
       row[column] ? [this.logicalCell(grid.original(row[column]!.node))] : []
-    );
+    ));
   }
   get alignment(): DocxEnumValue<"WD_TABLE_ALIGNMENT"> | null {
     return readEnum(
@@ -368,11 +368,11 @@ export class _Cell {
   *iter_inner_content(): Iterable<Paragraph | Table> {
     yield* this.store.blocks(this.ref);
   }
-  get paragraphs(): Paragraph[] {
-    return [...this.iter_inner_content()].filter((n): n is Paragraph => !(n instanceof Table));
+  get paragraphs(): readonly Paragraph[] {
+    return snapshotSequence([...this.iter_inner_content()].filter((n): n is Paragraph => !(n instanceof Table)));
   }
-  get tables(): Table[] {
-    return [...this.iter_inner_content()].filter((n): n is Table => n instanceof Table);
+  get tables(): readonly Table[] {
+    return snapshotSequence([...this.iter_inner_content()].filter((n): n is Table => n instanceof Table));
   }
   get text(): string {
     return this.paragraphs.map((p) => p.text).join("\n");
@@ -579,11 +579,11 @@ export class _Rows implements Iterable<_Row> {
   get length(): number {
     return this.table.grid().rows.length;
   }
-  slice(start = 0, end = this.length): _Row[] {
+  slice(start = 0, end = this.length): readonly _Row[] {
     for (const value of [start, end])
       if (!Number.isSafeInteger(value))
         throw new InputTypeError("Expected safe integer slice bounds.");
-    return [...this].slice(start, end);
+    return snapshotSequence([...this].slice(start, end));
   }
   at(value: number): _Row {
     const grid = this.table.grid(),

@@ -1,3 +1,4 @@
+import { snapshotSequence } from "./numeric-index.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
 import { OwnershipError } from "./model-errors.js";
 import { activeModelChildren } from "./model-active-children.js";
@@ -123,15 +124,15 @@ export class Comment {
   }
   get paragraphs() {
     const node = this.store.node(this.ref);
-    return activeModelChildren(this.store, this.ref.part)(node)
+    return snapshotSequence(activeModelChildren(this.store, this.ref.part)(node)
       .filter((n) => n.namespace === node.namespace && n.localName === "p")
-      .map((n) => this.store.paragraph(this.store.ref(this.ref.part, n)));
+      .map((n) => this.store.paragraph(this.store.ref(this.ref.part, n))));
   }
   get tables() {
     const node = this.store.node(this.ref);
-    return activeModelChildren(this.store, this.ref.part)(node)
+    return snapshotSequence(activeModelChildren(this.store, this.ref.part)(node)
       .filter((n) => n.namespace === node.namespace && n.localName === "tbl")
-      .map((n) => this.store.table(this.store.ref(this.ref.part, n)));
+      .map((n) => this.store.table(this.store.ref(this.ref.part, n))));
   }
   get text(): string {
     return this.paragraphs.map((paragraph) => paragraph.text).join("\n");
@@ -180,9 +181,9 @@ export class Hyperlink {
   }
   get runs() {
     const node = this.store.node(this.ref);
-    return activeModelChildren(this.store, this.ref.part)(node)
+    return snapshotSequence(activeModelChildren(this.store, this.ref.part)(node)
       .filter((n) => n.namespace === node.namespace && n.localName === "r")
-      .map((n) => this.store.run(this.store.ref(this.ref.part, n)));
+      .map((n) => this.store.run(this.store.ref(this.ref.part, n))));
   }
   get text(): string {
     return this.runs.map((r) => r.text).join("");

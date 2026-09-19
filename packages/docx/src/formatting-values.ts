@@ -1,3 +1,4 @@
+import { snapshotSequence } from "./numeric-index.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
 import type { DocxLength, DocxEnumNames, DocxEnumValue } from "./operation-types.js";
 
@@ -540,7 +541,7 @@ export function enumFromXml<K extends FormattingEnum>(family: K, value: string |
 }
 export function enumMembers<K extends FormattingEnum>(family: K): readonly EnumMember<K>[] {
   const symbols = enumFamilies[family]; if (!symbols) throw new InvalidValueError("Unknown formatting enum family.");
-  return Object.freeze([...symbols]) as unknown as readonly EnumMember<K>[];
+  return snapshotSequence([...symbols]) as unknown as readonly EnumMember<K>[];
 }
 export function isLength(value: unknown): value is Length { return value !== null && typeof value === "object" && ownedLengths.has(value); }
 export function enumString(value: DocxEnumValue<keyof DocxEnumNames>): string {

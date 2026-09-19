@@ -2,7 +2,7 @@ import { bindXmlElementView, type XmlElementView, type XmlViewBinding } from "./
 import { DocumentBudget } from "./budget.js";
 import { plainLength, Pt, Twips, Length } from "./formatting-values.js";
 import { BoundsError, StaleHandleError } from "./model-errors.js";
-import { numericSequence } from "./numeric-index.js";
+import { numericSequence, snapshotSequence } from "./numeric-index.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
 import type { DocxEnumValue, DocxLength, DocxOperationArguments, DocxTabStop } from "./operation-types.js";
 import type { XmlElement } from "./package-xml.js";
@@ -388,8 +388,8 @@ export class RGBColor implements Iterable<number> {
   toString(): string { return this.values.map(value => value.toString(16).padStart(2, "0")).join("").toUpperCase(); }
   *[Symbol.iterator](): IterableIterator<number> { yield* this.values; }
   at(index: number): number { if (!Number.isSafeInteger(index)) throw new InputTypeError("Expected an integer component index."); const value = this.values.at(index); if (value === undefined) throw new BoundsError("Color component index is out of range."); return value; }
-  toArray(): readonly [number, number, number] { return this.values; }
-  slice(start = 0, end = 3): readonly number[] { if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) throw new InputTypeError("Expected integer slice bounds."); return this.values.slice(start, end); }
+  toArray(): readonly [number, number, number] { return snapshotSequence(this.values) as readonly [number, number, number]; }
+  slice(start = 0, end = 3): readonly number[] { if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) throw new InputTypeError("Expected integer slice bounds."); return snapshotSequence(this.values.slice(start, end)); }
   count(value: number): number { return this.values.filter(item => item === value).length; }
   index(value: number, start = 0, stop = 3): number {
     if (!Number.isSafeInteger(start) || !Number.isSafeInteger(stop)) throw new InputTypeError("Expected integer component bounds.");

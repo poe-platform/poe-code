@@ -1,3 +1,4 @@
+import { snapshotSequence } from "./numeric-index.js";
 import type { ModelRef, ModelStore } from "./model-store.js";
 import type { XmlElement } from "./package-xml.js";
 import { InputTypeError } from "./archive.js";
@@ -79,15 +80,15 @@ export class Paragraph {
   }
   get runs(): readonly Run[] {
     const p = this.store.node(this.ref);
-    return activeModelChildren(this.store, this.ref.part)(p)
+    return snapshotSequence(activeModelChildren(this.store, this.ref.part)(p)
       .filter((child) => child.namespace === p.namespace && child.localName === "r")
-      .map((child) => this.store.run(this.store.ref(this.ref.part, child)));
+      .map((child) => this.store.run(this.store.ref(this.ref.part, child))));
   }
   get hyperlinks(): readonly Hyperlink[] {
     const p = this.store.node(this.ref);
-    return activeModelChildren(this.store, this.ref.part)(p)
+    return snapshotSequence(activeModelChildren(this.store, this.ref.part)(p)
       .filter((child) => child.namespace === p.namespace && child.localName === "hyperlink")
-      .map((child) => new Hyperlink(this.store, this.store.ref(this.ref.part, child)));
+      .map((child) => new Hyperlink(this.store, this.store.ref(this.ref.part, child))));
   }
   *iter_inner_content(): IterableIterator<Run | Hyperlink> {
     const p = this.store.node(this.ref);
@@ -113,7 +114,7 @@ export class Paragraph {
       else for (const child of children(node)) visit(child);
     };
     visit(p);
-    return result;
+    return snapshotSequence(result);
   }
   get contains_page_break(): boolean {
     return this.rendered_page_breaks.length > 0;

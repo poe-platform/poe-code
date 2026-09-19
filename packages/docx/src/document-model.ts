@@ -1,3 +1,4 @@
+import { snapshotSequence } from "./numeric-index.js";
 import { admitDocumentModel } from "./model-admission.js";
 import { type DocumentModelContext } from "./model-context.js";
 import { type DocumentModelInput } from "./model-input.js";
@@ -47,14 +48,14 @@ export class DocumentView {
     );
   }
   get paragraphs() {
-    return [...this.store.blocks(this.ref)].filter(
+    return snapshotSequence([...this.store.blocks(this.ref)].filter(
       (block) => this.store.node(block.ref).localName === "p"
-    ) as import("./block-model.js").Paragraph[];
+    ) as import("./block-model.js").Paragraph[]);
   }
   get tables() {
-    return [...this.store.blocks(this.ref)].filter(
+    return snapshotSequence([...this.store.blocks(this.ref)].filter(
       (block) => this.store.node(block.ref).localName === "tbl"
-    ) as import("./table-model.js").Table[];
+    ) as import("./table-model.js").Table[]);
   }
   get styles() {
     return this.store.stylesForDocument(this.ref.part);

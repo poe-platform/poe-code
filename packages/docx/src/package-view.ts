@@ -1,3 +1,4 @@
+import { snapshotSequence } from "./numeric-index.js";
 import { inlineImageRun } from "./inline-image-xml.js";
 import type { ModelStore } from "./model-store.js";
 import type { BaseStyle, Styles } from "./styles-model.js";
@@ -180,7 +181,7 @@ export class PackageView {
     budget.charge("retainedBytes", metadata.bytes.length); budget.charge("work", metadata.bytes.length);
     return { ...metadata, bytes: new Uint8Array(metadata.bytes), modified: new Date(metadata.modified.getTime()) };
   }
-  get parts(): readonly PartView[] { return Object.freeze([...this.iter_parts()]); }
+  get parts(): readonly PartView[] { return snapshotSequence([...this.iter_parts()]); }
   *iter_parts(): IterableIterator<PartView> { for (const part of this.current().graph.iterParts()) yield this[packagePart](part.partname); }
   *iter_rels(): IterableIterator<RelationshipView> {
     const visited = new Set<string>(), stack = ["/"];
@@ -688,7 +689,7 @@ export class StoryPart extends XmlPartView {
   async get_or_add_image(input: ImageModelInput): Promise<readonly [string, Image]> {
     this.package[packageMetadata](this);
     const [id, image] = await this.package[packageStoryImage](this, input);
-    return Object.freeze([id, image]);
+    return snapshotSequence([id, image] as const) as readonly [string, Image];
   }
   async new_pic_inline(input: ImageModelInput, width?: number | Length | null, height?: number | Length | null): Promise<XmlElementView> {
     const { budget, xml: ownerXml } = this.package[packageReadXml](this);
@@ -805,12 +806,12 @@ export class DocumentPartView extends StoryPart {
   add_header_part(): readonly [HeaderPart, string] {
     const rId = this.package[packageNextRelationshipId](this);
     const part = this.package[packageCreateNative]("header", { owner: this, rId }) as HeaderPart;
-    return Object.freeze([part, rId]);
+    return snapshotSequence([part, rId] as const) as readonly [HeaderPart, string];
   }
   add_footer_part(): readonly [FooterPart, string] {
     const rId = this.package[packageNextRelationshipId](this);
     const part = this.package[packageCreateNative]("footer", { owner: this, rId }) as FooterPart;
-    return Object.freeze([part, rId]);
+    return snapshotSequence([part, rId] as const) as readonly [FooterPart, string];
   }
   header_part(rId: string): HeaderPart {
     const edge = this.rels.at(rId), dialect = Object.values(documentDialects).find(dialect => dialect.w === this.element.namespace)!;
@@ -1026,7 +1027,7 @@ export class Relationships implements Iterable<string> {
   at(id: string): RelationshipView { const view = this.get(id); if (!view) throw new MissingKeyError("Relationship ID was not found."); return view; }
   *keys(): IterableIterator<string> { for (const row of this.rows()) yield row.rId; }
   *values(): IterableIterator<RelationshipView> { for (const row of this.rows()) yield this.view(row); }
-  *items(): IterableIterator<readonly [string, RelationshipView]> { for (const row of this.rows()) yield Object.freeze([row.rId, this.view(row)] as const); }
+  *items(): IterableIterator<readonly [string, RelationshipView]> { for (const row of this.rows()) yield snapshotSequence([row.rId, this.view(row)] as const) as readonly [string, RelationshipView]; }
   [Symbol.iterator](): IterableIterator<string> { return this.keys(); }
   get related_parts(): ReadonlyMap<string, PartView> { return new Map([...this.values()].filter(edge => !edge.is_external).map(edge => [edge.rId, edge.target_part])); }
   get xml(): string { return this.#package[packageRelationshipXml](this.#owner); }
@@ -1113,6 +1114,6 @@ export class Relationships implements Iterable<string> {
     this.delete(id);
     return found;
   }
-  popitem(): readonly [string, RelationshipView] { const id = [...this.keys()].at(-1); if (id === undefined) throw new MissingKeyError("Relationship collection is empty."); return Object.freeze([id, this.pop(id)!]); }
+  popitem(): readonly [string, RelationshipView] { const id = [...this.keys()].at(-1); if (id === undefined) throw new MissingKeyError("Relationship collection is empty."); return snapshotSequence([id, this.pop(id)!] as const) as readonly [string, RelationshipView]; }
   copy(): ReadonlyMap<string, RelationshipView> { return new Map(this.items()); }
 }

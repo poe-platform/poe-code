@@ -2,7 +2,7 @@ import { editActiveRelationshipXml } from "./xml-write.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
 import { BoundsError } from "./model-errors.js";
 import type { ModelRef, ModelStore } from "./model-store.js";
-import { numericSequence } from "./numeric-index.js";
+import { numericSequence, snapshotSequence } from "./numeric-index.js";
 import { DocumentPackage } from "./package.js";
 import { relationshipXmlRows } from "./relationship-xml.js";
 import { findRelationshipPart, retainedRelationshipTargets } from "./relationship-part.js";
@@ -64,11 +64,11 @@ export class Sections implements Iterable<Section> {
   *[Symbol.iterator](): Iterator<Section> {
     for (const ref of refs(this.store, this.owner?.part)) yield new Section(this.store, ref);
   }
-  slice(start?: number, end?: number): Section[] {
+  slice(start?: number, end?: number): readonly Section[] {
     for (const value of [start, end])
       if (value !== undefined && !Number.isSafeInteger(value))
         throw new InputTypeError("Expected safe integer slice bounds.");
-    return [...this].slice(start, end);
+    return snapshotSequence([...this].slice(start, end));
   }
   count(value: unknown): number {
     return [...this].filter((section) => section.equals(value)).length;
@@ -457,17 +457,17 @@ class HeaderFooter {
   get paragraphs() {
     const store = this.section.store,
       ref = this.resolve()!;
-    return [...store.blocks(ref)].filter(
+    return snapshotSequence([...store.blocks(ref)].filter(
       (block): block is ReturnType<ModelStore["paragraph"]> =>
         store.node(block.ref).localName === "p"
-    );
+    ));
   }
   get tables() {
     const store = this.section.store,
       ref = this.resolve()!;
-    return [...store.blocks(ref)].filter(
+    return snapshotSequence([...store.blocks(ref)].filter(
       (block): block is ReturnType<ModelStore["table"]> => store.node(block.ref).localName === "tbl"
-    );
+    ));
   }
   iter_inner_content() {
     return this.section.store.blocks(this.resolve()!);

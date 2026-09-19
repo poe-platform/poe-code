@@ -1,3 +1,4 @@
+import { snapshotSequence } from "./numeric-index.js";
 import { BoundsError, StaleHandleError } from "./model-errors.js";
 import { InputTypeError } from "./archive.js";
 import { validateDocxValue } from "./operation-schema.js";
@@ -115,7 +116,7 @@ export class XmlElementView {
   }
   get children(): readonly XmlElementView[] {
     const { node } = this.#store.node(this), path = this.#store.paths.get(this)!;
-    return Object.freeze(node.children.map((_, index) => this.#store.view([...path!, index])));
+    return snapshotSequence(node.children.map((_, index) => this.#store.view([...path!, index])));
   }
   get text(): string | null {
     const { node } = this.#store.node(this);

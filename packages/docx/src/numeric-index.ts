@@ -1,4 +1,23 @@
 import { InputTypeError } from "./archive.js";
+import { BoundsError } from "./model-errors.js";
+
+/** Owned model snapshots retain array protocols with checked numeric access. */
+export function snapshotSequence<T>(items: readonly T[]): readonly T[] {
+  const values = Array.from(items);
+  Object.defineProperties(values, {
+    at: { value(position: number): T {
+      if (!Number.isSafeInteger(position)) throw new InputTypeError("Expected a safe integer sequence index.");
+      const resolved = position < 0 ? values.length + position : position;
+      if (resolved < 0 || resolved >= values.length) throw new BoundsError("Sequence index is out of bounds.");
+      return values[resolved]!;
+    } },
+    slice: { value(start = 0, end = values.length): readonly T[] {
+      if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) throw new InputTypeError("Expected safe integer slice bounds.");
+      return snapshotSequence(Array.prototype.slice.call(values, start, end) as T[]);
+    } }
+  });
+  return numericSequence(Object.freeze(values));
+}
 
 function index(key: string | symbol): number | undefined {
   if (typeof key !== "string" || String(Number(key)) !== key) return undefined;

@@ -1,3 +1,4 @@
+import { snapshotSequence } from "./numeric-index.js";
 import { archiveSettings, InputTypeError, InvalidValueError, type ArchiveContext } from "./archive.js";
 import { Emu, Inches, isLength, plainLength, type Length } from "./formatting-values.js";
 import { characterizeRasterHeader, type RasterHeader } from "./raster-header.js";
@@ -90,6 +91,6 @@ export class Image {
     if (explicitHeight === null && explicitWidth !== null) y = explicitWidth * (nativeHeight / nativeWidth);
     const result = [Emu(x), Emu(y)] as const;
     if (result.some(value => value.emu <= 0)) throw new InvalidValueError("Image dimensions must be positive EMUs.");
-    return Object.freeze(result);
+    return snapshotSequence(result) as readonly [Length, Length];
   }
 }

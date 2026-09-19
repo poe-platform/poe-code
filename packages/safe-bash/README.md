@@ -271,6 +271,11 @@ provided. Pass an `AbortSignal` as `signal` to cancel. [Option types](src/shell/
 
 Always call `dispose()` when finished. Shell failures normally produce an exit
 code and stderr; limit violations, cancellation, and host failures can reject `exec()`.
+The command budget counts compound commands and loop conditions as well as body
+commands. With both work budgets set to 10,000, `while true; do :; done` reaches
+`maxCommands` first. Work budgets bound execution counts, not elapsed latency.
+Await execution settlement and shell disposal before closing backing storage,
+including after a caller timeout; cancellation is cooperative.
 For Cloudflare Workers, start with the exported `cloudflareWorkerLimits` profile
 and configure command-family buffers at no more than 8 MiB. Create a separate
 `Shell`, environment object, and quota-wrapped filesystem view for each tenant or

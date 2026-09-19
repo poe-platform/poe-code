@@ -1,3 +1,4 @@
+import { requireComparisonOperand } from "./comparison-operand.js";
 import { snapshotSequence } from "./numeric-index.js";
 import { admitDocumentModel } from "./model-admission.js";
 import { type DocumentModelContext } from "./model-context.js";
@@ -32,6 +33,7 @@ export class DocumentView {
     this.ref = store.ref(owner, body);
   }
   equals(other: unknown): boolean {
+    requireComparisonOperand(other);
     const node = this.store.node(this.ref);
     return other instanceof DocumentView && other.store === this.store && other.store.node(other.ref) === node;
   }

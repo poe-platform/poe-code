@@ -1,3 +1,4 @@
+import { requireComparisonOperand } from "./comparison-operand.js";
 import { editActiveRelationshipXml } from "./xml-write.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
 import { BoundsError } from "./model-errors.js";
@@ -110,6 +111,7 @@ export class Section {
     return this.store.part(this.ref.part, true);
   }
   equals(other: unknown): boolean {
+    requireComparisonOperand(other);
     this.store.node(this.ref);
     return (
       other instanceof Section &&

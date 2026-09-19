@@ -1,3 +1,4 @@
+import { requireComparisonOperand } from "./comparison-operand.js";
 import { activeModelChildren } from "./model-active-children.js";
 import { InputTypeError } from "./archive.js";
 import { DocumentPackage } from "./package.js";
@@ -64,6 +65,7 @@ export class Settings {
     return this.store.element(this.ref);
   }
   equals(other: unknown): boolean {
+    requireComparisonOperand(other);
     this.store.node(this.ref);
     return (
       other instanceof Settings &&

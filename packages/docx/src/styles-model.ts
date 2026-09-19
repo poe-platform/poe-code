@@ -1,3 +1,4 @@
+import { requireComparisonOperand } from "./comparison-operand.js";
 import { storedBoolean } from "./stored-lexical.js";
 import { InvalidDocumentError } from "./document-error.js";
 import { styleLinkPatches } from "./style-links.js";
@@ -157,7 +158,7 @@ export class Styles implements Iterable<BaseStyle> {
   private get rawElement(): XmlElement { return this.store.editor().root; }
   get element(): XmlElementView { return this.store.xmlView("styles-root", xml => xml.root); }
   get part(): StylesPart { return this.store.part; }
-  equals(other: unknown): boolean { return other instanceof Styles && other.store === this.store; }
+  equals(other: unknown): boolean { requireComparisonOperand(other); return other instanceof Styles && other.store === this.store; }
   get length(): number { return this.store.tokens.length; }
   *[Symbol.iterator](): Iterator<BaseStyle> { for (const token of [...this.store.tokens]) yield this.wrap(token); }
   private wrap(token: number): BaseStyle {
@@ -234,7 +235,7 @@ export class BaseStyle {
   protected get rawElement(): XmlElement { const xml = this.store.editor(); return this.store.node(xml, this.token); }
   get element(): XmlElementView { void this.rawElement; return this.store.xmlView(`style:${this.token}`, xml => this.store.node(xml, this.token), () => this.delete()); }
   get part(): StylesPart { void this.rawElement; return this.store.part; }
-  equals(other: unknown): boolean { void this.rawElement; return other instanceof BaseStyle && other.store === this.store && other.token === this.token; }
+  equals(other: unknown): boolean { requireComparisonOperand(other); void this.rawElement; return other instanceof BaseStyle && other.store === this.store && other.token === this.token; }
   protected setValue(tag: string, value: string | null): void {
     this.store.change(xml => {
       const node = this.store.node(xml, this.token), children = activeXmlChildren(xml, archiveSettings(this.store.context).budget);
@@ -357,7 +358,7 @@ export class LatentStyles implements Iterable<LatentStyle> {
   get element(): XmlElementView { void this.rawElement; return this.store.xmlView("latent-root", xml => { const node = this.store.readChild(xml.root, "latentStyles"); if (!node) throw new StaleHandleError("The XML owner is detached."); return node; }); }
   xmlView(token: number): XmlElementView { void this.entry(token); return this.store.xmlView(`latent:${token}`, xml => this.node(token, xml), () => this.remove(token)); }
   get part(): StylesPart { return this.store.part; }
-  equals(other: unknown): boolean { return other instanceof LatentStyles && other.store === this.store; }
+  equals(other: unknown): boolean { requireComparisonOperand(other); return other instanceof LatentStyles && other.store === this.store; }
   private info() { const xml = this.store.editor(); return readLatentStyles(xml.root, undefined, activeXmlChildren(xml, archiveSettings(this.store.context).budget))!; }
   get length(): number { return this.info().entries.length; }
   *[Symbol.iterator](): Iterator<LatentStyle> { for (const token of [...this.store.latentTokens]) yield new LatentStyle(this, token); }
@@ -413,7 +414,7 @@ export class LatentStyle {
   get name(): string { return this.collection.entry(this.token).name; }
   get part(): StylesPart { void this.name; return this.collection.part; }
   get element(): XmlElementView { return this.collection.xmlView(this.token); }
-  equals(other: unknown): boolean { void this.name; return other instanceof LatentStyle && this.collection.equals(other.collection) && this.token === other.token; }
+  equals(other: unknown): boolean { requireComparisonOperand(other); void this.name; return other instanceof LatentStyle && this.collection.equals(other.collection) && this.token === other.token; }
   get priority(): number | null { return this.collection.entry(this.token).priority; }
   set priority(value: number | null) { nullableInteger(value); this.collection.change(this.token, "priority", value); }
   get hidden(): boolean | null { return this.collection.entry(this.token).hidden; }

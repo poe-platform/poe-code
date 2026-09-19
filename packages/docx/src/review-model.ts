@@ -1,3 +1,4 @@
+import { requireComparisonOperand } from "./comparison-operand.js";
 import { snapshotSequence } from "./numeric-index.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
 import { OwnershipError } from "./model-errors.js";
@@ -93,6 +94,7 @@ export class Comment {
     return this.store.element(this.ref);
   }
   equals(other: unknown): boolean {
+    requireComparisonOperand(other);
     return (
       other instanceof Comment &&
       other.store === this.store &&

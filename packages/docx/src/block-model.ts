@@ -1,3 +1,4 @@
+import { requireComparisonOperand } from "./comparison-operand.js";
 import { snapshotSequence } from "./numeric-index.js";
 import type { ModelRef, ModelStore } from "./model-store.js";
 import type { XmlElement } from "./package-xml.js";
@@ -48,6 +49,7 @@ export class Paragraph {
     readonly ref: ModelRef
   ) {}
   equals(other: unknown): boolean {
+    requireComparisonOperand(other);
     this.store.node(this.ref);
     return (
       other instanceof Paragraph &&
@@ -207,6 +209,7 @@ export class Run {
     readonly ref: ModelRef
   ) {}
   equals(other: unknown): boolean {
+    requireComparisonOperand(other);
     this.store.node(this.ref);
     return (
       other instanceof Run &&

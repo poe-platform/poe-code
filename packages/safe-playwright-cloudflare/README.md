@@ -7,14 +7,14 @@ The implementation ships through `@poe-platform/safe-bash/playwright/cloudflare`
 Cloudflare dependencies stay outside the portable shell and CLI entrypoints.
 
 ```ts
-import { createPlaywrightCli } from '@poe-platform/safe-bash/playwright';
-import { createCloudflarePlaywrightAdapter } from '@poe-platform/safe-bash/playwright/cloudflare';
+import { createPlaywrightCli } from "@poe-platform/safe-bash/playwright";
+import { createCloudflarePlaywrightAdapter } from "@poe-platform/safe-bash/playwright/cloudflare";
 
 const adapter = createCloudflarePlaywrightAdapter(
   env.BROWSER,
   undefined,
   { ownerId: authenticatedOwnerKey, loader: env.BROWSER_RUN_CODE_LOADER },
-  { maxStorageBytes: 2 * 1024 * 1024 },
+  { maxStorageBytes: 2 * 1024 * 1024 }
 );
 const cli = createPlaywrightCli({ adapter, limits: { maxSessions: 2, maxTabs: 8 } });
 ```
@@ -38,8 +38,10 @@ Portable profile APIs always require explicit host byte and tab limits.
 
 ```ts
 import {
-  parseBrowserProfile, checkpointBrowserProfile, restoreBrowserProfile,
-} from '@poe-platform/safe-bash/playwright';
+  parseBrowserProfile,
+  checkpointBrowserProfile,
+  restoreBrowserProfile
+} from "@poe-platform/safe-bash/playwright";
 
 const limits = { maxBytes: 2 * 1024 * 1024, maxTabs: 8 };
 const persistence = {
@@ -54,7 +56,9 @@ const persistence = {
     const bytes = await checkpointBrowserProfile(session, limits, signal);
     await hostProfiles.save(session.name, bytes, signal);
   },
-  async delete(name, signal) { await hostProfiles.remove(name, signal); },
+  async delete(name, signal) {
+    await hostProfiles.remove(name, signal);
+  }
 };
 const persistentCli = createPlaywrightCli({ adapter, persistence });
 ```
@@ -87,6 +91,12 @@ provider requires rerunning native and Worker conformance and installed-archive
 verification. Chromium conformance uses Miniflare 4.20260708.1 with compatibility
 date 2026-07-08; transport fault tests use the consumer's 2025-01-01 compatibility
 profile with explicitly enabled Node modules.
+
+For local native fixtures, use esbuild and run each browser scenario in a fresh
+host subprocess when recreating Miniflare runtimes is unstable. Bun's own bundler
+has a separate first-build incompatibility with unused peer Electron assets in
+the qualified versions. See the [runtime qualification](docs/runtime-qualification.md)
+for the tested versions, restart results and diagnostic boundaries.
 
 Structured snapshots support at most 128 frames, including the main frame.
 Larger trees reject with `Browser snapshot frame limit exceeded` before native

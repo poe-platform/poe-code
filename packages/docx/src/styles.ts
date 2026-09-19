@@ -179,13 +179,17 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
     xml[replaceActiveStyleXml](selected, "");
     changes.push({ kind: "style", id: attr(selected, "styleId")! });
   } else if (operation === "styles.defaults.set") {
-    const defaults = child(xml.root, "docDefaults");
+    const declarations = children(xml.root).filter(node => node.namespace === w && node.localName === "docDefaults");
+    if (declarations.length > 1) throw new UnsupportedEditError("Duplicate document defaults cannot be edited.");
+    const defaults = declarations[0];
     const defaultsXml = defaults ? xml : new DocumentXmlEditor(new TextEncoder().encode(`<st:docDefaults xmlns:st="${w}"/>`), {}, undefined, budget);
     const target = defaults ?? defaultsXml.root;
     const defaultsChildren = activeXmlChildren(defaultsXml, budget);
     const updates = new Map<string, string>();
     for (const [container, property] of [["rPrDefault", "rPr"], ["pPrDefault", "pPr"]] as const) {
-      const existing = styleChild(target, container, defaultsChildren);
+      const containers = defaultsChildren(target).filter(node => node.namespace === w && node.localName === container);
+      if (containers.length > 1) throw new UnsupportedEditError("Duplicate default property containers cannot be edited.");
+      const existing = containers[0];
       const fragment = existing ? defaultsXml : new DocumentXmlEditor(new TextEncoder().encode(`<st:${container} xmlns:st="${w}"/>`), {}, undefined, budget);
       const owner = existing ?? fragment.root;
       const fragmentChildren = activeXmlChildren(fragment, budget);

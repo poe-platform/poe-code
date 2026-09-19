@@ -26,7 +26,7 @@ if (carrier !== "direct" || placement === "leaf") it(`${route} ${action} ${prope
   const properties = wrap(`<w:${prop}>${wrap(leaf, "leaf")}${property === "font" ? '<w:b/><w:rtl/>' : '<w:keepNext/>'}${inert}<!--retain--><?policy keep?></w:${prop}>`, "properties");
   const defaults = wrap(`<w:docDefaults>${wrap(`<w:${container}>${properties}</w:${container}>`, "container")}</w:docDefaults>`, "defaults");
   const raw = `<w:styles xmlns:w="${w}" xmlns:f="${foreign}" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="f" mc:ProcessContent="f:pass">${defaults}<w:style w:type="paragraph" w:styleId="Atlas"><w:name w:val="Atlas"/></w:style><!--root--><?audit retain?></w:styles>`;
-  const source = spelling === "default" ? raw.split("<w:").join("<").split("</w:").join("</").replace("<styles ", `<styles xmlns="${w}" `) : raw.split("w:").join(`${spelling}:`);
+  const source = spelling === "default" ? raw.split("<w:").join("<").split("</w:").join("</").replace("<styles ", `<styles xmlns="${w}" `) : raw.replace("xmlns:w=", `xmlns:${spelling}=`).split("w:").join(`${spelling}:`);
   const parts = readPackage(await textFixture(paragraph("Retain 日本 עברית é 🌊"), { styles: {kind: "styles", xml: source}}, strict));
   if (kind === "dotx") parts.set("[Content_Types].xml", encode(new TextDecoder().decode(parts.get("[Content_Types].xml")!).replace("wordprocessingml.document.main+xml", "wordprocessingml.template.main+xml")));
   const memory = Volume.fromJSON({"/input":"", "/output":""});

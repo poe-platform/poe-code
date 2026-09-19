@@ -813,7 +813,9 @@ it("workflow-506 observes font vertical alignment variant", async () => {
  const document = await Document(await textFixture("<w:p><w:r><w:rPr></w:rPr><w:t>Original signal</w:t></w:r></w:p>"), textContext);
  const target = document.paragraphs[0]!.runs[0]!.font;
  target.subscript = false;
-expect(target.subscript).toBe(null);
+expect(target.subscript).toBe(false);
+expect(target.superscript).toBe(false);
+expect(new TextDecoder().decode(target.element.serialize())).toContain("baseline");
 });
 
 it("workflow-507 observes font vertical alignment variant", async () => {
@@ -834,7 +836,9 @@ it("workflow-509 observes font vertical alignment variant", async () => {
  const document = await Document(await textFixture("<w:p><w:r><w:rPr></w:rPr><w:t>Original signal</w:t></w:r></w:p>"), textContext);
  const target = document.paragraphs[0]!.runs[0]!.font;
  target.superscript = false;
-expect(target.superscript).toBe(null);
+expect(target.superscript).toBe(false);
+expect(target.subscript).toBe(false);
+expect(new TextDecoder().decode(target.element.serialize())).toContain("baseline");
 });
 
 it("workflow-510 observes font vertical alignment variant", async () => {
@@ -848,7 +852,9 @@ it("workflow-511 observes font vertical alignment variant", async () => {
  const document = await Document(await textFixture("<w:p><w:r><w:rPr><w:vertAlign w:val=\"subscript\"/></w:rPr><w:t>Original signal</w:t></w:r></w:p>"), textContext);
  const target = document.paragraphs[0]!.runs[0]!.font;
  target.subscript = false;
-expect(target.subscript).toBe(null);
+expect(target.subscript).toBe(false);
+expect(target.superscript).toBe(false);
+expect(new TextDecoder().decode(target.element.serialize())).toContain("baseline");
 });
 
 it("workflow-512 observes font vertical alignment variant", async () => {
@@ -869,7 +875,9 @@ it("workflow-514 observes font vertical alignment variant", async () => {
  const document = await Document(await textFixture("<w:p><w:r><w:rPr><w:vertAlign w:val=\"subscript\"/></w:rPr><w:t>Original signal</w:t></w:r></w:p>"), textContext);
  const target = document.paragraphs[0]!.runs[0]!.font;
  target.superscript = false;
-expect(target.subscript).toBe(true);
+expect(target.subscript).toBe(false);
+expect(target.superscript).toBe(false);
+expect(new TextDecoder().decode(target.element.serialize())).toContain("baseline");
 });
 
 it("workflow-515 observes font vertical alignment variant", async () => {
@@ -890,7 +898,9 @@ it("workflow-517 observes font vertical alignment variant", async () => {
  const document = await Document(await textFixture("<w:p><w:r><w:rPr><w:vertAlign w:val=\"superscript\"/></w:rPr><w:t>Original signal</w:t></w:r></w:p>"), textContext);
  const target = document.paragraphs[0]!.runs[0]!.font;
  target.superscript = false;
-expect(target.superscript).toBe(null);
+expect(target.superscript).toBe(false);
+expect(target.subscript).toBe(false);
+expect(new TextDecoder().decode(target.element.serialize())).toContain("baseline");
 });
 
 it("workflow-518 observes font vertical alignment variant", async () => {
@@ -911,7 +921,9 @@ it("workflow-520 observes font vertical alignment variant", async () => {
  const document = await Document(await textFixture("<w:p><w:r><w:rPr><w:vertAlign w:val=\"superscript\"/></w:rPr><w:t>Original signal</w:t></w:r></w:p>"), textContext);
  const target = document.paragraphs[0]!.runs[0]!.font;
  target.subscript = false;
-expect(target.superscript).toBe(true);
+expect(target.superscript).toBe(false);
+expect(target.subscript).toBe(false);
+expect(new TextDecoder().decode(target.element.serialize())).toContain("baseline");
 });
 
 it("workflow-521 observes font vertical alignment variant", async () => {

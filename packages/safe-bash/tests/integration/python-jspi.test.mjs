@@ -8,6 +8,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { test } from 'node:test';
 import { build } from 'esbuild';
 import ts from 'typescript';
+import { createPythonJspiCallbackCatalog } from './python-jspi-catalog.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const consumerRoot = process.env.SAFE_BASH_PYTHON_CONSUMER_ROOT;
@@ -34,7 +35,8 @@ const require = createRequire(resolve(tooling, 'package.json'));
 assert.equal(require('miniflare/package.json').version, '5.20260917.0-alpha');
 assert.equal(require('workerd/package.json').version, '1.20260917.1');
 const { Miniflare, convertV4MiniflareOptions } = require('miniflare');
-const runtimeRoot = fileURLToPath(new URL('./pyodide-runtime/node_modules/pyodide/', import.meta.url));
+const runtimeRoot = process.env.SAFE_BASH_PYTHON_RUNTIME_ROOT
+  ?? fileURLToPath(new URL('./pyodide-runtime/node_modules/pyodide/', import.meta.url));
 const manifest = {
   'pyodide.mjs': [17931, '69e3f6ccec3e14b465df60be577ca62f536251406b9a00cce019eac5252a2495'],
   'pyodide.asm.mjs': [1250344, '2ac5eba365ec12839c75c03b39b3be1dd63b798852cc460b014b52238be042f7'],
@@ -67,6 +69,8 @@ const helper = embeddedModule(files['pyodide.mjs'], node => ts.isVariableDeclara
 const ccall = embeddedModule(files['pyodide.asm.mjs'], node => ts.isFunctionDeclaration(node) && node.name?.text === 'getWasmTrampolineModule'
   ? Buffer.from(node.body.statements[0].expression.arguments[0].arguments[0].text, 'hex') : undefined);
 const empty = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]);
+const callbacks = createPythonJspiCallbackCatalog(files['pyodide.asm.mjs']);
+const callbackFiles = callbacks.map(({signature}) => 'callback-' + signature + '.wasm');
 
 test('real workerd native async I/O, imports, binary streams and asynchronous finalization', { timeout: 30000 }, async context => {
   const injection = `
@@ -74,12 +78,14 @@ import main from 'main.wasm';
 import helper from 'helper.wasm';
 import ccall from 'ccall.wasm';
 import empty from 'empty.wasm';
+${callbackFiles.map((name, index) => `import callback${index} from '${name}';`).join('\n')}
 import stdlib from 'stdlib.bin';
 import { createPythonJspiAssets } from '@poe-platform/safe-bash/commands/python';
 const assets = createPythonJspiAssets({ main, stdlib:new Uint8Array(stdlib), modules:[
  { module:helper,bytes:new Uint8Array(${JSON.stringify(Array.from(helper))}) },
  { module:ccall,bytes:new Uint8Array(${JSON.stringify(Array.from(ccall))}) },
  { module:empty,bytes:new Uint8Array(${JSON.stringify(Array.from(empty))}) },
+${callbacks.map(({bytes}, index) => ` { module:callback${index},bytes:new Uint8Array(${JSON.stringify(Array.from(bytes))}) },`).join('\n')}
 ]});
 const { WebAssembly, fetch, location } = assets;
 export { WebAssembly, fetch, location };
@@ -87,7 +93,7 @@ export { WebAssembly, fetch, location };
   const outputRoot = process.env.TMPDIR;
   const bundle = await build({ entryPoints: [fileURLToPath(new URL('./python-jspi.worker.mjs', import.meta.url))],
     bundle: true, write: false, metafile: true, platform: 'node', format: 'esm', target: 'es2022', conditions: ['workerd', 'browser'],
-    external: ['main.wasm', 'helper.wasm', 'ccall.wasm', 'empty.wasm', 'trampoline.wasm', 'native-call.wasm', 'stat-result.wasm', 'stdlib.bin', 'node:*', 'ws'],
+    external: ['main.wasm', 'helper.wasm', 'ccall.wasm', 'empty.wasm', 'trampoline.wasm', 'native-call.wasm', 'stat-result.wasm', 'stdlib.bin', 'node:*', 'ws', ...callbackFiles],
     define: { 'globalThis.process': 'undefined', process: 'undefined' },
     alias: { 'pinned-pyodide-loader': resolve(runtimeRoot, 'pyodide.mjs'),
       'pinned-pyodide-module': resolve(runtimeRoot, 'pyodide.asm.mjs'),
@@ -97,6 +103,7 @@ export { WebAssembly, fetch, location };
         '@poe-platform/safe-fs/core': resolve(root, 'packages/safe-fs/src/core.ts'),
         '@poe-platform/safe-bash/commands/python': resolve(root, 'packages/safe-bash/src/commands/python/index.ts'),
         '@poe-platform/safe-bash': resolve(root, 'packages/safe-bash/src/shell/shell.ts'),
+        'safe-bash-contracts': resolve(root, 'packages/safe-bash-contracts/src'),
       }) },
     inject: ['python-static-assets'], plugins: [{ name: 'python-static-assets', setup(plugin) {
       if (consumerRoot) plugin.onResolve({ filter: /^@poe-platform\// }, args => {
@@ -112,15 +119,30 @@ export { WebAssembly, fetch, location };
     assert.equal(inputs.some(path => path.startsWith(resolve(root, 'packages/safe-fs/src') + '/')), false);
     assert.ok(inputs.some(path => path.startsWith(resolve(consumerRoot, 'node_modules/@poe-platform/safe-bash') + '/')));
     assert.ok(inputs.some(path => path.startsWith(resolve(consumerRoot, 'node_modules/@poe-platform/safe-fs') + '/')));
+  } else {
+    for (const input of Object.keys(bundle.metafile.inputs)) {
+      const path = resolve(root, input);
+      if (path.includes('/packages/')) {
+        assert.ok(path.startsWith(root + '/'), 'Qualification must use candidate sources: ' + path);
+      }
+    }
   }
   const modules = [
     { type: 'ESModule', path: resolve(outputRoot, 'main.mjs'), contents: bundle.outputFiles[0].text },
     ...[['main.wasm', files['pyodide.asm.wasm']], ['helper.wasm', helper], ['ccall.wasm', ccall],
       ['empty.wasm', empty], ['trampoline.wasm', createPythonJspiTrampoline()], ['native-call.wasm', createPythonJspiNativeCall()],
       ['stat-result.wasm', createPythonJspiStatResult()]].map(([name, contents]) => ({ type: 'CompiledWasm', path: resolve(outputRoot, name), contents })),
+    ...callbacks.map(({bytes}, index) => ({ type:'CompiledWasm', path:resolve(outputRoot, callbackFiles[index]), contents:bytes })),
     { type: 'Data', path: resolve(outputRoot, 'stdlib.bin'), contents: files['python_stdlib.zip'] },
   ];
-  const miniflare = new Miniflare(convertV4MiniflareOptions({ modules, compatibilityDate: '2026-09-17', cf: false }));
+  const runtimeErrors = [];
+  const miniflare = new Miniflare(convertV4MiniflareOptions({ modules, compatibilityDate: '2026-09-17', cf: false,
+    handleStructuredLogs(entry) {
+      if (entry.level === 'error') runtimeErrors.push(entry);
+      context.diagnostic(JSON.stringify({workerd:entry}));
+    },
+    handleUncaughtError(error) { runtimeErrors.push({uncaught:String(error)}); },
+  }));
   try {
     const response = await miniflare.dispatchFetch('http://fixture/native');
     const result = await response.json();
@@ -182,6 +204,10 @@ export { WebAssembly, fetch, location };
     const proxy = await proxyResponse.json();
     assert.equal(proxyResponse.status, 200, JSON.stringify(proxy));
     assert.deepEqual(proxy.failures, []);
+    const errorResponse = await miniflare.dispatchFetch('http://fixture/unhandled-errors');
+    assert.equal(errorResponse.status, 200);
+    assert.deepEqual(await errorResponse.json(), [], 'Actual workerd qualification must have zero unhandled Worker errors');
+    assert.deepEqual(runtimeErrors, [], 'Actual workerd qualification must have zero runtime errors');
     if (assetDirectory) {
       await mkdir(assetDirectory, {recursive:false});
       const assets = [];
@@ -196,11 +222,47 @@ export { WebAssembly, fetch, location };
         mainModule:'main.mjs', compatibilityDate:'2026-09-17', compatibilityFlags:[],
         miniflare:require('miniflare/package.json').version, workerd:require('workerd/package.json').version,
         pyodide:'314.0.6', pinnedInputs:manifest, assets,
+        callbackSignatures:callbacks.map(({signature}) => signature), unhandledWorkerErrors:[],
         qualification:'local installed-public-package workerd only; no deployment claim',
       }, null, 2) + '\n', {flag:'wx'});
     }
     context.diagnostic(JSON.stringify({ artifact: consumerRoot ? 'installed-public-packages' : 'workspace-source', memory: result.memory, elapsedMs: result.elapsedMs,
-      requests: result.requests.length, finalizationFailure: finalization.failures,
+      requests: result.requests.length, finalizationFailure: finalization.failures, callbackModules:callbacks.length, unhandledWorkerErrors:[],
       assets: modules.map(module => ({ name: module.path.slice(outputRoot.length + 1), bytes: Buffer.byteLength(module.contents) })) }));
-  } finally { await miniflare.dispose(); }
+  } finally {
+    await miniflare.dispose();
+    assert.deepEqual(runtimeErrors, [], 'Actual workerd qualification must have zero unhandled/runtime errors');
+  }
+});
+
+test('actual workerd error gate rejects an unhandled initialization rejection despite successful buffered output', { timeout: 10000 }, async () => {
+  const bundle = await build({ stdin:{contents:`
+import { observePythonJspiUnhandledErrors } from './python-jspi-errors.mjs';
+const errors = observePythonJspiUnhandledErrors(globalThis);
+export default { async fetch(request) {
+ if (new URL(request.url).pathname === '/unhandled-errors') {
+  await new Promise(resolve => setTimeout(resolve, 0));
+  return Response.json(errors.snapshot());
+ }
+ Promise.reject(new WebAssembly.CompileError('python-jspi-error-gate-negative-control'));
+ await new Promise(resolve => setTimeout(resolve, 0));
+ return Response.json({exitCode:0, stdout:'production-python-assertions-pass'});
+} };
+`, resolveDir:dirname(fileURLToPath(import.meta.url)), loader:'js' }, bundle:true, write:false, format:'esm', platform:'browser' });
+  const miniflare = new Miniflare(convertV4MiniflareOptions({
+    modules: [{ type:'ESModule', path:resolve(process.env.TMPDIR, 'error-gate.mjs'), contents:bundle.outputFiles[0].text }],
+    compatibilityDate:'2026-09-17', cf:false,
+  }));
+  try {
+    const response = await miniflare.dispatchFetch('http://fixture/');
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), {exitCode:0, stdout:'production-python-assertions-pass'});
+    const errorResponse = await miniflare.dispatchFetch('http://fixture/unhandled-errors');
+    assert.equal(errorResponse.status, 200);
+    const errors = await errorResponse.json();
+    assert.throws(() => assert.deepEqual(errors, [], 'Actual workerd qualification must have zero unhandled Worker errors'), assert.AssertionError);
+    assert.deepEqual(errors, [{type:'unhandledrejection', reason:'CompileError: python-jspi-error-gate-negative-control'}]);
+  } finally {
+    await miniflare.dispose();
+  }
 });

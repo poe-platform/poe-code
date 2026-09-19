@@ -2676,7 +2676,10 @@ test("Python native JSPI qualification inputs remain admitted without claiming e
   for (const path of ["tests/commands/python/jspi-assets.test.ts", "tests/commands/python/jspi-trampoline.test.ts",
     "tests/commands/python/jspi-scheduler.test.ts",
     "tests/commands/python/jspi.test.ts", "src/commands/python/jspi.ts",
-    "tests/integration/python-jspi.test.mjs", "tests/integration/python-jspi.worker.mjs", "tests/integration/python-managed.test.mjs"]) {
+    "tests/integration/python-jspi.test.mjs", "tests/integration/python-jspi.worker.mjs",
+    "tests/integration/python-jspi-catalog.mjs", "tests/integration/python-jspi-catalog.test.mjs",
+    "tests/integration/python-jspi-errors.mjs",
+    "tests/integration/python-managed.test.mjs"]) {
     assertAdmittedInputPath(path, boundaries);
     assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
   }

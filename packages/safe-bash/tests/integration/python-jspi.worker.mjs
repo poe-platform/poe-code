@@ -7,6 +7,9 @@ import statResult from 'stat-result.wasm';
 import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator } from '@poe-platform/safe-fs/core';
 import { createPythonJspiExecutor, pythonCommands, createPythonExecutorPool } from '@poe-platform/safe-bash/commands/python';
 import { Shell } from '@poe-platform/safe-bash';
+import { observePythonJspiUnhandledErrors } from './python-jspi-errors.mjs';
+
+const unhandledErrors = observePythonJspiUnhandledErrors(globalThis);
 
 async function qualifyShells(backend, createExecutor) {
   const gates = Object.fromEntries(['first', 'sibling'].map(name => {
@@ -181,6 +184,10 @@ with open('/work/cancel', 'rb') as source:
 export default {
   async fetch(request) {
     const mode = new URL(request.url).pathname;
+    if (mode === '/unhandled-errors') {
+      await new Promise(resolve => setTimeout(resolve, 0));
+      return Response.json(unhandledErrors.snapshot());
+    }
     const started = performance.now();
     const backend = new MemoryFileSystem();
     await backend.mkdir('/work');

@@ -1,0 +1,186 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "csvjoinSourceSha256": "197d34b3ebb611a6ac38cdbac60bb4e62df2ed16d8844d375554faf5ca7affd1",
+  "warningUtilsPath": "/Users/kjopek/Workspace/poe-code-5/out/csvjoin-reference/lib/python3.14/site-packages/agate/utils.py",
+  "cases": [
+    {
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "k",
+        "a",
+        "b"
+      ],
+      "files": {
+        "/a": "k,k\nx,A\n",
+        "/b": "k,k\nx,B\n"
+      },
+      "stdin": "",
+      "stdout": "k,k_2,k_22\nx,A,B\n",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/csvjoin-reference/lib/python3.14/site-packages/agate/utils.py:288: DuplicateColumnWarning: Column name \"k\" already exists in Table. Column will be renamed to \"k_2\".\n  warn_duplicate_column(new_value, final_value)\n",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0"
+      ],
+      "files": {},
+      "stdin": "n,b\n02,yes\n3,no\n",
+      "stdout": "n,b\n2,True\n3,False\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "-c",
+        "k",
+        "a",
+        "b"
+      ],
+      "files": {
+        "/a": "k,a\n1,one\n0,zero\n",
+        "/b": "k,b\n1.00,first\n2,other\n-0,last\n"
+      },
+      "stdin": "",
+      "stdout": "k,a,b\nTrue,one,first\nFalse,zero,last\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "-c",
+        "k",
+        "a",
+        "b"
+      ],
+      "files": {
+        "/a": "k,a\n2.00,A\n-0,Z\n",
+        "/b": "k,b\n2,B\n0,C\n"
+      },
+      "stdin": "",
+      "stdout": "k,a,b\n2.00,A,B\n-0,Z,C\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "-c",
+        "k",
+        "a",
+        "b"
+      ],
+      "files": {
+        "/a": "k,a\nNaN,A\n2,B\n",
+        "/b": "k,b\nNaN,C\n2,D\n"
+      },
+      "stdin": "",
+      "stdout": "k,a,b\n2,B,D\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "-I",
+        "--zero",
+        "-c",
+        "0",
+        "a",
+        "b"
+      ],
+      "files": {
+        "/a": "k,a\nx,A\n",
+        "/b": "k,b\nx,B\n"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "ColumnIdentifierError: Column 0 is invalid. Columns are 1-based.\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-y0",
+        "-I",
+        "--outer",
+        "-c",
+        "k",
+        "a",
+        "b",
+        "c"
+      ],
+      "files": {
+        "/a": "k,v\na,A\n",
+        "/b": "k,w\nb,B\n",
+        "/c": "k,z\nb,C\n"
+      },
+      "stdin": "",
+      "stdout": "k,v,k2,w,k2_2,z\na,A,,,,\n,,b,B,,\n,,,,b,C\n",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/csvjoin-reference/lib/python3.14/site-packages/agate/utils.py:288: DuplicateColumnWarning: Column name \"k2\" already exists in Table. Column will be renamed to \"k2_2\".\n  warn_duplicate_column(new_value, final_value)\n",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "k",
+        "--outer",
+        "--left",
+        "a",
+        "b"
+      ],
+      "files": {
+        "/a": "k,v\na,A\n",
+        "/b": "k,w\nb,B\n"
+      },
+      "stdin": "",
+      "stdout": "k,v,w\na,A,\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "k",
+        "--outer",
+        "--right",
+        "a",
+        "b"
+      ],
+      "files": {
+        "/a": "k,v\na,A\n",
+        "/b": "k,w\nb,B\n"
+      },
+      "stdin": "",
+      "stdout": "k,w,v\nb,B,\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "--datetime-format",
+        "%Y-%m-%dT%H:%M:%S%z",
+        "-c",
+        "k",
+        "a",
+        "b"
+      ],
+      "files": {
+        "/a": "k,v\n2024-01-01T01:00:00+0100,A\n",
+        "/b": "k,w\n2024-01-01T00:00:00+0000,B\n"
+      },
+      "stdin": "",
+      "stdout": "k,v,w\n2024-01-01T01:00:00+01:00,A,B\n",
+      "stderr": "",
+      "status": 0
+    }
+  ]
+}

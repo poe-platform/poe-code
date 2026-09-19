@@ -1,0 +1,424 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "runtimeVersions": {
+    "csvkit": "2.2.0",
+    "agate": "1.14.2",
+    "SQLAlchemy": "2.0.54"
+  },
+  "cases": [
+    {
+      "name": "numeric NaN",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"id\":NaN,\"properties\":{\"value\":NaN,\"list\":[NaN],\"object\":{\"value\":NaN}},\"geometry\":{\"type\":\"Point\",\"coordinates\":[NaN,2,3]}}]}",
+      "stdout": "id,value,list,object,geojson,type,longitude,latitude\nnan,nan,[nan],\"{\"\"value\"\": NaN}\",\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [NaN, 2, 3]}\",Point,nan,2\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {}
+    },
+    {
+      "name": "numeric Infinity",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"id\":Infinity,\"properties\":{\"value\":Infinity,\"list\":[Infinity],\"object\":{\"value\":Infinity}},\"geometry\":{\"type\":\"Point\",\"coordinates\":[Infinity,2,3]}}]}",
+      "stdout": "id,value,list,object,geojson,type,longitude,latitude\ninf,inf,[inf],\"{\"\"value\"\": Infinity}\",\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [Infinity, 2, 3]}\",Point,inf,2\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {}
+    },
+    {
+      "name": "numeric -Infinity",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"id\":-Infinity,\"properties\":{\"value\":-Infinity,\"list\":[-Infinity],\"object\":{\"value\":-Infinity}},\"geometry\":{\"type\":\"Point\",\"coordinates\":[-Infinity,2,3]}}]}",
+      "stdout": "id,value,list,object,geojson,type,longitude,latitude\n-inf,-inf,[-inf],\"{\"\"value\"\": -Infinity}\",\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [-Infinity, 2, 3]}\",Point,-inf,2\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {}
+    },
+    {
+      "name": "numeric 1e400",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"id\":1e400,\"properties\":{\"value\":1e400,\"list\":[1e400],\"object\":{\"value\":1e400}},\"geometry\":{\"type\":\"Point\",\"coordinates\":[1e400,2,3]}}]}",
+      "stdout": "id,value,list,object,geojson,type,longitude,latitude\ninf,inf,[inf],\"{\"\"value\"\": Infinity}\",\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [Infinity, 2, 3]}\",Point,inf,2\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {}
+    },
+    {
+      "name": "numeric -1e400",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"id\":-1e400,\"properties\":{\"value\":-1e400,\"list\":[-1e400],\"object\":{\"value\":-1e400}},\"geometry\":{\"type\":\"Point\",\"coordinates\":[-1e400,2,3]}}]}",
+      "stdout": "id,value,list,object,geojson,type,longitude,latitude\n-inf,-inf,[-inf],\"{\"\"value\"\": -Infinity}\",\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [-Infinity, 2, 3]}\",Point,-inf,2\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {}
+    },
+    {
+      "name": "numeric -0.0",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"id\":-0.0,\"properties\":{\"value\":-0.0,\"list\":[-0.0],\"object\":{\"value\":-0.0}},\"geometry\":{\"type\":\"Point\",\"coordinates\":[-0.0,2,3]}}]}",
+      "stdout": "id,value,list,object,geojson,type,longitude,latitude\n-0.0,-0.0,[-0.0],\"{\"\"value\"\": -0.0}\",\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [-0.0, 2, 3]}\",Point,-0.0,2\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {}
+    },
+    {
+      "name": "numeric 1e-7",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"id\":1e-7,\"properties\":{\"value\":1e-7,\"list\":[1e-7],\"object\":{\"value\":1e-7}},\"geometry\":{\"type\":\"Point\",\"coordinates\":[1e-7,2,3]}}]}",
+      "stdout": "id,value,list,object,geojson,type,longitude,latitude\n1e-07,1e-07,[1e-07],\"{\"\"value\"\": 1e-07}\",\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [1e-07, 2, 3]}\",Point,1e-07,2\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {}
+    },
+    {
+      "name": "numeric 1e16",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"id\":1e16,\"properties\":{\"value\":1e16,\"list\":[1e16],\"object\":{\"value\":1e16}},\"geometry\":{\"type\":\"Point\",\"coordinates\":[1e16,2,3]}}]}",
+      "stdout": "id,value,list,object,geojson,type,longitude,latitude\n1e+16,1e+16,[1e+16],\"{\"\"value\"\": 1e+16}\",\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [1e+16, 2, 3]}\",Point,1e+16,2\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {}
+    },
+    {
+      "name": "numeric 9007199254740993",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"id\":9007199254740993,\"properties\":{\"value\":9007199254740993,\"list\":[9007199254740993],\"object\":{\"value\":9007199254740993}},\"geometry\":{\"type\":\"Point\",\"coordinates\":[9007199254740993,2,3]}}]}",
+      "stdout": "id,value,list,object,geojson,type,longitude,latitude\n9007199254740993,9007199254740993,[9007199254740993],\"{\"\"value\"\": 9007199254740993}\",\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [9007199254740993, 2, 3]}\",Point,9007199254740993,2\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {}
+    },
+    {
+      "name": "nonfinite geometry",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"geometry\":NaN}]}",
+      "stdout": "",
+      "stderr": "AttributeError: 'float' object has no attribute 'get'\n",
+      "status": 1,
+      "effects": {}
+    },
+    {
+      "name": "ordered id",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"id\":{\"2\":null,\"1\":true},\"geometry\":null}]}",
+      "stdout": "id,geojson,type,longitude,latitude\n\"OrderedDict({'2': None, '1': True})\",null,,,\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {}
+    },
+    {
+      "name": "ordered coordinates",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"geometry\":{\"type\":\"Point\",\"coordinates\":[{\"2\":true,\"1\":null},[false,null]]}}]}",
+      "stdout": "id,geojson,type,longitude,latitude\n,\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [{\"\"2\"\": true, \"\"1\"\": null}, [false, null]]}\",Point,\"OrderedDict({'2': True, '1': None})\",\"[False, None]\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {}
+    },
+    {
+      "name": "ordered type",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"geometry\":{\"type\":{\"a\":1}}}]}",
+      "stdout": "id,geojson,type,longitude,latitude\n,\"{\"\"type\"\": {\"\"a\"\": 1}}\",OrderedDict({'a': 1}),,\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {}
+    },
+    {
+      "name": "invalid root type null",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":null,\"features\":[]}",
+      "stdout": "",
+      "stderr": "TypeError: Only GeoJSON with root FeatureCollection type is supported. Not None\n",
+      "status": 1,
+      "effects": {}
+    },
+    {
+      "name": "invalid root type false",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":false,\"features\":[]}",
+      "stdout": "",
+      "stderr": "TypeError: Only GeoJSON with root FeatureCollection type is supported. Not False\n",
+      "status": 1,
+      "effects": {}
+    },
+    {
+      "name": "invalid root type NaN",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":NaN,\"features\":[]}",
+      "stdout": "",
+      "stderr": "TypeError: Only GeoJSON with root FeatureCollection type is supported. Not nan\n",
+      "status": 1,
+      "effects": {}
+    },
+    {
+      "name": "invalid root type Infinity",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":Infinity,\"features\":[]}",
+      "stdout": "",
+      "stderr": "TypeError: Only GeoJSON with root FeatureCollection type is supported. Not inf\n",
+      "status": 1,
+      "effects": {}
+    },
+    {
+      "name": "invalid root type 1.0",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":1.0,\"features\":[]}",
+      "stdout": "",
+      "stderr": "TypeError: Only GeoJSON with root FeatureCollection type is supported. Not 1.0\n",
+      "status": 1,
+      "effects": {}
+    },
+    {
+      "name": "invalid root type []",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":[],\"features\":[]}",
+      "stdout": "",
+      "stderr": "TypeError: Only GeoJSON with root FeatureCollection type is supported. Not []\n",
+      "status": 1,
+      "effects": {}
+    },
+    {
+      "name": "invalid root type {}",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":{},\"features\":[]}",
+      "stdout": "",
+      "stderr": "TypeError: Only GeoJSON with root FeatureCollection type is supported. Not OrderedDict()\n",
+      "status": 1,
+      "effects": {}
+    },
+    {
+      "name": "invalid root type {\"a\":1}",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":{\"a\":1},\"features\":[]}",
+      "stdout": "",
+      "stderr": "TypeError: Only GeoJSON with root FeatureCollection type is supported. Not OrderedDict({'a': 1})\n",
+      "status": 1,
+      "effects": {}
+    },
+    {
+      "name": "reserved collisions",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"id\":\"original\",\"properties\":{\"id\":\"property\",\"geojson\":\"property geometry\",\"type\":\"property type\",\"longitude\":9,\"latitude\":8,\"nested\":{\"b\":1,\"a\":2}},\"geometry\":{\"type\":\"Point\",\"coordinates\":[1,2,3]}},{\"properties\":{\"later\":null},\"geometry\":null}]}",
+      "stdout": "id,id,geojson,type,longitude,latitude,nested,later,geojson,type,longitude,latitude\noriginal,property,property geometry,property type,9,8,\"{\"\"b\"\": 1, \"\"a\"\": 2}\",,\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [1, 2, 3]}\",Point,1,2\n,,,,,,,,null,,,\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {}
+    },
+    {
+      "name": "raw defaults",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"id\":\"001\",\"properties\":{\"bool\":true,\"text\":\"null\",\"number\":\"001\",\"nested\":{\"a.b\":2},\"list\":[{\"x\":true},null]},\"geometry\":null}]}",
+      "stdout": "id,bool,text,number,nested,list,geojson,type,longitude,latitude\n001,True,null,001,\"{\"\"a.b\"\": 2}\",\"[OrderedDict({'x': True}), None]\",null,,,\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {}
+    },
+    {
+      "name": "ignored common flags",
+      "argv": [
+        "-f",
+        "geojson",
+        "-I",
+        "-k",
+        "missing",
+        "-l",
+        "-H",
+        "-K",
+        "999",
+        "-y",
+        "0",
+        "-L",
+        "invalid",
+        "--date-format",
+        "invalid",
+        "--datetime-format",
+        "invalid",
+        "--no-leading-zeroes",
+        "--blanks",
+        "-d",
+        ";",
+        "-q",
+        "'",
+        "-u",
+        "1",
+        "-b",
+        "-p",
+        "!",
+        "-S",
+        "--zero",
+        "--sheet",
+        "missing",
+        "--encoding-xls",
+        "invalid",
+        "--reset-dimensions",
+        "--use-sheet-names"
+      ],
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"id\":\"001\",\"properties\":{\"bool\":true,\"text\":\"null\",\"number\":\"001\",\"nested\":{\"a.b\":2},\"list\":[{\"x\":true},null]},\"geometry\":null}]}",
+      "stdout": "id,bool,text,number,nested,list,geojson,type,longitude,latitude\n001,True,null,001,\"{\"\"a.b\"\": 2}\",\"[OrderedDict({'x': True}), None]\",null,,,\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {}
+    },
+    {
+      "name": "BOM output",
+      "argv": [
+        "-f",
+        "geojson",
+        "--add-bom"
+      ],
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"id\":\"001\",\"properties\":{\"bool\":true,\"text\":\"null\",\"number\":\"001\",\"nested\":{\"a.b\":2},\"list\":[{\"x\":true},null]},\"geometry\":null}]}",
+      "stdout": "\ufeffid,bool,text,number,nested,list,geojson,type,longitude,latitude\n001,True,null,001,\"{\"\"a.b\"\": 2}\",\"[OrderedDict({'x': True}), None]\",null,,,\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {}
+    },
+    {
+      "name": "nonobject",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "[]",
+      "stdout": "",
+      "stderr": "TypeError: JSON document is not valid GeoJSON: Root element is not an object.\n",
+      "status": 1,
+      "effects": {}
+    },
+    {
+      "name": "missing type",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{}",
+      "stdout": "",
+      "stderr": "TypeError: JSON document is not valid GeoJSON: No top-level \"type\" key.\n",
+      "status": 1,
+      "effects": {}
+    },
+    {
+      "name": "missing features",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":\"FeatureCollection\"}",
+      "stdout": "",
+      "stderr": "TypeError: JSON document is not a valid FeatureCollection: No top-level \"features\" key.\n",
+      "status": 1,
+      "effects": {}
+    },
+    {
+      "name": "Feature root",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":\"Feature\",\"geometry\":null}",
+      "stdout": "",
+      "stderr": "TypeError: Only GeoJSON with root FeatureCollection type is supported. Not Feature\n",
+      "status": 1,
+      "effects": {}
+    },
+    {
+      "name": "geometry root",
+      "argv": [
+        "-f",
+        "geojson"
+      ],
+      "stdin": "{\"type\":\"Point\",\"coordinates\":[1,2]}",
+      "stdout": "",
+      "stderr": "TypeError: Only GeoJSON with root FeatureCollection type is supported. Not Point\n",
+      "status": 1,
+      "effects": {}
+    }
+  ],
+  "converterSource": {
+    "path": "csvkit/convert/geojs.py",
+    "sha256": "15a85f4c41baa308e48dafca69b905c28ce253d9a7f0dd28c612506f09b97988",
+    "verifiedAgainst": "source-manifest.json"
+  },
+  "referenceEnvironment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "COLUMNS": "80",
+    "LINES": "24",
+    "PATH": "/usr/bin:/bin"
+  },
+  "interpreterVerification": {
+    "version": "3.14.2",
+    "executableSha256": "3d6400b63b150164e89a690d9813af8b0eb420af9f336ef1f6c5102c6da60eae"
+  }
+}

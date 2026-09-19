@@ -1,0 +1,10 @@
+# SQLite engine qualification QA
+
+1. Verify the primary frozen CPython 3.14.2 executable digest and installed csvkit 2.2.0/SQLAlchemy 2.0.54 before collecting native reference observations. Research subprocesses are permitted only here, never in the product or canonical tests. Keep scratch under out and reduced reference data under docs/csvkit.
+2. Record reference SQLite version/source ID, compile options, scalar identities and exact original sql2csv stdout/stderr/status. Record the selected WASM asset digest, source ID, compile options and function inventory. Differences are blockers even when safety refusals pass.
+3. Start regression tests before product changes. Run original csvsql cases and original sql2csv cases through the actual provider/shared engine. Preserve BOM/NUL/float/integer/blob bytes. Encoding and invalid-UTF8 cases remain explicit blockers with separate refusal checks.
+4. Use memfs for file URLs: committed reopen, rollback, literal percent path, journal cleanup, exclusive/shared/reserved contention, post-release access, unauthorized paths, missing parents, byte-budget failure and valid/dangling symlink refusal. Inspect volume effects after failures. Do not extrapolate to disk/crash durability.
+5. Have a different agent stress actual safe-bash commands, held acquisition cancellation and consumer closure. Register its new test by exact literal path in the maintained integration inventory regression. Count result parity and denial/cleanup assertions separately.
+6. Run maintained csvkit unit/lint checks and selected workspace build closures. Expand to safe-bash registration/discovery and actual-shell CSV command regressions. Broad repository/release gates remain unmeasured unless actually run.
+7. Visually inspect an ad hoc terminal screenshot of actual safe-bash SQLite output and a named refusal. Keep generated screenshot/log evidence under out, purge owned scratch after reducing findings, and do not add screenshot tests.
+8. Report measured coverage and every named/unmeasured blocker. Do not claim arbitrary-query/csvkit full compatibility, README delivery, Git delivery or publication.

@@ -1,0 +1,518 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "observation": "Released fixed2csv streaming converter with StringIO schema/data/output; no CLI global options",
+  "cases": [
+    {
+      "schema": "column,start,length\na,-10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,-10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,-7\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,-1\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,0\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,1\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,4\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-7,-10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-7,-7\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-7,-1\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-7,0\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-7,1\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-7,4\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\u00e9\ud83d\ude00x\n\"\"\n\"\"\nl\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-7,10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\u00e9\ud83d\ude00xy\nq\n\"\"\nlast\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-3,-10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-3,-7\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-3,-1\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-3,0\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-3,1\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\ny\n\"\"\n\"\"\na\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-3,4\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\nq\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-3,10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\ny\nq\n\"\"\nast\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-1,-10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-1,-7\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-1,-1\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-1,0\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-1,1\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-1,4\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,-1,10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\nt\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,0,-10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,0,-7\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,0,-1\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\u00e9\ud83d\ude00xy\nq\n\"\"\nlas\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,0,0\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,0,1\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\u00e9\nq\n\"\"\nl\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,0,4\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\u00e9\ud83d\ude00xy\nq\n\"\"\nlast\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,0,10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\u00e9\ud83d\ude00xy\nq\n\"\"\nlast\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,1,-10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,1,-7\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,1,-1\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\u00e9\ud83d\ude00xy\nq\n\"\"\nlas\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,1,0\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,1,1\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\u00e9\nq\n\"\"\nl\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,1,4\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\u00e9\ud83d\ude00xy\nq\n\"\"\nlast\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,1,10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\u00e9\ud83d\ude00xy\nq\n\"\"\nlast\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,2,-10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,2,-7\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,2,-1\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,2,0\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,2,1\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\nx\n\"\"\n\"\"\ns\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,2,4\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\nxy\n\"\"\n\"\"\nst\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,2,10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\nxy\n\"\"\n\"\"\nst\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,6,-10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,6,-7\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,6,-1\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,6,0\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,6,1\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,6,4\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,6,10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,-10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,-7\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,-1\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,0\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,1\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,4\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "stdin": "\u00e9\ud83d\ude00xy\r\nq\n\nlast",
+      "stdout": "a\n\"\"\n\"\"\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length,column,start,length\na,0,2,b,bad,bad\n",
+      "stdin": "\u001c\u0085\u00e9\u2003\u001f\n",
+      "stdout": "a\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "start,length,column\nbad,bad\n",
+      "stdin": "\u001c\u0085\u00e9\u2003\u001f\n",
+      "stdout": "",
+      "stderr": "ValueError: Error reading schema at line 2: invalid literal for int() with base 10: 'bad'\n",
+      "status": 1
+    },
+    {
+      "schema": "start,length,column\n0,bad\n",
+      "stdin": "\u001c\u0085\u00e9\u2003\u001f\n",
+      "stdout": "",
+      "stderr": "ValueError: Error reading schema at line 2: list index out of range\n",
+      "status": 1
+    },
+    {
+      "schema": "column,start,length\na,+\u0661_\u0662,\uff12\n",
+      "stdin": "\u001c\u0085\u00e9\u2003\u001f\n",
+      "stdout": "a\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,0,1__2\n",
+      "stdin": "\u001c\u0085\u00e9\u2003\u001f\n",
+      "stdout": "",
+      "stderr": "ValueError: Error reading schema at line 2: invalid literal for int() with base 10: '1__2'\n",
+      "status": 1
+    },
+    {
+      "schema": "column,start,length\na,0,\u00b2\n",
+      "stdin": "\u001c\u0085\u00e9\u2003\u001f\n",
+      "stdout": "",
+      "stderr": "ValueError: Error reading schema at line 2: invalid literal for int() with base 10: '\u00b2'\n",
+      "status": 1
+    },
+    {
+      "schema": "column,start,length\na,0,\u001c2\n",
+      "stdin": "\u001c\u0085\u00e9\u2003\u001f\n",
+      "stdout": "",
+      "stderr": "ValueError: Error reading schema at line 2: invalid literal for int() with base 10: '\\x1c2'\n",
+      "status": 1
+    },
+    {
+      "schema": "column,start,length\na,0,\u20032\u2003\n",
+      "stdin": "\u001c\u0085\u00e9\u2003\u001f\n",
+      "stdout": "a\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length\na,0,10\n",
+      "stdin": "\u001c\u0085\u00e9\u2003\u001f\n",
+      "stdout": "a\n\u00e9\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "schema": "column,start,length,ignored\n\" name \",0,4,\"extra\nline\"\n",
+      "stdin": "\u001c\u0085\u00e9\u2003\u001f\n",
+      "stdout": " name \n\u00e9\n",
+      "stderr": "",
+      "status": 0
+    }
+  ]
+}

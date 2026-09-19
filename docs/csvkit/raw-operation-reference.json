@@ -1,0 +1,447 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "cases": [
+    {
+      "command": "csvcut",
+      "argv": [],
+      "stdin": "a,b\nx,y\nz\n",
+      "status": 0,
+      "stdout": "a,b\nx,y\nz,\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "-c",
+        "2,1,2"
+      ],
+      "stdin": "a,b\nx,y\nz\n",
+      "status": 0,
+      "stdout": "b,a,b\ny,x,y\n,z,\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "-C",
+        "missing,2"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 0,
+      "stdout": "a\nx\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "-c",
+        "2:"
+      ],
+      "stdin": "a,b,c\nx,y,z\n",
+      "status": 0,
+      "stdout": "b,c\ny,z\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "-c",
+        "0"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "ColumnIdentifierError: Column 0 is invalid. Columns are 1-based.\n"
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "-c",
+        "missing"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "ColumnIdentifierError: Column 'missing' is invalid. It is neither an integer nor a column name. Column names are: 'a', 'b'\n"
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "-H",
+        "-l"
+      ],
+      "stdin": "x,y\nz,w\n",
+      "status": 0,
+      "stdout": "line_number,a,b\n1,x,y\n2,z,w\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "-x",
+        "-c",
+        "2"
+      ],
+      "stdin": "a,b\nx,\nz,y\n",
+      "status": 0,
+      "stdout": "b\ny\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "-n",
+        "--zero"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 0,
+      "stdout": "  0: a\n  1: b\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "-n",
+        "-H"
+      ],
+      "stdin": "a,b\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "RequiredHeaderError: You cannot use --no-header-row with the -n or --names options.\n"
+    },
+    {
+      "command": "csvcut",
+      "argv": [],
+      "stdin": "",
+      "status": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "-n"
+      ],
+      "stdin": "",
+      "status": 1,
+      "stdout": "",
+      "stderr": "StopIteration: \n"
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "--add-bom"
+      ],
+      "stdin": "a\nx\n",
+      "status": 0,
+      "stdout": "\ufeffa\nx\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "-K",
+        "1",
+        "-t"
+      ],
+      "stdin": "#comment\na\tb\nx\ty\n",
+      "status": 0,
+      "stdout": "a,b\nx,y\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvformat",
+      "argv": [],
+      "stdin": "a,b\nx,y,z\n",
+      "status": 0,
+      "stdout": "a,b\nx,y,z\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvformat",
+      "argv": [
+        "-T",
+        "-l"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 0,
+      "stdout": "line_number\ta\tb\n1\tx\ty\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvformat",
+      "argv": [
+        "-A"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 0,
+      "stdout": "a\u001fb\u001ex\u001fy\u001e",
+      "stderr": ""
+    },
+    {
+      "command": "csvformat",
+      "argv": [
+        "-E"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 0,
+      "stdout": "x,y\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvformat",
+      "argv": [
+        "-H"
+      ],
+      "stdin": "x,y\nz,w\n",
+      "status": 0,
+      "stdout": "a,b\nx,y\nz,w\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvformat",
+      "argv": [
+        "-U",
+        "1"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 0,
+      "stdout": "\"a\",\"b\"\n\"x\",\"y\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvformat",
+      "argv": [
+        "-U",
+        "3",
+        "-P",
+        "\\"
+      ],
+      "stdin": "a,b\n\"x,y\",z\n",
+      "status": 0,
+      "stdout": "a,b\nx\\,y,z\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvformat",
+      "argv": [
+        "-M",
+        "END"
+      ],
+      "stdin": "a,b\nD,E\n",
+      "status": 0,
+      "stdout": "a,bEND\"D\",\"E\"END",
+      "stderr": ""
+    },
+    {
+      "command": "csvformat",
+      "argv": [],
+      "stdin": "",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "csvgrep",
+      "argv": [
+        "-c",
+        "1",
+        "-m",
+        "x"
+      ],
+      "stdin": "a,b\nx,y\nz,w\n",
+      "status": 0,
+      "stdout": "a,b\nx,y\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvgrep",
+      "argv": [
+        "-c",
+        "1,2",
+        "-m",
+        "x"
+      ],
+      "stdin": "a,b\nx,x\nx,y\ny,x\n",
+      "status": 0,
+      "stdout": "a,b\nx,x\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvgrep",
+      "argv": [
+        "-c",
+        "1,2",
+        "-m",
+        "x",
+        "-a",
+        "-i"
+      ],
+      "stdin": "a,b\nx,x\nx,y\ny,x\ny,y\n",
+      "status": 0,
+      "stdout": "a,b\ny,y\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvgrep",
+      "argv": [
+        "-c",
+        "2",
+        "-m",
+        ""
+      ],
+      "stdin": "a,b\nx\ny,z\n",
+      "status": 0,
+      "stdout": "a,b\nx\ny,z\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvgrep",
+      "argv": [],
+      "stdin": "a,b\nx,y\n",
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: csvgrep [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S] [-H]\n               [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V] [-n]\n               [-c COLUMNS] [-m PATTERN] [-r REGEX] [-f MATCHFILE] [-i] [-a]\n               [FILE]\ncsvgrep: error: You must specify at least one column to search using the -c option.\n"
+    },
+    {
+      "command": "csvgrep",
+      "argv": [
+        "-c",
+        "1"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: csvgrep [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S] [-H]\n               [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V] [-n]\n               [-c COLUMNS] [-m PATTERN] [-r REGEX] [-f MATCHFILE] [-i] [-a]\n               [FILE]\ncsvgrep: error: One of -r, -m or -f must be specified, unless using the -n option.\n"
+    },
+    {
+      "command": "csvgrep",
+      "argv": [
+        "-n"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 0,
+      "stdout": "  1: a\n  2: b\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvgrep",
+      "argv": [
+        "-c",
+        "1",
+        "-m",
+        "y",
+        "-l"
+      ],
+      "stdin": "a,b\n\"x\ny\",z\ny,w\n",
+      "status": 0,
+      "stdout": "line_numbers,a,b\n2,\"x\ny\",z\n3,y,w\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvstat",
+      "argv": [
+        "--count"
+      ],
+      "stdin": "",
+      "status": 0,
+      "stdout": "-1\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvstat",
+      "argv": [
+        "--count"
+      ],
+      "stdin": "a,b\nx,y\n\nz,w\n",
+      "status": 0,
+      "stdout": "3\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvstat",
+      "argv": [
+        "--count",
+        "-H"
+      ],
+      "stdin": "x,y\nz,w\n",
+      "status": 0,
+      "stdout": "2\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvstack",
+      "argv": [],
+      "stdin": "a,b\nx,y\n",
+      "status": 0,
+      "stdout": "a,b\nx,y\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvstack",
+      "argv": [
+        "-g",
+        "one"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 0,
+      "stdout": "group,a,b\none,x,y\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvstack",
+      "argv": [
+        "-H"
+      ],
+      "stdin": "x,y\nz,w\n",
+      "status": 0,
+      "stdout": "a,b\nx,y\nz,w\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "-u",
+        "2"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "ValueError: could not convert string to float: 'a'\n"
+    },
+    {
+      "command": "csvformat",
+      "argv": [
+        "-Q",
+        "xx"
+      ],
+      "stdin": "a,b\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: \"quotechar\" must be a unicode character or None, not a string of length 2\n"
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "-z",
+        "3"
+      ],
+      "stdin": "a\nabcd\n",
+      "status": 1,
+      "stdout": "a\n",
+      "stderr": "FieldSizeLimitError: CSV contains a field longer than the maximum length of 3 characters on line 2. Try raising the maximum with the field_size_limit parameter, or try setting quoting=csv.QUOTE_NONE.\n"
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "-c",
+        "--"
+      ],
+      "stdin": "a,b\n",
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: csvcut [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S] [-H]\n              [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V] [-n]\n              [-c COLUMNS] [-C NOT_COLUMNS] [-x]\n              [FILE]\ncsvcut: error: argument -c/--columns: expected one argument\n"
+    }
+  ]
+}

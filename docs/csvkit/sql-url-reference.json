@@ -1,0 +1,421 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sqlalchemy": "2.0.54",
+  "cases": [
+    {
+      "raw": "sqlite://",
+      "url": {
+        "drivername": "sqlite",
+        "username": null,
+        "password": null,
+        "host": null,
+        "port": null,
+        "database": null,
+        "query": {}
+      }
+    },
+    {
+      "raw": "sqlite:///",
+      "url": {
+        "drivername": "sqlite",
+        "username": null,
+        "password": null,
+        "host": null,
+        "port": null,
+        "database": "",
+        "query": {}
+      }
+    },
+    {
+      "raw": "sqlite:///:memory:",
+      "url": {
+        "drivername": "sqlite",
+        "username": null,
+        "password": null,
+        "host": null,
+        "port": null,
+        "database": ":memory:",
+        "query": {}
+      }
+    },
+    {
+      "raw": "sqlite:///relative%20.db",
+      "url": {
+        "drivername": "sqlite",
+        "username": null,
+        "password": null,
+        "host": null,
+        "port": null,
+        "database": "relative%20.db",
+        "query": {}
+      }
+    },
+    {
+      "raw": "sqlite:////absolute.db",
+      "url": {
+        "drivername": "sqlite",
+        "username": null,
+        "password": null,
+        "host": null,
+        "port": null,
+        "database": "/absolute.db",
+        "query": {}
+      }
+    },
+    {
+      "raw": "sqlite+pysqlite:///relative.db",
+      "url": {
+        "drivername": "sqlite+pysqlite",
+        "username": null,
+        "password": null,
+        "host": null,
+        "port": null,
+        "database": "relative.db",
+        "query": {}
+      }
+    },
+    {
+      "raw": "sqlite:///file:a?uri=true&mode=ro",
+      "url": {
+        "drivername": "sqlite",
+        "username": null,
+        "password": null,
+        "host": null,
+        "port": null,
+        "database": "file:a",
+        "query": {
+          "uri": "true",
+          "mode": "ro"
+        }
+      }
+    },
+    {
+      "raw": "sqlite:///a#fragment",
+      "url": {
+        "drivername": "sqlite",
+        "username": null,
+        "password": null,
+        "host": null,
+        "port": null,
+        "database": "a#fragment",
+        "query": {}
+      }
+    },
+    {
+      "raw": "postgresql://u%40x:p%2F%25%3A@host:5432/db%20x?x=1&x=2&blank=&q=a+b",
+      "url": {
+        "drivername": "postgresql",
+        "username": "u@x",
+        "password": "p/%:",
+        "host": "host",
+        "port": 5432,
+        "database": "db%20x",
+        "query": {
+          "x": [
+            "1",
+            "2"
+          ],
+          "q": "a b"
+        }
+      }
+    },
+    {
+      "raw": "postgresql+psycopg://user:pass@[::1]:5432/db",
+      "url": {
+        "drivername": "postgresql+psycopg",
+        "username": "user",
+        "password": "pass",
+        "host": "::1",
+        "port": 5432,
+        "database": "db",
+        "query": {}
+      }
+    },
+    {
+      "raw": "mysql://user:pass@host/db",
+      "url": {
+        "drivername": "mysql",
+        "username": "user",
+        "password": "pass",
+        "host": "host",
+        "port": null,
+        "database": "db",
+        "query": {}
+      }
+    },
+    {
+      "raw": "oracle://user:pass@host/db",
+      "url": {
+        "drivername": "oracle",
+        "username": "user",
+        "password": "pass",
+        "host": "host",
+        "port": null,
+        "database": "db",
+        "query": {}
+      }
+    },
+    {
+      "raw": "mssql://user:pass@host/db",
+      "url": {
+        "drivername": "mssql",
+        "username": "user",
+        "password": "pass",
+        "host": "host",
+        "port": null,
+        "database": "db",
+        "query": {}
+      }
+    },
+    {
+      "raw": "postgresql://u:p@ss@host/db",
+      "url": {
+        "drivername": "postgresql",
+        "username": "u",
+        "password": "p",
+        "host": "ss@host",
+        "port": null,
+        "database": "db",
+        "query": {}
+      }
+    },
+    {
+      "raw": "sqlite://host/file",
+      "url": {
+        "drivername": "sqlite",
+        "username": null,
+        "password": null,
+        "host": "host",
+        "port": null,
+        "database": "file",
+        "query": {}
+      }
+    },
+    {
+      "raw": "postgresql://host:abc/db",
+      "error": "ValueError",
+      "detail": "invalid literal for int() with base 10: 'abc'"
+    },
+    {
+      "raw": "not-a-url",
+      "error": "ArgumentError",
+      "detail": "Could not parse SQLAlchemy URL from given URL string"
+    },
+    {
+      "raw": " PostgreSQL://host/db",
+      "error": "ArgumentError",
+      "detail": "Could not parse SQLAlchemy URL from given URL string"
+    },
+    {
+      "raw": "postgresql://host/db?x=1#fragment",
+      "url": {
+        "drivername": "postgresql",
+        "username": null,
+        "password": null,
+        "host": "host",
+        "port": null,
+        "database": "db",
+        "query": {
+          "x": "1#fragment"
+        }
+      }
+    },
+    {
+      "raw": "postgresql://host/db?=x&key&key=2",
+      "url": {
+        "drivername": "postgresql",
+        "username": null,
+        "password": null,
+        "host": "host",
+        "port": null,
+        "database": "db",
+        "query": {
+          "": "x",
+          "key": "2"
+        }
+      }
+    },
+    {
+      "raw": "postgresql://u%FF:p%zz@h/db",
+      "url": {
+        "drivername": "postgresql",
+        "username": "u\ufffd",
+        "password": "p%zz",
+        "host": "h",
+        "port": null,
+        "database": "db",
+        "query": {}
+      }
+    },
+    {
+      "raw": "postgresql://host/db\nlast",
+      "url": {
+        "drivername": "postgresql",
+        "username": null,
+        "password": null,
+        "host": "host",
+        "port": null,
+        "database": "db\nlast",
+        "query": {}
+      }
+    },
+    {
+      "raw": "foo://h/db",
+      "url": {
+        "drivername": "foo",
+        "username": null,
+        "password": null,
+        "host": "h",
+        "port": null,
+        "database": "db",
+        "query": {}
+      }
+    },
+    {
+      "raw": "postgresql+missing://h/db",
+      "url": {
+        "drivername": "postgresql+missing",
+        "username": null,
+        "password": null,
+        "host": "h",
+        "port": null,
+        "database": "db",
+        "query": {}
+      }
+    },
+    {
+      "raw": "postgresql://u@x@host/db",
+      "url": {
+        "drivername": "postgresql",
+        "username": "u@x",
+        "password": null,
+        "host": "host",
+        "port": null,
+        "database": "db",
+        "query": {}
+      }
+    },
+    {
+      "raw": "postgresql://u@host:123/db",
+      "url": {
+        "drivername": "postgresql",
+        "username": "u",
+        "password": null,
+        "host": "host",
+        "port": 123,
+        "database": "db",
+        "query": {}
+      }
+    },
+    {
+      "raw": "postgresql://user?x=@host",
+      "url": {
+        "drivername": "postgresql",
+        "username": "user?x=",
+        "password": null,
+        "host": "host",
+        "port": null,
+        "database": null,
+        "query": {}
+      }
+    },
+    {
+      "raw": "postgresql://u@x:p@host/db",
+      "url": {
+        "drivername": "postgresql",
+        "username": "u@x",
+        "password": "p",
+        "host": "host",
+        "port": null,
+        "database": "db",
+        "query": {}
+      }
+    },
+    {
+      "raw": "postgresql://u@x:123/db",
+      "url": {
+        "drivername": "postgresql",
+        "username": "u",
+        "password": null,
+        "host": "x",
+        "port": 123,
+        "database": "db",
+        "query": {}
+      }
+    }
+  ],
+  "cli": [
+    {
+      "raw": "postgresql://h/db",
+      "stdout": "",
+      "stderr": "ImportError: You don't appear to have the necessary database backend installed for connection string you're trying to use. Available backends include:\n\nPostgreSQL:\tpip install psycopg2\nMySQL:\t\tpip install mysql-connector-python OR pip install mysqlclient\n\nFor details on connection strings and other backends, please see the SQLAlchemy documentation on dialects at:\n\nhttps://www.sqlalchemy.org/docs/dialects/\n",
+      "status": 1
+    },
+    {
+      "raw": "postgresql+psycopg://h/db",
+      "stdout": "",
+      "stderr": "ImportError: You don't appear to have the necessary database backend installed for connection string you're trying to use. Available backends include:\n\nPostgreSQL:\tpip install psycopg2\nMySQL:\t\tpip install mysql-connector-python OR pip install mysqlclient\n\nFor details on connection strings and other backends, please see the SQLAlchemy documentation on dialects at:\n\nhttps://www.sqlalchemy.org/docs/dialects/\n",
+      "status": 1
+    },
+    {
+      "raw": "mysql://h/db",
+      "stdout": "",
+      "stderr": "ImportError: You don't appear to have the necessary database backend installed for connection string you're trying to use. Available backends include:\n\nPostgreSQL:\tpip install psycopg2\nMySQL:\t\tpip install mysql-connector-python OR pip install mysqlclient\n\nFor details on connection strings and other backends, please see the SQLAlchemy documentation on dialects at:\n\nhttps://www.sqlalchemy.org/docs/dialects/\n",
+      "status": 1
+    },
+    {
+      "raw": "mysql+pymysql://h/db",
+      "stdout": "",
+      "stderr": "ImportError: You don't appear to have the necessary database backend installed for connection string you're trying to use. Available backends include:\n\nPostgreSQL:\tpip install psycopg2\nMySQL:\t\tpip install mysql-connector-python OR pip install mysqlclient\n\nFor details on connection strings and other backends, please see the SQLAlchemy documentation on dialects at:\n\nhttps://www.sqlalchemy.org/docs/dialects/\n",
+      "status": 1
+    },
+    {
+      "raw": "oracle://h/db",
+      "stdout": "",
+      "stderr": "ImportError: You don't appear to have the necessary database backend installed for connection string you're trying to use. Available backends include:\n\nPostgreSQL:\tpip install psycopg2\nMySQL:\t\tpip install mysql-connector-python OR pip install mysqlclient\n\nFor details on connection strings and other backends, please see the SQLAlchemy documentation on dialects at:\n\nhttps://www.sqlalchemy.org/docs/dialects/\n",
+      "status": 1
+    },
+    {
+      "raw": "oracle+cx_oracle://h/db",
+      "stdout": "",
+      "stderr": "ImportError: You don't appear to have the necessary database backend installed for connection string you're trying to use. Available backends include:\n\nPostgreSQL:\tpip install psycopg2\nMySQL:\t\tpip install mysql-connector-python OR pip install mysqlclient\n\nFor details on connection strings and other backends, please see the SQLAlchemy documentation on dialects at:\n\nhttps://www.sqlalchemy.org/docs/dialects/\n",
+      "status": 1
+    },
+    {
+      "raw": "mssql://h/db",
+      "stdout": "",
+      "stderr": "ImportError: You don't appear to have the necessary database backend installed for connection string you're trying to use. Available backends include:\n\nPostgreSQL:\tpip install psycopg2\nMySQL:\t\tpip install mysql-connector-python OR pip install mysqlclient\n\nFor details on connection strings and other backends, please see the SQLAlchemy documentation on dialects at:\n\nhttps://www.sqlalchemy.org/docs/dialects/\n",
+      "status": 1
+    },
+    {
+      "raw": "postgresql+missing://h/db",
+      "stdout": "",
+      "stderr": "NoSuchModuleError: Can't load plugin: sqlalchemy.dialects:postgresql.missing\n",
+      "status": 1
+    },
+    {
+      "raw": "foo://h/db",
+      "stdout": "",
+      "stderr": "NoSuchModuleError: Can't load plugin: sqlalchemy.dialects:foo\n",
+      "status": 1
+    },
+    {
+      "raw": "not-a-url",
+      "stdout": "",
+      "stderr": "ArgumentError: Could not parse SQLAlchemy URL from given URL string\n",
+      "status": 1
+    },
+    {
+      "raw": "postgresql://host:abc/db",
+      "stdout": "",
+      "stderr": "ValueError: invalid literal for int() with base 10: 'abc'\n",
+      "status": 1
+    },
+    {
+      "raw": "sqlite://host/file",
+      "stdout": "",
+      "stderr": "ArgumentError: Invalid SQLite URL: sqlite://host/file\nValid SQLite URL forms are:\n sqlite:///:memory: (or, sqlite://)\n sqlite:///relative/path/to/file.db\n sqlite:////absolute/path/to/file.db\n",
+      "status": 1
+    }
+  ]
+}

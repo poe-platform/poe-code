@@ -1,0 +1,13 @@
+# Independent DBF stress validation
+
+The independently authored actual-Shell regressions are `packages/safe-bash/tests/commands/in2csv-dbf-stress.test.ts`. All canonical fixtures use MemoryFileSystem and in-memory byte arrays; tests execute no native commands, network, databases or file creation.
+
+Reference tooling replayed the hash-required CPython 3.14.2 lock. Verified executable SHA-256 `3d6400b63b150164e89a690d9813af8b0eb420af9f336ef1f6c5102c6da60eae`, csvkit 2.2.0, Agate 1.14.2, agate-dbf 0.2.4, dbfread 2.0.7 and SQLAlchemy 2.0.54. Additional native observations are frozen in `in2csv-dbf-stress-reference.json`; the original 100-case audit is in `in2csv-dbf-reference.json`.
+
+The original engine reproduced three real failures: native DBF dates in years 0001/0099 were inferred as 2001/1999; currency Decimal one emitted `1.0000` instead of `True`; mixed integral currency emitted retained four-digit fractions rather than native Decimal-normalized `0`, `1`, `-1`. Initial test setup omitted ASCII codec binding; this was corrected before accepting these failures. An initial cancellation assertion expected a numeric exit status, but actual Shell preserves and rejects the original caller cancellation reason; the assertion was corrected to the maintained contract.
+
+The fix preserves native parsed value kinds (`integer`, `float`, `currency`, `date`, `datetime`, `bytes`) through DBF field parsing and normalizes currency division exactly without binary floating point. Root integrated these kinds into native-aware table inference. Float singleton one retains `1.0`; Decimal/int singleton one becomes Boolean; early date/time years remain their native values.
+
+Final focused actual-Shell run: nine tests, nine passes, zero failures/skips/TODOs, status 0. Tests compare exact stdout/stderr/status and unchanged named source/companion bytes. Additional passing checks cover a maximal FPT memo pointer, producer-reused byte chunks, awaited stdout backpressure and cancellation settlement held until cooperative iterator cleanup completes exactly once. Final focused ESLint for dbf-fields.ts and the new stress test: status 0. Root owns maintained workspace build/test/lint, adapter/export registration checks and screenshot evidence; those results are recorded separately.
+
+Unsampled codepages, compressed DBF filenames, native interactive behavior and corrupt backward/overlapping skip layouts remain unmeasured in this stress cohort. These nine passes do not qualify those cases. No README edits, Git staging/commits, pushes or releases were performed by this reviewer. Owned temporary reference tooling and logs remain in out for integration-owner use and must be purged after final evidence reduction.

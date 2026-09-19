@@ -1,0 +1,613 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "agate": "1.14.2",
+  "datetimeSourceTime": "1970-01-01 00:00:00",
+  "casts": [
+    {
+      "type": "TimeDelta",
+      "input": "1h",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "timedelta",
+          "microseconds": "3600000000"
+        }
+      }
+    },
+    {
+      "type": "Date",
+      "input": "1h",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Can not parse value \"1h\" as date."
+      }
+    },
+    {
+      "type": "DateTime",
+      "input": "1h",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Can not parse value \"1h\" as datetime."
+      }
+    },
+    {
+      "type": "TimeDelta",
+      "input": "2 hours",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "timedelta",
+          "microseconds": "7200000000"
+        }
+      }
+    },
+    {
+      "type": "Date",
+      "input": "2 hours",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Can not parse value \"2 hours\" as date."
+      }
+    },
+    {
+      "type": "DateTime",
+      "input": "2 hours",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Can not parse value \"2 hours\" as datetime."
+      }
+    },
+    {
+      "type": "TimeDelta",
+      "input": "1 minute",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "timedelta",
+          "microseconds": "60000000"
+        }
+      }
+    },
+    {
+      "type": "Date",
+      "input": "1 minute",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Can not parse value \"1 minute\" as date."
+      }
+    },
+    {
+      "type": "DateTime",
+      "input": "1 minute",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Can not parse value \"1 minute\" as datetime."
+      }
+    },
+    {
+      "type": "TimeDelta",
+      "input": "1e10000",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Can not parse value \"1e10000\" to as timedelta."
+      }
+    },
+    {
+      "type": "Date",
+      "input": "1e10000",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Value \"1e10000\" does not match date format."
+      }
+    },
+    {
+      "type": "DateTime",
+      "input": "1e10000",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Can not parse value \"1e10000\" as datetime."
+      }
+    },
+    {
+      "type": "TimeDelta",
+      "input": "1e-2",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Can not parse value \"1e-2\" to as timedelta."
+      }
+    },
+    {
+      "type": "Date",
+      "input": "1e-2",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Value \"1e-2\" does not match date format."
+      }
+    },
+    {
+      "type": "DateTime",
+      "input": "1e-2",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Can not parse value \"1e-2\" as datetime."
+      }
+    },
+    {
+      "type": "TimeDelta",
+      "input": "1 day",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "timedelta",
+          "microseconds": "86400000000"
+        }
+      }
+    },
+    {
+      "type": "Date",
+      "input": "1 day",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "date",
+          "value": "0001-01-02"
+        }
+      }
+    },
+    {
+      "type": "DateTime",
+      "input": "1 day",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "datetime",
+          "value": "1970-01-02 00:00:00"
+        }
+      }
+    },
+    {
+      "type": "TimeDelta",
+      "input": "1 week",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "timedelta",
+          "microseconds": "604800000000"
+        }
+      }
+    },
+    {
+      "type": "Date",
+      "input": "1 week",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "date",
+          "value": "0001-01-08"
+        }
+      }
+    },
+    {
+      "type": "DateTime",
+      "input": "1 week",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "datetime",
+          "value": "1970-01-08 00:00:00"
+        }
+      }
+    },
+    {
+      "type": "TimeDelta",
+      "input": "1.5 days",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "timedelta",
+          "microseconds": "129600000000"
+        }
+      }
+    },
+    {
+      "type": "Date",
+      "input": "1.5 days",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "date",
+          "value": "0001-01-02"
+        }
+      }
+    },
+    {
+      "type": "DateTime",
+      "input": "1.5 days",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "datetime",
+          "value": "1970-01-02 00:00:00"
+        }
+      }
+    },
+    {
+      "type": "TimeDelta",
+      "input": "1.5 weeks",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "timedelta",
+          "microseconds": "907200000000"
+        }
+      }
+    },
+    {
+      "type": "Date",
+      "input": "1.5 weeks",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "date",
+          "value": "0001-01-11"
+        }
+      }
+    },
+    {
+      "type": "DateTime",
+      "input": "1.5 weeks",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "datetime",
+          "value": "1970-01-11 00:00:00"
+        }
+      }
+    },
+    {
+      "type": "TimeDelta",
+      "input": "-1 days",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "timedelta",
+          "microseconds": "-86400000000"
+        }
+      }
+    },
+    {
+      "type": "Date",
+      "input": "-1 days",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Can not parse value \"-1 days\" as date."
+      }
+    },
+    {
+      "type": "DateTime",
+      "input": "-1 days",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "datetime",
+          "value": "1969-12-31 00:00:00"
+        }
+      }
+    },
+    {
+      "type": "TimeDelta",
+      "input": "1 ſec",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "timedelta",
+          "microseconds": "1000000"
+        }
+      }
+    },
+    {
+      "type": "Date",
+      "input": "1 ſec",
+      "result": {
+        "kind": "exception",
+        "name": "KeyError",
+        "message": "'ſec'"
+      }
+    },
+    {
+      "type": "DateTime",
+      "input": "1 ſec",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Can not parse value \"1 ſec\" as datetime."
+      }
+    },
+    {
+      "type": "TimeDelta",
+      "input": "1 mın",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "timedelta",
+          "microseconds": "60000000"
+        }
+      }
+    },
+    {
+      "type": "Date",
+      "input": "1 mın",
+      "result": {
+        "kind": "exception",
+        "name": "KeyError",
+        "message": "'mın'"
+      }
+    },
+    {
+      "type": "DateTime",
+      "input": "1 mın",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Can not parse value \"1 mın\" as datetime."
+      }
+    },
+    {
+      "type": "TimeDelta",
+      "input": "1 mİn",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "timedelta",
+          "microseconds": "60000000"
+        }
+      }
+    },
+    {
+      "type": "Date",
+      "input": "1 mİn",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Value \"1 mİn\" does not match date format."
+      }
+    },
+    {
+      "type": "DateTime",
+      "input": "1 mİn",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Can not parse value \"1 mİn\" as datetime."
+      }
+    },
+    {
+      "type": "TimeDelta",
+      "input": "1 weeK",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "timedelta",
+          "microseconds": "604800000000"
+        }
+      }
+    },
+    {
+      "type": "Date",
+      "input": "1 weeK",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "date",
+          "value": "0001-01-08"
+        }
+      }
+    },
+    {
+      "type": "DateTime",
+      "input": "1 weeK",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "datetime",
+          "value": "1970-01-08 00:00:00"
+        }
+      }
+    },
+    {
+      "type": "TimeDelta",
+      "input": "ordinary text",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Can not parse value \"ordinary text\" to as timedelta."
+      }
+    },
+    {
+      "type": "Date",
+      "input": "ordinary text",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Value \"ordinary text\" does not match date format."
+      }
+    },
+    {
+      "type": "DateTime",
+      "input": "ordinary text",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Can not parse value \"ordinary text\" as datetime."
+      }
+    },
+    {
+      "type": "TimeDelta",
+      "input": "2 days, 3:04:05",
+      "result": {
+        "kind": "value",
+        "value": {
+          "kind": "timedelta",
+          "microseconds": "183845000000"
+        }
+      }
+    },
+    {
+      "type": "Date",
+      "input": "2 days, 3:04:05",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Value \"2 days, 3:04:05\" does not match date format."
+      }
+    },
+    {
+      "type": "DateTime",
+      "input": "2 days, 3:04:05",
+      "result": {
+        "kind": "exception",
+        "name": "CastError",
+        "message": "Can not parse value \"2 days, 3:04:05\" as datetime."
+      }
+    }
+  ],
+  "cases": [
+    {
+      "name": "long-s",
+      "argv": [
+        "csvjson",
+        "-y0"
+      ],
+      "stdin": "d\n1 ſec\n",
+      "stdout": "",
+      "stderr": "KeyError: 'ſec'\n",
+      "status": 1
+    },
+    {
+      "name": "dotless-i",
+      "argv": [
+        "csvjson",
+        "-y0"
+      ],
+      "stdin": "d\n1 mın\n",
+      "stdout": "",
+      "stderr": "KeyError: 'mın'\n",
+      "status": 1
+    },
+    {
+      "name": "text-first",
+      "argv": [
+        "csvjson",
+        "-y0"
+      ],
+      "stdin": "d\nordinary text\n1 ſec\n",
+      "stdout": "[{\"d\": \"ordinary text\"}, {\"d\": \"1 ſec\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "unit-first",
+      "argv": [
+        "csvjson",
+        "-y0"
+      ],
+      "stdin": "d\n1 ſec\nordinary text\n",
+      "stdout": "",
+      "stderr": "KeyError: 'ſec'\n",
+      "status": 1
+    },
+    {
+      "name": "no-inference",
+      "argv": [
+        "csvjson",
+        "-y0",
+        "-I"
+      ],
+      "stdin": "d\n1 ſec\n",
+      "stdout": "[{\"d\": \"1 ſec\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "hours",
+      "argv": [
+        "csvjson",
+        "-y0"
+      ],
+      "stdin": "d\n2 hours\n",
+      "stdout": "[{\"d\": \"2:00:00\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "scientific",
+      "argv": [
+        "csvjson",
+        "-y0"
+      ],
+      "stdin": "d\n1e2\n",
+      "stdout": "[{\"d\": 100.0}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "serialized-interval",
+      "argv": [
+        "csvjson",
+        "-y0"
+      ],
+      "stdin": "d\n\"2 days, 3:04:05\"\n",
+      "stdout": "[{\"d\": \"2 days, 3:04:05\"}]",
+      "stderr": "",
+      "status": 0
+    }
+  ],
+  "numericLocaleCases": [
+    {
+      "argv": [
+        "csvsort",
+        "-y0",
+        "-L",
+        "de_DE"
+      ],
+      "settings": {
+        "locale": "de_DE",
+        "sniff_limit": 0
+      },
+      "stdin": "a\n\"1,5\"\n\"2,5\"\n",
+      "stdout": "a\n1.5\n2.5\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "csvjson",
+        "-y0",
+        "-L",
+        "de_DE"
+      ],
+      "settings": {
+        "locale": "de_DE",
+        "sniff_limit": 0
+      },
+      "stdin": "a\n2024-01-01\n",
+      "stdout": "[{\"a\": \"2024-01-01\"}]",
+      "stderr": "",
+      "status": 0
+    }
+  ]
+}

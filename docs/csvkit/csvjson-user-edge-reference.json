@@ -1,0 +1,1237 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "commandSourceSha256": "cbfe8f90a73d234ddb332b25bf288922cd960b250ea1847b474a05a3554273c5",
+  "frozenEnvironment": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.local/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/homebrew/bin:/Users/kjopek/.codex/tmp/arg0/codex-arg0AXmZbf:/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.local/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "COLUMNS": "80",
+    "LINES": "24"
+  },
+  "warningPathNormalization": "Only installed Agate utils.py path normalized to original csvjson-reference.json injected identity; all other bytes exact.",
+  "cases": [
+    {
+      "stdin": "k,x\n-2ms,\u00e9\n-2ms,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": \"-2ms\", \"x\": \"\u00e9\"}, {\"k\": \"-2ms\", \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n-2ms,\u00e9\n-2ms,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value -2ms is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n-2ms,\u00e9\n-2ms,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": \"-2ms\", \"x\": \"\u00e9\"}\n{\"k\": \"-2ms\", \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n3 us,\u00e9\n3 us,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": \"3 us\", \"x\": \"\u00e9\"}, {\"k\": \"3 us\", \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n3 us,\u00e9\n3 us,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value 3 us is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n3 us,\u00e9\n3 us,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": \"3 us\", \"x\": \"\u00e9\"}\n{\"k\": \"3 us\", \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n2MS,\u00e9\n2MS,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": \"2MS\", \"x\": \"\u00e9\"}, {\"k\": \"2MS\", \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n2MS,\u00e9\n2MS,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value 2MS is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n2MS,\u00e9\n2MS,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": \"2MS\", \"x\": \"\u00e9\"}\n{\"k\": \"2MS\", \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n.5ms,\u00e9\n.5ms,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": \".5ms\", \"x\": \"\u00e9\"}, {\"k\": \".5ms\", \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n.5ms,\u00e9\n.5ms,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value .5ms is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n.5ms,\u00e9\n.5ms,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": \".5ms\", \"x\": \"\u00e9\"}\n{\"k\": \".5ms\", \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nNaN,\u00e9\nNaN,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": NaN, \"x\": \"\u00e9\"}, {\"k\": NaN, \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nNaN,\u00e9\nNaN,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value NaN is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\nNaN,\u00e9\nNaN,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": NaN, \"x\": \"\u00e9\"}\n{\"k\": NaN, \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n-NaN,\u00e9\n-NaN,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": NaN, \"x\": \"\u00e9\"}, {\"k\": NaN, \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n-NaN,\u00e9\n-NaN,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value NaN is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n-NaN,\u00e9\n-NaN,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": NaN, \"x\": \"\u00e9\"}\n{\"k\": NaN, \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nInfinity,\u00e9\nInfinity,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": Infinity, \"x\": \"\u00e9\"}, {\"k\": Infinity, \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nInfinity,\u00e9\nInfinity,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value Infinity is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\nInfinity,\u00e9\nInfinity,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": Infinity, \"x\": \"\u00e9\"}\n{\"k\": Infinity, \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n-Infinity,\u00e9\n-Infinity,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": -Infinity, \"x\": \"\u00e9\"}, {\"k\": -Infinity, \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n-Infinity,\u00e9\n-Infinity,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value -Infinity is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n-Infinity,\u00e9\n-Infinity,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": -Infinity, \"x\": \"\u00e9\"}\n{\"k\": -Infinity, \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nsNaN,\u00e9\nsNaN,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": \"sNaN\", \"x\": \"\u00e9\"}, {\"k\": \"sNaN\", \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nsNaN,\u00e9\nsNaN,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value sNaN is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\nsNaN,\u00e9\nsNaN,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": \"sNaN\", \"x\": \"\u00e9\"}\n{\"k\": \"sNaN\", \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n0,\u00e9\n0,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": false, \"x\": \"\u00e9\"}, {\"k\": false, \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n0,\u00e9\n0,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value False is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n0,\u00e9\n0,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": false, \"x\": \"\u00e9\"}\n{\"k\": false, \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n-0,\u00e9\n-0,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": -0.0, \"x\": \"\u00e9\"}, {\"k\": -0.0, \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n-0,\u00e9\n-0,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value -0 is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n-0,\u00e9\n-0,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": -0.0, \"x\": \"\u00e9\"}\n{\"k\": -0.0, \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\ntrue,\u00e9\ntrue,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": true, \"x\": \"\u00e9\"}, {\"k\": true, \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\ntrue,\u00e9\ntrue,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value True is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\ntrue,\u00e9\ntrue,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": true, \"x\": \"\u00e9\"}\n{\"k\": true, \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nfalse,\u00e9\nfalse,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": false, \"x\": \"\u00e9\"}, {\"k\": false, \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nfalse,\u00e9\nfalse,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value False is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\nfalse,\u00e9\nfalse,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": false, \"x\": \"\u00e9\"}\n{\"k\": false, \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nnone,\u00e9\nnone,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": null, \"x\": \"\u00e9\"}, {\"k\": null, \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nnone,\u00e9\nnone,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value None is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\nnone,\u00e9\nnone,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": null, \"x\": \"\u00e9\"}\n{\"k\": null, \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n1e1000,\u00e9\n1e1000,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": Infinity, \"x\": \"\u00e9\"}, {\"k\": Infinity, \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n1e1000,\u00e9\n1e1000,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value 1E+1000 is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n1e1000,\u00e9\n1e1000,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": Infinity, \"x\": \"\u00e9\"}\n{\"k\": Infinity, \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n1e-1000,\u00e9\n1e-1000,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": 0.0, \"x\": \"\u00e9\"}, {\"k\": 0.0, \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n1e-1000,\u00e9\n1e-1000,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value 1E-1000 is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n1e-1000,\u00e9\n1e-1000,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": 0.0, \"x\": \"\u00e9\"}\n{\"k\": 0.0, \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n1234567890123456789012345678901234567890,\u00e9\n1234567890123456789012345678901234567890,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": 1.2345678901234568e+39, \"x\": \"\u00e9\"}, {\"k\": 1.2345678901234568e+39, \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n1234567890123456789012345678901234567890,\u00e9\n1234567890123456789012345678901234567890,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value 1.234567890123456789012345679E+39 is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n1234567890123456789012345678901234567890,\u00e9\n1234567890123456789012345678901234567890,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": 1.2345678901234568e+39, \"x\": \"\u00e9\"}\n{\"k\": 1.2345678901234568e+39, \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n1.23456789012345678901234567890,\u00e9\n1.23456789012345678901234567890,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": 1.2345678901234567, \"x\": \"\u00e9\"}, {\"k\": 1.2345678901234567, \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n1.23456789012345678901234567890,\u00e9\n1.23456789012345678901234567890,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value 1.234567890123456789012345679 is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n1.23456789012345678901234567890,\u00e9\n1.23456789012345678901234567890,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": 1.2345678901234567, \"x\": \"\u00e9\"}\n{\"k\": 1.2345678901234567, \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n2024-02-03,\u00e9\n2024-02-03,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": \"2024-02-03\", \"x\": \"\u00e9\"}, {\"k\": \"2024-02-03\", \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n2024-02-03,\u00e9\n2024-02-03,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value 2024-02-03 is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n2024-02-03,\u00e9\n2024-02-03,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": \"2024-02-03\", \"x\": \"\u00e9\"}\n{\"k\": \"2024-02-03\", \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n1h,\u00e9\n1h,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": \"1:00:00\", \"x\": \"\u00e9\"}, {\"k\": \"1:00:00\", \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n1h,\u00e9\n1h,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value 1:00:00 is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n1h,\u00e9\n1h,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": \"1:00:00\", \"x\": \"\u00e9\"}\n{\"k\": \"1:00:00\", \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n-1h,\u00e9\n-1h,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": \"-1 day, 23:00:00\", \"x\": \"\u00e9\"}, {\"k\": \"-1 day, 23:00:00\", \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n-1h,\u00e9\n-1h,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value -1 day, 23:00:00 is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n-1h,\u00e9\n-1h,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": \"-1 day, 23:00:00\", \"x\": \"\u00e9\"}\n{\"k\": \"-1 day, 23:00:00\", \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n0h,\u00e9\n0h,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": \"0:00:00\", \"x\": \"\u00e9\"}, {\"k\": \"0:00:00\", \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n0h,\u00e9\n0h,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value 0:00:00 is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n0h,\u00e9\n0h,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": \"0:00:00\", \"x\": \"\u00e9\"}\n{\"k\": \"0:00:00\", \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n0.1ms,\u00e9\n0.1ms,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": \"0.1ms\", \"x\": \"\u00e9\"}, {\"k\": \"0.1ms\", \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n0.1ms,\u00e9\n0.1ms,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value 0.1ms is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n0.1ms,\u00e9\n0.1ms,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": \"0.1ms\", \"x\": \"\u00e9\"}\n{\"k\": \"0.1ms\", \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n1.5us,\u00e9\n1.5us,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": \"1.5us\", \"x\": \"\u00e9\"}, {\"k\": \"1.5us\", \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n1.5us,\u00e9\n1.5us,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value 1.5us is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n1.5us,\u00e9\n1.5us,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": \"1.5us\", \"x\": \"\u00e9\"}\n{\"k\": \"1.5us\", \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n5e-324,\u00e9\n5e-324,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": 5e-324, \"x\": \"\u00e9\"}, {\"k\": 5e-324, \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n5e-324,\u00e9\n5e-324,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value 5E-324 is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n5e-324,\u00e9\n5e-324,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": 5e-324, \"x\": \"\u00e9\"}\n{\"k\": 5e-324, \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n1.7976931348623157e308,\u00e9\n1.7976931348623157e308,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": 1.7976931348623157e+308, \"x\": \"\u00e9\"}, {\"k\": 1.7976931348623157e+308, \"x\": \"z\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n1.7976931348623157e308,\u00e9\n1.7976931348623157e308,z\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value 1.7976931348623157E+308 is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n1.7976931348623157e308,\u00e9\n1.7976931348623157e308,z\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": 1.7976931348623157e+308, \"x\": \"\u00e9\"}\n{\"k\": 1.7976931348623157e+308, \"x\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "[]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream"
+      ],
+      "stdout": "",
+      "stderr": "StopIteration: \n",
+      "status": 1
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream",
+        "-H"
+      ],
+      "stdout": "",
+      "stderr": "StopIteration: \n",
+      "status": 1
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "{}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k\n",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "[]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream",
+        "-H"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "{}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k\n\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": null}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k\n\n",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "[{\"k\": null}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k\n\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": null}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k\n\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream"
+      ],
+      "stdout": "{\"k\": null}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k\n\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream",
+        "-H"
+      ],
+      "stdout": "{\"k\": null}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k\n\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "{\"None\": {\"k\": null}}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,k\nx,y\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": \"x\", \"k_2\": true}]",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/csvjson-reference/venv/lib/python3.14/site-packages/agate/utils.py:288: DuplicateColumnWarning: Column name \"k\" already exists in Table. Column will be renamed to \"k_2\".\n  warn_duplicate_column(new_value, final_value)\n",
+      "status": 0
+    },
+    {
+      "stdin": "k,k\nx,y\n",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "[{\"k\": \"x\", \"k_2\": \"y\"}]",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/csvjson-reference/venv/lib/python3.14/site-packages/agate/utils.py:288: DuplicateColumnWarning: Column name \"k\" already exists in Table. Column will be renamed to \"k_2\".\n  warn_duplicate_column(new_value, final_value)\n",
+      "status": 0
+    },
+    {
+      "stdin": "k,k\nx,y\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": \"x\", \"k_2\": true}\n",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/csvjson-reference/venv/lib/python3.14/site-packages/agate/utils.py:288: DuplicateColumnWarning: Column name \"k\" already exists in Table. Column will be renamed to \"k_2\".\n  warn_duplicate_column(new_value, final_value)\n",
+      "status": 0
+    },
+    {
+      "stdin": "k,k\nx,y\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream"
+      ],
+      "stdout": "{\"k\": \"y\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,k\nx,y\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream",
+        "-H"
+      ],
+      "stdout": "{\"k\": \"y\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,k\nx,y\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "{\"x\": {\"k\": \"x\", \"k_2\": true}}",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/csvjson-reference/venv/lib/python3.14/site-packages/agate/utils.py:288: DuplicateColumnWarning: Column name \"k\" already exists in Table. Column will be renamed to \"k_2\".\n  warn_duplicate_column(new_value, final_value)\n",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nz\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"k\": \"z\", \"x\": null}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nz\n",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "[{\"k\": \"z\", \"x\": null}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nz\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"k\": \"z\", \"x\": null}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nz\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream"
+      ],
+      "stdout": "{\"k\": \"z\", \"x\": null}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nz\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream",
+        "-H"
+      ],
+      "stdout": "{\"k\": \"z\", \"x\": null}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nz\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "{\"z\": {\"k\": \"z\", \"x\": null}}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nz,w,q\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Row 0 has 3 values, but Table only has 2 columns.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\nz,w,q\n",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Row 0 has 3 values, but Table only has 2 columns.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\nz,w,q\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Row 0 has 3 values, but Table only has 2 columns.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\nz,w,q\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream"
+      ],
+      "stdout": "{\"k\": \"z\", \"x\": \"w\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nz,w,q\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream",
+        "-H"
+      ],
+      "stdout": "{\"k\": \"z\", \"x\": \"w\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nz,w,q\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Row 0 has 3 values, but Table only has 2 columns.\n",
+      "status": 1
+    },
+    {
+      "stdin": "0,10,__proto__\na,b,c\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"0\": \"a\", \"10\": \"b\", \"__proto__\": \"c\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "0,10,__proto__\na,b,c\n",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "[{\"0\": \"a\", \"10\": \"b\", \"__proto__\": \"c\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "0,10,__proto__\na,b,c\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"0\": \"a\", \"10\": \"b\", \"__proto__\": \"c\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "0,10,__proto__\na,b,c\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream"
+      ],
+      "stdout": "{\"0\": \"a\", \"10\": \"b\", \"__proto__\": \"c\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "0,10,__proto__\na,b,c\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream",
+        "-H"
+      ],
+      "stdout": "{\"0\": \"a\", \"10\": \"b\", \"__proto__\": \"c\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "0,10,__proto__\na,b,c\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "KeyError: 'k'\n",
+      "status": 1
+    }
+  ]
+}

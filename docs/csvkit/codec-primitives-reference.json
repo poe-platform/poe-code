@@ -1,0 +1,4844 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "operation": "bytes.decode strict; UTF16 bulk defaults native little endian without requiring BOM",
+  "cases": [
+    {
+      "encoding": "ascii",
+      "input": "00",
+      "text": "\u0000",
+      "encoded": "00"
+    },
+    {
+      "encoding": "ascii",
+      "input": "01",
+      "text": "\u0001",
+      "encoded": "01"
+    },
+    {
+      "encoding": "ascii",
+      "input": "02",
+      "text": "\u0002",
+      "encoded": "02"
+    },
+    {
+      "encoding": "ascii",
+      "input": "03",
+      "text": "\u0003",
+      "encoded": "03"
+    },
+    {
+      "encoding": "ascii",
+      "input": "04",
+      "text": "\u0004",
+      "encoded": "04"
+    },
+    {
+      "encoding": "ascii",
+      "input": "05",
+      "text": "\u0005",
+      "encoded": "05"
+    },
+    {
+      "encoding": "ascii",
+      "input": "06",
+      "text": "\u0006",
+      "encoded": "06"
+    },
+    {
+      "encoding": "ascii",
+      "input": "07",
+      "text": "\u0007",
+      "encoded": "07"
+    },
+    {
+      "encoding": "ascii",
+      "input": "08",
+      "text": "\b",
+      "encoded": "08"
+    },
+    {
+      "encoding": "ascii",
+      "input": "09",
+      "text": "\t",
+      "encoded": "09"
+    },
+    {
+      "encoding": "ascii",
+      "input": "0a",
+      "text": "\n",
+      "encoded": "0a"
+    },
+    {
+      "encoding": "ascii",
+      "input": "0b",
+      "text": "\u000b",
+      "encoded": "0b"
+    },
+    {
+      "encoding": "ascii",
+      "input": "0c",
+      "text": "\f",
+      "encoded": "0c"
+    },
+    {
+      "encoding": "ascii",
+      "input": "0d",
+      "text": "\r",
+      "encoded": "0d"
+    },
+    {
+      "encoding": "ascii",
+      "input": "0e",
+      "text": "\u000e",
+      "encoded": "0e"
+    },
+    {
+      "encoding": "ascii",
+      "input": "0f",
+      "text": "\u000f",
+      "encoded": "0f"
+    },
+    {
+      "encoding": "ascii",
+      "input": "10",
+      "text": "\u0010",
+      "encoded": "10"
+    },
+    {
+      "encoding": "ascii",
+      "input": "11",
+      "text": "\u0011",
+      "encoded": "11"
+    },
+    {
+      "encoding": "ascii",
+      "input": "12",
+      "text": "\u0012",
+      "encoded": "12"
+    },
+    {
+      "encoding": "ascii",
+      "input": "13",
+      "text": "\u0013",
+      "encoded": "13"
+    },
+    {
+      "encoding": "ascii",
+      "input": "14",
+      "text": "\u0014",
+      "encoded": "14"
+    },
+    {
+      "encoding": "ascii",
+      "input": "15",
+      "text": "\u0015",
+      "encoded": "15"
+    },
+    {
+      "encoding": "ascii",
+      "input": "16",
+      "text": "\u0016",
+      "encoded": "16"
+    },
+    {
+      "encoding": "ascii",
+      "input": "17",
+      "text": "\u0017",
+      "encoded": "17"
+    },
+    {
+      "encoding": "ascii",
+      "input": "18",
+      "text": "\u0018",
+      "encoded": "18"
+    },
+    {
+      "encoding": "ascii",
+      "input": "19",
+      "text": "\u0019",
+      "encoded": "19"
+    },
+    {
+      "encoding": "ascii",
+      "input": "1a",
+      "text": "\u001a",
+      "encoded": "1a"
+    },
+    {
+      "encoding": "ascii",
+      "input": "1b",
+      "text": "\u001b",
+      "encoded": "1b"
+    },
+    {
+      "encoding": "ascii",
+      "input": "1c",
+      "text": "\u001c",
+      "encoded": "1c"
+    },
+    {
+      "encoding": "ascii",
+      "input": "1d",
+      "text": "\u001d",
+      "encoded": "1d"
+    },
+    {
+      "encoding": "ascii",
+      "input": "1e",
+      "text": "\u001e",
+      "encoded": "1e"
+    },
+    {
+      "encoding": "ascii",
+      "input": "1f",
+      "text": "\u001f",
+      "encoded": "1f"
+    },
+    {
+      "encoding": "ascii",
+      "input": "20",
+      "text": " ",
+      "encoded": "20"
+    },
+    {
+      "encoding": "ascii",
+      "input": "21",
+      "text": "!",
+      "encoded": "21"
+    },
+    {
+      "encoding": "ascii",
+      "input": "22",
+      "text": "\"",
+      "encoded": "22"
+    },
+    {
+      "encoding": "ascii",
+      "input": "23",
+      "text": "#",
+      "encoded": "23"
+    },
+    {
+      "encoding": "ascii",
+      "input": "24",
+      "text": "$",
+      "encoded": "24"
+    },
+    {
+      "encoding": "ascii",
+      "input": "25",
+      "text": "%",
+      "encoded": "25"
+    },
+    {
+      "encoding": "ascii",
+      "input": "26",
+      "text": "&",
+      "encoded": "26"
+    },
+    {
+      "encoding": "ascii",
+      "input": "27",
+      "text": "'",
+      "encoded": "27"
+    },
+    {
+      "encoding": "ascii",
+      "input": "28",
+      "text": "(",
+      "encoded": "28"
+    },
+    {
+      "encoding": "ascii",
+      "input": "29",
+      "text": ")",
+      "encoded": "29"
+    },
+    {
+      "encoding": "ascii",
+      "input": "2a",
+      "text": "*",
+      "encoded": "2a"
+    },
+    {
+      "encoding": "ascii",
+      "input": "2b",
+      "text": "+",
+      "encoded": "2b"
+    },
+    {
+      "encoding": "ascii",
+      "input": "2c",
+      "text": ",",
+      "encoded": "2c"
+    },
+    {
+      "encoding": "ascii",
+      "input": "2d",
+      "text": "-",
+      "encoded": "2d"
+    },
+    {
+      "encoding": "ascii",
+      "input": "2e",
+      "text": ".",
+      "encoded": "2e"
+    },
+    {
+      "encoding": "ascii",
+      "input": "2f",
+      "text": "/",
+      "encoded": "2f"
+    },
+    {
+      "encoding": "ascii",
+      "input": "30",
+      "text": "0",
+      "encoded": "30"
+    },
+    {
+      "encoding": "ascii",
+      "input": "31",
+      "text": "1",
+      "encoded": "31"
+    },
+    {
+      "encoding": "ascii",
+      "input": "32",
+      "text": "2",
+      "encoded": "32"
+    },
+    {
+      "encoding": "ascii",
+      "input": "33",
+      "text": "3",
+      "encoded": "33"
+    },
+    {
+      "encoding": "ascii",
+      "input": "34",
+      "text": "4",
+      "encoded": "34"
+    },
+    {
+      "encoding": "ascii",
+      "input": "35",
+      "text": "5",
+      "encoded": "35"
+    },
+    {
+      "encoding": "ascii",
+      "input": "36",
+      "text": "6",
+      "encoded": "36"
+    },
+    {
+      "encoding": "ascii",
+      "input": "37",
+      "text": "7",
+      "encoded": "37"
+    },
+    {
+      "encoding": "ascii",
+      "input": "38",
+      "text": "8",
+      "encoded": "38"
+    },
+    {
+      "encoding": "ascii",
+      "input": "39",
+      "text": "9",
+      "encoded": "39"
+    },
+    {
+      "encoding": "ascii",
+      "input": "3a",
+      "text": ":",
+      "encoded": "3a"
+    },
+    {
+      "encoding": "ascii",
+      "input": "3b",
+      "text": ";",
+      "encoded": "3b"
+    },
+    {
+      "encoding": "ascii",
+      "input": "3c",
+      "text": "<",
+      "encoded": "3c"
+    },
+    {
+      "encoding": "ascii",
+      "input": "3d",
+      "text": "=",
+      "encoded": "3d"
+    },
+    {
+      "encoding": "ascii",
+      "input": "3e",
+      "text": ">",
+      "encoded": "3e"
+    },
+    {
+      "encoding": "ascii",
+      "input": "3f",
+      "text": "?",
+      "encoded": "3f"
+    },
+    {
+      "encoding": "ascii",
+      "input": "40",
+      "text": "@",
+      "encoded": "40"
+    },
+    {
+      "encoding": "ascii",
+      "input": "41",
+      "text": "A",
+      "encoded": "41"
+    },
+    {
+      "encoding": "ascii",
+      "input": "42",
+      "text": "B",
+      "encoded": "42"
+    },
+    {
+      "encoding": "ascii",
+      "input": "43",
+      "text": "C",
+      "encoded": "43"
+    },
+    {
+      "encoding": "ascii",
+      "input": "44",
+      "text": "D",
+      "encoded": "44"
+    },
+    {
+      "encoding": "ascii",
+      "input": "45",
+      "text": "E",
+      "encoded": "45"
+    },
+    {
+      "encoding": "ascii",
+      "input": "46",
+      "text": "F",
+      "encoded": "46"
+    },
+    {
+      "encoding": "ascii",
+      "input": "47",
+      "text": "G",
+      "encoded": "47"
+    },
+    {
+      "encoding": "ascii",
+      "input": "48",
+      "text": "H",
+      "encoded": "48"
+    },
+    {
+      "encoding": "ascii",
+      "input": "49",
+      "text": "I",
+      "encoded": "49"
+    },
+    {
+      "encoding": "ascii",
+      "input": "4a",
+      "text": "J",
+      "encoded": "4a"
+    },
+    {
+      "encoding": "ascii",
+      "input": "4b",
+      "text": "K",
+      "encoded": "4b"
+    },
+    {
+      "encoding": "ascii",
+      "input": "4c",
+      "text": "L",
+      "encoded": "4c"
+    },
+    {
+      "encoding": "ascii",
+      "input": "4d",
+      "text": "M",
+      "encoded": "4d"
+    },
+    {
+      "encoding": "ascii",
+      "input": "4e",
+      "text": "N",
+      "encoded": "4e"
+    },
+    {
+      "encoding": "ascii",
+      "input": "4f",
+      "text": "O",
+      "encoded": "4f"
+    },
+    {
+      "encoding": "ascii",
+      "input": "50",
+      "text": "P",
+      "encoded": "50"
+    },
+    {
+      "encoding": "ascii",
+      "input": "51",
+      "text": "Q",
+      "encoded": "51"
+    },
+    {
+      "encoding": "ascii",
+      "input": "52",
+      "text": "R",
+      "encoded": "52"
+    },
+    {
+      "encoding": "ascii",
+      "input": "53",
+      "text": "S",
+      "encoded": "53"
+    },
+    {
+      "encoding": "ascii",
+      "input": "54",
+      "text": "T",
+      "encoded": "54"
+    },
+    {
+      "encoding": "ascii",
+      "input": "55",
+      "text": "U",
+      "encoded": "55"
+    },
+    {
+      "encoding": "ascii",
+      "input": "56",
+      "text": "V",
+      "encoded": "56"
+    },
+    {
+      "encoding": "ascii",
+      "input": "57",
+      "text": "W",
+      "encoded": "57"
+    },
+    {
+      "encoding": "ascii",
+      "input": "58",
+      "text": "X",
+      "encoded": "58"
+    },
+    {
+      "encoding": "ascii",
+      "input": "59",
+      "text": "Y",
+      "encoded": "59"
+    },
+    {
+      "encoding": "ascii",
+      "input": "5a",
+      "text": "Z",
+      "encoded": "5a"
+    },
+    {
+      "encoding": "ascii",
+      "input": "5b",
+      "text": "[",
+      "encoded": "5b"
+    },
+    {
+      "encoding": "ascii",
+      "input": "5c",
+      "text": "\\",
+      "encoded": "5c"
+    },
+    {
+      "encoding": "ascii",
+      "input": "5d",
+      "text": "]",
+      "encoded": "5d"
+    },
+    {
+      "encoding": "ascii",
+      "input": "5e",
+      "text": "^",
+      "encoded": "5e"
+    },
+    {
+      "encoding": "ascii",
+      "input": "5f",
+      "text": "_",
+      "encoded": "5f"
+    },
+    {
+      "encoding": "ascii",
+      "input": "60",
+      "text": "`",
+      "encoded": "60"
+    },
+    {
+      "encoding": "ascii",
+      "input": "61",
+      "text": "a",
+      "encoded": "61"
+    },
+    {
+      "encoding": "ascii",
+      "input": "62",
+      "text": "b",
+      "encoded": "62"
+    },
+    {
+      "encoding": "ascii",
+      "input": "63",
+      "text": "c",
+      "encoded": "63"
+    },
+    {
+      "encoding": "ascii",
+      "input": "64",
+      "text": "d",
+      "encoded": "64"
+    },
+    {
+      "encoding": "ascii",
+      "input": "65",
+      "text": "e",
+      "encoded": "65"
+    },
+    {
+      "encoding": "ascii",
+      "input": "66",
+      "text": "f",
+      "encoded": "66"
+    },
+    {
+      "encoding": "ascii",
+      "input": "67",
+      "text": "g",
+      "encoded": "67"
+    },
+    {
+      "encoding": "ascii",
+      "input": "68",
+      "text": "h",
+      "encoded": "68"
+    },
+    {
+      "encoding": "ascii",
+      "input": "69",
+      "text": "i",
+      "encoded": "69"
+    },
+    {
+      "encoding": "ascii",
+      "input": "6a",
+      "text": "j",
+      "encoded": "6a"
+    },
+    {
+      "encoding": "ascii",
+      "input": "6b",
+      "text": "k",
+      "encoded": "6b"
+    },
+    {
+      "encoding": "ascii",
+      "input": "6c",
+      "text": "l",
+      "encoded": "6c"
+    },
+    {
+      "encoding": "ascii",
+      "input": "6d",
+      "text": "m",
+      "encoded": "6d"
+    },
+    {
+      "encoding": "ascii",
+      "input": "6e",
+      "text": "n",
+      "encoded": "6e"
+    },
+    {
+      "encoding": "ascii",
+      "input": "6f",
+      "text": "o",
+      "encoded": "6f"
+    },
+    {
+      "encoding": "ascii",
+      "input": "70",
+      "text": "p",
+      "encoded": "70"
+    },
+    {
+      "encoding": "ascii",
+      "input": "71",
+      "text": "q",
+      "encoded": "71"
+    },
+    {
+      "encoding": "ascii",
+      "input": "72",
+      "text": "r",
+      "encoded": "72"
+    },
+    {
+      "encoding": "ascii",
+      "input": "73",
+      "text": "s",
+      "encoded": "73"
+    },
+    {
+      "encoding": "ascii",
+      "input": "74",
+      "text": "t",
+      "encoded": "74"
+    },
+    {
+      "encoding": "ascii",
+      "input": "75",
+      "text": "u",
+      "encoded": "75"
+    },
+    {
+      "encoding": "ascii",
+      "input": "76",
+      "text": "v",
+      "encoded": "76"
+    },
+    {
+      "encoding": "ascii",
+      "input": "77",
+      "text": "w",
+      "encoded": "77"
+    },
+    {
+      "encoding": "ascii",
+      "input": "78",
+      "text": "x",
+      "encoded": "78"
+    },
+    {
+      "encoding": "ascii",
+      "input": "79",
+      "text": "y",
+      "encoded": "79"
+    },
+    {
+      "encoding": "ascii",
+      "input": "7a",
+      "text": "z",
+      "encoded": "7a"
+    },
+    {
+      "encoding": "ascii",
+      "input": "7b",
+      "text": "{",
+      "encoded": "7b"
+    },
+    {
+      "encoding": "ascii",
+      "input": "7c",
+      "text": "|",
+      "encoded": "7c"
+    },
+    {
+      "encoding": "ascii",
+      "input": "7d",
+      "text": "}",
+      "encoded": "7d"
+    },
+    {
+      "encoding": "ascii",
+      "input": "7e",
+      "text": "~",
+      "encoded": "7e"
+    },
+    {
+      "encoding": "ascii",
+      "input": "7f",
+      "text": "\u007f",
+      "encoded": "7f"
+    },
+    {
+      "encoding": "ascii",
+      "input": "80",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "81",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "82",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "83",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "84",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "85",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "86",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "87",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "88",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "89",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "8a",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "8b",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "8c",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "8d",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "8e",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "8f",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "90",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "91",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "92",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "93",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "94",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "95",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "96",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "97",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "98",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "99",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "9a",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "9b",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "9c",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "9d",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "9e",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "9f",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "a0",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "a1",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "a2",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "a3",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "a4",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "a5",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "a6",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "a7",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "a8",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "a9",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "aa",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "ab",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "ac",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "ad",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "ae",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "af",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "b0",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "b1",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "b2",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "b3",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "b4",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "b5",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "b6",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "b7",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "b8",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "b9",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "ba",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "bb",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "bc",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "bd",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "be",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "bf",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "c0",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "c1",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "c2",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "c3",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "c4",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "c5",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "c6",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "c7",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "c8",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "c9",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "ca",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "cb",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "cc",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "cd",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "ce",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "cf",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "d0",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "d1",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "d2",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "d3",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "d4",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "d5",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "d6",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "d7",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "d8",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "d9",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "da",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "db",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "dc",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "dd",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "de",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "df",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "e0",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "e1",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "e2",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "e3",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "e4",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "e5",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "e6",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "e7",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "e8",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "e9",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "ea",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "eb",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "ec",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "ed",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "ee",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "ef",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "f0",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "f1",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "f2",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "f3",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "f4",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "f5",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "f6",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "f7",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "f8",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "f9",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "fa",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "fb",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "fc",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "fd",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "fe",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "ascii",
+      "input": "ff",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "00",
+      "text": "\u0000",
+      "encoded": "00"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "01",
+      "text": "\u0001",
+      "encoded": "01"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "02",
+      "text": "\u0002",
+      "encoded": "02"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "03",
+      "text": "\u0003",
+      "encoded": "03"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "04",
+      "text": "\u0004",
+      "encoded": "04"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "05",
+      "text": "\u0005",
+      "encoded": "05"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "06",
+      "text": "\u0006",
+      "encoded": "06"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "07",
+      "text": "\u0007",
+      "encoded": "07"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "08",
+      "text": "\b",
+      "encoded": "08"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "09",
+      "text": "\t",
+      "encoded": "09"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "0a",
+      "text": "\n",
+      "encoded": "0a"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "0b",
+      "text": "\u000b",
+      "encoded": "0b"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "0c",
+      "text": "\f",
+      "encoded": "0c"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "0d",
+      "text": "\r",
+      "encoded": "0d"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "0e",
+      "text": "\u000e",
+      "encoded": "0e"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "0f",
+      "text": "\u000f",
+      "encoded": "0f"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "10",
+      "text": "\u0010",
+      "encoded": "10"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "11",
+      "text": "\u0011",
+      "encoded": "11"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "12",
+      "text": "\u0012",
+      "encoded": "12"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "13",
+      "text": "\u0013",
+      "encoded": "13"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "14",
+      "text": "\u0014",
+      "encoded": "14"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "15",
+      "text": "\u0015",
+      "encoded": "15"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "16",
+      "text": "\u0016",
+      "encoded": "16"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "17",
+      "text": "\u0017",
+      "encoded": "17"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "18",
+      "text": "\u0018",
+      "encoded": "18"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "19",
+      "text": "\u0019",
+      "encoded": "19"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "1a",
+      "text": "\u001a",
+      "encoded": "1a"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "1b",
+      "text": "\u001b",
+      "encoded": "1b"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "1c",
+      "text": "\u001c",
+      "encoded": "1c"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "1d",
+      "text": "\u001d",
+      "encoded": "1d"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "1e",
+      "text": "\u001e",
+      "encoded": "1e"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "1f",
+      "text": "\u001f",
+      "encoded": "1f"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "20",
+      "text": " ",
+      "encoded": "20"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "21",
+      "text": "!",
+      "encoded": "21"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "22",
+      "text": "\"",
+      "encoded": "22"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "23",
+      "text": "#",
+      "encoded": "23"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "24",
+      "text": "$",
+      "encoded": "24"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "25",
+      "text": "%",
+      "encoded": "25"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "26",
+      "text": "&",
+      "encoded": "26"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "27",
+      "text": "'",
+      "encoded": "27"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "28",
+      "text": "(",
+      "encoded": "28"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "29",
+      "text": ")",
+      "encoded": "29"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "2a",
+      "text": "*",
+      "encoded": "2a"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "2b",
+      "text": "+",
+      "encoded": "2b"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "2c",
+      "text": ",",
+      "encoded": "2c"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "2d",
+      "text": "-",
+      "encoded": "2d"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "2e",
+      "text": ".",
+      "encoded": "2e"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "2f",
+      "text": "/",
+      "encoded": "2f"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "30",
+      "text": "0",
+      "encoded": "30"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "31",
+      "text": "1",
+      "encoded": "31"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "32",
+      "text": "2",
+      "encoded": "32"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "33",
+      "text": "3",
+      "encoded": "33"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "34",
+      "text": "4",
+      "encoded": "34"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "35",
+      "text": "5",
+      "encoded": "35"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "36",
+      "text": "6",
+      "encoded": "36"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "37",
+      "text": "7",
+      "encoded": "37"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "38",
+      "text": "8",
+      "encoded": "38"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "39",
+      "text": "9",
+      "encoded": "39"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "3a",
+      "text": ":",
+      "encoded": "3a"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "3b",
+      "text": ";",
+      "encoded": "3b"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "3c",
+      "text": "<",
+      "encoded": "3c"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "3d",
+      "text": "=",
+      "encoded": "3d"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "3e",
+      "text": ">",
+      "encoded": "3e"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "3f",
+      "text": "?",
+      "encoded": "3f"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "40",
+      "text": "@",
+      "encoded": "40"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "41",
+      "text": "A",
+      "encoded": "41"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "42",
+      "text": "B",
+      "encoded": "42"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "43",
+      "text": "C",
+      "encoded": "43"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "44",
+      "text": "D",
+      "encoded": "44"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "45",
+      "text": "E",
+      "encoded": "45"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "46",
+      "text": "F",
+      "encoded": "46"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "47",
+      "text": "G",
+      "encoded": "47"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "48",
+      "text": "H",
+      "encoded": "48"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "49",
+      "text": "I",
+      "encoded": "49"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "4a",
+      "text": "J",
+      "encoded": "4a"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "4b",
+      "text": "K",
+      "encoded": "4b"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "4c",
+      "text": "L",
+      "encoded": "4c"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "4d",
+      "text": "M",
+      "encoded": "4d"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "4e",
+      "text": "N",
+      "encoded": "4e"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "4f",
+      "text": "O",
+      "encoded": "4f"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "50",
+      "text": "P",
+      "encoded": "50"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "51",
+      "text": "Q",
+      "encoded": "51"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "52",
+      "text": "R",
+      "encoded": "52"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "53",
+      "text": "S",
+      "encoded": "53"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "54",
+      "text": "T",
+      "encoded": "54"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "55",
+      "text": "U",
+      "encoded": "55"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "56",
+      "text": "V",
+      "encoded": "56"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "57",
+      "text": "W",
+      "encoded": "57"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "58",
+      "text": "X",
+      "encoded": "58"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "59",
+      "text": "Y",
+      "encoded": "59"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "5a",
+      "text": "Z",
+      "encoded": "5a"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "5b",
+      "text": "[",
+      "encoded": "5b"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "5c",
+      "text": "\\",
+      "encoded": "5c"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "5d",
+      "text": "]",
+      "encoded": "5d"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "5e",
+      "text": "^",
+      "encoded": "5e"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "5f",
+      "text": "_",
+      "encoded": "5f"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "60",
+      "text": "`",
+      "encoded": "60"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "61",
+      "text": "a",
+      "encoded": "61"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "62",
+      "text": "b",
+      "encoded": "62"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "63",
+      "text": "c",
+      "encoded": "63"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "64",
+      "text": "d",
+      "encoded": "64"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "65",
+      "text": "e",
+      "encoded": "65"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "66",
+      "text": "f",
+      "encoded": "66"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "67",
+      "text": "g",
+      "encoded": "67"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "68",
+      "text": "h",
+      "encoded": "68"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "69",
+      "text": "i",
+      "encoded": "69"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "6a",
+      "text": "j",
+      "encoded": "6a"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "6b",
+      "text": "k",
+      "encoded": "6b"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "6c",
+      "text": "l",
+      "encoded": "6c"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "6d",
+      "text": "m",
+      "encoded": "6d"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "6e",
+      "text": "n",
+      "encoded": "6e"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "6f",
+      "text": "o",
+      "encoded": "6f"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "70",
+      "text": "p",
+      "encoded": "70"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "71",
+      "text": "q",
+      "encoded": "71"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "72",
+      "text": "r",
+      "encoded": "72"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "73",
+      "text": "s",
+      "encoded": "73"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "74",
+      "text": "t",
+      "encoded": "74"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "75",
+      "text": "u",
+      "encoded": "75"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "76",
+      "text": "v",
+      "encoded": "76"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "77",
+      "text": "w",
+      "encoded": "77"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "78",
+      "text": "x",
+      "encoded": "78"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "79",
+      "text": "y",
+      "encoded": "79"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "7a",
+      "text": "z",
+      "encoded": "7a"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "7b",
+      "text": "{",
+      "encoded": "7b"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "7c",
+      "text": "|",
+      "encoded": "7c"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "7d",
+      "text": "}",
+      "encoded": "7d"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "7e",
+      "text": "~",
+      "encoded": "7e"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "7f",
+      "text": "\u007f",
+      "encoded": "7f"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "80",
+      "text": "\u0080",
+      "encoded": "80"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "81",
+      "text": "\u0081",
+      "encoded": "81"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "82",
+      "text": "\u0082",
+      "encoded": "82"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "83",
+      "text": "\u0083",
+      "encoded": "83"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "84",
+      "text": "\u0084",
+      "encoded": "84"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "85",
+      "text": "\u0085",
+      "encoded": "85"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "86",
+      "text": "\u0086",
+      "encoded": "86"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "87",
+      "text": "\u0087",
+      "encoded": "87"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "88",
+      "text": "\u0088",
+      "encoded": "88"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "89",
+      "text": "\u0089",
+      "encoded": "89"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "8a",
+      "text": "\u008a",
+      "encoded": "8a"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "8b",
+      "text": "\u008b",
+      "encoded": "8b"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "8c",
+      "text": "\u008c",
+      "encoded": "8c"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "8d",
+      "text": "\u008d",
+      "encoded": "8d"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "8e",
+      "text": "\u008e",
+      "encoded": "8e"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "8f",
+      "text": "\u008f",
+      "encoded": "8f"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "90",
+      "text": "\u0090",
+      "encoded": "90"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "91",
+      "text": "\u0091",
+      "encoded": "91"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "92",
+      "text": "\u0092",
+      "encoded": "92"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "93",
+      "text": "\u0093",
+      "encoded": "93"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "94",
+      "text": "\u0094",
+      "encoded": "94"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "95",
+      "text": "\u0095",
+      "encoded": "95"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "96",
+      "text": "\u0096",
+      "encoded": "96"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "97",
+      "text": "\u0097",
+      "encoded": "97"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "98",
+      "text": "\u0098",
+      "encoded": "98"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "99",
+      "text": "\u0099",
+      "encoded": "99"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "9a",
+      "text": "\u009a",
+      "encoded": "9a"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "9b",
+      "text": "\u009b",
+      "encoded": "9b"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "9c",
+      "text": "\u009c",
+      "encoded": "9c"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "9d",
+      "text": "\u009d",
+      "encoded": "9d"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "9e",
+      "text": "\u009e",
+      "encoded": "9e"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "9f",
+      "text": "\u009f",
+      "encoded": "9f"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "a0",
+      "text": "\u00a0",
+      "encoded": "a0"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "a1",
+      "text": "\u00a1",
+      "encoded": "a1"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "a2",
+      "text": "\u00a2",
+      "encoded": "a2"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "a3",
+      "text": "\u00a3",
+      "encoded": "a3"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "a4",
+      "text": "\u00a4",
+      "encoded": "a4"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "a5",
+      "text": "\u00a5",
+      "encoded": "a5"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "a6",
+      "text": "\u00a6",
+      "encoded": "a6"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "a7",
+      "text": "\u00a7",
+      "encoded": "a7"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "a8",
+      "text": "\u00a8",
+      "encoded": "a8"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "a9",
+      "text": "\u00a9",
+      "encoded": "a9"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "aa",
+      "text": "\u00aa",
+      "encoded": "aa"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "ab",
+      "text": "\u00ab",
+      "encoded": "ab"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "ac",
+      "text": "\u00ac",
+      "encoded": "ac"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "ad",
+      "text": "\u00ad",
+      "encoded": "ad"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "ae",
+      "text": "\u00ae",
+      "encoded": "ae"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "af",
+      "text": "\u00af",
+      "encoded": "af"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "b0",
+      "text": "\u00b0",
+      "encoded": "b0"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "b1",
+      "text": "\u00b1",
+      "encoded": "b1"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "b2",
+      "text": "\u00b2",
+      "encoded": "b2"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "b3",
+      "text": "\u00b3",
+      "encoded": "b3"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "b4",
+      "text": "\u00b4",
+      "encoded": "b4"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "b5",
+      "text": "\u00b5",
+      "encoded": "b5"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "b6",
+      "text": "\u00b6",
+      "encoded": "b6"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "b7",
+      "text": "\u00b7",
+      "encoded": "b7"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "b8",
+      "text": "\u00b8",
+      "encoded": "b8"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "b9",
+      "text": "\u00b9",
+      "encoded": "b9"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "ba",
+      "text": "\u00ba",
+      "encoded": "ba"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "bb",
+      "text": "\u00bb",
+      "encoded": "bb"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "bc",
+      "text": "\u00bc",
+      "encoded": "bc"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "bd",
+      "text": "\u00bd",
+      "encoded": "bd"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "be",
+      "text": "\u00be",
+      "encoded": "be"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "bf",
+      "text": "\u00bf",
+      "encoded": "bf"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "c0",
+      "text": "\u00c0",
+      "encoded": "c0"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "c1",
+      "text": "\u00c1",
+      "encoded": "c1"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "c2",
+      "text": "\u00c2",
+      "encoded": "c2"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "c3",
+      "text": "\u00c3",
+      "encoded": "c3"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "c4",
+      "text": "\u00c4",
+      "encoded": "c4"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "c5",
+      "text": "\u00c5",
+      "encoded": "c5"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "c6",
+      "text": "\u00c6",
+      "encoded": "c6"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "c7",
+      "text": "\u00c7",
+      "encoded": "c7"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "c8",
+      "text": "\u00c8",
+      "encoded": "c8"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "c9",
+      "text": "\u00c9",
+      "encoded": "c9"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "ca",
+      "text": "\u00ca",
+      "encoded": "ca"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "cb",
+      "text": "\u00cb",
+      "encoded": "cb"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "cc",
+      "text": "\u00cc",
+      "encoded": "cc"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "cd",
+      "text": "\u00cd",
+      "encoded": "cd"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "ce",
+      "text": "\u00ce",
+      "encoded": "ce"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "cf",
+      "text": "\u00cf",
+      "encoded": "cf"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "d0",
+      "text": "\u00d0",
+      "encoded": "d0"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "d1",
+      "text": "\u00d1",
+      "encoded": "d1"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "d2",
+      "text": "\u00d2",
+      "encoded": "d2"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "d3",
+      "text": "\u00d3",
+      "encoded": "d3"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "d4",
+      "text": "\u00d4",
+      "encoded": "d4"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "d5",
+      "text": "\u00d5",
+      "encoded": "d5"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "d6",
+      "text": "\u00d6",
+      "encoded": "d6"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "d7",
+      "text": "\u00d7",
+      "encoded": "d7"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "d8",
+      "text": "\u00d8",
+      "encoded": "d8"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "d9",
+      "text": "\u00d9",
+      "encoded": "d9"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "da",
+      "text": "\u00da",
+      "encoded": "da"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "db",
+      "text": "\u00db",
+      "encoded": "db"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "dc",
+      "text": "\u00dc",
+      "encoded": "dc"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "dd",
+      "text": "\u00dd",
+      "encoded": "dd"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "de",
+      "text": "\u00de",
+      "encoded": "de"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "df",
+      "text": "\u00df",
+      "encoded": "df"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "e0",
+      "text": "\u00e0",
+      "encoded": "e0"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "e1",
+      "text": "\u00e1",
+      "encoded": "e1"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "e2",
+      "text": "\u00e2",
+      "encoded": "e2"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "e3",
+      "text": "\u00e3",
+      "encoded": "e3"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "e4",
+      "text": "\u00e4",
+      "encoded": "e4"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "e5",
+      "text": "\u00e5",
+      "encoded": "e5"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "e6",
+      "text": "\u00e6",
+      "encoded": "e6"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "e7",
+      "text": "\u00e7",
+      "encoded": "e7"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "e8",
+      "text": "\u00e8",
+      "encoded": "e8"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "e9",
+      "text": "\u00e9",
+      "encoded": "e9"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "ea",
+      "text": "\u00ea",
+      "encoded": "ea"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "eb",
+      "text": "\u00eb",
+      "encoded": "eb"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "ec",
+      "text": "\u00ec",
+      "encoded": "ec"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "ed",
+      "text": "\u00ed",
+      "encoded": "ed"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "ee",
+      "text": "\u00ee",
+      "encoded": "ee"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "ef",
+      "text": "\u00ef",
+      "encoded": "ef"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "f0",
+      "text": "\u00f0",
+      "encoded": "f0"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "f1",
+      "text": "\u00f1",
+      "encoded": "f1"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "f2",
+      "text": "\u00f2",
+      "encoded": "f2"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "f3",
+      "text": "\u00f3",
+      "encoded": "f3"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "f4",
+      "text": "\u00f4",
+      "encoded": "f4"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "f5",
+      "text": "\u00f5",
+      "encoded": "f5"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "f6",
+      "text": "\u00f6",
+      "encoded": "f6"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "f7",
+      "text": "\u00f7",
+      "encoded": "f7"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "f8",
+      "text": "\u00f8",
+      "encoded": "f8"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "f9",
+      "text": "\u00f9",
+      "encoded": "f9"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "fa",
+      "text": "\u00fa",
+      "encoded": "fa"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "fb",
+      "text": "\u00fb",
+      "encoded": "fb"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "fc",
+      "text": "\u00fc",
+      "encoded": "fc"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "fd",
+      "text": "\u00fd",
+      "encoded": "fd"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "fe",
+      "text": "\u00fe",
+      "encoded": "fe"
+    },
+    {
+      "encoding": "latin-1",
+      "input": "ff",
+      "text": "\u00ff",
+      "encoded": "ff"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "00",
+      "text": "\u0000",
+      "encoded": "00"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "01",
+      "text": "\u0001",
+      "encoded": "01"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "02",
+      "text": "\u0002",
+      "encoded": "02"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "03",
+      "text": "\u0003",
+      "encoded": "03"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "04",
+      "text": "\u0004",
+      "encoded": "04"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "05",
+      "text": "\u0005",
+      "encoded": "05"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "06",
+      "text": "\u0006",
+      "encoded": "06"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "07",
+      "text": "\u0007",
+      "encoded": "07"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "08",
+      "text": "\b",
+      "encoded": "08"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "09",
+      "text": "\t",
+      "encoded": "09"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "0a",
+      "text": "\n",
+      "encoded": "0a"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "0b",
+      "text": "\u000b",
+      "encoded": "0b"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "0c",
+      "text": "\f",
+      "encoded": "0c"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "0d",
+      "text": "\r",
+      "encoded": "0d"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "0e",
+      "text": "\u000e",
+      "encoded": "0e"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "0f",
+      "text": "\u000f",
+      "encoded": "0f"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "10",
+      "text": "\u0010",
+      "encoded": "10"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "11",
+      "text": "\u0011",
+      "encoded": "11"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "12",
+      "text": "\u0012",
+      "encoded": "12"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "13",
+      "text": "\u0013",
+      "encoded": "13"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "14",
+      "text": "\u0014",
+      "encoded": "14"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "15",
+      "text": "\u0015",
+      "encoded": "15"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "16",
+      "text": "\u0016",
+      "encoded": "16"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "17",
+      "text": "\u0017",
+      "encoded": "17"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "18",
+      "text": "\u0018",
+      "encoded": "18"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "19",
+      "text": "\u0019",
+      "encoded": "19"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "1a",
+      "text": "\u001a",
+      "encoded": "1a"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "1b",
+      "text": "\u001b",
+      "encoded": "1b"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "1c",
+      "text": "\u001c",
+      "encoded": "1c"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "1d",
+      "text": "\u001d",
+      "encoded": "1d"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "1e",
+      "text": "\u001e",
+      "encoded": "1e"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "1f",
+      "text": "\u001f",
+      "encoded": "1f"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "20",
+      "text": " ",
+      "encoded": "20"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "21",
+      "text": "!",
+      "encoded": "21"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "22",
+      "text": "\"",
+      "encoded": "22"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "23",
+      "text": "#",
+      "encoded": "23"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "24",
+      "text": "$",
+      "encoded": "24"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "25",
+      "text": "%",
+      "encoded": "25"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "26",
+      "text": "&",
+      "encoded": "26"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "27",
+      "text": "'",
+      "encoded": "27"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "28",
+      "text": "(",
+      "encoded": "28"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "29",
+      "text": ")",
+      "encoded": "29"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "2a",
+      "text": "*",
+      "encoded": "2a"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "2b",
+      "text": "+",
+      "encoded": "2b"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "2c",
+      "text": ",",
+      "encoded": "2c"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "2d",
+      "text": "-",
+      "encoded": "2d"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "2e",
+      "text": ".",
+      "encoded": "2e"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "2f",
+      "text": "/",
+      "encoded": "2f"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "30",
+      "text": "0",
+      "encoded": "30"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "31",
+      "text": "1",
+      "encoded": "31"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "32",
+      "text": "2",
+      "encoded": "32"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "33",
+      "text": "3",
+      "encoded": "33"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "34",
+      "text": "4",
+      "encoded": "34"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "35",
+      "text": "5",
+      "encoded": "35"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "36",
+      "text": "6",
+      "encoded": "36"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "37",
+      "text": "7",
+      "encoded": "37"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "38",
+      "text": "8",
+      "encoded": "38"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "39",
+      "text": "9",
+      "encoded": "39"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "3a",
+      "text": ":",
+      "encoded": "3a"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "3b",
+      "text": ";",
+      "encoded": "3b"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "3c",
+      "text": "<",
+      "encoded": "3c"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "3d",
+      "text": "=",
+      "encoded": "3d"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "3e",
+      "text": ">",
+      "encoded": "3e"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "3f",
+      "text": "?",
+      "encoded": "3f"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "40",
+      "text": "@",
+      "encoded": "40"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "41",
+      "text": "A",
+      "encoded": "41"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "42",
+      "text": "B",
+      "encoded": "42"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "43",
+      "text": "C",
+      "encoded": "43"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "44",
+      "text": "D",
+      "encoded": "44"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "45",
+      "text": "E",
+      "encoded": "45"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "46",
+      "text": "F",
+      "encoded": "46"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "47",
+      "text": "G",
+      "encoded": "47"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "48",
+      "text": "H",
+      "encoded": "48"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "49",
+      "text": "I",
+      "encoded": "49"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "4a",
+      "text": "J",
+      "encoded": "4a"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "4b",
+      "text": "K",
+      "encoded": "4b"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "4c",
+      "text": "L",
+      "encoded": "4c"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "4d",
+      "text": "M",
+      "encoded": "4d"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "4e",
+      "text": "N",
+      "encoded": "4e"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "4f",
+      "text": "O",
+      "encoded": "4f"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "50",
+      "text": "P",
+      "encoded": "50"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "51",
+      "text": "Q",
+      "encoded": "51"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "52",
+      "text": "R",
+      "encoded": "52"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "53",
+      "text": "S",
+      "encoded": "53"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "54",
+      "text": "T",
+      "encoded": "54"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "55",
+      "text": "U",
+      "encoded": "55"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "56",
+      "text": "V",
+      "encoded": "56"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "57",
+      "text": "W",
+      "encoded": "57"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "58",
+      "text": "X",
+      "encoded": "58"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "59",
+      "text": "Y",
+      "encoded": "59"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "5a",
+      "text": "Z",
+      "encoded": "5a"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "5b",
+      "text": "[",
+      "encoded": "5b"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "5c",
+      "text": "\\",
+      "encoded": "5c"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "5d",
+      "text": "]",
+      "encoded": "5d"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "5e",
+      "text": "^",
+      "encoded": "5e"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "5f",
+      "text": "_",
+      "encoded": "5f"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "60",
+      "text": "`",
+      "encoded": "60"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "61",
+      "text": "a",
+      "encoded": "61"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "62",
+      "text": "b",
+      "encoded": "62"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "63",
+      "text": "c",
+      "encoded": "63"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "64",
+      "text": "d",
+      "encoded": "64"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "65",
+      "text": "e",
+      "encoded": "65"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "66",
+      "text": "f",
+      "encoded": "66"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "67",
+      "text": "g",
+      "encoded": "67"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "68",
+      "text": "h",
+      "encoded": "68"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "69",
+      "text": "i",
+      "encoded": "69"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "6a",
+      "text": "j",
+      "encoded": "6a"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "6b",
+      "text": "k",
+      "encoded": "6b"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "6c",
+      "text": "l",
+      "encoded": "6c"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "6d",
+      "text": "m",
+      "encoded": "6d"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "6e",
+      "text": "n",
+      "encoded": "6e"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "6f",
+      "text": "o",
+      "encoded": "6f"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "70",
+      "text": "p",
+      "encoded": "70"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "71",
+      "text": "q",
+      "encoded": "71"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "72",
+      "text": "r",
+      "encoded": "72"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "73",
+      "text": "s",
+      "encoded": "73"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "74",
+      "text": "t",
+      "encoded": "74"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "75",
+      "text": "u",
+      "encoded": "75"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "76",
+      "text": "v",
+      "encoded": "76"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "77",
+      "text": "w",
+      "encoded": "77"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "78",
+      "text": "x",
+      "encoded": "78"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "79",
+      "text": "y",
+      "encoded": "79"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "7a",
+      "text": "z",
+      "encoded": "7a"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "7b",
+      "text": "{",
+      "encoded": "7b"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "7c",
+      "text": "|",
+      "encoded": "7c"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "7d",
+      "text": "}",
+      "encoded": "7d"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "7e",
+      "text": "~",
+      "encoded": "7e"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "7f",
+      "text": "\u007f",
+      "encoded": "7f"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "80",
+      "text": "\u20ac",
+      "encoded": "80"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "81",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "82",
+      "text": "\u201a",
+      "encoded": "82"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "83",
+      "text": "\u0192",
+      "encoded": "83"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "84",
+      "text": "\u201e",
+      "encoded": "84"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "85",
+      "text": "\u2026",
+      "encoded": "85"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "86",
+      "text": "\u2020",
+      "encoded": "86"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "87",
+      "text": "\u2021",
+      "encoded": "87"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "88",
+      "text": "\u02c6",
+      "encoded": "88"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "89",
+      "text": "\u2030",
+      "encoded": "89"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "8a",
+      "text": "\u0160",
+      "encoded": "8a"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "8b",
+      "text": "\u2039",
+      "encoded": "8b"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "8c",
+      "text": "\u0152",
+      "encoded": "8c"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "8d",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "8e",
+      "text": "\u017d",
+      "encoded": "8e"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "8f",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "90",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "91",
+      "text": "\u2018",
+      "encoded": "91"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "92",
+      "text": "\u2019",
+      "encoded": "92"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "93",
+      "text": "\u201c",
+      "encoded": "93"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "94",
+      "text": "\u201d",
+      "encoded": "94"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "95",
+      "text": "\u2022",
+      "encoded": "95"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "96",
+      "text": "\u2013",
+      "encoded": "96"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "97",
+      "text": "\u2014",
+      "encoded": "97"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "98",
+      "text": "\u02dc",
+      "encoded": "98"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "99",
+      "text": "\u2122",
+      "encoded": "99"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "9a",
+      "text": "\u0161",
+      "encoded": "9a"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "9b",
+      "text": "\u203a",
+      "encoded": "9b"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "9c",
+      "text": "\u0153",
+      "encoded": "9c"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "9d",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "9e",
+      "text": "\u017e",
+      "encoded": "9e"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "9f",
+      "text": "\u0178",
+      "encoded": "9f"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "a0",
+      "text": "\u00a0",
+      "encoded": "a0"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "a1",
+      "text": "\u00a1",
+      "encoded": "a1"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "a2",
+      "text": "\u00a2",
+      "encoded": "a2"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "a3",
+      "text": "\u00a3",
+      "encoded": "a3"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "a4",
+      "text": "\u00a4",
+      "encoded": "a4"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "a5",
+      "text": "\u00a5",
+      "encoded": "a5"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "a6",
+      "text": "\u00a6",
+      "encoded": "a6"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "a7",
+      "text": "\u00a7",
+      "encoded": "a7"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "a8",
+      "text": "\u00a8",
+      "encoded": "a8"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "a9",
+      "text": "\u00a9",
+      "encoded": "a9"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "aa",
+      "text": "\u00aa",
+      "encoded": "aa"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "ab",
+      "text": "\u00ab",
+      "encoded": "ab"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "ac",
+      "text": "\u00ac",
+      "encoded": "ac"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "ad",
+      "text": "\u00ad",
+      "encoded": "ad"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "ae",
+      "text": "\u00ae",
+      "encoded": "ae"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "af",
+      "text": "\u00af",
+      "encoded": "af"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "b0",
+      "text": "\u00b0",
+      "encoded": "b0"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "b1",
+      "text": "\u00b1",
+      "encoded": "b1"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "b2",
+      "text": "\u00b2",
+      "encoded": "b2"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "b3",
+      "text": "\u00b3",
+      "encoded": "b3"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "b4",
+      "text": "\u00b4",
+      "encoded": "b4"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "b5",
+      "text": "\u00b5",
+      "encoded": "b5"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "b6",
+      "text": "\u00b6",
+      "encoded": "b6"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "b7",
+      "text": "\u00b7",
+      "encoded": "b7"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "b8",
+      "text": "\u00b8",
+      "encoded": "b8"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "b9",
+      "text": "\u00b9",
+      "encoded": "b9"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "ba",
+      "text": "\u00ba",
+      "encoded": "ba"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "bb",
+      "text": "\u00bb",
+      "encoded": "bb"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "bc",
+      "text": "\u00bc",
+      "encoded": "bc"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "bd",
+      "text": "\u00bd",
+      "encoded": "bd"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "be",
+      "text": "\u00be",
+      "encoded": "be"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "bf",
+      "text": "\u00bf",
+      "encoded": "bf"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "c0",
+      "text": "\u00c0",
+      "encoded": "c0"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "c1",
+      "text": "\u00c1",
+      "encoded": "c1"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "c2",
+      "text": "\u00c2",
+      "encoded": "c2"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "c3",
+      "text": "\u00c3",
+      "encoded": "c3"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "c4",
+      "text": "\u00c4",
+      "encoded": "c4"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "c5",
+      "text": "\u00c5",
+      "encoded": "c5"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "c6",
+      "text": "\u00c6",
+      "encoded": "c6"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "c7",
+      "text": "\u00c7",
+      "encoded": "c7"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "c8",
+      "text": "\u00c8",
+      "encoded": "c8"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "c9",
+      "text": "\u00c9",
+      "encoded": "c9"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "ca",
+      "text": "\u00ca",
+      "encoded": "ca"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "cb",
+      "text": "\u00cb",
+      "encoded": "cb"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "cc",
+      "text": "\u00cc",
+      "encoded": "cc"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "cd",
+      "text": "\u00cd",
+      "encoded": "cd"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "ce",
+      "text": "\u00ce",
+      "encoded": "ce"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "cf",
+      "text": "\u00cf",
+      "encoded": "cf"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "d0",
+      "text": "\u00d0",
+      "encoded": "d0"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "d1",
+      "text": "\u00d1",
+      "encoded": "d1"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "d2",
+      "text": "\u00d2",
+      "encoded": "d2"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "d3",
+      "text": "\u00d3",
+      "encoded": "d3"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "d4",
+      "text": "\u00d4",
+      "encoded": "d4"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "d5",
+      "text": "\u00d5",
+      "encoded": "d5"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "d6",
+      "text": "\u00d6",
+      "encoded": "d6"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "d7",
+      "text": "\u00d7",
+      "encoded": "d7"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "d8",
+      "text": "\u00d8",
+      "encoded": "d8"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "d9",
+      "text": "\u00d9",
+      "encoded": "d9"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "da",
+      "text": "\u00da",
+      "encoded": "da"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "db",
+      "text": "\u00db",
+      "encoded": "db"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "dc",
+      "text": "\u00dc",
+      "encoded": "dc"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "dd",
+      "text": "\u00dd",
+      "encoded": "dd"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "de",
+      "text": "\u00de",
+      "encoded": "de"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "df",
+      "text": "\u00df",
+      "encoded": "df"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "e0",
+      "text": "\u00e0",
+      "encoded": "e0"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "e1",
+      "text": "\u00e1",
+      "encoded": "e1"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "e2",
+      "text": "\u00e2",
+      "encoded": "e2"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "e3",
+      "text": "\u00e3",
+      "encoded": "e3"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "e4",
+      "text": "\u00e4",
+      "encoded": "e4"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "e5",
+      "text": "\u00e5",
+      "encoded": "e5"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "e6",
+      "text": "\u00e6",
+      "encoded": "e6"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "e7",
+      "text": "\u00e7",
+      "encoded": "e7"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "e8",
+      "text": "\u00e8",
+      "encoded": "e8"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "e9",
+      "text": "\u00e9",
+      "encoded": "e9"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "ea",
+      "text": "\u00ea",
+      "encoded": "ea"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "eb",
+      "text": "\u00eb",
+      "encoded": "eb"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "ec",
+      "text": "\u00ec",
+      "encoded": "ec"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "ed",
+      "text": "\u00ed",
+      "encoded": "ed"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "ee",
+      "text": "\u00ee",
+      "encoded": "ee"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "ef",
+      "text": "\u00ef",
+      "encoded": "ef"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "f0",
+      "text": "\u00f0",
+      "encoded": "f0"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "f1",
+      "text": "\u00f1",
+      "encoded": "f1"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "f2",
+      "text": "\u00f2",
+      "encoded": "f2"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "f3",
+      "text": "\u00f3",
+      "encoded": "f3"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "f4",
+      "text": "\u00f4",
+      "encoded": "f4"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "f5",
+      "text": "\u00f5",
+      "encoded": "f5"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "f6",
+      "text": "\u00f6",
+      "encoded": "f6"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "f7",
+      "text": "\u00f7",
+      "encoded": "f7"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "f8",
+      "text": "\u00f8",
+      "encoded": "f8"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "f9",
+      "text": "\u00f9",
+      "encoded": "f9"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "fa",
+      "text": "\u00fa",
+      "encoded": "fa"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "fb",
+      "text": "\u00fb",
+      "encoded": "fb"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "fc",
+      "text": "\u00fc",
+      "encoded": "fc"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "fd",
+      "text": "\u00fd",
+      "encoded": "fd"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "fe",
+      "text": "\u00fe",
+      "encoded": "fe"
+    },
+    {
+      "encoding": "cp1252",
+      "input": "ff",
+      "text": "\u00ff",
+      "encoded": "ff"
+    },
+    {
+      "encoding": "utf-8",
+      "input": "",
+      "text": "",
+      "encoded": ""
+    },
+    {
+      "encoding": "utf-8",
+      "input": "ef",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-8",
+      "input": "efbb",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-8",
+      "input": "efbbbf",
+      "text": "\ufeff",
+      "encoded": "efbbbf"
+    },
+    {
+      "encoding": "utf-8",
+      "input": "fffe",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-8",
+      "input": "feff",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-8",
+      "input": "6100",
+      "text": "a\u0000",
+      "encoded": "6100"
+    },
+    {
+      "encoding": "utf-8",
+      "input": "0061",
+      "text": "\u0000a",
+      "encoded": "0061"
+    },
+    {
+      "encoding": "utf-8",
+      "input": "00d8",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-8",
+      "input": "00dc",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-8",
+      "input": "00d800dc",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-8",
+      "input": "fffe6100",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-8",
+      "input": "feff0061",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-8-sig",
+      "input": "",
+      "text": "",
+      "encoded": "efbbbf"
+    },
+    {
+      "encoding": "utf-8-sig",
+      "input": "ef",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-8-sig",
+      "input": "efbb",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-8-sig",
+      "input": "efbbbf",
+      "text": "",
+      "encoded": "efbbbf"
+    },
+    {
+      "encoding": "utf-8-sig",
+      "input": "fffe",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-8-sig",
+      "input": "feff",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-8-sig",
+      "input": "6100",
+      "text": "a\u0000",
+      "encoded": "efbbbf6100"
+    },
+    {
+      "encoding": "utf-8-sig",
+      "input": "0061",
+      "text": "\u0000a",
+      "encoded": "efbbbf0061"
+    },
+    {
+      "encoding": "utf-8-sig",
+      "input": "00d8",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-8-sig",
+      "input": "00dc",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-8-sig",
+      "input": "00d800dc",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-8-sig",
+      "input": "fffe6100",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-8-sig",
+      "input": "feff0061",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "input": "",
+      "text": "",
+      "encoded": "fffe"
+    },
+    {
+      "encoding": "utf-16",
+      "input": "ef",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "input": "efbb",
+      "text": "\ubbef",
+      "encoded": "fffeefbb"
+    },
+    {
+      "encoding": "utf-16",
+      "input": "efbbbf",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "input": "fffe",
+      "text": "",
+      "encoded": "fffe"
+    },
+    {
+      "encoding": "utf-16",
+      "input": "feff",
+      "text": "",
+      "encoded": "fffe"
+    },
+    {
+      "encoding": "utf-16",
+      "input": "6100",
+      "text": "a",
+      "encoded": "fffe6100"
+    },
+    {
+      "encoding": "utf-16",
+      "input": "0061",
+      "text": "\u6100",
+      "encoded": "fffe0061"
+    },
+    {
+      "encoding": "utf-16",
+      "input": "00d8",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "input": "00dc",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "input": "00d800dc",
+      "text": "\ud800\udc00",
+      "encoded": "fffe00d800dc"
+    },
+    {
+      "encoding": "utf-16",
+      "input": "fffe6100",
+      "text": "a",
+      "encoded": "fffe6100"
+    },
+    {
+      "encoding": "utf-16",
+      "input": "feff0061",
+      "text": "a",
+      "encoded": "fffe6100"
+    },
+    {
+      "encoding": "utf-16-le",
+      "input": "",
+      "text": "",
+      "encoded": ""
+    },
+    {
+      "encoding": "utf-16-le",
+      "input": "ef",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "input": "efbb",
+      "text": "\ubbef",
+      "encoded": "efbb"
+    },
+    {
+      "encoding": "utf-16-le",
+      "input": "efbbbf",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "input": "fffe",
+      "text": "\ufeff",
+      "encoded": "fffe"
+    },
+    {
+      "encoding": "utf-16-le",
+      "input": "feff",
+      "text": "\ufffe",
+      "encoded": "feff"
+    },
+    {
+      "encoding": "utf-16-le",
+      "input": "6100",
+      "text": "a",
+      "encoded": "6100"
+    },
+    {
+      "encoding": "utf-16-le",
+      "input": "0061",
+      "text": "\u6100",
+      "encoded": "0061"
+    },
+    {
+      "encoding": "utf-16-le",
+      "input": "00d8",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "input": "00dc",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "input": "00d800dc",
+      "text": "\ud800\udc00",
+      "encoded": "00d800dc"
+    },
+    {
+      "encoding": "utf-16-le",
+      "input": "fffe6100",
+      "text": "\ufeffa",
+      "encoded": "fffe6100"
+    },
+    {
+      "encoding": "utf-16-le",
+      "input": "feff0061",
+      "text": "\ufffe\u6100",
+      "encoded": "feff0061"
+    },
+    {
+      "encoding": "utf-16-be",
+      "input": "",
+      "text": "",
+      "encoded": ""
+    },
+    {
+      "encoding": "utf-16-be",
+      "input": "ef",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-be",
+      "input": "efbb",
+      "text": "\uefbb",
+      "encoded": "efbb"
+    },
+    {
+      "encoding": "utf-16-be",
+      "input": "efbbbf",
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-be",
+      "input": "fffe",
+      "text": "\ufffe",
+      "encoded": "fffe"
+    },
+    {
+      "encoding": "utf-16-be",
+      "input": "feff",
+      "text": "\ufeff",
+      "encoded": "feff"
+    },
+    {
+      "encoding": "utf-16-be",
+      "input": "6100",
+      "text": "\u6100",
+      "encoded": "6100"
+    },
+    {
+      "encoding": "utf-16-be",
+      "input": "0061",
+      "text": "a",
+      "encoded": "0061"
+    },
+    {
+      "encoding": "utf-16-be",
+      "input": "00d8",
+      "text": "\u00d8",
+      "encoded": "00d8"
+    },
+    {
+      "encoding": "utf-16-be",
+      "input": "00dc",
+      "text": "\u00dc",
+      "encoded": "00dc"
+    },
+    {
+      "encoding": "utf-16-be",
+      "input": "00d800dc",
+      "text": "\u00d8\u00dc",
+      "encoded": "00d800dc"
+    },
+    {
+      "encoding": "utf-16-be",
+      "input": "fffe6100",
+      "text": "\ufffe\u6100",
+      "encoded": "fffe6100"
+    },
+    {
+      "encoding": "utf-16-be",
+      "input": "feff0061",
+      "text": "\ufeffa",
+      "encoded": "feff0061"
+    }
+  ],
+  "encodeOperation": "str.encode strict, successful decode results only; failure details remain unqualified"
+}

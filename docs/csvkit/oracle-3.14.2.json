@@ -1,0 +1,562 @@
+[
+  {
+    "command": "csvclean",
+    "argv": [
+      "--help"
+    ],
+    "stdin": "",
+    "stdout": "usage: csvclean [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}]\n                [-b] [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S]\n                [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V]\n                [--length-mismatch] [--empty-columns] [-a] [--omit-error-rows]\n                [--label LABEL] [--header-normalize-space] [--join-short-rows]\n                [--separator SEPARATOR] [--fill-short-rows]\n                [--fillvalue FILLVALUE]\n                [FILE]\n\nReport and fix common errors in a CSV file.\n\npositional arguments:\n  FILE                  The CSV file to operate on. If omitted, will accept\n                        input as piped data via STDIN.\n\noptions:\n  -h, --help            show this help message and exit\n  -d, --delimiter DELIMITER\n                        Delimiting character of the input CSV file.\n  -t, --tabs            Specify that the input CSV file is delimited with\n                        tabs. Overrides \"-d\".\n  -q, --quotechar QUOTECHAR\n                        Character used to quote strings in the input CSV file.\n  -u, --quoting {0,1,2,3,4,5}\n                        Quoting style used in the input CSV file: 0 quote\n                        minimal, 1 quote all, 2 quote non-numeric, 3 quote\n                        none.\n  -b, --no-doublequote  Whether or not double quotes are doubled in the input\n                        CSV file.\n  -p, --escapechar ESCAPECHAR\n                        Character used to escape the delimiter if --quoting 3\n                        (\"quote none\") is specified and to escape the\n                        QUOTECHAR if --no-doublequote is specified.\n  -z, --maxfieldsize FIELD_SIZE_LIMIT\n                        Maximum length of a single field in the input CSV\n                        file.\n  -e, --encoding ENCODING\n                        Specify the encoding of the input CSV file.\n  -S, --skipinitialspace\n                        Ignore whitespace immediately following the delimiter.\n  -H, --no-header-row   Specify that the input CSV file has no header row.\n                        Will create default headers (a,b,c,...).\n  -K, --skip-lines SKIP_LINES\n                        Specify the number of initial lines to skip before the\n                        header row (e.g. comments, copyright notices, empty\n                        rows).\n  -v, --verbose         Print detailed tracebacks when errors occur.\n  -l, --linenumbers     Insert a column of line numbers at the front of the\n                        output. Useful when piping to grep or as a simple\n                        primary key.\n  --add-bom             Add the UTF-8 byte-order mark (BOM) to the output, for\n                        Excel compatibility\n  --zero                When interpreting or displaying column numbers, use\n                        zero-based numbering instead of the default 1-based\n                        numbering.\n  -V, --version         Display version information and exit.\n  --length-mismatch     Report data rows that are shorter or longer than the\n                        header row.\n  --empty-columns       Report empty columns as errors.\n  -a, --enable-all-checks\n                        Enable all error reporting.\n  --omit-error-rows     Omit data rows that contain errors, from standard\n                        output.\n  --label LABEL         Add a \"label\" column to standard error. Useful in\n                        automated workflows. Use \"-\" to default to the input\n                        filename.\n  --header-normalize-space\n                        Strip leading and trailing whitespace and replace\n                        sequences of whitespace characters by a single space\n                        in the header.\n  --join-short-rows     Merges short rows into a single row.\n  --separator SEPARATOR\n                        The string with which to join short rows. Defaults to\n                        a newline.\n  --fill-short-rows     Fill short rows with the missing cells.\n  --fillvalue FILLVALUE\n                        The value with which to fill short rows. Defaults to\n                        none.\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvclean",
+    "argv": [
+      "-V"
+    ],
+    "stdin": "",
+    "stdout": "csvclean 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvclean",
+    "argv": [
+      "--version"
+    ],
+    "stdin": "",
+    "stdout": "csvclean 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvclean",
+    "argv": [
+      "--csvkit-unknown-option"
+    ],
+    "stdin": "",
+    "stdout": "",
+    "stderr": "usage: csvclean [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}]\n                [-b] [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S]\n                [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V]\n                [--length-mismatch] [--empty-columns] [-a] [--omit-error-rows]\n                [--label LABEL] [--header-normalize-space] [--join-short-rows]\n                [--separator SEPARATOR] [--fill-short-rows]\n                [--fillvalue FILLVALUE]\n                [FILE]\ncsvclean: error: unrecognized arguments: --csvkit-unknown-option\n",
+    "status": 2
+  },
+  {
+    "command": "csvcut",
+    "argv": [
+      "--help"
+    ],
+    "stdin": "",
+    "stdout": "usage: csvcut [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S] [-H]\n              [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V] [-n]\n              [-c COLUMNS] [-C NOT_COLUMNS] [-x]\n              [FILE]\n\nFilter and truncate CSV files. Like the Unix \"cut\" command, but for tabular\ndata.\n\npositional arguments:\n  FILE                  The CSV file to operate on. If omitted, will accept\n                        input as piped data via STDIN.\n\noptions:\n  -h, --help            show this help message and exit\n  -d, --delimiter DELIMITER\n                        Delimiting character of the input CSV file.\n  -t, --tabs            Specify that the input CSV file is delimited with\n                        tabs. Overrides \"-d\".\n  -q, --quotechar QUOTECHAR\n                        Character used to quote strings in the input CSV file.\n  -u, --quoting {0,1,2,3,4,5}\n                        Quoting style used in the input CSV file: 0 quote\n                        minimal, 1 quote all, 2 quote non-numeric, 3 quote\n                        none.\n  -b, --no-doublequote  Whether or not double quotes are doubled in the input\n                        CSV file.\n  -p, --escapechar ESCAPECHAR\n                        Character used to escape the delimiter if --quoting 3\n                        (\"quote none\") is specified and to escape the\n                        QUOTECHAR if --no-doublequote is specified.\n  -z, --maxfieldsize FIELD_SIZE_LIMIT\n                        Maximum length of a single field in the input CSV\n                        file.\n  -e, --encoding ENCODING\n                        Specify the encoding of the input CSV file.\n  -S, --skipinitialspace\n                        Ignore whitespace immediately following the delimiter.\n  -H, --no-header-row   Specify that the input CSV file has no header row.\n                        Will create default headers (a,b,c,...).\n  -K, --skip-lines SKIP_LINES\n                        Specify the number of initial lines to skip before the\n                        header row (e.g. comments, copyright notices, empty\n                        rows).\n  -v, --verbose         Print detailed tracebacks when errors occur.\n  -l, --linenumbers     Insert a column of line numbers at the front of the\n                        output. Useful when piping to grep or as a simple\n                        primary key.\n  --add-bom             Add the UTF-8 byte-order mark (BOM) to the output, for\n                        Excel compatibility\n  --zero                When interpreting or displaying column numbers, use\n                        zero-based numbering instead of the default 1-based\n                        numbering.\n  -V, --version         Display version information and exit.\n  -n, --names           Display column names and indices from the input CSV\n                        and exit.\n  -c, --columns COLUMNS\n                        A comma-separated list of column indices, names or\n                        ranges to be extracted, e.g. \"1,id,3-5\". Defaults to\n                        all columns.\n  -C, --not-columns NOT_COLUMNS\n                        A comma-separated list of column indices, names or\n                        ranges to be excluded, e.g. \"1,id,3-5\". Defaults to no\n                        columns.\n  -x, --delete-empty-rows\n                        After cutting, delete rows which are completely empty.\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvcut",
+    "argv": [
+      "-V"
+    ],
+    "stdin": "",
+    "stdout": "csvcut 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvcut",
+    "argv": [
+      "--version"
+    ],
+    "stdin": "",
+    "stdout": "csvcut 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvcut",
+    "argv": [
+      "--csvkit-unknown-option"
+    ],
+    "stdin": "",
+    "stdout": "",
+    "stderr": "usage: csvcut [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S] [-H]\n              [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V] [-n]\n              [-c COLUMNS] [-C NOT_COLUMNS] [-x]\n              [FILE]\ncsvcut: error: unrecognized arguments: --csvkit-unknown-option\n",
+    "status": 2
+  },
+  {
+    "command": "csvformat",
+    "argv": [
+      "--help"
+    ],
+    "stdin": "",
+    "stdout": "usage: csvformat [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}]\n                 [-b] [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING]\n                 [-L LOCALE] [-S] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n                 [--zero] [-V] [-E] [-D OUT_DELIMITER] [-T] [-A]\n                 [-Q OUT_QUOTECHAR] [-U {0,1,2,3,4,5}] [-B]\n                 [-P OUT_ESCAPECHAR] [-M OUT_LINETERMINATOR]\n                 [FILE]\n\nConvert a CSV file to a custom output format.\n\npositional arguments:\n  FILE                  The CSV file to operate on. If omitted, will accept\n                        input as piped data via STDIN.\n\noptions:\n  -h, --help            show this help message and exit\n  -d, --delimiter DELIMITER\n                        Delimiting character of the input CSV file.\n  -t, --tabs            Specify that the input CSV file is delimited with\n                        tabs. Overrides \"-d\".\n  -q, --quotechar QUOTECHAR\n                        Character used to quote strings in the input CSV file.\n  -u, --quoting {0,1,2,3,4,5}\n                        Quoting style used in the input CSV file: 0 quote\n                        minimal, 1 quote all, 2 quote non-numeric, 3 quote\n                        none.\n  -b, --no-doublequote  Whether or not double quotes are doubled in the input\n                        CSV file.\n  -p, --escapechar ESCAPECHAR\n                        Character used to escape the delimiter if --quoting 3\n                        (\"quote none\") is specified and to escape the\n                        QUOTECHAR if --no-doublequote is specified.\n  -z, --maxfieldsize FIELD_SIZE_LIMIT\n                        Maximum length of a single field in the input CSV\n                        file.\n  -e, --encoding ENCODING\n                        Specify the encoding of the input CSV file.\n  -L, --locale LOCALE   Specify the locale (en_US) of any formatted numbers.\n  -S, --skipinitialspace\n                        Ignore whitespace immediately following the delimiter.\n  -H, --no-header-row   Specify that the input CSV file has no header row.\n                        Will create default headers (a,b,c,...).\n  -K, --skip-lines SKIP_LINES\n                        Specify the number of initial lines to skip before the\n                        header row (e.g. comments, copyright notices, empty\n                        rows).\n  -v, --verbose         Print detailed tracebacks when errors occur.\n  -l, --linenumbers     Insert a column of line numbers at the front of the\n                        output. Useful when piping to grep or as a simple\n                        primary key.\n  --add-bom             Add the UTF-8 byte-order mark (BOM) to the output, for\n                        Excel compatibility\n  --zero                When interpreting or displaying column numbers, use\n                        zero-based numbering instead of the default 1-based\n                        numbering.\n  -V, --version         Display version information and exit.\n  -E, --skip-header     Do not output a header row.\n  -D, --out-delimiter OUT_DELIMITER\n                        Delimiting character of the output file.\n  -T, --out-tabs        Specify that the output file is delimited with tabs.\n                        Overrides \"-D\".\n  -A, --out-asv         Specify that the output file is delimited with the\n                        ASCII unit separator and record separator. Overrides\n                        \"-T\", \"-D\" and \"-M\".\n  -Q, --out-quotechar OUT_QUOTECHAR\n                        Character used to quote strings in the output file.\n  -U, --out-quoting {0,1,2,3,4,5}\n                        Quoting style used in the output file: 0 quote\n                        minimal, 1 quote all, 2 quote non-numeric, 3 quote\n                        none.\n  -B, --out-no-doublequote\n                        Whether or not double quotes are doubled in the output\n                        file.\n  -P, --out-escapechar OUT_ESCAPECHAR\n                        Character used to escape the delimiter in the output\n                        file if --quoting 3 (\"Quote None\") is specified and to\n                        escape the QUOTECHAR if --out-no-doublequote is\n                        specified.\n  -M, --out-lineterminator OUT_LINETERMINATOR\n                        Character used to terminate lines in the output file.\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvformat",
+    "argv": [
+      "-V"
+    ],
+    "stdin": "",
+    "stdout": "csvformat 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvformat",
+    "argv": [
+      "--version"
+    ],
+    "stdin": "",
+    "stdout": "csvformat 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvformat",
+    "argv": [
+      "--csvkit-unknown-option"
+    ],
+    "stdin": "",
+    "stdout": "",
+    "stderr": "usage: csvformat [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}]\n                 [-b] [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING]\n                 [-L LOCALE] [-S] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n                 [--zero] [-V] [-E] [-D OUT_DELIMITER] [-T] [-A]\n                 [-Q OUT_QUOTECHAR] [-U {0,1,2,3,4,5}] [-B]\n                 [-P OUT_ESCAPECHAR] [-M OUT_LINETERMINATOR]\n                 [FILE]\ncsvformat: error: unrecognized arguments: --csvkit-unknown-option\n",
+    "status": 2
+  },
+  {
+    "command": "csvgrep",
+    "argv": [
+      "--help"
+    ],
+    "stdin": "",
+    "stdout": "usage: csvgrep [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S] [-H]\n               [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V] [-n]\n               [-c COLUMNS] [-m PATTERN] [-r REGEX] [-f MATCHFILE] [-i] [-a]\n               [FILE]\n\nSearch CSV files. Like the Unix \"grep\" command, but for tabular data.\n\npositional arguments:\n  FILE                  The CSV file to operate on. If omitted, will accept\n                        input as piped data via STDIN.\n\noptions:\n  -h, --help            show this help message and exit\n  -d, --delimiter DELIMITER\n                        Delimiting character of the input CSV file.\n  -t, --tabs            Specify that the input CSV file is delimited with\n                        tabs. Overrides \"-d\".\n  -q, --quotechar QUOTECHAR\n                        Character used to quote strings in the input CSV file.\n  -u, --quoting {0,1,2,3,4,5}\n                        Quoting style used in the input CSV file: 0 quote\n                        minimal, 1 quote all, 2 quote non-numeric, 3 quote\n                        none.\n  -b, --no-doublequote  Whether or not double quotes are doubled in the input\n                        CSV file.\n  -p, --escapechar ESCAPECHAR\n                        Character used to escape the delimiter if --quoting 3\n                        (\"quote none\") is specified and to escape the\n                        QUOTECHAR if --no-doublequote is specified.\n  -z, --maxfieldsize FIELD_SIZE_LIMIT\n                        Maximum length of a single field in the input CSV\n                        file.\n  -e, --encoding ENCODING\n                        Specify the encoding of the input CSV file.\n  -S, --skipinitialspace\n                        Ignore whitespace immediately following the delimiter.\n  -H, --no-header-row   Specify that the input CSV file has no header row.\n                        Will create default headers (a,b,c,...).\n  -K, --skip-lines SKIP_LINES\n                        Specify the number of initial lines to skip before the\n                        header row (e.g. comments, copyright notices, empty\n                        rows).\n  -v, --verbose         Print detailed tracebacks when errors occur.\n  -l, --linenumbers     Insert a column of line numbers at the front of the\n                        output. Useful when piping to grep or as a simple\n                        primary key.\n  --add-bom             Add the UTF-8 byte-order mark (BOM) to the output, for\n                        Excel compatibility\n  --zero                When interpreting or displaying column numbers, use\n                        zero-based numbering instead of the default 1-based\n                        numbering.\n  -V, --version         Display version information and exit.\n  -n, --names           Display column names and indices from the input CSV\n                        and exit.\n  -c, --columns COLUMNS\n                        A comma-separated list of column indices, names or\n                        ranges to be searched, e.g. \"1,id,3-5\".\n  -m, --match PATTERN   A string to search for.\n  -r, --regex REGEX     A regular expression to match.\n  -f, --file MATCHFILE  A path to a file. For each row, if any line in the\n                        file (stripped of line separators) is an exact match\n                        of the cell value, the row matches.\n  -i, --invert-match    Select non-matching rows, instead of matching rows.\n  -a, --any-match       Select rows in which any column matches, instead of\n                        all columns.\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvgrep",
+    "argv": [
+      "-V"
+    ],
+    "stdin": "",
+    "stdout": "csvgrep 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvgrep",
+    "argv": [
+      "--version"
+    ],
+    "stdin": "",
+    "stdout": "csvgrep 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvgrep",
+    "argv": [
+      "--csvkit-unknown-option"
+    ],
+    "stdin": "",
+    "stdout": "",
+    "stderr": "usage: csvgrep [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S] [-H]\n               [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V] [-n]\n               [-c COLUMNS] [-m PATTERN] [-r REGEX] [-f MATCHFILE] [-i] [-a]\n               [FILE]\ncsvgrep: error: unrecognized arguments: --csvkit-unknown-option\n",
+    "status": 2
+  },
+  {
+    "command": "csvjoin",
+    "argv": [
+      "--help"
+    ],
+    "stdin": "",
+    "stdout": "usage: csvjoin [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [-c COLUMNS] [--outer] [--left]\n               [--right] [-y SNIFF_LIMIT] [-I]\n               [FILE ...]\n\nExecute a SQL-like join to merge CSV files on a specified column or columns.\n\npositional arguments:\n  FILE                  The CSV files to operate on. If only one is specified,\n                        it will be copied to STDOUT.\n\noptions:\n  -h, --help            show this help message and exit\n  -d, --delimiter DELIMITER\n                        Delimiting character of the input CSV file.\n  -t, --tabs            Specify that the input CSV file is delimited with\n                        tabs. Overrides \"-d\".\n  -q, --quotechar QUOTECHAR\n                        Character used to quote strings in the input CSV file.\n  -u, --quoting {0,1,2,3,4,5}\n                        Quoting style used in the input CSV file: 0 quote\n                        minimal, 1 quote all, 2 quote non-numeric, 3 quote\n                        none.\n  -b, --no-doublequote  Whether or not double quotes are doubled in the input\n                        CSV file.\n  -p, --escapechar ESCAPECHAR\n                        Character used to escape the delimiter if --quoting 3\n                        (\"quote none\") is specified and to escape the\n                        QUOTECHAR if --no-doublequote is specified.\n  -z, --maxfieldsize FIELD_SIZE_LIMIT\n                        Maximum length of a single field in the input CSV\n                        file.\n  -e, --encoding ENCODING\n                        Specify the encoding of the input CSV file.\n  -L, --locale LOCALE   Specify the locale (en_US) of any formatted numbers.\n  -S, --skipinitialspace\n                        Ignore whitespace immediately following the delimiter.\n  --blanks              Do not convert \"\", \"na\", \"n/a\", \"none\", \"null\", \".\" to\n                        NULL.\n  --null-value NULL_VALUES [NULL_VALUES ...]\n                        Convert this value to NULL. --null-value can be\n                        specified multiple times.\n  --date-format DATE_FORMAT\n                        Specify a strptime date format string like \"%m/%d/%Y\".\n  --datetime-format DATETIME_FORMAT\n                        Specify a strptime datetime format string like\n                        \"%m/%d/%Y %I:%M %p\".\n  --no-leading-zeroes   Do not convert a numeric value with leading zeroes to\n                        a number.\n  -H, --no-header-row   Specify that the input CSV file has no header row.\n                        Will create default headers (a,b,c,...).\n  -K, --skip-lines SKIP_LINES\n                        Specify the number of initial lines to skip before the\n                        header row (e.g. comments, copyright notices, empty\n                        rows).\n  -v, --verbose         Print detailed tracebacks when errors occur.\n  -l, --linenumbers     Insert a column of line numbers at the front of the\n                        output. Useful when piping to grep or as a simple\n                        primary key.\n  --add-bom             Add the UTF-8 byte-order mark (BOM) to the output, for\n                        Excel compatibility\n  --zero                When interpreting or displaying column numbers, use\n                        zero-based numbering instead of the default 1-based\n                        numbering.\n  -V, --version         Display version information and exit.\n  -c, --columns COLUMNS\n                        The column name(s) on which to join. Should be either\n                        one name (or index) or a comma-separated list with one\n                        name (or index) per file, in the same order in which\n                        the files were specified. If not specified, the two\n                        files will be joined sequentially without matching.\n  --outer               Perform a full outer join, rather than the default\n                        inner join.\n  --left                Perform a left outer join, rather than the default\n                        inner join. If more than two files are provided this\n                        will be executed as a sequence of left outer joins,\n                        starting at the left.\n  --right               Perform a right outer join, rather than the default\n                        inner join. If more than two files are provided this\n                        will be executed as a sequence of right outer joins,\n                        starting at the right.\n  -y, --snifflimit SNIFF_LIMIT\n                        Limit CSV dialect sniffing to the specified number of\n                        bytes. Specify \"0\" to disable sniffing entirely, or\n                        \"-1\" to sniff the entire file.\n  -I, --no-inference    Disable type inference (and --locale, --date-format,\n                        --datetime-format, --no-leading-zeroes) when parsing\n                        the input.\n\nNote that the join operation requires reading all files into memory. Don't try\nthis on very large files.\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvjoin",
+    "argv": [
+      "-V"
+    ],
+    "stdin": "",
+    "stdout": "csvjoin 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvjoin",
+    "argv": [
+      "--version"
+    ],
+    "stdin": "",
+    "stdout": "csvjoin 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvjoin",
+    "argv": [
+      "--csvkit-unknown-option"
+    ],
+    "stdin": "",
+    "stdout": "",
+    "stderr": "usage: csvjoin [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [-c COLUMNS] [--outer] [--left]\n               [--right] [-y SNIFF_LIMIT] [-I]\n               [FILE ...]\ncsvjoin: error: unrecognized arguments: --csvkit-unknown-option\n",
+    "status": 2
+  },
+  {
+    "command": "csvjson",
+    "argv": [
+      "--help"
+    ],
+    "stdin": "",
+    "stdout": "usage: csvjson [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [-i INDENT] [-k KEY] [--lat LAT]\n               [--lon LON] [--type TYPE] [--geometry GEOMETRY] [--crs CRS]\n               [--no-bbox] [--stream] [-y SNIFF_LIMIT] [-I]\n               [FILE]\n\nConvert a CSV file into JSON (or GeoJSON).\n\npositional arguments:\n  FILE                  The CSV file to operate on. If omitted, will accept\n                        input as piped data via STDIN.\n\noptions:\n  -h, --help            show this help message and exit\n  -d, --delimiter DELIMITER\n                        Delimiting character of the input CSV file.\n  -t, --tabs            Specify that the input CSV file is delimited with\n                        tabs. Overrides \"-d\".\n  -q, --quotechar QUOTECHAR\n                        Character used to quote strings in the input CSV file.\n  -u, --quoting {0,1,2,3,4,5}\n                        Quoting style used in the input CSV file: 0 quote\n                        minimal, 1 quote all, 2 quote non-numeric, 3 quote\n                        none.\n  -b, --no-doublequote  Whether or not double quotes are doubled in the input\n                        CSV file.\n  -p, --escapechar ESCAPECHAR\n                        Character used to escape the delimiter if --quoting 3\n                        (\"quote none\") is specified and to escape the\n                        QUOTECHAR if --no-doublequote is specified.\n  -z, --maxfieldsize FIELD_SIZE_LIMIT\n                        Maximum length of a single field in the input CSV\n                        file.\n  -e, --encoding ENCODING\n                        Specify the encoding of the input CSV file.\n  -L, --locale LOCALE   Specify the locale (en_US) of any formatted numbers.\n  -S, --skipinitialspace\n                        Ignore whitespace immediately following the delimiter.\n  --blanks              Do not convert \"\", \"na\", \"n/a\", \"none\", \"null\", \".\" to\n                        NULL.\n  --null-value NULL_VALUES [NULL_VALUES ...]\n                        Convert this value to NULL. --null-value can be\n                        specified multiple times.\n  --date-format DATE_FORMAT\n                        Specify a strptime date format string like \"%m/%d/%Y\".\n  --datetime-format DATETIME_FORMAT\n                        Specify a strptime datetime format string like\n                        \"%m/%d/%Y %I:%M %p\".\n  --no-leading-zeroes   Do not convert a numeric value with leading zeroes to\n                        a number.\n  -H, --no-header-row   Specify that the input CSV file has no header row.\n                        Will create default headers (a,b,c,...).\n  -K, --skip-lines SKIP_LINES\n                        Specify the number of initial lines to skip before the\n                        header row (e.g. comments, copyright notices, empty\n                        rows).\n  -v, --verbose         Print detailed tracebacks when errors occur.\n  -l, --linenumbers     Insert a column of line numbers at the front of the\n                        output. Useful when piping to grep or as a simple\n                        primary key.\n  --add-bom             Add the UTF-8 byte-order mark (BOM) to the output, for\n                        Excel compatibility\n  --zero                When interpreting or displaying column numbers, use\n                        zero-based numbering instead of the default 1-based\n                        numbering.\n  -V, --version         Display version information and exit.\n  -i, --indent INDENT   Indent the output JSON this many spaces. Disabled by\n                        default.\n  -k, --key KEY         Output JSON as an object keyed by a given column, KEY,\n                        rather than as an array. All column values must be\n                        unique. If --lat and --lon are specified, this column\n                        is used as the GeoJSON Feature ID.\n  --lat LAT             A column index or name containing a latitude. Output\n                        will be GeoJSON instead of JSON. Requires --lon.\n  --lon LON             A column index or name containing a longitude. Output\n                        will be GeoJSON instead of JSON. Requires --lat.\n  --type TYPE           A column index or name containing a GeoJSON type.\n                        Output will be GeoJSON instead of JSON. Requires --lat\n                        and --lon.\n  --geometry GEOMETRY   A column index or name containing a GeoJSON geometry.\n                        Output will be GeoJSON instead of JSON. Requires --lat\n                        and --lon.\n  --crs CRS             A coordinate reference system string to be included\n                        with GeoJSON output. Requires --lat and --lon.\n  --no-bbox             Disable the calculation of a bounding box.\n  --stream              Output JSON as a stream of newline-separated objects,\n                        rather than an as an array.\n  -y, --snifflimit SNIFF_LIMIT\n                        Limit CSV dialect sniffing to the specified number of\n                        bytes. Specify \"0\" to disable sniffing entirely, or\n                        \"-1\" to sniff the entire file.\n  -I, --no-inference    Disable type inference (and --locale, --date-format,\n                        --datetime-format, --no-leading-zeroes) when parsing\n                        the input.\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvjson",
+    "argv": [
+      "-V"
+    ],
+    "stdin": "",
+    "stdout": "csvjson 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvjson",
+    "argv": [
+      "--version"
+    ],
+    "stdin": "",
+    "stdout": "csvjson 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvjson",
+    "argv": [
+      "--csvkit-unknown-option"
+    ],
+    "stdin": "",
+    "stdout": "",
+    "stderr": "usage: csvjson [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [-i INDENT] [-k KEY] [--lat LAT]\n               [--lon LON] [--type TYPE] [--geometry GEOMETRY] [--crs CRS]\n               [--no-bbox] [--stream] [-y SNIFF_LIMIT] [-I]\n               [FILE]\ncsvjson: error: unrecognized arguments: --csvkit-unknown-option\n",
+    "status": 2
+  },
+  {
+    "command": "csvlook",
+    "argv": [
+      "--help"
+    ],
+    "stdin": "",
+    "stdout": "usage: csvlook [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [--max-rows MAX_ROWS]\n               [--max-columns MAX_COLUMNS]\n               [--max-column-width MAX_COLUMN_WIDTH]\n               [--max-precision MAX_PRECISION] [--no-number-ellipsis]\n               [-y SNIFF_LIMIT] [-I]\n               [FILE]\n\nRender a CSV file in the console as a Markdown-compatible, fixed-width table.\n\npositional arguments:\n  FILE                  The CSV file to operate on. If omitted, will accept\n                        input as piped data via STDIN.\n\noptions:\n  -h, --help            show this help message and exit\n  -d, --delimiter DELIMITER\n                        Delimiting character of the input CSV file.\n  -t, --tabs            Specify that the input CSV file is delimited with\n                        tabs. Overrides \"-d\".\n  -q, --quotechar QUOTECHAR\n                        Character used to quote strings in the input CSV file.\n  -u, --quoting {0,1,2,3,4,5}\n                        Quoting style used in the input CSV file: 0 quote\n                        minimal, 1 quote all, 2 quote non-numeric, 3 quote\n                        none.\n  -b, --no-doublequote  Whether or not double quotes are doubled in the input\n                        CSV file.\n  -p, --escapechar ESCAPECHAR\n                        Character used to escape the delimiter if --quoting 3\n                        (\"quote none\") is specified and to escape the\n                        QUOTECHAR if --no-doublequote is specified.\n  -z, --maxfieldsize FIELD_SIZE_LIMIT\n                        Maximum length of a single field in the input CSV\n                        file.\n  -e, --encoding ENCODING\n                        Specify the encoding of the input CSV file.\n  -L, --locale LOCALE   Specify the locale (en_US) of any formatted numbers.\n  -S, --skipinitialspace\n                        Ignore whitespace immediately following the delimiter.\n  --blanks              Do not convert \"\", \"na\", \"n/a\", \"none\", \"null\", \".\" to\n                        NULL.\n  --null-value NULL_VALUES [NULL_VALUES ...]\n                        Convert this value to NULL. --null-value can be\n                        specified multiple times.\n  --date-format DATE_FORMAT\n                        Specify a strptime date format string like \"%m/%d/%Y\".\n  --datetime-format DATETIME_FORMAT\n                        Specify a strptime datetime format string like\n                        \"%m/%d/%Y %I:%M %p\".\n  --no-leading-zeroes   Do not convert a numeric value with leading zeroes to\n                        a number.\n  -H, --no-header-row   Specify that the input CSV file has no header row.\n                        Will create default headers (a,b,c,...).\n  -K, --skip-lines SKIP_LINES\n                        Specify the number of initial lines to skip before the\n                        header row (e.g. comments, copyright notices, empty\n                        rows).\n  -v, --verbose         Print detailed tracebacks when errors occur.\n  -l, --linenumbers     Insert a column of line numbers at the front of the\n                        output. Useful when piping to grep or as a simple\n                        primary key.\n  --add-bom             Add the UTF-8 byte-order mark (BOM) to the output, for\n                        Excel compatibility\n  --zero                When interpreting or displaying column numbers, use\n                        zero-based numbering instead of the default 1-based\n                        numbering.\n  -V, --version         Display version information and exit.\n  --max-rows MAX_ROWS   The maximum number of rows to display before\n                        truncating the data.\n  --max-columns MAX_COLUMNS\n                        The maximum number of columns to display before\n                        truncating the data.\n  --max-column-width MAX_COLUMN_WIDTH\n                        Truncate all columns to at most this width. The\n                        remainder will be replaced with ellipsis.\n  --max-precision MAX_PRECISION\n                        The maximum number of decimal places to display. The\n                        remainder will be replaced with ellipsis.\n  --no-number-ellipsis  Disable the ellipsis if --max-precision is exceeded.\n  -y, --snifflimit SNIFF_LIMIT\n                        Limit CSV dialect sniffing to the specified number of\n                        bytes. Specify \"0\" to disable sniffing entirely, or\n                        \"-1\" to sniff the entire file.\n  -I, --no-inference    Disable type inference (and --locale, --date-format,\n                        --datetime-format, --no-leading-zeroes) when parsing\n                        the input.\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvlook",
+    "argv": [
+      "-V"
+    ],
+    "stdin": "",
+    "stdout": "csvlook 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvlook",
+    "argv": [
+      "--version"
+    ],
+    "stdin": "",
+    "stdout": "csvlook 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvlook",
+    "argv": [
+      "--csvkit-unknown-option"
+    ],
+    "stdin": "",
+    "stdout": "",
+    "stderr": "usage: csvlook [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [--max-rows MAX_ROWS]\n               [--max-columns MAX_COLUMNS]\n               [--max-column-width MAX_COLUMN_WIDTH]\n               [--max-precision MAX_PRECISION] [--no-number-ellipsis]\n               [-y SNIFF_LIMIT] [-I]\n               [FILE]\ncsvlook: error: unrecognized arguments: --csvkit-unknown-option\n",
+    "status": 2
+  },
+  {
+    "command": "csvpy",
+    "argv": [
+      "--help"
+    ],
+    "stdin": "",
+    "stdout": "usage: csvpy [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n             [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n             [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n             [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n             [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-V] [--dict]\n             [--agate] [--no-number-ellipsis] [-y SNIFF_LIMIT] [-I]\n             [FILE]\n\nLoad a CSV file into a CSV reader and then drop into a Python shell.\n\npositional arguments:\n  FILE                  The CSV file to operate on. If omitted, will accept\n                        input as piped data via STDIN.\n\noptions:\n  -h, --help            show this help message and exit\n  -d, --delimiter DELIMITER\n                        Delimiting character of the input CSV file.\n  -t, --tabs            Specify that the input CSV file is delimited with\n                        tabs. Overrides \"-d\".\n  -q, --quotechar QUOTECHAR\n                        Character used to quote strings in the input CSV file.\n  -u, --quoting {0,1,2,3,4,5}\n                        Quoting style used in the input CSV file: 0 quote\n                        minimal, 1 quote all, 2 quote non-numeric, 3 quote\n                        none.\n  -b, --no-doublequote  Whether or not double quotes are doubled in the input\n                        CSV file.\n  -p, --escapechar ESCAPECHAR\n                        Character used to escape the delimiter if --quoting 3\n                        (\"quote none\") is specified and to escape the\n                        QUOTECHAR if --no-doublequote is specified.\n  -z, --maxfieldsize FIELD_SIZE_LIMIT\n                        Maximum length of a single field in the input CSV\n                        file.\n  -e, --encoding ENCODING\n                        Specify the encoding of the input CSV file.\n  -L, --locale LOCALE   Specify the locale (en_US) of any formatted numbers.\n  -S, --skipinitialspace\n                        Ignore whitespace immediately following the delimiter.\n  --blanks              Do not convert \"\", \"na\", \"n/a\", \"none\", \"null\", \".\" to\n                        NULL.\n  --null-value NULL_VALUES [NULL_VALUES ...]\n                        Convert this value to NULL. --null-value can be\n                        specified multiple times.\n  --date-format DATE_FORMAT\n                        Specify a strptime date format string like \"%m/%d/%Y\".\n  --datetime-format DATETIME_FORMAT\n                        Specify a strptime datetime format string like\n                        \"%m/%d/%Y %I:%M %p\".\n  --no-leading-zeroes   Do not convert a numeric value with leading zeroes to\n                        a number.\n  -H, --no-header-row   Specify that the input CSV file has no header row.\n                        Will create default headers (a,b,c,...).\n  -K, --skip-lines SKIP_LINES\n                        Specify the number of initial lines to skip before the\n                        header row (e.g. comments, copyright notices, empty\n                        rows).\n  -v, --verbose         Print detailed tracebacks when errors occur.\n  -V, --version         Display version information and exit.\n  --dict                Load the CSV file into a DictReader.\n  --agate               Load the CSV file into an agate table.\n  --no-number-ellipsis  Disable the ellipsis if the max precision is exceeded.\n  -y, --snifflimit SNIFF_LIMIT\n                        Limit CSV dialect sniffing to the specified number of\n                        bytes. Specify \"0\" to disable sniffing entirely, or\n                        \"-1\" to sniff the entire file.\n  -I, --no-inference    Disable type inference (and --locale, --date-format,\n                        --datetime-format, --no-leading-zeroes) when parsing\n                        the input.\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvpy",
+    "argv": [
+      "-V"
+    ],
+    "stdin": "",
+    "stdout": "csvpy 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvpy",
+    "argv": [
+      "--version"
+    ],
+    "stdin": "",
+    "stdout": "csvpy 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvpy",
+    "argv": [
+      "--csvkit-unknown-option"
+    ],
+    "stdin": "",
+    "stdout": "",
+    "stderr": "usage: csvpy [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n             [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n             [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n             [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n             [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-V] [--dict]\n             [--agate] [--no-number-ellipsis] [-y SNIFF_LIMIT] [-I]\n             [FILE]\ncsvpy: error: unrecognized arguments: --csvkit-unknown-option\n",
+    "status": 2
+  },
+  {
+    "command": "csvsort",
+    "argv": [
+      "--help"
+    ],
+    "stdin": "",
+    "stdout": "usage: csvsort [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [-n] [-c COLUMNS] [-r] [-i]\n               [-y SNIFF_LIMIT] [-I]\n               [FILE]\n\nSort CSV files. Like the Unix \"sort\" command, but for tabular data.\n\npositional arguments:\n  FILE                  The CSV file to operate on. If omitted, will accept\n                        input as piped data via STDIN.\n\noptions:\n  -h, --help            show this help message and exit\n  -d, --delimiter DELIMITER\n                        Delimiting character of the input CSV file.\n  -t, --tabs            Specify that the input CSV file is delimited with\n                        tabs. Overrides \"-d\".\n  -q, --quotechar QUOTECHAR\n                        Character used to quote strings in the input CSV file.\n  -u, --quoting {0,1,2,3,4,5}\n                        Quoting style used in the input CSV file: 0 quote\n                        minimal, 1 quote all, 2 quote non-numeric, 3 quote\n                        none.\n  -b, --no-doublequote  Whether or not double quotes are doubled in the input\n                        CSV file.\n  -p, --escapechar ESCAPECHAR\n                        Character used to escape the delimiter if --quoting 3\n                        (\"quote none\") is specified and to escape the\n                        QUOTECHAR if --no-doublequote is specified.\n  -z, --maxfieldsize FIELD_SIZE_LIMIT\n                        Maximum length of a single field in the input CSV\n                        file.\n  -e, --encoding ENCODING\n                        Specify the encoding of the input CSV file.\n  -L, --locale LOCALE   Specify the locale (en_US) of any formatted numbers.\n  -S, --skipinitialspace\n                        Ignore whitespace immediately following the delimiter.\n  --blanks              Do not convert \"\", \"na\", \"n/a\", \"none\", \"null\", \".\" to\n                        NULL.\n  --null-value NULL_VALUES [NULL_VALUES ...]\n                        Convert this value to NULL. --null-value can be\n                        specified multiple times.\n  --date-format DATE_FORMAT\n                        Specify a strptime date format string like \"%m/%d/%Y\".\n  --datetime-format DATETIME_FORMAT\n                        Specify a strptime datetime format string like\n                        \"%m/%d/%Y %I:%M %p\".\n  --no-leading-zeroes   Do not convert a numeric value with leading zeroes to\n                        a number.\n  -H, --no-header-row   Specify that the input CSV file has no header row.\n                        Will create default headers (a,b,c,...).\n  -K, --skip-lines SKIP_LINES\n                        Specify the number of initial lines to skip before the\n                        header row (e.g. comments, copyright notices, empty\n                        rows).\n  -v, --verbose         Print detailed tracebacks when errors occur.\n  -l, --linenumbers     Insert a column of line numbers at the front of the\n                        output. Useful when piping to grep or as a simple\n                        primary key.\n  --add-bom             Add the UTF-8 byte-order mark (BOM) to the output, for\n                        Excel compatibility\n  --zero                When interpreting or displaying column numbers, use\n                        zero-based numbering instead of the default 1-based\n                        numbering.\n  -V, --version         Display version information and exit.\n  -n, --names           Display column names and indices from the input CSV\n                        and exit.\n  -c, --columns COLUMNS\n                        A comma-separated list of column indices, names or\n                        ranges to sort by, e.g. \"1,id,3-5\". Defaults to all\n                        columns.\n  -r, --reverse         Sort in descending order.\n  -i, --ignore-case     Perform case-independent sorting.\n  -y, --snifflimit SNIFF_LIMIT\n                        Limit CSV dialect sniffing to the specified number of\n                        bytes. Specify \"0\" to disable sniffing entirely, or\n                        \"-1\" to sniff the entire file.\n  -I, --no-inference    Disable type inference (and --locale, --date-format,\n                        --datetime-format, --no-leading-zeroes) when parsing\n                        the input.\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvsort",
+    "argv": [
+      "-V"
+    ],
+    "stdin": "",
+    "stdout": "csvsort 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvsort",
+    "argv": [
+      "--version"
+    ],
+    "stdin": "",
+    "stdout": "csvsort 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvsort",
+    "argv": [
+      "--csvkit-unknown-option"
+    ],
+    "stdin": "",
+    "stdout": "",
+    "stderr": "usage: csvsort [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [-n] [-c COLUMNS] [-r] [-i]\n               [-y SNIFF_LIMIT] [-I]\n               [FILE]\ncsvsort: error: unrecognized arguments: --csvkit-unknown-option\n",
+    "status": 2
+  },
+  {
+    "command": "csvsql",
+    "argv": [
+      "--help"
+    ],
+    "stdin": "",
+    "stdout": "usage: csvsql [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-i {mssql,mysql,oracle,postgresql,sqlite}]\n              [--db CONNECTION_STRING]\n              [--engine-option ENGINE_OPTION ENGINE_OPTION] [--query QUERIES]\n              [--insert] [--prefix PREFIX] [--before-insert BEFORE_INSERT]\n              [--after-insert AFTER_INSERT] [--sql-delimiter SQL_DELIMITER]\n              [--tables TABLE_NAMES] [--no-constraints]\n              [--unique-constraint UNIQUE_CONSTRAINT] [--no-create]\n              [--create-if-not-exists] [--overwrite] [--db-schema DB_SCHEMA]\n              [-y SNIFF_LIMIT] [-I] [--chunk-size CHUNK_SIZE]\n              [--min-col-len MIN_COL_LEN]\n              [--col-len-multiplier COL_LEN_MULTIPLIER]\n              [FILE ...]\n\nGenerate SQL statements for one or more CSV files, or execute those statements\ndirectly on a database, and execute one or more SQL queries.\n\npositional arguments:\n  FILE                  The CSV file(s) to operate on. If omitted, will accept\n                        input as piped data via STDIN.\n\noptions:\n  -h, --help            show this help message and exit\n  -d, --delimiter DELIMITER\n                        Delimiting character of the input CSV file.\n  -t, --tabs            Specify that the input CSV file is delimited with\n                        tabs. Overrides \"-d\".\n  -q, --quotechar QUOTECHAR\n                        Character used to quote strings in the input CSV file.\n  -u, --quoting {0,1,2,3,4,5}\n                        Quoting style used in the input CSV file: 0 quote\n                        minimal, 1 quote all, 2 quote non-numeric, 3 quote\n                        none.\n  -b, --no-doublequote  Whether or not double quotes are doubled in the input\n                        CSV file.\n  -p, --escapechar ESCAPECHAR\n                        Character used to escape the delimiter if --quoting 3\n                        (\"quote none\") is specified and to escape the\n                        QUOTECHAR if --no-doublequote is specified.\n  -z, --maxfieldsize FIELD_SIZE_LIMIT\n                        Maximum length of a single field in the input CSV\n                        file.\n  -e, --encoding ENCODING\n                        Specify the encoding of the input CSV file.\n  -L, --locale LOCALE   Specify the locale (en_US) of any formatted numbers.\n  -S, --skipinitialspace\n                        Ignore whitespace immediately following the delimiter.\n  --blanks              Do not convert \"\", \"na\", \"n/a\", \"none\", \"null\", \".\" to\n                        NULL.\n  --null-value NULL_VALUES [NULL_VALUES ...]\n                        Convert this value to NULL. --null-value can be\n                        specified multiple times.\n  --date-format DATE_FORMAT\n                        Specify a strptime date format string like \"%m/%d/%Y\".\n  --datetime-format DATETIME_FORMAT\n                        Specify a strptime datetime format string like\n                        \"%m/%d/%Y %I:%M %p\".\n  --no-leading-zeroes   Do not convert a numeric value with leading zeroes to\n                        a number.\n  -H, --no-header-row   Specify that the input CSV file has no header row.\n                        Will create default headers (a,b,c,...).\n  -K, --skip-lines SKIP_LINES\n                        Specify the number of initial lines to skip before the\n                        header row (e.g. comments, copyright notices, empty\n                        rows).\n  -v, --verbose         Print detailed tracebacks when errors occur.\n  -l, --linenumbers     Insert a column of line numbers at the front of the\n                        output. Useful when piping to grep or as a simple\n                        primary key.\n  --add-bom             Add the UTF-8 byte-order mark (BOM) to the output, for\n                        Excel compatibility\n  --zero                When interpreting or displaying column numbers, use\n                        zero-based numbering instead of the default 1-based\n                        numbering.\n  -V, --version         Display version information and exit.\n  -i, --dialect {mssql,mysql,oracle,postgresql,sqlite}\n                        Dialect of SQL to generate. Cannot be used with --db.\n  --db CONNECTION_STRING\n                        If present, a SQLAlchemy connection string to use to\n                        directly execute generated SQL on a database.\n  --engine-option ENGINE_OPTION ENGINE_OPTION\n                        A keyword argument to SQLAlchemy's create_engine(), as\n                        a space-separated pair. This option can be specified\n                        multiple times. For example: thick_mode True\n  --query QUERIES       Execute one or more SQL queries delimited by --sql-\n                        delimiter, and output the result of the last query as\n                        CSV. QUERY may be a filename. --query may be specified\n                        multiple times.\n  --insert              Insert the data into the table. Requires --db.\n  --prefix PREFIX       Add an expression following the INSERT keyword, like\n                        OR IGNORE or OR REPLACE.\n  --before-insert BEFORE_INSERT\n                        Before the INSERT command, execute one or more SQL\n                        queries delimited by --sql-delimiter. Requires\n                        --insert.\n  --after-insert AFTER_INSERT\n                        After the INSERT command, execute one or more SQL\n                        queries delimited by --sql-delimiter. Requires\n                        --insert.\n  --sql-delimiter SQL_DELIMITER\n                        Delimiter separating SQL queries in --query, --before-\n                        insert, and --after-insert.\n  --tables TABLE_NAMES  A comma-separated list of names of tables to be\n                        created. By default, the tables will be named after\n                        the filenames without extensions or \"stdin\".\n  --no-constraints      Generate a schema without length limits or null\n                        checks. Useful when sampling big tables.\n  --unique-constraint UNIQUE_CONSTRAINT\n                        A column-separated list of names of columns to include\n                        in a UNIQUE constraint.\n  --no-create           Skip creating the table. Requires --insert.\n  --create-if-not-exists\n                        Create the table if it does not exist, otherwise keep\n                        going. Requires --insert.\n  --overwrite           Drop the table if it already exists. Requires\n                        --insert. Cannot be used with --no-create.\n  --db-schema DB_SCHEMA\n                        Optional name of database schema to create table(s)\n                        in.\n  -y, --snifflimit SNIFF_LIMIT\n                        Limit CSV dialect sniffing to the specified number of\n                        bytes. Specify \"0\" to disable sniffing entirely, or\n                        \"-1\" to sniff the entire file.\n  -I, --no-inference    Disable type inference (and --locale, --date-format,\n                        --datetime-format, --no-leading-zeroes) when parsing\n                        the input.\n  --chunk-size CHUNK_SIZE\n                        Chunk size for batch insert into the table. Requires\n                        --insert.\n  --min-col-len MIN_COL_LEN\n                        The minimum length of text columns.\n  --col-len-multiplier COL_LEN_MULTIPLIER\n                        Multiply the maximum column length by this multiplier\n                        to accomodate larger values in later runs.\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvsql",
+    "argv": [
+      "-V"
+    ],
+    "stdin": "",
+    "stdout": "csvsql 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvsql",
+    "argv": [
+      "--version"
+    ],
+    "stdin": "",
+    "stdout": "csvsql 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvsql",
+    "argv": [
+      "--csvkit-unknown-option"
+    ],
+    "stdin": "",
+    "stdout": "",
+    "stderr": "usage: csvsql [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-i {mssql,mysql,oracle,postgresql,sqlite}]\n              [--db CONNECTION_STRING]\n              [--engine-option ENGINE_OPTION ENGINE_OPTION] [--query QUERIES]\n              [--insert] [--prefix PREFIX] [--before-insert BEFORE_INSERT]\n              [--after-insert AFTER_INSERT] [--sql-delimiter SQL_DELIMITER]\n              [--tables TABLE_NAMES] [--no-constraints]\n              [--unique-constraint UNIQUE_CONSTRAINT] [--no-create]\n              [--create-if-not-exists] [--overwrite] [--db-schema DB_SCHEMA]\n              [-y SNIFF_LIMIT] [-I] [--chunk-size CHUNK_SIZE]\n              [--min-col-len MIN_COL_LEN]\n              [--col-len-multiplier COL_LEN_MULTIPLIER]\n              [FILE ...]\ncsvsql: error: unrecognized arguments: --csvkit-unknown-option\n",
+    "status": 2
+  },
+  {
+    "command": "csvstack",
+    "argv": [
+      "--help"
+    ],
+    "stdin": "",
+    "stdout": "usage: csvstack [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}]\n                [-b] [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S]\n                [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V]\n                [-g GROUPS] [-n GROUP_NAME] [--filenames]\n                [FILE ...]\n\nStack up the rows from multiple CSV files, optionally adding a grouping value.\n\npositional arguments:\n  FILE                  The CSV file(s) to operate on. If omitted, will accept\n                        input as piped data via STDIN.\n\noptions:\n  -h, --help            show this help message and exit\n  -d, --delimiter DELIMITER\n                        Delimiting character of the input CSV file.\n  -t, --tabs            Specify that the input CSV file is delimited with\n                        tabs. Overrides \"-d\".\n  -q, --quotechar QUOTECHAR\n                        Character used to quote strings in the input CSV file.\n  -u, --quoting {0,1,2,3,4,5}\n                        Quoting style used in the input CSV file: 0 quote\n                        minimal, 1 quote all, 2 quote non-numeric, 3 quote\n                        none.\n  -b, --no-doublequote  Whether or not double quotes are doubled in the input\n                        CSV file.\n  -p, --escapechar ESCAPECHAR\n                        Character used to escape the delimiter if --quoting 3\n                        (\"quote none\") is specified and to escape the\n                        QUOTECHAR if --no-doublequote is specified.\n  -z, --maxfieldsize FIELD_SIZE_LIMIT\n                        Maximum length of a single field in the input CSV\n                        file.\n  -e, --encoding ENCODING\n                        Specify the encoding of the input CSV file.\n  -S, --skipinitialspace\n                        Ignore whitespace immediately following the delimiter.\n  -H, --no-header-row   Specify that the input CSV file has no header row.\n                        Will create default headers (a,b,c,...).\n  -K, --skip-lines SKIP_LINES\n                        Specify the number of initial lines to skip before the\n                        header row (e.g. comments, copyright notices, empty\n                        rows).\n  -v, --verbose         Print detailed tracebacks when errors occur.\n  -l, --linenumbers     Insert a column of line numbers at the front of the\n                        output. Useful when piping to grep or as a simple\n                        primary key.\n  --add-bom             Add the UTF-8 byte-order mark (BOM) to the output, for\n                        Excel compatibility\n  --zero                When interpreting or displaying column numbers, use\n                        zero-based numbering instead of the default 1-based\n                        numbering.\n  -V, --version         Display version information and exit.\n  -g, --groups GROUPS   A comma-separated list of values to add as \"grouping\n                        factors\", one per CSV being stacked. These are added\n                        to the output as a new column. You may specify a name\n                        for the new column using the -n flag.\n  -n, --group-name GROUP_NAME\n                        A name for the grouping column, e.g. \"year\". Only used\n                        when also specifying -g.\n  --filenames           Use the filename of each input file as its grouping\n                        value. When specified, -g will be ignored.\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvstack",
+    "argv": [
+      "-V"
+    ],
+    "stdin": "",
+    "stdout": "csvstack 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvstack",
+    "argv": [
+      "--version"
+    ],
+    "stdin": "",
+    "stdout": "csvstack 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvstack",
+    "argv": [
+      "--csvkit-unknown-option"
+    ],
+    "stdin": "",
+    "stdout": "",
+    "stderr": "usage: csvstack [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}]\n                [-b] [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S]\n                [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V]\n                [-g GROUPS] [-n GROUP_NAME] [--filenames]\n                [FILE ...]\ncsvstack: error: unrecognized arguments: --csvkit-unknown-option\n",
+    "status": 2
+  },
+  {
+    "command": "csvstat",
+    "argv": [
+      "--help"
+    ],
+    "stdin": "",
+    "stdout": "usage: csvstat [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [--csv] [--json] [-i INDENT] [-n]\n               [-c COLUMNS] [--type] [--nulls] [--non-nulls] [--unique]\n               [--min] [--max] [--sum] [--mean] [--median] [--stdev] [--len]\n               [--max-precision] [--freq] [--freq-count FREQ_COUNT] [--count]\n               [--decimal-format DECIMAL_FORMAT] [-G] [-y SNIFF_LIMIT] [-I]\n               [FILE]\n\nPrint descriptive statistics for each column in a CSV file.\n\npositional arguments:\n  FILE                  The CSV file to operate on. If omitted, will accept\n                        input as piped data via STDIN.\n\noptions:\n  -h, --help            show this help message and exit\n  -d, --delimiter DELIMITER\n                        Delimiting character of the input CSV file.\n  -t, --tabs            Specify that the input CSV file is delimited with\n                        tabs. Overrides \"-d\".\n  -q, --quotechar QUOTECHAR\n                        Character used to quote strings in the input CSV file.\n  -u, --quoting {0,1,2,3,4,5}\n                        Quoting style used in the input CSV file: 0 quote\n                        minimal, 1 quote all, 2 quote non-numeric, 3 quote\n                        none.\n  -b, --no-doublequote  Whether or not double quotes are doubled in the input\n                        CSV file.\n  -p, --escapechar ESCAPECHAR\n                        Character used to escape the delimiter if --quoting 3\n                        (\"quote none\") is specified and to escape the\n                        QUOTECHAR if --no-doublequote is specified.\n  -z, --maxfieldsize FIELD_SIZE_LIMIT\n                        Maximum length of a single field in the input CSV\n                        file.\n  -e, --encoding ENCODING\n                        Specify the encoding of the input CSV file.\n  -L, --locale LOCALE   Specify the locale (en_US) of any formatted numbers.\n  -S, --skipinitialspace\n                        Ignore whitespace immediately following the delimiter.\n  --blanks              Do not convert \"\", \"na\", \"n/a\", \"none\", \"null\", \".\" to\n                        NULL.\n  --null-value NULL_VALUES [NULL_VALUES ...]\n                        Convert this value to NULL. --null-value can be\n                        specified multiple times.\n  --date-format DATE_FORMAT\n                        Specify a strptime date format string like \"%m/%d/%Y\".\n  --datetime-format DATETIME_FORMAT\n                        Specify a strptime datetime format string like\n                        \"%m/%d/%Y %I:%M %p\".\n  --no-leading-zeroes   Do not convert a numeric value with leading zeroes to\n                        a number.\n  -H, --no-header-row   Specify that the input CSV file has no header row.\n                        Will create default headers (a,b,c,...).\n  -K, --skip-lines SKIP_LINES\n                        Specify the number of initial lines to skip before the\n                        header row (e.g. comments, copyright notices, empty\n                        rows).\n  -v, --verbose         Print detailed tracebacks when errors occur.\n  -l, --linenumbers     Insert a column of line numbers at the front of the\n                        output. Useful when piping to grep or as a simple\n                        primary key.\n  --add-bom             Add the UTF-8 byte-order mark (BOM) to the output, for\n                        Excel compatibility\n  --zero                When interpreting or displaying column numbers, use\n                        zero-based numbering instead of the default 1-based\n                        numbering.\n  -V, --version         Display version information and exit.\n  --csv                 Output results as a CSV table, rather than plain text.\n  --json                Output results as JSON text, rather than plain text.\n  -i, --indent INDENT   Indent the output JSON this many spaces. Disabled by\n                        default.\n  -n, --names           Display column names and indices from the input CSV\n                        and exit.\n  -c, --columns COLUMNS\n                        A comma-separated list of column indices, names or\n                        ranges to be examined, e.g. \"1,id,3-5\". Defaults to\n                        all columns.\n  --type                Only output data type.\n  --nulls               Only output whether columns contains nulls.\n  --non-nulls           Only output counts of non-null values.\n  --unique              Only output counts of unique values.\n  --min                 Only output smallest values.\n  --max                 Only output largest values.\n  --sum                 Only output sums.\n  --mean                Only output means.\n  --median              Only output medians.\n  --stdev               Only output standard deviations.\n  --len                 Only output the length of the longest values.\n  --max-precision       Only output the most decimal places.\n  --freq                Only output lists of frequent values.\n  --freq-count FREQ_COUNT\n                        The maximum number of frequent values to display.\n  --count               Only output total row count.\n  --decimal-format DECIMAL_FORMAT\n                        %-format specification for printing decimal numbers.\n                        Defaults to locale-specific formatting with \"%.3f\".\n  -G, --no-grouping-separator\n                        Do not use grouping separators in decimal numbers.\n  -y, --snifflimit SNIFF_LIMIT\n                        Limit CSV dialect sniffing to the specified number of\n                        bytes. Specify \"0\" to disable sniffing entirely, or\n                        \"-1\" to sniff the entire file.\n  -I, --no-inference    Disable type inference (and --locale, --date-format,\n                        --datetime-format, --no-leading-zeroes) when parsing\n                        the input.\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvstat",
+    "argv": [
+      "-V"
+    ],
+    "stdin": "",
+    "stdout": "csvstat 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvstat",
+    "argv": [
+      "--version"
+    ],
+    "stdin": "",
+    "stdout": "csvstat 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "csvstat",
+    "argv": [
+      "--csvkit-unknown-option"
+    ],
+    "stdin": "",
+    "stdout": "",
+    "stderr": "usage: csvstat [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [--csv] [--json] [-i INDENT] [-n]\n               [-c COLUMNS] [--type] [--nulls] [--non-nulls] [--unique]\n               [--min] [--max] [--sum] [--mean] [--median] [--stdev] [--len]\n               [--max-precision] [--freq] [--freq-count FREQ_COUNT] [--count]\n               [--decimal-format DECIMAL_FORMAT] [-G] [-y SNIFF_LIMIT] [-I]\n               [FILE]\ncsvstat: error: unrecognized arguments: --csvkit-unknown-option\n",
+    "status": 2
+  },
+  {
+    "command": "in2csv",
+    "argv": [
+      "--help"
+    ],
+    "stdin": "",
+    "stdout": "usage: in2csv [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-f {csv,dbf,fixed,geojson,json,ndjson,xls,xlsx}]\n              [-s SCHEMA] [-k KEY] [-n] [--sheet SHEET]\n              [--write-sheets WRITE_SHEETS] [--use-sheet-names]\n              [--reset-dimensions] [--encoding-xls ENCODING_XLS]\n              [-y SNIFF_LIMIT] [-I]\n              [FILE]\n\nConvert common, but less awesome, tabular data formats to CSV.\n\npositional arguments:\n  FILE                  The CSV file to operate on. If omitted, will accept\n                        input as piped data via STDIN.\n\noptions:\n  -h, --help            show this help message and exit\n  -d, --delimiter DELIMITER\n                        Delimiting character of the input CSV file.\n  -t, --tabs            Specify that the input CSV file is delimited with\n                        tabs. Overrides \"-d\".\n  -q, --quotechar QUOTECHAR\n                        Character used to quote strings in the input CSV file.\n  -u, --quoting {0,1,2,3,4,5}\n                        Quoting style used in the input CSV file: 0 quote\n                        minimal, 1 quote all, 2 quote non-numeric, 3 quote\n                        none.\n  -b, --no-doublequote  Whether or not double quotes are doubled in the input\n                        CSV file.\n  -p, --escapechar ESCAPECHAR\n                        Character used to escape the delimiter if --quoting 3\n                        (\"quote none\") is specified and to escape the\n                        QUOTECHAR if --no-doublequote is specified.\n  -z, --maxfieldsize FIELD_SIZE_LIMIT\n                        Maximum length of a single field in the input CSV\n                        file.\n  -e, --encoding ENCODING\n                        Specify the encoding of the input CSV file.\n  -L, --locale LOCALE   Specify the locale (en_US) of any formatted numbers.\n  -S, --skipinitialspace\n                        Ignore whitespace immediately following the delimiter.\n  --blanks              Do not convert \"\", \"na\", \"n/a\", \"none\", \"null\", \".\" to\n                        NULL.\n  --null-value NULL_VALUES [NULL_VALUES ...]\n                        Convert this value to NULL. --null-value can be\n                        specified multiple times.\n  --date-format DATE_FORMAT\n                        Specify a strptime date format string like \"%m/%d/%Y\".\n  --datetime-format DATETIME_FORMAT\n                        Specify a strptime datetime format string like\n                        \"%m/%d/%Y %I:%M %p\".\n  --no-leading-zeroes   Do not convert a numeric value with leading zeroes to\n                        a number.\n  -H, --no-header-row   Specify that the input CSV file has no header row.\n                        Will create default headers (a,b,c,...).\n  -K, --skip-lines SKIP_LINES\n                        Specify the number of initial lines to skip before the\n                        header row (e.g. comments, copyright notices, empty\n                        rows).\n  -v, --verbose         Print detailed tracebacks when errors occur.\n  -l, --linenumbers     Insert a column of line numbers at the front of the\n                        output. Useful when piping to grep or as a simple\n                        primary key.\n  --add-bom             Add the UTF-8 byte-order mark (BOM) to the output, for\n                        Excel compatibility\n  --zero                When interpreting or displaying column numbers, use\n                        zero-based numbering instead of the default 1-based\n                        numbering.\n  -V, --version         Display version information and exit.\n  -f, --format {csv,dbf,fixed,geojson,json,ndjson,xls,xlsx}\n                        The format of the input file. If not specified will be\n                        inferred from the file type.\n  -s, --schema SCHEMA   Specify a CSV-formatted schema file for converting\n                        fixed-width files. See web documentation.\n  -k, --key KEY         Specify a top-level key to look within for a list of\n                        objects to be converted when processing JSON.\n  -n, --names           Display sheet names from the input Excel file.\n  --sheet SHEET         The name of the Excel sheet to operate on.\n  --write-sheets WRITE_SHEETS\n                        The names of the Excel sheets to write to files, or\n                        \"-\" to write all sheets.\n  --use-sheet-names     Use the sheet names as file names when --write-sheets\n                        is set.\n  --reset-dimensions    Ignore the sheet dimensions provided by the XLSX file.\n  --encoding-xls ENCODING_XLS\n                        Specify the encoding of the input XLS file.\n  -y, --snifflimit SNIFF_LIMIT\n                        Limit CSV dialect sniffing to the specified number of\n                        bytes. Specify \"0\" to disable sniffing entirely, or\n                        \"-1\" to sniff the entire file.\n  -I, --no-inference    Disable type inference (and --locale, --date-format,\n                        --datetime-format, --no-leading-zeroes) when parsing\n                        CSV input.\n\nSome command-line flags only pertain to specific input formats.\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "in2csv",
+    "argv": [
+      "-V"
+    ],
+    "stdin": "",
+    "stdout": "in2csv 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "in2csv",
+    "argv": [
+      "--version"
+    ],
+    "stdin": "",
+    "stdout": "in2csv 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "in2csv",
+    "argv": [
+      "--csvkit-unknown-option"
+    ],
+    "stdin": "",
+    "stdout": "",
+    "stderr": "usage: in2csv [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-f {csv,dbf,fixed,geojson,json,ndjson,xls,xlsx}]\n              [-s SCHEMA] [-k KEY] [-n] [--sheet SHEET]\n              [--write-sheets WRITE_SHEETS] [--use-sheet-names]\n              [--reset-dimensions] [--encoding-xls ENCODING_XLS]\n              [-y SNIFF_LIMIT] [-I]\n              [FILE]\nin2csv: error: unrecognized arguments: --csvkit-unknown-option\n",
+    "status": 2
+  },
+  {
+    "command": "sql2csv",
+    "argv": [
+      "--help"
+    ],
+    "stdin": "",
+    "stdout": "usage: sql2csv [-h] [-v] [-l] [-V] [--db CONNECTION_STRING]\n               [--engine-option ENGINE_OPTION ENGINE_OPTION]\n               [--execution-option EXECUTION_OPTION EXECUTION_OPTION]\n               [--query QUERY] [-e ENCODING] [-H]\n               [FILE]\n\nExecute a SQL query on a database and output the result to a CSV file.\n\npositional arguments:\n  FILE                  The file to use as SQL query. If FILE and --query are\n                        omitted, the query is piped data via STDIN.\n\noptions:\n  -h, --help            show this help message and exit\n  -v, --verbose         Print detailed tracebacks when errors occur.\n  -l, --linenumbers     Insert a column of line numbers at the front of the\n                        output. Useful when piping to grep or as a simple\n                        primary key.\n  -V, --version         Display version information and exit.\n  --db CONNECTION_STRING\n                        A SQLAlchemy connection string to connect to a\n                        database.\n  --engine-option ENGINE_OPTION ENGINE_OPTION\n                        A keyword argument to SQLAlchemy's create_engine(), as\n                        a space-separated pair. This option can be specified\n                        multiple times. For example: thick_mode True\n  --execution-option EXECUTION_OPTION EXECUTION_OPTION\n                        A keyword argument to SQLAlchemy's\n                        execution_options(), as a space-separated pair. This\n                        option can be specified multiple times. For example:\n                        stream_results True\n  --query QUERY         The SQL query to execute. Overrides FILE and STDIN.\n  -e, --encoding ENCODING\n                        Specify the encoding of the input query file.\n  -H, --no-header-row   Do not output column names.\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "sql2csv",
+    "argv": [
+      "-V"
+    ],
+    "stdin": "",
+    "stdout": "sql2csv 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "sql2csv",
+    "argv": [
+      "--version"
+    ],
+    "stdin": "",
+    "stdout": "sql2csv 2.2.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  {
+    "command": "sql2csv",
+    "argv": [
+      "--csvkit-unknown-option"
+    ],
+    "stdin": "",
+    "stdout": "",
+    "stderr": "usage: sql2csv [-h] [-v] [-l] [-V] [--db CONNECTION_STRING]\n               [--engine-option ENGINE_OPTION ENGINE_OPTION]\n               [--execution-option EXECUTION_OPTION EXECUTION_OPTION]\n               [--query QUERY] [-e ENCODING] [-H]\n               [FILE]\nsql2csv: error: unrecognized arguments: --csvkit-unknown-option\n",
+    "status": 2
+  }
+]

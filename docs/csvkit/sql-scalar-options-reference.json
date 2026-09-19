@@ -1,0 +1,237 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "source": "def parse_list(pairs):\n    options = {}\n    for key, value in pairs:\n        try:\n            value = ast.literal_eval(value)\n        except ValueError:\n            pass\n        options[key] = value\n    return options\n",
+  "cases": [
+    {
+      "raw": "True",
+      "kind": "bool",
+      "value": true
+    },
+    {
+      "raw": "False",
+      "kind": "bool",
+      "value": false
+    },
+    {
+      "raw": "None",
+      "kind": "NoneType",
+      "value": null
+    },
+    {
+      "raw": "0",
+      "kind": "int",
+      "value": "0"
+    },
+    {
+      "raw": "-42",
+      "kind": "int",
+      "value": "-42"
+    },
+    {
+      "raw": "+42",
+      "kind": "int",
+      "value": "42"
+    },
+    {
+      "raw": "1_000",
+      "kind": "int",
+      "value": "1000"
+    },
+    {
+      "raw": "9007199254740993",
+      "kind": "int",
+      "value": "9007199254740993"
+    },
+    {
+      "raw": "0xff",
+      "kind": "int",
+      "value": "255"
+    },
+    {
+      "raw": "-0x_FF",
+      "kind": "int",
+      "value": "-255"
+    },
+    {
+      "raw": "0o755",
+      "kind": "int",
+      "value": "493"
+    },
+    {
+      "raw": "0b1010",
+      "kind": "int",
+      "value": "10"
+    },
+    {
+      "raw": "1.25",
+      "kind": "float",
+      "value": 1.25,
+      "negativeZero": false
+    },
+    {
+      "raw": "-0.0",
+      "kind": "float",
+      "value": -0.0,
+      "negativeZero": true
+    },
+    {
+      "raw": "+1.",
+      "kind": "float",
+      "value": 1.0,
+      "negativeZero": false
+    },
+    {
+      "raw": " .5 ",
+      "kind": "float",
+      "value": 0.5,
+      "negativeZero": false
+    },
+    {
+      "raw": "1e3",
+      "kind": "float",
+      "value": 1000.0,
+      "negativeZero": false
+    },
+    {
+      "raw": "-2.5E-2",
+      "kind": "float",
+      "value": -0.025,
+      "negativeZero": false
+    },
+    {
+      "raw": "1_2.3_4e+1",
+      "kind": "float",
+      "value": 123.4,
+      "negativeZero": false
+    },
+    {
+      "raw": "\"text\"",
+      "kind": "str",
+      "value": "text"
+    },
+    {
+      "raw": "'apostrophe'",
+      "kind": "str",
+      "value": "apostrophe"
+    },
+    {
+      "raw": "\"\"",
+      "kind": "str",
+      "value": ""
+    },
+    {
+      "raw": "\"line\\nnext\\tend\"",
+      "kind": "str",
+      "value": "line\nnext\tend"
+    },
+    {
+      "raw": "'it\\'s'",
+      "kind": "str",
+      "value": "it's"
+    },
+    {
+      "raw": "\"\\x41\\u03b1\\U0001f600\"",
+      "kind": "str",
+      "value": "Aα😀"
+    },
+    {
+      "raw": "\"\\101\\0\"",
+      "kind": "str",
+      "value": "A\u0000"
+    },
+    {
+      "raw": "\"\\\\\"",
+      "kind": "str",
+      "value": "\\"
+    },
+    {
+      "raw": "r\"line\\n\"",
+      "kind": "str",
+      "value": "line\\n"
+    },
+    {
+      "raw": "u'café'",
+      "kind": "str",
+      "value": "café"
+    },
+    {
+      "raw": "\"\"\"two\nlines\"\"\"",
+      "kind": "str",
+      "value": "two\nlines"
+    },
+    {
+      "raw": "owned",
+      "kind": "str",
+      "value": "owned"
+    },
+    {
+      "raw": "sqlite://",
+      "kind": "SyntaxError",
+      "detail": "invalid syntax (<unknown>, line 1)"
+    },
+    {
+      "raw": "nan",
+      "kind": "str",
+      "value": "nan"
+    },
+    {
+      "raw": "inf",
+      "kind": "str",
+      "value": "inf"
+    },
+    {
+      "raw": "false",
+      "kind": "str",
+      "value": "false"
+    },
+    {
+      "raw": "[1, 2]",
+      "kind": "list",
+      "value": [
+        1,
+        2
+      ]
+    },
+    {
+      "raw": "0123",
+      "kind": "SyntaxError",
+      "detail": "leading zeros in decimal integer literals are not permitted; use an 0o prefix for octal integers (<unknown>, line 1)"
+    },
+    {
+      "raw": "١٢",
+      "kind": "SyntaxError",
+      "detail": "invalid character '١' (U+0661) (<unknown>, line 1)"
+    },
+    {
+      "raw": "1__2",
+      "kind": "SyntaxError",
+      "detail": "invalid decimal literal (<unknown>, line 1)"
+    },
+    {
+      "raw": "\"unterminated",
+      "kind": "SyntaxError",
+      "detail": "unterminated string literal (detected at line 1) (<unknown>, line 1)"
+    },
+    {
+      "raw": "1e",
+      "kind": "SyntaxError",
+      "detail": "invalid decimal literal (<unknown>, line 1)"
+    },
+    {
+      "raw": "\"a\" \"b\"",
+      "kind": "str",
+      "value": "ab"
+    },
+    {
+      "raw": "\"\\N{GREEK SMALL LETTER ALPHA}\"",
+      "kind": "str",
+      "value": "α"
+    },
+    {
+      "raw": " 1.25 ",
+      "kind": "SyntaxError",
+      "detail": "invalid non-printable character U+00A0 (<unknown>, line 1)"
+    }
+  ]
+}

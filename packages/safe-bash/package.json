@@ -374,6 +374,10 @@
     "./commands/fmt": {
       "types": "./dist/commands/fmt/index.d.ts",
       "import": "./dist/commands/fmt/index.js"
+    },
+    "./commands/csvkit": {
+      "types": "./dist/commands/csvkit/index.d.ts",
+      "import": "./dist/commands/csvkit/index.js"
     }
   },
   "files": [
@@ -464,7 +468,9 @@
     "safe-bash-command-wkhtmltopdf": "*",
     "safe-bash-command-exiftool": "*",
     "@poe-code/package-lint": "*",
-    "safe-bash-command-fmt": "*"
+    "safe-bash-command-fmt": "*",
+    "@poe-code/csvkit": "*",
+    "@poe-code/safe-python": "*"
   },
   "poeCode": {
     "packageLint": {

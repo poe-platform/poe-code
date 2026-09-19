@@ -71,6 +71,7 @@ export async function captureRequiredPeer(snapshot: string, emittedHashes: Hashe
   }
   const entries: Record<string, string> = {};
   const checkoutEntries: Record<string, string> = {
+    "poe-code/csvkit": "./packages/csvkit/dist/index.js",
     "poe-code/safe-fs": "./packages/safe-js/dist/safe-fs.js",
     "poe-code/safe-fs/core": "./packages/safe-js/dist/safe-fs-core.js",
     "poe-code/safe-playwright": "./packages/safe-playwright/dist/index.js",

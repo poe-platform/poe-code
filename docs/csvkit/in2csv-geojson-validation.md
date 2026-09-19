@@ -1,0 +1,22 @@
+# in2csv GeoJSON qualification
+
+The existing TypeScript ESM importer was compared directly with released csvkit 2.2.0 `csvkit.convert.geojs.geojson2csv`. Its source digest matches the authenticated archive manifest; the archive SHA-256 is `147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b`. Reference research verified CPython 3.14.2 and its executable hash before collecting 30 new exact original-executable observations under the frozen C/UTC/UTF-8 environment. Active versions were csvkit 2.2.0, Agate 1.14.2 and SQLAlchemy 2.0.54. Provenance and captures are retained in in2csv-geojson-reference.json; the full profile remains reference-profile.json.
+
+Before engine edits, 14 of the 31 new canonical tests failed. Validated divergences were raw non-finite spelling versus JSON dumps spelling, overflowing floating tokens, OrderedDict values in IDs/type/coordinates, None and ordered-object root-type diagnostics, and the float type name for NaN geometry. The fix reuses the existing floating JSON formatter, applies Python representation outside direct ordered property JSON and preserves source validation order. The other observations confirm reserved header collisions, first-seen property order, raw strings/nulls, ignored flags, geometry-only rejection and BOM output. No csvjson inverse, property path expansion, native fallback or implicit capability was added.
+
+The independent agent authored 46 actual safe-bash tests: 44 frozen differentials run through reused borrowed stdin chunks and named MemoryFileSystem inputs, plus awaited output backpressure and cooperative cancellation/cleanup. Named inputs explicitly retain `-f geojson`; an initial extension-inference assumption was a harness error and was corrected without product changes. Input bytes and file inventory remain unchanged. The SDK test uses the same raw converter engine. Root registered the stress file in maintained integration discovery.
+
+Verification on 2026-09-18:
+
+- `npm run build:workspaces -- --workspace=@poe-platform/safe-bash` passed its declared uncached dependency/build closure.
+- `VITEST_MAX_WORKERS=1 npm run test --workspace @poe-code/csvkit` passed 54 files and 2,970 tests. One skipped case and six TODOs remain incomplete, not passes. The focused original cohort passed all 31 cases after the fix.
+- `npm run lint --workspace @poe-code/csvkit` passed ESLint and product/test TypeScript.
+- `TSX_DISABLE_CACHE=1 node --import tsx --test` over csvkit.test.ts, in2csv-stress.test.ts, in2csv-output-ownership.test.ts and in2csv-geojson-stress.test.ts passed all 64 tests. Independent GeoJSON-only verification also passed all 46 tests.
+- `node --test packages/safe-bash/scripts/integration-inputs.test.mjs` passed all 109 tests, including the maintained exact registration assertion.
+- `npm run typecheck --workspace @poe-platform/safe-bash` passed source/tests and 26 public-consumer groups, including expected negative assertions. This is compile verification, not deployed service qualification.
+- Repository-wide `npm run lint` passed its guarded ESLint, root TypeScript/contracts and workflow routes. ESLint processed all 15,912 configured inputs with zero errors and two warnings in unchanged docx tests.
+- An ad hoc PNG rendered actual safe-bash output and was visually inspected: raw leading-zero ID, accented text, duplicate type header, ordered JSON, point altitude dropping and null geometry displayed correctly. Screenshot evidence is not a semantic compatibility measurement.
+
+Compatibility blockers remain explicit: unpaired JSON surrogate handling, arbitrary nesting beyond the qualified limit, exhaustive CPython float shortest-digit ties, verbose traceback deployment identity, and unmeasured importer inputs. Complete fourteen-command semantic parity, database/network/interactive capability profiles and real-service qualification are not established by this change. The full repository test gate was not run for this focused converter change; an accidental broad safe-bash runner invocation was stopped and is not a passing gate. Existing repository-wide acceptance limits remain documented in in2csv-validation.md. No incomplete case was counted as a pass.
+
+No commit, push, publication, staging change or README addition was performed. Task-owned temporary capture helpers, logs and screenshots are purged after verification; canonical frozen reference data stays in docs/csvkit. QA procedures are in docs/plans/in2csv-geojson-qa.md and in2csv-geojson-stress-qa.md; the semantic contract is in docs/specs/in2csv-geojson.md.

@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "target": "csvkit 2.2.0",
+  "sourceArchiveSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "candidate": {
+    "kind": "dirty working tree, not a commit or release",
+    "scope": "sorted packages/csvkit/src/**/*.ts and packages/safe-bash/src/commands/csvkit/**/*.ts raw-file SHA-256 records",
+    "files": 228,
+    "compactRecordArraySha256": "d3361297edd38b600266434c685b7bbc37801819b21bed071be8e62041fb694d"
+  },
+  "inventory": {
+    "originalExecutableNames": 14,
+    "commonArgumentDeclarations": 23,
+    "localArgumentDeclarationsIncludingOperands": 135,
+    "implicitHelpActions": 14,
+    "separateSetDefaultsDeclarations": 1,
+    "expandedActions": 415,
+    "sdkOperationalActions": 387,
+    "sdkInformationalActionsViaExecuteArgv": 28,
+    "inputFormats": 8,
+    "csvstatMetricsExcludingNamesAndCount": 13,
+    "csvstatNamesAndCountActions": 2,
+    "unknownNameOmissions": 0,
+    "unknownDeclarationOmissions": 0,
+    "qualification": "exact inventory matching does not establish operation, optional-profile or effect parity"
+  },
+  "readerDifferential": {
+    "oracle": "checksum-verified CPython 3.14.2 stdlib csv.reader; full csvkit installation not requalified",
+    "direct": { "implementedAndMatched": 9331, "failed": 0, "unmeasured": 0, "capabilityDivergent": 0 },
+    "physicalLineStreaming": { "implementedAndMatched": 9331, "failed": 0, "unmeasured": 0, "capabilityDivergent": 0 },
+    "inputArraySha256": "ec9e3ebb8f308422ac2e7caf8dd825e0a49d7fc0ccd0333ec002979948a940be",
+    "nativeRecordArraySha256": "efdeb5f0f00c95f7f699a92167988280e90105457b280203343236b413bfec9e"
+  },
+  "publicHelpVersionFrozenReplay": {
+    "implementedAndMatched": 28,
+    "failed": 0,
+    "unmeasured": 0,
+    "capabilityDivergent": 0,
+    "referenceFile": "oracle-3.14.2.json",
+    "referenceSha256": "e303e86c44737a65c11f0847b634d196af05d33863f6a9067a6d47630ac57a7f"
+  },
+  "exhaustiveAttribution": {
+    "qualifiedPasses": 0,
+    "unmeasuredOptionActions": 415,
+    "unmeasuredBranches": 323,
+    "unmeasuredParserDeclarationsIncludingSetDefaults": 159,
+    "retainedUpstreamTestDeclarations": 14817,
+    "retainedStaticAssignments": 52,
+    "exhaustiveFailedCount": null,
+    "exhaustiveCapabilityDivergentCount": null,
+    "qualification": "null means unmeasured, never zero; fresh scoped matches are not attributed exhaustive passes"
+  },
+  "checks": {
+    "normalRootBuild": "passed",
+    "repositoryLint": { "exitCode": 0, "errors": 0, "warnings": 2, "completeGuardReceipt": true },
+    "domainTests": { "filesPassed": 104, "passed": 4426, "todo": 5, "total": 4431 },
+    "domainLintAndTypes": "passed",
+    "safeBashMaintainedRunner": { "passed": 536, "failed": 0 },
+    "safeBashMaintainedSourceTestConsumerTypes": "passed",
+    "focusedChangedSafeBashLint": "passed",
+    "focusedActualShell": { "passed": 42, "failed": 0, "todo": 1, "total": 43 },
+    "repositoryTests": {
+      "exitCode": 1,
+      "sharedVitestPhase": { "filesPassed": 2908, "filesSkipped": 2, "passed": 133895, "skipped": 2, "todo": 5, "total": 133902 },
+      "safeBashWorkspace": { "admittedFiles": 1271, "passed": 41705, "failed": 24, "cancelled": 0, "skipped": 823, "todo": 2, "total": 42554 },
+      "archiveAuthorityFailures": 2,
+      "unadmittedWorkbookDependencySetupFailures": 22,
+      "qualification": "phase counts are not aggregate repository passes; subsequent stopped workspace tasks stay unmeasured"
+    },
+    "adHocReviewedScreenshots": 3
+  },
+  "fullParity": false,
+  "readmeApprovalRequired": true,
+  "gitDeliveryAuthorized": false,
+  "report": "current-user-edge-validation.md"
+}

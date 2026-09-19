@@ -34,6 +34,18 @@
     "./skills": {
       "types": "./dist/skills.d.ts",
       "import": "./dist/skills.js"
+    },
+    "./csvkit": {
+      "types": "./packages/csvkit/dist/index.d.ts",
+      "import": "./packages/csvkit/dist/index.js"
+    },
+    "./csvkit/codecs/utf8": {
+      "types": "./packages/csvkit/dist/codecs/utf8.d.ts",
+      "import": "./packages/csvkit/dist/codecs/utf8.js"
+    },
+    "./csvkit/codecs/python": {
+      "types": "./packages/csvkit/dist/codecs/python.d.ts",
+      "import": "./packages/csvkit/dist/codecs/python.js"
     }
   },
   "workspaces": [
@@ -185,7 +197,9 @@
     "packages/worktree/dist",
     "!dist/corpus",
     "!packages/memory/dist/corpus",
-    "packages/user-error/dist"
+    "packages/user-error/dist",
+    "packages/csvkit/dist",
+    "packages/csvkit/LICENSE"
   ],
   "engines": {
     "node": ">=18.18"
@@ -217,7 +231,8 @@
     "ts-morph": "^27.0.2",
     "turndown": "^7.2.4",
     "yaml": "2.9.0",
-    "tokenfill": "^0.0.14"
+    "tokenfill": "^0.0.14",
+    "@e965/xlsx": "0.20.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
@@ -335,7 +350,8 @@
     "safe-bash-command-wkhtmltopdf": "*",
     "safe-bash-command-exiftool": "*",
     "safe-bash-command-fmt": "*",
-    "safe-bash-mcp": "*"
+    "safe-bash-mcp": "*",
+    "@poe-code/csvkit": "*"
   },
   "repository": {
     "type": "git",

@@ -1,0 +1,8 @@
+# Workbook reader stress procedure
+
+1. Verify the frozen reference runtime and dependency versions. Generate bounded XLS/XLSX research fixtures using actual workbook APIs. Keep native scripts/output under `out` and archive only frozen specifications/reference inputs under `docs/csvkit`.
+2. Run native csvkit 2.2.0 against those bytes with locale C, timezone UTC, explicit output/error channels and original argv. Preserve exact stdout, stderr and status, including warning deployment paths.
+3. Replay frozen inputs through actual safe-bash registration and memory filesystem. Compare all channels/status, original input bytes and directory/file effects. Canonical tests must not execute native readers or create host files.
+4. Reproduce each changed semantic with a failing original differential case, then fix raw reader conversion. Verify caches without recalculation, calendar/header/time normalization, legacy codepages and mixed XLS types. Keep unsupported or unmeasured combinations explicit blockers.
+5. Include separate malformed-dimension A1 automatic and explicit resets, a truncated wider dimension with default and explicit behavior, sparse/style/merged cells, hidden sheets and heading normalization. Broader package namespace/relationship/ZIP admission and stream cancellation checks remain integration-owned verification.
+6. Run the narrowest maintained uncached workspace build and tests, then required lint/typechecks. Let the integration owner refresh broader checks after source freezes. Record actual pass/skip/TODO/blocker denominators and purge only task-owned temporary evidence.

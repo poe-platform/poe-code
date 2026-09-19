@@ -1,0 +1,1744 @@
+{
+  "schemaVersion": 1,
+  "profileId": "darwin-cpython-3.14.2-csvkit-2.2.0-optional-sept19-installed-tree",
+  "frozenProfileQualified": false,
+  "source": {
+    "url": "https://files.pythonhosted.org/packages/9a/bf/59b035abead12d9498c96dc05b965ec77683d3c794305dec2648e23830cc/csvkit-2.2.0.tar.gz",
+    "size": 3820365,
+    "sha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b"
+  },
+  "runtime": {
+    "executableSha256": "3d6400b63b150164e89a690d9813af8b0eb420af9f336ef1f6c5102c6da60eae",
+    "implementation": "CPython",
+    "platform": "macOS-15.7.7-arm64-arm-64bit-Mach-O",
+    "version": "3.14.2"
+  },
+  "locale": {
+    "all": "C",
+    "localeconv": {
+      "currency_symbol": "",
+      "decimal_point": ".",
+      "frac_digits": 127,
+      "grouping": [],
+      "int_curr_symbol": "",
+      "int_frac_digits": 127,
+      "mon_decimal_point": "",
+      "mon_grouping": [],
+      "mon_thousands_sep": "",
+      "n_cs_precedes": 127,
+      "n_sep_by_space": 127,
+      "n_sign_posn": 127,
+      "negative_sign": "",
+      "p_cs_precedes": 127,
+      "p_sep_by_space": 127,
+      "p_sign_posn": 127,
+      "positive_sign": "",
+      "thousands_sep": ""
+    },
+    "preferredEncoding": "utf-8",
+    "timezone": [
+      "UTC",
+      "UTC"
+    ]
+  },
+  "stdio": {
+    "stderr": {
+      "bufferClass": "BufferedWriter",
+      "encoding": "utf-8",
+      "errors": "backslashreplace",
+      "isatty": false,
+      "lineBuffering": true,
+      "rawClass": "FileIO",
+      "writeThrough": false
+    },
+    "stdin": {
+      "bufferClass": "BufferedReader",
+      "encoding": "utf-8",
+      "errors": "strict",
+      "isatty": false,
+      "lineBuffering": false,
+      "rawClass": "FileIO",
+      "writeThrough": false
+    },
+    "stdout": {
+      "bufferClass": "BufferedWriter",
+      "encoding": "utf-8",
+      "errors": "strict",
+      "isatty": false,
+      "lineBuffering": false,
+      "rawClass": "FileIO",
+      "writeThrough": false
+    }
+  },
+  "probeBeforeSha256": "c2d88b723bdd2892d178c085b21efe2ec7f615c3ee5929a08795f92ee99f9c70",
+  "probeAfterSha256": "c2d88b723bdd2892d178c085b21efe2ec7f615c3ee5929a08795f92ee99f9c70",
+  "profileUnchanged": true,
+  "distributions": [
+    {
+      "name": "SQLAlchemy",
+      "version": "2.0.54",
+      "installedFileManifestSha256": "0c0f43a871d0e8b54e18be7f6e175cee904289ef5797e6760e4e0162b35795b9",
+      "frozenMatch": true
+    },
+    {
+      "name": "agate",
+      "version": "1.14.2",
+      "installedFileManifestSha256": "a4964c672245b48a09c94f9f4ae7c17c654fa5c80d94d225af30162ba03360bc",
+      "frozenMatch": true
+    },
+    {
+      "name": "agate-dbf",
+      "version": "0.2.4",
+      "installedFileManifestSha256": "8baca9682cba9540d94ec73d7ea5c8284c047d6de67a72ad175b8f701d5e1230",
+      "frozenMatch": true
+    },
+    {
+      "name": "agate-excel",
+      "version": "0.4.2",
+      "installedFileManifestSha256": "d5c5d70978812d28484ac8ca9072b7dfc0e666b924b8952b9604244431d780e7",
+      "frozenMatch": true
+    },
+    {
+      "name": "agate-sql",
+      "version": "0.7.3",
+      "installedFileManifestSha256": "4d917460b2808c9c2ea854928968d2e778f6097feebf482e52007456650c8a1f",
+      "frozenMatch": true
+    },
+    {
+      "name": "babel",
+      "version": "2.18.0",
+      "installedFileManifestSha256": "b3db3fc693168bee6bd158d837b9ca250bcbe4b50169ef35e073b0dfd80aa4d8",
+      "frozenMatch": false
+    },
+    {
+      "name": "csvkit",
+      "version": "2.2.0",
+      "installedFileManifestSha256": "e96ca17375aa0a49c66f4c85b17e32dfc63a142b816064b07c02bb0046ead76d",
+      "frozenMatch": false
+    },
+    {
+      "name": "dbfread",
+      "version": "2.0.7",
+      "installedFileManifestSha256": "6bdab660f503e5d8f5f3d698abe3e5824c61560526000e93dc2537afba0290cd",
+      "frozenMatch": true
+    },
+    {
+      "name": "et_xmlfile",
+      "version": "2.0.0",
+      "installedFileManifestSha256": "1efef44d91d865bcc41cd6c3bf5c546bbf149a936597776d516de89f73302a4d",
+      "frozenMatch": true
+    },
+    {
+      "name": "isodate",
+      "version": "0.7.2",
+      "installedFileManifestSha256": "5c68f4738965efe5272db0b676a2d2c7aaaca55ef6bb876183c490b1b07593d1",
+      "frozenMatch": true
+    },
+    {
+      "name": "leather",
+      "version": "0.4.1",
+      "installedFileManifestSha256": "330b5efc88852d645391629d519ade0f9e9207c2186728571dcd0ef228c59e89",
+      "frozenMatch": true
+    },
+    {
+      "name": "olefile",
+      "version": "0.47",
+      "installedFileManifestSha256": "67a5aadf878ca92626e977b728d040f563e9df34199c88685a5f0871f0ef855d",
+      "frozenMatch": true
+    },
+    {
+      "name": "openpyxl",
+      "version": "3.1.5",
+      "installedFileManifestSha256": "964d19b9c468da9af15502507db610547f5b83ab0d10395b4da3af5a2f25cb93",
+      "frozenMatch": true
+    },
+    {
+      "name": "parsedatetime",
+      "version": "2.6",
+      "installedFileManifestSha256": "e401b6f0df77f7067491558b33c294dd84c6b6ce76917588ac40dd23393b07e7",
+      "frozenMatch": true
+    },
+    {
+      "name": "python-slugify",
+      "version": "9.0.0",
+      "installedFileManifestSha256": "7603a90ef865da44bd0d64a5f9d913f4189e9d08ea06a96c7415db57f8af3c76",
+      "frozenMatch": false
+    },
+    {
+      "name": "pytimeparse",
+      "version": "1.1.8",
+      "installedFileManifestSha256": "6674201f971ba20d2100b331e80b6cddd0c8040de443e711d80aa186e3cbd44c",
+      "frozenMatch": true
+    },
+    {
+      "name": "text-unidecode",
+      "version": "1.3",
+      "installedFileManifestSha256": "395eab5bd223fa6d4b6f80cbd0d59a3b775e32fa3a06bc9fa83a2e9dc1f8f612",
+      "frozenMatch": true
+    },
+    {
+      "name": "typing_extensions",
+      "version": "4.16.0",
+      "installedFileManifestSha256": "f2698ff9d2beaf334724e7d735a75bdce6e8c66355f12d0704f838f5da8932e4",
+      "frozenMatch": true
+    },
+    {
+      "name": "xlrd",
+      "version": "2.0.2",
+      "installedFileManifestSha256": "00fa566b61494f59682a0083a212dc097640140bc0d47c2b4605db2cad098698",
+      "frozenMatch": false
+    }
+  ],
+  "missingFrozenDistributions": [
+    "pip"
+  ],
+  "editedSourceHashes": [
+    {
+      "path": "packages/csvkit/src/databases/sqlite.ts",
+      "sha256": "9def6cf3a8ea75232e84321ccb726989e37362cc025771d3500645d1181ef112"
+    },
+    {
+      "path": "packages/csvkit/src/runtime.ts",
+      "sha256": "b735ccce313e041ba3b32b7b917d4580f850925350c35f3ed92fed9c52a776b5"
+    },
+    {
+      "path": "packages/csvkit/src/side-file-streaming-user-stress.test.ts",
+      "sha256": "bd878e40e846567f9c0dafb7bfd7d062da2327ee72a27fad26b90f94f07cc499"
+    },
+    {
+      "path": "packages/csvkit/src/sqlite-legacy-transaction-user-stress.test.ts",
+      "sha256": "f8eec9e867eaa6966348a9825cc225c953f973d41e78b133bbf449081bd56ac3"
+    },
+    {
+      "path": "packages/csvkit/src/sqlite-parameters-user-stress.test.ts",
+      "sha256": "d96c481c79e4eddd56b4a50777705f44fd3187033b277dde37c51dcb681f2b31"
+    },
+    {
+      "path": "packages/csvkit/src/sqlite.ts",
+      "sha256": "1dbfeef77686f5f2eb4b9fd28da94530830a051c8ca4c788a26f49f885d9ab01"
+    }
+  ],
+  "independentTools": [
+    {
+      "path": "/usr/bin/sqlite3",
+      "size": 4311872,
+      "sha256": "1879b8999e1a368091d1111272676bd0ef3c66d663970e8d69dc91ec64d443c3",
+      "role": "independent database observer"
+    },
+    {
+      "path": "/usr/bin/bzip2",
+      "size": 169248,
+      "sha256": "026ff8842b3aac605b9c688a075cd4f5d2724dd56433bda33b091551de956999",
+      "role": "availability observation only; not a csvkit/product profile"
+    },
+    {
+      "path": "/opt/homebrew/Cellar/xz/5.8.3/bin/xz",
+      "size": 132336,
+      "sha256": "da717ab791111423963994a2eb9430fde62220ff49a60a19721e826da430e0f3",
+      "role": "availability observation only; not a csvkit/product profile"
+    },
+    {
+      "path": "/opt/homebrew/Cellar/zstd/1.5.7_1/bin/zstd",
+      "size": 206864,
+      "sha256": "d36baef4919b567feff3973ef2edc07e0373b8015495f0248b80e3646d383cee",
+      "role": "availability observation only; not a csvkit/product profile"
+    }
+  ],
+  "nativeFunctionProfile": {
+    "functions": [
+      [
+        "ABC",
+        1,
+        3,
+        "0007",
+        1,
+        "é"
+      ]
+    ],
+    "sourceId": [
+      "2025-07-30 19:33:53 4d8adfb30e03f9cf27f800a2c1ba3c48fb4ca1b08b0f5ed59a4d5ecbf45e20a3"
+    ],
+    "compileOptions": [
+      [
+        "ATOMIC_INTRINSICS=1"
+      ],
+      [
+        "COMPILER=clang-21.1.4"
+      ],
+      [
+        "DEFAULT_AUTOVACUUM"
+      ],
+      [
+        "DEFAULT_CACHE_SIZE=-2000"
+      ],
+      [
+        "DEFAULT_FILE_FORMAT=4"
+      ],
+      [
+        "DEFAULT_JOURNAL_SIZE_LIMIT=-1"
+      ],
+      [
+        "DEFAULT_MMAP_SIZE=0"
+      ],
+      [
+        "DEFAULT_PAGE_SIZE=4096"
+      ],
+      [
+        "DEFAULT_PCACHE_INITSZ=20"
+      ],
+      [
+        "DEFAULT_RECURSIVE_TRIGGERS"
+      ],
+      [
+        "DEFAULT_SECTOR_SIZE=4096"
+      ],
+      [
+        "DEFAULT_SYNCHRONOUS=2"
+      ],
+      [
+        "DEFAULT_WAL_AUTOCHECKPOINT=1000"
+      ],
+      [
+        "DEFAULT_WAL_SYNCHRONOUS=2"
+      ],
+      [
+        "DEFAULT_WORKER_THREADS=0"
+      ],
+      [
+        "DIRECT_OVERFLOW_READ"
+      ],
+      [
+        "ENABLE_DBSTAT_VTAB"
+      ],
+      [
+        "ENABLE_FTS3"
+      ],
+      [
+        "ENABLE_FTS3_PARENTHESIS"
+      ],
+      [
+        "ENABLE_FTS4"
+      ],
+      [
+        "ENABLE_FTS5"
+      ],
+      [
+        "ENABLE_GEOPOLY"
+      ],
+      [
+        "ENABLE_MATH_FUNCTIONS"
+      ],
+      [
+        "ENABLE_RTREE"
+      ],
+      [
+        "MALLOC_SOFT_LIMIT=1024"
+      ],
+      [
+        "MAX_ATTACHED=10"
+      ],
+      [
+        "MAX_COLUMN=2000"
+      ],
+      [
+        "MAX_COMPOUND_SELECT=500"
+      ],
+      [
+        "MAX_DEFAULT_PAGE_SIZE=8192"
+      ],
+      [
+        "MAX_EXPR_DEPTH=1000"
+      ],
+      [
+        "MAX_FUNCTION_ARG=1000"
+      ],
+      [
+        "MAX_LENGTH=1000000000"
+      ],
+      [
+        "MAX_LIKE_PATTERN_LENGTH=50000"
+      ],
+      [
+        "MAX_MMAP_SIZE=0x7fff0000"
+      ],
+      [
+        "MAX_PAGE_COUNT=0xfffffffe"
+      ],
+      [
+        "MAX_PAGE_SIZE=65536"
+      ],
+      [
+        "MAX_SQL_LENGTH=1000000000"
+      ],
+      [
+        "MAX_TRIGGER_DEPTH=1000"
+      ],
+      [
+        "MAX_VARIABLE_NUMBER=32766"
+      ],
+      [
+        "MAX_VDBE_OP=250000000"
+      ],
+      [
+        "MAX_WORKER_THREADS=8"
+      ],
+      [
+        "MUTEX_PTHREADS"
+      ],
+      [
+        "SYSTEM_MALLOC"
+      ],
+      [
+        "TEMP_STORE=1"
+      ],
+      [
+        "THREADSAFE=1"
+      ]
+    ],
+    "sqlalchemyRegexp": {
+      "status": 0,
+      "stdout": "matches\n1\n",
+      "stderr": ""
+    }
+  },
+  "results": [
+    {
+      "kind": "workbook",
+      "argv": [
+        "epoch-review-1900.xlsx"
+      ],
+      "inputs": {
+        "epoch-review-1900.xlsx": "1feb70bbf9659da926e64b02d380c031bac92cab01d0a93354530a88ca3bf53b",
+        "epoch-review-1904.xlsx": "2626ee32c2630aeb8a56bf928747c63fd63761d0874964112d6fdb8baaf81248"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "style,before,midnight,noon,after,iso\nhh:mm:ss,1903-12-31T12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\nHH:MM:SS,1903-12-31T12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\nyyyy-mm-dd hh:mm:ss,1903-12-31T12:00:00,1904-01-01,1904-01-01 12:00:00,1904-01-02,1904-01-01 12:00:00\nYYYY-MM-DD HH:MM:SS,1903-12-31T12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "style,before,midnight,noon,after,iso\nhh:mm:ss,1903-12-31T12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\nHH:MM:SS,1903-12-31T12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\nyyyy-mm-dd hh:mm:ss,1903-12-31T12:00:00,1904-01-01,1904-01-01 12:00:00,1904-01-02,1904-01-01 12:00:00\nYYYY-MM-DD HH:MM:SS,1903-12-31T12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\n",
+        "stderr": "",
+        "effects": {
+          "epoch-review-1900.xlsx": "1feb70bbf9659da926e64b02d380c031bac92cab01d0a93354530a88ca3bf53b",
+          "epoch-review-1904.xlsx": "2626ee32c2630aeb8a56bf928747c63fd63761d0874964112d6fdb8baaf81248"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"Sheet\", \"Types\"], \"active\": \"Sheet\", \"dimensions\": [\"A1:F5\", \"A1:D3\"], \"values\": [[[\"style\", \"before\", \"midnight\", \"noon\", \"after\", \"iso\"], [\"hh:mm:ss\", \"1903-12-31 12:00:00\", \"1904-01-01 00:00:00\", \"1904-01-01 12:00:00\", \"1904-01-02 00:00:00\", \"1904-01-01 12:00:00\"], [\"HH:MM:SS\", \"1903-12-31 12:00:00\", \"1904-01-01 00:00:00\", \"1904-01-01 12:00:00\", \"1904-01-02 00:00:00\", \"1904-01-01 12:00:00\"], [\"yyyy-mm-dd hh:mm:ss\", \"1903-12-31 12:00:00\", \"1904-01-01 00:00:00\", \"1904-01-01 12:00:00\", \"1904-01-02 00:00:00\", \"1904-01-01 12:00:00\"], [\"YYYY-MM-DD HH:MM:SS\", \"1903-12-31 12:00:00\", \"1904-01-01 00:00:00\", \"1904-01-01 12:00:00\", \"1904-01-02 00:00:00\", \"1904-01-01 12:00:00\"]], [[\"numeric-time\", \"string-time\", \"elapsed\", \"iso-time\"], [\"00:00:00\", \"00:00:00\", \"0:00:00\", \"00:00:00\"], [\"12:00:00\", \"12:00:00\", \"12:00:00\", \"12:00:00\"]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "workbook",
+      "argv": [
+        "-I",
+        "--write-sheets",
+        "-",
+        "epoch-review-1900.xlsx"
+      ],
+      "inputs": {
+        "epoch-review-1900.xlsx": "1feb70bbf9659da926e64b02d380c031bac92cab01d0a93354530a88ca3bf53b",
+        "epoch-review-1904.xlsx": "2626ee32c2630aeb8a56bf928747c63fd63761d0874964112d6fdb8baaf81248"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "style,before,midnight,noon,after,iso\nhh:mm:ss,1903-12-31 12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\nHH:MM:SS,1903-12-31 12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\nyyyy-mm-dd hh:mm:ss,1903-12-31 12:00:00,1904-01-01,1904-01-01 12:00:00,1904-01-02,1904-01-01 12:00:00\nYYYY-MM-DD HH:MM:SS,1903-12-31 12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "style,before,midnight,noon,after,iso\nhh:mm:ss,1903-12-31 12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\nHH:MM:SS,1903-12-31 12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\nyyyy-mm-dd hh:mm:ss,1903-12-31 12:00:00,1904-01-01,1904-01-01 12:00:00,1904-01-02,1904-01-01 12:00:00\nYYYY-MM-DD HH:MM:SS,1903-12-31 12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\n",
+        "stderr": "",
+        "effects": {
+          "epoch-review-1900.xlsx": "1feb70bbf9659da926e64b02d380c031bac92cab01d0a93354530a88ca3bf53b",
+          "epoch-review-1900_0.csv": "4034b0e1558f67389d05692a7da1e1538acbea88155d39b62a50c207698c0461",
+          "epoch-review-1900_1.csv": "0be89618ca9d6a4f1b1ef89ba7a9809c4c01255fd5d923d58a01146a04a8386f",
+          "epoch-review-1904.xlsx": "2626ee32c2630aeb8a56bf928747c63fd63761d0874964112d6fdb8baaf81248"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"Sheet\", \"Types\"], \"active\": \"Sheet\", \"dimensions\": [\"A1:F5\", \"A1:D3\"], \"values\": [[[\"style\", \"before\", \"midnight\", \"noon\", \"after\", \"iso\"], [\"hh:mm:ss\", \"1903-12-31 12:00:00\", \"1904-01-01 00:00:00\", \"1904-01-01 12:00:00\", \"1904-01-02 00:00:00\", \"1904-01-01 12:00:00\"], [\"HH:MM:SS\", \"1903-12-31 12:00:00\", \"1904-01-01 00:00:00\", \"1904-01-01 12:00:00\", \"1904-01-02 00:00:00\", \"1904-01-01 12:00:00\"], [\"yyyy-mm-dd hh:mm:ss\", \"1903-12-31 12:00:00\", \"1904-01-01 00:00:00\", \"1904-01-01 12:00:00\", \"1904-01-02 00:00:00\", \"1904-01-01 12:00:00\"], [\"YYYY-MM-DD HH:MM:SS\", \"1903-12-31 12:00:00\", \"1904-01-01 00:00:00\", \"1904-01-01 12:00:00\", \"1904-01-02 00:00:00\", \"1904-01-01 12:00:00\"]], [[\"numeric-time\", \"string-time\", \"elapsed\", \"iso-time\"], [\"00:00:00\", \"00:00:00\", \"0:00:00\", \"00:00:00\"], [\"12:00:00\", \"12:00:00\", \"12:00:00\", \"12:00:00\"]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "workbook",
+      "argv": [
+        "epoch-review-1904.xlsx"
+      ],
+      "inputs": {
+        "epoch-review-1900.xlsx": "1feb70bbf9659da926e64b02d380c031bac92cab01d0a93354530a88ca3bf53b",
+        "epoch-review-1904.xlsx": "2626ee32c2630aeb8a56bf928747c63fd63761d0874964112d6fdb8baaf81248"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "style,before,midnight,noon,after,iso\nhh:mm:ss,1903-12-31T12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\nHH:MM:SS,1903-12-31T12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\nyyyy-mm-dd hh:mm:ss,1903-12-31T12:00:00,00:00:00,12:00:00,1904-01-02,1904-01-01 12:00:00\nYYYY-MM-DD HH:MM:SS,1903-12-31T12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "style,before,midnight,noon,after,iso\nhh:mm:ss,1903-12-31T12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\nHH:MM:SS,1903-12-31T12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\nyyyy-mm-dd hh:mm:ss,1903-12-31T12:00:00,00:00:00,12:00:00,1904-01-02,1904-01-01 12:00:00\nYYYY-MM-DD HH:MM:SS,1903-12-31T12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\n",
+        "stderr": "",
+        "effects": {
+          "epoch-review-1900.xlsx": "1feb70bbf9659da926e64b02d380c031bac92cab01d0a93354530a88ca3bf53b",
+          "epoch-review-1904.xlsx": "2626ee32c2630aeb8a56bf928747c63fd63761d0874964112d6fdb8baaf81248"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"Sheet\", \"Types\"], \"active\": \"Sheet\", \"dimensions\": [\"A1:F5\", \"A1:D3\"], \"values\": [[[\"style\", \"before\", \"midnight\", \"noon\", \"after\", \"iso\"], [\"hh:mm:ss\", \"1903-12-31 12:00:00\", \"1904-01-01 00:00:00\", \"1904-01-01 12:00:00\", \"1904-01-02 00:00:00\", \"1904-01-01 12:00:00\"], [\"HH:MM:SS\", \"1903-12-31 12:00:00\", \"1904-01-01 00:00:00\", \"1904-01-01 12:00:00\", \"1904-01-02 00:00:00\", \"1904-01-01 12:00:00\"], [\"yyyy-mm-dd hh:mm:ss\", \"1903-12-31 12:00:00\", \"1904-01-01 00:00:00\", \"1904-01-01 12:00:00\", \"1904-01-02 00:00:00\", \"1904-01-01 12:00:00\"], [\"YYYY-MM-DD HH:MM:SS\", \"1903-12-31 12:00:00\", \"1904-01-01 00:00:00\", \"1904-01-01 12:00:00\", \"1904-01-02 00:00:00\", \"1904-01-01 12:00:00\"]], [[\"numeric-time\", \"string-time\", \"elapsed\", \"iso-time\"], [\"00:00:00\", \"00:00:00\", \"0:00:00\", \"00:00:00\"], [\"12:00:00\", \"12:00:00\", \"12:00:00\", \"12:00:00\"]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "workbook",
+      "argv": [
+        "-I",
+        "--write-sheets",
+        "-",
+        "epoch-review-1904.xlsx"
+      ],
+      "inputs": {
+        "epoch-review-1900.xlsx": "1feb70bbf9659da926e64b02d380c031bac92cab01d0a93354530a88ca3bf53b",
+        "epoch-review-1904.xlsx": "2626ee32c2630aeb8a56bf928747c63fd63761d0874964112d6fdb8baaf81248"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "style,before,midnight,noon,after,iso\nhh:mm:ss,1903-12-31 12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\nHH:MM:SS,1903-12-31 12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\nyyyy-mm-dd hh:mm:ss,1903-12-31 12:00:00,00:00:00,12:00:00,1904-01-02,1904-01-01 12:00:00\nYYYY-MM-DD HH:MM:SS,1903-12-31 12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "style,before,midnight,noon,after,iso\nhh:mm:ss,1903-12-31 12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\nHH:MM:SS,1903-12-31 12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\nyyyy-mm-dd hh:mm:ss,1903-12-31 12:00:00,00:00:00,12:00:00,1904-01-02,1904-01-01 12:00:00\nYYYY-MM-DD HH:MM:SS,1903-12-31 12:00:00,00:00:00,12:00:00,1904-01-02,12:00:00\n",
+        "stderr": "",
+        "effects": {
+          "epoch-review-1900.xlsx": "1feb70bbf9659da926e64b02d380c031bac92cab01d0a93354530a88ca3bf53b",
+          "epoch-review-1904.xlsx": "2626ee32c2630aeb8a56bf928747c63fd63761d0874964112d6fdb8baaf81248",
+          "epoch-review-1904_0.csv": "c22d4cb2b93e41e60e3fddbd59d0d2bd04c4c42f868d63cb48b76b341134deaf",
+          "epoch-review-1904_1.csv": "0be89618ca9d6a4f1b1ef89ba7a9809c4c01255fd5d923d58a01146a04a8386f"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"Sheet\", \"Types\"], \"active\": \"Sheet\", \"dimensions\": [\"A1:F5\", \"A1:D3\"], \"values\": [[[\"style\", \"before\", \"midnight\", \"noon\", \"after\", \"iso\"], [\"hh:mm:ss\", \"1903-12-31 12:00:00\", \"1904-01-01 00:00:00\", \"1904-01-01 12:00:00\", \"1904-01-02 00:00:00\", \"1904-01-01 12:00:00\"], [\"HH:MM:SS\", \"1903-12-31 12:00:00\", \"1904-01-01 00:00:00\", \"1904-01-01 12:00:00\", \"1904-01-02 00:00:00\", \"1904-01-01 12:00:00\"], [\"yyyy-mm-dd hh:mm:ss\", \"1903-12-31 12:00:00\", \"1904-01-01 00:00:00\", \"1904-01-01 12:00:00\", \"1904-01-02 00:00:00\", \"1904-01-01 12:00:00\"], [\"YYYY-MM-DD HH:MM:SS\", \"1903-12-31 12:00:00\", \"1904-01-01 00:00:00\", \"1904-01-01 12:00:00\", \"1904-01-02 00:00:00\", \"1904-01-01 12:00:00\"]], [[\"numeric-time\", \"string-time\", \"elapsed\", \"iso-time\"], [\"00:00:00\", \"00:00:00\", \"0:00:00\", \"00:00:00\"], [\"12:00:00\", \"12:00:00\", \"12:00:00\", \"12:00:00\"]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "workbook",
+      "argv": [
+        "-f",
+        "xlsx",
+        "relocated.xlsx"
+      ],
+      "inputs": {
+        "relocated.xlsx": "4e562a242145153b3c3c2fd658c1d370232cef26a260a11da07cd471932d1fce"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "n,text\n3,second\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "n,text\n3,second\n",
+        "stderr": "",
+        "effects": {
+          "relocated.xlsx": "4e562a242145153b3c3c2fd658c1d370232cef26a260a11da07cd471932d1fce"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"First\", \"Other\"], \"active\": \"Other\", \"dimensions\": [\"A1:B2\", \"A1:B2\"], \"values\": [[[\"n\", \"text\"], [2.5, \"é\"]], [[\"n\", \"text\"], [3, \"second\"]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "workbook",
+      "argv": [
+        "-f",
+        "xlsx",
+        "-n",
+        "relocated.xlsx"
+      ],
+      "inputs": {
+        "relocated.xlsx": "4e562a242145153b3c3c2fd658c1d370232cef26a260a11da07cd471932d1fce"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "First\nOther\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "First\nOther\n",
+        "stderr": "",
+        "effects": {
+          "relocated.xlsx": "4e562a242145153b3c3c2fd658c1d370232cef26a260a11da07cd471932d1fce"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"First\", \"Other\"], \"active\": \"Other\", \"dimensions\": [\"A1:B2\", \"A1:B2\"], \"values\": [[[\"n\", \"text\"], [2.5, \"é\"]], [[\"n\", \"text\"], [3, \"second\"]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "workbook",
+      "argv": [
+        "-f",
+        "xlsx",
+        "--write-sheets",
+        "-",
+        "relocated.xlsx"
+      ],
+      "inputs": {
+        "relocated.xlsx": "4e562a242145153b3c3c2fd658c1d370232cef26a260a11da07cd471932d1fce"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "n,text\n3,second\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "n,text\n3,second\n",
+        "stderr": "",
+        "effects": {
+          "relocated.xlsx": "4e562a242145153b3c3c2fd658c1d370232cef26a260a11da07cd471932d1fce",
+          "relocated_0.csv": "c96fb6ec319871b606ce9dbbcdbd6864e5b28ee3225488a714068658d5e73e0f",
+          "relocated_1.csv": "1c5c766c8d6f094893e092713f70ca13b65ee6c7b1a5508f44ea43dd91fc537b"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"First\", \"Other\"], \"active\": \"Other\", \"dimensions\": [\"A1:B2\", \"A1:B2\"], \"values\": [[[\"n\", \"text\"], [2.5, \"é\"]], [[\"n\", \"text\"], [3, \"second\"]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "xls",
+      "argv": [
+        "-f",
+        "xls",
+        "-I",
+        "xls-header-date.xls"
+      ],
+      "inputs": {
+        "xls-header-date.xls": "4b61dc04c7b4204bba6ecbebfa764a9e0c7f258125ef341aa57be1819e89b452"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "45293.0,1,2.0\n2024-01-03,False,3.0\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "45293.0,1,2.0\n2024-01-03,False,3.0\n",
+        "stderr": "",
+        "effects": {
+          "xls-header-date.xls": "4b61dc04c7b4204bba6ecbebfa764a9e0c7f258125ef341aa57be1819e89b452"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"First\"], \"datemode\": 0, \"dimensions\": [[2, 3]], \"cells\": [[[[3, \"45293.0\"], [4, \"1\"], [2, \"2.0\"]], [[3, \"45294.0\"], [4, \"0\"], [2, \"3.0\"]]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "xls",
+      "argv": [
+        "-f",
+        "xls",
+        "xls-header-date.xls"
+      ],
+      "inputs": {
+        "xls-header-date.xls": "4b61dc04c7b4204bba6ecbebfa764a9e0c7f258125ef341aa57be1819e89b452"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "45293.0,1,2.0\n2024-01-03,False,3.0\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "45293.0,1,2.0\n2024-01-03,False,3.0\n",
+        "stderr": "",
+        "effects": {
+          "xls-header-date.xls": "4b61dc04c7b4204bba6ecbebfa764a9e0c7f258125ef341aa57be1819e89b452"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"First\"], \"datemode\": 0, \"dimensions\": [[2, 3]], \"cells\": [[[[3, \"45293.0\"], [4, \"1\"], [2, \"2.0\"]], [[3, \"45294.0\"], [4, \"0\"], [2, \"3.0\"]]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "xls",
+      "argv": [
+        "-f",
+        "xls",
+        "-I",
+        "xls-dates-mixed.xls"
+      ],
+      "inputs": {
+        "xls-dates-mixed.xls": "06b7f1d106b1e63ba181f6cfb41060d69a54a70adcffbfbc239bd3697629c84a"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "date,mixed,flag,error\n2024-01-03,45294.0,True,7\n2024-01-04,text,False,42\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "date,mixed,flag,error\n2024-01-03,45294.0,True,7\n2024-01-04,text,False,42\n",
+        "stderr": "",
+        "effects": {
+          "xls-dates-mixed.xls": "06b7f1d106b1e63ba181f6cfb41060d69a54a70adcffbfbc239bd3697629c84a"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"First\"], \"datemode\": 0, \"dimensions\": [[3, 4]], \"cells\": [[[[1, \"date\"], [1, \"mixed\"], [1, \"flag\"], [1, \"error\"]], [[3, \"45294.0\"], [3, \"45294.0\"], [4, \"1\"], [5, \"7\"]], [[3, \"45295.0\"], [1, \"text\"], [4, \"0\"], [5, \"42\"]]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "xls",
+      "argv": [
+        "-f",
+        "xls",
+        "xls-dates-mixed.xls"
+      ],
+      "inputs": {
+        "xls-dates-mixed.xls": "06b7f1d106b1e63ba181f6cfb41060d69a54a70adcffbfbc239bd3697629c84a"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "date,mixed,flag,error\n2024-01-03,45294.0,True,7\n2024-01-04,text,False,42\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "date,mixed,flag,error\n2024-01-03,45294.0,True,7\n2024-01-04,text,False,42\n",
+        "stderr": "",
+        "effects": {
+          "xls-dates-mixed.xls": "06b7f1d106b1e63ba181f6cfb41060d69a54a70adcffbfbc239bd3697629c84a"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"First\"], \"datemode\": 0, \"dimensions\": [[3, 4]], \"cells\": [[[[1, \"date\"], [1, \"mixed\"], [1, \"flag\"], [1, \"error\"]], [[3, \"45294.0\"], [3, \"45294.0\"], [4, \"1\"], [5, \"7\"]], [[3, \"45295.0\"], [1, \"text\"], [4, \"0\"], [5, \"42\"]]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "xls",
+      "argv": [
+        "-f",
+        "xls",
+        "-I",
+        "xls-time-zero.xls"
+      ],
+      "inputs": {
+        "xls-time-zero.xls": "d4853bc1a1ab36bcf1a04468ade74791fcf522f83c0a94bf6cd79029dc574eb0"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "date,time\n,\n1900-02-28,1899-12-31 12:00:00\n1900-03-01,1900-01-01 12:00:00\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "date,time\n,\n1900-02-28,1899-12-31 12:00:00\n1900-03-01,1900-01-01 12:00:00\n",
+        "stderr": "",
+        "effects": {
+          "xls-time-zero.xls": "d4853bc1a1ab36bcf1a04468ade74791fcf522f83c0a94bf6cd79029dc574eb0"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"First\"], \"datemode\": 0, \"dimensions\": [[4, 2]], \"cells\": [[[[1, \"date\"], [1, \"time\"]], [[3, \"0.0\"], [3, \"0.0\"]], [[3, \"60.0\"], [3, \"0.5\"]], [[3, \"61.0\"], [3, \"1.5\"]]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "xls",
+      "argv": [
+        "-f",
+        "xls",
+        "xls-time-zero.xls"
+      ],
+      "inputs": {
+        "xls-time-zero.xls": "d4853bc1a1ab36bcf1a04468ade74791fcf522f83c0a94bf6cd79029dc574eb0"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "date,time\n,\n1900-02-28,1899-12-31T12:00:00\n1900-03-01,1900-01-01T12:00:00\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "date,time\n,\n1900-02-28,1899-12-31T12:00:00\n1900-03-01,1900-01-01T12:00:00\n",
+        "stderr": "",
+        "effects": {
+          "xls-time-zero.xls": "d4853bc1a1ab36bcf1a04468ade74791fcf522f83c0a94bf6cd79029dc574eb0"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"First\"], \"datemode\": 0, \"dimensions\": [[4, 2]], \"cells\": [[[[1, \"date\"], [1, \"time\"]], [[3, \"0.0\"], [3, \"0.0\"]], [[3, \"60.0\"], [3, \"0.5\"]], [[3, \"61.0\"], [3, \"1.5\"]]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "workbook",
+      "argv": [
+        "-f",
+        "xlsx",
+        "-I",
+        "dimension-a1.xlsx"
+      ],
+      "inputs": {
+        "dimension-a1.xlsx": "23c9d5ce77d4cf1bf9dedd0398f0d02805d693e44e7d390e410ff5438af86c70"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "n,text\n2,a\n3,b\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "n,text\n2,a\n3,b\n",
+        "stderr": "",
+        "effects": {
+          "dimension-a1.xlsx": "23c9d5ce77d4cf1bf9dedd0398f0d02805d693e44e7d390e410ff5438af86c70"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"Sheet\"], \"active\": \"Sheet\", \"dimensions\": [\"A1:B3\"], \"values\": [[[\"n\", \"text\"], [2, \"a\"], [3, \"b\"]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "workbook",
+      "argv": [
+        "-f",
+        "xlsx",
+        "-I",
+        "--reset-dimensions",
+        "dimension-a1.xlsx"
+      ],
+      "inputs": {
+        "dimension-a1.xlsx": "23c9d5ce77d4cf1bf9dedd0398f0d02805d693e44e7d390e410ff5438af86c70"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "n,text\n2,a\n3,b\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "n,text\n2,a\n3,b\n",
+        "stderr": "",
+        "effects": {
+          "dimension-a1.xlsx": "23c9d5ce77d4cf1bf9dedd0398f0d02805d693e44e7d390e410ff5438af86c70"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"Sheet\"], \"active\": \"Sheet\", \"dimensions\": [\"A1:B3\"], \"values\": [[[\"n\", \"text\"], [2, \"a\"], [3, \"b\"]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "workbook",
+      "argv": [
+        "-f",
+        "xlsx",
+        "-I",
+        "dimension-a1b1.xlsx"
+      ],
+      "inputs": {
+        "dimension-a1b1.xlsx": "d015a3094e24fa1b7e3d9ae80e664f2099f71459d424d28ce55c2f0f19e50eef"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "n,text\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "n,text\n",
+        "stderr": "",
+        "effects": {
+          "dimension-a1b1.xlsx": "d015a3094e24fa1b7e3d9ae80e664f2099f71459d424d28ce55c2f0f19e50eef"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"Sheet\"], \"active\": \"Sheet\", \"dimensions\": [\"A1:B3\"], \"values\": [[[\"n\", \"text\"], [2, \"a\"], [3, \"b\"]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "workbook",
+      "argv": [
+        "-f",
+        "xlsx",
+        "-I",
+        "--reset-dimensions",
+        "dimension-a1b1.xlsx"
+      ],
+      "inputs": {
+        "dimension-a1b1.xlsx": "d015a3094e24fa1b7e3d9ae80e664f2099f71459d424d28ce55c2f0f19e50eef"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "n,text\n2,a\n3,b\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "n,text\n2,a\n3,b\n",
+        "stderr": "",
+        "effects": {
+          "dimension-a1b1.xlsx": "d015a3094e24fa1b7e3d9ae80e664f2099f71459d424d28ce55c2f0f19e50eef"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"Sheet\"], \"active\": \"Sheet\", \"dimensions\": [\"A1:B3\"], \"values\": [[[\"n\", \"text\"], [2, \"a\"], [3, \"b\"]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "workbook",
+      "argv": [
+        "-f",
+        "xlsx",
+        "-I",
+        "formula-cache.xlsx"
+      ],
+      "inputs": {
+        "formula-cache.xlsx": "15ff87446557f6c3b1c5d7fb85364c9c9b980d0e1a80b6c19ffc94ad62b20118"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "cached,absent,date,error\n2,,2023-03-15,#DIV/0!\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "cached,absent,date,error\n2,,2023-03-15,#DIV/0!\n",
+        "stderr": "",
+        "effects": {
+          "formula-cache.xlsx": "15ff87446557f6c3b1c5d7fb85364c9c9b980d0e1a80b6c19ffc94ad62b20118"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"Sheet\"], \"active\": \"Sheet\", \"dimensions\": [\"A1:D2\"], \"values\": [[[\"cached\", \"absent\", \"date\", \"error\"], [2, null, \"2023-03-15 00:00:00\", \"#DIV/0!\"]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "workbook",
+      "argv": [
+        "-f",
+        "xlsx",
+        "formula-cache.xlsx"
+      ],
+      "inputs": {
+        "formula-cache.xlsx": "15ff87446557f6c3b1c5d7fb85364c9c9b980d0e1a80b6c19ffc94ad62b20118"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "cached,absent,date,error\n2,,2023-03-15,#DIV/0!\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "cached,absent,date,error\n2,,2023-03-15,#DIV/0!\n",
+        "stderr": "",
+        "effects": {
+          "formula-cache.xlsx": "15ff87446557f6c3b1c5d7fb85364c9c9b980d0e1a80b6c19ffc94ad62b20118"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"sheets\": [\"Sheet\"], \"active\": \"Sheet\", \"dimensions\": [\"A1:D2\"], \"values\": [[[\"cached\", \"absent\", \"date\", \"error\"], [2, null, \"2023-03-15 00:00:00\", \"#DIV/0!\"]]]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "dbf",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "inputs": {
+        "input.dbf": "3a9a6dd1e376acc354a42967dbc829c0df1361f631edc16909c85fb466e170bd"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "value\né\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "value\né\n",
+        "stderr": "",
+        "effects": {
+          "input.dbf": "3a9a6dd1e376acc354a42967dbc829c0df1361f631edc16909c85fb466e170bd"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"encoding\": \"cp1252\", \"fields\": [[\"value\", \"C\", 8]], \"records\": [{\"value\": \"é\"}]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "dbf",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "inputs": {
+        "input.dbf": "7779668048d0faa7d5257d0840f8d112586a44df1d6bd48b674d053bfc7db1cd"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "value\nΘ\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "value\nΘ\n",
+        "stderr": "",
+        "effects": {
+          "input.dbf": "7779668048d0faa7d5257d0840f8d112586a44df1d6bd48b674d053bfc7db1cd"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"encoding\": \"cp437\", \"fields\": [[\"value\", \"C\", 8]], \"records\": [{\"value\": \"Θ\"}]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "dbf",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "inputs": {
+        "input.dbf": "ec04b739cef1062b77f81c959ba39ee6f4b7a029571320236d1db57ecbc105fb"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "value\nÚ\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "value\nÚ\n",
+        "stderr": "",
+        "effects": {
+          "input.dbf": "ec04b739cef1062b77f81c959ba39ee6f4b7a029571320236d1db57ecbc105fb"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"encoding\": \"cp850\", \"fields\": [[\"value\", \"C\", 8]], \"records\": [{\"value\": \"Ú\"}]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "dbf",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "inputs": {
+        "input.dbf": "60e5fbc801277b2b7be4b1f45bd398eb8b76c0861d63248010ae9e4977abd99e"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "value\nÈ\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "value\nÈ\n",
+        "stderr": "",
+        "effects": {
+          "input.dbf": "60e5fbc801277b2b7be4b1f45bd398eb8b76c0861d63248010ae9e4977abd99e"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"encoding\": \"mac_roman\", \"fields\": [[\"value\", \"C\", 8]], \"records\": [{\"value\": \"È\"}]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "dbf",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "inputs": {
+        "input.dbf": "60af70d8513c61753741e734d29a8c9870fcaa2f1fe37b38d6986891d188de12"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "value\né\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "value\né\n",
+        "stderr": "",
+        "effects": {
+          "input.dbf": "60af70d8513c61753741e734d29a8c9870fcaa2f1fe37b38d6986891d188de12"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"encoding\": \"cp1252\", \"fields\": [[\"value\", \"C\", 8]], \"records\": [{\"value\": \"é\"}]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "dbf",
+      "argv": [
+        "-f",
+        "dbf",
+        "-e",
+        "utf-8",
+        "input.dbf"
+      ],
+      "inputs": {
+        "input.dbf": "3a9a6dd1e376acc354a42967dbc829c0df1361f631edc16909c85fb466e170bd"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "value\né\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "value\né\n",
+        "stderr": "",
+        "effects": {
+          "input.dbf": "3a9a6dd1e376acc354a42967dbc829c0df1361f631edc16909c85fb466e170bd"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"encoding\": \"cp1252\", \"fields\": [[\"value\", \"C\", 8]], \"records\": [{\"value\": \"é\"}]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "dbf",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "inputs": {
+        "input.dbf": "15fa99d9941c5770f2548108d848e1ca56bbc7ef2123ca3cb7e048e252de70e7",
+        "input.dbt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "memo\n\"\"\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "memo\n\"\"\n",
+        "stderr": "",
+        "effects": {
+          "input.dbf": "15fa99d9941c5770f2548108d848e1ca56bbc7ef2123ca3cb7e048e252de70e7",
+          "input.dbt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"encoding\": \"ascii\", \"fields\": [[\"memo\", \"M\", 10]], \"records\": [{\"memo\": null}]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "dbf",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "inputs": {
+        "input.dbf": "6bd54d102639535a5260451d89393b27280de8a40537020fe34fdad01fbec60d",
+        "input.dbt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "memo\n\"\"\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "memo\n\"\"\n",
+        "stderr": "",
+        "effects": {
+          "input.dbf": "6bd54d102639535a5260451d89393b27280de8a40537020fe34fdad01fbec60d",
+          "input.dbt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"encoding\": \"ascii\", \"fields\": [[\"memo\", \"M\", 10]], \"records\": [{\"memo\": null}]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "dbf",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "inputs": {
+        "input.dbf": "d5a6ea920d282a274fe0d4081248f445466e6832567541c4f624bba08928c38d",
+        "input.fpt": "b40b43b2f7d610ef6c5ac9fbc1f7e1ea75b68eb087845fc65338fa26705acd6e"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "n\n1.25\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "n\n1.25\n",
+        "stderr": "",
+        "effects": {
+          "input.dbf": "d5a6ea920d282a274fe0d4081248f445466e6832567541c4f624bba08928c38d",
+          "input.fpt": "b40b43b2f7d610ef6c5ac9fbc1f7e1ea75b68eb087845fc65338fa26705acd6e"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"encoding\": \"ascii\", \"fields\": [[\"n\", \"B\", 8]], \"records\": [{\"n\": 1.25}]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "dbf",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "inputs": {
+        "input.dbf": "68dded1d2b9e360e54ed7c104b75f8fc2bc8aca9a47da47c1683d16d1fcca9f5",
+        "input.dbt": "85da7383e1ffdbb11ca9dca97d216d294e6fb6b3351fe6bbe88373a7a570c953"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "memo\nhi\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "memo\nhi\n",
+        "stderr": "",
+        "effects": {
+          "input.dbf": "68dded1d2b9e360e54ed7c104b75f8fc2bc8aca9a47da47c1683d16d1fcca9f5",
+          "input.dbt": "85da7383e1ffdbb11ca9dca97d216d294e6fb6b3351fe6bbe88373a7a570c953"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"encoding\": \"ascii\", \"fields\": [[\"memo\", \"M\", 10]], \"records\": [{\"memo\": \"hi\"}]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "dbf",
+      "argv": [
+        "--encoding",
+        "utf-16",
+        "sample.dbf"
+      ],
+      "inputs": {
+        "sample.dbf": "db05dff49c57c328b0a2dc93b7d5a8bfcaffaad6f477aa0e65c03afa0892900a"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "v\nalpha\nomega\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "v\nalpha\nomega\n",
+        "stderr": "",
+        "effects": {
+          "sample.dbf": "db05dff49c57c328b0a2dc93b7d5a8bfcaffaad6f477aa0e65c03afa0892900a"
+        }
+      },
+      "independent": {
+        "status": 0,
+        "stdout": "{\"encoding\": \"ascii\", \"fields\": [[\"v\", \"C\", 5]], \"records\": [{\"v\": \"alpha\"}, {\"v\": \"omega\"}]}\n",
+        "stderr": ""
+      },
+      "exact": true
+    },
+    {
+      "kind": "sqlite-export",
+      "wasmSha256": "3c924f7de0fd0979da11615be99ec826a066f8fc804a91c3ec9c45b7d8f1655f",
+      "functions": [
+        [
+          "ABC",
+          "1",
+          "3",
+          "0007",
+          "1",
+          "é"
+        ]
+      ],
+      "failure": "Error: IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: t.x\n[SQL: INSERT INTO t VALUES(1,'duplicate')]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)",
+      "observer": {
+        "status": 0,
+        "stdout": "{\"integrity\": [[\"ok\"]], \"schema\": [[\"CREATE TABLE t(x INTEGER UNIQUE, v TEXT)\"]], \"rows\": [[1, \"\\u00e9\"]], \"version\": \"3.50.4\"}\n",
+        "stderr": ""
+      },
+      "cli": {
+        "status": 0,
+        "stdout": "ok\n1|C3A9\n",
+        "stderr": ""
+      },
+      "databaseSha256": "41e73f9d5cf4194815ef10f3c91ab5498f444498f8cafce2dd9a7e769e7e1bef"
+    },
+    {
+      "kind": "sqlite-import",
+      "author": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "rows": [
+        [
+          "3",
+          "native"
+        ]
+      ],
+      "databaseSha256": "0bd8dbfc25ce6f2bc047671eddba90bca8df014f517a30cfd4713633fcc78280"
+    },
+    {
+      "kind": "compression",
+      "suffix": "gz",
+      "inputSha256": "ff940f67ee5f65d7e63c3be5c7e164372cc943633a112f61091b6885e063659f",
+      "native": {
+        "status": 0,
+        "stdout": "v\nalpha\né\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "v\nalpha\né\n",
+        "stderr": "",
+        "effects": {
+          "input.csv.gz": "ff940f67ee5f65d7e63c3be5c7e164372cc943633a112f61091b6885e063659f"
+        }
+      },
+      "exact": true
+    },
+    {
+      "kind": "compression",
+      "suffix": "bz2",
+      "inputSha256": "92759434e481788c05fe93a97f2ccfa179e42783cdf91b27162c9027c5620830",
+      "native": {
+        "status": 0,
+        "stdout": "v\nalpha\né\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 78,
+        "stdout": "",
+        "stderr": "csvkit: unsupported or unqualified: compression capability .bz2\n",
+        "effects": {
+          "input.csv.bz2": "92759434e481788c05fe93a97f2ccfa179e42783cdf91b27162c9027c5620830"
+        }
+      },
+      "exact": false
+    },
+    {
+      "kind": "compression",
+      "suffix": "xz",
+      "inputSha256": "db7bfdd47fd2646b571fe8b8d50ad0ed5e07f9768743dc0156d19fb441b01db0",
+      "native": {
+        "status": 0,
+        "stdout": "v\nalpha\né\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 78,
+        "stdout": "",
+        "stderr": "csvkit: unsupported or unqualified: compression capability .xz\n",
+        "effects": {
+          "input.csv.xz": "db7bfdd47fd2646b571fe8b8d50ad0ed5e07f9768743dc0156d19fb441b01db0"
+        }
+      },
+      "exact": false
+    },
+    {
+      "kind": "csvsql-persistence",
+      "native": {
+        "status": 0,
+        "stdout": "x,v\n1.0,alpha\n2.0,é\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "x,v\n1.0,alpha\n2.0,é\n",
+        "stderr": "",
+        "effects": {}
+      },
+      "duplicateNative": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: records.x\n[SQL: INSERT INTO records (x, v) VALUES (?, ?)]\n[parameters: [(3.0, 'third'), (1.0, 'duplicate')]]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)\n"
+      },
+      "duplicateProduct": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: records.x\n[SQL: INSERT INTO records (x, v) VALUES (?, ?)]\n[parameters: [(3.0, 'third'), (1.0, 'duplicate')]]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)\n",
+        "effects": {}
+      },
+      "observer": {
+        "status": 0,
+        "stdout": "{\"rows\": [[1.0, \"alpha\"], [2.0, \"\\u00e9\"]], \"schema\": [[\"CREATE TABLE records (\\n\\tx FLOAT NOT NULL, \\n\\tv VARCHAR NOT NULL, \\n\\tUNIQUE (x)\\n)\"]]}\n",
+        "stderr": ""
+      },
+      "rows": [
+        [
+          {
+            "kind": "float",
+            "value": "1.0"
+          },
+          "alpha"
+        ],
+        [
+          {
+            "kind": "float",
+            "value": "2.0"
+          },
+          "é"
+        ]
+      ],
+      "schema": [
+        [
+          "CREATE TABLE records (\n\tx FLOAT NOT NULL, \n\tv VARCHAR NOT NULL, \n\tUNIQUE (x)\n)"
+        ]
+      ],
+      "exact": true,
+      "duplicateExact": true
+    },
+    {
+      "kind": "database-byte-effects",
+      "nativeSha256": "7edd3dfe537b3c29e68867d534976b0accec2a57dcea3beaa9c1b27afd5ee47e",
+      "productSha256": "7edd3dfe537b3c29e68867d534976b0accec2a57dcea3beaa9c1b27afd5ee47e",
+      "byteEqual": true,
+      "productNames": [
+        ".keep",
+        "command.db",
+        "js.db",
+        "native.db"
+      ]
+    },
+    {
+      "kind": "ddl-failure-persistence",
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: newrecords.x\n[SQL: INSERT INTO newrecords (x, v) VALUES (?, ?)]\n[parameters: [(3.0, 'first'), (3.0, 'duplicate')]]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: newrecords.x\n[SQL: INSERT INTO newrecords (x, v) VALUES (?, ?)]\n[parameters: [(3.0, 'first'), (3.0, 'duplicate')]]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)\n",
+        "effects": {}
+      },
+      "observer": {
+        "status": 0,
+        "stdout": "{\"schema\": [[\"newrecords\", \"CREATE TABLE newrecords (\\n\\tx FLOAT NOT NULL, \\n\\tv VARCHAR NOT NULL, \\n\\tUNIQUE (x)\\n)\"], [\"sqlite_autoindex_newrecords_1\", null]], \"rows\": []}\n",
+        "stderr": ""
+      },
+      "schema": [
+        [
+          "newrecords",
+          "CREATE TABLE newrecords (\n\tx FLOAT NOT NULL, \n\tv VARCHAR NOT NULL, \n\tUNIQUE (x)\n)"
+        ],
+        [
+          "sqlite_autoindex_newrecords_1",
+          null
+        ]
+      ],
+      "rows": [],
+      "exact": true,
+      "nativeSha256": "0f7470a5c7336aa0860e1e9e90445460cb7b26949979bdeea813d6f62d0caae0",
+      "productSha256": "0f7470a5c7336aa0860e1e9e90445460cb7b26949979bdeea813d6f62d0caae0",
+      "byteEqual": true
+    },
+    {
+      "kind": "csvpy",
+      "args": [],
+      "native": {
+        "status": 0,
+        "stdout": ">>> ['x', 'v']\n>>> [['1', 'alpha'], ['2', 'é']]\n>>> 3\n>>> ",
+        "stderr": "Welcome! \"data.csv\" has been loaded in an agate.csv.reader object named \"reader\".\n\nnow exiting InteractiveConsole...\n"
+      },
+      "product": {
+        "status": 0,
+        "stdout": ">>> ['x', 'v']\n>>> [['1', 'alpha'], ['2', 'é']]\n>>> 3\n>>> ",
+        "stderr": "Welcome! \"data.csv\" has been loaded in an agate.csv.reader object named \"reader\".\n\nnow exiting InteractiveConsole...\n",
+        "effects": {
+          "data.csv": "a4ce9cac68759552a2bbe6f4a1a5f39386fd7934ba9c9b153c6de2040c29a87e"
+        }
+      },
+      "closed": 1,
+      "exact": true
+    },
+    {
+      "kind": "csvpy",
+      "args": [
+        "--dict"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": ">>> {'x': '1', 'v': 'alpha'}\n>>> [{'x': '2', 'v': 'é'}]\n>>> ",
+        "stderr": "Welcome! \"data.csv\" has been loaded in an agate.csv.DictReader object named \"reader\".\n\nnow exiting InteractiveConsole...\n"
+      },
+      "product": {
+        "status": 0,
+        "stdout": ">>> {'x': '1', 'v': 'alpha'}\n>>> [{'x': '2', 'v': 'é'}]\n>>> ",
+        "stderr": "Welcome! \"data.csv\" has been loaded in an agate.csv.DictReader object named \"reader\".\n\nnow exiting InteractiveConsole...\n",
+        "effects": {
+          "data.csv": "a4ce9cac68759552a2bbe6f4a1a5f39386fd7934ba9c9b153c6de2040c29a87e"
+        }
+      },
+      "closed": 1,
+      "exact": true
+    },
+    {
+      "kind": "csvpy",
+      "args": [
+        "--agate"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": ">>> ('x', 'v')\n>>> 2\n>>> ",
+        "stderr": "Welcome! \"data.csv\" has been loaded in an agate.Table object named \"table\".\n\nnow exiting InteractiveConsole...\n"
+      },
+      "product": {
+        "status": 78,
+        "stdout": "",
+        "stderr": "csvkit: unsupported or unqualified: csvpy Agate Table object library\n",
+        "effects": {
+          "data.csv": "a4ce9cac68759552a2bbe6f4a1a5f39386fd7934ba9c9b153c6de2040c29a87e"
+        }
+      },
+      "closed": 1,
+      "exact": false
+    },
+    {
+      "kind": "optional-availability",
+      "native": {
+        "status": 0,
+        "stdout": "{\"zstandard\": false, \"IPython\": false, \"psycopg2\": false, \"pymysql\": false, \"MySQLdb\": false, \"pyodbc\": false, \"oracledb\": false}\n",
+        "stderr": ""
+      },
+      "configuredServices": []
+    },
+    {
+      "kind": "candidate-inventory",
+      "before": {
+        "count": 2388,
+        "sha256": "9733e7b428faab91c5efc134f652261849c79a85fa11f1fcda308bf8c5a180be"
+      },
+      "after": {
+        "count": 2388,
+        "sha256": "9733e7b428faab91c5efc134f652261849c79a85fa11f1fcda308bf8c5a180be"
+      },
+      "unchanged": true,
+      "definition": "Recursively enumerate regular *.ts files below packages/csvkit/src, packages/safe-python/src, packages/office-package/src; sort repository-relative path strings with ordinary JavaScript UTF-16 lexicographic order; hash compact UTF-8 JSON array of {path,sha256}, each sha256 computed from raw admitted file bytes. Per-file bound 3000000 bytes."
+    }
+  ],
+  "publicParameterReplay": [
+    {
+      "count": 1,
+      "native": {
+        "count": 1,
+        "input": "x,v\n1,single'quote\\end\n",
+        "status": 1,
+        "stdout": "",
+        "stderr": "IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: records.x\n[SQL: INSERT INTO records (x, v) VALUES (?, ?)]\n[parameters: (1, \"single'quote\\\\end\")]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: records.x\n[SQL: INSERT INTO records (x, v) VALUES (?, ?)]\n[parameters: (1, \"single'quote\\\\end\")]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)\n"
+      },
+      "rows": [
+        [
+          {
+            "kind": "float",
+            "value": "1.0"
+          },
+          "alpha"
+        ],
+        [
+          {
+            "kind": "float",
+            "value": "2.0"
+          },
+          "é"
+        ]
+      ],
+      "exact": true
+    },
+    {
+      "count": 12,
+      "native": {
+        "count": 12,
+        "input": "x,v\n10,value0\n11,value1\n12,value2\n13,value3\n14,value4\n15,value5\n16,value6\n17,value7\n18,value8\n19,value9\n20,value10\n1,single'quote\\end\n",
+        "status": 1,
+        "stdout": "",
+        "stderr": "IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: records.x\n[SQL: INSERT INTO records (x, v) VALUES (?, ?)]\n[parameters: [(10.0, 'value0'), (11.0, 'value1'), (12.0, 'value2'), (13.0, 'value3'), (14.0, 'value4'), (15.0, 'value5'), (16.0, 'value6'), (17.0, 'value7')  ... displaying 10 of 12 total bound parameter sets ...  (20.0, 'value10'), (1.0, \"single'quote\\\\end\")]]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: records.x\n[SQL: INSERT INTO records (x, v) VALUES (?, ?)]\n[parameters: [(10.0, 'value0'), (11.0, 'value1'), (12.0, 'value2'), (13.0, 'value3'), (14.0, 'value4'), (15.0, 'value5'), (16.0, 'value6'), (17.0, 'value7')  ... displaying 10 of 12 total bound parameter sets ...  (20.0, 'value10'), (1.0, \"single'quote\\\\end\")]]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)\n"
+      },
+      "rows": [
+        [
+          {
+            "kind": "float",
+            "value": "1.0"
+          },
+          "alpha"
+        ],
+        [
+          {
+            "kind": "float",
+            "value": "2.0"
+          },
+          "é"
+        ]
+      ],
+      "exact": true
+    },
+    {
+      "count": 30,
+      "native": {
+        "count": 30,
+        "input": "x,v\n10,value0\n11,value1\n12,value2\n13,value3\n14,value4\n15,value5\n16,value6\n17,value7\n18,value8\n19,value9\n20,value10\n21,value11\n22,value12\n23,value13\n24,value14\n25,value15\n26,value16\n27,value17\n28,value18\n29,value19\n30,value20\n31,value21\n32,value22\n33,value23\n34,value24\n35,value25\n36,value26\n37,value27\n38,value28\n1,single'quote\\end\n",
+        "status": 1,
+        "stdout": "",
+        "stderr": "IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: records.x\n[SQL: INSERT INTO records (x, v) VALUES (?, ?)]\n[parameters: [(10.0, 'value0'), (11.0, 'value1'), (12.0, 'value2'), (13.0, 'value3'), (14.0, 'value4'), (15.0, 'value5'), (16.0, 'value6'), (17.0, 'value7')  ... displaying 10 of 30 total bound parameter sets ...  (38.0, 'value28'), (1.0, \"single'quote\\\\end\")]]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: records.x\n[SQL: INSERT INTO records (x, v) VALUES (?, ?)]\n[parameters: [(10.0, 'value0'), (11.0, 'value1'), (12.0, 'value2'), (13.0, 'value3'), (14.0, 'value4'), (15.0, 'value5'), (16.0, 'value6'), (17.0, 'value7')  ... displaying 10 of 30 total bound parameter sets ...  (38.0, 'value28'), (1.0, \"single'quote\\\\end\")]]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)\n"
+      },
+      "rows": [
+        [
+          {
+            "kind": "float",
+            "value": "1.0"
+          },
+          "alpha"
+        ],
+        [
+          {
+            "kind": "float",
+            "value": "2.0"
+          },
+          "é"
+        ]
+      ],
+      "exact": true
+    }
+  ],
+  "publicDatabaseEffects": {
+    "nativeSha256": "7edd3dfe537b3c29e68867d534976b0accec2a57dcea3beaa9c1b27afd5ee47e",
+    "productSha256": "7edd3dfe537b3c29e68867d534976b0accec2a57dcea3beaa9c1b27afd5ee47e",
+    "byteEqual": true,
+    "productNames": [
+      ".keep",
+      "command.db"
+    ]
+  },
+  "checks": {
+    "domainUnit": {
+      "passed": 4410,
+      "files": 102,
+      "todo": 5
+    },
+    "domainLint": "passed",
+    "selectedMaintainedBuild": "passed",
+    "safeBashWorkbookOutputOwnership": {
+      "passed": 73
+    },
+    "safeBashFinalSqlLifecycle": {
+      "passed": 39
+    }
+  },
+  "performance": "unmeasured: complete frozen installed-file profile is not qualified; unsupported operation profiles remain blockers"
+}

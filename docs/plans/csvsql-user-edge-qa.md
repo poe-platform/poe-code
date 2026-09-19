@@ -1,0 +1,7 @@
+# csvsql user edge review
+
+1. Read the literal CSVSQL source from the released archive and authenticate SHA-256 147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b. Keep temporary research and rendering in out/csvsql-user-review.
+2. Reproduce cancellation while an injected result iterator read remains pending. Assert that result close, rollback and session disposal do not race that read. Request iterator return immediately because cooperative iterators may use it to unblock pending reads. Use successful and rejected late reads, preserving the original falsey cancellation reason. Run the original failing regression before modifying product code.
+3. Enroll read settlement in the existing iterator cleanup without retaining an extra resource for every output row. Re-run the full csvsql reference tests and maintained csvkit workspace tests/lint/build.
+4. Use a different agent for registered Safe Bash command stress tests. Verify pending connect/query/batch cancellation, query-directory errors, repeated arguments, multi-table hooks and omitted flags. Root registers the new literal integration input and runs focused shell/inventory/type/build checks.
+5. Inspect an ad hoc screenshot of registered query output and schema-only DDL. Record measured outcomes and remaining blockers in docs/csvkit; purge only this review's temporary directory. No README additions or Git delivery actions are authorized.

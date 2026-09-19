@@ -1,0 +1,220 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "cases": [
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"2\":\"two\",\"1\":\"one\",\"__proto__\":\"safe\"},{\"1\":\"uno\",\"b\":\"bee\"}]",
+      "status": 0,
+      "stdout": "2,1,__proto__,b\ntwo,one,safe,\n,uno,,bee\n",
+      "stderr": ""
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"nested\":{\"a\":\"A\"},\"items\":[\"x\",\"y\"]},{\"nested\":{\"b\":\"B\"}}]",
+      "status": 0,
+      "stdout": "nested/a,items/0,items/1,nested/b\nA,x,y,\n,,,B\n",
+      "stderr": ""
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"a\":\"before\",\"a\":\"after\",\"b\":null}]",
+      "status": 0,
+      "stdout": "a,b\nafter,\n",
+      "stderr": ""
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"a\":123456789012345678901234567890,\"b\":1.20,\"c\":1e3,\"d\":1e-7,\"e\":true,\"f\":false}]",
+      "status": 0,
+      "stdout": "a,b,c,d,e,f\n123456789012345678901234567890,1.20,1E+3,1E-7,True,False\n",
+      "stderr": ""
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[]",
+      "status": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{},{}]",
+      "status": 0,
+      "stdout": "\n\n\n",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/csvkit-implementation/reference/lib/python3.14/site-packages/agate/table/from_object.py:93: RuntimeWarning: Column names not specified. \"()\" will be used as names.\n  return Table(rows, column_names, row_names=row_names, column_types=column_types)\n"
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "{\"rows\":[{\"a\":\"x\"}]}",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: When converting a JSON document with a top-level dictionary element, a key must be specified.\n"
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "json",
+        "-I",
+        "-k",
+        "rows"
+      ],
+      "stdin": "{\"rows\":[{\"a\":\"x\"}]}",
+      "status": 0,
+      "stdout": "a\nx\n",
+      "stderr": ""
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "json",
+        "-I",
+        "-k",
+        "missing"
+      ],
+      "stdin": "{\"rows\":[]}",
+      "status": 1,
+      "stdout": "",
+      "stderr": "KeyError: 'missing'\n"
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "json",
+        "-I",
+        "--blanks"
+      ],
+      "stdin": "[{\"a\":\"null\",\"b\":\"\"}]",
+      "status": 0,
+      "stdout": "a,b\nnull,\n",
+      "stderr": ""
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"a\":\"null\",\"b\":\"\"}]",
+      "status": 0,
+      "stdout": "a,b\n,\n",
+      "stderr": ""
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "json",
+        "-I",
+        "-l",
+        "-H",
+        "-K2"
+      ],
+      "stdin": "[{\"a\":\"x\"},{\"a\":\"y\"}]",
+      "status": 0,
+      "stdout": "line_number,a\n1,x\n2,y\n",
+      "stderr": ""
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "ndjson",
+        "-I"
+      ],
+      "stdin": "{\"a\":\"x\"}\n{\"b\":\"y\"}\n",
+      "status": 0,
+      "stdout": "a,b\nx,\n,y\n",
+      "stderr": ""
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "ndjson",
+        "-I"
+      ],
+      "stdin": "",
+      "status": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "ndjson",
+        "-I",
+        "-k",
+        "rows"
+      ],
+      "stdin": "{\"a\":\"x\"}\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "ValueError: key and newline may not be specified together.\n"
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"a/b\":\"first\",\"a\":{\"b\":\"last\"}}]",
+      "status": 0,
+      "stdout": "a/b\nlast\n",
+      "stderr": ""
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"a\":[{},\"v\"]}]",
+      "status": 0,
+      "stdout": "a/1\nv\n",
+      "stderr": ""
+    }
+  ]
+}

@@ -1,0 +1,313 @@
+{
+  "schemaVersion": 1,
+  "profile": "CPython 3.14.2 argparse, C locale/UTF-8, recorded csvkit2.2.0 actions",
+  "sourceArchiveRecordedSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "qualification": "reconstructed argparse grammar only; not an installed native csvkit command or operation differential",
+  "inputsSha256": {
+    "docs/csvkit/parser-contract-audit-20260917.json": "bb5a137e764399515600b3aa7bdeabfeb0ad313dfa79dc21a2c2584b8012f139",
+    "docs/csvkit/oracle-3.14.2.json": "e303e86c44737a65c11f0847b634d196af05d33863f6a9067a6d47630ac57a7f",
+    "packages/csvkit/src/cli/parser.ts": "0bc0870bd6f28b657a5c31f5fbec3db93af293392caec3e1da73b7906fe63f03",
+    "packages/csvkit/src/engine.ts": "6d286e361a8a08edd76c7a7f6f33fa4c0bea76433b5d482bf99bbf701d502e5d",
+    "out/csvkit-parser-matrix-20260918.py": "37a7c9193ca635ea2f812b2590c6e7ab207c18fd3f0e36bfa69708f4d4441a94",
+    "out/csvkit-parser-matrix-20260918.mjs": "2cfa96a254bc20db068b861911f1d8575d72a9aed7c8def9c2adc7da9453d7e9"
+  },
+  "matrixDefinition": {
+    "baseVectors": [
+      [],
+      [
+        "--"
+      ],
+      [
+        "--",
+        "-input"
+      ],
+      [
+        "-K",
+        "-1e3"
+      ],
+      [
+        "--help",
+        "--no"
+      ],
+      [
+        "--unknown",
+        "-V"
+      ],
+      [
+        "a",
+        "-t",
+        "b"
+      ]
+    ],
+    "eachNonFileTypeFlag": "flag alone; empty next value; attached empty equals; attached x; next 1; next x,y; next -1x; next --help; long abbreviation removing two characters (minimum three)",
+    "finalChoiceExtension": "each choice flag with next 6, -1, -\u0661",
+    "excluded": "FileType flag vectors; actual help generation (captured help was supplied); actual csvkit class/application execution",
+    "comparison": "parsed namespaces or exact exit stdout/stderr/status; disposal after every parsed product case"
+  },
+  "initialCases": 5802,
+  "initialDifferences": [
+    {
+      "command": "csvsql",
+      "argv": [
+        "-i",
+        ""
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: '' (choose from mssql, mysql, oracle, postgresql, sqlite)",
+      "productDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: '' (choose from 'mssql', 'mysql', 'oracle', 'postgresql', 'sqlite')"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "-i="
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: '' (choose from mssql, mysql, oracle, postgresql, sqlite)",
+      "productDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: '' (choose from 'mssql', 'mysql', 'oracle', 'postgresql', 'sqlite')"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "-i=x"
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: 'x' (choose from mssql, mysql, oracle, postgresql, sqlite)",
+      "productDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: 'x' (choose from 'mssql', 'mysql', 'oracle', 'postgresql', 'sqlite')"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "-i",
+        "1"
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: '1' (choose from mssql, mysql, oracle, postgresql, sqlite)",
+      "productDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: '1' (choose from 'mssql', 'mysql', 'oracle', 'postgresql', 'sqlite')"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "-i",
+        "x",
+        "y"
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: 'x' (choose from mssql, mysql, oracle, postgresql, sqlite)",
+      "productDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: 'x' (choose from 'mssql', 'mysql', 'oracle', 'postgresql', 'sqlite')"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "-i",
+        "-1x"
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: '-1x' (choose from mssql, mysql, oracle, postgresql, sqlite)",
+      "productDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: '-1x' (choose from 'mssql', 'mysql', 'oracle', 'postgresql', 'sqlite')"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--dialect",
+        ""
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: '' (choose from mssql, mysql, oracle, postgresql, sqlite)",
+      "productDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: '' (choose from 'mssql', 'mysql', 'oracle', 'postgresql', 'sqlite')"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--dialect="
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: '' (choose from mssql, mysql, oracle, postgresql, sqlite)",
+      "productDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: '' (choose from 'mssql', 'mysql', 'oracle', 'postgresql', 'sqlite')"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--dialect=x"
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: 'x' (choose from mssql, mysql, oracle, postgresql, sqlite)",
+      "productDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: 'x' (choose from 'mssql', 'mysql', 'oracle', 'postgresql', 'sqlite')"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--dialect",
+        "1"
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: '1' (choose from mssql, mysql, oracle, postgresql, sqlite)",
+      "productDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: '1' (choose from 'mssql', 'mysql', 'oracle', 'postgresql', 'sqlite')"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--dialect",
+        "x",
+        "y"
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: 'x' (choose from mssql, mysql, oracle, postgresql, sqlite)",
+      "productDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: 'x' (choose from 'mssql', 'mysql', 'oracle', 'postgresql', 'sqlite')"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--dialect",
+        "-1x"
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: '-1x' (choose from mssql, mysql, oracle, postgresql, sqlite)",
+      "productDiagnostic": "csvsql: error: argument -i/--dialect: invalid choice: '-1x' (choose from 'mssql', 'mysql', 'oracle', 'postgresql', 'sqlite')"
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        ""
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "in2csv: error: argument -f/--format: invalid choice: '' (choose from csv, dbf, fixed, geojson, json, ndjson, xls, xlsx)",
+      "productDiagnostic": "in2csv: error: argument -f/--format: invalid choice: '' (choose from 'csv', 'dbf', 'fixed', 'geojson', 'json', 'ndjson', 'xls', 'xlsx')"
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f="
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "in2csv: error: argument -f/--format: invalid choice: '' (choose from csv, dbf, fixed, geojson, json, ndjson, xls, xlsx)",
+      "productDiagnostic": "in2csv: error: argument -f/--format: invalid choice: '' (choose from 'csv', 'dbf', 'fixed', 'geojson', 'json', 'ndjson', 'xls', 'xlsx')"
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f=x"
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "in2csv: error: argument -f/--format: invalid choice: 'x' (choose from csv, dbf, fixed, geojson, json, ndjson, xls, xlsx)",
+      "productDiagnostic": "in2csv: error: argument -f/--format: invalid choice: 'x' (choose from 'csv', 'dbf', 'fixed', 'geojson', 'json', 'ndjson', 'xls', 'xlsx')"
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "1"
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "in2csv: error: argument -f/--format: invalid choice: '1' (choose from csv, dbf, fixed, geojson, json, ndjson, xls, xlsx)",
+      "productDiagnostic": "in2csv: error: argument -f/--format: invalid choice: '1' (choose from 'csv', 'dbf', 'fixed', 'geojson', 'json', 'ndjson', 'xls', 'xlsx')"
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "x",
+        "y"
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "in2csv: error: argument -f/--format: invalid choice: 'x' (choose from csv, dbf, fixed, geojson, json, ndjson, xls, xlsx)",
+      "productDiagnostic": "in2csv: error: argument -f/--format: invalid choice: 'x' (choose from 'csv', 'dbf', 'fixed', 'geojson', 'json', 'ndjson', 'xls', 'xlsx')"
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "-1x"
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "in2csv: error: argument -f/--format: invalid choice: '-1x' (choose from csv, dbf, fixed, geojson, json, ndjson, xls, xlsx)",
+      "productDiagnostic": "in2csv: error: argument -f/--format: invalid choice: '-1x' (choose from 'csv', 'dbf', 'fixed', 'geojson', 'json', 'ndjson', 'xls', 'xlsx')"
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "--format",
+        ""
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "in2csv: error: argument -f/--format: invalid choice: '' (choose from csv, dbf, fixed, geojson, json, ndjson, xls, xlsx)",
+      "productDiagnostic": "in2csv: error: argument -f/--format: invalid choice: '' (choose from 'csv', 'dbf', 'fixed', 'geojson', 'json', 'ndjson', 'xls', 'xlsx')"
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "--format="
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "in2csv: error: argument -f/--format: invalid choice: '' (choose from csv, dbf, fixed, geojson, json, ndjson, xls, xlsx)",
+      "productDiagnostic": "in2csv: error: argument -f/--format: invalid choice: '' (choose from 'csv', 'dbf', 'fixed', 'geojson', 'json', 'ndjson', 'xls', 'xlsx')"
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "--format=x"
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "in2csv: error: argument -f/--format: invalid choice: 'x' (choose from csv, dbf, fixed, geojson, json, ndjson, xls, xlsx)",
+      "productDiagnostic": "in2csv: error: argument -f/--format: invalid choice: 'x' (choose from 'csv', 'dbf', 'fixed', 'geojson', 'json', 'ndjson', 'xls', 'xlsx')"
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "--format",
+        "1"
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "in2csv: error: argument -f/--format: invalid choice: '1' (choose from csv, dbf, fixed, geojson, json, ndjson, xls, xlsx)",
+      "productDiagnostic": "in2csv: error: argument -f/--format: invalid choice: '1' (choose from 'csv', 'dbf', 'fixed', 'geojson', 'json', 'ndjson', 'xls', 'xlsx')"
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "--format",
+        "x",
+        "y"
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "in2csv: error: argument -f/--format: invalid choice: 'x' (choose from csv, dbf, fixed, geojson, json, ndjson, xls, xlsx)",
+      "productDiagnostic": "in2csv: error: argument -f/--format: invalid choice: 'x' (choose from 'csv', 'dbf', 'fixed', 'geojson', 'json', 'ndjson', 'xls', 'xlsx')"
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "--format",
+        "-1x"
+      ],
+      "referenceStatus": 2,
+      "productStatus": 2,
+      "referenceDiagnostic": "in2csv: error: argument -f/--format: invalid choice: '-1x' (choose from csv, dbf, fixed, geojson, json, ndjson, xls, xlsx)",
+      "productDiagnostic": "in2csv: error: argument -f/--format: invalid choice: '-1x' (choose from 'csv', 'dbf', 'fixed', 'geojson', 'json', 'ndjson', 'xls', 'xlsx')"
+    }
+  ],
+  "finalCases": 5898,
+  "finalDifferences": 0,
+  "nativeHarnessCorrection": "First reconstruction incorrectly passed required to HelpAction and raised TypeError before any observations. Corrected construction omits required for help/version. Failed attempts are not credited."
+}

@@ -1,0 +1,9 @@
+# in2csv GeoJSON implementation QA
+
+1. Preserve unrelated edits/staging; inspect root and safe-bash instructions and the existing importer before changing code. Do not commit, push, publish or add README content.
+2. Inspect the authenticated csvkit 2.2.0 `csvkit/convert/geojs.py`, not the csvjson exporter. Verify the frozen CPython executable version/hash and converter source manifest before accepting new observations. Reference processes are research only; canonical tests invoke no native programs.
+3. Capture exact piped stdout/stderr/status under the frozen C/UTC/UTF-8 environment. Store temporary capture helpers in out and reduce observations into docs/csvkit. Cover non-finite/overflow numbers, ordered IDs/coordinates/type, invalid root types, reserved names, raw properties, ignored common options and BOM behavior.
+4. Add canonical original differentials with in-memory inputs/memfs. Record the failing cases before engine edits, then fix only validated divergences. Verify CLI and SDK use the actual same converter.
+5. Have a different agent stress actual safe-bash execution with frozen malformed-feature/geometry cases, reused byte chunks, named memory files and exact effects. Verify awaited backpressure, cancellation, cleanup-before-acquisition and idempotent producer retirement. Root owns integration registration and engine fixes.
+6. Run the maintained uncached csvkit workspace test/lint and safe-bash build closure. Expand runtime checks to importer ownership, command-family registration and integration discovery; run safe-bash type checks sequentially after its build and focused lint for changed integration files.
+7. Inspect an ad hoc screenshot of the converter output. Record measured passes separately from unsupported/unmeasured cases in docs/csvkit; purge only task-owned out evidence after recording results.

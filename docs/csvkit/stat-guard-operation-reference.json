@@ -1,0 +1,74 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "cases": [
+    {
+      "command": "csvstat",
+      "argv": [
+        "--count",
+        "--mean"
+      ],
+      "stdin": "a\n1\n",
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: csvstat [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [--csv] [--json] [-i INDENT] [-n]\n               [-c COLUMNS] [--type] [--nulls] [--non-nulls] [--unique]\n               [--min] [--max] [--sum] [--mean] [--median] [--stdev] [--len]\n               [--max-precision] [--freq] [--freq-count FREQ_COUNT] [--count]\n               [--decimal-format DECIMAL_FORMAT] [-G] [-y SNIFF_LIMIT] [-I]\n               [FILE]\ncsvstat: error: You may not specify --count and an operation (--mean, --median, etc) at the same time.\n"
+    },
+    {
+      "command": "csvstat",
+      "argv": [
+        "--count",
+        "--min",
+        "--max"
+      ],
+      "stdin": "a\n1\n",
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: csvstat [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [--csv] [--json] [-i INDENT] [-n]\n               [-c COLUMNS] [--type] [--nulls] [--non-nulls] [--unique]\n               [--min] [--max] [--sum] [--mean] [--median] [--stdev] [--len]\n               [--max-precision] [--freq] [--freq-count FREQ_COUNT] [--count]\n               [--decimal-format DECIMAL_FORMAT] [-G] [-y SNIFF_LIMIT] [-I]\n               [FILE]\ncsvstat: error: Only one operation argument may be specified (--mean, --median, etc).\n"
+    },
+    {
+      "command": "csvstat",
+      "argv": [
+        "--csv",
+        "--type"
+      ],
+      "stdin": "a\nx\n",
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: csvstat [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [--csv] [--json] [-i INDENT] [-n]\n               [-c COLUMNS] [--type] [--nulls] [--non-nulls] [--unique]\n               [--min] [--max] [--sum] [--mean] [--median] [--stdev] [--len]\n               [--max-precision] [--freq] [--freq-count FREQ_COUNT] [--count]\n               [--decimal-format DECIMAL_FORMAT] [-G] [-y SNIFF_LIMIT] [-I]\n               [FILE]\ncsvstat: error: You may not specify --csv and an operation (--mean, --median, etc) at the same time.\n"
+    },
+    {
+      "command": "csvstat",
+      "argv": [
+        "--json",
+        "--len"
+      ],
+      "stdin": "a\nx\n",
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: csvstat [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [--csv] [--json] [-i INDENT] [-n]\n               [-c COLUMNS] [--type] [--nulls] [--non-nulls] [--unique]\n               [--min] [--max] [--sum] [--mean] [--median] [--stdev] [--len]\n               [--max-precision] [--freq] [--freq-count FREQ_COUNT] [--count]\n               [--decimal-format DECIMAL_FORMAT] [-G] [-y SNIFF_LIMIT] [-I]\n               [FILE]\ncsvstat: error: You may not specify --json and an operation (--mean, --median, etc) at the same time.\n"
+    },
+    {
+      "command": "csvstat",
+      "argv": [
+        "--names",
+        "--count",
+        "--mean"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 0,
+      "stdout": "  1: a\n  2: b\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvstat",
+      "argv": [
+        "--names",
+        "-H"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "RequiredHeaderError: You cannot use --no-header-row with the -n or --names options.\n"
+    }
+  ]
+}

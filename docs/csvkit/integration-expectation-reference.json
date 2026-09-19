@@ -1,0 +1,59 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "warningPath": "/Users/kjopek/Workspace/poe-code-5/out/csvkit-rounding-reference/lib/python3.14/site-packages/agate/utils.py",
+  "cases": [
+    {
+      "name": "duplicate-byte-sniff",
+      "argv": [
+        "-I",
+        "-f",
+        "csv",
+        "-y",
+        "5"
+      ],
+      "stdin": "é;é\nx;y\n",
+      "stdout": "é;é\nx;y\n",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/csvkit-rounding-reference/lib/python3.14/site-packages/agate/table/from_csv.py:83: RuntimeWarning: Error sniffing CSV dialect: Could not determine delimiter\n  kwargs['dialect'] = csv.Sniffer().sniff(sample)\n",
+      "status": 0
+    },
+    {
+      "name": "borrowed-ndjson-newlines",
+      "argv": [
+        "-I",
+        "-f",
+        "ndjson"
+      ],
+      "stdin": "{\"a\":1}\r\n{\"b\":null}\r{\"a\":2,\"b\":3}\n",
+      "stdout": "",
+      "stderr": "JSONDecodeError: Extra data: line 1 column 12 (char 11)\n",
+      "status": 1
+    },
+    {
+      "name": "six-byte-buffer-sniff",
+      "argv": [
+        "-I",
+        "-f",
+        "csv",
+        "-y",
+        "5"
+      ],
+      "stdin": "é;é\nx;y\n",
+      "stdout": "é,é_2\nx,y\n",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/csvkit-rounding-reference/lib/python3.14/site-packages/agate/utils.py:288: DuplicateColumnWarning: Column name \"é\" already exists in Table. Column will be renamed to \"é_2\".\n  warn_duplicate_column(new_value, final_value)\n",
+      "status": 0
+    },
+    {
+      "name": "named-ndjson-newlines",
+      "argv": [
+        "-I",
+        "-f",
+        "ndjson",
+        "csvkit-integration-newlines.ndjson"
+      ],
+      "stdin": "{\"a\":1}\r\n{\"b\":null}\r{\"a\":2,\"b\":3}\n",
+      "stdout": "a,b\n1,\n,\n2,3\n",
+      "stderr": "",
+      "status": 0
+    }
+  ]
+}

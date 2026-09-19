@@ -1,0 +1,1966 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "dependencyLock": "docs/csvkit/requirements-cpython-3.14.2.txt",
+  "runtimeVersions": {
+    "csvkit": "2.2.0",
+    "agate": "1.14.2",
+    "agate-dbf": "0.2.4",
+    "dbfread": "2.0.7",
+    "SQLAlchemy": "2.0.54"
+  },
+  "environment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "COLUMNS": "80",
+    "LINES": "24"
+  },
+  "filesEncoding": "base64",
+  "cases": [
+    {
+      "name": "character [b'1       ']",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gMSAgICAgICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nTrue\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character [b'0       ']",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gMCAgICAgICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nFalse\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character [b'True    ']",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gVHJ1ZSAgICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nTrue\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character [b'001     ', b'2       ']",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgIAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gMDAxICAgICAgMiAgICAgICAa"
+      },
+      "stdin": "",
+      "stdout": "value\n1\n2\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character [b'20240918']",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gMjAyNDA5MTga"
+      },
+      "stdin": "",
+      "stdout": "value\n20240918\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character [b' a\\x00     ']",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gIGEAICAgICAa"
+      },
+      "stdin": "",
+      "stdout": "value\n a\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "ignored inference common flags",
+      "argv": [
+        "-f",
+        "dbf",
+        "-I",
+        "-H",
+        "--skip-lines",
+        "7",
+        "--snifflimit",
+        "0",
+        "--locale",
+        "de_DE",
+        "--date-format",
+        "%Q",
+        "--datetime-format",
+        "%Q",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gMSAgICAgICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nTrue\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "version 0x0",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "AH4JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gaGVsbG8gICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nhello\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "version 0x2",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "An4JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gaGVsbG8gICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nhello\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "version 0x3",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gaGVsbG8gICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nhello\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "version 0x4",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "BH4JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gaGVsbG8gICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nhello\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "version 0x5",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "BX4JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gaGVsbG8gICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nhello\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "version 0x30",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "MH4JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gaGVsbG8gICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nhello\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "version 0x31",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "MX4JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gaGVsbG8gICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nhello\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "version 0x32",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "Mn4JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gaGVsbG8gICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nhello\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "version 0x43",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "Q34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gaGVsbG8gICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nhello\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "version 0x63",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "Y34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gaGVsbG8gICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nhello\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "version 0x83",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "g34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gaGVsbG8gICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nhello\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "version 0x8b",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "i34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gaGVsbG8gICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nhello\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "version 0xcb",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "y34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gaGVsbG8gICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nhello\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "version 0xf5",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "9X4JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gaGVsbG8gICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nhello\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "version 0xff",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "/34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gaGVsbG8gICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nhello\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "codepage 0x0",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0g6SAgICAgICAa"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "Your file is not \"utf-8\" encoded. Please specify the correct encoding with the --encoding flag. Use the -v flag to see the complete error.\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "codepage 0x3",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAADAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0g6SAgICAgICAa"
+      },
+      "stdin": "",
+      "stdout": "value\né\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "codepage 0x1",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAABAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0g6SAgICAgICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nΘ\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "codepage 0x2",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAACAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0g6SAgICAgICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nÚ\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "codepage 0x4",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAEAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0g6SAgICAgICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nÈ\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "codepage 0x57",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAABXAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0g6SAgICAgICAa"
+      },
+      "stdin": "",
+      "stdout": "value\né\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "codepage 0x68",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAABoAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0g6SAgICAgICAa"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "Your file is not \"utf-8\" encoded. Please specify the correct encoding with the --encoding flag. Use the -v flag to see the complete error.\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "codepage 0xff",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAD/AAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0g6SAgICAgICAa"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "Your file is not \"utf-8\" encoded. Please specify the correct encoding with the --encoding flag. Use the -v flag to see the complete error.\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "encoding explicit ignored",
+      "argv": [
+        "-f",
+        "dbf",
+        "-e",
+        "cp1252",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0g6SAgICAgICAa"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "Your file is not \"cp1252\" encoded. Please specify the correct encoding with the --encoding flag. Use the -v flag to see the complete error.\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "codepage utf8 argument ignored",
+      "argv": [
+        "-f",
+        "dbf",
+        "-e",
+        "utf-8",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAADAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0g6SAgICAgICAa"
+      },
+      "stdin": "",
+      "stdout": "value\né\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field N b'     01.20'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAsAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAE4AAAAACgIAAAAAAAAAAAAAAAAAAA0gICAgICAwMS4yMBo="
+      },
+      "stdin": "",
+      "stdout": "value\n1.2\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field N b'  12,50 '",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAE4AAAAACAAAAAAAAAAAAAAAAAAAAA0gICAxMiw1MCAa"
+      },
+      "stdin": "",
+      "stdout": "value\n12.5\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field N b'****'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAE4AAAAABAAAAAAAAAAAAAAAAAAAAA0gKioqKho="
+      },
+      "stdin": "",
+      "stdout": "value\n\"\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field N b' nan'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAE4AAAAABAAAAAAAAAAAAAAAAAAAAA0gIG5hbho="
+      },
+      "stdin": "",
+      "stdout": "value\nNaN\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field N b' inf'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAE4AAAAABAAAAAAAAAAAAAAAAAAAAA0gIGluZho="
+      },
+      "stdin": "",
+      "stdout": "value\nInfinity\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field N b' xyz'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAE4AAAAABAAAAAAAAAAAAAAAAAAAAA0gIHh5eho="
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "ValueError: could not convert string to float: b'xyz'\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field F b'  1.2300'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEYAAAAACAIAAAAAAAAAAAAAAAAAAA0gICAxLjIzMDAa"
+      },
+      "stdin": "",
+      "stdout": "value\n1.23\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field F b' NaN'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEYAAAAABAAAAAAAAAAAAAAAAAAAAA0gIE5hTho="
+      },
+      "stdin": "",
+      "stdout": "value\nNaN\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field D b'20240229'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEQAAAAACAAAAAAAAAAAAAAAAAAAAA0gMjAyNDAyMjka"
+      },
+      "stdin": "",
+      "stdout": "value\n2024-02-29\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field D b'00000000'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEQAAAAACAAAAAAAAAAAAAAAAAAAAA0gMDAwMDAwMDAa"
+      },
+      "stdin": "",
+      "stdout": "value\n\"\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field D b' 00 0   '",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEQAAAAACAAAAAAAAAAAAAAAAAAAAA0gIDAwIDAgICAa"
+      },
+      "stdin": "",
+      "stdout": "value\n\"\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field D b'20230229'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEQAAAAACAAAAAAAAAAAAAAAAAAAAA0gMjAyMzAyMjka"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "ValueError: invalid date b'20230229'\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field L b'T'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEwAAAAAAQAAAAAAAAAAAAAAAAAAAA0gVBo="
+      },
+      "stdin": "",
+      "stdout": "value\nTrue\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field L b'n'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEwAAAAAAQAAAAAAAAAAAAAAAAAAAA0gbho="
+      },
+      "stdin": "",
+      "stdout": "value\nFalse\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field L b'?'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEwAAAAAAQAAAAAAAAAAAAAAAAAAAA0gPxo="
+      },
+      "stdin": "",
+      "stdout": "value\n\"\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field L b'0'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEwAAAAAAQAAAAAAAAAAAAAAAAAAAA0gMBo="
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "ValueError: Illegal value for logical field: b'0'\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field I b'\\xf4\\xff\\xff\\xff'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEkAAAAABAAAAAAAAAAAAAAAAAAAAA0g9P///xo="
+      },
+      "stdin": "",
+      "stdout": "value\n-12\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field + b'*\\x00\\x00\\x00'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAACsAAAAABAAAAAAAAAAAAAAAAAAAAA0gKgAAABo="
+      },
+      "stdin": "",
+      "stdout": "value\n42\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field Y b'@\\xe2\\x01\\x00\\x00\\x00\\x00\\x00'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAFkAAAAACAAAAAAAAAAAAAAAAAAAAA0gQOIBAAAAAAAa"
+      },
+      "stdin": "",
+      "stdout": "value\n12.3456\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field O b'\\x00\\x00\\x00\\x00\\x00\\x00\\xf4?'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAE8AAAAACAAAAAAAAAAAAAAAAAAAAA0gAAAAAAAA9D8a"
+      },
+      "stdin": "",
+      "stdout": "value\n1.25\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field T b'\\xd1\\x8a%\\x00s\\xcf8\\x00'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAFQAAAAACAAAAAAAAAAAAAAAAAAAAA0g0YolAHPPOAAa"
+      },
+      "stdin": "",
+      "stdout": "value\n2024-02-28T01:02:03.123000\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field @ b'\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEAAAAAACAAAAAAAAAAAAAAAAAAAAA0gAAAAAAIAAAAa"
+      },
+      "stdin": "",
+      "stdout": "value\n\"\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field V b'hey '",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAFYAAAAABAAAAAAAAAAAAAAAAAAAAA0gaGV5IBo="
+      },
+      "stdin": "",
+      "stdout": "value\nhey\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field 0 b'xyz'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAADAAAAAAAwAAAAAAAAAAAAAAAAAAAA0geHl6Gg=="
+      },
+      "stdin": "",
+      "stdout": "value\nb'xyz'\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field X b'nope'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAFgAAAAABAAAAAAAAAAAAAAAAAAAAA0gbm9wZRo="
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "ValueError: Unknown field type: 'X'\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field I b'123'",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEkAAAAAAwAAAAAAAAAAAAAAAAAAAA0gMTIzGg=="
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "ValueError: Field type I must have length 4 (was 3)\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field L b'T '",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEwAAAAAAgAAAAAAAAAAAAAAAAAAAA0gVCAa"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "ValueError: Field type L must have length 1 (was 2)\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record order and deletes",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgAAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gdGhpcmQgICAqZGVsZXRlZCAgZmlyc3QgICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nthird\nfirst\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "deleted invalid number",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgIAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAABuAAAAAAAAAAAAAE4AAAAABAAAAAAAAAAAAAAAAAAAAA0gICAxMiogYmFkGg=="
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "ValueError: could not convert string to float: b'bad'\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "unknown separator skipped",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgIAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0/aWdub3JlZCAga2VwdCAgICAa"
+      },
+      "stdin": "",
+      "stdout": "value\nkept\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "early eof separator",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgMAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gb25lICAgICAaaWdub3JlZCAgdHdvICAgICAa"
+      },
+      "stdin": "",
+      "stdout": "value\none\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "truncated header 0",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": ""
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "error: unpack requires a buffer of 32 bytes\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "truncated header 1",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "Aw=="
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "error: unpack requires a buffer of 32 bytes\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "truncated header 15",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgAAAABBAAkAAAAA"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "error: unpack requires a buffer of 32 bytes\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "truncated header 31",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgAAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "error: unpack requires a buffer of 32 bytes\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "truncated header 32",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgAAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      },
+      "stdin": "",
+      "stdout": "\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "truncated header 40",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgAAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAA=="
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "error: unpack requires a buffer of 32 bytes\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "truncated header 63",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgAAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAA"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "error: unpack requires a buffer of 32 bytes\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "truncated character record",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAB2YWx1ZQAAAAAAAEMAAAAACAAAAAAAAAAAAAAAAAAAAA0gaGk="
+      },
+      "stdin": "",
+      "stdout": "value\nhi\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "truncated integer record",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAABuAAAAAAAAAAAAAEkAAAAABAAAAAAAAAAAAAAAAAAAAA0gAQ=="
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "error: unpack requires a buffer of 4 bytes\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "dash filename",
+      "argv": [
+        "-f",
+        "dbf",
+        "-"
+      ],
+      "files": {
+        "-": ""
+      },
+      "stdin": "binary",
+      "stdout": "",
+      "stderr": "DBFNotFound: could not find file '<stdin>'\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "missing memo 0x83",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "g34JEgEAAABBAAsAAAAAAAAAAAAAAAAAAAAAAAAAAABtZW1vAAAAAAAAAE0AAAAACgAAAAAAAAAAAAAAAAAAAA0gICAgICAgICAgMRo="
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "MissingMemoFile: missing memo file for input.dbf\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "dbt text 0x83",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "g34JEgEAAABBAAsAAAAAAAAAAAAAAAAAAAAAAAAAAABtZW1vAAAAAAAAAE0AAAAACgAAAAAAAAAAAAAAAAAAAA0gICAgICAgICAgMRo=",
+        "INPUT.DBT": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABoZWxsbwp3b3JsZBoa"
+      },
+      "stdin": "",
+      "stdout": "memo\n\"hello\nworld\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "memo zero 0x83",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "g34JEgEAAABBAAsAAAAAAAAAAAAAAAAAAAAAAAAAAABtZW1vAAAAAAAAAE0AAAAACgAAAAAAAAAAAAAAAAAAAA0gICAgICAgICAgMBo=",
+        "input.dbt": ""
+      },
+      "stdin": "",
+      "stdout": "memo\n\"\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "memo invalid index 0x83",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "g34JEgEAAABBAAsAAAAAAAAAAAAAAAAAAAAAAAAAAABtZW1vAAAAAAAAAE0AAAAACgAAAAAAAAAAAAAAAAAAAA0gICAgICAgIGJhZBo=",
+        "input.dbt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABoZWxsbwp3b3JsZBoa"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "ValueError: Memo index is not an integer: b'       bad'\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "missing memo 0x8b",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "i34JEgEAAABBAAsAAAAAAAAAAAAAAAAAAAAAAAAAAABtZW1vAAAAAAAAAE0AAAAACgAAAAAAAAAAAAAAAAAAAA0gICAgICAgICAgMRo="
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "MissingMemoFile: missing memo file for input.dbf\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "dbt text 0x8b",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "i34JEgEAAABBAAsAAAAAAAAAAAAAAAAAAAAAAAAAAABtZW1vAAAAAAAAAE0AAAAACgAAAAAAAAAAAAAAAAAAAA0gICAgICAgICAgMRo=",
+        "INPUT.DBT": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//wgIDgAAAGhlbGxvCndvcmxkH3h4"
+      },
+      "stdin": "",
+      "stdout": "memo\n\"hello\nworld\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "memo zero 0x8b",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "i34JEgEAAABBAAsAAAAAAAAAAAAAAAAAAAAAAAAAAABtZW1vAAAAAAAAAE0AAAAACgAAAAAAAAAAAAAAAAAAAA0gICAgICAgICAgMBo=",
+        "input.dbt": ""
+      },
+      "stdin": "",
+      "stdout": "memo\n\"\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "memo invalid index 0x8b",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "i34JEgEAAABBAAsAAAAAAAAAAAAAAAAAAAAAAAAAAABtZW1vAAAAAAAAAE0AAAAACgAAAAAAAAAAAAAAAAAAAA0gICAgICAgIGJhZBo=",
+        "input.dbt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//wgIDgAAAGhlbGxvCndvcmxkH3h4"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "ValueError: Memo index is not an integer: b'       bad'\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "fpt type 0",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "MH4JEgEAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAABtZW1vAAAAAAAAAE0AAAAABAAAAAAAAAAAAAAAAAAAAA0gAQAAABo=",
+        "input.fpt": "AAAAAgAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC2hlbGxvCndvcmxk"
+      },
+      "stdin": "",
+      "stdout": "memo\nb'hello\\nworld'\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "fpt type 1",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "MH4JEgEAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAABtZW1vAAAAAAAAAE0AAAAABAAAAAAAAAAAAAAAAAAAAA0gAQAAABo=",
+        "input.fpt": "AAAAAgAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAC2hlbGxvCndvcmxk"
+      },
+      "stdin": "",
+      "stdout": "memo\n\"hello\nworld\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "fpt type 2",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "MH4JEgEAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAABtZW1vAAAAAAAAAE0AAAAABAAAAAAAAAAAAAAAAAAAAA0gAQAAABo=",
+        "input.fpt": "AAAAAgAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAC2hlbGxvCndvcmxk"
+      },
+      "stdin": "",
+      "stdout": "memo\nb'hello\\nworld'\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "fpt type 9",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "MH4JEgEAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAABtZW1vAAAAAAAAAE0AAAAABAAAAAAAAAAAAAAAAAAAAA0gAQAAABo=",
+        "input.fpt": "AAAAAgAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJAAAAC2hlbGxvCndvcmxk"
+      },
+      "stdin": "",
+      "stdout": "memo\nb'hello\\nworld'\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "fpt truncated body",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "MH4JEgEAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAABtZW1vAAAAAAAAAE0AAAAABAAAAAAAAAAAAAAAAAAAAA0gAQAAABo=",
+        "input.fpt": "AAAAAgAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAACmhp"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "OSError: EOF reached while reading memo\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "fpt truncated header",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "MH4JEgEAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAABtZW1vAAAAAAAAAE0AAAAABAAAAAAAAAAAAAAAAAAAAA0gAQAAABo=",
+        "input.fpt": "YmFk"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "error: unpack requires a buffer of 512 bytes\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "fpt preferred over dbt",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "g34JEgEAAABBAAsAAAAAAAAAAAAAAAAAAAAAAAAAAABtZW1vAAAAAAAAAE0AAAAACgAAAAAAAAAAAAAAAAAAAA0gICAgICAgICAgMRo=",
+        "input.fpt": "AAAAAgAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAA2ZwdA==",
+        "input.dbt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABkYnQa"
+      },
+      "stdin": "",
+      "stdout": "memo\nfpt\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "foxpro B requires memo file",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "MH4JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAABuAAAAAAAAAAAAAEIAAAAACAAAAAAAAAAAAAAAAAAAAA0gAAAAAAAA9D8a"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "MissingMemoFile: missing memo file for input.dbf\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "foxpro B with memo file",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "MH4JEgEAAABBAAkAAAAAAAAAAAAAAAAAAAAAAAAAAABuAAAAAAAAAAAAAEIAAAAACAAAAAAAAAAAAAAAAAAAAA0gAAAAAAAA9D8a",
+        "input.fpt": "AAAAAgAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      },
+      "stdin": "",
+      "stdout": "n\n1.25\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "stdin no filename",
+      "argv": [
+        "-f",
+        "dbf"
+      ],
+      "files": {},
+      "stdin": "binary",
+      "stdout": "",
+      "stderr": "DBFNotFound: could not find file '<stdin>'\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "active error precedes earlier deleted error",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgIAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAABuAAAAAAAAAAAAAE4AAAAABAAAAAAAAAAAAAAAAAAAAA0qIGRlbCAgYWN0Gg=="
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "ValueError: could not convert string to float: b'act'\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "blank numeric and dates mixed",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgIAAABhAA0AAAAAAAAAAAAAAAAAAAAAAAAAAABuAAAAAAAAAAAAAE4AAAAABAAAAAAAAAAAAAAAAAAAAGQAAAAAAAAAAAAARAAAAAAIAAAAAAAAAAAAAAAAAAAADSAgICAxMDAwMDAwMDAgICAgIDIwMjQwOTE4Gg=="
+      },
+      "stdin": "",
+      "stdout": "n,d\nTrue,\n,2024-09-18\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character longer than 255",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAC0BAAAAAAAAAAAAAAAAAAAAAAAAAABsb25nAAAAAAAAAEMAAAAALAEAAAAAAAAAAAAAAAAAAA0geHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4Gg=="
+      },
+      "stdin": "",
+      "stdout": "long\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "memo ascii decode invalid",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "g34JEgEAAABBAAsAAAAAAAAAAAAAAAAAAAAAAAAAAABtZW1vAAAAAAAAAE0AAAAACgAAAAAAAAAAAAAAAAAAAA0gICAgICAgICAgMRo=",
+        "input.dbt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADpGg=="
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "Your file is not \"utf-8\" encoded. Please specify the correct encoding with the --encoding flag. Use the -v flag to see the complete error.\n",
+      "status": 1,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "db4 short memo body accepted",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "i34JEgEAAABBAAsAAAAAAAAAAAAAAAAAAAAAAAAAAABtZW1vAAAAAAAAAE0AAAAACgAAAAAAAAAAAAAAAAAAAA0gICAgICAgICAgMRo=",
+        "input.dbt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAAAAGhp"
+      },
+      "stdin": "",
+      "stdout": "memo\nhi\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "fpt zero block null",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "MH4JEgEAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAABtZW1vAAAAAAAAAE0AAAAABAAAAAAAAAAAAAAAAAAAAA0gAAAAABo=",
+        "input.fpt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      },
+      "stdin": "",
+      "stdout": "memo\n\"\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "header count overstated",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEv////9BAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAAAgAAAAAAAAAAAAAAAAAAAA0gb2sa"
+      },
+      "stdin": "",
+      "stdout": "v\nok\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "field descriptor terminator newline",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABBAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAAAgAAAAAAAAAAAAAAAAAAAAogb2sa"
+      },
+      "stdin": "",
+      "stdout": "v\nok\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "duplicate names",
+      "argv": [
+        "-f",
+        "dbf",
+        "input.dbf"
+      ],
+      "files": {
+        "input.dbf": "A34JEgEAAABhAAUAAAAAAAAAAAAAAAAAAAAAAAAAAABhAAAAAAAAAAAAAEMAAAAAAgAAAAAAAAAAAAAAAAAAAGEAAAAAAAAAAAAAQwAAAAACAAAAAAAAAAAAAAAAAAAADSB4IHkgGg=="
+      },
+      "stdin": "",
+      "stdout": "a,a_2\nx,True\n",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/dbf-reference-venv/lib/python3.14/site-packages/agate/utils.py:288: DuplicateColumnWarning: Column name \"a\" already exists in Table. Column will be renamed to \"a_2\".\n  warn_duplicate_column(new_value, final_value)\n",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    }
+  ],
+  "blockers": [
+    "No product compatibility asserted by this reference capture",
+    "DBF malformed overlapping/backward record lengths not executed due to native nontermination risk",
+    "All codepage driver aliases outside sampled cases remain unmeasured",
+    "Interactive, cancellation and backpressure behavior is not captured by subprocess oracle"
+  ],
+  "runtime": {
+    "implementation": "CPython",
+    "version": "3.14.2",
+    "executableSha256": "3d6400b63b150164e89a690d9813af8b0eb420af9f336ef1f6c5102c6da60eae",
+    "unicodeVersion": "16.0.0"
+  }
+}

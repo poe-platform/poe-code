@@ -1,0 +1,449 @@
+{
+  "profileId": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "scope": "SQLAlchemy dialect bind processors without importing absent DBAPI drivers; absent-driver CLI diagnostics only. No database/service/JavaScript qualification.",
+  "observations": [
+    {
+      "dialect": "postgresql+psycopg2",
+      "driverImported": false,
+      "cases": [
+        {
+          "sqlType": "BOOLEAN",
+          "adaptedType": "Boolean",
+          "input": {
+            "type": "bool",
+            "repr": "True"
+          },
+          "output": {
+            "type": "bool",
+            "repr": "True"
+          }
+        },
+        {
+          "sqlType": "NUMERIC(38, 6)",
+          "adaptedType": "_PsycopgNumeric",
+          "input": {
+            "type": "Decimal",
+            "repr": "Decimal('12345678901234567890.123456')"
+          },
+          "output": {
+            "type": "Decimal",
+            "repr": "Decimal('12345678901234567890.123456')"
+          }
+        },
+        {
+          "sqlType": "DATE",
+          "adaptedType": "Date",
+          "input": {
+            "type": "date",
+            "repr": "datetime.date(2026, 9, 18)"
+          },
+          "output": {
+            "type": "date",
+            "repr": "datetime.date(2026, 9, 18)"
+          }
+        },
+        {
+          "sqlType": "DATETIME",
+          "adaptedType": "DateTime",
+          "input": {
+            "type": "datetime",
+            "repr": "datetime.datetime(2026, 9, 18, 0, 0, 0, 1)"
+          },
+          "output": {
+            "type": "datetime",
+            "repr": "datetime.datetime(2026, 9, 18, 0, 0, 0, 1)"
+          }
+        },
+        {
+          "sqlType": "DATETIME",
+          "adaptedType": "INTERVAL",
+          "input": {
+            "type": "timedelta",
+            "repr": "datetime.timedelta(days=-1, seconds=86399, microseconds=999999)"
+          },
+          "output": {
+            "type": "timedelta",
+            "repr": "datetime.timedelta(days=-1, seconds=86399, microseconds=999999)"
+          }
+        }
+      ]
+    },
+    {
+      "dialect": "mysql+mysqldb",
+      "driverImported": false,
+      "cases": [
+        {
+          "sqlType": "BOOLEAN",
+          "adaptedType": "Boolean",
+          "input": {
+            "type": "bool",
+            "repr": "True"
+          },
+          "output": {
+            "type": "int",
+            "repr": "1"
+          }
+        },
+        {
+          "sqlType": "NUMERIC(38, 6)",
+          "adaptedType": "NUMERIC",
+          "input": {
+            "type": "Decimal",
+            "repr": "Decimal('12345678901234567890.123456')"
+          },
+          "output": {
+            "type": "Decimal",
+            "repr": "Decimal('12345678901234567890.123456')"
+          }
+        },
+        {
+          "sqlType": "DATE",
+          "adaptedType": "Date",
+          "input": {
+            "type": "date",
+            "repr": "datetime.date(2026, 9, 18)"
+          },
+          "output": {
+            "type": "date",
+            "repr": "datetime.date(2026, 9, 18)"
+          }
+        },
+        {
+          "sqlType": "DATETIME",
+          "adaptedType": "DateTime",
+          "input": {
+            "type": "datetime",
+            "repr": "datetime.datetime(2026, 9, 18, 0, 0, 0, 1)"
+          },
+          "output": {
+            "type": "datetime",
+            "repr": "datetime.datetime(2026, 9, 18, 0, 0, 0, 1)"
+          }
+        },
+        {
+          "sqlType": "DATETIME",
+          "adaptedType": "Interval",
+          "input": {
+            "type": "timedelta",
+            "repr": "datetime.timedelta(days=-1, seconds=86399, microseconds=999999)"
+          },
+          "output": {
+            "type": "datetime",
+            "repr": "datetime.datetime(1969, 12, 31, 23, 59, 59, 999999)"
+          }
+        }
+      ]
+    },
+    {
+      "dialect": "mysql+pymysql",
+      "driverImported": false,
+      "cases": [
+        {
+          "sqlType": "BOOLEAN",
+          "adaptedType": "Boolean",
+          "input": {
+            "type": "bool",
+            "repr": "True"
+          },
+          "output": {
+            "type": "int",
+            "repr": "1"
+          }
+        },
+        {
+          "sqlType": "NUMERIC(38, 6)",
+          "adaptedType": "NUMERIC",
+          "input": {
+            "type": "Decimal",
+            "repr": "Decimal('12345678901234567890.123456')"
+          },
+          "output": {
+            "type": "Decimal",
+            "repr": "Decimal('12345678901234567890.123456')"
+          }
+        },
+        {
+          "sqlType": "DATE",
+          "adaptedType": "Date",
+          "input": {
+            "type": "date",
+            "repr": "datetime.date(2026, 9, 18)"
+          },
+          "output": {
+            "type": "date",
+            "repr": "datetime.date(2026, 9, 18)"
+          }
+        },
+        {
+          "sqlType": "DATETIME",
+          "adaptedType": "DateTime",
+          "input": {
+            "type": "datetime",
+            "repr": "datetime.datetime(2026, 9, 18, 0, 0, 0, 1)"
+          },
+          "output": {
+            "type": "datetime",
+            "repr": "datetime.datetime(2026, 9, 18, 0, 0, 0, 1)"
+          }
+        },
+        {
+          "sqlType": "DATETIME",
+          "adaptedType": "Interval",
+          "input": {
+            "type": "timedelta",
+            "repr": "datetime.timedelta(days=-1, seconds=86399, microseconds=999999)"
+          },
+          "output": {
+            "type": "datetime",
+            "repr": "datetime.datetime(1969, 12, 31, 23, 59, 59, 999999)"
+          }
+        }
+      ]
+    },
+    {
+      "dialect": "mariadb+mariadbconnector",
+      "driverImported": false,
+      "cases": [
+        {
+          "sqlType": "BOOLEAN",
+          "adaptedType": "Boolean",
+          "input": {
+            "type": "bool",
+            "repr": "True"
+          },
+          "output": {
+            "type": "int",
+            "repr": "1"
+          }
+        },
+        {
+          "sqlType": "NUMERIC(38, 6)",
+          "adaptedType": "NUMERIC",
+          "input": {
+            "type": "Decimal",
+            "repr": "Decimal('12345678901234567890.123456')"
+          },
+          "output": {
+            "type": "Decimal",
+            "repr": "Decimal('12345678901234567890.123456')"
+          }
+        },
+        {
+          "sqlType": "DATE",
+          "adaptedType": "Date",
+          "input": {
+            "type": "date",
+            "repr": "datetime.date(2026, 9, 18)"
+          },
+          "output": {
+            "type": "date",
+            "repr": "datetime.date(2026, 9, 18)"
+          }
+        },
+        {
+          "sqlType": "DATETIME",
+          "adaptedType": "DateTime",
+          "input": {
+            "type": "datetime",
+            "repr": "datetime.datetime(2026, 9, 18, 0, 0, 0, 1)"
+          },
+          "output": {
+            "type": "datetime",
+            "repr": "datetime.datetime(2026, 9, 18, 0, 0, 0, 1)"
+          }
+        },
+        {
+          "sqlType": "DATETIME",
+          "adaptedType": "Interval",
+          "input": {
+            "type": "timedelta",
+            "repr": "datetime.timedelta(days=-1, seconds=86399, microseconds=999999)"
+          },
+          "output": {
+            "type": "datetime",
+            "repr": "datetime.datetime(1969, 12, 31, 23, 59, 59, 999999)"
+          }
+        }
+      ]
+    },
+    {
+      "dialect": "mssql+pyodbc",
+      "driverImported": false,
+      "cases": [
+        {
+          "sqlType": "BOOLEAN",
+          "adaptedType": "Boolean",
+          "input": {
+            "type": "bool",
+            "repr": "True"
+          },
+          "output": {
+            "type": "int",
+            "repr": "1"
+          }
+        },
+        {
+          "sqlType": "NUMERIC(38, 6)",
+          "adaptedType": "_MSNumeric_pyodbc",
+          "input": {
+            "type": "Decimal",
+            "repr": "Decimal('12345678901234567890.123456')"
+          },
+          "output": {
+            "type": "Decimal",
+            "repr": "Decimal('12345678901234567890.123456')"
+          }
+        },
+        {
+          "sqlType": "DATE",
+          "adaptedType": "_MSDate",
+          "input": {
+            "type": "date",
+            "repr": "datetime.date(2026, 9, 18)"
+          },
+          "output": {
+            "type": "datetime",
+            "repr": "datetime.datetime(2026, 9, 18, 0, 0)"
+          }
+        },
+        {
+          "sqlType": "DATETIME",
+          "adaptedType": "_ODBCDateTime",
+          "input": {
+            "type": "datetime",
+            "repr": "datetime.datetime(2026, 9, 18, 0, 0, 0, 1)"
+          },
+          "output": {
+            "type": "datetime",
+            "repr": "datetime.datetime(2026, 9, 18, 0, 0, 0, 1)"
+          }
+        },
+        {
+          "sqlType": "DATETIME",
+          "adaptedType": "Interval",
+          "input": {
+            "type": "timedelta",
+            "repr": "datetime.timedelta(days=-1, seconds=86399, microseconds=999999)"
+          },
+          "output": {
+            "type": "datetime",
+            "repr": "datetime.datetime(1969, 12, 31, 23, 59, 59, 999999)"
+          }
+        }
+      ]
+    },
+    {
+      "dialect": "oracle+cx_oracle",
+      "driverImported": false,
+      "cases": [
+        {
+          "sqlType": "BOOLEAN",
+          "adaptedType": "_OracleBoolean",
+          "input": {
+            "type": "bool",
+            "repr": "True"
+          },
+          "output": {
+            "type": "int",
+            "repr": "1"
+          }
+        },
+        {
+          "sqlType": "NUMERIC(38, 6)",
+          "adaptedType": "_OracleNumeric",
+          "input": {
+            "type": "Decimal",
+            "repr": "Decimal('12345678901234567890.123456')"
+          },
+          "output": {
+            "type": "Decimal",
+            "repr": "Decimal('12345678901234567890.123456')"
+          }
+        },
+        {
+          "sqlType": "DATE",
+          "adaptedType": "_CXOracleDate",
+          "input": {
+            "type": "date",
+            "repr": "datetime.date(2026, 9, 18)"
+          },
+          "output": {
+            "type": "date",
+            "repr": "datetime.date(2026, 9, 18)"
+          }
+        },
+        {
+          "sqlType": "DATETIME",
+          "adaptedType": "DATE",
+          "input": {
+            "type": "datetime",
+            "repr": "datetime.datetime(2026, 9, 18, 0, 0, 0, 1)"
+          },
+          "output": {
+            "type": "datetime",
+            "repr": "datetime.datetime(2026, 9, 18, 0, 0, 0, 1)"
+          }
+        },
+        {
+          "sqlType": "DATETIME",
+          "adaptedType": "INTERVAL",
+          "input": {
+            "type": "timedelta",
+            "repr": "datetime.timedelta(days=-1, seconds=86399, microseconds=999999)"
+          },
+          "output": {
+            "type": "timedelta",
+            "repr": "datetime.timedelta(days=-1, seconds=86399, microseconds=999999)"
+          }
+        }
+      ]
+    }
+  ],
+  "commands": [
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "mariadb://localhost/db"
+      ],
+      "stdout": "",
+      "stderr": "ImportError: You don't appear to have the necessary database backend installed for connection string you're trying to use. Available backends include:\n\nPostgreSQL:\tpip install psycopg2\nMySQL:\t\tpip install mysql-connector-python OR pip install mysqlclient\n\nFor details on connection strings and other backends, please see the SQLAlchemy documentation on dialects at:\n\nhttps://www.sqlalchemy.org/docs/dialects/\n",
+      "status": 1
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "mariadb+mariadbconnector://localhost/db"
+      ],
+      "stdout": "",
+      "stderr": "ImportError: You don't appear to have the necessary database backend installed for connection string you're trying to use. Available backends include:\n\nPostgreSQL:\tpip install psycopg2\nMySQL:\t\tpip install mysql-connector-python OR pip install mysqlclient\n\nFor details on connection strings and other backends, please see the SQLAlchemy documentation on dialects at:\n\nhttps://www.sqlalchemy.org/docs/dialects/\n",
+      "status": 1
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "mariadb://localhost/db",
+        "--query",
+        "select 1"
+      ],
+      "stdout": "",
+      "stderr": "ImportError: You don't appear to have the necessary database backend installed for connection string you're trying to use. Available backends include:\n\nPostgreSQL:\tpip install psycopg2\nMySQL:\t\tpip install mysql-connector-python OR pip install mysqlclient\n\nFor details on connection strings and other backends, please see the SQLAlchemy documentation on dialects at:\n\nhttps://www.sqlalchemy.org/docs/dialects/\n",
+      "status": 1
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "mariadb+mariadbconnector://localhost/db",
+        "--query",
+        "select 1"
+      ],
+      "stdout": "",
+      "stderr": "ImportError: You don't appear to have the necessary database backend installed for connection string you're trying to use. Available backends include:\n\nPostgreSQL:\tpip install psycopg2\nMySQL:\t\tpip install mysql-connector-python OR pip install mysqlclient\n\nFor details on connection strings and other backends, please see the SQLAlchemy documentation on dialects at:\n\nhttps://www.sqlalchemy.org/docs/dialects/\n",
+      "status": 1
+    }
+  ]
+}

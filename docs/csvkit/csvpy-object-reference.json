@@ -1,0 +1,144 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "runtimeSha256": "3d6400b63b150164e89a690d9813af8b0eb420af9f336ef1f6c5102c6da60eae",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "COLUMNS": "80",
+    "LINES": "24"
+  },
+  "versions": {
+    "csvkit": "2.2.0",
+    "agate": "1.14.2",
+    "SQLAlchemy": "2.0.54",
+    "Babel": "2.18.0"
+  },
+  "results": [
+    {
+      "id": "line-numbers",
+      "csv": "a,b\n\"first\nsecond\",2\nthird,3\n",
+      "mode": "reader",
+      "expressions": [
+        "reader.line_numbers=True",
+        "next(reader)",
+        "next(reader)",
+        "reader.header=False",
+        "next(reader)",
+        "reader.line_num"
+      ],
+      "stdout": ">>> >>> ['line_numbers', 'a', 'b']\n>>> ['2', 'first\\nsecond', '2']\n>>> >>> ['4', 'third', '3']\n>>> 4\n>>> ",
+      "stderr": "Welcome! \"data.csv\" has been loaded in an agate.csv.reader object named \"reader\".\n\nnow exiting InteractiveConsole...\n",
+      "status": 0,
+      "productQualification": "selected transcript; compare canonical case independently"
+    },
+    {
+      "id": "raw-reader-dialect",
+      "csv": "a,b\n1,2\n",
+      "mode": "reader",
+      "expressions": [
+        "(reader.dialect.delimiter,reader.dialect.quotechar,reader.dialect.escapechar,reader.dialect.quoting,reader.dialect.doublequote,reader.dialect.skipinitialspace,reader.dialect.lineterminator,reader.dialect.strict)",
+        "reader.line_num=99",
+        "reader.dialect.delimiter=';'",
+        "next(reader.reader)",
+        "reader.line_num",
+        "next(reader)"
+      ],
+      "stdout": ">>> (',', '\"', None, 0, True, False, '\\r\\n', False)\n>>> >>> >>> ['a', 'b']\n>>> 1\n>>> ['1', '2']\n>>> ",
+      "stderr": "Welcome! \"data.csv\" has been loaded in an agate.csv.reader object named \"reader\".\nTraceback (most recent call last):\n  File \"<console>\", line 1, in <module>\nAttributeError: property 'line_num' of 'Reader' object has no setter\nTraceback (most recent call last):\n  File \"<console>\", line 1, in <module>\nAttributeError: attribute 'delimiter' of '_csv.Dialect' objects is not writable\n\nnow exiting InteractiveConsole...\n",
+      "status": 0,
+      "productQualification": "selected transcript; compare canonical case independently"
+    },
+    {
+      "id": "imports-config-errors",
+      "csv": "a\n",
+      "mode": "reader",
+      "expressions": [
+        "import agate, agate.csv_py3, agate.exceptions",
+        "agate.csv is agate.csv_py3",
+        "agate.get_option('default_locale')",
+        "agate.set_option('custom',42); agate.get_option('custom')",
+        "from agate.exceptions import FieldSizeLimitError",
+        "isinstance(FieldSizeLimitError(2,3),ValueError)",
+        "str(FieldSizeLimitError(2,3))",
+        "hasattr(agate.csv,'Error')"
+      ],
+      "stdout": ">>> >>> True\n>>> 'en_US_POSIX'\n>>> 42\n>>> >>> False\n>>> 'CSV contains a field longer than the maximum length of 2 characters on line 3. Try raising the maximum with the field_size_limit parameter, or try setting quoting=csv.QUOTE_NONE.'\n>>> False\n>>> ",
+      "stderr": "Welcome! \"data.csv\" has been loaded in an agate.csv.reader object named \"reader\".\n\nnow exiting InteractiveConsole...\n",
+      "status": 0,
+      "productQualification": "selected transcript; compare canonical case independently"
+    },
+    {
+      "id": "factory-kind",
+      "csv": "a\n",
+      "mode": "reader",
+      "expressions": [
+        "import agate",
+        "type(agate.csv.reader).__name__",
+        "isinstance(reader,agate.csv.Reader)"
+      ],
+      "stdout": ">>> >>> 'function'\n>>> True\n>>> ",
+      "stderr": "Welcome! \"data.csv\" has been loaded in an agate.csv.reader object named \"reader\".\n\nnow exiting InteractiveConsole...\n",
+      "status": 0,
+      "productQualification": "selected transcript; compare canonical case independently"
+    },
+    {
+      "id": "field-error-line",
+      "csv": "a\nlarge\n",
+      "mode": "reader",
+      "expressions": [
+        "next(reader)",
+        "next(reader)",
+        "reader.line_num"
+      ],
+      "stdout": ">>> ['a']\n>>> >>> 2\n>>> ",
+      "stderr": "Welcome! \"data.csv\" has been loaded in an agate.csv.reader object named \"reader\".\nTraceback (most recent call last):\n  File \"/Users/kjopek/Workspace/poe-code-5/out/csvkit-rounding-reference/lib/python3.14/site-packages/agate/csv_py3.py\", line 31, in __next__\n    row = next(self.reader)\n_csv.Error: field larger than field limit (2)\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"<console>\", line 1, in <module>\n  File \"/Users/kjopek/Workspace/poe-code-5/out/csvkit-rounding-reference/lib/python3.14/site-packages/agate/csv_py3.py\", line 35, in __next__\n    raise FieldSizeLimitError(csv.field_size_limit(), self.line_num)\nagate.exceptions.FieldSizeLimitError: CSV contains a field longer than the maximum length of 2 characters on line 2. Try raising the maximum with the field_size_limit parameter, or try setting quoting=csv.QUOTE_NONE.\n\nnow exiting InteractiveConsole...\n",
+      "status": 0,
+      "productQualification": "selected transcript; compare canonical case independently"
+    },
+    {
+      "id": "dictionary-blank-lines",
+      "csv": "a,b\n\n1,2\n\n",
+      "mode": "dict",
+      "expressions": [
+        "reader.fieldnames",
+        "next(reader)",
+        "reader.line_num",
+        "next(reader,None)",
+        "reader.line_num"
+      ],
+      "stdout": ">>> ['a', 'b']\n>>> {'a': '1', 'b': '2'}\n>>> 3\n>>> >>> 4\n>>> ",
+      "stderr": "Welcome! \"data.csv\" has been loaded in an agate.csv.DictReader object named \"reader\".\n\nnow exiting InteractiveConsole...\n",
+      "status": 0,
+      "productQualification": "selected transcript; compare canonical case independently"
+    },
+    {
+      "id": "typed-table-blocker",
+      "csv": "name,value\na,2\nb,3\n",
+      "mode": "agate",
+      "expressions": [
+        "table.column_names",
+        "[type(t).__name__ for t in table.column_types]",
+        "table.rows[0]",
+        "table.columns['value'].values()",
+        "table.select(['name']).print_table(output=__import__('sys').stdout)",
+        "table.where(lambda row:row['value']>2).print_csv()"
+      ],
+      "stdout": ">>> ('name', 'value')\n>>> ['Text', 'Number']\n>>> <agate.Row: ('a', Decimal('2'))>\n>>> (Decimal('2'), Decimal('3'))\n>>> | name |\n| ---- |\n| a    |\n| b    |\n>>> name,value\nb,3\n>>> ",
+      "stderr": "Welcome! \"data.csv\" has been loaded in an agate.Table object named \"table\".\n\nnow exiting InteractiveConsole...\n",
+      "status": 0,
+      "productQualification": "BLOCKED"
+    }
+  ],
+  "limits": [
+    "code.interact readfunc is an injected non-TTY capture; live TTY/IPython not qualified.",
+    "This is reference evidence, not a product pass.",
+    "CPython 3.9.6 not measured in this cohort."
+  ],
+  "installedAgateSourceQualification": {
+    "pythonFiles": 100,
+    "matchesAuthenticatedSourceArchive": true
+  }
+}

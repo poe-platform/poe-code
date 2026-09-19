@@ -1,0 +1,12 @@
+# csvkit SQL schema QA
+
+Use the existing hash-pinned csvkit 2.2.0 reference and frozen CPython 3.14.2 / Agate 1.14.2 / agate-sql 0.7.3 / SQLAlchemy 2.0.54 profile. Keep reference programs and temporary outputs in out; canonical unit tests use in-memory inputs and injected recording database sessions.
+
+1. Verify reference executable hash and installed distribution versions against docs/csvkit/reference-profile.json. Capture SQLAlchemy dialect names/order and entry points directly; do not infer supported dialects from implementation providers.
+2. Inspect agatesql/table.py SQL_TYPE_MAP and all four overriding maps, make_sql_table and to_sql_create_statement. Inspect Agate MaxLength, HasNulls and MaxPrecision, including Decimal normalization and binary64 infinity checks.
+3. Capture exact schema-only stdout/stderr/status for generic and every core dialect, including nullable values, no constraints, unique constraints, reserved/numeric/Unicode identifiers, schema qualification, temporal types, Decimal precision and text length boundaries. Compare all quoting provider metadata against independent SQLAlchemy preparers.
+4. Capture connected CreateTable compilation separately, preserving its leading/trailing whitespace. Exercise minimum/multiplier settings through recording sessions and compare ordered database effects. Schema-only must ignore those settings. Demonstrate failing original regressions before changing implementation.
+5. Use the public shared engine for argv and SDK. Demonstrate that absent third-party metadata blocks, while an explicitly supplied optional compiler profile enables only that profile. Keep frozen core CLI dialect choices unchanged.
+6. Have a different agent stress actual safe-bash Shell dispatch. Rebuild public workspace outputs before judging shell behavior. Check exact outputs, effects, cleanups and source files without host filesystem writes in canonical tests.
+7. Run uncached csvkit workspace tests/lint, maintained selected workspace build closure, safe-bash discovery/runner tests, focused shell cases, and source/public consumer typechecks. Inspect a screenshot of representative CREATE output; this is ad hoc validation, never a screenshot test.
+8. Record passes and unavailable profiles separately in docs/csvkit. Remove only this task's temporary capture scripts/logs/screenshots after inspection. Do not stage, commit, push, publish, or edit README content.

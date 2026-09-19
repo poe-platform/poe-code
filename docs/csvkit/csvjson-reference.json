@@ -1,0 +1,469 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "commandSourceSha256": "cbfe8f90a73d234ddb332b25bf288922cd960b250ea1847b474a05a3554273c5",
+  "warningUtilsPath": "/Users/kjopek/Workspace/poe-code-5/out/csvjson-reference/venv/lib/python3.14/site-packages/agate/utils.py",
+  "cases": [
+    {
+      "stdin": "n,name\n2,José\n3.50,東京\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"n\": 2.0, \"name\": \"José\"}, {\"n\": 3.5, \"name\": \"東京\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n2\n3.50\n",
+      "argv": [
+        "-y0",
+        "-i2"
+      ],
+      "stdout": "[\n  {\n    \"n\": 2.0\n  },\n  {\n    \"n\": 3.5\n  }\n]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\nNaN\nInfinity\n-Infinity\n-0\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"n\": NaN}, {\"n\": Infinity}, {\"n\": -Infinity}, {\"n\": -0.0}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1e-7\n1e16\n1e20\n1e21\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"n\": 1e-07}, {\"n\": 1e+16}, {\"n\": 1e+20}, {\"n\": 1e+21}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n9007199254740993\n2\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"n\": 9007199254740992.0}, {\"n\": 2.0}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\n2.00,a\n2.0,b\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value 2 is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\n1000.0,a\n0.0000001,b\n-0,c\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "{\"1E+3\": {\"k\": 1000.0, \"x\": \"a\"}, \"1E-7\": {\"k\": 1e-07, \"x\": \"b\"}, \"-0\": {\"k\": -0.0, \"x\": \"c\"}}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "d,t,dt\n2024-02-03,1h,2024-02-03 04:05:06\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "[{\"d\": \"2024-02-03\", \"t\": \"1:00:00\", \"dt\": \"2024-02-03T04:05:06\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,\ny,z\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream"
+      ],
+      "stdout": "{\"a\": \"x\", \"b\": \"\"}\n{\"a\": \"y\", \"b\": \"z\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "comment\na,b\nx,\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream",
+        "-K1"
+      ],
+      "stdout": "{\"a\": \"x\", \"b\": null}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nx\n",
+      "argv": [
+        "-y0",
+        "--stream",
+        "-i2"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: newline and indent may not be specified together.\n",
+      "status": 1
+    },
+    {
+      "stdin": "a\nx\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream",
+        "-i2"
+      ],
+      "stdout": "{\n  \"a\": \"x\"\n}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,a,\nx,y,z\nq\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream"
+      ],
+      "stdout": "{\"a\": \"y\", \"\": \"z\"}\n{\"a\": null, \"\": null}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,y\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream",
+        "-H",
+        "-l",
+        "--add-bom"
+      ],
+      "stdout": "﻿{\"a\": \"x\", \"b\": \"y\"}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "-I",
+        "--stream"
+      ],
+      "stdout": "",
+      "stderr": "StopIteration: \n",
+      "status": 1
+    },
+    {
+      "stdin": "a\nx\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "missing"
+      ],
+      "stdout": "",
+      "stderr": "KeyError: 'missing'\n",
+      "status": 1
+    },
+    {
+      "stdin": "a\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "missing"
+      ],
+      "stdout": "{}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "id,lat,lon,name,n\n2,40,-70,Hi,0\n3,41,-71,There,2\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "-k",
+        "id"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"bbox\": [-71.0, 40.0, -70.0, 41.0], \"features\": [{\"type\": \"Feature\", \"properties\": {\"name\": \"Hi\"}, \"id\": \"2\", \"geometry\": {\"type\": \"Point\", \"coordinates\": [-70.0, 40.0]}}, {\"type\": \"Feature\", \"properties\": {\"name\": \"There\", \"n\": \"2\"}, \"id\": \"3\", \"geometry\": {\"type\": \"Point\", \"coordinates\": [-71.0, 41.0]}}]}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "id,lat,lon,name,n\n2,40,-70,Hi,0\n3,41,-71,There,2\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--no-bbox",
+        "--crs",
+        "EPSG:4326",
+        "-i2"
+      ],
+      "stdout": "{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n    {\n      \"type\": \"Feature\",\n      \"properties\": {\n        \"id\": \"2\",\n        \"name\": \"Hi\"\n      },\n      \"geometry\": {\n        \"type\": \"Point\",\n        \"coordinates\": [\n          -70.0,\n          40.0\n        ]\n      }\n    },\n    {\n      \"type\": \"Feature\",\n      \"properties\": {\n        \"id\": \"3\",\n        \"name\": \"There\",\n        \"n\": \"2\"\n      },\n      \"geometry\": {\n        \"type\": \"Point\",\n        \"coordinates\": [\n          -71.0,\n          41.0\n        ]\n      }\n    }\n  ],\n  \"crs\": {\n    \"type\": \"name\",\n    \"properties\": {\n      \"name\": \"EPSG:4326\"\n    }\n  }\n}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "id,lat,lon,name,n\n2,40,-70,Hi,0\n3,41,-71,There,2\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "-k",
+        "id",
+        "--stream"
+      ],
+      "stdout": "{\"type\": \"Feature\", \"properties\": {\"name\": \"Hi\"}, \"id\": \"2\", \"geometry\": {\"type\": \"Point\", \"coordinates\": [-70.0, 40.0]}}\n{\"type\": \"Feature\", \"properties\": {\"name\": \"There\", \"n\": \"2\"}, \"id\": \"3\", \"geometry\": {\"type\": \"Point\", \"coordinates\": [-71.0, 41.0]}}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "id,lat,lon,name,n\n2,40,-70,Hi,0\n3,41,-71,There,2\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "-k",
+        "id",
+        "--stream"
+      ],
+      "stdout": "{\"type\": \"Feature\", \"properties\": {\"name\": \"Hi\", \"n\": \"0\"}, \"id\": \"2\", \"geometry\": {\"type\": \"Point\", \"coordinates\": [-70.0, 40.0]}}\n{\"type\": \"Feature\", \"properties\": {\"name\": \"There\", \"n\": \"2\"}, \"id\": \"3\", \"geometry\": {\"type\": \"Point\", \"coordinates\": [-71.0, 41.0]}}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "lat,lon\n0,2\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon"
+      ],
+      "stdout": "",
+      "stderr": "TypeError: argument of type 'NoneType' is not a container or iterable\n",
+      "status": 1
+    },
+    {
+      "stdin": "lat,lon\n0,2\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--no-bbox"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": null}]}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "lat,lon\n,2\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--no-bbox"
+      ],
+      "stdout": "",
+      "stderr": "TypeError: float() argument must be a string or a real number, not 'NoneType'\n",
+      "status": 1
+    },
+    {
+      "stdin": "lat,lon\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"bbox\": [null, null, null, null], \"features\": []}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nx\n",
+      "argv": [
+        "--geometry",
+        "a"
+      ],
+      "stdout": "",
+      "stderr": "usage: csvjson [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [-i INDENT] [-k KEY] [--lat LAT]\n               [--lon LON] [--type TYPE] [--geometry GEOMETRY] [--crs CRS]\n               [--no-bbox] [--stream] [-y SNIFF_LIMIT] [-I]\n               [FILE]\ncsvjson: error: --geometry is only allowed when --lat and --lon are also specified.\n",
+      "status": 2
+    },
+    {
+      "stdin": "lat,lon,x\n40,-70,Hi\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "0",
+        "--lon",
+        "1"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"bbox\": [-70.0, 40.0, -70.0, 40.0], \"features\": [{\"type\": \"Feature\", \"properties\": {\"x\": \"Hi\"}, \"geometry\": {\"type\": \"Point\", \"coordinates\": [-70.0, 40.0]}}]}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "lat,lon,x\n40,-70,Hi\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "1",
+        "--lon",
+        "2",
+        "--zero"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"bbox\": [-70.0, 40.0, -70.0, 40.0], \"features\": [{\"type\": \"Feature\", \"properties\": {\"x\": \"Hi\"}, \"geometry\": {\"type\": \"Point\", \"coordinates\": [-70.0, 40.0]}}]}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "lat,lon,t,p\n40,-70,Polygon,false\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--type",
+        "t"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"bbox\": [-70.0, 40.0, -70.0, 40.0], \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"Point\", \"coordinates\": [-70.0, 40.0]}}]}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "lat,lon\nbad,2\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--no-bbox"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": null}]}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "lat,lon\nNaN,Infinity\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"bbox\": [Infinity, NaN, Infinity, NaN], \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"Point\", \"coordinates\": [Infinity, NaN]}}]}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "lat,lon,g\n1,2,\"{\"\"type\"\":\"\"LineString\"\",\"\"coordinates\"\":[[1,2],[3.0,4.0]],\"\"2\"\":3,\"\"1\"\":4}\"\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--geometry",
+        "g"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"bbox\": [1, 2, 3.0, 4.0], \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"LineString\", \"coordinates\": [[1, 2], [3.0, 4.0]], \"2\": 3, \"1\": 4}}]}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,a,\nx,y,z\n",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "[{\"a\": \"x\", \"a_2\": \"y\", \"c\": \"z\"}]",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/csvjson-reference/venv/lib/python3.14/site-packages/agate/utils.py:288: DuplicateColumnWarning: Column name \"a\" already exists in Table. Column will be renamed to \"a_2\".\n  warn_duplicate_column(new_value, final_value)\n/Users/kjopek/Workspace/poe-code-5/out/csvjson-reference/venv/lib/python3.14/site-packages/agate/utils.py:272: UnnamedColumnWarning: Column 2 has no name. Using \"c\".\n  warn_unnamed_column(i, new_value)\n",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,\n",
+      "argv": [
+        "-y0",
+        "--stream"
+      ],
+      "stdout": "{\"a\": \"x\", \"b\": null}\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,y\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "-H",
+        "-l"
+      ],
+      "stdout": "[{\"a\": \"a\", \"b\": \"b\"}, {\"a\": \"x\", \"b\": \"y\"}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "k,x\nnull,a\nNone,b\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value None is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "k,x\nNaN,a\nNaN,b\n",
+      "argv": [
+        "-y0",
+        "-k",
+        "k"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Value NaN is not unique in the key column.\n",
+      "status": 1
+    },
+    {
+      "stdin": "a\nx\n",
+      "argv": [
+        "-y0",
+        "--stream",
+        "-k",
+        ""
+      ],
+      "stdout": "",
+      "stderr": "ValueError: key and newline may not be specified together.\n",
+      "status": 1
+    }
+  ]
+}

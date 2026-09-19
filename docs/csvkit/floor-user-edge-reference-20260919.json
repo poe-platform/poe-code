@@ -1,0 +1,140 @@
+{
+  "interpreter": "/Users/kjopek/.local/share/uv/python/cpython-3.14.2-macos-aarch64-none/bin/python3.14",
+  "interpreterHash": "3d6400b63b150164e89a690d9813af8b0eb420af9f336ef1f6c5102c6da60eae",
+  "executableHash": "9c0173793300ab9081e87770b4e5d5aaa68eb1469bca4963a26ff8cf4fffc8be",
+  "wasmHash": "3c924f7de0fd0979da11615be99ec826a066f8fc804a91c3ec9c45b7d8f1655f",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "COLUMNS": "80",
+    "LINES": "24"
+  },
+  "profileQualification": "Frozen installed-file drift remains unqualified; fresh bounded observations only",
+  "cases": [
+    {
+      "query": "SELECT floor(1.5) AS floored",
+      "command": "sql2csv --query 'SELECT floor(1.5) AS floored'",
+      "status": 0,
+      "stdoutBase64": "Zmxvb3JlZAoxCg==",
+      "stderrBase64": ""
+    },
+    {
+      "query": "SELECT floor(-1.5) AS negative, floor(-0.0) AS zero, typeof(floor(1.5)) AS type",
+      "command": "sql2csv --query 'SELECT floor(-1.5) AS negative, floor(-0.0) AS zero, typeof(floor(1.5)) AS type'",
+      "status": 0,
+      "stdoutBase64": "bmVnYXRpdmUsemVybyx0eXBlCi0yLDAsaW50ZWdlcgo=",
+      "stderrBase64": ""
+    },
+    {
+      "query": "SELECT floor(9223372036854775807) AS maximum, floor(-9223372036854775808) AS minimum",
+      "command": "sql2csv --query 'SELECT floor(9223372036854775807) AS maximum, floor(-9223372036854775808) AS minimum'",
+      "status": 0,
+      "stdoutBase64": "bWF4aW11bSxtaW5pbXVtCjkyMjMzNzIwMzY4NTQ3NzU4MDcsLTkyMjMzNzIwMzY4NTQ3NzU4MDgK",
+      "stderrBase64": ""
+    },
+    {
+      "query": "SELECT floor(9007199254740992.0) AS exact, typeof(floor(9007199254740992.0)) AS type",
+      "command": "sql2csv --query 'SELECT floor(9007199254740992.0) AS exact, typeof(floor(9007199254740992.0)) AS type'",
+      "status": 0,
+      "stdoutBase64": "ZXhhY3QsdHlwZQo5MDA3MTk5MjU0NzQwOTkyLGludGVnZXIK",
+      "stderrBase64": ""
+    },
+    {
+      "query": "SELECT floor(NULL)",
+      "command": "sql2csv --query 'SELECT floor(NULL)'",
+      "status": 1,
+      "stdoutBase64": "",
+      "stderrBase64": "T3BlcmF0aW9uYWxFcnJvcjogKHNxbGl0ZTMuT3BlcmF0aW9uYWxFcnJvcikgdXNlci1kZWZpbmVkIGZ1bmN0aW9uIHJhaXNlZCBleGNlcHRpb24KW1NRTDogU0VMRUNUIGZsb29yKE5VTEwpXQooQmFja2dyb3VuZCBvbiB0aGlzIGVycm9yIGF0OiBodHRwczovL3NxbGFsY2hlLm1lL2UvMjAvZTNxOCkK"
+    },
+    {
+      "query": "SELECT floor('2.5')",
+      "command": "sql2csv --query 'SELECT floor('\\''2.5'\\'')'",
+      "status": 1,
+      "stdoutBase64": "",
+      "stderrBase64": "T3BlcmF0aW9uYWxFcnJvcjogKHNxbGl0ZTMuT3BlcmF0aW9uYWxFcnJvcikgdXNlci1kZWZpbmVkIGZ1bmN0aW9uIHJhaXNlZCBleGNlcHRpb24KW1NRTDogU0VMRUNUIGZsb29yKCcyLjUnKV0KKEJhY2tncm91bmQgb24gdGhpcyBlcnJvciBhdDogaHR0cHM6Ly9zcWxhbGNoZS5tZS9lLzIwL2UzcTgpCg=="
+    },
+    {
+      "query": "SELECT floor(x'32')",
+      "command": "sql2csv --query 'SELECT floor(x'\\''32'\\'')'",
+      "status": 1,
+      "stdoutBase64": "",
+      "stderrBase64": "T3BlcmF0aW9uYWxFcnJvcjogKHNxbGl0ZTMuT3BlcmF0aW9uYWxFcnJvcikgdXNlci1kZWZpbmVkIGZ1bmN0aW9uIHJhaXNlZCBleGNlcHRpb24KW1NRTDogU0VMRUNUIGZsb29yKHgnMzInKV0KKEJhY2tncm91bmQgb24gdGhpcyBlcnJvciBhdDogaHR0cHM6Ly9zcWxhbGNoZS5tZS9lLzIwL2UzcTgpCg=="
+    },
+    {
+      "query": "SELECT floor(1e999)",
+      "command": "sql2csv --query 'SELECT floor(1e999)'",
+      "status": 1,
+      "stdoutBase64": "",
+      "stderrBase64": "RGF0YUVycm9yOiAoc3FsaXRlMy5EYXRhRXJyb3IpIHN0cmluZyBvciBibG9iIHRvbyBiaWcKW1NRTDogU0VMRUNUIGZsb29yKDFlOTk5KV0KKEJhY2tncm91bmQgb24gdGhpcyBlcnJvciBhdDogaHR0cHM6Ly9zcWxhbGNoZS5tZS9lLzIwLzloOWgpCg=="
+    },
+    {
+      "query": "SELECT floor(-1e999)",
+      "command": "sql2csv --query 'SELECT floor(-1e999)'",
+      "status": 1,
+      "stdoutBase64": "",
+      "stderrBase64": "RGF0YUVycm9yOiAoc3FsaXRlMy5EYXRhRXJyb3IpIHN0cmluZyBvciBibG9iIHRvbyBiaWcKW1NRTDogU0VMRUNUIGZsb29yKC0xZTk5OSldCihCYWNrZ3JvdW5kIG9uIHRoaXMgZXJyb3IgYXQ6IGh0dHBzOi8vc3FsYWxjaGUubWUvZS8yMC85aDloKQo="
+    },
+    {
+      "query": "SELECT floor(9223372036854775808.0)",
+      "command": "sql2csv --query 'SELECT floor(9223372036854775808.0)'",
+      "status": 1,
+      "stdoutBase64": "",
+      "stderrBase64": "RGF0YUVycm9yOiAoc3FsaXRlMy5EYXRhRXJyb3IpIHN0cmluZyBvciBibG9iIHRvbyBiaWcKW1NRTDogU0VMRUNUIGZsb29yKDkyMjMzNzIwMzY4NTQ3NzU4MDguMCldCihCYWNrZ3JvdW5kIG9uIHRoaXMgZXJyb3IgYXQ6IGh0dHBzOi8vc3FsYWxjaGUubWUvZS8yMC85aDloKQo="
+    },
+    {
+      "query": "SELECT floor(-9223372036854777856.0)",
+      "command": "sql2csv --query 'SELECT floor(-9223372036854777856.0)'",
+      "status": 1,
+      "stdoutBase64": "",
+      "stderrBase64": "RGF0YUVycm9yOiAoc3FsaXRlMy5EYXRhRXJyb3IpIHN0cmluZyBvciBibG9iIHRvbyBiaWcKW1NRTDogU0VMRUNUIGZsb29yKC05MjIzMzcyMDM2ODU0Nzc3ODU2LjApXQooQmFja2dyb3VuZCBvbiB0aGlzIGVycm9yIGF0OiBodHRwczovL3NxbGFsY2hlLm1lL2UvMjAvOWg5aCkK"
+    },
+    {
+      "query": "SELECT floor()",
+      "command": "sql2csv --query 'SELECT floor()'",
+      "status": 1,
+      "stdoutBase64": "",
+      "stderrBase64": "T3BlcmF0aW9uYWxFcnJvcjogKHNxbGl0ZTMuT3BlcmF0aW9uYWxFcnJvcikgd3JvbmcgbnVtYmVyIG9mIGFyZ3VtZW50cyB0byBmdW5jdGlvbiBmbG9vcigpCltTUUw6IFNFTEVDVCBmbG9vcigpXQooQmFja2dyb3VuZCBvbiB0aGlzIGVycm9yIGF0OiBodHRwczovL3NxbGFsY2hlLm1lL2UvMjAvZTNxOCkK"
+    },
+    {
+      "query": "SELECT floor(1,2)",
+      "command": "sql2csv --query 'SELECT floor(1,2)'",
+      "status": 1,
+      "stdoutBase64": "",
+      "stderrBase64": "T3BlcmF0aW9uYWxFcnJvcjogKHNxbGl0ZTMuT3BlcmF0aW9uYWxFcnJvcikgd3JvbmcgbnVtYmVyIG9mIGFyZ3VtZW50cyB0byBmdW5jdGlvbiBmbG9vcigpCltTUUw6IFNFTEVDVCBmbG9vcigxLDIpXQooQmFja2dyb3VuZCBvbiB0aGlzIGVycm9yIGF0OiBodHRwczovL3NxbGFsY2hlLm1lL2UvMjAvZTNxOCkK"
+    }
+  ],
+  "effects": {
+    "rows": [
+      [
+        1,
+        -2,
+        "integer"
+      ]
+    ],
+    "databaseSha256": "7a56de889b497a7d67b44733752c1c902ec6bb933f9677f66a3243763a150c20",
+    "nativeDatabaseSha256": "7a56de889b497a7d67b44733752c1c902ec6bb933f9677f66a3243763a150c20",
+    "independentSqliteObserver": "ok\n1\n",
+    "productNamespace": [
+      "/db/.keep",
+      "/db/effects.db"
+    ]
+  },
+  "sourceHashes": [
+    {
+      "path": "packages/csvkit/src/sqlite.ts",
+      "sha256": "03ed277638d446e2a44d85fe24cffa9d0e4289044c650d6dcebcaeca4d190905"
+    },
+    {
+      "path": "packages/csvkit/src/sqlite.test.ts",
+      "sha256": "69bcd8a2d7a1c3080330846ac1585721978a821c5042989440c6e1bd70176693"
+    },
+    {
+      "path": "packages/csvkit/src/sqlite-floor-user-edge.test.ts",
+      "sha256": "40a18a1fdafd75b2a8e94c0b6188f905631d236ae59b72d05657c27bd7e3e656"
+    }
+  ]
+}

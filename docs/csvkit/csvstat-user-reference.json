@@ -1,0 +1,213 @@
+{
+  "profile": "CPython 3.14.2 / csvkit 2.2.0 / Agate 1.14.2 / C / UTC / UTF-8 / 80x24",
+  "pythonSha256": "3d6400b63b150164e89a690d9813af8b0eb420af9f336ef1f6c5102c6da60eae",
+  "utilitySha256": "049d7423f21e8b1097418d4855111e8d99871c7d387a2129c99ae79c95e1ccc5",
+  "lockSha256": "7ecb88fddc47bb86867cf738670b24ed88f11f671feef127246b0d422a71d7a8",
+  "cases": [
+    {
+      "stdin": "x\n1e-100\n2e-100\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": 1e-100, \"max\": 2e-100, \"sum\": 3e-100, \"mean\": 1.5e-100, \"median\": 1.5e-100, \"stdev\": 7.071067811865475e-101, \"maxprecision\": 27, \"freq\": [{\"value\": 1e-100, \"count\": 1}, {\"value\": 2e-100, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e100\n2e100\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": 1e+100, \"max\": 2e+100, \"sum\": 3e+100, \"mean\": 1.5e+100, \"median\": 1.5e+100, \"stdev\": 7.071067811865475e+99, \"maxprecision\": -73, \"freq\": [{\"value\": 1e+100, \"count\": 1}, {\"value\": 2e+100, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e-30\n-1e-30\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": -1e-30, \"max\": 1e-30, \"sum\": 0.0, \"mean\": 0.0, \"median\": 0.0, \"stdev\": 1.414213562373095e-30, \"maxprecision\": 27, \"freq\": [{\"value\": 1e-30, \"count\": 1}, {\"value\": -1e-30, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.00\n0.0\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 1, \"min\": -0.0, \"max\": -0.0, \"sum\": 0.0, \"mean\": 0.0, \"median\": 0.0, \"stdev\": 0.0, \"maxprecision\": 0, \"freq\": [{\"value\": -0.0, \"count\": 2}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\nNaN\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"sum\": NaN, \"mean\": NaN, \"stdev\": NaN, \"maxprecision\": 0, \"freq\": [{\"value\": NaN, \"count\": 1}, {\"value\": NaN, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nInfinity\nInfinity\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 1, \"min\": Infinity, \"max\": Infinity, \"sum\": Infinity, \"mean\": Infinity, \"median\": Infinity, \"maxprecision\": 0, \"freq\": [{\"value\": Infinity, \"count\": 2}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-Infinity\nInfinity\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": -Infinity, \"max\": Infinity, \"maxprecision\": 0, \"freq\": [{\"value\": -Infinity, \"count\": 1}, {\"value\": Infinity, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN123\n-NaN456\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"sum\": NaN, \"mean\": NaN, \"stdev\": NaN, \"maxprecision\": 0, \"freq\": [{\"value\": NaN, \"count\": 1}, {\"value\": NaN, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1.2345678901234567890123456789\n2.3456789012345678901234567891\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": 1.2345678901234567, \"max\": 2.345678901234568, \"sum\": 3.5802467913580247, \"mean\": 1.7901233956790124, \"median\": 1.7901233956790124, \"stdev\": 0.785674130607708, \"maxprecision\": 27, \"freq\": [{\"value\": 1.2345678901234567, \"count\": 1}, {\"value\": 2.345678901234568, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n9999999999999999999999999999\n10000000000000000000000000001\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": 1e+28, \"max\": 1e+28, \"sum\": 2e+28, \"mean\": 1e+28, \"median\": 1e+28, \"stdev\": 1.0, \"maxprecision\": -1, \"freq\": [{\"value\": 1e+28, \"count\": 1}, {\"value\": 1e+28, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n0.0000000000000000000000000001\n0.0000000000000000000000000002\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": 1e-28, \"max\": 2e-28, \"sum\": 3e-28, \"mean\": 1.5e-28, \"median\": 1.5e-28, \"stdev\": 7.071067811865475e-29, \"maxprecision\": 27, \"freq\": [{\"value\": 1e-28, \"count\": 1}, {\"value\": 2e-28, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-9999999999999999999999999999\n9999999999999999999999999999\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": -1e+28, \"max\": 1e+28, \"sum\": 0.0, \"mean\": 0.0, \"median\": 0.0, \"stdev\": 1.4142135623730951e+28, \"maxprecision\": 0, \"freq\": [{\"value\": -1e+28, \"count\": 1}, {\"value\": 1e+28, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e10000\n2e10000\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": Infinity, \"max\": Infinity, \"sum\": Infinity, \"mean\": Infinity, \"median\": Infinity, \"stdev\": Infinity, \"maxprecision\": 0, \"freq\": [{\"value\": Infinity, \"count\": 1}, {\"value\": Infinity, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n0.1\n0.2\n0.3\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 3, \"unique\": 3, \"min\": 0.1, \"max\": 0.3, \"sum\": 0.6, \"mean\": 0.2, \"median\": 0.2, \"stdev\": 0.1, \"maxprecision\": 1, \"freq\": [{\"value\": 0.1, \"count\": 1}, {\"value\": 0.2, \"count\": 1}, {\"value\": 0.3, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-2.5\n2.5\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": -2.5, \"max\": 2.5, \"sum\": 0.0, \"mean\": 0.0, \"median\": 0.0, \"stdev\": 3.5355339059327378, \"maxprecision\": 1, \"freq\": [{\"value\": -2.5, \"count\": 1}, {\"value\": 2.5, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\ntrue\nfalse\n\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Boolean\", \"nulls\": true, \"nonnulls\": 2, \"unique\": 3, \"freq\": [{\"value\": true, \"count\": 1}, {\"value\": false, \"count\": 1}, {\"value\": null, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n😀\né\né\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Text\", \"nulls\": false, \"nonnulls\": 3, \"unique\": 3, \"len\": 2.0, \"freq\": [{\"value\": \"😀\", \"count\": 1}, {\"value\": \"é\", \"count\": 1}, {\"value\": \"é\", \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2020-01-01T00:00:00Z\n2019-12-31T23:00:00-01:00\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"DateTime\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 1, \"min\": \"2020-01-01T00:00:00+00:00\", \"max\": \"2020-01-01T00:00:00+00:00\", \"freq\": [{\"value\": \"2020-01-01T00:00:00+00:00\", \"count\": 2}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n0:00:00.000001\n0:00:00.000002\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"TimeDelta\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": 1e-06, \"max\": 2e-06, \"sum\": 3e-06, \"mean\": 2e-06, \"freq\": [{\"value\": 1e-06, \"count\": 1}, {\"value\": 2e-06, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    }
+  ],
+  "blockers": [
+    {
+      "stdin": "x\n1e-10000\n2e-10000\n",
+      "expected": {
+        "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": 0.0, \"max\": 0.0, \"sum\": 0.0, \"mean\": 0.0, \"median\": 0.0, \"stdev\": 0.0, \"maxprecision\": 27, \"freq\": [{\"value\": 0.0, \"count\": 1}, {\"value\": 0.0, \"count\": 1}]}]",
+        "stderr": "",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "csvkit: unsupported or unqualified: Decimal arithmetic exponent budget exceeded\n",
+        "status": 78
+      }
+    }
+  ]
+}

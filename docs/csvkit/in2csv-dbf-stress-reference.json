@@ -1,0 +1,93 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "dependencyLock": "docs/csvkit/requirements-cpython-3.14.2.txt",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "scalarCases": [
+    {
+      "type": "D",
+      "values": [
+        "MDAwMTAxMDE=",
+        "MDA5OTEyMzE=",
+        "MDEwMDAxMDE="
+      ],
+      "stdout": "v\n0001-01-01\n0099-12-31\n0100-01-01\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "type": "Y",
+      "values": [
+        "AAAAAAAAAAA=",
+        "ECcAAAAAAAA=",
+        "8Nj///////8="
+      ],
+      "stdout": "v\n0\n1\n-1\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "type": "Y",
+      "values": [
+        "ECcAAAAAAAA="
+      ],
+      "stdout": "v\nTrue\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "type": "I",
+      "values": [
+        "AQAAAA=="
+      ],
+      "stdout": "v\nTrue\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "type": "F",
+      "values": [
+        "ICAgICAxLjA="
+      ],
+      "stdout": "v\n1.0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "type": "L",
+      "values": [
+        "VA==",
+        "Pw==",
+        "Rg=="
+      ],
+      "stdout": "v\nTrue\n\"\"\nFalse\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "type": "T",
+      "values": [
+        "UkQaAAEAAAA=",
+        "vUUaAAAAAAA="
+      ],
+      "stdout": "v\n0001-01-01T00:00:00.001000\n0001-12-30T00:00:00\n",
+      "stderr": "",
+      "status": 0
+    }
+  ],
+  "memoBoundary": {
+    "dbf": "MH4JEgEAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAE0AAAAABAAAAAAAAAAAAAAAAAAAAA0g/////xo=",
+    "fpt": "AAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+    "argv": [
+      "-f",
+      "dbf",
+      "input.dbf"
+    ],
+    "stdout": "",
+    "stderr": "error: unpack requires a buffer of 8 bytes\n",
+    "status": 1,
+    "effects": {
+      "unchangedFiles": true,
+      "createdFiles": []
+    }
+  }
+}

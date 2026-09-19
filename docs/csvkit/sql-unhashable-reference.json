@@ -1,0 +1,923 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "versions": {
+    "csvkit": "2.2.0",
+    "agate": "1.14.2",
+    "SQLAlchemy": "2.0.54",
+    "Babel": "2.18.0"
+  },
+  "locale": "C",
+  "timezone": "UTC",
+  "source": "csvkit.cli.parse_list invoking ast.literal_eval; original independently authored small inputs",
+  "cases": [
+    {
+      "raw": "{[]: 1}",
+      "kind": "TypeError",
+      "value": "cannot use 'list' as a dict key (unhashable type: 'list')"
+    },
+    {
+      "raw": "{[1]}",
+      "kind": "TypeError",
+      "value": "cannot use 'list' as a set element (unhashable type: 'list')"
+    },
+    {
+      "raw": "{{}: 1}",
+      "kind": "TypeError",
+      "value": "cannot use 'dict' as a dict key (unhashable type: 'dict')"
+    },
+    {
+      "raw": "{{}}",
+      "kind": "TypeError",
+      "value": "cannot use 'dict' as a set element (unhashable type: 'dict')"
+    },
+    {
+      "raw": "{{1}: 1}",
+      "kind": "TypeError",
+      "value": "cannot use 'set' as a dict key (unhashable type: 'set')"
+    },
+    {
+      "raw": "{{1}}",
+      "kind": "TypeError",
+      "value": "cannot use 'set' as a set element (unhashable type: 'set')"
+    },
+    {
+      "raw": "{([],): 1}",
+      "kind": "TypeError",
+      "value": "cannot use 'tuple' as a dict key (unhashable type: 'list')"
+    },
+    {
+      "raw": "{([],)}",
+      "kind": "TypeError",
+      "value": "cannot use 'tuple' as a set element (unhashable type: 'list')"
+    },
+    {
+      "raw": "{(({},),): 1}",
+      "kind": "TypeError",
+      "value": "cannot use 'tuple' as a dict key (unhashable type: 'dict')"
+    },
+    {
+      "raw": "{(({},),)}",
+      "kind": "TypeError",
+      "value": "cannot use 'tuple' as a set element (unhashable type: 'dict')"
+    },
+    {
+      "raw": "{(set(),): 1}",
+      "kind": "TypeError",
+      "value": "cannot use 'tuple' as a dict key (unhashable type: 'set')"
+    },
+    {
+      "raw": "{(set(),)}",
+      "kind": "TypeError",
+      "value": "cannot use 'tuple' as a set element (unhashable type: 'set')"
+    },
+    {
+      "raw": "{([{}],): 1}",
+      "kind": "TypeError",
+      "value": "cannot use 'tuple' as a dict key (unhashable type: 'list')"
+    },
+    {
+      "raw": "{([{}],)}",
+      "kind": "TypeError",
+      "value": "cannot use 'tuple' as a set element (unhashable type: 'list')"
+    },
+    {
+      "raw": "{([]): 1}",
+      "kind": "TypeError",
+      "value": "cannot use 'list' as a dict key (unhashable type: 'list')"
+    },
+    {
+      "raw": "{(1, []): 2}",
+      "kind": "TypeError",
+      "value": "cannot use 'tuple' as a dict key (unhashable type: 'list')"
+    },
+    {
+      "raw": "{[missing]: 1}",
+      "kind": "raw",
+      "value": "{[missing]: 1}"
+    },
+    {
+      "raw": "{[missing]}",
+      "kind": "raw",
+      "value": "{[missing]}"
+    },
+    {
+      "raw": "{[]: missing}",
+      "kind": "raw",
+      "value": "{[]: missing}"
+    },
+    {
+      "raw": "{1: missing, []: 2}",
+      "kind": "raw",
+      "value": "{1: missing, []: 2}"
+    },
+    {
+      "raw": "{[]: 1, 2: missing}",
+      "kind": "TypeError",
+      "value": "cannot use 'list' as a dict key (unhashable type: 'list')"
+    },
+    {
+      "raw": "[{[]: 1}, missing]",
+      "kind": "TypeError",
+      "value": "cannot use 'list' as a dict key (unhashable type: 'list')"
+    },
+    {
+      "raw": "[missing, {[]: 1}]",
+      "kind": "raw",
+      "value": "[missing, {[]: 1}]"
+    },
+    {
+      "raw": "{missing, []}",
+      "kind": "raw",
+      "value": "{missing, []}"
+    },
+    {
+      "raw": "{[], missing}",
+      "kind": "TypeError",
+      "value": "cannot use 'list' as a set element (unhashable type: 'list')"
+    },
+    {
+      "raw": "{missing: {[]: 1}}",
+      "kind": "raw",
+      "value": "{missing: {[]: 1}}"
+    },
+    {
+      "raw": "{[]: {{}: 1}}",
+      "kind": "TypeError",
+      "value": "cannot use 'dict' as a dict key (unhashable type: 'dict')"
+    },
+    {
+      "raw": "{([]): 1",
+      "kind": "SyntaxError",
+      "value": "'{' was never closed (<unknown>, line 1)"
+    },
+    {
+      "raw": "{[]: 1} + 2",
+      "kind": "raw",
+      "value": "{[]: 1} + 2"
+    },
+    {
+      "raw": "call({[]: 1})",
+      "kind": "raw",
+      "value": "call({[]: 1})"
+    },
+    {
+      "raw": "{[]: 1} if True else {}",
+      "kind": "raw",
+      "value": "{[]: 1} if True else {}"
+    },
+    {
+      "raw": "{[]: 1}\n+",
+      "kind": "SyntaxError",
+      "value": "invalid syntax (<unknown>, line 2)"
+    },
+    {
+      "raw": "{[]: 1, 1 +: 2}",
+      "kind": "SyntaxError",
+      "value": "':' expected after dictionary key (<unknown>, line 1)"
+    },
+    {
+      "raw": "{[]: 1, [}",
+      "kind": "SyntaxError",
+      "value": "closing parenthesis '}' does not match opening parenthesis '[' (<unknown>, line 1)"
+    },
+    {
+      "raw": "{\n []: 1,\n}",
+      "kind": "TypeError",
+      "value": "cannot use 'list' as a dict key (unhashable type: 'list')"
+    },
+    {
+      "raw": "{\r\n (set(),),\r\n}",
+      "kind": "TypeError",
+      "value": "cannot use 'tuple' as a set element (unhashable type: 'set')"
+    },
+    {
+      "raw": "[missing,\n {[]: 1}]",
+      "kind": "raw",
+      "value": "[missing,\n {[]: 1}]"
+    },
+    {
+      "raw": "[{[]: 1},\n missing]",
+      "kind": "TypeError",
+      "value": "cannot use 'list' as a dict key (unhashable type: 'list')"
+    }
+  ],
+  "cliEnvironment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "COLUMNS": "80",
+    "LINES": "24"
+  },
+  "cliCases": [
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{[]: 1}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'list' as a dict key (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{[]: 1}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'list' as a dict key (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{[1]}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'list' as a set element (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{[1]}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'list' as a set element (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{{}: 1}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'dict' as a dict key (unhashable type: 'dict')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{{}: 1}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'dict' as a dict key (unhashable type: 'dict')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{{}}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'dict' as a set element (unhashable type: 'dict')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{{}}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'dict' as a set element (unhashable type: 'dict')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{{1}: 1}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'set' as a dict key (unhashable type: 'set')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{{1}: 1}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'set' as a dict key (unhashable type: 'set')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{{1}}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'set' as a set element (unhashable type: 'set')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{{1}}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'set' as a set element (unhashable type: 'set')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{([],): 1}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a dict key (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{([],): 1}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a dict key (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{([],)}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a set element (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{([],)}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a set element (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{(({},),): 1}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a dict key (unhashable type: 'dict')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{(({},),): 1}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a dict key (unhashable type: 'dict')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{(({},),)}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a set element (unhashable type: 'dict')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{(({},),)}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a set element (unhashable type: 'dict')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{(set(),): 1}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a dict key (unhashable type: 'set')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{(set(),): 1}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a dict key (unhashable type: 'set')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{(set(),)}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a set element (unhashable type: 'set')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{(set(),)}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a set element (unhashable type: 'set')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{([{}],): 1}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a dict key (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{([{}],): 1}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a dict key (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{([{}],)}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a set element (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{([{}],)}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a set element (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{([]): 1}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'list' as a dict key (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{([]): 1}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'list' as a dict key (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{(1, []): 2}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a dict key (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{(1, []): 2}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a dict key (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{[]: 1, 2: missing}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'list' as a dict key (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{[]: 1, 2: missing}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'list' as a dict key (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "[{[]: 1}, missing]"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'list' as a dict key (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "[{[]: 1}, missing]"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'list' as a dict key (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{[], missing}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'list' as a set element (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{[], missing}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'list' as a set element (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{[]: {{}: 1}}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'dict' as a dict key (unhashable type: 'dict')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{[]: {{}: 1}}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'dict' as a dict key (unhashable type: 'dict')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--query",
+        "select 1",
+        "--execution-option",
+        "option",
+        "{([],)}"
+      ],
+      "stdin": "",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a set element (unhashable type: 'list')\n",
+      "driverEffects": "engine.connect precedes execution-option conversion; connection.close and engine.dispose execute in finally"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{\n []: 1,\n}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'list' as a dict key (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{\n []: 1,\n}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'list' as a dict key (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{\r\n (set(),),\r\n}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a set element (unhashable type: 'set')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "{\r\n (set(),),\r\n}"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'tuple' as a set element (unhashable type: 'set')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "[{[]: 1},\n missing]"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'list' as a dict key (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--engine-option",
+        "connect_args",
+        "[{[]: 1},\n missing]"
+      ],
+      "stdin": "x\n1\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: cannot use 'list' as a dict key (unhashable type: 'list')\n",
+      "driverEffects": "engine option conversion precedes create_engine; no database acquisition"
+    }
+  ]
+}

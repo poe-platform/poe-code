@@ -1,0 +1,237 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "cases": [
+    {
+      "command": "csvjoin",
+      "argv": [
+        "-I",
+        "-y0",
+        "join-left.csv",
+        "join-right.csv"
+      ],
+      "stdin": "",
+      "files": {
+        "/join-left.csv": "k,v\na,A\nb,B\na,C\nnull,N\n",
+        "/join-right.csv": "k,w\na,X\na,Y\nc,Z\nnull,Q\n"
+      },
+      "status": 0,
+      "stdout": "k,v,k2,w\na,A,a,X\nb,B,a,Y\na,C,c,Z\n,N,,Q\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvjoin",
+      "argv": [
+        "-I",
+        "-y0",
+        "-c",
+        "k",
+        "join-left.csv",
+        "join-right.csv"
+      ],
+      "stdin": "",
+      "files": {
+        "/join-left.csv": "k,v\na,A\nb,B\na,C\nnull,N\n",
+        "/join-right.csv": "k,w\na,X\na,Y\nc,Z\nnull,Q\n"
+      },
+      "status": 0,
+      "stdout": "k,v,w\na,A,X\na,A,Y\na,C,X\na,C,Y\n,N,Q\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvjoin",
+      "argv": [
+        "-I",
+        "-y0",
+        "-c",
+        "k",
+        "--left",
+        "join-left.csv",
+        "join-right.csv"
+      ],
+      "stdin": "",
+      "files": {
+        "/join-left.csv": "k,v\na,A\nb,B\na,C\nnull,N\n",
+        "/join-right.csv": "k,w\na,X\na,Y\nc,Z\nnull,Q\n"
+      },
+      "status": 0,
+      "stdout": "k,v,w\na,A,X\na,A,Y\nb,B,\na,C,X\na,C,Y\n,N,Q\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvjoin",
+      "argv": [
+        "-I",
+        "-y0",
+        "-c",
+        "k",
+        "--right",
+        "join-left.csv",
+        "join-right.csv"
+      ],
+      "stdin": "",
+      "files": {
+        "/join-left.csv": "k,v\na,A\nb,B\na,C\nnull,N\n",
+        "/join-right.csv": "k,w\na,X\na,Y\nc,Z\nnull,Q\n"
+      },
+      "status": 0,
+      "stdout": "k,w,v\na,X,A\na,X,C\na,Y,A\na,Y,C\nc,Z,\n,Q,N\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvjoin",
+      "argv": [
+        "-I",
+        "-y0",
+        "-c",
+        "k",
+        "--outer",
+        "join-left.csv",
+        "join-right.csv"
+      ],
+      "stdin": "",
+      "files": {
+        "/join-left.csv": "k,v\na,A\nb,B\na,C\nnull,N\n",
+        "/join-right.csv": "k,w\na,X\na,Y\nc,Z\nnull,Q\n"
+      },
+      "status": 0,
+      "stdout": "k,v,k2,w\na,A,a,X\na,A,a,Y\nb,B,,\na,C,a,X\na,C,a,Y\n,N,,Q\n,,c,Z\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvjoin",
+      "argv": [
+        "-I",
+        "-y0",
+        "--left",
+        "join-left.csv",
+        "join-right.csv"
+      ],
+      "stdin": "",
+      "files": {
+        "/join-left.csv": "k,v\na,A\nb,B\na,C\nnull,N\n",
+        "/join-right.csv": "k,w\na,X\na,Y\nc,Z\nnull,Q\n"
+      },
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: csvjoin [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [-c COLUMNS] [--outer] [--left]\n               [--right] [-y SNIFF_LIMIT] [-I]\n               [FILE ...]\ncsvjoin: error: You must provide join column names when performing an outer join.\n"
+    },
+    {
+      "command": "csvjoin",
+      "argv": [
+        "-I",
+        "-y0",
+        "--left",
+        "--right",
+        "-c",
+        "k",
+        "join-left.csv",
+        "join-right.csv"
+      ],
+      "stdin": "",
+      "files": {
+        "/join-left.csv": "k,v\na,A\nb,B\na,C\nnull,N\n",
+        "/join-right.csv": "k,w\na,X\na,Y\nc,Z\nnull,Q\n"
+      },
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: csvjoin [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [-c COLUMNS] [--outer] [--left]\n               [--right] [-y SNIFF_LIMIT] [-I]\n               [FILE ...]\ncsvjoin: error: It is not valid to specify both a left and a right join.\n"
+    },
+    {
+      "command": "csvjoin",
+      "argv": [
+        "-I",
+        "-y0",
+        "-c",
+        "k,k,k",
+        "join-left.csv",
+        "join-right.csv"
+      ],
+      "stdin": "",
+      "files": {
+        "/join-left.csv": "k,v\na,A\nb,B\na,C\nnull,N\n",
+        "/join-right.csv": "k,w\na,X\na,Y\nc,Z\nnull,Q\n"
+      },
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: csvjoin [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [-c COLUMNS] [--outer] [--left]\n               [--right] [-y SNIFF_LIMIT] [-I]\n               [FILE ...]\ncsvjoin: error: The number of join column names must match the number of files, or be a single column name that exists in all files.\n"
+    },
+    {
+      "command": "csvjoin",
+      "argv": [
+        "-I",
+        "-y0",
+        "-c",
+        "0",
+        "join-left.csv",
+        "join-right.csv"
+      ],
+      "stdin": "",
+      "files": {
+        "/join-left.csv": "k,v\na,A\nb,B\na,C\nnull,N\n",
+        "/join-right.csv": "k,w\na,X\na,Y\nc,Z\nnull,Q\n"
+      },
+      "status": 1,
+      "stdout": "",
+      "stderr": "ColumnIdentifierError: Column 0 is invalid. Columns are 1-based.\n"
+    },
+    {
+      "command": "csvjoin",
+      "argv": [
+        "-I",
+        "-y0",
+        "-c",
+        "k",
+        "--zero",
+        "join-left.csv",
+        "join-right.csv"
+      ],
+      "stdin": "",
+      "files": {
+        "/join-left.csv": "k,v\na,A\nb,B\na,C\nnull,N\n",
+        "/join-right.csv": "k,w\na,X\na,Y\nc,Z\nnull,Q\n"
+      },
+      "status": 0,
+      "stdout": "k,v,w\na,A,X\na,A,Y\na,C,X\na,C,Y\n,N,Q\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvjoin",
+      "argv": [
+        "-I",
+        "-y0",
+        "-c",
+        "missing",
+        "join-left.csv",
+        "join-right.csv"
+      ],
+      "stdin": "",
+      "files": {
+        "/join-left.csv": "k,v\na,A\nb,B\na,C\nnull,N\n",
+        "/join-right.csv": "k,w\na,X\na,Y\nc,Z\nnull,Q\n"
+      },
+      "status": 1,
+      "stdout": "",
+      "stderr": "ColumnIdentifierError: Column 'missing' is invalid. It is neither an integer nor a column name. Column names are: 'k', 'v'\n"
+    },
+    {
+      "command": "csvjoin",
+      "argv": [
+        "-I",
+        "-y0",
+        "-c",
+        "3",
+        "join-left.csv",
+        "join-right.csv"
+      ],
+      "stdin": "",
+      "files": {
+        "/join-left.csv": "k,v\na,A\nb,B\na,C\nnull,N\n",
+        "/join-right.csv": "k,w\na,X\na,Y\nc,Z\nnull,Q\n"
+      },
+      "status": 1,
+      "stdout": "",
+      "stderr": "ColumnIdentifierError: Column 3 is invalid. The last column is 'v' at index 2.\n"
+    }
+  ]
+}

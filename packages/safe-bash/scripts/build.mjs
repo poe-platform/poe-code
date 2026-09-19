@@ -301,6 +301,14 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           }
           toolRoots.push(join(peerRoot, 'packages/safe-playwright/dist'));
         }
+        if (manifest.devDependencies?.["@poe-code/csvkit"] !== undefined) {
+          assert.equal(manifest.devDependencies["@poe-code/csvkit"], "*", "CSV SDK build dependency must be the local workspace");
+          const exported = peer.exports?.["./csvkit"];
+          assert.equal(exported?.types, "./packages/csvkit/dist/index.d.ts", "canonical public CSV declaration entry");
+          assert.equal(exported?.import, "./packages/csvkit/dist/index.js", "canonical public CSV runtime entry");
+          peerPaths["poe-code/csvkit"] = [resolve(peerRoot, exported.types)];
+          toolRoots.push(join(peerRoot, "packages/csvkit/dist"));
+        }
       }
       const portableDependencies = Object.keys(manifest.dependencies ?? {}).length
         ? manifest.dependencies

@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-17",
+  "scope": "Research/specification only; no JavaScript operation or upstream-suite passes",
+  "checks": {
+    "independentSourceAndPriorCensusReauthentication": true,
+    "all22SourceArchiveHashesMatch": true,
+    "both14Command415ActionInventories": true,
+    "eightFormatsThirteenMetricsCountAndInheritedDriverHooks": true,
+    "all14817IdentifiersUniqueWithNamedBlockers": true,
+    "all36NativeObservationByteTextPairsConsistent": true,
+    "all44NoticeTextsIncludingLicenceSpellingRetained": true,
+    "ownedJsonParseAndMarkdownLinksResolve": true,
+    "gitIndexRemainsEmpty": true,
+    "artifactHashesReverifiedBeforeOwnedScratchRemoval": true,
+    "ownedScratchDirectoryRemovedAfterReduction": true
+  },
+  "counts": {
+    "sourceFiles": 20,
+    "declarations": 159,
+    "testFamilies": [
+      {
+        "package": "csvkit",
+        "sourceRoot": "csvkit-2.2.0",
+        "testFunctionDeclarations": 317,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "SQLAlchemy",
+        "sourceRoot": "sqlalchemy-2.0.54",
+        "testFunctionDeclarations": 12298,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "agate",
+        "sourceRoot": "agate-1.14.2",
+        "testFunctionDeclarations": 475,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "agate-dbf",
+        "sourceRoot": "agate_dbf-0.2.4",
+        "testFunctionDeclarations": 1,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "agate-excel",
+        "sourceRoot": "agate_excel-0.4.2",
+        "testFunctionDeclarations": 29,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "agate-sql",
+        "sourceRoot": "agate_sql-0.7.3",
+        "testFunctionDeclarations": 18,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "babel",
+        "sourceRoot": "babel-2.18.0",
+        "testFunctionDeclarations": 592,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "dbfread",
+        "sourceRoot": "dbfread-2.0.7",
+        "testFunctionDeclarations": 18,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "et_xmlfile",
+        "sourceRoot": "et_xmlfile-2.0.0",
+        "testFunctionDeclarations": 0,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "importlib_metadata",
+        "sourceRoot": "importlib_metadata-8.7.1",
+        "testFunctionDeclarations": 88,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "isodate",
+        "sourceRoot": "isodate-0.7.2",
+        "testFunctionDeclarations": 28,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "leather",
+        "sourceRoot": "leather-0.4.1",
+        "testFunctionDeclarations": 71,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "olefile",
+        "sourceRoot": "olefile-0.47",
+        "testFunctionDeclarations": 26,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "openpyxl",
+        "sourceRoot": "openpyxl-3.1.5",
+        "testFunctionDeclarations": 0,
+        "testSuiteUnavailableBlocker": "READER-TEST-ARCHIVE"
+      },
+      {
+        "package": "parsedatetime",
+        "sourceRoot": "parsedatetime-2.6",
+        "testFunctionDeclarations": 80,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "python-slugify",
+        "sourceRoot": "python-slugify-8.0.4",
+        "testFunctionDeclarations": 0,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "python-slugify",
+        "sourceRoot": "python_slugify-9.0.0",
+        "testFunctionDeclarations": 104,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "pytimeparse",
+        "sourceRoot": "pytimeparse-1.1.8",
+        "testFunctionDeclarations": 49,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "text-unidecode",
+        "sourceRoot": "text-unidecode-1.3",
+        "testFunctionDeclarations": 3,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "typing_extensions",
+        "sourceRoot": "typing_extensions-4.16.0",
+        "testFunctionDeclarations": 559,
+        "testSuiteUnavailableBlocker": null
+      },
+      {
+        "package": "xlrd",
+        "sourceRoot": "xlrd-2.0.2",
+        "testFunctionDeclarations": 0,
+        "testSuiteUnavailableBlocker": "READER-TEST-ARCHIVE"
+      },
+      {
+        "package": "zipp",
+        "sourceRoot": "zipp-3.23.1",
+        "testFunctionDeclarations": 61,
+        "testSuiteUnavailableBlocker": null
+      }
+    ],
+    "testDeclarations": 14817,
+    "testFiles": 394,
+    "priorReauthenticated": 13877,
+    "notices": 44,
+    "documents": 30
+  },
+  "installedSourceChecks": [
+    {
+      "profile": "3.14.2",
+      "interpreterSha256": "3d6400b63b150164e89a690d9813af8b0eb420af9f336ef1f6c5102c6da60eae",
+      "csvkitPythonFilesMatchedPinnedSource": 23
+    },
+    {
+      "profile": "3.9.6",
+      "interpreterSha256": "5c5950c62eee5fd227a67e4bdfcde81c9add59799bba0949635f3d5ba9661c26",
+      "csvkitPythonFilesMatchedPinnedSource": 23
+    }
+  ],
+  "sqlAdapterConnectorRecords": 23,
+  "staticTestAssignments": 52,
+  "artifacts": [
+    {
+      "path": "docs/csvkit/documentation-audit-20260917.json",
+      "bytes": 58075,
+      "sha256": "e0e8fea2a1d00fb176aad025fbe79b9d0b1811e1c58e62bdd47129c887a25ac5"
+    },
+    {
+      "path": "docs/csvkit/feature-audit-20260917.md",
+      "bytes": 30823,
+      "sha256": "66ccd9690cdf77ceda6e1f277640ac2f1a33eefa460a177729c6018fc35da78b"
+    },
+    {
+      "path": "docs/csvkit/material-notices-20260917.json",
+      "bytes": 142805,
+      "sha256": "a23603bb58e4bf2cee7a5e556b6aa01432d0fcdc1f9556eb714577ecc2c117cc"
+    },
+    {
+      "path": "docs/csvkit/operation-observations-20260917.json",
+      "bytes": 22949,
+      "sha256": "0d37a92333c7d17bbee6f18bcd2c424eeb02c6e370f5660a1441298713e09f21"
+    },
+    {
+      "path": "docs/csvkit/parser-contract-audit-20260917.json",
+      "bytes": 490577,
+      "sha256": "bb5a137e764399515600b3aa7bdeabfeb0ad313dfa79dc21a2c2584b8012f139"
+    },
+    {
+      "path": "docs/csvkit/service-register-20260917.json",
+      "bytes": 264840,
+      "sha256": "698f7e0b1a5a49cfc2c04ca2a7b0036e81f13c2729b7eafd8689d6d5a0371c38"
+    },
+    {
+      "path": "docs/csvkit/source-flow-audit-20260917.json",
+      "bytes": 611278,
+      "sha256": "c5be75db1bd779fac50f278980c7e0cd6f73c290b4097e1483c649d6734d7aa3"
+    },
+    {
+      "path": "docs/csvkit/test-dispositions-20260917.json",
+      "bytes": 5116307,
+      "sha256": "e44163827fcd863de31bca3a9cbc9d238ed58f3199fdf68f4ed78b158f809085"
+    },
+    {
+      "path": "docs/plans/csvkit-feature-audit-qa.md",
+      "bytes": 3648,
+      "sha256": "436cf9c019283553e49318c046a43d79845f5917cd543f7857dac6eded316975"
+    },
+    {
+      "path": "docs/specs/csvkit-source-contract.md",
+      "bytes": 2213,
+      "sha256": "66bd4a3367b17a63ead18062745a684d3c4a958e7f76e141cb74a7d9d7db5dc0"
+    }
+  ],
+  "unknowns": [
+    "Upstream runner collection/inheritance/parametrization/factories unexpanded; source declarations include nested helpers",
+    "Pinned openpyxl/xlrd source archives omit tests; other zero-declaration families are unqualified",
+    "No optional plugins/drivers/IPython/zstandard or live-service/interactive QA",
+    "No product implementation, registration, tests, build or screenshots performed",
+    "No before/after untracked-product byte snapshot; no product/preexisting-document edit performed by this pass"
+  ],
+  "scratchReduction": "All retained source excerpts, notices, observations and dispositions reduced before removal of exclusively owned out/csvkit-feature-audit-20260917; extractor scripts are disposable research tools",
+  "delivery": {
+    "commit": false,
+    "push": false,
+    "publish": false
+  }
+}

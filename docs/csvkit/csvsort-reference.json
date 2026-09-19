@@ -1,0 +1,236 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "csvsortSourceSha256": "4c5174f45f2b292992aa4853c7af8c8c6b023582fc81db0599005fb9140a1598",
+  "unicodeVersion": "16.0.0",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "COLUMNS": "80",
+    "LINES": "24"
+  },
+  "warningUtilsPath": "/Users/kjopek/Workspace/poe-code-5/out/csvsort-reference/lib/python3.14/site-packages/agate/utils.py",
+  "cases": [
+    {
+      "argv": [
+        "-y0",
+        "-I",
+        "-i",
+        "-c",
+        "k"
+      ],
+      "stdin": "k,id\nß,first\nss,second\nſ,last\ns,before\nﬃ,ligature\nFFI,plain\n",
+      "stdout": "k,id\nﬃ,ligature\nFFI,plain\nſ,last\ns,before\nß,first\nss,second\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "-c",
+        "k,k"
+      ],
+      "stdin": "k,id\n2,a\nnull,b\n2,c\n10,d\nnull,e\n",
+      "stdout": "k,id\n2,a\n2,c\n10,d\n,b\n,e\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0"
+      ],
+      "stdin": "n\nInfinity\n-1.5\n-10\n0\n-0\n2\n-Infinity\n",
+      "stdout": "n\n-Infinity\n-10\n-1.5\n0\n-0\n2\nInfinity\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "--date-format",
+        "%Y-%m-%d"
+      ],
+      "stdin": "d\n2024-02-29\n2023-12-31\n",
+      "stdout": "d\n2023-12-31\n2024-02-29\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0"
+      ],
+      "stdin": "d\n2 hours\n30 minutes\n1 hour\n",
+      "stdout": "d\n0:30:00\n1:00:00\n2:00:00\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "-I",
+        "-i",
+        "-c",
+        "k",
+        "-r"
+      ],
+      "stdin": "k,id\nß,first\nss,second\nſ,last\ns,before\nﬃ,ligature\nFFI,plain\n",
+      "stdout": "k,id\nß,first\nss,second\nſ,last\ns,before\nﬃ,ligature\nFFI,plain\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "-c",
+        "k,k",
+        "-r"
+      ],
+      "stdin": "k,id\n2,a\nnull,b\n2,c\n10,d\nnull,e\n",
+      "stdout": "k,id\n,b\n,e\n10,d\n2,a\n2,c\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "-r"
+      ],
+      "stdin": "n\nInfinity\n-1.5\n-10\n0\n-0\n2\n-Infinity\n",
+      "stdout": "n\nInfinity\n2\n0\n-0\n-1.5\n-10\n-Infinity\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "--date-format",
+        "%Y-%m-%d",
+        "-r"
+      ],
+      "stdin": "d\n2024-02-29\n2023-12-31\n",
+      "stdout": "d\n2024-02-29\n2023-12-31\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "-r"
+      ],
+      "stdin": "d\n2 hours\n30 minutes\n1 hour\n",
+      "stdout": "d\n2:00:00\n1:00:00\n0:30:00\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0"
+      ],
+      "stdin": "x\nNaN\n2\n",
+      "stdout": "",
+      "stderr": "InvalidOperation: [<class 'decimal.InvalidOperation'>]\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-y0"
+      ],
+      "stdin": "x\nNaN\nNaN\n",
+      "stdout": "",
+      "stderr": "InvalidOperation: [<class 'decimal.InvalidOperation'>]\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-y0"
+      ],
+      "stdin": "x\nNaN\n",
+      "stdout": "x\nNaN\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0"
+      ],
+      "stdin": "k,x\na,NaN\nb,2\n",
+      "stdout": "k,x\na,NaN\nb,2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0"
+      ],
+      "stdin": "x\nsNaN\n2\n",
+      "stdout": "x\n2\nsNaN\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-n",
+        "--zero",
+        "-L",
+        "unsupported"
+      ],
+      "stdin": "a,a,\nbad,extra,body,cell\n",
+      "stdout": "  0: a\n  1: a\n  2: \n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdin": "n\n100\n2\n20\n",
+      "stdout": "n\n100\n2\n20\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "--no-leading-zeroes"
+      ],
+      "stdin": "n\n02\n2\n10\n",
+      "stdout": "n\n02\n10\n2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0"
+      ],
+      "stdin": "b\nYES\nfalse\nTrue\nno\n",
+      "stdout": "b\nFalse\nFalse\nTrue\nTrue\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "-I",
+        "-i"
+      ],
+      "stdin": "k\n꟏\n꟎\n",
+      "stdout": "k\n꟎\n꟏\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdin": "a,a,a_2,\nx,y,z,q\n",
+      "stdout": "a,a_2,a_2_2,d\nx,y,z,q\n",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/csvsort-reference/lib/python3.14/site-packages/agate/utils.py:288: DuplicateColumnWarning: Column name \"a\" already exists in Table. Column will be renamed to \"a_2\".\n  warn_duplicate_column(new_value, final_value)\n/Users/kjopek/Workspace/poe-code-5/out/csvsort-reference/lib/python3.14/site-packages/agate/utils.py:288: DuplicateColumnWarning: Column name \"a_2\" already exists in Table. Column will be renamed to \"a_2_2\".\n  warn_duplicate_column(new_value, final_value)\n/Users/kjopek/Workspace/poe-code-5/out/csvsort-reference/lib/python3.14/site-packages/agate/utils.py:272: UnnamedColumnWarning: Column 3 has no name. Using \"d\".\n  warn_unnamed_column(i, new_value)\n",
+      "status": 0
+    }
+  ]
+}

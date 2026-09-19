@@ -56,6 +56,8 @@ export const insertParagraphAfter = Symbol("insert-paragraph-after");
 
 /** Internal style-domain authority for active native definitions. */
 export const replaceActiveStyleXml = Symbol("replace-active-style-xml");
+/** Internal latent-style creation at the selected native style boundary. */
+export const insertActiveLatentStyles = Symbol("insert-active-latent-styles");
 
 /** Internal native relationship authority; generic XML guards remain unchanged. */
 export const editActiveRelationshipXml = Symbol("edit-active-relationship-xml");
@@ -466,6 +468,29 @@ export class DocumentXmlEditor {
     const view = this.compatibility;
     if (!this.#canEdit(node)) unsupported();
     this.#stageReplacement(node, xml, !this.#canReplaceSubtree(node, token => view.canEdit(token)), true);
+  }
+
+  [insertActiveLatentStyles](): void {
+    if (!this.#dialect || this.root.namespace !== documentDialects[this.#dialect].w ||
+      this.root.localName !== "styles" || this.#patches.size) unsupported();
+    const children = activeXmlChildren(this, this.#budget)(this.root);
+    if (children.some(node => node.namespace === this.root.namespace && node.localName === "latentStyles")) unsupported();
+    const markup = `<st:latentStyles xmlns:st="${this.root.namespace}"/>`;
+    const firstStyle = children.find(node => node.namespace === this.root.namespace && node.localName === "style");
+    if (!firstStyle) { this.insertChildren(this.root, markup); return; }
+    if (!this.#canEdit(firstStyle)) unsupported();
+    const containingParent = (parent: XmlElement): XmlElement | undefined => {
+      this.#budget.charge("work", 1);
+      if (parent.children.includes(firstStyle)) return parent;
+      for (const child of parent.children) {
+        const found = containingParent(child);
+        if (found) return found;
+      }
+      return undefined;
+    };
+    const parent = containingParent(this.root);
+    if (!parent) unsupported();
+    this.#stageInsertion(parent, markup, firstStyle);
   }
 
   /** Change native fields in the selected row without reconstructing its carrier. */

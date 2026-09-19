@@ -22,7 +22,7 @@ import { addDocumentStylesPart } from "./styles-part.js";
 import { editLatentStyles, readLatentStyles } from "./latent-styles.js";
 import type { DocxOperationArguments, DocxEnumValue } from "./operation-types.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
-import { DocumentXmlEditor, replaceActiveStyleXml } from "./xml-write.js";
+import { DocumentXmlEditor, replaceActiveStyleXml, insertActiveLatentStyles } from "./xml-write.js";
 import { assertDocumentEditable, publishDocumentArchive, PublicationError, publicationGenerationGuard, type PublicationOptions, type PublicationContext } from "./publication.js";
 
 import { WD_STYLE_TYPE } from "./formatting-values.js";
@@ -225,7 +225,7 @@ export class Styles implements Iterable<BaseStyle> {
     return style.style_id === this.default(style_type)?.style_id ? null : style.style_id;
   }
   get latent_styles(): LatentStyles {
-    if (!this.store.readChild(this.rawElement, "latentStyles")) this.store.change(xml => xml.insertChildren(xml.root, `<st:latentStyles xmlns:st="${xml.root.namespace}"/>`, this.store.nodes(xml)[0]));
+    if (!this.store.readChild(this.rawElement, "latentStyles")) this.store.change(xml => xml[insertActiveLatentStyles]());
     return new LatentStyles(this.store);
   }
 }

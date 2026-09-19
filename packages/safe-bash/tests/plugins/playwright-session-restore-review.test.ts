@@ -4,9 +4,27 @@ import { test } from 'node:test';
 import { setImmediate as nextTurn } from 'node:timers/promises';
 import { createPlaywrightCli, createPlaywrightController } from '../../src/commands/playwright/index.js';
 import type { PlaywrightAdapter, PlaywrightContext, PlaywrightElementHandle, PlaywrightLease, PlaywrightPage } from '../../src/playwright/index.js';
+import { parsePlaywrightOperationOutcome, validatePlaywrightSessionName } from '../../src/playwright/index.js';
 import { Shell } from '../../src/shell/index.js';
 import { MemoryFileSystem } from '../../src/fs/memory/index.js';
 import { createSnapshotFrame } from '../helpers/playwright-snapshot.js';
+
+test('public recovery validators retain only bounded correlation metadata', () => {
+  const stored = { operationId: 'receipt_123-A', status: 'unknown' as const,
+    url: 'https://example.test/private', script: 'private script', credentials: 'private credential' };
+  const receipt = parsePlaywrightOperationOutcome(stored);
+  assert.deepEqual(receipt, { operationId: stored.operationId, status: 'unknown' });
+  assert.notEqual(receipt, stored);
+  assert.ok(Object.isFrozen(receipt));
+  for (const status of ['running', 'completed', 'unknown'] as const) {
+    assert.equal(parsePlaywrightOperationOutcome({ operationId: 'a'.repeat(128), status }).status, status);
+  }
+  for (const name of ['', 'a'.repeat(129), 'https://example.test', 'script()', 'user:password', null]) {
+    assert.throws(() => validatePlaywrightSessionName(name));
+    assert.throws(() => parsePlaywrightOperationOutcome({ operationId: name as string, status: 'running' }));
+  }
+  assert.throws(() => parsePlaywrightOperationOutcome({ operationId: 'receipt', status: 'invalid' as 'running' }));
+});
 
 function deferred<Value = void>() {
   let resolve!: (value: Value) => void;

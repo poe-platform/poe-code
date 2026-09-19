@@ -1,4 +1,11 @@
 import { Shell, CommandRegistry, agentCommands } from "@poe-platform/safe-bash";
+import { parsePlaywrightOperationOutcome, validatePlaywrightSessionName, type PlaywrightOperationOutcome } from "@poe-platform/safe-bash/playwright";
+
+declare const storedSessionName: unknown;
+validatePlaywrightSessionName(storedSessionName);
+const validatedSessionName: string = storedSessionName;
+const receipt: PlaywrightOperationOutcome = parsePlaywrightOperationOutcome({ operationId: validatedSessionName, status: "unknown" });
+void receipt;
 import type { CommandDefinition, VirtualShellPlugin, ShellOptions } from "@poe-platform/safe-bash";
 import { createMemoryFileSystem, createMountFileSystem } from "@poe-platform/safe-fs";
 import type { FileDescriptor, FileSystem, FsOptions, OpenFileOptions } from "@poe-platform/safe-fs";

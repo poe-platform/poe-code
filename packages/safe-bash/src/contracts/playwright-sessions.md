@@ -125,6 +125,12 @@ It copies only validated correlation fields; URLs, cookies, provider objects,
 and exception messages are absent. `unavailable` means no retained page or
 confirmed saved storage, not proof that an interrupted effect did not happen.
 
+Hosts can import `parsePlaywrightOperationOutcome` and
+`validatePlaywrightSessionName` from `@poe-platform/safe-bash/playwright`
+to validate durable receipts and aliases. The parser returns a frozen copy of
+only `operationId` and `status`; identifiers use 1–128 ASCII letters, digits,
+underscores or hyphens. URLs, scripts and credentials are excluded.
+
 The optional `recordOperation({ name, operation }, signal)` callback must durably
 commit `running` before returning. It runs before session-command effects,
 including automatic restoration. Hosts may provide an opaque `operationId` on

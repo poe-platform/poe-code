@@ -38,7 +38,7 @@ beforeAll(async () => {
 afterAll(async () => {
 	if (worker) await disposeNativeFixture(worker);
 	networkServer?.closeAllConnections();
-	if (networkServer) await new Promise<void>((resolve, reject) => networkServer.close(error => error ? reject(error) : resolve()));
+	if (networkServer?.listening) await new Promise<void>((resolve, reject) => networkServer.close(error => error ? reject(error) : resolve()));
 });
 
 for (const scenario of [

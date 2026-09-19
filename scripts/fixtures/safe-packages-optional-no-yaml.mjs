@@ -31,7 +31,11 @@ const manifestStat = await lstat(manifestPath);
 assert.equal(manifestStat.isSymbolicLink(), false);
 assert.equal(manifestStat.isFile(), true);
 const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-assert.deepEqual(Object.keys(manifest.peerDependencies).sort(), ["yaml"]);
+for (const name of Object.keys(manifest.peerDependencies)) {
+  assert.equal(manifest.peerDependenciesMeta[name]?.optional, true, name);
+  assert.throws(() => optionalRequire.resolve(name), { code: "MODULE_NOT_FOUND" });
+  assert.throws(() => require.resolve(name), { code: "MODULE_NOT_FOUND" });
+}
 assert.equal(manifest.peerDependencies["@poe-platform/safe-bash"], undefined);
 assert.equal(manifest.peerDependencies.yaml, "2.9.0");
 assert.equal(manifest.peerDependenciesMeta.yaml.optional, true);

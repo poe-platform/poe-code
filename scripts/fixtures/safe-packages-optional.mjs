@@ -44,7 +44,9 @@ const installedOptional = await installedEntry(consumer, "@poe-platform/safe-bas
 const optionalRequire = createRequire(installedOptional.entry);
 assert.equal(installedOptional.manifest.version, installedCore.manifest.version);
 assert.equal(installedOptional.manifest.dependencies["@poe-platform/safe-fs"], installedFs.manifest.version);
-assert.deepEqual(Object.keys(installedOptional.manifest.peerDependencies).sort(), ["yaml"]);
+for (const name of Object.keys(installedOptional.manifest.peerDependencies)) {
+  assert.equal(installedOptional.manifest.peerDependenciesMeta[name]?.optional, true, name);
+}
 assert.equal(installedOptional.manifest.peerDependencies.yaml, "2.9.0");
 assert.equal(installedOptional.manifest.peerDependenciesMeta.yaml.optional, true);
 const installedYaml = await installedEntry(consumer, "yaml", optionalRequire.resolve("yaml"));

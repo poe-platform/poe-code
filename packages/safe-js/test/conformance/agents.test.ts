@@ -47,7 +47,7 @@ if (Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 10) !== "timed-
 
 it("notifies independently acknowledged workers in registration order and cleans their waits", async () => {
   const source = `/*---
-flags: [onlyStrict]
+flags: [onlyStrict, async]
 includes: [atomicsHelper.js]
 features: [SharedArrayBuffer, Atomics]
 ---*/
@@ -57,24 +57,29 @@ function report() {
   return value;
 }
 const buffer = new SharedArrayBuffer(4);
-$262.agent.start(\`
+const firstSource = \`
   $262.agent.receiveBroadcast(async function(buffer) {
     const wait = Atomics.waitAsync(new Int32Array(buffer), 0, 0);
     $262.agent.report("first-ready");
     $262.agent.report("first:" + await wait.value);
     $262.agent.leaving();
   });
-\`);
-$262.agent.broadcast(buffer, 0);
-if (report() !== "first-ready") throw new Error("first registration");
-$262.agent.start(\`
+\`;
+const secondSource = \`
+  $262.agent.receiveBroadcast(function() {});
   $262.agent.receiveBroadcast(async function(buffer) {
     const wait = Atomics.waitAsync(new Int32Array(buffer), 0, 0);
     $262.agent.report("second-ready");
     $262.agent.report("second:" + await wait.value);
     $262.agent.leaving();
   });
-\`);
+\`;
+async function main() {
+await Promise.all([firstSource, secondSource].map(async source => {
+  $262.agent.start(source);
+}));
+$262.agent.broadcast(buffer, 0);
+if (report() !== "first-ready") throw new Error("first registration");
 // The first agent already received its buffer; this broadcast must still be
 // acknowledged independently of its suspended receive callback.
 $262.agent.broadcast(buffer, 0);
@@ -82,8 +87,13 @@ if (report() !== "second-ready") throw new Error("second registration");
 const words = new Int32Array(buffer);
 if (Atomics.notify(words, 0, 1) !== 1 || report() !== "first:ok") throw new Error("FIFO first");
 if (Atomics.notify(words, 0, 1) !== 1 || report() !== "second:ok") throw new Error("FIFO second");
-if (Atomics.notify(words, 0) !== 0) throw new Error("stale registration");`;
-  expect(await executeTest262("fifo-agents.js", source, { harness, timeoutMs: 3000 }))
+if (Atomics.notify(words, 0) !== 0) throw new Error("stale registration");
+print("Test262:AsyncTestComplete");
+}
+main().catch(error => print("Test262:AsyncTestFailure:" + error.message));`;
+  expect(await executeTest262("fifo-agents.js", source, {
+    harness: new Map([...harness, ["doneprintHandle.js", ""]]), timeoutMs: 3000
+  }))
     .toEqual({ kind: "test", results: [{ mode: "strict", status: "passed" }] });
 });
 

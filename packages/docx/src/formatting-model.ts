@@ -148,8 +148,8 @@ export class Font {
   declare web_hidden: boolean | null;
 
   private readonly colorFormat: ColorFormat;
-  constructor(readonly owner: FormattingXmlOwner) { this.colorFormat = new ColorFormat(owner); }
-  get color(): ColorFormat { return this.colorFormat; }
+  constructor(readonly owner: FormattingXmlOwner) { void owner.identity; this.colorFormat = new ColorFormat(owner); }
+  get color(): ColorFormat { void this.owner.identity; return this.colorFormat; }
   get part(): unknown { return this.owner.part ?? null; }
   equals(other: unknown): boolean { return other instanceof Font && (this.owner.identity ?? this.owner) === (other.owner.identity ?? other.owner); }
   get element(): XmlElementView { return ownerView(this.owner); }
@@ -193,7 +193,7 @@ export class ParagraphFormat {
   declare page_break_before: boolean | null;
 
   private tabs?: TabStops;
-  constructor(readonly owner: FormattingXmlOwner) {}
+  constructor(readonly owner: FormattingXmlOwner) { void owner.identity; }
   get tab_stops(): TabStops { const view = readView(this.owner); if (!child(view.root, "pPr", view.children)) update(this.owner, "p", {}); return this.tabs ??= new TabStops(this.owner); }
   get part(): unknown { return this.owner.part ?? null; }
   equals(other: unknown): boolean { return other instanceof ParagraphFormat && (this.owner.identity ?? this.owner) === (other.owner.identity ?? other.owner); }

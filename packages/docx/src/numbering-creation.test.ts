@@ -302,11 +302,12 @@ it.each([
   '<w:abstractNum w:abstractNumId="0"/><w:num w:numId="7"><w:abstractNumId w:val="0"/></w:num><w:num w:numId="007"><w:abstractNumId w:val="0"/></w:num>',
   '<w:abstractNum w:abstractNumId="-1"/>',
   '<w:abstractNum w:abstractNumId="2147483648"/>',
+  '<w:abstractNum w:abstractNumId="9007199254740992"/>',
   '<w:num w:numId="1"><w:abstractNumId w:val="8"/></w:num>',
   '<w:num w:numId="1"/>',
   '<w:abstractNum w:abstractNumId="0"><w:lvl w:ilvl="9"/></w:abstractNum>',
   '<w:abstractNum w:abstractNumId="0"><w:lvl w:ilvl="0"/><w:lvl w:ilvl="00"/></w:abstractNum>'
-])("rejects malformed or ambiguous existing definitions atomically: %s", async (content) => {
+])("validates malformed, ambiguous and safe existing definitions atomically: %s", async (content) => {
   const model = await Document(
     await textFixture(paragraph("Survey"), {
       numbering: { kind: "numbering", xml: `<w:numbering xmlns:w="${w}">${content}</w:numbering>` }
@@ -314,7 +315,13 @@ it.each([
     textContext
   );
   const before = snapshot(model.part.package);
-  expect(() => NumberingPart.new(model.part.package)).toThrow(SemanticValidationError);
+  if (content === '<w:abstractNum w:abstractNumId="2147483648"/>') {
+    expect(NumberingPart.new(model.part.package)).toBe(model.part.numbering_part);
+    expect(model.part.numbering_part.numbering_definitions.length).toBe(0);
+    const after = readPackage(await saved(model));
+    assertPackageLinks(after);
+    expect(new TextDecoder().decode(after.get("word/numbering.xml"))).toContain(content);
+  } else expect(() => NumberingPart.new(model.part.package)).toThrow(SemanticValidationError);
   expect(snapshot(model.part.package)).toEqual(before);
 });
 

@@ -25,7 +25,8 @@ export function opaqueXmlContent(root: XmlElement, budget: DocumentBudget, profi
     // does not move retained extension data to a different semantic owner.
     // Transparent active MCE carriers keep their enclosing property context.
     // Property containers also occupy named slots outside the content sequence.
-    const namedProperties = nativeProperties(node) || containers.has(node) && propertyContext;
+    const namedStyleFields = (node.namespace === documentDialects.strict.w || node.namespace === documentDialects.transitional.w) && node.localName === "style";
+    const namedProperties = nativeProperties(node) || namedStyleFields || containers.has(node) && propertyContext;
     const visitChildren = () => {
       const ordinals = new Map<string, number>();
       let contentIndex = 0;

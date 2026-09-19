@@ -763,7 +763,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         const saved = await savedSessions(local.signal);
         const known = new Map<string, { name: string; status: string }>();
         for (const entry of saved) {
-          known.set(entry.name, { name: entry.name, status: 'open' });
+          known.set(entry.name, { name: entry.name, status: 'saved' });
         }
         for (const session of sessions.values()) if (session.state === 'open') known.set(session.name, { name: session.name, status: session.state });
         const browsers = [...known.values()];

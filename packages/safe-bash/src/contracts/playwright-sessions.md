@@ -97,6 +97,12 @@ Optional persistence callbacks operate within the host's trusted owner scope:
   scripts are registered, before the restored session is published.
 - `list` returns bounded metadata for resumable saved sessions without opening
   browsers. The host excludes deleted, intentionally closed, or expired data.
+  CLI listing reports persisted profiles as `saved` and retained live sessions
+  as `open`, in both standard text and JSON output. `saved` does not establish
+  browser connectivity or successful restoration. A later browser command may
+  attempt restoration and fail if the provider is unavailable. Diagnose that
+  failure before retrying; listing never restores, navigates, or consumes a
+  one-time URL. Explicitly closed sessions remain absent until explicitly opened.
 - `close` suppresses automatic restoration without requiring storage deletion.
   An undefined name closes all saved aliases for that owner.
 - `delete` removes the named profile.

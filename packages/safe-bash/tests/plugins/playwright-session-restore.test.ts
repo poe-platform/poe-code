@@ -35,6 +35,56 @@ function runner(controller: ReturnType<typeof createPlaywrightController>) {
   }) };
 }
 
+for (const available of [false, true]) test(`listing a saved profile is metadata-only when restoration is ${available ? 'available' : 'unavailable'}`, async () => {
+  const browser = retainedBrowser();
+  let allocations = 0;
+  let restores = 0;
+  const oneTimeUrl = 'https://example.test/one-time';
+  const controller = createPlaywrightController({
+    adapter: { ...browser.adapter, async acquire() { allocations++; return browser.lease; } },
+    persistence: {
+      async list() { return [{ name: 'saved' }]; },
+      async restore() {
+        restores++;
+        if (!available) throw new Error('browser acquisition unavailable');
+        await browser.pages[1]!.goto(oneTimeUrl);
+        return { lease: browser.lease, selectedPage: browser.pages[1]! };
+      },
+      async checkpoint() {}, async delete() {}, async close() {},
+    },
+  });
+  const cli = runner(controller);
+  try {
+    await cli.run(['list', '--json']);
+    assert.deepEqual(JSON.parse(cli.output.pop()!), { browsers: [{ name: 'saved', status: 'saved' }] });
+    await cli.run(['list']);
+    assert.equal(cli.output.pop(), '### Browsers\n- saved:\n  - status: saved\n');
+    assert.equal(allocations, 0);
+    assert.equal(restores, 0);
+    assert.equal(browser.createdPages, 0);
+    assert.deepEqual(browser.navigations, []);
+
+    if (!available) {
+      await assert.rejects(cli.run(['-s=saved', 'snapshot']), /browser acquisition unavailable/);
+      assert.equal(restores, 1);
+    } else {
+      await controller.restoreSession({ name: 'saved', async acquire() {
+        return { lease: browser.lease, selectedPage: browser.pages[1] };
+      } });
+      await cli.run(['list', '--json']);
+      assert.deepEqual(JSON.parse(cli.output.pop()!), { browsers: [{ name: 'saved', status: 'open' }] });
+      assert.equal(restores, 0);
+      await cli.run(['-s=saved', 'close']);
+      // Persistence deliberately keeps the alias: explicit close must still suppress it.
+      await cli.run(['list', '--json']);
+      assert.deepEqual(JSON.parse(cli.output.pop()!), { browsers: [] });
+      await assert.rejects(cli.run(['-s=saved', 'snapshot']), /Session closed/);
+      assert.equal(restores, 0);
+      assert.deepEqual(browser.navigations, []);
+    }
+  } finally { await controller.dispose(); }
+});
+
 test('cold controller restores the same owned context and selected page without creating either', async () => {
   const browser = retainedBrowser();
   const first = createPlaywrightController({ adapter: browser.adapter });

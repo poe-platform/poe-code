@@ -178,7 +178,7 @@ test('cold list includes only owner resumable profiles without restoring a brows
   });
   try {
     const list = JSON.parse(await f.run('--json', 'list', '--all'));
-    assert.deepEqual(list.browsers, [{ name: 'saved', status: 'open' }]);
+    assert.deepEqual(list.browsers, [{ name: 'saved', status: 'saved' }]);
     assert.equal(restores, 0);
     assert.deepEqual(f.events, []);
     await f.run('kill-all');

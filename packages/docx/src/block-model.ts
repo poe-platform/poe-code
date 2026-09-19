@@ -23,7 +23,8 @@ export function modelText(node: XmlElement, children: (node: XmlElement) => read
     const name = current.localName;
     if (name === "t") text += current.text;
     else if (name === "tab" || name === "ptab") text += "\t";
-    else if (name === "noBreakHyphen") text += "-";
+    else if (name === "noBreakHyphen") text += "\u2011";
+    else if (name === "softHyphen") text += "\u00ad";
     else if (
       name === "cr" ||
       (name === "br" &&
@@ -366,7 +367,7 @@ export class Run {
       } else if (child.localName === "drawing") {
         if (text) { yield text; text = ""; }
         yield new Drawing(this.store, this.store.ref(this.ref.part, child));
-      } else if (["t", "tab", "ptab", "noBreakHyphen", "br", "cr"].includes(child.localName)) {
+      } else if (["t", "tab", "ptab", "noBreakHyphen", "softHyphen", "br", "cr"].includes(child.localName)) {
         text += modelText(child);
       }
     }

@@ -286,7 +286,7 @@ export function insertModelImage(
       width: cx.emu,
       height: cy.emu,
       crop: ""
-    });
+    }, { filename: image.filename });
     store.change(ref.part, (xml) => {
       const container = store.node(ref);
       const section = container.children.find(

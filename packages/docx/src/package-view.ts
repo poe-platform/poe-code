@@ -698,7 +698,7 @@ export class StoryPart extends XmlPartView {
     const result = await this.package[packageStoryImage](this, input, (id, image) => {
       const [cx, cy] = image.scaled_dimensions(width, height), drawingId = this.next_id;
       if (drawingId > 4294967295) throw new ResourceLimitError("The drawing identifier range is exhausted.");
-      const markup = inlineImageRun(dialect, drawingId, id, { width: cx.emu, height: cy.emu, crop: "" }).run;
+      const markup = inlineImageRun(dialect, drawingId, id, { width: cx.emu, height: cy.emu, crop: "" }, { filename: image.filename }).run;
       budget.charge("retainedBytes", markup.length * 3);
       let xml = new DocumentXmlEditor(new TextEncoder().encode(markup), {}, undefined, budget);
       const resolve = (document: DocumentXmlEditor) => {

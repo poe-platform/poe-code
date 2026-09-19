@@ -606,7 +606,9 @@ export class DocumentXmlEditor {
     if (!ownerPath || owner === this.root || !pathTo(owner, tabs)) unsupported();
     this.#acceptOwnedPatch(owner, markup, moving ? 0 : 1);
     try {
-      const source = new TextDecoder().decode(this.serialize()), candidate = parseDocumentXml(new TextEncoder().encode(source), this.#limits, this.#budget), projected = activeXmlChildren(candidate.root, this.#budget);
+      const candidate = parseDocumentXml(this.serialize(), this.#limits, this.#budget),
+        source = new TextDecoder(candidate.encoding, { fatal: true, ignoreBOM: true }).decode(candidate.bytes),
+        projected = activeXmlChildren(candidate.root, this.#budget);
       let afterOwner = candidate.root; for (const index of ownerPath) afterOwner = afterOwner.children[index]!;
       const afterProps = afterOwner.localName === "pPr" ? afterOwner : projected(afterOwner).find(n => n.namespace === tabs.namespace && n.localName === "pPr"), afterTabs = afterOwner.localName === "tabs" ? afterOwner : afterProps && projected(afterProps).find(n => n.namespace === tabs.namespace && n.localName === "tabs");
       if (!afterTabs) unsupported();

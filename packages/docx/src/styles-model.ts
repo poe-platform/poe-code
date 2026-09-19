@@ -191,7 +191,7 @@ export class Styles implements Iterable<BaseStyle> {
   add_style(name: string, style_type: DocxEnumValue<"WD_STYLE_TYPE">, builtin = false): BaseStyle {
     if (typeof name !== "string" || !name.length || typeof builtin !== "boolean") throw new TypeError("Expected a style name and builtin flag.");
     const type = typeName(style_type);
-    if (this.has(name)) throw new RangeError("The style name already exists.");
+    if (this.has(name)) throw new InvalidValueError("The style name already exists.");
     const ids = new Set([...this].map(s => s.style_id));
     let serial = 1; while (ids.has(`Style${serial}`)) serial++;
     const namespace = this.rawElement.namespace;

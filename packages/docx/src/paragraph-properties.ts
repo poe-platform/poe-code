@@ -165,7 +165,7 @@ export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElemen
     else if (container) patches.set(container, runElementOpen(container) + content + `</${container.name}>`);
     else set("tabs", {}, content);
   }
-  if (options.shading !== undefined) set("shd", options.shading === null ? null : { fill: options.shading.fill.toUpperCase(), color: options.shading.color?.toUpperCase() ?? "auto", val: options.shading.pattern, themeFill: null, themeFillTint: null, themeFillShade: null, themeColor: null, themeTint: null, themeShade: null });
+  if (options.shading !== undefined) set("shd", options.shading === null ? null : { fill: options.shading.fill.toUpperCase(), color: options.shading.color?.toUpperCase() ?? "000000", val: options.shading.pattern, themeFill: null, themeFillTint: null, themeFillShade: null, themeColor: null, themeTint: null, themeShade: null });
   if (options.borders !== undefined) {
     if (options.borders === null) set("pBdr", null);
     else if (Object.keys(options.borders).length) {

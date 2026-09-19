@@ -50,7 +50,10 @@ it.each([3, -4])("rejects a missing tab index %s", index => {
 });
 it("removes the last tab container and clears an absent or populated collection", () => {
   expect(tabs('<w:tabs><w:tab w:pos="0" w:val="left"/></w:tabs>', { tabStopDelete: 0 }).container).toBeUndefined();
-  expect(tabs(stops, { tabStopsClear: true }).container).toBeUndefined();
+  expect(tabs('<w:tabs><w:tab w:pos="-40" w:val="left"/><w:tab w:pos="100" w:val="right"/><w:tab w:pos="300" w:val="decimal"/></w:tabs><w:keepNext/>', { tabStopsClear: true }).container).toBeUndefined();
+  const retained = tabs(stops, { tabStopsClear: true });
+  expect(retained.positions).toEqual([]);
+  expect(retained.xml).toContain("<!--keep-->");
   expect(tabs("", { tabStopsClear: true }).container).toBeUndefined();
   expect(() => tabs("", { tabStopDelete: 0 })).toThrow("Tab stop index is out of range.");
 });

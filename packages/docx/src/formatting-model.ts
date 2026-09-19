@@ -374,6 +374,10 @@ export class TabStop {
   set leader(value: DocxEnumValue<"WD_TAB_LEADER"> | null) { this.collection.change(this.id, { leader: value ?? { enum: "WD_TAB_LEADER", name: "SPACES" } }); }
 }
 
+function assertRgbSearchValue(value: unknown): asserts value is number {
+  if (typeof value !== "number" || !Number.isFinite(value)) throw new InputTypeError("Expected a finite numeric color search value.");
+}
+
 export class RGBColor implements Iterable<number> {
   readonly [index: number]: number;
   readonly length = 3;
@@ -390,14 +394,15 @@ export class RGBColor implements Iterable<number> {
   at(index: number): number { if (!Number.isSafeInteger(index)) throw new InputTypeError("Expected an integer component index."); const value = this.values.at(index); if (value === undefined) throw new BoundsError("Color component index is out of range."); return value; }
   toArray(): readonly [number, number, number] { return snapshotSequence(this.values) as readonly [number, number, number]; }
   slice(start = 0, end = 3): readonly number[] { if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) throw new InputTypeError("Expected integer slice bounds."); return snapshotSequence(this.values.slice(start, end)); }
-  count(value: number): number { return this.values.filter(item => item === value).length; }
+  count(value: number): number { assertRgbSearchValue(value); return this.values.filter(item => item === value).length; }
   index(value: number, start = 0, stop = 3): number {
+    assertRgbSearchValue(value);
     if (!Number.isSafeInteger(start) || !Number.isSafeInteger(stop)) throw new InputTypeError("Expected integer component bounds.");
     const first = Math.min(3, Math.max(0, start < 0 ? 3 + start : start)), end = Math.min(3, Math.max(0, stop < 0 ? 3 + stop : stop));
     for (let index = first; index < end; index++) if (this.values[index] === value) return index;
     throw new InvalidValueError("Color component was not found.");
   }
-  includes(value: number): boolean { return this.values.includes(value); }
+  includes(value: number): boolean { assertRgbSearchValue(value); return this.values.includes(value); }
   *reversed(): IterableIterator<number> { for (let index = this.values.length - 1; index >= 0; index--) yield this.values[index]!; }
   equals(other: unknown): boolean { return other instanceof RGBColor && this.values.every((value, index) => value === other.values[index]); }
 }

@@ -24,6 +24,7 @@ export interface PlaywrightLocator extends PlaywrightElementActions {
   _resolveSelector?(): Promise<{ resolvedSelector: string }>;
   highlight?(options?: { style?: string }): Promise<unknown>;
   hideHighlight?(): Promise<void>;
+  elementHandles?(): Promise<PlaywrightElementHandle[]>;
   elementHandle?(options?: { timeout?: number }): Promise<PlaywrightElementHandle | null>;
   count?(): Promise<number>;
   click(options?: PlaywrightActionOptions): Promise<void>;

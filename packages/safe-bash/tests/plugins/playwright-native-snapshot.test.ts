@@ -147,3 +147,45 @@ test('Cloudflare snapshots honor depth and read real native element bounding box
   assert.deepEqual(measured, ['aria-ref=e1', 'aria-ref=e2']);
   assert.deepEqual(disposed, measured);
 });
+
+for (const present of [true, false]) test(`native ref lookup does not wait for a missing node (present=${present})`, async () => {
+  const f = fixture();
+  let disposed = 0;
+  let waiting = 0;
+  const handle = { async evaluate() { return true; }, async dispose() { disposed++; } };
+  f.page.locator = (() => ({
+    async elementHandles() { return present ? [handle] : []; },
+    async elementHandle() { waiting++; throw new Error('Waiting lookup must not run'); },
+  })) as unknown as PlaywrightPage['locator'];
+  await f.engine.capture(f.page);
+  if (present) assert.equal(await f.engine.resolve('e102'), handle);
+  else await assert.rejects(f.engine.resolve('e102'), /Snapshot ref stale/);
+  assert.equal(waiting, 0);
+  await f.engine.invalidate();
+  assert.equal(disposed, present ? 1 : 0);
+});
+
+test('legacy native resolution uses the action timeout and checks absence without waiting', async () => {
+  const f = fixture();
+  let timeout: number | undefined;
+  let count = 1;
+  f.page.locator = (() => ({
+    async count() { return count; },
+    async elementHandle(options: { timeout?: number }) { timeout = options.timeout; return null; },
+  })) as unknown as PlaywrightPage['locator'];
+  await f.engine.capture(f.page);
+  await assert.rejects(f.engine.resolve('e102', 250), /stale/);
+  assert.equal(timeout, 250);
+  count = 0; timeout = undefined;
+  await assert.rejects(f.engine.resolve('e102', 250), /stale/);
+  assert.equal(timeout, undefined);
+});
+
+test('ambiguous native references retire every acquired handle without selecting a node', async () => {
+  const f = fixture();
+  let disposed = 0;
+  f.page.locator = (() => ({ async elementHandles() { return [1, 2].map(() => ({ async dispose() { disposed++; } })); } })) as unknown as PlaywrightPage['locator'];
+  await f.engine.capture(f.page);
+  await assert.rejects(f.engine.resolve('e102'), /stale/);
+  assert.equal(disposed, 2);
+});

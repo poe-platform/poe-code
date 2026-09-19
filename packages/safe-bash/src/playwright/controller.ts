@@ -663,7 +663,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       checkSession(session);
       if (!session.page) throw new Error('Selected tab closed; select a tab explicitly');
       const handle = await resolvePlaywrightTarget({ target, page: session.page, timeout: sessionActionTimeout(session), signal: local.signal,
-        resolveRef: ref => session.snapshot.resolve(ref), own: handle => ownedTargets.add(handle) });
+        resolveRef: ref => session.snapshot.resolve(ref, sessionActionTimeout(session)), own: handle => ownedTargets.add(handle) });
       checkSession(session);
       if (!targetLocators.has(target)) {
         const reference = isPlaywrightSnapshotRef(target);

@@ -58,3 +58,39 @@ for (const native of [true, false]) test(`snapshot document identity survives if
     await original.dispose();
   } finally { await controller.dispose(); await browser.close(); }
 });
+
+for (const native of [true, false]) test(`removed unresolved snapshot ref reports stale before caller deadline (native=${native})`, {
+  skip: !process.env.PLAYWRIGHT_TEST_MODULE && 'Set PLAYWRIGHT_TEST_MODULE to a native Playwright client', timeout: 20000,
+}, async () => {
+  const { chromium } = await import(process.env.PLAYWRIGHT_TEST_MODULE);
+  const browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_TEST_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_TEST_EXECUTABLE } : {}) });
+  const context = await browser.newContext();
+  await context.route('**/*', route => route.fulfill({ contentType: 'text/html', body: '<input aria-label="Email">' }));
+  const page = await context.newPage();
+  context.newPage = async () => page;
+  if (!native) { page.ariaSnapshot = undefined; page._snapshotForAI = undefined; }
+  const controller = createPlaywrightController({ adapter: { browsers: { chromium: { headed: false } }, async acquire() { return { context, onClosed() { return () => {}; }, async release() {} }; } } });
+  const run = async (...args) => {
+    let output = '';
+    await controller.run({ args, env: {}, signal: AbortSignal.timeout(10000), async write(text) { output += text; }, async writeArtifact() {} });
+    return output;
+  };
+  const emailRef = snapshot => {
+    const line = snapshot.split('\n').find(line => line.includes('textbox "Email"'));
+    const ref = line?.split('[ref=')[1]?.split(']')[0];
+    assert.ok(ref, snapshot);
+    return ref;
+  };
+  try {
+    await run('open', 'https://snapshot.test/');
+    const removed = emailRef(await run('snapshot'));
+    await page.getByRole('textbox', { name: 'Email' }).evaluate(node => node.remove());
+    await assert.rejects(run('fill', removed, 'removed'), /stale/);
+    await page.evaluate(() => { const input = globalThis.document.createElement('input'); input.setAttribute('aria-label', 'Email'); globalThis.document.body.prepend(input); });
+    const healthy = emailRef(await run('snapshot'));
+    await run('fill', healthy, 'healthy');
+    assert.equal(await page.getByRole('textbox', { name: 'Email' }).inputValue(), 'healthy');
+    await page.getByRole('textbox', { name: 'Email' }).evaluate(node => node.remove());
+    await assert.rejects(run('fill', healthy, 'disconnected cached handle'), /stale/);
+  } finally { await controller.dispose(); await browser.close(); }
+});

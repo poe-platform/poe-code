@@ -151,17 +151,31 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
       throw error;
     }
   }, options, signal);
-  const resolve = async (ref: string): Promise<PlaywrightElementHandle> => {
+  const resolve = async (ref: string, timeout = 5000): Promise<PlaywrightElementHandle> => {
     const reference = refs.get(ref);
     if (!reference) throw new Error(`Unknown or stale snapshot ref: ${ref}; snapshot again`);
     const capturedEpoch = epoch;
     if (reference.kind === 'native') {
       if (!reference.native) {
         const locator = reference.page.locator(`aria-ref=${reference.ref}`);
-        if (!locator.elementHandle) throw new Error('Native snapshot target resolution unavailable');
+        if (!locator.elementHandles && !locator.elementHandle) throw new Error('Native snapshot target resolution unavailable');
         let handle: PlaywrightElementHandle | null;
-        try { handle = await locator.elementHandle({ timeout: 30000 }); }
-        catch { throw new Error(`Snapshot ref stale: ${ref}; snapshot again`); }
+        if (locator.elementHandles) {
+          let handles: PlaywrightElementHandle[];
+          // Snapshot refs identify existing nodes; never auto-wait for a replacement.
+          try { handles = await locator.elementHandles(); }
+          catch { throw new Error(`Snapshot ref stale: ${ref}; snapshot again`); }
+          if (handles.length !== 1) {
+            await retire(handles);
+            throw new Error(`Snapshot ref stale: ${ref}; snapshot again`);
+          }
+          handle = handles[0]!;
+        } else {
+          try {
+            if (locator.count && await locator.count() !== 1) throw new Error(`Snapshot ref stale: ${ref}; snapshot again`);
+            handle = await locator.elementHandle!({ timeout });
+          } catch { throw new Error(`Snapshot ref stale: ${ref}; snapshot again`); }
+        }
         if (!handle || capturedEpoch !== epoch) {
           if (handle) await retire([handle]);
           throw new Error(`Snapshot ref stale: ${ref}; snapshot again`);

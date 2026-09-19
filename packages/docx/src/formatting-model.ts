@@ -91,10 +91,8 @@ function update(owner: FormattingXmlOwner, kind: "r" | "p", values: DocxOperatio
       const root = binding.resolve(xml), children = activeXmlChildren(xml, ownerBudget(owner)), props = child(root, kind + "Pr", children);
       assertFormattingHistoryEditable(xml.root, root, children, ownerBudget(owner));
       let replacement = kind === "r" ? formattedRunProperties(xml, root, values as DocxOperationArguments<"runs.set">, children) : paragraphProperties(xml, root, values as DocxOperationArguments<"paragraphs.set">, undefined, children);
-      // Model resets retain an existing run-property owner, even when empty.
-      if (!replacement && kind === "r" && props) replacement = runElementOpen(props) + `</${props.name}>`;
-      // Empty internal updates explicitly materialize a documented model owner.
-      if (!replacement && Object.keys(values).length === 0) replacement = `<fmt:${kind}Pr xmlns:fmt="${root.namespace}"/>`;
+      // Formatting setters retain or materialize their documented property owner.
+      if (!replacement) replacement = props ? runElementOpen(props) + `</${props.name}>` : `<fmt:${kind}Pr xmlns:fmt="${root.namespace}"/>`;
       if (props) { if (replacement !== xml.sourceXml(props)) xml.replaceElement(props, replacement); }
       else if (replacement) xml.insertChildren(root, replacement, root.children[0]);
     });

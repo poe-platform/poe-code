@@ -88,6 +88,10 @@ verification. Chromium conformance uses Miniflare 4.20260708.1 with compatibilit
 date 2026-07-08; transport fault tests use the consumer's 2025-01-01 compatibility
 profile with explicitly enabled Node modules.
 
+Structured snapshots support at most 128 frames, including the main frame.
+Larger trees reject with `Browser snapshot frame limit exceeded` before native
+snapshot work starts.
+
 The reusable implementation and conformance cases were ported from Poe's
 agent-tool-service at `a03e2c70269656d767e775848e69e30254f27217`. Consumer persistence
 and owner-manifest implementations appear only as test fixtures; they are excluded

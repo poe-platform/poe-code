@@ -8,6 +8,7 @@ import {
 import type { PlaywrightSnapshotJSONNode } from "@poe-platform/safe-bash/playwright";
 import { captureBrowserSnapshotJSON } from "../src/browser-snapshot-json";
 import { collectRendererCoverage } from "./browser-native-coverage.worker";
+import { createCloudflarePlaywrightAdapter } from "../src/index";
 
 function flatten(nodes: readonly PlaywrightSnapshotJSONNode[]) {
 	const result = [...nodes];
@@ -20,6 +21,38 @@ function flatten(nodes: readonly PlaywrightSnapshotJSONNode[]) {
 
 export default {
 	async fetch(request: Request, env: { BROWSER: BrowserWorker }) {
+		if (new URL(request.url).pathname === "/public-frames") {
+			const lease = await createCloudflarePlaywrightAdapter(
+				env.BROWSER,
+			).acquire({
+				acquisitionId: "frame-limit",
+				session: "frame-limit",
+				browser: "chromium",
+				headless: true,
+				signal: new AbortController().signal,
+			});
+			try {
+				const page = await lease.context.newPage();
+				await page.setContent(
+					'<iframe srcdoc="<button>Child</button>"></iframe>'.repeat(128),
+				);
+				await assert.rejects(
+					lease.captureSnapshotJSON!(page, {
+						signal: new AbortController().signal,
+						timeoutMs: 15000,
+						maxBytes: 1048576,
+					}),
+					{ message: "Browser snapshot frame limit exceeded" },
+				);
+				await lease.release();
+				assert.equal(page.isClosed(), true);
+				return Response.json({ ok: true });
+			} catch (error) {
+				return Response.json({ error: String(error) }, { status: 500 });
+			} finally {
+				await lease.release();
+			}
+		}
 		const { sessionId } = await acquire(env.BROWSER, {});
 		const browser = await connect(env.BROWSER, sessionId);
 		let page: Page | undefined;

@@ -23,6 +23,7 @@ interface NativeFrame {
 	};
 }
 interface NativeSnapshotPage {
+	frames(): readonly unknown[];
 	_snapshotForAI(options: { timeout: number }): Promise<{ full: string }>;
 	_connection: {
 		toImpl(page: NativeSnapshotPage): { mainFrame(): NativeFrame };
@@ -62,6 +63,10 @@ async function capture(
 	page: NativeSnapshotPage,
 	options: Parameters<PlaywrightSnapshotJSONCapture>[1],
 ) {
+	// Native snapshot initializes every frame concurrently. Admit the tree first
+	// so oversized pages cannot exhaust the owned transport before classification.
+	if (page.frames().length > MAX_SNAPSHOT_FRAMES)
+		throw new Error("Browser snapshot frame limit exceeded");
 	await page._snapshotForAI({ timeout: options.timeoutMs });
 	options.signal.throwIfAborted();
 	const root = page._connection.toImpl(page).mainFrame();

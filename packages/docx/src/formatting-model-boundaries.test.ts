@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import { InvalidDocumentError } from "./document-error.js";
 import { Volume } from "memfs";
 import { Font, ParagraphFormat, RGBColor } from "./formatting-model.js";
 import { Pt, Twips, WD_UNDERLINE, WD_COLOR_INDEX, WD_LINE_SPACING, WD_PARAGRAPH_ALIGNMENT, WD_TAB_ALIGNMENT, WD_TAB_LEADER, MSO_THEME_COLOR, enumMembers } from "./formatting-values.js";
@@ -140,6 +141,6 @@ it("rejects nonrepresentable formatting sentinels and malformed direct enum XML 
   expect(() => { font.highlight_color = WD_COLOR_INDEX.INHERITED; }).toThrow();
   expect(() => { font.color.theme_color = MSO_THEME_COLOR.NOT_THEME_COLOR; }).toThrow();
   expect(backing.getXml()).toBe(before);
-  expect(() => new Font(owner("r", '<w:color w:themeColor="UNMAPPED"/>')).color.theme_color).toThrow(TypeError);
-  expect(() => new Font(owner("r", '<w:u w:val="unmapped"/>')).underline).toThrow(TypeError);
+  expect(() => new Font(owner("r", '<w:color w:themeColor="UNMAPPED"/>')).color.theme_color).toThrow(InvalidDocumentError);
+  expect(() => new Font(owner("r", '<w:u w:val="unmapped"/>')).underline).toThrow(InvalidDocumentError);
 });

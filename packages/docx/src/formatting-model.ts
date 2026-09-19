@@ -117,7 +117,12 @@ function booleanValue(node: XmlElement | undefined): boolean | null {
   const value = attr(node);
   if (value === undefined || ["1", "true", "on"].includes(value)) return true;
   if (["0", "false", "off"].includes(value)) return false;
-  throw new TypeError("Invalid boolean formatting value.");
+  throw new InvalidDocumentError("Invalid boolean formatting value.");
+}
+function storedFormattingToken(node: XmlElement | undefined, attribute: string, values: readonly string[], message: string, required = false): string | undefined {
+  const value = attr(node, attribute);
+  if (node && required && value === undefined || value !== undefined && !values.includes(value)) throw new InvalidDocumentError(message);
+  return value;
 }
 const fontFlags = {
   all_caps: ["allCaps", "caps"], bold: ["bold", "b"], complex_script: ["complexScriptEnabled", "cs"], cs_bold: ["csBold", "bCs"], cs_italic: ["csItalic", "iCs"], double_strike: ["doubleStrike", "dstrike"], emboss: ["emboss", "emboss"], hidden: ["hidden", "vanish"], imprint: ["imprint", "imprint"], italic: ["italic", "i"], math: ["math", "oMath"], no_proof: ["noProof", "noProof"], outline: ["outline", "outline"], rtl: ["rtl", "rtl"], shadow: ["shadow", "shadow"], small_caps: ["smallCaps", "smallCaps"], snap_to_grid: ["snapToGrid", "snapToGrid"], spec_vanish: ["specVanish", "specVanish"], strike: ["strike", "strike"], web_hidden: ["webHidden", "webHidden"]
@@ -152,24 +157,25 @@ export class Font {
   get element(): XmlElementView { return ownerView(this.owner); }
   get name(): string | null { return attr(property(this.owner, "rPr", "rFonts"), "ascii") ?? null; }
   set name(value: string | null) { if (value !== null && typeof value !== "string") throw new InputTypeError("Expected a font name or null."); update(this.owner, "r", { font: value }); }
-  get size(): Length | null { const value = attr(property(this.owner, "rPr", "sz")); return value === undefined ? null : storedMeasure(value, "half-point"); }
+  get size(): Length | null { const node = property(this.owner, "rPr", "sz"), value = attr(node); if (node && value === undefined) throw new InvalidDocumentError("Missing stored font size."); return value === undefined ? null : storedMeasure(value, "half-point"); }
   set size(value: DocxLength | null) { value = value === null ? null : plainLength(value); if (value !== null && !validateDocxValue("Length", value)) throw new InputTypeError("Expected a font length or null."); update(this.owner, "r", { size: value === null ? null : { value: paragraphUnits(value, 1), unit: "emu" } }); }
   get underline(): boolean | EnumMember<"WD_UNDERLINE"> | null {
     const value = attr(property(this.owner, "rPr", "u")); if (value === undefined) return null;
     if (value === "single") return true; if (value === "none") return false;
     const name = Object.keys(underline).find(key => underline[key as keyof typeof underline] === value) as keyof typeof underline | undefined;
-    if (!name) throw new TypeError("Invalid underline value."); return enumFamilies.WD_UNDERLINE[name];
+    if (!name) throw new InvalidDocumentError("Invalid underline value."); return enumFamilies.WD_UNDERLINE[name];
   }
   set underline(value: boolean | DocxEnumValue<"WD_UNDERLINE"> | null) { if (!validateDocxValue("boolean | WD_UNDERLINE | null", value) || value !== null && typeof value === "object" && !Object.hasOwn(underline, value.name)) throw new InputTypeError("Invalid underline value."); update(this.owner, "r", { underline: value }); }
   get highlight_color(): EnumMember<"WD_COLOR_INDEX"> | null {
-    const value = attr(property(this.owner, "rPr", "highlight")); if (value === undefined) return null;
+    const node = property(this.owner, "rPr", "highlight"), value = attr(node); if (!node) return null;
+    if (value === undefined) throw new InvalidDocumentError("Missing stored highlight color.");
     const name = Object.keys(highlights).find(key => highlights[key as keyof typeof highlights] === value) as keyof typeof highlights | undefined;
-    if (!name) throw new TypeError("Invalid highlight color."); return enumFamilies.WD_COLOR_INDEX[name];
+    if (!name) throw new InvalidDocumentError("Invalid highlight color."); return enumFamilies.WD_COLOR_INDEX[name];
   }
   set highlight_color(value: DocxEnumValue<"WD_COLOR_INDEX"> | null) { if (!validateDocxValue("WD_COLOR_INDEX | null", value) || value !== null && !Object.hasOwn(highlights, value.name)) throw new InputTypeError("Invalid highlight color."); update(this.owner, "r", { highlight: value }); }
-  get superscript(): boolean | null { const value = attr(property(this.owner, "rPr", "vertAlign")); return value === undefined ? null : value === "superscript"; }
+  get superscript(): boolean | null { const value = storedFormattingToken(property(this.owner, "rPr", "vertAlign"), "val", ["baseline", "superscript", "subscript"], "Invalid vertical alignment.", true); return value === undefined ? null : value === "superscript"; }
   set superscript(value: boolean | null) { this.baseline("superscript", value); }
-  get subscript(): boolean | null { const value = attr(property(this.owner, "rPr", "vertAlign")); return value === undefined ? null : value === "subscript"; }
+  get subscript(): boolean | null { const value = storedFormattingToken(property(this.owner, "rPr", "vertAlign"), "val", ["baseline", "superscript", "subscript"], "Invalid vertical alignment.", true); return value === undefined ? null : value === "subscript"; }
   set subscript(value: boolean | null) { this.baseline("subscript", value); }
   private baseline(mode: "subscript" | "superscript", value: boolean | null): void {
     tri(value);
@@ -195,10 +201,11 @@ export class ParagraphFormat {
   equals(other: unknown): boolean { return other instanceof ParagraphFormat && (this.owner.identity ?? this.owner) === (other.owner.identity ?? other.owner); }
   get element(): XmlElementView { return ownerView(this.owner); }
   get alignment(): EnumMember<"WD_PARAGRAPH_ALIGNMENT"> | null {
-    const value = attr(property(this.owner, "pPr", "jc")); if (value === undefined) return null;
+    const node = property(this.owner, "pPr", "jc"), value = attr(node); if (!node) return null;
+    if (value === undefined) throw new InvalidDocumentError("Missing stored paragraph alignment.");
     const normalized = value === "start" ? "left" : value === "end" ? "right" : value;
     const name = Object.keys(paragraphAlignments).find(key => paragraphAlignments[key as keyof typeof paragraphAlignments] === normalized) as keyof typeof paragraphAlignments | undefined;
-    if (!name) throw new TypeError("Invalid paragraph alignment."); return enumFamilies.WD_PARAGRAPH_ALIGNMENT[name];
+    if (!name) throw new InvalidDocumentError("Invalid paragraph alignment."); return enumFamilies.WD_PARAGRAPH_ALIGNMENT[name];
   }
   set alignment(value: DocxEnumValue<"WD_PARAGRAPH_ALIGNMENT"> | null) { if (!validateDocxValue("WD_PARAGRAPH_ALIGNMENT | null", value)) throw new InputTypeError("Invalid paragraph alignment."); update(this.owner, "p", { alignment: value }); }
   get right_indent(): Length | null { const node = property(this.owner, "pPr", "ind"), value = attr(node, "end") ?? attr(node, "right"); return value === undefined ? null : storedMeasure(value); }
@@ -210,10 +217,10 @@ export class ParagraphFormat {
   get space_after(): Length | null { const value = attr(property(this.owner, "pPr", "spacing"), "after"); return value === undefined ? null : storedMeasure(value, "unsigned-twip"); }
   set space_after(value: DocxLength | null) { this.length("spaceAfter", value); }
   private length(option: "rightIndent" | "firstLineIndent" | "spaceBefore" | "spaceAfter", value: DocxLength | null): void { value = value === null ? null : plainLength(value); if (!validateDocxValue("Length | null", value)) throw new InputTypeError("Expected a length or null."); update(this.owner, "p", { [option]: value }); }
-  get line_spacing(): Length | number | null { const node = property(this.owner, "pPr", "spacing"), value = attr(node, "line"); return value === undefined ? null : ["exact", "atLeast"].includes(attr(node, "lineRule") ?? "auto") ? storedMeasure(value) : storedMeasure(value).emu / 152400; }
+  get line_spacing(): Length | number | null { const node = property(this.owner, "pPr", "spacing"), value = attr(node, "line"), rule = storedFormattingToken(node, "lineRule", ["auto", "exact", "atLeast"], "Invalid line spacing rule."); return value === undefined ? null : ["exact", "atLeast"].includes(rule ?? "auto") ? storedMeasure(value) : storedMeasure(value).emu / 152400; }
   set line_spacing(value: DocxLength | number | null) { value = value !== null && typeof value === "object" ? plainLength(value) : value; if (!validateDocxValue("Length | finite number | null", value)) throw new InputTypeError("Invalid line spacing."); update(this.owner, "p", { lineSpacing: value, ...(value !== null && typeof value === "object" && this.line_spacing_rule?.name === "AT_LEAST" ? { lineSpacingRule: { enum: "WD_LINE_SPACING", name: "AT_LEAST" } as const } : {}) }); }
   get line_spacing_rule(): EnumMember<"WD_LINE_SPACING"> | null {
-    const node = property(this.owner, "pPr", "spacing"), rule = attr(node, "lineRule"), line = attr(node, "line"); if (line === undefined && rule === undefined) return null;
+    const node = property(this.owner, "pPr", "spacing"), rule = storedFormattingToken(node, "lineRule", ["auto", "exact", "atLeast"], "Invalid line spacing rule."), line = attr(node, "line"); if (line === undefined && rule === undefined) return null;
     const emu = line === undefined ? undefined : storedMeasure(line).emu;
     const name = rule === "exact" ? "EXACTLY" : rule === "atLeast" ? "AT_LEAST" : emu === 152400 ? "SINGLE" : emu === 228600 ? "ONE_POINT_FIVE" : emu === 304800 ? "DOUBLE" : "MULTIPLE";
     return enumFamilies.WD_LINE_SPACING[name];
@@ -415,12 +422,12 @@ export class ColorFormat {
   get part(): unknown { return this.owner.part ?? null; }
   equals(other: unknown): boolean { return other instanceof ColorFormat && (this.owner.identity ?? this.owner) === (other.owner.identity ?? other.owner); }
   get element(): XmlElementView { return ownerView(this.owner); }
-  get rgb(): RGBColor | null { const value = attr(property(this.owner, "rPr", "color")); return value === undefined || value === "auto" ? null : RGBColor.from_string(value); }
+  get rgb(): RGBColor | null { const value = attr(property(this.owner, "rPr", "color")); if (value === undefined || value === "auto") return null; if (!validateDocxValue("RGBColor", value)) throw new InvalidDocumentError("Invalid stored RGB color."); return RGBColor.from_string(value); }
   set rgb(value: RGBColor | null) { if (value !== null && !(value instanceof RGBColor)) throw new InputTypeError("Expected RGBColor or null."); if (value === null && !property(this.owner, "rPr", "color")) return; update(this.owner, "r", { color: value === null ? null : value.toString() }); }
   get theme_color(): EnumMember<"MSO_THEME_COLOR"> | null {
     const value = attr(property(this.owner, "rPr", "color"), "themeColor"); if (value === undefined) return null;
     const name = Object.keys(themes).find(key => themes[key as keyof typeof themes] === value) as keyof typeof themes | undefined;
-    if (!name) throw new TypeError("Invalid theme color."); return enumFamilies.MSO_THEME_COLOR[name];
+    if (!name) throw new InvalidDocumentError("Invalid theme color."); return enumFamilies.MSO_THEME_COLOR[name];
   }
   set theme_color(value: DocxEnumValue<"MSO_THEME_COLOR"> | null) { if (!validateDocxValue("MSO_THEME_COLOR | null", value) || value !== null && !Object.hasOwn(themes, value.name)) throw new InputTypeError("Invalid theme color."); if (value === null && !property(this.owner, "rPr", "color")) return; if (value !== null && !property(this.owner, "rPr", "color")) {
       update(this.owner, "r", { color: "000000", themeColor: value });

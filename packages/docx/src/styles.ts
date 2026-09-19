@@ -13,7 +13,7 @@ import { DocumentArchiveEditor } from "./package-write.js";
 import { type XmlElement } from "./package-xml.js";
 import { paragraphProperties, newTabStopXml, paragraphUnits } from "./paragraph-properties.js";
 import { formattedRunProperties } from "./run-properties.js";
-import { inheritStyleProperties, mergeStyleChildren, styleIds, readStyleProperties, styleAttribute as attr, styleChild, styleToggle, styleInteger, type StyleProperties } from "./style-properties.js";
+import { inheritStyleProperties, mergeStyleChildren, readStyleProperties, styleAttribute as attr, styleChild, styleToggle, styleInteger, type StyleProperties } from "./style-properties.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { validateDocumentArchive, SemanticValidationError, type ValidationDiagnostic } from "./validation.js";
 import { DocumentXmlEditor, replaceActiveStyleXml, UnsupportedEditError, replaceNativeTabCollectionXml } from "./xml-write.js";
@@ -124,10 +124,12 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
   const budget = settings.budget.lower(Object.fromEntries((opts.limit ?? []).map(v => [v.name, v.value])));
   let archive = await readDocumentArchive(input, { ...settings, budget });
   assertDocumentEditable(archive, { ...settings, budget });
+  if (operation === "styles.add" && opts.type === "numbering")
+    throw new UnsupportedEditError("Direct utility creation of numbering styles is unsupported; use the typed style model.");
   const report = validateDocumentArchive(archive, {}, budget);
   if (!report.valid) throw new SemanticValidationError(report.diagnostics);
   let added = false;
-  if (operation === "styles.add" && opts.type !== "numbering") {
+  if (operation === "styles.add") {
     if (!["paragraph", "character", "table"].includes(opts.type!)) throw new UnsupportedEditError("Creation supports paragraph, character and table styles.");
     archive = await createDocumentArchive({ template: input, content: { version: 1, blocks: [], styles: [{ name: opts.name, type: opts.type as "paragraph" | "character" | "table" }] } }, { ...settings, budget });
     added = true;
@@ -136,23 +138,10 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
   const absentPart = part === undefined;
   let writable = archive;
   if (!part) {
-    if (operation !== "styles.defaults.set" && !operation.startsWith("styles.latent.") && !(operation === "styles.add" && opts.type === "numbering")) throw new SelectionError("missing-selection");
+    if (operation !== "styles.defaults.set" && !operation.startsWith("styles.latent.")) throw new SelectionError("missing-selection");
     const materialized = addDocumentStylesPart(archive, archive, "", budget);
     part = materialized.name;
     writable = { ...archive, ...materialized.archive };
-  }
-  if (operation === "styles.add" && opts.type === "numbering") {
-    const insertion = new DocumentArchiveEditor(writable, {}, undefined, budget), xml = insertion.xml(part), children = activeXmlChildren(xml, budget);
-    const definitions = children(xml.root).filter(node => node.namespace === xml.root.namespace && node.localName === "style");
-    if (definitions.some(node => {
-      const stored = attr(styleChild(node, "name", children), "val");
-      return stored !== undefined && styleDisplayName(stored, !storedBoolean(attr(node, "customStyle") ?? "0")) === opts.name;
-    })) throw new InvalidValueError("A declared style name already exists.");
-    const ids = styleIds(xml.root, budget);
-    let serial = 1; while (ids.has(`Style${serial}`)) { budget.charge("work", 1); serial++; }
-    const w = xml.root.namespace;
-    xml.insertChildren(xml.root, `<st:style xmlns:st="${w}" st:type="numbering" st:customStyle="1" st:styleId="Style${serial}"><st:name st:val="${xmlValue(opts.name)}"/></st:style>`);
-    writable = { ...writable, ...insertion.snapshot() }; added = true;
   }
   const editor = new DocumentArchiveEditor(writable, {}, undefined, budget);
   const xml = editor.xml(part), w = xml.root.namespace;

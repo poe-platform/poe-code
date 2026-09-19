@@ -165,16 +165,18 @@ export class Paragraph {
   add_run(text?: string | null, style?: string | CharacterStyle | null): Run {
     if (text !== undefined && text !== null && typeof text !== "string")
       throw new InputTypeError("Expected run text.");
-    const styleId =
-      style === undefined || style === null
-        ? null
-        : this.store.stylesForStory(this.ref.part).get_style_id(style, WD_STYLE_TYPE.CHARACTER);
-    this.store.change(this.ref.part, (xml) => {
+    return this.store.transaction(() => {
+      const styleId =
+        style === undefined || style === null
+          ? null
+          : this.store.stylesForStory(this.ref.part).get_style_id(style, WD_STYLE_TYPE.CHARACTER);
+      this.store.change(this.ref.part, (xml) => {
+        const p = this.store.node(this.ref);
+        xml.insertChildren(p, paragraphTextRun(p.namespace, text ?? "", styleId ?? undefined));
+      });
       const p = this.store.node(this.ref);
-      xml.insertChildren(p, paragraphTextRun(p.namespace, text ?? "", styleId ?? undefined));
+      return this.store.run(this.store.ref(this.ref.part, p.children.at(-1)!));
     });
-    const p = this.store.node(this.ref);
-    return this.store.run(this.store.ref(this.ref.part, p.children.at(-1)!));
   }
   clear(): this {
     this.text = "";

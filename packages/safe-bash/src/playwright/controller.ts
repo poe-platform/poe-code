@@ -68,7 +68,11 @@ export interface PlaywrightSessionPersistence {
   inspectRecovery?(request: { readonly name: string; readonly signal: AbortSignal }): Promise<{
     readonly hasStorage: boolean; readonly operation?: PlaywrightOperationOutcome;
   }>;
-  /** Host must durably commit running before returning; never include command payloads. */
+  /** Host must durably commit running before returning; never include command payloads.
+   * Terminal updates must atomically match an existing receipt's operationId;
+   * ignore absent or superseded receipts rather than inserting them.
+   * Successful delete-data retires the receipt without a terminal callback.
+   */
   recordOperation?(request: { readonly name: string; readonly operation: PlaywrightOperationOutcome }, signal: AbortSignal): Promise<void>;
   /** Enumerates only this owner's resumable profiles; never allocates browsers. */
   list?(signal: AbortSignal): Promise<readonly { readonly name: string; readonly expiresAt?: number }[]>;
@@ -91,6 +95,7 @@ export interface PlaywrightSessionPersistence {
   checkpoint(session: PlaywrightSessionCheckpoint, signal: AbortSignal): Promise<void | PlaywrightCheckpointOutcome>;
   /** Explicit closure suppresses automatic resume without deleting saved state. */
   close?(name: string | undefined, signal: AbortSignal): Promise<void>;
+  /** Delete saved data and its operation receipt before returning successfully. */
   delete(name: string, signal: AbortSignal): Promise<void>;
 }
 interface Session {
@@ -831,8 +836,9 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         return;
       }
       await enqueue(parsed.session, async () => {
+        let receiptRetired = false;
         const recordOutcome = async (status: PlaywrightOperationOutcome['status'], signal: AbortSignal) => {
-          if (operationId === undefined) return;
+          if (operationId === undefined || receiptRetired) return;
           const outcome = parsePlaywrightOperationOutcome({ operationId, status });
           outcomes.set(parsed.session, outcome);
           await options.persistence?.recordOperation?.({ name: parsed.session, operation: outcome }, signal);
@@ -992,7 +998,12 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             explicitlyClosed.add(parsed.session);
             const errors: unknown[] = [];
             try { if (session && session.state !== 'closed') await release(session); } catch (error) { errors.push(error); }
-            try { await options.persistence?.delete(parsed.session, local.signal); sessions.delete(parsed.session); } catch (error) { errors.push(error); }
+            try {
+              await options.persistence?.delete(parsed.session, local.signal);
+              receiptRetired = true;
+              outcomes.delete(parsed.session);
+              sessions.delete(parsed.session);
+            } catch (error) { errors.push(error); }
             if (errors.length === 1) throw errors[0];
             if (errors.length) throw new AggregateError(errors, 'Playwright retirement and data deletion failed');
             await write(parsed.json ? JSON.stringify({ session: parsed.session, deleted: !!session || !!options.persistence }, null, 2) + '\n'

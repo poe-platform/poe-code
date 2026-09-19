@@ -114,7 +114,10 @@ Optional persistence callbacks operate within the host's trusted owner scope:
   one-time URL. Explicitly closed sessions remain absent until explicitly opened.
 - `close` suppresses automatic restoration without requiring storage deletion.
   An undefined name closes all saved aliases for that owner.
-- `delete` removes the named profile.
+- `delete` removes the named profile and its operation receipt before returning
+  successfully. Once deletion succeeds, the controller forgets its local receipt
+  and sends no terminal `recordOperation` callback, even if later output or
+  cleanup fails. Failed deletion still records `unknown`.
 
 Host-only `inspectRecovery({ name, signal? })` returns `live-page`,
 `saved-storage`, or `unavailable`, with `livePageStateLost` and optional
@@ -136,6 +139,11 @@ commit `running` before returning. It runs before session-command effects,
 including automatic restoration. Hosts may provide an opaque `operationId` on
 SDK invocations; otherwise a UUID is generated when recording is enabled.
 Successful commands record `completed`; errors and cancellation record `unknown`.
+Successful `delete-data` retires its running receipt instead. Terminal updates
+must atomically match an existing receipt's `operationId`: ignore them if the
+receipt was deleted or replaced by a newer running admission. Never upsert a
+terminal update. This check belongs to the host's durable store, since separate
+controllers can share an alias and local serialization cannot order their writes.
 A process killed during an effect can leave `running`; inspection reports it as
 `unknown` when no page is retained. These records are correlation, not an exactly-once protocol:
 the host must reserve effects and refuse automatic replay of uncertain work.

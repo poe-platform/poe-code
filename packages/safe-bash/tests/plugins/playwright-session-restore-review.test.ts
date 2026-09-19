@@ -41,7 +41,7 @@ function browser() {
   const node = { isConnected: true, tagName: 'BUTTON', textContent: 'Save', getAttribute: () => null };
   const native: PlaywrightElementHandle = {
     async click() { calls.clicks++; }, async fill() {}, async dispose() {},
-    async evaluate(callback) { return callback(node); },
+    async evaluate(callback, argument) { return callback(node, argument!); },
   };
   const snapshot = createSnapshotFrame([{ node, native }]);
   const pages: PlaywrightPage[] = [];
@@ -161,6 +161,82 @@ test('successful effect records completed with an automatically generated opaque
     const recovered = await controller.inspectRecovery({ name: 'owned' });
     assert.equal(recovered.status, 'live-page');
     assert.equal(recovered.operation!.status, 'completed');
+  } finally { await controller.dispose(); }
+});
+
+test('delete-data retires durable receipts even when output fails after deletion', async () => {
+  for (const outputFails of [false, true]) {
+    const receipts = new Map<string, { operationId: string; status: string }>();
+    const calls: string[] = [];
+    const failure = new Error('output unavailable');
+    const controller = createPlaywrightController({ adapter: browser().adapter, persistence: {
+      async recordOperation({ name, operation }) { calls.push(operation.status); receipts.set(name, operation); },
+      async restore() { return undefined; }, async checkpoint() {},
+      async delete(name) { calls.push('delete'); receipts.delete(name); },
+    } });
+    try {
+      const deletion = controller.run({ args: ['-s=owned', 'delete-data'], operationId: 'delete-123',
+        env: {}, signal: new AbortController().signal, async write() { if (outputFails) throw failure; } });
+      if (outputFails) await assert.rejects(deletion, error => error === failure);
+      else await deletion;
+      assert.deepEqual(calls, ['running', 'delete']);
+      assert.equal(receipts.has('owned'), false);
+      assert.equal((await controller.inspectRecovery({ name: 'owned' })).operation, undefined);
+    } finally { await controller.dispose(); }
+  }
+});
+
+test('durable terminal updates cannot replace a newer admission from another controller', async () => {
+  const old = browser();
+  const next = browser();
+  const terminalEntered = deferred();
+  const terminalRelease = deferred();
+  const effectEntered = deferred();
+  const effectRelease = deferred();
+  const receipts = new Map<string, { operationId: string; status: string }>();
+  const persistence = {
+    async recordOperation({ name, operation }: { name: string; operation: { operationId: string; status: string } }) {
+      if (operation.operationId === 'old' && operation.status !== 'running') {
+        terminalEntered.resolve();
+        await terminalRelease.promise;
+      }
+      if (operation.status === 'running' || receipts.get(name)?.operationId === operation.operationId) receipts.set(name, operation);
+    },
+    async restore() { return undefined; }, async checkpoint() {}, async delete(name: string) { receipts.delete(name); },
+  };
+  next.page.keyboard.press = async () => { effectEntered.resolve(); await effectRelease.promise; };
+  const first = createPlaywrightController({ adapter: old.adapter, persistence });
+  const second = createPlaywrightController({ adapter: next.adapter, persistence });
+  await first.restoreSession({ name: 'owned', async acquire() { return { lease: old.lease, selectedPage: old.page }; } });
+  await second.restoreSession({ name: 'owned', async acquire() { return { lease: next.lease, selectedPage: next.page }; } });
+  const earlier = first.run({ args: ['-s=owned', 'press', 'Enter'], operationId: 'old', env: {}, signal: new AbortController().signal, async write() {} });
+  await terminalEntered.promise;
+  const later = second.run({ args: ['-s=owned', 'press', 'Enter'], operationId: 'new', env: {}, signal: new AbortController().signal, async write() {} });
+  try {
+    await effectEntered.promise;
+    terminalRelease.resolve();
+    await earlier;
+    assert.deepEqual(receipts.get('owned'), { operationId: 'new', status: 'running' });
+    effectRelease.resolve();
+    await later;
+    assert.deepEqual(receipts.get('owned'), { operationId: 'new', status: 'completed' });
+  } finally {
+    terminalRelease.resolve(); effectRelease.resolve();
+    await Promise.allSettled([earlier, later]);
+    await Promise.all([first.dispose(), second.dispose()]);
+  }
+});
+
+test('failed delete-data retains an unknown durable receipt', async () => {
+  const records: string[] = [];
+  const failure = new Error('deletion unavailable');
+  const controller = createPlaywrightController({ adapter: browser().adapter, persistence: {
+    async recordOperation({ operation }) { records.push(operation.status); },
+    async restore() { return undefined; }, async checkpoint() {}, async delete() { throw failure; },
+  } });
+  try {
+    await assert.rejects(run(controller, ['-s=owned', 'delete-data']), error => error === failure);
+    assert.deepEqual(records, ['running', 'unknown']);
   } finally { await controller.dispose(); }
 });
 

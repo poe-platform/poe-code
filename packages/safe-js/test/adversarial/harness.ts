@@ -1,5 +1,3 @@
-import { performance } from "node:perf_hooks";
-
 import { formatInterpreterError } from "../../src/error/format.js";
 import { Budget, SandboxError } from "../../src/interp/budget.js";
 import { createGeneratorChannel } from "../../src/interp/generator.js";
@@ -16,7 +14,7 @@ export const ADVERSARIAL_CORPUS_SEED = 0xad5c_2026;
 const MAX_DURATION_MS = 750;
 
 export async function runAdversarialCorpus(): Promise<void> {
-  const startedAt = performance.now();
+  const startedAt = process.threadCpuUsage();
   await assertDeterministicCompletion(
     "return [1, 2, 3].map((value) => value * 2).join(',');",
     "2,4,6"
@@ -36,10 +34,13 @@ export async function runAdversarialCorpus(): Promise<void> {
   assertFailureFormattingCannotRecurseForever();
   await assertSnapshotDepthIsTyped();
 
-  const duration = performance.now() - startedAt;
+  // Bound this corpus's work without charging runner scheduling delays.
+  // Vitest separately enforces the wall-clock deadline.
+  const cpu = process.threadCpuUsage(startedAt);
+  const duration = (cpu.user + cpu.system) / 1_000;
   if (duration > MAX_DURATION_MS) {
     throw adversarialFailure({
-      cause: new Error(`corpus exceeded ${MAX_DURATION_MS}ms: ${duration.toFixed(1)}ms`),
+      cause: new Error(`corpus exceeded ${MAX_DURATION_MS}ms CPU: ${duration.toFixed(1)}ms`),
       kind: "source",
       seed: ADVERSARIAL_CORPUS_SEED,
       value: "<fast adversarial corpus>"

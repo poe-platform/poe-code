@@ -101,6 +101,35 @@ test('checkpoint keeps optional context options normalized to an empty object', 
   assert.deepEqual(parseBrowserProfile(await checkpointBrowserProfile(item.session, limits, item.controller.signal), limits), { state, tabs: [], selected: 0, contextOptions: {} });
 });
 
+test('storage-only recovery preserves context options through checkpoint and a second recovery', async () => {
+  const contextOptions = { viewport: { width: 390, height: 844 }, locale: 'pl', isMobile: true, hasTouch: true, deviceScaleFactor: 3 };
+  let saved: BrowserProfile = {
+    ...profile, contextOptions, runtimeState: { offline: true },
+    configuration: { initScripts: ['globalThis.replayed = true'] },
+  };
+  for (let generation = 0; generation < 2; generation++) {
+    const item = host();
+    const restore = mock.fn(async () => {});
+    Object.assign(item.context, { browserProfile: { async capture() { return saved.runtimeState; }, restore } });
+    const recovered = await restoreBrowserProfile({ ...item.options, profile: saved, recovery: true });
+    assert.deepEqual(item.acquire.mock.calls[0]!.arguments[0].contextOptions, { ...contextOptions, storageState: state });
+    assert.equal(recovered.recovery, 'saved-storage');
+    assert.equal(recovered.livePageStateLost, true);
+    assert.equal(recovered.initialize, undefined);
+    assert.equal(recovered.configuration, undefined);
+    assert.equal(item.pages.length, 1);
+    assert.equal(item.pages[0]!.url(), 'about:blank');
+    assert.equal((item.pages[0]!.goto as ReturnType<typeof mock.fn>).mock.callCount(), 0);
+    assert.equal(restore.mock.callCount(), 0);
+    saved = parseBrowserProfile(await checkpointBrowserProfile({
+      ...item.session, selectedPage: recovered.selectedPage,
+      ...(recovered.contextOptions === undefined ? {} : { contextOptions: recovered.contextOptions }),
+    }, limits, item.controller.signal), limits);
+    assert.deepEqual(saved.contextOptions, contextOptions);
+    await recovered.lease.release();
+  }
+});
+
 test('checkpoint does not read after initial cancellation', async () => {
   const item = host(1);
   const cancellation = new Error('cancelled checkpoint');

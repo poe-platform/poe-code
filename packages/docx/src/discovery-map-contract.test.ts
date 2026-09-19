@@ -203,6 +203,8 @@ it("keeps the current evidence snapshot joined to live declarations and every AP
   Object.assign(audit.operations, textLists.operations);
   Object.assign(native.runtimeMembers, textLists.runtimeMembers);
   native.runtimeExports = textLists.runtimeExports;
+  const tabLeader = JSON.parse(readFileSync(new URL("../../../docs/docx/text-style-family-acceptance-20260918/tab-leader-discovery-map-update.json", import.meta.url), "utf8")) as { operations: typeof audit.operations };
+  Object.assign(audit.operations, tabLeader.operations);
   Object.assign(audit.apis, native.apis);
   audit.runtimeExports = native.runtimeExports;
   expect(Object.keys(audit.operations).sort()).toEqual(Object.keys(docxOperationSchemas).sort());

@@ -8,7 +8,7 @@ import type { DocxEnumValue, DocxLength, DocxOperationArguments, DocxTabStop } f
 import type { XmlElement } from "./package-xml.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { formattedRunProperties, runElementOpen, underline, highlights, themes } from "./run-properties.js";
-import { paragraphProperties, paragraphUnits, alignments as paragraphAlignments } from "./paragraph-properties.js";
+import { paragraphProperties, paragraphUnits, tabAlignmentXml, alignments as paragraphAlignments } from "./paragraph-properties.js";
 import { validateDocxValue } from "./operation-schema.js";
 import { assertFormattingHistoryEditable } from "./revision-markup.js";
 import { activeXmlChildren } from "./xml-active-children.js";
@@ -90,7 +90,7 @@ function update(owner: FormattingXmlOwner, kind: "r" | "p", values: DocxOperatio
     binding.change(xml => {
       const root = binding.resolve(xml), children = activeXmlChildren(xml, ownerBudget(owner)), props = child(root, kind + "Pr", children);
       assertFormattingHistoryEditable(xml.root, root, children, ownerBudget(owner));
-      let replacement = kind === "r" ? formattedRunProperties(xml, root, values as DocxOperationArguments<"runs.set">, children) : paragraphProperties(xml, root, values as DocxOperationArguments<"paragraphs.set">, undefined, children);
+      let replacement = kind === "r" ? formattedRunProperties(xml, root, values as DocxOperationArguments<"runs.set">, children) : paragraphProperties(xml, root, values as DocxOperationArguments<"paragraphs.set">, undefined, children, null);
       // Formatting setters retain or materialize their documented property owner.
       if (!replacement) replacement = props ? runElementOpen(props) + `</${props.name}>` : `<fmt:${kind}Pr xmlns:fmt="${root.namespace}"/>`;
       if (props) { if (replacement !== xml.sourceXml(props)) xml.replaceElement(props, replacement); }
@@ -102,7 +102,7 @@ function update(owner: FormattingXmlOwner, kind: "r" | "p", values: DocxOperatio
   if (root.localName !== kind) throw new TypeError("Formatting requires the matching admitted owner element.");
   assertFormattingHistoryEditable(xml.root, root, activeXmlChildren(xml, ownerBudget(owner)), ownerBudget(owner));
   const props = child(root, kind + "Pr");
-  let replacement = kind === "r" ? formattedRunProperties(xml, root, values as DocxOperationArguments<"runs.set">) : paragraphProperties(xml, root, values as DocxOperationArguments<"paragraphs.set">);
+  let replacement = kind === "r" ? formattedRunProperties(xml, root, values as DocxOperationArguments<"runs.set">) : paragraphProperties(xml, root, values as DocxOperationArguments<"paragraphs.set">, undefined, undefined, null);
   if (!replacement) replacement = `<fmt:${kind}Pr xmlns:fmt="${root.namespace}"/>`;
   const patches = new Map<XmlElement, string>(); if (props) patches.set(props, replacement);
   owner.setXml(runElementOpen(root) + (props ? "" : replacement) + xml.sourceXml(root, patches, true) + `</${root.name}>`);
@@ -309,8 +309,9 @@ export class TabStops implements Iterable<TabStop> {
   add_tab_stop(position: DocxLength, alignment: DocxEnumValue<"WD_TAB_ALIGNMENT"> = { enum: "WD_TAB_ALIGNMENT", name: "LEFT" }, leader: DocxEnumValue<"WD_TAB_LEADER"> = { enum: "WD_TAB_LEADER", name: "SPACES" }): TabStop {
     this.refresh(); const value = { position: plainLength(position), alignment, leader };
     if (!validateDocxValue("{position: Length; alignment?: WD_TAB_ALIGNMENT; leader?: WD_TAB_LEADER}", value)) throw new TypeError("Expected valid tab stop properties.");
+    const nativeAlignment = tabAlignmentXml(readView(this.owner).root.namespace, alignment.name);
     update(this.owner, "p", { tabStopAdd: value });
-    const record = { id: this.nextId++, value: { ...value, position: { value: paragraphUnits(position), unit: "twip" as const } } };
+    const record = { id: this.nextId++, value: { ...value, alignment: { enum: "WD_TAB_ALIGNMENT" as const, name: alignments[nativeAlignment as keyof typeof alignments] }, position: { value: paragraphUnits(position), unit: "twip" as const } } };
     this.records.push(record); this.records.sort((a, b) => a.value.position.value - b.value.position.value); this.remember();
     return new TabStop(this, record.id);
   }
@@ -322,6 +323,7 @@ export class TabStops implements Iterable<TabStop> {
     this.refresh(); const index = this.records.findIndex(r => r.id === id); if (index < 0) throw new StaleHandleError("Tab stop handle is no longer valid.");
     const value = { ...this.records[index]!.value, ...patch, ...(patch.position !== undefined ? { position: plainLength(patch.position) } : {}) };
     if (!validateDocxValue("{position: Length; alignment?: WD_TAB_ALIGNMENT; leader?: WD_TAB_LEADER}", value)) throw new TypeError("Expected valid tab stop properties.");
+    const nativeAlignment = patch.alignment === undefined ? undefined : tabAlignmentXml(readView(this.owner).root.namespace, patch.alignment.name);
     const binding = formattingXmlOwners.get(this.owner);
     const apply = (xml: DocumentXmlEditor, root: XmlElement) => {
       const children = activeXmlChildren(xml, ownerBudget(this.owner)), props = child(root, "pPr", children), tabs = props && child(props, "tabs", children);
@@ -329,7 +331,7 @@ export class TabStops implements Iterable<TabStop> {
       if (!tabs || !node || !xml.compatibility.canEdit(node)) throw new UnsupportedEditError("The tab stop is inside preserved compatibility content.");
       const values: Record<string, string | null> = {};
       if (patch.position !== undefined) values.pos = String(paragraphUnits(value.position));
-      if (patch.alignment !== undefined) values.val = Object.keys(alignments).find(key => alignments[key as keyof typeof alignments] === value.alignment!.name)!;
+      if (nativeAlignment !== undefined) values.val = nativeAlignment;
       if (patch.leader !== undefined) values.leader = value.leader!.name === "SPACES" ? null : Object.keys(leaders).find(key => leaders[key as keyof typeof leaders] === value.leader!.name)!;
       let prefix = [...node.namespaces].find(([name, namespace]) => name && namespace === node.namespace)?.[0] ?? "tf";
       while (node.namespaces.has(prefix) && node.namespaces.get(prefix) !== node.namespace) prefix += "f";
@@ -347,7 +349,7 @@ export class TabStops implements Iterable<TabStop> {
     else {
       const xml = editor(this.owner); apply(xml, xml.root); this.owner.setXml(new TextDecoder().decode(xml.serialize()));
     }
-        const record = { id, value: { ...value, position: { value: paragraphUnits(value.position), unit: "twip" as const } } };
+        const record = { id, value: { ...value, ...(nativeAlignment === undefined ? {} : {alignment: { enum: "WD_TAB_ALIGNMENT" as const, name: alignments[nativeAlignment as keyof typeof alignments] }}), position: { value: paragraphUnits(value.position), unit: "twip" as const } } };
     if (patch.position !== undefined) { this.records.splice(index, 1); this.records.push(record); this.records.sort((a, b) => a.value.position.value - b.value.position.value); }
     else this.records[index] = record;
     this.remember();

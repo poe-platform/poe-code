@@ -638,7 +638,7 @@ interface MaintainedDocxOperationArgumentMap {
   "model.text.tabstops.TabStop.alignment.get": Readonly<Record<string, never>>;
   "model.text.tabstops.TabStop.alignment.set": Readonly<{ "value": DocxEnumValue<"WD_TAB_ALIGNMENT"> }>;
   "model.text.tabstops.TabStop.leader.get": Readonly<Record<string, never>>;
-  "model.text.tabstops.TabStop.leader.set": Readonly<{ "value": DocxEnumValue<"WD_TAB_LEADER"> }>;
+  "model.text.tabstops.TabStop.leader.set": Readonly<{ "value": DocxEnumValue<"WD_TAB_LEADER"> | null }>;
   "model.text.tabstops.TabStop.position.get": Readonly<Record<string, never>>;
   "model.text.tabstops.TabStop.position.set": Readonly<{ "value": DocxLength }>;
   "model.text.tabstops.TabStops.add_tab_stop.call": Readonly<{ "position": DocxLength; "alignment"?: DocxEnumValue<"WD_TAB_ALIGNMENT"> | undefined; "leader"?: DocxEnumValue<"WD_TAB_LEADER"> | undefined }>;
@@ -2164,7 +2164,7 @@ interface DocxLiteralBatchArgumentMap extends
   "model.text.tabstops.TabStop.alignment.get": Readonly<Record<string, never>>;
   "model.text.tabstops.TabStop.alignment.set": Readonly<{ "value": DocxEnumValue<"WD_TAB_ALIGNMENT"> }>;
   "model.text.tabstops.TabStop.leader.get": Readonly<Record<string, never>>;
-  "model.text.tabstops.TabStop.leader.set": Readonly<{ "value": DocxEnumValue<"WD_TAB_LEADER"> }>;
+  "model.text.tabstops.TabStop.leader.set": Readonly<{ "value": DocxEnumValue<"WD_TAB_LEADER"> | null }>;
   "model.text.tabstops.TabStop.position.get": Readonly<Record<string, never>>;
   "model.text.tabstops.TabStop.position.set": Readonly<{ "value": DocxLength }>;
   "model.text.tabstops.TabStops.add_tab_stop.call": Readonly<{ "position": DocxLength; "alignment"?: DocxEnumValue<"WD_TAB_ALIGNMENT"> | undefined; "leader"?: DocxEnumValue<"WD_TAB_LEADER"> | undefined }>;

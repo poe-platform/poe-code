@@ -19,11 +19,18 @@ export function paragraphUnits(value: DocxLength, divisor = 635): number {
 const order = "pStyle keepNext keepLines pageBreakBefore framePr widowControl numPr suppressLineNumbers pBdr shd tabs suppressAutoHyphens kinsoku wordWrap overflowPunct topLinePunct autoSpaceDE autoSpaceDN bidi adjustRightInd snapToGrid spacing ind contextualSpacing mirrorIndents suppressOverlap jc textDirection textAlignment textboxTightWrap outlineLvl divId cnfStyle rPr sectPr pPrChange".split(" ");
 export const alignments = { LEFT: "left", CENTER: "center", RIGHT: "right", JUSTIFY: "both", DISTRIBUTE: "distribute", JUSTIFY_MED: "mediumKashida", JUSTIFY_HI: "highKashida", JUSTIFY_LOW: "lowKashida", THAI_JUSTIFY: "thaiDistribute" };
 const tabAlignments = { LEFT: "left", CENTER: "center", RIGHT: "right", DECIMAL: "decimal", BAR: "bar", LIST: "list", CLEAR: "clear", END: "end", NUM: "num", START: "start" };
+/** Native tab alignment spelling and dialect admission are shared by all editors. */
+export function tabAlignmentXml(namespace: string, name: DocxEnumNames["WD_TAB_ALIGNMENT"]): string {
+  const strict = namespace === documentDialects.strict.w;
+  if (strict && name === "LIST") throw new UnsupportedEditError("The deprecated list tab alignment is unavailable in Strict documents.");
+  const value = tabAlignments[name];
+  return strict ? ({ left: "start", right: "end" }[value] ?? value) : value;
+}
 const leaders = { SPACES: "none", DOTS: "dot", DASHES: "hyphen", LINES: "underscore", HEAVY: "heavy", MIDDLE_DOT: "middleDot" };
 export const paragraphLineMultiples: Readonly<Partial<Record<DocxEnumNames["WD_LINE_SPACING"], number>>> = { SINGLE: 1, ONE_POINT_FIVE: 1.5, DOUBLE: 2 };
 
 /** Merge supplied direct properties while retaining untouched lexical content. */
-export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElement, options: DocxOperationArguments<"paragraphs.set">, styleId?: string, children: (node: XmlElement) => readonly XmlElement[] = node => node.children): string {
+export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElement, options: DocxOperationArguments<"paragraphs.set">, styleId?: string, children: (node: XmlElement) => readonly XmlElement[] = node => node.children, spacesLeader: "none" | null = "none"): string {
   const w = paragraph.namespace;
   const strict = w === documentDialects.strict.w;
   const directional = (value: string) => strict ? ({ left: "start", right: "end" }[value] ?? value) : value;
@@ -105,8 +112,7 @@ export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElemen
     }
   }
   if (Object.keys(spacing).length) set("spacing", spacing);
-  if (strict && options.tabStops?.some(tab => tab.alignment?.name === "LIST")) throw new UnsupportedEditError("The deprecated list tab alignment is unavailable in Strict documents.");
-  if (options.tabStops !== undefined) set("tabs", options.tabStops === null || options.tabStops.length === 0 ? null : {}, options.tabStops?.slice().sort((a, b) => paragraphUnits(a.position) - paragraphUnits(b.position)).map(tab => element("tab", { pos: String(paragraphUnits(tab.position)), val: directional(tabAlignments[tab.alignment?.name ?? "LEFT"]), leader: leaders[tab.leader?.name ?? "SPACES"] })).join(""));
+  if (options.tabStops !== undefined) set("tabs", options.tabStops === null || options.tabStops.length === 0 ? null : {}, options.tabStops?.slice().sort((a, b) => paragraphUnits(a.position) - paragraphUnits(b.position)).map(tab => element("tab", { pos: String(paragraphUnits(tab.position)), val: tabAlignmentXml(w, tab.alignment?.name ?? "LEFT"), leader: !tab.leader || tab.leader.name === "SPACES" ? spacesLeader : leaders[tab.leader.name] })).join(""));
   if (options.tabStopsClear === true) set("tabs", null);
   if (options.tabStopAdd !== undefined || options.tabStopDelete !== undefined) {
     const container = find("tabs");
@@ -120,9 +126,8 @@ export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElemen
       changes.set(stop, "");
     } else {
       const tab = options.tabStopAdd!;
-      if (strict && tab.alignment?.name === "LIST") throw new UnsupportedEditError("The deprecated list tab alignment is unavailable in Strict documents.");
       const position = paragraphUnits(tab.position);
-      const markup = element("tab", { pos: String(position), val: directional(tabAlignments[tab.alignment?.name ?? "LEFT"]), leader: leaders[tab.leader?.name ?? "SPACES"] });
+      const markup = element("tab", { pos: String(position), val: tabAlignmentXml(w, tab.alignment?.name ?? "LEFT"), leader: !tab.leader || tab.leader.name === "SPACES" ? spacesLeader : leaders[tab.leader.name] });
       const positions = stops.map(stop => {
         const stored = stop.attributes.find(a => a.namespace === w && a.localName === "pos")?.value;
         if (stored === undefined || stored.trim() === "" || !Number.isSafeInteger(Number(stored))) throw new UnsupportedEditError("Malformed tab stop positions cannot be edited.");

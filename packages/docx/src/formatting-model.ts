@@ -371,7 +371,10 @@ export class TabStop {
   get alignment(): EnumMember<"WD_TAB_ALIGNMENT"> { return enumFamilies.WD_TAB_ALIGNMENT[this.collection.value(this.id).alignment!.name]; }
   set alignment(value: DocxEnumValue<"WD_TAB_ALIGNMENT">) { this.collection.change(this.id, { alignment: value }); }
   get leader(): EnumMember<"WD_TAB_LEADER"> { return enumFamilies.WD_TAB_LEADER[this.collection.value(this.id).leader!.name]; }
-  set leader(value: DocxEnumValue<"WD_TAB_LEADER"> | null) { this.collection.change(this.id, { leader: value ?? { enum: "WD_TAB_LEADER", name: "SPACES" } }); }
+  set leader(value: DocxEnumValue<"WD_TAB_LEADER"> | null) {
+    if (value === undefined) throw new InputTypeError("Expected a tab leader or explicit null reset.");
+    this.collection.change(this.id, { leader: value ?? { enum: "WD_TAB_LEADER", name: "SPACES" } });
+  }
 }
 
 function assertRgbSearchValue(value: unknown): asserts value is number {

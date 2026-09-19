@@ -171,7 +171,7 @@ export class Styles implements Iterable<BaseStyle> {
     const styles = [...this], exact = styles.filter(style => style.name === name);
     const matches = exact.length ? exact : styles.filter(style => style.builtin && style.name !== null && styleStoredName(style.name) === styleStoredName(name));
     if (matches.length === 1) return matches[0]!;
-    if (matches.length > 1) throw new RangeError("Style name is ambiguous.");
+    if (matches.length > 1) throw new InvalidValueError("Style name is ambiguous.");
     const byId = [...this].find(style => style.style_id === name);
     if (!byId) throw new MissingKeyError("Style name was not found.");
     this.store.warnings.push({ code: "deprecated-style-id-lookup" });
@@ -271,7 +271,7 @@ export class BaseStyle {
   get type(): DocxEnumValue<"WD_STYLE_TYPE"> {
     const type = attr(this.rawElement, "type") ?? "paragraph";
     const key = (Object.keys(types) as (keyof typeof types)[]).find(k => types[k] === type);
-    if (!key) throw new TypeError("Unknown style type.");
+    if (!key) throw new InvalidValueError("Unknown style type.");
     return WD_STYLE_TYPE[key];
   }
   get builtin(): boolean { return !["1", "true", "on"].includes(attr(this.rawElement, "customStyle") ?? "0"); }
@@ -325,7 +325,7 @@ export class CharacterStyle extends BaseStyle {
     const visited = new Set<string | null>();
     let next = value;
     while (next) {
-      if (next.style_id === this.style_id || visited.has(next.style_id)) throw new RangeError("A style base cannot form a cycle.");
+      if (next.style_id === this.style_id || visited.has(next.style_id)) throw new InvalidValueError("A style base cannot form a cycle.");
       visited.add(next.style_id); next = next instanceof CharacterStyle ? next.base_style : null;
     }
     this.setValue("basedOn", value?.style_id ?? null);

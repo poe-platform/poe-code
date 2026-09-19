@@ -73,7 +73,11 @@ export async function inspectDocumentStyles(input: Uint8Array, options: StyleIns
   const runDefaults = readStyleProperties(child(child(defaults, "rPrDefault"), "rPr"), undefined, children);
   const paragraphDefaults = readStyleProperties(undefined, child(child(defaults, "pPrDefault"), "pPr"), children);
   const defined = new Map(nodes.map(n => [attr(n, "styleId"), n]));
-  const name = (id: string | undefined): string | null => id === undefined ? null : attr(child(defined.get(id), "name"), "val") ?? id;
+  const name = (id: string | undefined): string | null => {
+    if (id === undefined) return null;
+    const target = defined.get(id), stored = attr(child(target, "name"), "val");
+    return stored === undefined ? id : styleDisplayName(stored, !storedBoolean(attr(target, "customStyle") ?? "0"));
+  };
   const resolved = new Map<XmlElement, StyleProperties | null>();
   const defaultProperties = Object.fromEntries(Object.entries(runDefaults).map(([key, value]) => [key, value ?? paragraphDefaults[key as keyof StyleProperties]])) as unknown as StyleProperties;
   for (const start of nodes) {
@@ -96,9 +100,11 @@ export async function inspectDocumentStyles(input: Uint8Array, options: StyleIns
   const report = validateDocumentArchive(archive, {}, budget);
   const data: StyleInspectionData = { styles: selected.map(n => {
     const source = (tag: string) => child(n, tag) ? xml!.sourceXml(child(n, tag)!) : null;
-    return { id: attr(n, "styleId") ?? "", name: styleDisplayName(attr(child(n, "name"), "val") ?? "", !storedBoolean(attr(n, "customStyle") ?? "0")), type: attr(n, "type") ?? "paragraph",
-      builtin: !storedBoolean(attr(n, "customStyle") ?? "0"), base: name(attr(child(n, "basedOn"), "val")),
-      next: name(attr(child(n, "next"), "val")) ?? ((attr(n, "type") ?? "paragraph") === "paragraph" ? attr(child(n, "name"), "val") ?? null : null),
+    const stored = attr(child(n, "name"), "val"), builtin = !storedBoolean(attr(n, "customStyle") ?? "0");
+    const displayed = styleDisplayName(stored ?? "", builtin);
+    return { id: attr(n, "styleId") ?? "", name: displayed, type: attr(n, "type") ?? "paragraph",
+      builtin, base: name(attr(child(n, "basedOn"), "val")),
+      next: name(attr(child(n, "next"), "val")) ?? ((attr(n, "type") ?? "paragraph") === "paragraph" && stored !== undefined ? displayed : null),
       linkedStyle: name(attr(child(n, "link"), "val")), defaultForType: storedBoolean(attr(n, "default") ?? "0"),
       priority: styleInteger(attr(child(n, "uiPriority"), "val")),
       hidden: styleToggle(child(n, "semiHidden")) ?? false, locked: styleToggle(child(n, "locked")) ?? false,

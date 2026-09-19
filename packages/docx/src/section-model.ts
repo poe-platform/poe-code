@@ -1,6 +1,7 @@
 import { editActiveRelationshipXml } from "./xml-write.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
 import { BoundsError } from "./model-errors.js";
+import { UnsupportedEditError } from "./xml-write.js";
 import type { ModelRef, ModelStore } from "./model-store.js";
 import { numericSequence, snapshotSequence } from "./numeric-index.js";
 import { DocumentPackage } from "./package.js";
@@ -297,12 +298,15 @@ class HeaderFooter {
   ) {}
   private local() {
     const node = this.section.store.node(this.section.ref);
-    return activeModelChildren(this.section.store, this.section.ref.part)(node).find(
+    const bindings = activeModelChildren(this.section.store, this.section.ref.part)(node).filter(
       (child) =>
         child.namespace === node.namespace &&
         child.localName === this.kind + "Reference" &&
         sectionAttribute(child, "type") === this.variant
     );
+    if (bindings.length > 1)
+      throw new UnsupportedEditError("Duplicate section story bindings cannot be interpreted.");
+    return bindings[0];
   }
   get is_linked_to_previous(): boolean {
     return !this.local();

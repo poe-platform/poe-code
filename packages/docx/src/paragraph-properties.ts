@@ -1,7 +1,7 @@
 import { DocxUsageError } from "./argument-json.js";
 import { xmlValue } from "./create-content.js";
 import { documentDialects } from "./dialect.js";
-import type { DocxEnumNames, DocxLength, DocxOperationArguments } from "./operation-types.js";
+import type { DocxEnumNames, DocxLength, DocxOperationArguments, DocxTabStop } from "./operation-types.js";
 import type { XmlElement } from "./package-xml.js";
 import { runElementOpen } from "./run-properties.js";
 import { UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
@@ -28,6 +28,12 @@ export function tabAlignmentXml(namespace: string, name: DocxEnumNames["WD_TAB_A
 }
 const leaders = { SPACES: "none", DOTS: "dot", DASHES: "hyphen", LINES: "underscore", HEAVY: "heavy", MIDDLE_DOT: "middleDot" };
 export const paragraphLineMultiples: Readonly<Partial<Record<DocxEnumNames["WD_LINE_SPACING"], number>>> = { SINGLE: 1, ONE_POINT_FIVE: 1.5, DOUBLE: 2 };
+
+/** Construct one original native stop; model defaults retain absent space leaders. */
+export function newTabStopXml(namespace: string, tab: DocxTabStop, spacesLeader: "none" | null = "none"): string {
+  const leader = !tab.leader || tab.leader.name === "SPACES" ? spacesLeader : leaders[tab.leader.name];
+  return `<pf:tab xmlns:pf="${xmlValue(namespace)}" pf:pos="${paragraphUnits(tab.position)}" pf:val="${tabAlignmentXml(namespace, tab.alignment?.name ?? "LEFT")}"${leader === null ? "" : ` pf:leader="${leader}"`}></pf:tab>`;
+}
 
 /** Merge supplied direct properties while retaining untouched lexical content. */
 export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElement, options: DocxOperationArguments<"paragraphs.set">, styleId?: string, children: (node: XmlElement) => readonly XmlElement[] = node => node.children, spacesLeader: "none" | null = "none"): string {
@@ -127,7 +133,7 @@ export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElemen
     } else {
       const tab = options.tabStopAdd!;
       const position = paragraphUnits(tab.position);
-      const markup = element("tab", { pos: String(position), val: tabAlignmentXml(w, tab.alignment?.name ?? "LEFT"), leader: !tab.leader || tab.leader.name === "SPACES" ? spacesLeader : leaders[tab.leader.name] });
+      const markup = newTabStopXml(w, tab, spacesLeader);
       const positions = stops.map(stop => {
         const stored = stop.attributes.find(a => a.namespace === w && a.localName === "pos")?.value;
         if (stored === undefined || stored.trim() === "" || !Number.isSafeInteger(Number(stored))) throw new UnsupportedEditError("Malformed tab stop positions cannot be edited.");
@@ -138,6 +144,7 @@ export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElemen
     }
     const content = (container ? xml.sourceXml(container, changes, true) : "") + tail;
     if (options.tabStopDelete !== undefined && stops.length === 1 && container?.content.every(c => c.kind === "element" && c.namespace === w && c.localName === "tab")) set("tabs", null);
+    else if (container) patches.set(container, runElementOpen(container) + content + `</${container.name}>`);
     else set("tabs", {}, content);
   }
   if (options.shading !== undefined) set("shd", options.shading === null ? null : { fill: options.shading.fill.toUpperCase(), color: options.shading.color?.toUpperCase() ?? "auto", val: options.shading.pattern, themeFill: null, themeFillTint: null, themeFillShade: null, themeColor: null, themeTint: null, themeShade: null });

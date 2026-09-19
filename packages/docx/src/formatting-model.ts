@@ -6,9 +6,9 @@ import { numericSequence } from "./numeric-index.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
 import type { DocxEnumValue, DocxLength, DocxOperationArguments, DocxTabStop } from "./operation-types.js";
 import type { XmlElement } from "./package-xml.js";
-import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { DocumentXmlEditor, UnsupportedEditError, replaceNativeTabCollectionXml } from "./xml-write.js";
 import { formattedRunProperties, runElementOpen, underline, highlights, themes } from "./run-properties.js";
-import { paragraphProperties, paragraphUnits, tabAlignmentXml, alignments as paragraphAlignments } from "./paragraph-properties.js";
+import { paragraphProperties, paragraphUnits, tabAlignmentXml, newTabStopXml, alignments as paragraphAlignments } from "./paragraph-properties.js";
 import { validateDocxValue } from "./operation-schema.js";
 import { assertFormattingHistoryEditable } from "./revision-markup.js";
 import { activeXmlChildren } from "./xml-active-children.js";
@@ -93,6 +93,8 @@ function update(owner: FormattingXmlOwner, kind: "r" | "p", values: DocxOperatio
       let replacement = kind === "r" ? formattedRunProperties(xml, root, values as DocxOperationArguments<"runs.set">, children) : paragraphProperties(xml, root, values as DocxOperationArguments<"paragraphs.set">, undefined, children, null);
       // Formatting setters retain or materialize their documented property owner.
       if (!replacement) replacement = props ? runElementOpen(props) + `</${props.name}>` : `<fmt:${kind}Pr xmlns:fmt="${root.namespace}"/>`;
+      const tab = kind === "p" ? (values as DocxOperationArguments<"paragraphs.set">).tabStopAdd : undefined, tabs = props && child(props, "tabs", children);
+      if (tab && tabs) { xml[replaceNativeTabCollectionXml](props!, replacement, tabs, newTabStopXml(root.namespace, tab, null), paragraphUnits(tab.position)); return; }
       if (props) { if (replacement !== xml.sourceXml(props)) xml.replaceElement(props, replacement); }
       else if (replacement) xml.insertChildren(root, replacement, root.children[0]);
     });
@@ -342,7 +344,7 @@ export class TabStops implements Iterable<TabStop> {
         const next = stops.find((stop, offset) => offset !== index && Number(attr(stop, "pos")) > paragraphUnits(value.position));
         const changes = new Map<XmlElement, string>([[node, ""]]);
         if (next) changes.set(next, changed + xml.sourceXml(next));
-        xml.replaceElement(tabs, runElementOpen(tabs) + xml.sourceXml(tabs, changes, true) + (next ? "" : changed) + `</${tabs.name}>`);
+        xml[replaceNativeTabCollectionXml](tabs, runElementOpen(tabs) + xml.sourceXml(tabs, changes, true) + (next ? "" : changed) + `</${tabs.name}>`, tabs, changed, paragraphUnits(value.position), node);
       }
     };
     if (binding) binding.change(xml => apply(xml, binding.resolve(xml)));

@@ -16,9 +16,9 @@ import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentPackage } from "./package.js";
 import { DocumentArchiveEditor } from "./package-write.js";
 import { parseDocumentXml } from "./package-xml.js";
-import { copiedSplitParagraphProperties, replaceSplitParagraphXml } from "./xml-write.js";
+import { copiedSplitParagraphProperties, replaceSplitParagraphXml, replaceNativeTabCollectionXml } from "./xml-write.js";
 import { paragraphTextRun, replaceParagraphContent, splitParagraphContent } from "./paragraph-content.js";
-import { paragraphProperties } from "./paragraph-properties.js";
+import { paragraphProperties, newTabStopXml, paragraphUnits } from "./paragraph-properties.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { runElementOpen } from "./run-properties.js";
 import { resolveDocxSelection } from "./simple-selection.js";
@@ -122,7 +122,9 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
         : props ? xml.sourceXml(node, new Map([[props, properties]]))
         : runElementOpen(node) + properties + xml.sourceXml(node, new Map(), true) + `</${node.name}>`;
       if (properties === originalProps && opts.text === undefined || replacement === original) continue;
-      xml.replaceElement(node, replacement);
+      const tabs = props && children(props).find(c => c.namespace === w && c.localName === "tabs");
+      if (opts.tabStopAdd && tabs) xml[replaceNativeTabCollectionXml](node, replacement, tabs, newTabStopXml(w, opts.tabStopAdd), paragraphUnits(opts.tabStopAdd.position));
+      else xml.replaceElement(node, replacement);
       updates.push({ before, path: before.value.path, kind: opts.text === undefined ? "format" : "replace" });
       continue;
     }

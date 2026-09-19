@@ -10,12 +10,12 @@ import { documentDialects } from "./dialect.js";
 import { closedRecord, SelectionError } from "./location-token.js";
 import { DocumentArchiveEditor } from "./package-write.js";
 import { type XmlElement } from "./package-xml.js";
-import { paragraphProperties } from "./paragraph-properties.js";
+import { paragraphProperties, newTabStopXml, paragraphUnits } from "./paragraph-properties.js";
 import { formattedRunProperties } from "./run-properties.js";
 import { inheritStyleProperties, mergeStyleChildren, readStyleProperties, styleAttribute as attr, styleChild, styleToggle, styleInteger, type StyleProperties } from "./style-properties.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { validateDocumentArchive, SemanticValidationError, type ValidationDiagnostic } from "./validation.js";
-import { DocumentXmlEditor, replaceActiveStyleXml, UnsupportedEditError } from "./xml-write.js";
+import { DocumentXmlEditor, replaceActiveStyleXml, UnsupportedEditError, replaceNativeTabCollectionXml } from "./xml-write.js";
 import { editLatentStyles, readLatentStyles, type LatentStylesInfo } from "./latent-styles.js";
 import { styleDisplayName, styleStoredName } from "./style-names.js";
 import type { DocxOperationArguments } from "./operation-types.js";
@@ -214,10 +214,17 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
       if (opts[key] !== undefined) setValue(selected, tag, opts[key] ? "1" : null);
     if (opts.priority !== undefined) setValue(selected, "uiPriority", opts.priority === null ? null : String(opts.priority));
     formatting(selected);
-    for (const node of new Set([...patches.keys(), ...attributes.keys()])) {
+    const patchedStyles = [...new Set([...patches.keys(), ...attributes.keys()])];
+    // Validate related declarations before the selected tab's sanctioned insertion
+    // changes opaque positional fingerprints in its collection.
+    if (opts.tabStopAdd) patchedStyles.sort((a, b) => Number(a === selected) - Number(b === selected));
+    for (const node of patchedStyles) {
       const markup = mergeStyleChildren(xml, node, patches.get(node) ?? new Map(), styleOrder, attributes.get(node), children);
       if (markup === xml.sourceXml(node)) continue;
-      xml[replaceActiveStyleXml](node, markup); changes.push({ kind: "style", id: attr(node, "styleId")! });
+      const tabs = child(child(node, "pPr"), "tabs");
+      if (node === selected && opts.tabStopAdd && tabs) xml[replaceNativeTabCollectionXml](node, markup, tabs, newTabStopXml(w, opts.tabStopAdd), paragraphUnits(opts.tabStopAdd.position));
+      else xml[replaceActiveStyleXml](node, markup);
+      changes.push({ kind: "style", id: attr(node, "styleId")! });
     }
     if (added && !changes.some(c => c.id === attr(selected, "styleId"))) changes.push({ kind: "style", id: attr(selected, "styleId")! });
   }

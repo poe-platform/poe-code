@@ -40,6 +40,9 @@ export class UnsupportedEditError extends Error {
 /** Internal list-editor authority; not part of the public XML-view surface. */
 export const replaceListPropertyXml = Symbol("replace-list-property-xml");
 
+/** Internal tab-domain insertion/movement; generic opaque-owner guards stay closed. */
+export const replaceNativeTabCollectionXml = Symbol("replace-native-tab-collection-xml");
+
 /** Internal read of admitted document siblings; grants no XML mutation authority. */
 export const sourceRootEnvelope = Symbol("source-root-envelope");
 
@@ -563,6 +566,70 @@ export class DocumentXmlEditor {
     if (this.#guardCompatibility && (!this.#canEdit(node) || node.content.some(token => !this.#canEdit(token)))) unsupported();
     this.assertShapeEditAllowed(node);
     this.#stageScalarText(node, text);
+  }
+
+  /** Preserve original tab tokens while admitting a proven insertion or position move. */
+  [replaceNativeTabCollectionXml](owner: XmlElement, markup: string, tabs: XmlElement, leaf: string, position: number, moving?: XmlElement): void {
+    this.#assertOwnedElement(owner); this.#assertOwnedElement(tabs);
+    if (this.#guardCompatibility && !this.#canEdit(owner)) unsupported();
+    this.assertShapeEditAllowed(owner);
+    const ownerSpan = this.#spans.get(owner)!;
+    for (const patched of this.#patches.keys()) {
+      const span = this.#spans.get(patched)!;
+      if (ownerSpan.start < span.end && span.start < ownerSpan.end) unsupported();
+    }
+    const children = activeXmlChildren(this, this.#budget), stops = children(tabs).filter(n => n.namespace === tabs.namespace && n.localName === "tab");
+    if (!this.#dialect || tabs.namespace !== documentDialects[this.#dialect].w || tabs.localName !== "tabs" || !this.#canEdit(tabs) ||
+      !Number.isSafeInteger(position) || position < -2147483648 || position > 2147483647 || moving && (!stops.includes(moving) || !this.#canEdit(moving))) unsupported();
+    const bindings = [...tabs.namespaces].filter(([p]) => p !== "xml").map(([p, uri]) => ` ${p ? "xmlns:" + p : "xmlns"}="${escapeValue(uri, true)}"`).join("");
+    const fragmentSource = `<fragment${bindings}>${leaf}</fragment>`, fragment = parseDocumentXml(new TextEncoder().encode(fragmentSource), this.#limits, this.#budget), added = fragment.root.children[0];
+    if (fragment.root.content.length !== 1 || !added || added.namespace !== tabs.namespace || added.localName !== "tab" ||
+      added.attributes.find(a => a.namespace === tabs.namespace && a.localName === "pos")?.value !== String(position)) unsupported();
+    const attributes = (node: XmlElement, omitPosition = false) => node.attributes.filter(a => a.namespace !== "http://www.w3.org/2000/xmlns/" && !(omitPosition && a.namespace === tabs.namespace && a.localName === "pos")).map(a => [a.namespace, a.localName, a.value]).sort();
+    const spans = indexSource(fragment, fragmentSource), addedSpan = spans.get(added)!;
+    if (moving) {
+      if (JSON.stringify(attributes(added, true)) !== JSON.stringify(attributes(moving, true)) ||
+        JSON.stringify([...added.namespaces]) !== JSON.stringify([...moving.namespaces]) ||
+        fragmentSource.slice(addedSpan.contentStart!, addedSpan.contentEnd!) !== this.sourceXml(moving, new Map(), true)) unsupported();
+    } else if (added.content.length || added.attributes.some(a => a.namespace !== "http://www.w3.org/2000/xmlns/" && (a.namespace !== tabs.namespace || !["pos", "val", "leader"].includes(a.localName)))) unsupported();
+    const next = stops.find(n => n !== moving && Number(n.attributes.find(a => a.namespace === tabs.namespace && a.localName === "pos")?.value) > position), patches = new Map<XmlElement, string>();
+    if (moving) patches.set(moving, "");
+    if (next) patches.set(next, leaf + this.sourceXml(next));
+    const expected = this.sourceXml(tabs, patches, true) + (next ? "" : leaf);
+    const pathTo = (root: XmlElement, target: XmlElement): number[] | undefined => {
+      this.#budget.charge("work", 1);
+      if (root === target) return [];
+      for (const [i, child] of root.children.entries()) { const path = pathTo(child, target); if (path) return [i, ...path]; }
+      return undefined;
+    };
+    const ownerPath = pathTo(this.root, owner);
+    if (!ownerPath || owner === this.root || !pathTo(owner, tabs)) unsupported();
+    this.#acceptOwnedPatch(owner, markup, moving ? 0 : 1);
+    try {
+      const source = new TextDecoder().decode(this.serialize()), candidate = parseDocumentXml(new TextEncoder().encode(source), this.#limits, this.#budget), projected = activeXmlChildren(candidate.root, this.#budget);
+      let afterOwner = candidate.root; for (const index of ownerPath) afterOwner = afterOwner.children[index]!;
+      const afterProps = afterOwner.localName === "pPr" ? afterOwner : projected(afterOwner).find(n => n.namespace === tabs.namespace && n.localName === "pPr"), afterTabs = afterOwner.localName === "tabs" ? afterOwner : afterProps && projected(afterProps).find(n => n.namespace === tabs.namespace && n.localName === "tabs");
+      if (!afterTabs) unsupported();
+      const candidateSpans = indexSource(candidate, source), span = candidateSpans.get(afterTabs)!;
+      if (source.slice(span.contentStart!, span.contentEnd!) !== expected || JSON.stringify(attributes(afterTabs)) !== JSON.stringify(attributes(tabs)) || JSON.stringify([...afterTabs.namespaces]) !== JSON.stringify([...tabs.namespaces])) unsupported();
+      if (moving) {
+        const afterStops = projected(afterTabs).filter(n => n.namespace === tabs.namespace && n.localName === "tab"), moved = afterStops[stops.filter(n => n !== moving && Number(n.attributes.find(a => a.namespace === tabs.namespace && a.localName === "pos")?.value) <= position).length]!;
+        const inheritedContext = (root: XmlElement, target: XmlElement) => {
+          const path = pathTo(root, target); if (!path) unsupported(); const context = new Map<string, readonly string[]>(); let node = root;
+          for (const index of [...path, -1]) {for (const a of node.attributes) if (a.namespace === "http://www.w3.org/XML/1998/namespace" && ["lang", "space", "base"].includes(a.localName)) context.set(a.localName, a.localName === "base" ? [...context.get("base") ?? [], a.value] : [a.value]); if (index !== -1) node = node.children[index]!;}
+          return JSON.stringify([...context]);
+        };
+        if (!moved || inheritedContext(this.root, moving) !== inheritedContext(candidate.root, moved)) unsupported();
+      }
+      const restoreTabs = (node: XmlElement): XmlElement => {
+        this.#budget.charge("work", 1 + node.children.length + node.content.length);
+        this.#budget.charge("retainedBytes", 192 + node.children.length * 64 + node.content.length * 8);
+        if (node === afterTabs) return tabs;
+        const children = new Map(node.children.map(child => [child, restoreTabs(child)]));
+        return {...node, children: [...children.values()], content: node.content.map(item => item.kind === "element" ? children.get(item)! : item)};
+      };
+      if (opaqueXmlContent(this.root, this.#budget, this.#profile) !== opaqueXmlContent(restoreTabs(candidate.root), this.#budget, this.#profile)) unsupported();
+    } catch (error) { this.#patches.delete(owner); throw error; }
   }
 
   /** Resolve native property ownership before editing within its physical MCE carrier. */

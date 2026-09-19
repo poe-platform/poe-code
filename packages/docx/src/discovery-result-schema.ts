@@ -40,6 +40,13 @@ const boolean: DocxJsonSchema = { type: "boolean" };
 const nullableBoolean: DocxJsonSchema = { oneOf: [boolean, { type: "null" }] };
 const array = (items: DocxJsonSchema): DocxJsonSchema => ({ type: "array", items });
 const diagnostic = object({ code: string, message: string });
+const failureDiagnostic: DocxJsonSchema = {
+  ...object({
+    code: { enum: ["usage", "invalid-container", "invalid-xml", "invalid-package", "unsupported-profile", "unsupported-edit", "ambiguous-selection", "stale-selection", "missing-selection", "conflict", "limit-exceeded", "permission", "unsupported-publication", "source-failure", "sink-failure", "cancelled"] },
+    message: string, location: string, operationIndex: number, candidates: strings, truncated: boolean
+  }),
+  required: ["code", "message"]
+};
 const part = object({ name: string, contentType: string, bytes: number, sha256: string });
 const reference = object({ owner: string, id: string, type: string, target: string, external: boolean });
 const location: DocxJsonSchema = object({ kind: string, token: string, value: { type: "object" }, positions: { type: "object" } });
@@ -398,7 +405,7 @@ export const inspectionOperationMetadata: Readonly<Record<string, { description:
 ].map(([id, description, featureIds, data]) => [id, { description, featureIds, result: { oneOf: [object({
   version: { const: 1 }, operation: { const: id }, ok: { const: true }, data: data as DocxJsonSchema,
   warnings: array(diagnostic), errors: empty, affected: ["template.apply", "sanitize", "paragraphs.remove", "runs.remove", "tables.remove", "signatures.remove", "controls.set", "controls.repeat", "controls.bind", "revisions.accept", "revisions.reject", "revisions.add", "notes.add", "notes.set", "notes.remove", "tables.merge", "tables.split", "tables.set", "tables.rows.add", "tables.rows.remove", "tables.columns.add", "tables.columns.remove", "tables.add", "lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "styles.add", "styles.set", "styles.remove", "styles.defaults.set", "text.replace", "lorem.set", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add"].includes(id as string) ? number : id === "create" ? { const: 1 } : id === "xml.set" ? { type: "integer", minimum: 0, maximum: 1 } : { const: 0 }, locations: array(location)
-}), object({ version: { const: 1 }, operation: { const: id }, ok: { const: false }, data: { type: "null" }, warnings: array(diagnostic), errors: { type: "array", minItems: 1, items: ["xml.set", "paragraphs.set"].includes(id as string) ? locatedDiagnostic : { type: "object" } }, affected: { const: 0 }, locations: ["xml.set", "paragraphs.set"].includes(id as string) ? array(location) : empty })] } }])]) as Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>>;
+}), object({ version: { const: 1 }, operation: { const: id }, ok: { const: false }, data: { type: "null" }, warnings: array(diagnostic), errors: { type: "array", minItems: 1, items: failureDiagnostic }, affected: { const: 0 }, locations: ["xml.set", "paragraphs.set"].includes(id as string) ? array(location) : empty })] } }])]) as Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>>;
 
 const objectLocation = object({ kind: { const: "part" }, token: string, value: object({ version: { const: 1 }, sourceSha256: string, generation: { const: 0 }, part: string, story: string, path: array(number), range: { type: "null" } }), positions: object({}) });
 const objectResource = object({ part: string, contentType: string, bytes: number, sha256: string });

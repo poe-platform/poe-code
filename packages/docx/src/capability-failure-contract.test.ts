@@ -3,7 +3,10 @@ import { Volume } from "memfs";
 import { createDocxInspectionCommandEngine } from "./inspection-command.js";
 import { getDocxDiscovery, type DocxSchemaData } from "./discovery.js";
 
-it("declares the unsupported-operation failure exposed by pending commands", async () => {
+it.each([
+  { resource: "paragraphs", reads: 1, code: "invalid-container", support: "read" },
+  { resource: "fonts", reads: 0, code: "unsupported-profile", support: "reject" }
+])("declares $resource list acquisition/failure according to current support", async expected => {
   let output = "", reads = 0;
   const volume = Volume.fromJSON({ "/source.docx": "unread" });
   const result = await createDocxInspectionCommandEngine({ limits: {
@@ -11,7 +14,7 @@ it("declares the unsupported-operation failure exposed by pending commands", asy
     maxMembers: 32, maxPathBytes: 256, maxDepth: 16, maxExtraBytes: 1024,
     maxCommentBytes: 1024, maxRetainedBytes: 500000, chunkSize: 1024
   } }).execute({
-    args: ["paragraphs", "list", "/source.docx", "--json"].map(value => new TextEncoder().encode(value)),
+    args: [expected.resource, "list", "/source.docx", "--json"].map(value => new TextEncoder().encode(value)),
     cwd: "/", signal: new AbortController().signal,
     filesystem: { async readFile(path) { reads++; return new Uint8Array(volume.readFileSync(path) as Uint8Array); } },
     stdin: { [Symbol.asyncIterator]() { return {
@@ -20,12 +23,13 @@ it("declares the unsupported-operation failure exposed by pending commands", asy
     stdout: { async write(bytes) { output += new TextDecoder().decode(bytes); } }, stderr: { async write() {} }
   });
   expect(result.exitCode).toBe(1);
-  expect(reads).toBe(0);
+  expect(reads).toBe(expected.reads);
   const envelope = JSON.parse(output);
-  expect(envelope).toMatchObject({ ok: false, data: null, errors: [{ code: "unsupported-profile" }] });
-  const schema = getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "paragraphs.list" } })!.data as DocxSchemaData;
-  expect(schema.operations[0]!.support).toBe("reject");
-  const errorSchema = schema.operations[0]!.result.properties!.errors!.items;
+  expect(envelope).toMatchObject({ ok: false, data: null, errors: [{ code: expected.code }] });
+  const schema = getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: `${expected.resource}.list` } })!.data as DocxSchemaData;
+  expect(schema.operations[0]!.support).toBe(expected.support);
+  const resultSchema = schema.operations[0]!.result;
+  const errorSchema = (resultSchema.oneOf?.[1] ?? resultSchema).properties!.errors!.items;
   if (!errorSchema) throw new Error("Expected a structured rejection schema");
   expect(errorSchema.properties!.code!.enum).toContain(envelope.errors[0].code);
 });

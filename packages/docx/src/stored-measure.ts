@@ -1,12 +1,10 @@
+import { trimXmlWhitespace } from "./stored-lexical.js";
 import { InvalidDocumentError } from "./document-error.js";
 import { Length, Pt, Twips } from "./formatting-values.js";
 
 /** Decode stored Word measures without treating JavaScript numeric syntax as XML. */
 export function storedMeasure(raw: string, unit: "twip" | "unsigned-twip" | "half-point" = "twip", message = "Invalid stored document measure."): Length {
-  let first = 0, last = raw.length;
-  while (first < last && [" ", "\t", "\r", "\n"].includes(raw[first]!)) first++;
-  while (last > first && [" ", "\t", "\r", "\n"].includes(raw[last - 1]!)) last--;
-  const text = raw.slice(first, last), multiplier = ({ in: 914400, cm: 360000, mm: 36000, pt: 12700, pc: 152400, pi: 152400 } as Readonly<Record<string, number>>)[text.slice(-2)];
+  const text = trimXmlWhitespace(raw), multiplier = ({ in: 914400, cm: 360000, mm: 36000, pt: 12700, pc: 152400, pi: 152400 } as Readonly<Record<string, number>>)[text.slice(-2)];
   const physical = multiplier !== undefined, scalar = physical ? text.slice(0, -2) : text;
   let start = scalar[0] === "-" || !physical && scalar[0] === "+" ? 1 : 0;
   if (start === scalar.length || physical && unit !== "twip" && scalar[0] === "-") throw new InvalidDocumentError(message);

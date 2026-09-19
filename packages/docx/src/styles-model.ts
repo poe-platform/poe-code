@@ -1,3 +1,4 @@
+import { storedBoolean } from "./stored-lexical.js";
 import { styleLinkPatches } from "./style-links.js";
 import { admitDocumentModel } from "./model-admission.js";
 import { PackageView, StylesPart, packageBindStyles, packageAdmitImages } from "./package-view.js";
@@ -204,7 +205,7 @@ export class Styles implements Iterable<BaseStyle> {
   }
   default(style_type: DocxEnumValue<"WD_STYLE_TYPE">): BaseStyle | null {
     const type = typeName(style_type);
-    return [...this].filter(s => types[s.type.name as keyof typeof types] === type && ["1", "true", "on"].includes([...s.element.attributes].find(([name]) => name.namespaceURI === s.element.namespace && name.localName === "default")?.[1] ?? "0")).at(-1) ?? null;
+    return [...this].filter(s => types[s.type.name as keyof typeof types] === type && storedBoolean([...s.element.attributes].find(([name]) => name.namespaceURI === s.element.namespace && name.localName === "default")?.[1] ?? "0")).at(-1) ?? null;
   }
   get_by_id(style_id: string | null, style_type: DocxEnumValue<"WD_STYLE_TYPE">): BaseStyle | null {
     if (style_id !== null && typeof style_id !== "string") throw new InputTypeError("Expected a style ID or null.");
@@ -274,7 +275,7 @@ export class BaseStyle {
     if (!key) throw new InvalidValueError("Unknown style type.");
     return WD_STYLE_TYPE[key];
   }
-  get builtin(): boolean { return !["1", "true", "on"].includes(attr(this.rawElement, "customStyle") ?? "0"); }
+  get builtin(): boolean { return !storedBoolean(attr(this.rawElement, "customStyle") ?? "0"); }
   get priority(): number | null { return styleInteger(attr(this.store.readChild(this.rawElement, "uiPriority"), "val")); }
   set priority(value: number | null) { nullableInteger(value); this.setValue("uiPriority", value === null ? null : String(value)); }
   get hidden(): boolean { return this.flag("semiHidden"); }

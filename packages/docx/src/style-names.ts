@@ -1,3 +1,4 @@
+import { storedBoolean } from "./stored-lexical.js";
 import type { XmlElement } from "./package-xml.js";
 import type { DocumentBudget } from "./budget.js";
 
@@ -16,7 +17,7 @@ export function selectNamedStyles(nodes: readonly XmlElement[], name: string, ch
     const fields = children(node), definition = fields.find(child => child.namespace === node.namespace && child.localName === "name");
     budget.charge("work", 1 + node.attributes.length + fields.length + (definition?.attributes.length ?? 0));
     const stored = definition?.attributes.find(attribute => attribute.namespace === node.namespace && attribute.localName === "val")?.value;
-    const builtin = !["1", "true", "on"].includes(node.attributes.find(attribute => attribute.namespace === node.namespace && attribute.localName === "customStyle")?.value ?? "0");
+    const builtin = !storedBoolean(node.attributes.find(attribute => attribute.namespace === node.namespace && attribute.localName === "customStyle")?.value ?? "0");
     return { node, stored, builtin, displayed: stored === undefined ? undefined : styleDisplayName(stored, builtin) };
   });
   const exact = entries.filter(entry => entry.displayed === name);

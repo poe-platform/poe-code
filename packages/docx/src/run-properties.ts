@@ -1,3 +1,4 @@
+import { storedBooleanValue } from "./stored-lexical.js";
 import { validFontName } from "./argument-json.js";
 import { InvalidValueError } from "./archive.js";
 import { xmlValue } from "./create-content.js";
@@ -39,7 +40,7 @@ export function formattedRunProperties(editor: DocumentXmlEditor, run: XmlElemen
     if (node && Object.entries(attrs).every(([key, value]) => {
       const existing = old.get(key);
       if (value === null) return existing === undefined;
-      if (key === "val" && toggles.has(name)) return value === "1" ? existing === undefined || ["1", "on", "true"].includes(existing) : ["0", "off", "false"].includes(existing ?? "");
+      if (key === "val" && toggles.has(name)) return storedBooleanValue(existing ?? "1") === (value === "1");
       if (key === "val" && name === "sz") return existing !== undefined && Number(existing) === Number(value);
       return existing === value;
     })) return;
@@ -112,7 +113,7 @@ export function equivalentRunKey(run: XmlElement): string | undefined {
   const props = run.children.filter(c => c.localName === "rPr");
   if (props.length > 1 || props.some(p => p.content.some(c => c.kind !== "element") || p.children.some(c => c.namespace !== w || c.content.length || !order.includes(c.localName)))) return undefined;
   const attributes = (node: XmlElement, toggle = false) => {
-    const attrs = node.attributes.filter(a => a.namespace !== xmlns).map(a => [a.namespace, a.localName, toggle && a.namespace === w && a.localName === "val" ? ["0", "off", "false"].includes(a.value) ? "0" : ["1", "on", "true"].includes(a.value) ? "1" : a.value : a.value]);
+    const attrs = node.attributes.filter(a => a.namespace !== xmlns).map(a => [a.namespace, a.localName, toggle && a.namespace === w && a.localName === "val" ? storedBooleanValue(a.value) === false ? "0" : storedBooleanValue(a.value) === true ? "1" : a.value : a.value]);
     if (toggle && !attrs.some(a => a[0] === w && a[1] === "val")) attrs.push([w, "val", "1"]);
     return attrs.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
   };

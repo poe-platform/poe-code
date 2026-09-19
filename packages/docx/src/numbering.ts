@@ -1,3 +1,4 @@
+import { storedBoolean, trimXmlWhitespace } from "./stored-lexical.js";
 import { InvalidValueError } from "./archive.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { selectNamedStyles } from "./style-names.js";
@@ -23,6 +24,8 @@ export function numberingChild(node: XmlElement | undefined, name: string): XmlE
   return children[0];
 }
 function nonnegativeInteger(value: string | undefined): number | undefined {
+  if (value === undefined) return undefined;
+  value = trimXmlWhitespace(value);
   if (!value) return undefined;
   const digits = value[0] === "+" || value[0] === "-" ? value.slice(1) : value;
   const number = Number(value);
@@ -135,7 +138,7 @@ export class NumberingGraph {
     const seen = new Set<string>();
     let style = numberingAttribute(this.child(props, "pStyle"));
     if (style === undefined) {
-      const defaults = this.children(this.styles).filter(n => n.namespace === node.namespace && n.localName === "style" && (numberingAttribute(n, "type") ?? "paragraph") === "paragraph" && ["1", "true", "on"].includes(numberingAttribute(n, "default") ?? ""));
+      const defaults = this.children(this.styles).filter(n => n.namespace === node.namespace && n.localName === "style" && (numberingAttribute(n, "type") ?? "paragraph") === "paragraph" && storedBoolean(numberingAttribute(n, "default") ?? "0"));
       if (defaults.length > 1) throw new UnsupportedEditError("Ambiguous default paragraph style.");
       style = numberingAttribute(defaults[0], "styleId");
     }

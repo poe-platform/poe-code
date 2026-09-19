@@ -1,3 +1,4 @@
+import { storedBooleanValue, trimXmlWhitespace } from "./stored-lexical.js";
 import { macroTypes } from "./admission.js";
 import { InputTypeError, InvalidValueError, ResourceLimitError, type DocumentArchive } from "./archive.js";
 import { DocumentBudget } from "./budget.js";
@@ -44,7 +45,9 @@ export const documentValidationProfile = Object.freeze({
 type Node = { element: CompatibilityElement; part: string; location: string; story: string; fieldStory: string };
 const wordType = "application/vnd.openxmlformats-officedocument.wordprocessingml.";
 function integer(value: string | undefined, min = 0, max = 2147483647): string | undefined {
-  if (value === undefined || !value.length) return undefined;
+  if (value === undefined) return undefined;
+  value = trimXmlWhitespace(value);
+  if (!value.length) return undefined;
   const digits = value[0] === "-" || value[0] === "+" ? value.slice(1) : value;
   if (!digits.length || [...digits].some(c => c < "0" || c > "9")) return undefined;
   const n = Number(value);
@@ -242,7 +245,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     const defaults = new Set<string>();
     for (const style of styles) {
       const type = attr(style, "type") ?? "paragraph";
-      if (["1", "true", "on"].includes(attr(style, "default") ?? "0")) {
+      if (storedBooleanValue(attr(style, "default") ?? "0") === true) {
         if (defaults.has(type)) issue(style, "style-default", "A style type has multiple defaults.");
         defaults.add(type);
       }

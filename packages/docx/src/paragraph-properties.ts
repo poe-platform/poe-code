@@ -1,3 +1,4 @@
+import { storedBooleanValue } from "./stored-lexical.js";
 import { storedMeasure } from "./stored-measure.js";
 import { InvalidDocumentError } from "./document-error.js";
 import { DocxUsageError } from "./argument-json.js";
@@ -79,7 +80,7 @@ export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElemen
     if (node && content === undefined && Object.entries(attrs).every(([key, value]) => {
       const old = node.attributes.find(a => a.namespace === w && a.localName === key)?.value;
       if (["keepNext", "keepLines", "widowControl", "pageBreakBefore"].includes(name) && key === "val")
-        return value === "1" ? old === undefined || ["1", "true", "on"].includes(old) : value === "0" && ["0", "false", "off"].includes(old ?? "");
+        return (value === "1" || value === "0") && storedBooleanValue(old ?? "1") === (value === "1");
       return value === null ? old === undefined : old === value;
     })) return;
     const markup = element(name, attrs, node, content);

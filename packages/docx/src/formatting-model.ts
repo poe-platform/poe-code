@@ -1,3 +1,4 @@
+import { storedBoolean } from "./stored-lexical.js";
 import { bindXmlElementView, type XmlElementView, type XmlViewBinding } from "./xml-element-view.js";
 import { storedMeasure } from "./stored-measure.js";
 import { InvalidDocumentError } from "./document-error.js";
@@ -114,10 +115,7 @@ function update(owner: FormattingXmlOwner, kind: "r" | "p", values: DocxOperatio
 function tri(value: unknown): asserts value is boolean | null { if (value !== null && typeof value !== "boolean") throw new InputTypeError("Expected true, false or null."); }
 function booleanValue(node: XmlElement | undefined): boolean | null {
   if (!node) return null;
-  const value = attr(node);
-  if (value === undefined || ["1", "true", "on"].includes(value)) return true;
-  if (["0", "false", "off"].includes(value)) return false;
-  throw new InvalidDocumentError("Invalid boolean formatting value.");
+  return storedBoolean(attr(node) ?? "1", "Invalid boolean formatting value.");
 }
 function storedFormattingToken(node: XmlElement | undefined, attribute: string, values: readonly string[], message: string, required = false): string | undefined {
   const value = attr(node, attribute);

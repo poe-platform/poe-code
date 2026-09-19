@@ -1,10 +1,11 @@
+import { storedBoolean } from "./stored-lexical.js";
 import { tableBorders, tableGeometry, tableMargins, tableShading } from "./table-content.js";
 import { InvalidValueError } from "./archive.js";
 import type { DocumentBudget } from "./budget.js";
 import type { DocxBlock, DocxContent, DocxLength, DocxRunInput, DocxThemeSettings } from "./operation-types.js";
 import type { XmlElement } from "./package-xml.js";
 import { activeXmlChildren } from "./xml-active-children.js";
-import { styleIds } from "./style-properties.js";
+import { styleIds, styleInteger } from "./style-properties.js";
 import { styleDisplayName } from "./style-names.js";
 
 export function xmlValue(value: string): string {
@@ -62,7 +63,7 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
     const id = attribute(style, "styleId"), type = attribute(style, "type") ?? "paragraph";
     const name = children(style).find(c => c.namespace === w && c.localName === "name");
     const stored = name && attribute(name, "val");
-    const builtin = !["1", "true", "on"].includes(attribute(style, "customStyle") ?? "");
+    const builtin = !storedBoolean(attribute(style, "customStyle") ?? "0");
     const value = stored === undefined ? undefined : styleDisplayName(stored, builtin);
     if (value && id && type) {
       if (styles.has(value)) throw new InvalidValueError("Ambiguous style name in template.");
@@ -100,7 +101,7 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
       const suffix = style.id.slice(stem.length);
       const identity = style.id === stem || style.id.startsWith(stem) && suffix.length > 0 && [...suffix].every(c => c >= "0" && c <= "9");
       return identity && style.builtin && style.type === "paragraph" &&
-        (label === name || label.startsWith(name + " ")) && (level === 0 || style.outline === String(level - 1));
+        (label === name || label.startsWith(name + " ")) && (level === 0 || styleInteger(style.outline) === level - 1);
     })?.[1];
     if (found) { headings.set(level, found.id); return found.id; }
     let id = stem;

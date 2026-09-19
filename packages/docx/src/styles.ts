@@ -1,3 +1,4 @@
+import { storedBoolean } from "./stored-lexical.js";
 import { styleLinkPatches } from "./style-links.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import { archiveSettings, InvalidValueError, type ArchiveContext } from "./archive.js";
@@ -95,10 +96,10 @@ export async function inspectDocumentStyles(input: Uint8Array, options: StyleIns
   const report = validateDocumentArchive(archive, {}, budget);
   const data: StyleInspectionData = { styles: selected.map(n => {
     const source = (tag: string) => child(n, tag) ? xml!.sourceXml(child(n, tag)!) : null;
-    return { id: attr(n, "styleId") ?? "", name: styleDisplayName(attr(child(n, "name"), "val") ?? "", !["1", "true", "on"].includes(attr(n, "customStyle") ?? "0")), type: attr(n, "type") ?? "paragraph",
-      builtin: !["1", "true", "on"].includes(attr(n, "customStyle") ?? "0"), base: name(attr(child(n, "basedOn"), "val")),
+    return { id: attr(n, "styleId") ?? "", name: styleDisplayName(attr(child(n, "name"), "val") ?? "", !storedBoolean(attr(n, "customStyle") ?? "0")), type: attr(n, "type") ?? "paragraph",
+      builtin: !storedBoolean(attr(n, "customStyle") ?? "0"), base: name(attr(child(n, "basedOn"), "val")),
       next: name(attr(child(n, "next"), "val")) ?? ((attr(n, "type") ?? "paragraph") === "paragraph" ? attr(child(n, "name"), "val") ?? null : null),
-      linkedStyle: name(attr(child(n, "link"), "val")), defaultForType: ["1", "true", "on"].includes(attr(n, "default") ?? "0"),
+      linkedStyle: name(attr(child(n, "link"), "val")), defaultForType: storedBoolean(attr(n, "default") ?? "0"),
       priority: styleInteger(attr(child(n, "uiPriority"), "val")),
       hidden: styleToggle(child(n, "semiHidden")) ?? false, locked: styleToggle(child(n, "locked")) ?? false,
       quickStyle: styleToggle(child(n, "qFormat")) ?? false, unhideWhenUsed: styleToggle(child(n, "unhideWhenUsed")) ?? false,
@@ -145,7 +146,7 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
     const definitions = children(xml.root).filter(node => node.namespace === xml.root.namespace && node.localName === "style");
     if (definitions.some(node => {
       const stored = attr(styleChild(node, "name", children), "val");
-      return stored !== undefined && styleDisplayName(stored, !["1", "true", "on"].includes(attr(node, "customStyle") ?? "0")) === opts.name;
+      return stored !== undefined && styleDisplayName(stored, !storedBoolean(attr(node, "customStyle") ?? "0")) === opts.name;
     })) throw new InvalidValueError("A declared style name already exists.");
     const ids = styleIds(xml.root, budget);
     let serial = 1; while (ids.has(`Style${serial}`)) { budget.charge("work", 1); serial++; }

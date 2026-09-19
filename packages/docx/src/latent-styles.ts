@@ -1,5 +1,5 @@
+import { storedBoolean } from "./stored-lexical.js";
 import { runElementOpen } from "./run-properties.js";
-import { InvalidDocumentError } from "./document-error.js";
 import { xmlValue } from "./create-content.js";
 import { SelectionError } from "./location-token.js";
 import type { XmlElement } from "./package-xml.js";
@@ -26,9 +26,7 @@ export function readLatentStyles(root: XmlElement, name?: string, children: (nod
     const raw = attr(element, key);
     if (raw === undefined) return null;
     if (numeric) return styleInteger(raw);
-    if (["1", "true", "on"].includes(raw)) return true;
-    if (["0", "false", "off"].includes(raw)) return false;
-    throw new InvalidDocumentError("Invalid latent style boolean.");
+    return storedBoolean(raw, "Invalid latent style boolean.");
   };
   const entries = children(node).filter(n => n.namespace === root.namespace && n.localName === "lsdException");
   const selected = name === undefined ? entries : entries.filter(n => styleStoredName(attr(n, "name") ?? "") === styleStoredName(name));

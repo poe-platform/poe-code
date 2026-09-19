@@ -1,3 +1,4 @@
+import { storedBoolean } from "./stored-lexical.js";
 import { InvalidValueError } from "./archive.js";
 import { type DocumentBudget } from "./budget.js";
 import { SelectionError } from "./location-token.js";
@@ -47,7 +48,7 @@ export function styleLinkPatches(nodes: readonly XmlElement[], selected: XmlElem
     if (target) update(target, "link", attr(selected, "styleId")!);
   }
   if (options.defaultForType !== undefined) {
-    if (options.defaultForType !== ["1", "true", "on"].includes(attr(selected, "default") ?? "0")) update(selected, "default", options.defaultForType ? "1" : null);
+    if (options.defaultForType !== storedBoolean(attr(selected, "default") ?? "0")) update(selected, "default", options.defaultForType ? "1" : null);
     if (options.defaultForType) for (const node of nodes) if (node !== selected && (attr(node, "type") ?? "paragraph") === type && attr(node, "default") !== undefined) update(node, "default", null);
   }
   return patches;

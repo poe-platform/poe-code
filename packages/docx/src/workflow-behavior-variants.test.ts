@@ -2743,7 +2743,7 @@ it("workflow-146 observes content traversal variant", async () => {
 it("workflow-147 observes content traversal variant", async () => {
  const document = await Document(await textFixture("<w:p><w:r><w:t>Original first</w:t><w:br/><w:t>Second</w:t><w:cr/><w:t>Third</w:t><w:drawing/><w:t>Fourth</w:t><w:tab/><w:t>Fifth</w:t><w:noBreakHyphen/><w:t>Sixth</w:t><w:ptab/><w:t>Seventh</w:t></w:r></w:p>"), textContext);
  const target = document.paragraphs[0]!.runs[0]!;
- expect(target.text).toBe("Original first\nSecond\nThirdFourth\tFifth-Sixth\tSeventh");
+ expect(target.text).toBe("Original first\nSecond\nThirdFourth\tFifth\u2011Sixth\tSeventh");
 });
 
 function originalPicture(): Uint8Array {

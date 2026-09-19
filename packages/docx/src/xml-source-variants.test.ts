@@ -72,7 +72,7 @@ it.each(cases)(`${route} executes XML $name with retained package ownership; ${k
     expect(returned).toEqual(route === "model" ? api.WD_SECTION_START.NEW_PAGE : { enum: "WD_SECTION_START", name: "NEW_PAGE" });
   }
   if (sample.action === "order") expect(route === "model" ? returned : (returned as { type: string }[]).map(item => item.type)).toEqual(sample.expected);
-  if (sample.action === "assemble") expect(returned).toBe("\n\n-\tEstuary\t");
+  if (sample.action === "assemble") expect(returned).toBe("\n\n\u2011\tEstuary\t");
   if (sample.action === "text") {
     expect(returned).toBe((sample.name === "run-properties-break" ? "\n" : "") + sample.value);
     const run = document.paragraphs[0]!.runs[0]!; expect(run.element.children.map(n => n.localName)).toEqual(sample.expected);

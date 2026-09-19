@@ -63,7 +63,8 @@ export async function inspectDocumentLinks(input: Uint8Array, options: DocxOpera
       if (current.namespace !== w) return;
       if (current.localName === "t") text += current.text;
       else if (current.localName === "tab" || current.localName === "ptab") text += "\t";
-      else if (current.localName === "noBreakHyphen") text += "-";
+      else if (current.localName === "noBreakHyphen") text += "\u2011";
+      else if (current.localName === "softHyphen") text += "\u00ad";
       else if (current.localName === "cr" || current.localName === "br" && (!attribute(current, w, "type") || attribute(current, w, "type") === "textWrapping")) text += "\n";
       else if (current.localName === "lastRenderedPageBreak") contains_page_break = true;
       else if (["hyperlink", "r"].includes(current.localName)) for (const child of children(current)) visit(child);

@@ -44,12 +44,12 @@ it.each(cases)(`${route} reads $name hyperlink label controls and cached breaks 
   operations.push({ operation: "model.text.hyperlink.Hyperlink.runs.get", receiver: ref("links", 0), arguments: {}, resultHandle: "runs" });
   for (const index of [0, 1]) operations.push({ operation: "model.text.run.Run.text.get", receiver: ref("runs", index), arguments: {} });
   operations.push({ operation: "model.text.run.Run.bold.set", receiver: ref("runs", 0), arguments: { value: true } });
-  const expected = { history: sample.history, address: "https://coast.invalid/map?a=1&b=2#bank", fragment: "inset", url: "https://coast.invalid/map?a=1&b=2#bank#inset", text: "River\t-bank", contains_page_break: true };
+  const expected = { history: sample.history, address: "https://coast.invalid/map?a=1&b=2#bank", fragment: "inset", url: "https://coast.invalid/map?a=1&b=2#bank#inset", text: "River\t\u2011bank", contains_page_break: true };
   let values: unknown[] | undefined;
   if (route === "model") {
     const document = await api.Document(input, context), story = owner === "body" ? document : document.sections[0]![owner], hyperlink = story.paragraphs[0]!.hyperlinks[0]!;
     expect({ history: hyperlink.history, address: hyperlink.address, fragment: hyperlink.fragment, url: hyperlink.url, text: hyperlink.text, contains_page_break: hyperlink.contains_page_break }).toEqual(expected);
-    expect(hyperlink.runs.map(run => run.text)).toEqual(["River", "\t-bank"]);
+    expect(hyperlink.runs.map(run => run.text)).toEqual(["River", "\t\u2011bank"]);
     expect(hyperlink.part.blob).toEqual(parts.get(part)); hyperlink.runs[0]!.bold = true; await document.save(sink);
   } else if (route === "utility-sdk") {
     const result = await api.inspectDocumentLinks(input, { scope: owner === "body" ? "body" : owner === "header" ? "headers" : "footers" }, context);
@@ -68,7 +68,7 @@ it.each(cases)(`${route} reads $name hyperlink label controls and cached breaks 
     } finally { await shell.dispose(); }
   }
   if (values) {
-    expect(values.slice(-10, -4)).toEqual(Object.values(expected)); expect(values.slice(-3, -1)).toEqual(["River", "\t-bank"]);
+    expect(values.slice(-10, -4)).toEqual(Object.values(expected)); expect(values.slice(-3, -1)).toEqual(["River", "\t\u2011bank"]);
   }
   const output = new Uint8Array(memory.readFileSync("/output") as Buffer), saved = readPackage(output);
   for (const [name, bytes] of parts) if (name !== part || route.startsWith("utility")) expect(saved.get(name), name).toEqual(bytes);

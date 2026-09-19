@@ -60,6 +60,7 @@ method(styles, "__getitem__.call", Styles, (receiver, args) => (receiver as Styl
 method(styles, "__iter__.call", Styles, receiver => [...receiver as Styles]);
 method(styles, "__len__.get", Styles, receiver => (receiver as Styles).length);
 const latent = "model.styles.latent.LatentStyles";
+method(latent, "has.call", LatentStyles, (receiver, args) => (receiver as LatentStyles).has(args.name as string));
 properties(latent, LatentStyles, ["default_priority", "default_to_hidden", "default_to_locked", "default_to_quick_style", "default_to_unhide_when_used", "load_count"]);
 method(latent, "add_latent_style.call", LatentStyles, (receiver, args) => (receiver as LatentStyles).add_latent_style(args.name as string));
 method(latent, "__getitem__.call", LatentStyles, (receiver, args) => (receiver as LatentStyles).at(args.key as string));

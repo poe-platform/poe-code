@@ -71,6 +71,7 @@ export interface DocxOperationArgumentMap extends MaintainedDocxOperationArgumen
   Readonly<Record<DocxLiveModelGetterId, MaintainedDocxOperationArgumentMap["model.text.paragraph.Paragraph.element.get"]>>,
   Readonly<Record<DocxLiveModelComparisonId, MaintainedDocxOperationArgumentMap["model.styles.style.BaseStyle.__eq__.call"]>> {}
 interface MaintainedDocxOperationArgumentMap {
+  "model.styles.latent.LatentStyles.has.call": Readonly<{ name: string }>;
   "headers.remove": Omit<DocxOperationArgumentMap["headers.set"], "text" | "linkToPrevious" | "shared">;
   "footers.remove": Omit<DocxOperationArgumentMap["footers.set"], "text" | "linkToPrevious" | "shared">;
   "styles.latent.list": DocxOperationArgumentMap["styles.defaults.get"];
@@ -1633,6 +1634,7 @@ export type DocxOperationArguments<Id extends DocxOperationId> = DocxOperationAr
 interface DocxLiteralBatchArgumentMap extends
   Readonly<Record<DocxLiveModelGetterId, Readonly<Record<string, never>>>>,
   Readonly<Record<DocxLiveModelComparisonId, Readonly<{ other: unknown }>>> {
+  "model.styles.latent.LatentStyles.has.call": Readonly<{ name: string }>;
   "styles.latent.list": Readonly<Record<string, never>>;
   "styles.latent.get": Readonly<{ name: string }>;
   "styles.latent.add": Omit<DocxOperationArgumentMap["styles.latent.add"], "json" | "limit" | "output" | "inPlace" | "force" | "dryRun">;
@@ -3167,6 +3169,7 @@ type DocxLiveModelItemMap = {
   }>
 };
 export interface DocxBatchItemMap extends DocxLiveModelItemMap {
+  "model.styles.latent.LatentStyles.has.call": { readonly operation: "model.styles.latent.LatentStyles.has.call"; readonly arguments: DocxBatchArgumentMap["model.styles.latent.LatentStyles.has.call"]; readonly receiver: DocxModelHandle<"LatentStyles">; readonly resultHandle?: string };
   "styles.latent.list": { readonly operation: "styles.latent.list"; readonly arguments: DocxBatchArgumentMap["styles.latent.list"] };
   "styles.latent.get": { readonly operation: "styles.latent.get"; readonly arguments: DocxBatchArgumentMap["styles.latent.get"] };
   "styles.latent.add": { readonly operation: "styles.latent.add"; readonly arguments: DocxBatchArgumentMap["styles.latent.add"] };

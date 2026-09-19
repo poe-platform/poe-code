@@ -106,7 +106,7 @@ export async function inspectDocumentStyles(input: Uint8Array, options: StyleIns
       runXml: source("rPr"), paragraphXml: source("pPr"), tableXml: source("tblPr") };
   }), defaults: { run: runDefaults, paragraph: paragraphDefaults }, latentXml: child(xml?.root, "latentStyles") ? xml!.sourceXml(child(xml!.root, "latentStyles")!) : null,
   latent: xml ? readLatentStyles(xml.root, latent ? options.name : undefined, children) : null,
-  diagnostics: report.diagnostics.filter(d => d.code.startsWith("style-") || d.code.startsWith("numbering-")) };
+  diagnostics: report.diagnostics.filter(d => d.code.startsWith("style-") || d.code.startsWith("latent-") || d.code.startsWith("numbering-")) };
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify(data)).length);
   return data;
 }

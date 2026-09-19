@@ -213,6 +213,8 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
   for (const node of nodes) {
     if (node.element.source.namespace !== w) continue;
     const name = node.element.source.localName;
+    if (name === "lsdException" && attr(node, "name") === undefined)
+      issue(node, "latent-name", "A latent style exception requires its native name attribute.");
     if (!Object.hasOwn(definitionNames, name)) continue;
     const raw = attr(node, definitionNames[name]!);
     const id = name === "style" ? raw : integer(raw, name === "footnote" || name === "endnote" ? -1 : 0);

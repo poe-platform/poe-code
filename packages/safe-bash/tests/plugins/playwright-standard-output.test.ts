@@ -27,7 +27,11 @@ test('help and version support JSON without allocating a browser', async () => {
     return output;
   };
   try {
-    assert.deepEqual(JSON.parse(await run(['--json', '--help'])), { help: reference.trimEnd() });
+    const output = JSON.parse(await run(['--json', '--help']));
+    assert.deepEqual(Object.keys(output), ['help']);
+    assert.ok(output.help.startsWith(reference));
+    assert.ok(output.help.includes('attach: unsupported'));
+    assert.ok(output.help.includes('playwright-cli -s=<existing-alias> snapshot'));
     assert.equal(await run(['--version']), '0.1.20\n');
     assert.deepEqual(JSON.parse(await run(['--json', '--version'])), { version: '0.1.20' });
     assert.deepEqual(JSON.parse(await run(['--json', 'list'])), { browsers: [] });

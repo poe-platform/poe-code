@@ -8,14 +8,21 @@ import type { PlaywrightAbilities } from '../../src/playwright/index.js';
 const reference = readFileSync(new URL('./fixtures/playwright-cli-0.1.20-help.txt', import.meta.url), 'utf8');
 const commands = reference.split('\n').filter(line => line.startsWith('  ') && !line.trimStart().startsWith('--')).map(line => line.trimStart().split(' ')[0]!);
 
-test('a fully enabled client preserves all upstream help bytes, including global options', () => {
+test('a fully enabled client preserves upstream help and reports its authenticated attachment capability', () => {
   const abilities = Object.fromEntries(commands.map(name => [name, { execute: async () => {}, options: 'all' }])) as PlaywrightAbilities;
-  assert.equal(formatPlaywrightHelp(undefined, registerPlaywrightAbilities(abilities, false)), reference);
+  const help = formatPlaywrightHelp(undefined, registerPlaywrightAbilities(abilities, false));
+  assert.ok(help.startsWith(reference));
+  assert.ok(help.includes('attach: supported through the configured authenticated attachment broker'));
 });
 
-test('a restricted client keeps the same vocabulary; provider restrictions do not rewrite standard help', () => {
+test('a restricted client keeps the vocabulary and discloses unavailable attachment before action', () => {
   const abilities = registerPlaywrightAbilities({ 'cookie-set': { execute: async () => {}, options: ['domain'], limitations: 'Only the approved domain is allowed.' }, 'response-body': { execute: async () => {} } }, false);
-  assert.equal(formatPlaywrightHelp(undefined, abilities), reference);
+  const help = formatPlaywrightHelp(undefined, abilities);
+  assert.ok(help.startsWith(reference));
+  assert.ok(help.includes('attach: unsupported'));
+  assert.ok(help.includes('playwright-cli list'));
+  assert.ok(help.includes('playwright-cli -s=<existing-alias> snapshot'));
+  assert.ok(formatPlaywrightHelp('attach', abilities).includes('Do not retry attach after a provider failure'));
   const topic = formatPlaywrightHelp('cookie-set', abilities);
   assert.ok(topic.startsWith('playwright-cli cookie-set <name> <value>'));
   assert.ok(topic.includes('--domain'));

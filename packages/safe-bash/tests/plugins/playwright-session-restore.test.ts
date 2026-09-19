@@ -12,7 +12,7 @@ function retainedBrowser() {
     isConnected: true, tagName: 'BUTTON', textContent: 'Save', getAttribute: () => null,
   };
   const frame = createSnapshotFrame([{ node,
-    native: { async click() {}, async fill() {}, async dispose() {}, async evaluate(callback) { return callback(node); } },
+    native: { async click() {}, async fill() {}, async dispose() {}, async evaluate(callback, argument) { return callback(node, argument!); } },
   }]);
   const pages = ['first', 'selected'].map(name => ({
     async goto(url: string) { navigations.push(name + ':' + url); },
@@ -34,6 +34,61 @@ function runner(controller: ReturnType<typeof createPlaywrightController>) {
     args, env, signal: new AbortController().signal, write: async text => { output.push(text); },
   }) };
 }
+
+test('provider failure recovery follows advertised owned aliases and cannot select another owner', async () => {
+  const alice = retainedBrowser();
+  const bob = retainedBrowser();
+  let unavailable = true;
+  let restores = 0;
+  const controller = createPlaywrightController({ adapter: alice.adapter, persistence: {
+    async list() { return [{ name: 'alice-session' }]; },
+    async restore({ name }) {
+      if (name !== 'alice-session') return undefined;
+      restores++;
+      if (unavailable) throw new Error('provider unavailable');
+      return { lease: alice.lease, selectedPage: alice.pages[1]! };
+    }, async checkpoint() {}, async delete() {}, async close() {},
+  } });
+  const other = createPlaywrightController({ adapter: bob.adapter });
+  const cli = runner(controller);
+  try {
+    await runner(other).run(['-s=bob-session', 'open']);
+    await assert.rejects(cli.run(['-s=alice-session', 'snapshot']), /provider unavailable/);
+    for (const args of [['--help'], ['attach', '--help'], ['help', '--json']]) {
+      await cli.run(args);
+      const text = cli.output.pop()!;
+      const help = args.includes('--json') ? JSON.parse(text).help : text;
+      assert.ok(help.includes('attach: unsupported'));
+      assert.ok(help.includes('Do not retry attach after a provider failure'));
+      assert.ok(help.includes('playwright-cli -s=<existing-alias> goto <url>'));
+    }
+    assert.equal(restores, 1, 'capability discovery must not acquire a browser');
+    await cli.run(['list', '--json']);
+    assert.deepEqual(JSON.parse(cli.output.pop()!).browsers, [{ name: 'alice-session', status: 'saved' }]);
+    await assert.rejects(cli.run(['-s=bob-session', 'goto', 'https://example.test/private']), /Session closed/);
+    assert.equal(restores, 1);
+    assert.deepEqual(bob.navigations, []);
+    unavailable = false;
+    await cli.run(['-s=alice-session', 'goto', 'https://example.test/recovered']);
+    assert.equal(restores, 2);
+    assert.deepEqual(alice.navigations, ['selected:https://example.test/recovered']);
+    assert.equal(alice.createdPages, 0);
+  } finally { await controller.dispose(); await other.dispose(); }
+});
+
+test('authenticated attachment ability remains available and callable', async () => {
+  const calls: string[] = [];
+  const controller = createPlaywrightController({ abilities: { attach: {
+    async execute(request) { calls.push(request.args[0]!); },
+  } } });
+  const cli = runner(controller);
+  try {
+    await cli.run(['attach', '--help']);
+    assert.ok(!cli.output.pop()!.includes('attach: unsupported'));
+    await cli.run(['attach', 'authenticated-target']);
+    assert.deepEqual(calls, ['authenticated-target']);
+  } finally { await controller.dispose(); }
+});
 
 for (const available of [false, true]) test(`listing a saved profile is metadata-only when restoration is ${available ? 'available' : 'unavailable'}`, async () => {
   const browser = retainedBrowser();

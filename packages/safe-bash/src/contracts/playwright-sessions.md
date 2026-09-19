@@ -5,6 +5,15 @@ The injected adapter owns browser allocation; commands and their help use the
 standard syntax. Standard `-s`, `--session`, and `PLAYWRIGHT_CLI_SESSION` values
 select an alias, not a provider session or a tenant identity.
 
+`playwright-cli --help`, `playwright-cli attach --help`, and JSON help report
+whether an authenticated attachment broker is configured. Without one, attach
+is unsupported: after a provider failure, do not retry attach. Use
+`playwright-cli list` to discover owned aliases, then explicitly select an existing
+alias with `playwright-cli -s=<existing-alias> snapshot`, `tab-list`, or `goto <url>`.
+Listing saved profiles does not verify live connectivity; an explicitly selected
+command may still fail while the provider is unavailable. Hosts supplying an
+authenticated `attach` ability retain their attachment command.
+
 The host must isolate each controller and its persistence callbacks by trusted
 owner identity. Never use an untrusted alias to select another owner's browser,
 filesystem, or storage namespace. Browser networking follows the selected native

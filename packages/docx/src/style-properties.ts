@@ -1,7 +1,7 @@
 import { styleFontFlags } from "./style-font-flags.js";
 import { InvalidDocumentError } from "./document-error.js";
 export { styleFontFlags } from "./style-font-flags.js";
-import { Length } from "./formatting-values.js";
+import { storedMeasure } from "./stored-measure.js";
 import type { DocumentBudget } from "./budget.js";
 import type { XmlElement } from "./package-xml.js";
 import { xmlValue } from "./create-content.js";
@@ -62,8 +62,10 @@ export function readStyleProperties(run: XmlElement | undefined, paragraph: XmlE
   const numeric = (node: XmlElement | undefined, attribute = "val", divisor = 1): number | null => {
     const raw = styleAttribute(node, attribute);
     if (raw === undefined) return null;
-    const multiplier = ({ in: 914400, cm: 360000, mm: 36000, pt: 12700, pc: 152400, pi: 152400 } as Readonly<Record<string, number>>)[raw.slice(-2)];
-    if (multiplier !== undefined && divisor !== 1) return Length(Number(raw.slice(0, -2)) * multiplier).pt;
+    if (divisor !== 1) {
+      const unsigned = node?.localName === "spacing" && ["before", "after"].includes(attribute) || node?.localName === "ind" && ["firstLine", "hanging"].includes(attribute);
+      return storedMeasure(raw, divisor === 2 ? "half-point" : unsigned ? "unsigned-twip" : "twip").emu / (divisor === 2 ? 12700 : divisor * 635);
+    }
     return styleInteger(raw)! / divisor;
   };
   const num = child(paragraph, "numPr"), spacing = child(paragraph, "spacing"), ind = child(paragraph, "ind");

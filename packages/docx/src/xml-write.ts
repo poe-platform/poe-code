@@ -1,3 +1,4 @@
+import { storedMeasure } from "./stored-measure.js";
 import { copiedNativeProperties } from "./native-property-copy.js";
 import { InputTypeError, ResourceLimitError } from "./archive.js";
 import { OwnershipError } from "./model-errors.js";
@@ -598,7 +599,7 @@ export class DocumentXmlEditor {
         JSON.stringify([...added.namespaces]) !== JSON.stringify([...moving.namespaces]) ||
         fragmentSource.slice(addedSpan.contentStart!, addedSpan.contentEnd!) !== this.sourceXml(moving, new Map(), true)) unsupported();
     } else if (added.content.length || added.attributes.some(a => a.namespace !== "http://www.w3.org/2000/xmlns/" && (a.namespace !== tabs.namespace || !["pos", "val", "leader"].includes(a.localName)))) unsupported();
-    const next = stops.find(n => n !== moving && Number(n.attributes.find(a => a.namespace === tabs.namespace && a.localName === "pos")?.value) > position), patches = new Map<XmlElement, string>();
+    const next = stops.find(n => n !== moving && storedMeasure(n.attributes.find(a => a.namespace === tabs.namespace && a.localName === "pos")?.value ?? "").emu > position * 635), patches = new Map<XmlElement, string>();
     if (moving) patches.set(moving, "");
     if (next) patches.set(next, leaf + this.sourceXml(next));
     const expected = this.sourceXml(tabs, patches, true) + (next ? "" : leaf);
@@ -621,7 +622,7 @@ export class DocumentXmlEditor {
       const candidateSpans = indexSource(candidate, source), span = candidateSpans.get(afterTabs)!;
       if (source.slice(span.contentStart!, span.contentEnd!) !== expected || JSON.stringify(attributes(afterTabs)) !== JSON.stringify(attributes(tabs)) || JSON.stringify([...afterTabs.namespaces]) !== JSON.stringify([...tabs.namespaces])) unsupported();
       if (moving) {
-        const afterStops = projected(afterTabs).filter(n => n.namespace === tabs.namespace && n.localName === "tab"), moved = afterStops[stops.filter(n => n !== moving && Number(n.attributes.find(a => a.namespace === tabs.namespace && a.localName === "pos")?.value) <= position).length]!;
+        const afterStops = projected(afterTabs).filter(n => n.namespace === tabs.namespace && n.localName === "tab"), moved = afterStops[stops.filter(n => n !== moving && storedMeasure(n.attributes.find(a => a.namespace === tabs.namespace && a.localName === "pos")?.value ?? "").emu <= position * 635).length]!;
         const inheritedContext = (root: XmlElement, target: XmlElement) => {
           const path = pathTo(root, target); if (!path) unsupported(); const context = new Map<string, readonly string[]>(); let node = root;
           for (const index of [...path, -1]) {for (const a of node.attributes) if (a.namespace === "http://www.w3.org/XML/1998/namespace" && ["lang", "space", "base"].includes(a.localName)) context.set(a.localName, a.localName === "base" ? [...context.get("base") ?? [], a.value] : [a.value]); if (index !== -1) node = node.children[index]!;}

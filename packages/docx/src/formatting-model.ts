@@ -1,6 +1,8 @@
 import { bindXmlElementView, type XmlElementView, type XmlViewBinding } from "./xml-element-view.js";
+import { storedMeasure } from "./stored-measure.js";
+import { InvalidDocumentError } from "./document-error.js";
 import { DocumentBudget } from "./budget.js";
-import { plainLength, Pt, Twips, Length, enumFamilies, type EnumMember } from "./formatting-values.js";
+import { plainLength, Twips, Length, enumFamilies, type EnumMember } from "./formatting-values.js";
 import { BoundsError, StaleHandleError } from "./model-errors.js";
 import { numericSequence, snapshotSequence } from "./numeric-index.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
@@ -110,12 +112,6 @@ function update(owner: FormattingXmlOwner, kind: "r" | "p", values: DocxOperatio
   owner.setXml(runElementOpen(root) + (props ? "" : replacement) + xml.sourceXml(root, patches, true) + `</${root.name}>`);
 }
 function tri(value: unknown): asserts value is boolean | null { if (value !== null && typeof value !== "boolean") throw new InputTypeError("Expected true, false or null."); }
-function storedLength(value: string): Length {
-  const suffix = value.slice(-2), multiplier = ({ in: 914400, cm: 360000, mm: 36000, pt: 12700, pc: 152400, pi: 152400 } as Readonly<Record<string, number>>)[suffix];
-  if (multiplier !== undefined) return Length(Number(value.slice(0, -2)) * multiplier);
-  if (!value.trim() || !Number.isSafeInteger(Number(value))) throw new TypeError("Invalid stored paragraph length.");
-  return Twips(Number(value));
-}
 function booleanValue(node: XmlElement | undefined): boolean | null {
   if (!node) return null;
   const value = attr(node);
@@ -156,7 +152,7 @@ export class Font {
   get element(): XmlElementView { return ownerView(this.owner); }
   get name(): string | null { return attr(property(this.owner, "rPr", "rFonts"), "ascii") ?? null; }
   set name(value: string | null) { if (value !== null && typeof value !== "string") throw new InputTypeError("Expected a font name or null."); update(this.owner, "r", { font: value }); }
-  get size(): Length | null { const value = attr(property(this.owner, "rPr", "sz")); return value === undefined ? null : Pt(Number(value) / 2); }
+  get size(): Length | null { const value = attr(property(this.owner, "rPr", "sz")); return value === undefined ? null : storedMeasure(value, "half-point"); }
   set size(value: DocxLength | null) { value = value === null ? null : plainLength(value); if (value !== null && !validateDocxValue("Length", value)) throw new InputTypeError("Expected a font length or null."); update(this.owner, "r", { size: value === null ? null : { value: paragraphUnits(value, 1), unit: "emu" } }); }
   get underline(): boolean | EnumMember<"WD_UNDERLINE"> | null {
     const value = attr(property(this.owner, "rPr", "u")); if (value === undefined) return null;
@@ -205,24 +201,25 @@ export class ParagraphFormat {
     if (!name) throw new TypeError("Invalid paragraph alignment."); return enumFamilies.WD_PARAGRAPH_ALIGNMENT[name];
   }
   set alignment(value: DocxEnumValue<"WD_PARAGRAPH_ALIGNMENT"> | null) { if (!validateDocxValue("WD_PARAGRAPH_ALIGNMENT | null", value)) throw new InputTypeError("Invalid paragraph alignment."); update(this.owner, "p", { alignment: value }); }
-  get right_indent(): Length | null { const node = property(this.owner, "pPr", "ind"), value = attr(node, "end") ?? attr(node, "right"); return value === undefined ? null : storedLength(value); }
+  get right_indent(): Length | null { const node = property(this.owner, "pPr", "ind"), value = attr(node, "end") ?? attr(node, "right"); return value === undefined ? null : storedMeasure(value); }
   set right_indent(value: DocxLength | null) { this.length("rightIndent", value); }
-  get first_line_indent(): Length | null { const node = property(this.owner, "pPr", "ind"), hanging = attr(node, "hanging"), first = attr(node, "firstLine"); return hanging !== undefined ? Twips(-storedLength(hanging).emu / 635) : first === undefined ? null : storedLength(first); }
+  get first_line_indent(): Length | null { const node = property(this.owner, "pPr", "ind"), hanging = attr(node, "hanging"), first = attr(node, "firstLine"); return hanging !== undefined ? Twips(-storedMeasure(hanging, "unsigned-twip").emu / 635) : first === undefined ? null : storedMeasure(first, "unsigned-twip"); }
   set first_line_indent(value: DocxLength | null) { this.length("firstLineIndent", value); }
-  get space_before(): Length | null { const value = attr(property(this.owner, "pPr", "spacing"), "before"); return value === undefined ? null : storedLength(value); }
+  get space_before(): Length | null { const value = attr(property(this.owner, "pPr", "spacing"), "before"); return value === undefined ? null : storedMeasure(value, "unsigned-twip"); }
   set space_before(value: DocxLength | null) { this.length("spaceBefore", value); }
-  get space_after(): Length | null { const value = attr(property(this.owner, "pPr", "spacing"), "after"); return value === undefined ? null : storedLength(value); }
+  get space_after(): Length | null { const value = attr(property(this.owner, "pPr", "spacing"), "after"); return value === undefined ? null : storedMeasure(value, "unsigned-twip"); }
   set space_after(value: DocxLength | null) { this.length("spaceAfter", value); }
   private length(option: "rightIndent" | "firstLineIndent" | "spaceBefore" | "spaceAfter", value: DocxLength | null): void { value = value === null ? null : plainLength(value); if (!validateDocxValue("Length | null", value)) throw new InputTypeError("Expected a length or null."); update(this.owner, "p", { [option]: value }); }
-  get line_spacing(): Length | number | null { const node = property(this.owner, "pPr", "spacing"), value = attr(node, "line"); return value === undefined ? null : ["exact", "atLeast"].includes(attr(node, "lineRule") ?? "auto") ? storedLength(value) : Number(value) / 240; }
+  get line_spacing(): Length | number | null { const node = property(this.owner, "pPr", "spacing"), value = attr(node, "line"); return value === undefined ? null : ["exact", "atLeast"].includes(attr(node, "lineRule") ?? "auto") ? storedMeasure(value) : storedMeasure(value).emu / 152400; }
   set line_spacing(value: DocxLength | number | null) { value = value !== null && typeof value === "object" ? plainLength(value) : value; if (!validateDocxValue("Length | finite number | null", value)) throw new InputTypeError("Invalid line spacing."); update(this.owner, "p", { lineSpacing: value, ...(value !== null && typeof value === "object" && this.line_spacing_rule?.name === "AT_LEAST" ? { lineSpacingRule: { enum: "WD_LINE_SPACING", name: "AT_LEAST" } as const } : {}) }); }
   get line_spacing_rule(): EnumMember<"WD_LINE_SPACING"> | null {
     const node = property(this.owner, "pPr", "spacing"), rule = attr(node, "lineRule"), line = attr(node, "line"); if (line === undefined && rule === undefined) return null;
-    const name = rule === "exact" ? "EXACTLY" : rule === "atLeast" ? "AT_LEAST" : line === "240" ? "SINGLE" : line === "360" ? "ONE_POINT_FIVE" : line === "480" ? "DOUBLE" : "MULTIPLE";
+    const emu = line === undefined ? undefined : storedMeasure(line).emu;
+    const name = rule === "exact" ? "EXACTLY" : rule === "atLeast" ? "AT_LEAST" : emu === 152400 ? "SINGLE" : emu === 228600 ? "ONE_POINT_FIVE" : emu === 304800 ? "DOUBLE" : "MULTIPLE";
     return enumFamilies.WD_LINE_SPACING[name];
   }
   set line_spacing_rule(value: DocxEnumValue<"WD_LINE_SPACING"> | null) { if (!validateDocxValue("WD_LINE_SPACING | null", value)) throw new InputTypeError("Invalid line spacing rule."); update(this.owner, "p", { lineSpacingRule: value }); }
-  get left_indent(): Length | null { const ind = property(this.owner, "pPr", "ind"); const value = attr(ind, "start") ?? attr(ind, "left"); return value === undefined ? null : storedLength(value); }
+  get left_indent(): Length | null { const ind = property(this.owner, "pPr", "ind"); const value = attr(ind, "start") ?? attr(ind, "left"); return value === undefined ? null : storedMeasure(value); }
   set left_indent(value: DocxLength | null) { value = value === null ? null : plainLength(value); if (value !== null && !validateDocxValue("Length", value)) throw new InputTypeError("Expected a length or null."); update(this.owner, "p", { leftIndent: value as DocxOperationArguments<"paragraphs.set">["leftIndent"] }); }
 }
 for (const [name, [option, tag]] of Object.entries(paragraphFlags)) Object.defineProperty(ParagraphFormat.prototype, name, {
@@ -274,9 +271,9 @@ export class TabStops implements Iterable<TabStop> {
     const nodes = tabs ? children(tabs).filter(c => c.namespace === root.namespace && c.localName === "tab") : [];
     const retained = this.retainXmlIds && nodes.length === this.records.length ? this.records : undefined;
     this.records = nodes.map((node, index) => {
-      const position = Number(attr(node, "pos"));
+      const position = storedMeasure(attr(node, "pos") ?? "", "twip", "Invalid tab stop properties.").emu / 635;
       const alignment = alignments[attr(node)! as keyof typeof alignments], leader = leaders[(attr(node, "leader") ?? "none") as keyof typeof leaders];
-      if (!Number.isSafeInteger(position) || !alignment || !leader) throw new TypeError("Invalid tab stop properties.");
+      if (!alignment || !leader) throw new InvalidDocumentError("Invalid tab stop properties.");
       return { id: retained?.[index]?.id ?? this.nextId++, value: { position: { value: position, unit: "twip" }, alignment: { enum: "WD_TAB_ALIGNMENT", name: alignment }, leader: { enum: "WD_TAB_LEADER", name: leader } } };
     });
     this.retainXmlIds = false;
@@ -339,7 +336,7 @@ export class TabStops implements Iterable<TabStop> {
       const changed = runElementOpen({...node, namespaces: new Map([...node.namespaces, [prefix, node.namespace]]), attributes}) + xml.sourceXml(node, new Map(), true) + `</${node.name}>`;
       if (patch.position === undefined) xml.replaceElement(node, changed);
       else {
-        const next = stops.find((stop, offset) => offset !== index && Number(attr(stop, "pos")) > paragraphUnits(value.position));
+        const next = stops.find((stop, offset) => offset !== index && storedMeasure(attr(stop, "pos") ?? "").emu > paragraphUnits(value.position) * 635);
         const changes = new Map<XmlElement, string>([[node, ""]]);
         if (next) changes.set(next, changed + xml.sourceXml(next));
         xml[replaceNativeTabCollectionXml](tabs, runElementOpen(tabs) + xml.sourceXml(tabs, changes, true) + (next ? "" : changed) + `</${tabs.name}>`, tabs, changed, paragraphUnits(value.position), node);
@@ -364,7 +361,7 @@ export class TabStop {
   }
   get part(): unknown { this.collection.value(this.id); return this.collection.part; }
   equals(other: unknown): boolean { this.collection.value(this.id); if (!(other instanceof TabStop)) return false; other.collection.value(other.id); return this.collection.equals(other.collection) && this.id === other.id; }
-  get position(): Length { return Twips(paragraphUnits(this.collection.value(this.id).position)); }
+  get position(): Length { return Twips(paragraphUnits(this.collection.value(this.id).position, 1) / 635); }
   set position(value: DocxLength) {
     if (value === undefined) throw new InputTypeError("Expected a tab position length.");
     this.collection.change(this.id, { position: value });

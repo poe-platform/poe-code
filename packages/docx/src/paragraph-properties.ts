@@ -1,3 +1,5 @@
+import { storedMeasure } from "./stored-measure.js";
+import { InvalidDocumentError } from "./document-error.js";
 import { DocxUsageError } from "./argument-json.js";
 import { xmlValue } from "./create-content.js";
 import { documentDialects } from "./dialect.js";
@@ -147,8 +149,12 @@ export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElemen
       const markup = newTabStopXml(w, tab, spacesLeader);
       const positions = stops.map(stop => {
         const stored = stop.attributes.find(a => a.namespace === w && a.localName === "pos")?.value;
-        if (stored === undefined || stored.trim() === "" || !Number.isSafeInteger(Number(stored))) throw new UnsupportedEditError("Malformed tab stop positions cannot be edited.");
-        return Number(stored);
+        if (stored === undefined) throw new UnsupportedEditError("Malformed tab stop positions cannot be edited.");
+        try { return storedMeasure(stored).emu / 635; }
+        catch (error) {
+          if (error instanceof InvalidDocumentError) throw new UnsupportedEditError("Malformed tab stop positions cannot be edited.");
+          throw error;
+        }
       });
       const next = stops.find((_, index) => positions[index]! > position);
       if (next) changes.set(next, markup + xml.sourceXml(next)); else tail = markup;

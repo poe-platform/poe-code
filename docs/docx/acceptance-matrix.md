@@ -1073,3 +1073,21 @@ section-start observations. DOCX lint/build and the inspected Strict-template
 actual CLI screenshot passed. This newly discovered dependency cancelled the
 partial whole/source checkpoints; their logs remain historical and final settled
 gates remain required. All F08–F15/F18 families remain open.
+
+### Cell-text retention dependency — 2026-09-19
+
+F08/F09/F11/F12/F13 interactions retain native cell properties under active
+Choice/Fallback/ProcessContent, cell and paragraph comments/PI, and native
+bookmark ranges across collapsed paragraphs. Exact logical Unicode/tab/newline
+text and one-paragraph formatting reset pass all three public routes for both
+macro-free kinds/dialects. See
+[text and marker evidence](text-style-family-acceptance-20260918/cell-text-native-properties-markers-requirement-evidence.json):
+606 current focused passes, 1,910 named neighboring native-property passes, and
+1,152 independently checked public source-1974 records (864 positive, 288 expected
+opaque-format refusals). Original 48/60-red and observer histories remain retained.
+The actual Strict-template CLI screenshot was inspected. Inert opaque siblings
+remain preserved/edit-compatible; consumed owners, fields, reviews and rich
+blocks reject. Duplicate-property ambiguity rejects selection as invalid-package;
+unchanged model save preserves it. No complete family is accepted by this scope;
+current whole/source gates and the complete outstanding family obligations remain
+required.

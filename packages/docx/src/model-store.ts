@@ -704,16 +704,35 @@ export class ModelStore {
     if (typeof text !== "string") throw new InputTypeError("Expected cell text.");
     this.change(ref.part, (xml) => {
       const cell = this.node(ref);
-      if (cell.children.some((child) => child.localName !== "tcPr" && child.localName !== "p"))
+      const children = activeModelChildren(this, ref.part)(cell);
+      if (children.some((child) => child.namespace !== cell.namespace || !["tcPr", "p"].includes(child.localName)))
         throw new UnsupportedEditError("Whole cell text cannot discard rich blocks.");
-      const props = cell.children.find((child) => child.localName === "tcPr");
-      const paragraphs = cell.children.filter((child) => child.localName === "p");
-      for (const p of paragraphs) replaceParagraphContent(xml, p, "", "", this.context.budget);
+      if (children.filter((child) => child.localName === "tcPr").length > 1)
+        throw new UnsupportedEditError("Whole cell text requires one owning property container.");
+      const paragraphs = children.filter((child) => child.localName === "p");
+      const patches = new Map<XmlElement, string>();
+      let paragraph = "";
+      for (const [index, p] of paragraphs.entries()) {
+        const retained = replaceParagraphContent(xml, p, "", index ? "" : text, this.context.budget);
+        if (!index) paragraph = retained;
+        else {
+          // Collapse native paragraphs without losing their annotation ranges.
+          // Each moved child carries its original namespace scope.
+          const fragment = new DocumentXmlEditor(new TextEncoder().encode(retained), {}, undefined, this.context.budget);
+          const scope = new Map(fragment.root.children.map(child => [child,
+            runElementOpen(child) + fragment.sourceXml(child, new Map(), true) + `</${child.name}>`]));
+          const end = paragraph.lastIndexOf("</");
+          paragraph = paragraph.slice(0, end) + fragment.sourceXml(fragment.root, scope, true) + paragraph.slice(end);
+          patches.set(p, "");
+        }
+      }
+      if (paragraphs[0]) patches.set(paragraphs[0], paragraph);
       xml.replaceElement(
         cell,
         runElementOpen(cell) +
-          (props ? xml.sourceXml(props) : "") +
-          `<bm:p xmlns:bm="${cell.namespace}">${paragraphTextRun(cell.namespace, text)}</bm:p></${cell.name}>`
+          xml.sourceXml(cell, patches, true) +
+          (paragraphs.length ? "" : `<bm:p xmlns:bm="${cell.namespace}">${paragraphTextRun(cell.namespace, text)}</bm:p>`) +
+          `</${cell.name}>`
       );
     });
     this.invalidateDescendants(ref);

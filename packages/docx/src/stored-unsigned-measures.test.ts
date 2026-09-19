@@ -32,13 +32,13 @@ it(`rejects invalid unsigned stored ${attribute}=${raw}; ${subject}; ${route}; $
     const format = subject === "paragraph" ? document.paragraphs[0]!.paragraph_format : (document.styles.at("Atlas") as api.ParagraphStyle).paragraph_format;
     expect(() => format[property]).toThrow(api.InvalidDocumentError); expect(document.part.blob).toEqual(before);
   } else if (route === "sdk") {
-    await expect(subject === "style" ? api.inspectDocumentStyles(input, {}, textContext) : api.applyStyleModelBatch(input, { version: 1, operations }, textContext)).rejects.toMatchObject({ code: "invalid-document" });
+    await expect(subject === "style" ? api.inspectDocumentStyles(input, {}, textContext) : api.applyStyleModelBatch(input, { version: 1, operations }, textContext)).rejects.toMatchObject({ code: "invalid-package" });
   } else {
     const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); await fs.writeFile("/output", new TextEncoder().encode("Retain destination"));
     const shell = new Shell({ fs }).use(docxCommands({ engine: api.createDocxInspectionCommandEngine({ limits: textContext.limits }) }));
     try {
       const result = await shell.exec(subject === "style" ? "docx styles list /input --json" : `docx batch /input --ops-json '${JSON.stringify({ version: 1, operations })}' --dry-run --json`);
-      expect(result.exitCode, result.stdout + result.stderr).toBe(1); expect(JSON.parse(result.stdout).errors[0].code).toBe("invalid-document");
+      expect(result.exitCode, result.stdout + result.stderr).toBe(1); expect(JSON.parse(result.stdout).errors[0].code).toBe("invalid-package");
       expect(await fs.readFile("/input")).toEqual(input); expect(new TextDecoder().decode(await fs.readFile("/output"))).toBe("Retain destination");
     } finally { await shell.dispose(); }
   }

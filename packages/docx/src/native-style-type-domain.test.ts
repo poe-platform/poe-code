@@ -25,7 +25,7 @@ it(`reads stored style role or rejects malformed document data; ${String(type)};
     else { expect(document.styles.at("Atlas").type).toMatchObject(expected); await document.save(sink); }
   } else if (route === "sdk") {
     const run = api.applyStyleModelBatch(input, { version: 1, operations }, textContext);
-    if (malformed) { await expect(run).rejects.toBeInstanceOf(api.InvalidDocumentError); await expect(run).rejects.toMatchObject({ code: "invalid-document", operationIndex: 1 }); }
+    if (malformed) { await expect(run).rejects.toBeInstanceOf(api.InvalidDocumentError); await expect(run).rejects.toMatchObject({ code: "invalid-package", operationIndex: 1 }); }
     else { const applied = await run; expect(applied.affected).toBe(0); expect(applied.results.at(-1)!.value).toMatchObject(expected); await applied.save(sink); }
   } else {
     const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); await fs.writeFile("/destination", new TextEncoder().encode("Original destination"));
@@ -33,7 +33,7 @@ it(`reads stored style role or rejects malformed document data; ${String(type)};
     try {
       const r = await shell.exec(`docx batch /input --ops-json '${JSON.stringify({ version: 1, operations })}' --output /destination --force --json`);
       expect(r.exitCode, r.stdout + r.stderr).toBe(malformed ? 1 : 0); const result = JSON.parse(r.stdout);
-      if (malformed) { expect(result.errors[0].code).toBe("invalid-document"); expect(new TextDecoder().decode(await fs.readFile("/destination"))).toBe("Original destination"); }
+      if (malformed) { expect(result.errors[0].code).toBe("invalid-package"); expect(new TextDecoder().decode(await fs.readFile("/destination"))).toBe("Original destination"); }
       else { expect(result.affected).toBe(0); expect(result.data.results.at(-1).data).toMatchObject(expected); volume.writeFileSync("/out", await fs.readFile("/destination")); }
       expect(await fs.readFile("/input")).toEqual(input);
     } finally { await shell.dispose(); }

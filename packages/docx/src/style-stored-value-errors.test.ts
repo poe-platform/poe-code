@@ -33,11 +33,11 @@ it(`reports stored ${scenario.name} with a neutral value error; ${route}; ${carr
       try { scenario.read(document.styles); } finally { expect(document.part.blob).toEqual(before); }
     })();
     await expect(rejection).rejects.toBeInstanceOf(api.InvalidDocumentError);
-    await expect(rejection).rejects.toMatchObject({ code: "invalid-document" });
+    await expect(rejection).rejects.toMatchObject({ code: "invalid-package" });
   } else if (route === "sdk") {
     const rejection = api.inspectDocumentStyles(input, {}, textContext);
     await expect(rejection).rejects.toBeInstanceOf(api.InvalidDocumentError);
-    await expect(rejection).rejects.toMatchObject({ code: "invalid-document" });
+    await expect(rejection).rejects.toMatchObject({ code: "invalid-package" });
   }
   else {
     const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); await fs.writeFile("/destination", enc("Retain destination"));
@@ -45,7 +45,7 @@ it(`reports stored ${scenario.name} with a neutral value error; ${route}; ${carr
     try {
       const result = await shell.exec("docx styles list /input --json"), envelope = JSON.parse(result.stdout);
       expect(result.exitCode, result.stdout + result.stderr).toBe(1);
-      expect(envelope).toMatchObject({ ok: false, data: null, affected: 0, errors: [{ code: "invalid-document" }] });
+      expect(envelope).toMatchObject({ ok: false, data: null, affected: 0, errors: [{ code: "invalid-package" }] });
       expect(await fs.readFile("/input")).toEqual(input); expect(await fs.readFile("/destination")).toEqual(enc("Retain destination"));
     } finally { await shell.dispose(); }
   }

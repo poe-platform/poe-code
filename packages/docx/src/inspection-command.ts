@@ -340,7 +340,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits?: P
         if (["images.extract", "objects.extract"].includes(invocation.operation) && (error instanceof ImageExtractionCancellationError || error instanceof ObjectExtractionCancellationError)) throw error;
         const cancelled = request.signal.aborted || error instanceof CancellationError;
         if (writingDiagnostics) return { exitCode: cancelled ? 130 : invocation.operation === "diff" ? 2 : 3 };
-        const code = cancelled ? "cancelled" : error instanceof ResourceLimitError ? "limit-exceeded" : asPermissionError(error) ? "permission" : acquiring ? "source-failure" : error && typeof error === "object" && "code" in error ? String(error.code) : "invalid-document";
+        const code = cancelled ? "cancelled" : error instanceof ResourceLimitError ? "limit-exceeded" : asPermissionError(error) ? "permission" : acquiring ? "source-failure" : error && typeof error === "object" && "code" in error ? String(error.code) : "invalid-package";
         exitCode = error instanceof ResourceLimitError ? 4 : code === "conflict" ? 1 : acquiring || error instanceof PublicationError || code === "permission" || code === "source-failure" || code === "sink-failure" ? 3 : code === "usage" ? 2 : 1;
         if (cancelled) exitCode = 130;
         else if (invocation.operation === "diff") exitCode = 2;

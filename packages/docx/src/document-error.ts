@@ -5,5 +5,4 @@ export class DocumentError extends Error {
 
 /** A stored document value violates its declared semantic type. */
 export class InvalidDocumentError extends DocumentError {
-  override readonly code = "invalid-document";
 }

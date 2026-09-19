@@ -66,7 +66,7 @@ it(`rejects malformed stored ${member} ${JSON.stringify(raw)} with a typed seman
   const paragraph = member === "tab position" ? `<w:tabs><w:tab w:val="left" w:pos="${raw}"/></w:tabs>` : member === "indent" ? `<w:ind w:left="${raw}"/>` : member.startsWith("line") ? `<w:spacing w:line="${raw}" w:lineRule="${member === "line exact" ? "exact" : "auto"}"/>` : "";
   const { input } = await nativeStoryFixture("document.DocumentPart", strict, kind, `<w:p><w:pPr>${paragraph}</w:pPr><w:r><w:rPr>${member === "font size" ? `<w:sz w:val="${raw}"/>` : ""}</w:rPr><w:t>Retain é 日本 עברית 🌊</w:t></w:r></w:p>`), document = await api.Document(input, textContext), p = document.paragraphs[0]!, f = p.paragraph_format, before = document.part.blob;
   const read = () => member === "font size" ? p.runs[0]!.font.size : member === "tab position" ? f.tab_stops.at(0).position : member === "indent" ? f.left_indent : f.line_spacing;
-  expect(read).toThrow(api.InvalidDocumentError); expect(read).toThrowError(expect.objectContaining({ code: "invalid-document" }));
+  expect(read).toThrow(api.InvalidDocumentError); expect(read).toThrowError(expect.objectContaining({ code: "invalid-package" }));
   expect(document.part.blob).toEqual(before); expect(p.text).toBe("Retain é 日本 עברית 🌊");
 });
 

@@ -22,12 +22,12 @@ it(`rejects malformed stored color.${member} with a typed document error; ${rout
   if (route === "model") {
     const document = await api.Document(input, textContext), before = document.part.blob;
     expect(() => document.paragraphs[0]!.runs[0]!.font.color[member]).toThrow(api.InvalidDocumentError); expect(document.part.blob).toEqual(before);
-  } else if (route === "sdk") await expect(api.applyStyleModelBatch(input, { version: 1, operations }, textContext)).rejects.toMatchObject({ code: "invalid-document" });
+  } else if (route === "sdk") await expect(api.applyStyleModelBatch(input, { version: 1, operations }, textContext)).rejects.toMatchObject({ code: "invalid-package" });
   else {
     const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); const shell = new Shell({ fs }).use(docxCommands({ engine: api.createDocxInspectionCommandEngine({ limits: textContext.limits }) }));
     try {
       const result = await shell.exec(`docx batch /input --ops-json '${JSON.stringify({ version: 1, operations })}' --dry-run --json`);
-      expect(result.exitCode, result.stdout + result.stderr).toBe(1); expect(JSON.parse(result.stdout).errors[0].code).toBe("invalid-document"); expect(await fs.readFile("/input")).toEqual(input);
+      expect(result.exitCode, result.stdout + result.stderr).toBe(1); expect(JSON.parse(result.stdout).errors[0].code).toBe("invalid-package"); expect(await fs.readFile("/input")).toEqual(input);
     } finally { await shell.dispose(); }
   }
 });

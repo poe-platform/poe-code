@@ -67,10 +67,10 @@ for (const whitespace of ["\u00a0", "\u2003"]) for (const scenario of integerCas
 for (const route of ["model", "sdk", "cli"] as const)
 if (scenario.read !== null || route !== "model") it(`rejects non-XML whitespace in ${scenario.name}; U+${whitespace.codePointAt(0)!.toString(16)}; ${route}; ${carrier}; ${kind}; strict=${strict}`, async () => {
   const { input } = await fixture(scenario.markup(`${whitespace}7${whitespace}`), strict, kind, carrier);
-  if (route === "model") { await expect((async () => { const d = await api.Document(input, textContext); return scenario.read!(d); })()).rejects.toMatchObject({ code: "invalid-document" }); }
-  else if (route === "sdk") await expect(api.inspectDocumentStyles(input, {}, textContext)).rejects.toMatchObject({ code: "invalid-document" });
+  if (route === "model") { await expect((async () => { const d = await api.Document(input, textContext); return scenario.read!(d); })()).rejects.toMatchObject({ code: "invalid-package" }); }
+  else if (route === "sdk") await expect(api.inspectDocumentStyles(input, {}, textContext)).rejects.toMatchObject({ code: "invalid-package" });
   else { const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); const shell = new Shell({ fs }).use(docxCommands({ engine: api.createDocxInspectionCommandEngine({ limits: textContext.limits }) }));
-    try { const r = await shell.exec("docx styles list /input --json"); expect(r.exitCode, r.stdout + r.stderr).toBe(1); expect(JSON.parse(r.stdout).errors[0].code).toBe("invalid-document"); expect(await fs.readFile("/input")).toEqual(input); } finally { await shell.dispose(); }
+    try { const r = await shell.exec("docx styles list /input --json"); expect(r.exitCode, r.stdout + r.stderr).toBe(1); expect(JSON.parse(r.stdout).errors[0].code).toBe("invalid-package"); expect(await fs.readFile("/input")).toEqual(input); } finally { await shell.dispose(); }
   }
 });
 

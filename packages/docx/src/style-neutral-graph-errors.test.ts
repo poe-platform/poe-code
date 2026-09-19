@@ -32,10 +32,10 @@ it(`reports ambiguous style name through the neutral value class; ${type}; ${kin
 });
 
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
-it(`reports a stored unknown style type through the neutral value class; ${kind}; strict=${strict}`, async () => {
+it(`reports a stored unknown style type through the neutral document class; ${kind}; strict=${strict}`, async () => {
   const { input } = await nativeStoryFixture("document.DocumentPart", strict, kind, '<w:p/>');
   const d = await api.Document(input, textContext), style = d.styles.add_style("Atlas", api.WD_STYLE_TYPE.PARAGRAPH), node = style.element;
   node.set_attribute({ namespaceURI: node.namespace, localName: "type" }, "unlisted");
   const before = d.styles.part.blob;
-  expect(() => style.type).toThrow(api.InvalidValueError); expect(d.styles.part.blob).toEqual(before);
+  expect(() => style.type).toThrow(api.InvalidDocumentError); expect(() => style.type).toThrow(expect.objectContaining({ code: "invalid-package" })); expect(d.styles.part.blob).toEqual(before);
 });

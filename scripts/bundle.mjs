@@ -227,6 +227,7 @@ for (const entryPoint of ["index", "codecs/utf8", "codecs/python"]) {
     format: "esm",
     outfile: path.join(rootDir, "packages/csvkit/dist", entryPoint + ".js"),
     ...consumerBuildOptions,
+    external: Object.keys({ ...packageJson.dependencies, ...packageJson.optionalDependencies }),
     sourcemap: true,
   }));
 }

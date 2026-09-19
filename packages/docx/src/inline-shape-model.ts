@@ -1,6 +1,6 @@
 import { activeModelChildren } from "./model-active-children.js";
 import { InputTypeError, InvalidValueError, ResourceLimitError } from "./archive.js";
-import { BoundsError } from "./model-errors.js";
+import { BoundsError, MissingKeyError } from "./model-errors.js";
 import { Image } from "./image-model.js";
 import type { DocxLength } from "./operation-types.js";
 import { Emu, isLength, WD_INLINE_SHAPE, type Length } from "./formatting-values.js";
@@ -46,7 +46,7 @@ export class Drawing {
     const picture = descendant(node, ns.pic, "pic", children),
       blip = picture && descendant(picture, ns.a, "blip", children);
     const id = blip?.attributes.find((a) => a.namespace === ns.r && a.localName === "embed")?.value;
-    if (!id) throw new InvalidValueError("Drawing has no embedded picture.");
+    if (!id) throw new MissingKeyError("Drawing has no embedded picture.");
     const part = this.part.related_parts.get(id);
     if (!(part instanceof ImagePartView))
       throw new InvalidValueError("Drawing picture relationship is invalid.");

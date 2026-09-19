@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
-import { readRegistry, runCommand, verifyPublication } from "./verify-safe-publication.mjs";
+import { readRegistry, runCommand, verifyCloudflareArtifacts, verifyPublication } from "./verify-safe-publication.mjs";
 
 const version = "0.1.669";
 const source = "e63cc14f91e17ffdfb004edd8e72d504a7e91353";
@@ -13,7 +13,49 @@ const digest = createHash("sha512").update(archive).digest();
 const integrity = `sha512-${digest.toString("base64")}`;
 const names = ["safe-fs", "safe-js", "safe-bash"].map(name => `@poe-platform/${name}`);
 
-function fixture() {
+  async function artifacts(files = createFsFromVolume(new Volume()).promises, root = "/consumer/node_modules/@poe-platform/safe-bash") {
+    const manifest = {
+      exports: { "./playwright/cloudflare": { import: "./cloudflare/index.js", types: "./cloudflare/index.d.ts" } },
+      peerDependencies: { "@cloudflare/playwright": "1.3.6" },
+      peerDependenciesMeta: { "@cloudflare/playwright": { optional: true } },
+    };
+    const contents = {
+      "package.json": JSON.stringify(manifest),
+      "cloudflare/index.js": "export const createCloudflarePlaywrightAdapter = () => {};",
+      "cloudflare/index.d.ts": "export declare function createCloudflarePlaywrightAdapter(): unknown;",
+      "cloudflare/browser-run-code-guest.generated.js": "cloudflare:workers browser-user-code.js",
+      "cloudflare/browser-codegen.generated.js": "@cloudflare/playwright@1.3.6",
+      "third-party/safe-playwright-cloudflare/third-party/playwright/LICENSE": "Apache License",
+      "third-party/safe-playwright-cloudflare/third-party/playwright/NOTICE": "Microsoft Corporation",
+    };
+    for (const [filename, content] of Object.entries(contents)) {
+      await files.mkdir(join(root, filename, ".."), { recursive: true });
+      await files.writeFile(join(root, filename), content);
+    }
+    return { files: files as unknown as typeof import("node:fs/promises"), root, manifest };
+  }
+
+describe("published Cloudflare artifacts", () => {
+  it("verifies the optional adapter, generated assets and provider notices", async () => {
+    const { files, root } = await artifacts();
+    await verifyCloudflareArtifacts(files, root);
+  });
+
+  it.each(["cloudflare/index.js", "cloudflare/index.d.ts", "cloudflare/browser-run-code-guest.generated.js", "cloudflare/browser-codegen.generated.js", "third-party/safe-playwright-cloudflare/third-party/playwright/LICENSE", "third-party/safe-playwright-cloudflare/third-party/playwright/NOTICE"])("rejects a missing published %s", async filename => {
+    const { files, root } = await artifacts();
+    await files.unlink(join(root, filename));
+    await expect(verifyCloudflareArtifacts(files, root)).rejects.toThrow();
+  });
+
+  it("rejects a provider peer that would be installed by the portable core", async () => {
+    const { files, root, manifest } = await artifacts();
+    manifest.peerDependenciesMeta["@cloudflare/playwright"].optional = false;
+    await files.writeFile(join(root, "package.json"), JSON.stringify(manifest));
+    await expect(verifyCloudflareArtifacts(files, root)).rejects.toThrow("optional");
+  });
+});
+
+function fixture(cloudflare = false) {
   const files = createFsFromVolume(new Volume()).promises;
   const metadata = names.map(name => ({
     name, version,
@@ -51,6 +93,10 @@ function fixture() {
       const directory = join(options.cwd, "node_modules", item.name);
       await files.mkdir(directory, { recursive: true });
       await files.writeFile(join(directory, "package.json"), JSON.stringify({ name: item.name, version: item.version }));
+      if (cloudflare && item.name === "@poe-platform/safe-bash") {
+        const { manifest } = await artifacts(files, directory);
+        await files.writeFile(join(directory, "package.json"), JSON.stringify({ ...manifest, name: item.name, version: item.version }));
+      }
       packages[`node_modules/${item.name}`] = { version: item.version, resolved: item.dist.tarball, integrity: item.dist.integrity };
     }
     await files.writeFile(join(options.cwd, "package-lock.json"), JSON.stringify({ lockfileVersion: 3, packages }));
@@ -65,6 +111,29 @@ function fixture() {
 }
 
 describe("public safe-package verification", () => {
+  it("runs portable profile imports after verifying published adapter assets", async () => {
+    const context = fixture(true);
+    await context.verify({ cloudflare: true });
+    expect(context.run).toHaveBeenCalledTimes(3);
+    expect(context.run.mock.calls[2][1].join(" ")).toContain("parseBrowserProfile(encodeBrowserProfile");
+    expect(await context.files.readdir("/out")).toEqual([]);
+  });
+
+  it("fails publication verification if portable profile imports fail", async () => {
+    const context = fixture(true);
+    const run = context.run.getMockImplementation()!;
+    context.run.mockImplementation(async (command, args, options) => {
+      if (args.join(" ").includes("encodeBrowserProfile")) throw new Error("profile import failed");
+      await run(command, args, options);
+    });
+    await expect(context.verify({ cloudflare: true, maxAttempts: 1 })).rejects.toThrow("profile import failed");
+    expect(context.log.mock.calls.flat().join(" ")).not.toContain("Verified");
+  });
+  it("requires adapter artifacts when verifying a Cloudflare release", async () => {
+    const context = fixture();
+    await expect(context.verify({ cloudflare: true, maxAttempts: 1 })).rejects.toThrow("optional Cloudflare");
+    expect(context.run).toHaveBeenCalledTimes(1);
+  });
   it("downloads every exact archive, binds provenance, then installs exact registry specs and imports", async () => {
     const context = fixture();
     await context.verify();

@@ -143,5 +143,5 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/verify-safe-publication.mjs --version "$VERSION" --source "$SOURCE"
+          node scripts/verify-safe-publication.mjs --cloudflare --version "$VERSION" --source "$SOURCE"
           printf 'Public archives downloaded and SHA-512 verified; provenance source matched; fresh npm resolution/install and Node imports (including explicit commands) passed for safe-fs, safe-js and safe-bash at %s from %s\n' "$VERSION" "$SOURCE" >> "$GITHUB_STEP_SUMMARY"

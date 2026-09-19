@@ -91,6 +91,38 @@ async function readInstalledJson(files, filename) {
   return JSON.parse(await files.readFile(filename, "utf8"));
 }
 
+export async function verifyCloudflareArtifacts(files, root) {
+  const manifest = await readInstalledJson(files, path.join(root, "package.json"));
+  const entry = manifest.exports?.["./playwright/cloudflare"];
+  const provider = "@cloudflare/playwright";
+  const providerVersion = manifest.peerDependencies?.[provider];
+  if (!entry?.import || !entry?.types || !providerVersion ||
+      manifest.peerDependenciesMeta?.[provider]?.optional !== true || manifest.dependencies?.[provider]) {
+    throw new Error("Missing optional Cloudflare adapter export or provider contract");
+  }
+  async function text(relative) {
+    if (typeof relative !== "string") throw new Error("Invalid Cloudflare asset path");
+    const filename = path.resolve(root, relative);
+    if (!filename.startsWith(`${root}${path.sep}`)) throw new Error("Cloudflare asset escapes installed package");
+    const stat = await files.lstat(filename);
+    if (!stat.isFile() || stat.size > 8_388_608) throw new Error(`${filename}: invalid Cloudflare asset`);
+    return files.readFile(filename, "utf8");
+  }
+  const directory = path.dirname(entry.import);
+  const assets = [
+    [entry.import, "createCloudflarePlaywrightAdapter"],
+    [entry.types, "createCloudflarePlaywrightAdapter"],
+    [path.join(directory, "browser-run-code-guest.generated.js"), "cloudflare:workers"],
+    [path.join(directory, "browser-run-code-guest.generated.js"), "browser-user-code.js"],
+    [path.join(directory, "browser-codegen.generated.js"), `${provider}@${providerVersion}`],
+    ["third-party/safe-playwright-cloudflare/third-party/playwright/LICENSE", "Apache License"],
+    ["third-party/safe-playwright-cloudflare/third-party/playwright/NOTICE", "Microsoft Corporation"],
+  ];
+  for (const [filename, marker] of assets) {
+    if (!(await text(filename)).includes(marker)) throw new Error(`${filename}: missing Cloudflare asset contract ${marker}`);
+  }
+}
+
 async function verifyInstalled(files, consumer, identities) {
   const lock = await readInstalledJson(files, path.join(consumer, "package-lock.json"));
   for (const identity of identities) {
@@ -121,7 +153,7 @@ assert.equal(safeFs.FsError, safeBash.FsError);
 assert.ok(createMetadataCommands().length > 0);
 `;
 
-export async function verifyPublication({ version, source, workDir, maxAttempts = 180, retryDelayMs = 10_000, timeoutMs = 2_400_000 }, {
+export async function verifyPublication({ version, source, workDir, cloudflare = false, maxAttempts = 180, retryDelayMs = 10_000, timeoutMs = 2_400_000 }, {
   files = fs, fetch = globalThis.fetch, run = runCommand, sleep = delay, log = console.log
 } = {}) {
   const versionParts = typeof version === "string" ? version.split(".") : [];
@@ -170,7 +202,17 @@ export async function verifyPublication({ version, source, workDir, maxAttempts 
       log(`Fresh public resolution: npm ${args.join(" ")}`);
       await run("npm", args, { cwd: consumer, env, signal, timeout: 120_000 });
       await verifyInstalled(files, consumer, identities.values());
+      if (cloudflare) await verifyCloudflareArtifacts(files, path.join(consumer, "node_modules", "@poe-platform/safe-bash"));
       await run(process.execPath, ["--input-type=module", "--eval", importSmoke], { cwd: consumer, env, signal, timeout: 30_000 });
+      if (cloudflare) await run(process.execPath, ["--input-type=module", "--eval", `
+import assert from "node:assert/strict";
+import { encodeBrowserProfile, parseBrowserProfile, restoreBrowserProfile, checkpointBrowserProfile } from "@poe-platform/safe-bash/playwright";
+const profile = { state: { cookies: [], origins: [] }, tabs: ["about:blank"], selected: 0 };
+const limits = { maxBytes: 4096, maxTabs: 2 };
+assert.deepEqual(parseBrowserProfile(encodeBrowserProfile(profile, limits), limits), profile);
+assert.equal(typeof restoreBrowserProfile, "function");
+assert.equal(typeof checkpointBrowserProfile, "function");
+`], { cwd: consumer, env, signal, timeout: 30_000 });
       signal.throwIfAborted();
       log(`Verified ${version} from ${source}: public archives, integrity, provenance source, fresh npm install and Node imports`);
       return;
@@ -191,9 +233,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
   try {
     const { values } = parseArgs({ options: {
       version: { type: "string" }, source: { type: "string" }, "work-dir": { type: "string" },
+      cloudflare: { type: "boolean", default: false },
       attempts: { type: "string", default: "180" }, "timeout-ms": { type: "string", default: "2400000" }
     } });
-    await verifyPublication({ version: values.version, source: values.source, workDir: values["work-dir"] ?? "out/safe-publication",
+    await verifyPublication({ version: values.version, source: values.source, cloudflare: values.cloudflare, workDir: values["work-dir"] ?? "out/safe-publication",
       maxAttempts: Number(values.attempts), timeoutMs: Number(values["timeout-ms"]) });
   } catch (error) {
     console.error(String(error.message ?? error).slice(0, 4_096));

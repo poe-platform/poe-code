@@ -95,11 +95,11 @@ export class Comment {
   }
   equals(other: unknown): boolean {
     requireComparisonOperand(other);
+    this.store.node(this.ref);
     return (
       other instanceof Comment &&
       other.store === this.store &&
-      other.ref.part === this.ref.part &&
-      other.ref.id === this.ref.id
+      this.store.node(this.ref) === other.store.node(other.ref)
     );
   }
   get comment_id(): number {

@@ -104,13 +104,16 @@ async function fixture(env: Env, mobile: boolean) {
 }
 export default {
 	async fetch(request: Request, env: Env) {
-		const storage = await handleBrowserStorageScenario(request, env);
-		if (storage) return storage;
-		const f = await fixture(
-			env,
-			new URL(request.url).pathname.startsWith("/mobile"),
-		);
+		const failures: unknown[] = [];
+		let cleanup: (() => Promise<void>) | undefined;
 		try {
+			const storage = await handleBrowserStorageScenario(request, env);
+			if (storage) return storage;
+			const f = await fixture(
+				env,
+				new URL(request.url).pathname.startsWith("/mobile"),
+			);
+			cleanup = f.cleanup;
 			switch (new URL(request.url).pathname) {
 				case "/serialization":
 					await assertRunCodeSerialization(f);
@@ -380,17 +383,25 @@ export default {
 				default:
 					throw new Error("Unknown native scenario");
 			}
-			return Response.json({ ok: true });
 		} catch (error) {
+			failures.push(error);
+		} finally {
+			try {
+				await cleanup?.();
+			} catch (error) {
+				failures.push(error);
+			}
+		}
+		if (failures.length) {
+			const error = failures[0];
 			return Response.json(
 				{
-					error: String(error),
+					error: failures.map(String).join("; "),
 					stack: error instanceof Error ? error.stack : undefined,
 				},
 				{ status: 500 },
 			);
-		} finally {
-			await f.cleanup();
 		}
+		return Response.json({ ok: true });
 	},
 };

@@ -73,7 +73,17 @@ for (const scenario of [
 		if (scenario === "network")
 			url.searchParams.set("target", networkURL);
 		const response = await worker.dispatchFetch(url);
-		const result = await response.json();
-		expect(result).toEqual({ ok: true });
+		const body = await response.text();
+		expect(response.status, `${scenario}: ${body}`).toBe(200);
+		expect(JSON.parse(body), `${scenario}: ${body}`).toEqual({ ok: true });
 	}, 30000);
 }
+
+test.each([1, 2, 3])("native deadline reports JSON under contention (round %i)", async () => {
+	await Promise.all(["deadline", "context", "user-error"].map(async (scenario) => {
+		const response = await worker.dispatchFetch(`http://localhost/${scenario}`);
+		const body = await response.text();
+		expect(response.status, `${scenario}: ${body}`).toBe(200);
+		expect(JSON.parse(body), `${scenario}: ${body}`).toEqual({ ok: true });
+	}));
+}, 30000);

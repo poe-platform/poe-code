@@ -26,11 +26,16 @@ export interface CodecOptions {
   readonly chunkSize?: number;
   readonly level?: number;
   readonly onFailure?: (error: unknown) => void;
+  /** Admission before decoding each gzip member, including the first. */
+  readonly onMember?: () => void;
+  /** Node archive streams stop at zero padding; Python text openers resume members. */
+  readonly padding?: "terminal" | "members";
 }
 export interface CompressionReader extends CodecInput {
   close(): Promise<void>;
 }
 export interface CompressionCodec {
+  readonly memberAdmission: true;
   CodecReader: new (source: ByteSource, signal: AbortSignal) => CompressionReader;
   codec(input: CodecInput, options: CodecOptions, signal: AbortSignal): ByteSource;
 }
@@ -119,6 +124,7 @@ export function createCompressionCodec(runtime: CodecRuntime = defaultRuntime): 
     let work = 0;
     let filled = 0;
     try {
+      if (options.mode === "gunzip") options.onMember?.();
       for (;;) {
         signal.throwIfAborted();
         if (needsInput || memberEnded) {
@@ -154,10 +160,23 @@ export function createCompressionCodec(runtime: CodecRuntime = defaultRuntime): 
           }
           if (memberEnded) {
             if (eof) return;
-            if (current[offset] === 0) {
+            if (current[offset] === 0 && options.padding !== "members") {
               while ((await input.chunk()) !== undefined) await yieldTurn(signal);
               return;
             }
+            // Gzip permits zero padding between members and at EOF. Padding
+            // never licenses discarding subsequent members or corrupt data.
+            while (current[offset] === 0) {
+              signal.throwIfAborted();
+              offset++;
+              if (++work >= 64 * 1024) { await yieldTurn(signal); work = 0; }
+              if (offset === current.length) {
+                current = (await input.chunk()) ?? new Uint8Array();
+                offset = 0;
+                if (!current.length) return;
+              }
+            }
+            options.onMember?.();
             const reset = zlibInflateReset(stream);
             if (reset !== Z_OK) throw codecError(reset, stream.msg);
             memberEnded = false;
@@ -216,5 +235,5 @@ export function createCompressionCodec(runtime: CodecRuntime = defaultRuntime): 
     }
   }
 
-  return { codec, CodecReader };
+  return { codec, CodecReader, memberAdmission: true };
 }

@@ -4,6 +4,29 @@ import { createCompressionCodec } from "./compression.js";
 const block = Uint8Array.of(0x33, 0x34, 0x32, 0x36, 0x31, 0x35, 0x33, 0xb7, 0xb0, 0x04, 0x00);
 const signal = new AbortController().signal;
 
+it("gunzip does not discard members or invalid data after zero padding", async () => {
+  const { codec, CodecReader } = createCompressionCodec();
+  const input = new CodecReader((async function* () { yield new TextEncoder().encode("a\n"); })(), signal);
+  const member: number[] = [];
+  for await (const chunk of codec(input, { mode: "gzip" }, signal)) member.push(...chunk);
+  await input.close();
+  for (const chunked of [false, true]) {
+    const source = (async function* () {
+      if (chunked) { yield Uint8Array.from(member); yield Uint8Array.of(0, 0); yield Uint8Array.from(member); }
+      else yield Uint8Array.from([...member, 0, 0, ...member]);
+    })();
+    const reader = new CodecReader(source, signal);
+    const output: number[] = [];
+    try { for await (const chunk of codec(reader, { mode: "gunzip", padding: "members" }, signal)) output.push(...chunk); }
+    finally { await reader.close(); }
+    expect(new TextDecoder().decode(Uint8Array.from(output))).toBe("a\na\n");
+  }
+  const reader = new CodecReader((async function* () { yield Uint8Array.from([...member, 0, 0, 1, 2]); })(), signal);
+  try {
+    await expect(async () => { for await (const chunk of codec(reader, { mode: "gunzip", padding: "members" }, signal)) void chunk; }).rejects.toThrow();
+  } finally { await reader.close(); }
+});
+
 it("consumes reused source windows and publishes stable output chunks", async () => {
   const { codec, CodecReader } = createCompressionCodec();
   let closed = 0;

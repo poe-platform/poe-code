@@ -22,7 +22,17 @@ export async function qualifyHostedObjectIoMatrix({ request, protocol, wait = se
   const conformanceResponse = await request('/conformance');
   assert.equal(conformanceResponse.status, 200, 'Hosted storage conformance must succeed');
   const conformance = await conformanceResponse.json();
-  assert.ok(Array.isArray(conformance) && conformance.length === 8 && new Set(conformance).size === 8);
+  assert.ok(Array.isArray(conformance), 'Hosted conformance requires named case receipts');
+  assert.deepEqual([...conformance].sort(), [
+    'object publication: immutable reads survive replacement',
+    'object publication: exclusive create has exactly one winner',
+    'object publication: stale updates cannot replace an acknowledged generation',
+    'object publication: cancelled creation does not publish',
+    'object publication: descriptor updates flush conditionally',
+    'object staging: private pages have owned reads and truncation semantics',
+    'object staging: cancelled writes preserve acknowledged pages',
+    'object staging: writes larger than memory stay private until conditional sync',
+  ].sort(), 'Hosted conformance must include every exported publication and staging case');
   const rows = [];
   for (const delayMs of [0, 5]) {
     for (const { chunkBytes, callerBytes, maxTransferBytes, profile, pages } of [
@@ -39,16 +49,37 @@ export async function qualifyHostedObjectIoMatrix({ request, protocol, wait = se
         const streamStarted = performance.now();
         const row = await consumeObjectIoResponse({ response, expectedBytes: protocol.size,
           sequentialSha256: protocol.expectedSequentialSha256, positionedSha256: protocol.expectedPositionedSha256 });
+        for (const [name, value] of Object.entries(configuration)) {
+          assert.equal(row[name], value, `Hosted receipt ${name} must match the requested profile`);
+        }
+        assert.deepEqual(row.denominator, { sequentialBytes: protocol.size, positionedWrites: 12,
+          positionedWriteBytes: 12, positionedReadBytes: 17 }, 'Hosted receipt requires exact workload denominators');
         assert.equal(row.owner, protocol.owner, 'Hosted final summary must belong to the fresh qualification Worker');
         assert.equal(row.maxResidentPageBytes, chunkBytes * workingPages);
         assert.ok(row.events.largestChunk <= chunkBytes);
+        for (const name of ['stageWriteBytes', 'stageReadBytes']) {
+          assert.ok(Number.isSafeInteger(row.events[name]) && row.events[name] > 0,
+            `Hosted receipt requires measured ${name}`);
+        }
+        assert.equal(row.events.publications, 3);
+        assert.equal(row.events.publishedBytes, 2 * protocol.size);
         assert.ok(Number.isSafeInteger(row.initialWasmMemoryBytes) && row.initialWasmMemoryBytes > 0);
         assert.ok(Number.isSafeInteger(row.finalWasmMemoryBytes) && row.finalWasmMemoryBytes >= row.initialWasmMemoryBytes);
         assert.equal(row.phases.sequentialWrite?.operations?.['syscall.write']?.count,
           protocol.size / Math.min(callerBytes, maxTransferBytes));
         assert.equal(row.phases.positionedIO?.operations?.['syscall.write']?.count, 12);
         assert.equal(row.phases.positionedIO?.operations?.['syscall.read']?.count, 13);
-        rows.push({ ...row, ...configuration, profile,
+        assert.equal(row.phases.positionedPublication.operations['syscall.read'].count, 4);
+        assert.equal(row.phases.pythonReadback.operations['syscall.stat'].count, 2);
+        for (const phase of ['pythonReadback', 'positionedReadback']) {
+          assert.equal(row.phases[phase].operations['syscall.read'].count,
+            protocol.size / Math.min(callerBytes, maxTransferBytes) + 1);
+        }
+        if (callerBytes < chunkBytes) {
+          assert.equal(row.phases.sequentialWrite.operations['backend.get']?.failed, 0,
+            'Mismatched pages require read/modify/write request measurements');
+        }
+        rows.push({ ...row, profile,
           hostStreamReadbackMs: performance.now() - streamStarted, caseElapsedMs: performance.now() - started });
       }
     }

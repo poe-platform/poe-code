@@ -1,6 +1,18 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 
+const requiredPhaseOperations = {
+  setup: [], runtimeStartup: [], pythonSetup: [],
+  sequentialWrite: ['syscall.write', 'backend.put'],
+  sequentialPublication: ['syscall.close', 'backend.put', 'backend.get', 'backend.list', 'backend.delete'],
+  pythonReadback: ['syscall.read', 'syscall.stat', 'backend.get'],
+  positionedIO: ['syscall.write', 'syscall.read', 'backend.put', 'backend.get'],
+  positionedPublication: ['syscall.close', 'syscall.read', 'backend.put', 'backend.get', 'backend.list', 'backend.delete'],
+  positionedReadback: ['syscall.read', 'backend.get'],
+  pythonFinalization: [], executorRetirement: [], independentReadback: ['backend.get'],
+  canonicalStream: ['stream.read'], fixtureCleanup: ['backend.list', 'backend.delete'], complete: [],
+};
+
 export async function consumeObjectIoResponse({ response, expectedBytes, sequentialSha256, positionedSha256 }) {
   assert.equal(response.status, 200, 'Hosted qualification response must succeed');
   assert.equal(response.headers.get('Content-Type')?.split(';')[0], 'application/x-ndjson');
@@ -50,14 +62,36 @@ export async function consumeObjectIoResponse({ response, expectedBytes, sequent
   assert.equal(summary.privatePagesAfterCleanup, 0);
   assert.equal(summary.fixtureObjectsAfterCleanup, 0);
   assert.equal(summary.stdout, `${sequentialSha256}\n${positionedSha256}\n`);
+  for (const name of ['acquired', 'released', 'created', 'closed']) {
+    assert.ok(Number.isSafeInteger(summary.events?.[name]) && summary.events[name] > 0,
+      `Hosted lifecycle counter ${name} must be a positive integer`);
+  }
   assert.equal(summary.events?.acquired, summary.events?.released);
   assert.equal(summary.events?.created, summary.events?.closed);
   assert.equal(summary.events?.activeWrites, 0);
   assert.equal(summary.events?.peakWrites, 1);
   assert.ok(Number.isSafeInteger(summary.events?.largestChunk) && summary.events.largestChunk > 0);
+  assert.ok(summary.phases && typeof summary.phases === 'object' && !Array.isArray(summary.phases));
+  for (const [name, phase] of Object.entries(summary.phases)) {
+    assert.ok(Number.isFinite(phase?.elapsedMs) && phase.elapsedMs >= 0, `Hosted phase ${name} requires elapsed time`);
+    assert.ok(phase.operations && typeof phase.operations === 'object' && !Array.isArray(phase.operations),
+      `Hosted phase ${name} requires operation measurements`);
+    for (const [operation, metrics] of Object.entries(phase.operations)) {
+      assert.ok(Number.isSafeInteger(metrics?.count) && metrics.count > 0, `${name}/${operation} requires a positive count`);
+      assert.ok(Number.isSafeInteger(metrics.failed) && metrics.failed >= 0 && metrics.failed <= metrics.count,
+        `${name}/${operation} requires valid failure counts`);
+      assert.ok(Number.isFinite(metrics.elapsedMs) && metrics.elapsedMs >= 0, `${name}/${operation} requires elapsed time`);
+    }
+  }
+  for (const [name, operations] of Object.entries(requiredPhaseOperations)) {
+    assert.ok(Object.hasOwn(summary.phases, name), `Hosted final summary requires ${name} phase evidence`);
+    for (const operation of operations) {
+      assert.equal(summary.phases[name].operations[operation]?.failed, 0,
+        `Hosted final summary requires successful ${name}/${operation} measurements`);
+    }
+  }
   assert.equal(summary.phases?.canonicalStream?.operations?.['stream.read']?.count,
     canonicalRecords + 1);
-  assert.ok(summary.phases?.fixtureCleanup, 'Final summary requires cleanup phase evidence');
   const canonicalHash = digest.digest('hex');
   assert.equal(canonicalHash, positionedSha256, 'Independent canonical hash must match Python');
   return { ...summary, canonicalHash };

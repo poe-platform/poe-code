@@ -75,6 +75,17 @@ controller owns failed-initialization retirement. Checkpoints settle isolated
 storage-reader cleanup before returning bytes, including closed-origin IndexedDB.
 Live-context `state-load` retains tab identity, DOM, and sessionStorage.
 
+After an interrupted owner, use `persistentCli.inspectRecovery({ name })` to
+inspect retained-page, saved-storage, and unavailable outcomes without restoring
+or navigating. Supply metadata-only `persistence.inspectRecovery` and durable
+`recordOperation` callbacks to retain operation correlation across owner resets.
+An operation left `running` has an unknown outcome; do not replay its effects.
+Call `restoreBrowserProfile({ adapter, profile, limits, name, signal, recovery: true })`
+and adopt the result with `restoreSession({ name, acquire: async () => restored })`
+to import storage into one inert page. Inspection continues to report lost live
+page state. Saved URLs, initPage modules, and provider runtime scripts are not
+replayed; the original DOM and in-flight JavaScript cannot be reconstructed.
+
 Browser acquisitions retain one owned provider session and its physical sockets.
 Release is idempotent and shares deletion with Worker retirement. Ordinary guest
 script errors retain the session; cancellation, deadlines, and resource failures

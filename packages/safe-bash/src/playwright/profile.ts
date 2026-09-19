@@ -116,6 +116,8 @@ export function encodeBrowserProfile(profile: BrowserProfile, limits: BrowserPro
 export async function restoreBrowserProfile(options: {
   adapter: PlaywrightAdapter; profile: BrowserProfile; limits: BrowserProfileLimits;
   name: string; signal: AbortSignal;
+  /** Interrupted-owner recovery: storage only, one blank page, no script or URL replay. */
+  recovery?: boolean;
 }): Promise<NonNullable<Awaited<ReturnType<PlaywrightSessionPersistence['restore']>>>> {
   const { adapter, limits, name, signal } = options;
   signal.throwIfAborted();
@@ -129,15 +131,20 @@ export async function restoreBrowserProfile(options: {
   try {
     signal.throwIfAborted();
     const pages: PlaywrightPage[] = [];
-    const urls = profile.tabs.length ? profile.tabs : ['about:blank'];
+    const urls = options.recovery ? ['about:blank'] : profile.tabs.length ? profile.tabs : ['about:blank'];
     if (lease.context.pages().length + urls.length > limits.maxTabs) throw new Error('Browser profile tab limit exceeded');
     for (const ignoredUrl of urls) {
       signal.throwIfAborted();
       pages.push(await lease.context.newPage());
     }
     signal.throwIfAborted();
+    if (options.recovery) return {
+      lease, selectedPage: pages[0]!, recovery: 'saved-storage', livePageStateLost: true,
+      ...(profile.expiresAt === undefined ? {} : { expiresAt: profile.expiresAt }),
+      ...(profile.idleTimeoutMs === undefined ? {} : { idleTimeoutMs: profile.idleTimeoutMs }),
+    };
     return {
-      lease, selectedPage: pages[profile.selected]!,
+      lease, selectedPage: pages[profile.selected]!, livePageStateLost: true,
       ...(profile.configuration === undefined ? {} : { configuration: profile.configuration }),
       ...(profile.contextOptions === undefined ? {} : { contextOptions: profile.contextOptions }),
       ...(profile.expiresAt === undefined ? {} : { expiresAt: profile.expiresAt }),

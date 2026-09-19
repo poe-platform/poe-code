@@ -26,6 +26,7 @@ import { installPlaywrightConfiguredNetwork, playwrightInitPageSource } from './
 import { flushPlaywrightTrace, preparePlaywrightTraceRelease } from './tracing-capabilities.js';
 import { PlaywrightCheckpointError, PlaywrightStorageReadError, type PlaywrightCheckpointOutcome } from './checkpoint.js';
 import { resolvePath } from '../contracts/path.js';
+import { parsePlaywrightOperationOutcome, type PlaywrightOperationOutcome, type PlaywrightRecoveryResult } from './recovery.js';
 
 export interface PlaywrightControllerOptions {
   readonly adapter?: PlaywrightAdapter;
@@ -37,6 +38,7 @@ export interface PlaywrightControllerOptions {
 }
 export type PlaywrightSessionState = 'acquiring' | 'open' | 'closing' | 'closed';
 export interface PlaywrightSessionRestoreOptions {
+  readonly recovery?: 'saved-storage';
   readonly name: string;
   readonly expiresAt?: number;
   readonly idleTimeoutMs?: number;
@@ -44,6 +46,8 @@ export interface PlaywrightSessionRestoreOptions {
   readonly configuration?: PlaywrightSessionConfiguration;
   readonly signal?: AbortSignal;
   acquire(options: { readonly signal: AbortSignal }): Promise<{
+    readonly recovery?: 'saved-storage';
+    readonly livePageStateLost?: true;
     readonly lease: PlaywrightLease;
     readonly selectedPage?: PlaywrightPage | undefined;
     /** Runs after ownership validation and event observation, before publication. */
@@ -60,9 +64,17 @@ export interface PlaywrightSessionCheckpoint {
   readonly configuration?: PlaywrightSessionConfiguration;
 }
 export interface PlaywrightSessionPersistence {
+  /** Metadata-only read. Must not acquire, navigate or execute browser code. */
+  inspectRecovery?(request: { readonly name: string; readonly signal: AbortSignal }): Promise<{
+    readonly hasStorage: boolean; readonly operation?: PlaywrightOperationOutcome;
+  }>;
+  /** Host must durably commit running before returning; never include command payloads. */
+  recordOperation?(request: { readonly name: string; readonly operation: PlaywrightOperationOutcome }, signal: AbortSignal): Promise<void>;
   /** Enumerates only this owner's resumable profiles; never allocates browsers. */
   list?(signal: AbortSignal): Promise<readonly { readonly name: string; readonly expiresAt?: number }[]>;
   restore(request: { readonly name: string; readonly signal: AbortSignal }): Promise<{
+    readonly recovery?: 'saved-storage';
+    readonly livePageStateLost?: true;
     readonly lease: PlaywrightLease;
     readonly selectedPage?: PlaywrightPage;
     readonly expiresAt?: number;
@@ -82,6 +94,8 @@ export interface PlaywrightSessionPersistence {
   delete(name: string, signal: AbortSignal): Promise<void>;
 }
 interface Session {
+  recovery?: 'saved-storage';
+  livePageStateLost?: true;
   readonly name: string;
   readonly generation: number;
   state: PlaywrightSessionState;
@@ -114,6 +128,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   if (options.persistence && ['restore', 'checkpoint', 'delete'].some(key => typeof Reflect.get(options.persistence!, key) !== 'function')) throw new TypeError('Invalid Playwright persistence');
   if (options.persistence?.close !== undefined && typeof options.persistence.close !== 'function') throw new TypeError('Invalid Playwright persistence close');
   if (options.persistence?.list !== undefined && typeof options.persistence.list !== 'function') throw new TypeError('Invalid Playwright persistence list');
+  for (const key of ['inspectRecovery', 'recordOperation'] as const) if (options.persistence?.[key] !== undefined && typeof options.persistence[key] !== 'function') throw new TypeError('Invalid Playwright recovery persistence');
   if (options.limits !== undefined && (!options.limits || typeof options.limits !== 'object' || Object.keys(options.limits).some(key => !['maxSessions', 'actionTimeoutMs', 'codeExecutionTimeoutMs', 'maxSnapshotBytes', 'maxSnapshotRefs', 'maxArtifactBytes', 'maxTabs', 'maxCommandBytes'].includes(key)))) throw new TypeError('Unsupported Playwright limits');
   if (options.billing !== undefined) throw new Error('Live billing is not implemented');
   const maxSessions = options.limits?.maxSessions ?? 4;
@@ -129,6 +144,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   let refSequence = 0;
   for (const value of [maxSessions, actionTimeoutMs, codeExecutionTimeoutMs, maxSnapshotBytes, maxSnapshotRefs, maxArtifactBytes, maxTabs, maxCommandBytes]) if (!Number.isSafeInteger(value) || value < 1) throw new RangeError('Invalid Playwright limit');
   const sessions = new Map<string, Session>();
+  const outcomes = new Map<string, PlaywrightOperationOutcome>();
   const explicitlyClosed = new Set<string>();
   let suppressUnknownRestores = false;
   const tails = new Map<string, Promise<void>>();
@@ -261,6 +277,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     }
   };
   const initializePage = async (session: Session, page: PlaywrightPage): Promise<void> => {
+    if (session.recovery === 'saved-storage') return;
     const key = page.mainFrame?.() ?? page;
     setPlaywrightTestIdAttribute(page, session.configuration?.testIdAttribute);
     session.pageInitializations ??= new WeakMap();
@@ -342,10 +359,29 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       ...(session.contextOptions === undefined ? {} : { contextOptions: structuredClone(session.contextOptions) }),
       ...(session.configuration === undefined ? {} : { configuration: structuredClone(session.configuration) }),
     })));
+  const inspectRecovery = async (request: { readonly name: string; readonly signal?: AbortSignal }): Promise<PlaywrightRecoveryResult> => {
+    validatePlaywrightSessionName(request.name);
+    const signal = request.signal ? AbortSignal.any([request.signal, lifetime.signal]) : lifetime.signal;
+    signal.throwIfAborted();
+    const saved = await options.persistence?.inspectRecovery?.({ name: request.name, signal });
+    signal.throwIfAborted();
+    if (saved !== undefined && typeof saved.hasStorage !== 'boolean') throw new TypeError('Invalid Playwright recovery metadata');
+    const session = sessions.get(request.name);
+    const retained = session?.state === 'open' && !session.releasing && !session.failure
+      && (session.expiresAt === undefined || session.expiresAt > Date.now())
+      && session.page !== undefined && session.lease!.context.pages().includes(session.page);
+    const live = retained && !session?.livePageStateLost;
+    const operation = outcomes.get(request.name) ?? saved?.operation;
+    const copiedOperation = operation ? parsePlaywrightOperationOutcome(operation) : undefined;
+    return Object.freeze({ name: request.name, status: live ? 'live-page' : saved?.hasStorage || retained && session?.livePageStateLost ? 'saved-storage' : 'unavailable',
+      livePageStateLost: !live, ...(copiedOperation ? { operation: !live && copiedOperation.status === 'running'
+        ? Object.freeze({ operationId: copiedOperation.operationId, status: 'unknown' as const }) : copiedOperation } : {}) });
+  };
   const restoreSession = async (request: PlaywrightSessionRestoreOptions, withinQueue = false): Promise<void> => {
-    if (!request || typeof request !== 'object' || Object.keys(request).some(key => !['name', 'expiresAt', 'idleTimeoutMs', 'contextOptions', 'configuration', 'signal', 'acquire'].includes(key))
+    if (!request || typeof request !== 'object' || Object.keys(request).some(key => !['name', 'expiresAt', 'idleTimeoutMs', 'contextOptions', 'configuration', 'signal', 'acquire', 'recovery'].includes(key))
       || typeof request.acquire !== 'function' || request.signal !== undefined && typeof request.signal.throwIfAborted !== 'function') throw new TypeError('Invalid Playwright session restoration');
     validatePlaywrightSessionName(request.name);
+    if (request.recovery !== undefined && request.recovery !== 'saved-storage') throw new TypeError('Invalid Playwright recovery mode');
     if (request.expiresAt !== undefined && (!Number.isSafeInteger(request.expiresAt) || request.expiresAt < 0)) throw new TypeError('Invalid Playwright session expiry');
     if (request.idleTimeoutMs !== undefined && (!Number.isSafeInteger(request.idleTimeoutMs) || request.idleTimeoutMs < 0)) throw new TypeError('Invalid Playwright idle timeout');
     const { name, expiresAt, acquire } = request;
@@ -365,6 +401,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       if ([...sessions.values()].filter(session => session.state !== 'closed').length >= maxSessions) throw new PlaywrightResourceLimitError('Playwright session capacity exceeded');
       const epoch = Array.from(crypto.getRandomValues(new Uint32Array(4)), value => String(value).padStart(10, '0')).join('');
       const session: Session = { name, generation: ++generation, state: 'acquiring', cleanups: new Set(),
+        ...(request.recovery === undefined ? {} : { recovery: request.recovery }),
         snapshot: createSnapshotEngine({ maxSnapshotBytes, maxSnapshotRefs }, () => `e${epoch}${++refSequence}`),
         ...(expiresAt === undefined ? {} : { expiresAt }),
         ...(request.idleTimeoutMs === undefined ? {} : { idleTimeoutMs: request.idleTimeoutMs }),
@@ -376,12 +413,14 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       try {
         const restored = await acquire.call(request, { signal });
         session.lease = restored.lease;
+        if (restored.recovery === 'saved-storage') session.recovery = 'saved-storage';
+        if (session.recovery === 'saved-storage' || restored.livePageStateLost === true) session.livePageStateLost = true;
         check();
         if (!session.lease || typeof session.lease.release !== 'function' || typeof session.lease.onClosed !== 'function'
           || !session.lease.context || ['pages', 'newPage', 'close', 'on', 'off'].some(key => typeof Reflect.get(session.lease!.context, key) !== 'function')) throw new TypeError('Invalid restored Playwright lease');
         signal.addEventListener('abort', cancel, { once: true });
         observeSession(session);
-        await initializeContext(session);
+        if (session.recovery !== 'saved-storage') await initializeContext(session);
         const pages = [...session.lease.context.pages()];
         if (pages.length > maxTabs) throw new PlaywrightResourceLimitError('Playwright tab limit exceeded');
         if (restored.selectedPage !== undefined) {
@@ -389,7 +428,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           await selectPage(session, restored.selectedPage, check);
         }
         check();
-        if (restored.initialize !== undefined) {
+        if (session.recovery !== 'saved-storage' && restored.initialize !== undefined) {
           if (typeof restored.initialize !== 'function') throw new TypeError('Invalid Playwright session initializer');
           await restored.initialize({ signal });
           check();
@@ -424,6 +463,8 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     } };
     if (lifetime.signal.aborted) throw new Error('Playwright controller is disposed');
     const parsed = parseInvocation(invocation, abilities, options.adapter);
+    if (invocation.operationId !== undefined) validatePlaywrightSessionName(invocation.operationId);
+    const operationId = invocation.operationId ?? (options.persistence?.recordOperation ? crypto.randomUUID() : undefined);
     invocation.signal.throwIfAborted();
     const local = new AbortController();
     let active: Session | undefined;
@@ -790,6 +831,14 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         return;
       }
       await enqueue(parsed.session, async () => {
+        const recordOutcome = async (status: PlaywrightOperationOutcome['status'], signal: AbortSignal) => {
+          if (operationId === undefined) return;
+          const outcome = parsePlaywrightOperationOutcome({ operationId, status });
+          outcomes.set(parsed.session, outcome);
+          await options.persistence?.recordOperation?.({ name: parsed.session, operation: outcome }, signal);
+        };
+        check();
+        await recordOutcome('running', local.signal);
         let paused: Session | undefined;
         let commandFailure: { error: unknown } | undefined;
         await (async () => {
@@ -802,6 +851,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               let transferred = false;
               try {
                 await restoreSession({ name: parsed.session, signal: local.signal,
+                  ...(restored.recovery === undefined ? {} : { recovery: restored.recovery }),
                   ...(restored.expiresAt === undefined ? {} : { expiresAt: restored.expiresAt }),
                   ...(restored.idleTimeoutMs === undefined ? {} : { idleTimeoutMs: restored.idleTimeoutMs }),
                   ...(restored.contextOptions === undefined ? {} : { contextOptions: restored.contextOptions }),
@@ -1173,6 +1223,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         // Retirement is part of the session queue. Keep its rejection for
         // shared invocation cleanup so both execution and cleanup causes survive.
         if (active && !retained) await release(active).catch(() => {});
+        await recordOutcome(commandFailure || traceFailure || reportedError || local.signal.aborted ? 'unknown' : 'completed', new AbortController().signal);
         if (traceFailure) {
           if (commandFailure) throw new AggregateError([commandFailure.error, traceFailure.error], 'Playwright command and trace flush failed');
           throw traceFailure.error;
@@ -1216,6 +1267,6 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     lifetime.abort(new Error('Playwright controller is disposed'));
     return disposal;
   };
-  return { run, dispose, restoreSession: (request: PlaywrightSessionRestoreOptions) => restoreSession(request), inspectSessions };
+  return { run, dispose, restoreSession: (request: PlaywrightSessionRestoreOptions) => restoreSession(request), inspectSessions, inspectRecovery };
 }
 import { PlaywrightResourceLimitError, isPlaywrightResourceLimitError } from './resource-limit.js';

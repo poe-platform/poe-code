@@ -62,3 +62,17 @@ test('unsupported provider settings fail restoration before navigation', async (
   await expect(restored.initialize!({ signal })).rejects.toThrow('cannot restore');
   expect(f.navigations).toEqual([]);
 });
+
+test('interrupted profile recovery creates one inert page without replaying URLs or provider scripts', async () => {
+  const f = fixture();
+  const signal = new AbortController().signal;
+  const restored = await restoreBrowserProfile({ adapter: f.adapter,
+    profile: { ...profile, runtimeState: { scripts: ['sideEffect()'] }, configuration: { initPages: [{ filename: 'init.js', source: 'sideEffect()' }] } },
+    limits, name: 'host-owned', signal, recovery: true });
+  expect(restored.recovery).toBe('saved-storage');
+  expect(f.lease.context.newPage).toHaveBeenCalledOnce();
+  expect(restored.selectedPage).toBe(f.pages[0]);
+  expect(restored.initialize).toBeUndefined();
+  expect(restored.configuration).toBeUndefined();
+  expect(f.navigations).toEqual([]);
+});

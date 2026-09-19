@@ -107,6 +107,37 @@ Optional persistence callbacks operate within the host's trusted owner scope:
   An undefined name closes all saved aliases for that owner.
 - `delete` removes the named profile.
 
+Host-only `inspectRecovery({ name, signal? })` returns `live-page`,
+`saved-storage`, or `unavailable`, with `livePageStateLost` and optional
+`operation: { operationId, status }`. It reads the optional persistence
+`inspectRecovery` callback's `{ hasStorage, operation? }` metadata without calling
+`restore`, acquiring a browser, navigating, submitting forms, or executing code.
+It copies only validated correlation fields; URLs, cookies, provider objects,
+and exception messages are absent. `unavailable` means no retained page or
+confirmed saved storage, not proof that an interrupted effect did not happen.
+
+The optional `recordOperation({ name, operation }, signal)` callback must durably
+commit `running` before returning. It runs before session-command effects,
+including automatic restoration. Hosts may provide an opaque `operationId` on
+SDK invocations; otherwise a UUID is generated when recording is enabled.
+Successful commands record `completed`; errors and cancellation record `unknown`.
+A process killed during an effect can leave `running`; inspection reports it as
+`unknown` when no page is retained. These records are correlation, not an exactly-once protocol:
+the host must reserve effects and refuse automatic replay of uncertain work.
+
+For interrupted-owner recovery, call `restoreBrowserProfile` with
+`recovery: true`. It imports saved storage into a new context and creates one
+blank page, omitting saved navigation, configuration modules, and provider runtime
+scripts. Adopt its result through `restoreSession`; the returned
+`recovery: 'saved-storage'` marker suppresses initializers and keeps loss of the
+original live page explicit in subsequent inspection. The host can also supply
+that marker directly on `restoreSession`. This does not reattach the original
+provider session or restore its DOM, JavaScript heap, or outstanding operation.
+Legacy profile restoration still replays saved URLs and settings; select inert
+recovery explicitly after interruption. Both profile restoration modes return
+`livePageStateLost: true`, so adopting a reconstructed profile cannot imply that
+the original live page survived. Recovery metadata has no guest CLI command.
+
 After a recoverable checkpoint failure, the completed action and live session
 remain usable. The SDK throws `PlaywrightCheckpointError` with
 `actionCompleted: true` and `profileCommitted: false`. The CLI keeps the completed

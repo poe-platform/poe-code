@@ -5,6 +5,8 @@ import { playwrightCommandReference } from './command-reference.js';
 import type { PlaywrightMouseButton, PlaywrightModifier } from './adapter.js';
 
 export interface PlaywrightInvocation {
+  /** Host-provided opaque correlation ID; never derive it from command arguments. */
+  readonly operationId?: string;
   readonly args: readonly string[];
   readonly env: Readonly<Record<string, string>>;
   readonly signal: AbortSignal;

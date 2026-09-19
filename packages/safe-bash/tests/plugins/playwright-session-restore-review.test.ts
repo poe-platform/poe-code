@@ -61,6 +61,91 @@ async function run(controller: ReturnType<typeof createPlaywrightController>, ar
   return output;
 }
 
+test('recovery inspection never restores and returns only safe correlated metadata', async () => {
+  const host = browser();
+  let inspections = 0;
+  const controller = createPlaywrightController({ adapter: host.adapter, persistence: {
+    async inspectRecovery() { inspections++; return { hasStorage: true, operation: { operationId: 'post-112', status: 'running' }, url: 'https://secret.test/token' }; },
+    async restore() { assert.fail('inspection must not restore'); }, async checkpoint() {}, async delete() {},
+  } });
+  try {
+    assert.deepEqual(await controller.inspectRecovery({ name: 'owned' }), {
+      name: 'owned', status: 'saved-storage', livePageStateLost: true, operation: { operationId: 'post-112', status: 'unknown' },
+    });
+    await controller.restoreSession({ name: 'owned', async acquire() { return { lease: host.lease, selectedPage: host.page }; } });
+    assert.equal((await controller.inspectRecovery({ name: 'owned' })).status, 'live-page');
+    assert.equal(inspections, 2);
+    assert.equal(host.calls.newPages, 0);
+  } finally { await controller.dispose(); }
+});
+
+test('correlation is reserved before effects and an interrupted effect stays unknown', async () => {
+  const host = browser();
+  const records: string[] = [];
+  const failure = new Error('credentials-must-not-appear');
+  const abort = new AbortController();
+  host.page.keyboard.press = async () => { records.push('effect'); abort.abort(failure); throw failure; };
+  const controller = createPlaywrightController({ adapter: host.adapter, persistence: {
+    async recordOperation({ operation }) { records.push(operation.status); },
+    async restore() { return undefined; }, async checkpoint() {}, async delete() {},
+  } });
+  try {
+    await controller.restoreSession({ name: 'owned', async acquire() { return { lease: host.lease, selectedPage: host.page }; } });
+    await assert.rejects(controller.run({ args: ['-s=owned', 'press', 'Enter'], operationId: 'post-112',
+      env: {}, signal: abort.signal, async write() {} }), error => error === failure);
+    assert.deepEqual(records, ['running', 'effect', 'unknown']);
+    assert.deepEqual(await controller.inspectRecovery({ name: 'owned' }), {
+      name: 'owned', status: 'unavailable', livePageStateLost: true, operation: { operationId: 'post-112', status: 'unknown' },
+    });
+  } finally { await controller.dispose(); }
+});
+
+test('storage recovery bypasses initPage modules and keeps live page loss explicit', async () => {
+  const host = browser();
+  const controller = createPlaywrightController({ adapter: host.adapter });
+  try {
+    await controller.restoreSession({ name: 'owned', recovery: 'saved-storage',
+      configuration: { initPages: [{ filename: 'side-effect.js', source: 'sideEffect()' }] },
+      async acquire() { return { lease: host.lease, selectedPage: host.page, async initialize() { assert.fail('must not replay'); } }; },
+    });
+    assert.deepEqual(await controller.inspectRecovery({ name: 'owned' }), {
+      name: 'owned', status: 'saved-storage', livePageStateLost: true,
+    });
+  } finally { await controller.dispose(); }
+});
+
+test('failed durable operation reservation prevents restoration and browser effects', async () => {
+  const failure = new Error('reservation unavailable');
+  const controller = createPlaywrightController({ adapter: browser().adapter, persistence: {
+    async recordOperation() { throw failure; },
+    async restore() { assert.fail('reservation must precede restoration'); },
+    async checkpoint() {}, async delete() {},
+  } });
+  try {
+    await assert.rejects(controller.run({ args: ['-s=owned', 'press', 'Enter'], operationId: 'post-112',
+      env: {}, signal: new AbortController().signal, async write() {} }), error => error === failure);
+  } finally { await controller.dispose(); }
+});
+
+test('successful effect records completed with an automatically generated opaque identity', async () => {
+  const host = browser();
+  const records: { operationId: string; status: string }[] = [];
+  const controller = createPlaywrightController({ adapter: host.adapter, persistence: {
+    async recordOperation({ operation }) { records.push(operation); },
+    async restore() { return undefined; }, async checkpoint() {}, async delete() {},
+  } });
+  try {
+    await controller.restoreSession({ name: 'owned', async acquire() { return { lease: host.lease, selectedPage: host.page }; } });
+    await run(controller, ['-s=owned', 'press', 'Enter']);
+    assert.deepEqual(records.map(record => record.status), ['running', 'completed']);
+    assert.equal(records[0]!.operationId, records[1]!.operationId);
+    assert.ok(records[0]!.operationId.length > 0);
+    const recovered = await controller.inspectRecovery({ name: 'owned' });
+    assert.equal(recovered.status, 'live-page');
+    assert.equal(recovered.operation!.status, 'completed');
+  } finally { await controller.dispose(); }
+});
+
 test('lazy restoration observes the first initialized navigation before exposing its session', async () => {
   const host = browser();
   const controller = createPlaywrightController({ adapter: host.adapter, persistence: {

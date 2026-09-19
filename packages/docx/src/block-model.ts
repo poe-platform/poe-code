@@ -260,15 +260,14 @@ export class Run {
       const replacement =
         id === null ? "" : `<bm:rStyle xmlns:bm="${r.namespace}" bm:val="${xmlValue(id)}"/>`;
       if (old) xml.replaceElement(old, replacement);
-      else if (replacement) {
-        if (props) xml.insertChildren(props, replacement, props.children[0]);
-        else
-          xml.insertChildren(
-            r,
-            `<bm:rPr xmlns:bm="${r.namespace}">${replacement}</bm:rPr>`,
-            r.children[0]
-          );
-      }
+      else if (props) {
+        if (replacement) xml.insertChildren(props, replacement, props.children[0]);
+      } else
+        xml.insertChildren(
+          r,
+          `<bm:rPr xmlns:bm="${r.namespace}">${replacement}</bm:rPr>`,
+          r.children[0]
+        );
     });
   }
   get font(): Font {

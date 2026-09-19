@@ -65,13 +65,15 @@ export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElemen
     return matches[0];
   };
   const element = (name: string, attrs: Record<string, string | null>, node?: XmlElement, content?: string) => {
-    const prefix = node?.name.includes(":") ? node.name.split(":")[0]! : "pf";
+    const prefix = node?.name.includes(":") ? node.name.split(":")[0]!
+      : [...(node?.namespaces ?? paragraph.namespaces)].find(([prefix, uri]) => prefix && uri === w)?.[0] ?? "pf";
+    const qualified = node?.name ?? `${prefix}:${name}`;
     const retained = node?.attributes.filter(a => a.namespace !== "http://www.w3.org/2000/xmlns/" && !(a.namespace === w && Object.hasOwn(attrs, a.localName))) ?? [];
     const attributes = [...retained.map(a => ` ${a.name}="${xmlValue(a.value)}"`), ...Object.entries(attrs).filter(([, v]) => v !== null).map(([k, v]) => ` ${prefix}:${k}="${xmlValue(v!)}"`)].join("");
     const namespaces = new Map(node?.namespaces); namespaces.set(prefix, w);
     const bindings = [...namespaces].filter(([p]) => p !== "xml").map(([p, uri]) => ` ${p ? "xmlns:" + p : "xmlns"}="${xmlValue(uri)}"`).join("");
     const inner = content ?? (node ? xml.sourceXml(node, new Map(), true) : "");
-    return `<${prefix}:${name}${bindings}${attributes}>${inner}</${prefix}:${name}>`;
+    return `<${qualified}${bindings}${attributes}>${inner}</${qualified}>`;
   };
   const set = (name: string, attrs: Record<string, string | null> | null, content?: string) => {
     const node = find(name);

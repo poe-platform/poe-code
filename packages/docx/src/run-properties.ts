@@ -44,8 +44,9 @@ export function formattedRunProperties(editor: DocumentXmlEditor, run: XmlElemen
       if (key === "val" && name === "sz") return existing !== undefined && Number(existing) === Number(value);
       return existing === value;
     })) return;
-    const prefix = node?.name.includes(":") ? node.name.split(":")[0]! : "fmt";
-    const qualified = `${prefix}:${name}`;
+    const prefix = node?.name.includes(":") ? node.name.split(":")[0]!
+      : [...(node?.namespaces ?? run.namespaces)].find(([prefix, uri]) => prefix && uri === w)?.[0] ?? "fmt";
+    const qualified = node?.name ?? `${prefix}:${name}`;
     const retained = node?.attributes.filter(a => a.namespace !== xmlns && !(a.namespace === w && Object.hasOwn(attrs, a.localName))).map(a => ` ${a.name}="${xmlValue(a.value)}"`).join("") ?? "";
     const bindings = new Map(node?.namespaces ?? run.namespaces); bindings.set(prefix, w);
     const declarations = [...bindings].filter(([p]) => p !== "xml").map(([p, uri]) => ` ${p ? "xmlns:" + p : "xmlns"}="${xmlValue(uri)}"`).join("");

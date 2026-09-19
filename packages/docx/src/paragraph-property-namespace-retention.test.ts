@@ -1,0 +1,64 @@
+import { Volume } from "memfs";
+import { expect, it } from "vitest";
+import { MemoryFileSystem, Shell } from "virtual-bash";
+import { docxCommands } from "virtual-bash/commands/docx";
+import * as api from "./index.js";
+import { textContext, textFixture } from "../tests/fixtures/text.js";
+import { readPackage, assertPackageLinks } from "../tests/assertions.js";
+
+const encode = (s: string) => new TextEncoder().encode(s);
+for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
+for (const spelling of ["default", "prefixed"] as const)
+for (const carrier of ["direct", "choice", "fallback", "process"] as const)
+for (const property of ["indent", "shading"] as const)
+for (const route of ["model-batch", "sdk-direct", "sdk-batch", "cli-direct", "cli-batch"] as const)
+if (route !== "model-batch" || property === "shading") it(`${route} retains ignored attribute namespace context during ${property} edits; ${spelling} ${carrier} ${kind} strict=${strict}`, async () => {
+  const w = strict ? "http://purl.oclc.org/ooxml/wordprocessingml/main" : "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+  const retained = '<f:opaque f:identity="retained"><w:rFonts w:ascii="INERT"/><w:lang w:val="BAD"/></f:opaque>';
+  const leaves = '<w:ind w:left="720" w:right="360" f:metadata="keep"/><w:shd w:val="clear" w:color="112233" w:fill="AABBCC" f:metadata="keep"/>';
+  const wrapped = carrier === "direct" ? leaves : carrier === "process" ? `<f:pass>${leaves}</f:pass>` : `<mc:AlternateContent><mc:Choice Requires="${carrier === "choice" ? "w" : "f"}">${carrier === "choice" ? leaves : ""}</mc:Choice><mc:Fallback>${carrier === "fallback" ? leaves : ""}</mc:Fallback></mc:AlternateContent>`;
+  const xml = `<w:document xmlns:w="${w}" xmlns:f="urn:original:run-namespace" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="f" mc:ProcessContent="f:pass"><w:body><w:p><w:pPr><w:keepNext/>${wrapped}${retained}</w:pPr><w:r><w:rPr><w:b/><w:rtl/></w:rPr><w:t>Retain 日本 עברית é 🌊</w:t><!--retain--><?policy keep?></w:r></w:p></w:body></w:document>`;
+  const source = spelling === "prefixed" ? xml : xml.split("<w:").join("<").split("</w:").join("</").replace("<document ", `<document xmlns="${w}" `);
+  const parts = readPackage(await textFixture("", {}, strict)); parts.set("word/document.xml", encode(source));
+  if (kind === "dotx") parts.set("[Content_Types].xml", encode(new TextDecoder().decode(parts.get("[Content_Types].xml")!).replace("wordprocessingml.document.main+xml", "wordprocessingml.template.main+xml")));
+  const memory = Volume.fromJSON({ "/input": "", "/output": "" });
+  await api.writeArchive({comment: new Uint8Array(), members: [...parts].map(([name,bytes]) => ({name,bytes,directory:false,modified:new Date("2026-01-02T03:04:06Z")}))}, {async write(bytes){memory.appendFileSync("/input",bytes);}}, {order:"input",compression:"store"}, textContext);
+  const input = new Uint8Array(memory.readFileSync("/input") as Buffer);
+  const args = property === "indent" ? {leftIndent:{value:1,unit:"in" as const}} : {shading:{fill:"224466",pattern:"clear" as const,color:"112233"}};
+  const batch = {version:1, operations:[{operation:"paragraphs.set", arguments:{paragraph:1,...args}}]};
+  const sink = {async write(bytes:Uint8Array){memory.appendFileSync("/output",bytes);}};
+  const pub = {...textContext, encoding:{order:"input" as const,compression:"store" as const}, stdout:sink};
+  if (route === "model-batch") {
+    const model = {version:1, operations:[{operation:"paragraphs.get", arguments:{paragraph:1}, resultHandle:"paragraph"}, {operation:"paragraphs.format.set", receiver:{resultHandle:"paragraph"}, arguments:{shading:args.shading}}]};
+    const result = await api.applyStyleModelBatch(input,model,textContext); expect(result.affected).toBe(1); await result.save(sink);
+  } else if (route === "sdk-direct") await api.editDocumentParagraphs(input,{operation:"paragraphs.set",options:{paragraph:1,...args,output:"-"}},pub);
+  else if (route === "sdk-batch") await api.executeDocumentBatch(input,batch,{output:"-"},pub);
+  else {
+    const fs = new MemoryFileSystem(); await fs.writeFile("/input",input);
+    const shell = new Shell({fs}).use(docxCommands({engine:api.createDocxInspectionCommandEngine({limits:textContext.limits})}));
+    try {
+      const command = route === "cli-direct" ? `docx paragraphs set /input --paragraph 1 ${property === "indent" ? "--left-indent 1in" : `--shading-json '${JSON.stringify(args.shading)}'`} --output /output --json` : `docx batch /input --ops-json '${JSON.stringify(batch)}' --output /output --json`;
+      const result = await shell.exec(command); expect(result.exitCode,result.stdout+result.stderr).toBe(0); expect(JSON.parse(result.stdout).affected).toBe(1); expect(await fs.readFile("/input")).toEqual(input); memory.writeFileSync("/output",await fs.readFile("/output"));
+    } finally {await shell.dispose();}
+  }
+  const output = new Uint8Array(memory.readFileSync("/output") as Buffer), saved = readPackage(output); assertPackageLinks(saved); expect(saved.size).toBe(parts.size);
+  for (const [name,bytes] of parts) if (name !== "word/document.xml") expect(saved.get(name),name).toEqual(bytes);
+  const before = api.parseDocumentXml(parts.get("word/document.xml")!), after = api.parseDocumentXml(saved.get("word/document.xml")!);
+  const nodes = (node:api.XmlElement): api.XmlElement[] => [node,...node.children.flatMap(nodes)];
+  const attrs = (node:api.XmlElement) => Object.fromEntries(node.attributes.filter(a => a.namespace === w).map(a=>[a.localName,a.value]));
+  for (const local of ["ind","shd"]) {
+    const original = nodes(before.root).find(n=>n.namespace===w && n.localName===local)!;
+    const changed = nodes(after.root).find(n=>n.namespace===w && n.localName===local)!;
+    expect([...changed.namespaces]).toEqual([...original.namespaces]); expect(changed.name).toBe(original.name);
+    expect(changed.attributes.find(a=>a.namespace==="urn:original:run-namespace" && a.localName==="metadata")?.value).toBe("keep");
+    const expected: Record<string,string> = {...attrs(original),...(local===(property==="indent"?"ind":"shd") ? property==="indent" ? strict ? {start:"1440"} : {left:"1440"} : {fill:"224466"}: {})};
+    if (strict && property === "indent" && local === "ind") delete expected.left;
+    expect(attrs(changed)).toEqual(expected);
+  }
+  const a = new api.DocumentXmlEditor(saved.get("word/document.xml")!), b = new api.DocumentXmlEditor(parts.get("word/document.xml")!);
+  expect(a.sourceXml(nodes(a.root).find(n=>n.localName==="opaque")!)).toBe(b.sourceXml(nodes(b.root).find(n=>n.localName==="opaque")!));
+  expect(new TextDecoder().decode(saved.get("word/document.xml"))).toContain("<!--retain--><?policy keep?>");
+  const paragraph = (await api.Document(output,textContext)).paragraphs[0]!;
+  expect(paragraph.text).toBe("Retain 日本 עברית é 🌊"); expect(paragraph.runs[0]!.bold).toBe(true); expect(paragraph.runs[0]!.font.rtl).toBe(true); expect(paragraph.paragraph_format.keep_with_next).toBe(true);
+  expect(new Uint8Array(memory.readFileSync("/input") as Buffer)).toEqual(input);
+});

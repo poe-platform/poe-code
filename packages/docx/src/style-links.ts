@@ -3,7 +3,7 @@ import { type DocumentBudget } from "./budget.js";
 import { SelectionError } from "./location-token.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import type { XmlElement } from "./package-xml.js";
-import { styleStoredName } from "./style-names.js";
+import { selectNamedStyles } from "./style-names.js";
 import { styleAttribute as attr, styleChild as child } from "./style-properties.js";
 import { UnsupportedEditError } from "./xml-write.js";
 
@@ -14,14 +14,11 @@ export function styleLinkPatches(nodes: readonly XmlElement[], selected: XmlElem
   const patches = new Map<XmlElement, StyleLinkPatch>();
   if (options.linkedStyle === undefined && options.defaultForType === undefined) return patches;
   const ids = new Map<string, XmlElement>();
-  const names = new Map<string, XmlElement[]>();
   for (const node of nodes) {
     budget.charge("work", 1);
     const id = attr(node, "styleId");
     if (!id || ids.has(id)) throw new UnsupportedEditError("Style links require unique nonempty style IDs.");
     ids.set(id, node);
-    const name = styleStoredName(attr(child(node, "name", children), "val") ?? "");
-    names.set(name, [...names.get(name) ?? [], node]);
   }
   const type = attr(selected, "type") ?? "paragraph";
   const update = (node: XmlElement, key: keyof StyleLinkPatch, value: string | null) => {
@@ -37,7 +34,7 @@ export function styleLinkPatches(nodes: readonly XmlElement[], selected: XmlElem
     return attr(matches[0], "val");
   };
   if (options.linkedStyle !== undefined) {
-    const matches = options.linkedStyle === null ? [] : names.get(styleStoredName(options.linkedStyle)) ?? [];
+    const matches = options.linkedStyle === null ? [] : selectNamedStyles(nodes, options.linkedStyle, children, budget);
     if (options.linkedStyle !== null && matches.length !== 1) throw new SelectionError(matches.length ? "ambiguous-selection" : "missing-selection");
     const target = matches[0], targetType = target && (attr(target, "type") ?? "paragraph");
     if (target && !(type === "paragraph" && targetType === "character" || type === "character" && targetType === "paragraph")) throw new InvalidValueError("Linked styles require paragraph and character types.");

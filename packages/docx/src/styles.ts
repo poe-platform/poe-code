@@ -17,7 +17,7 @@ import { assertDocumentEditable, publishDocumentArchive, type PublicationContext
 import { validateDocumentArchive, SemanticValidationError, type ValidationDiagnostic } from "./validation.js";
 import { DocumentXmlEditor, replaceActiveStyleXml, UnsupportedEditError, replaceNativeTabCollectionXml } from "./xml-write.js";
 import { editLatentStyles, readLatentStyles, type LatentStylesInfo } from "./latent-styles.js";
-import { styleDisplayName, styleStoredName } from "./style-names.js";
+import { styleDisplayName, selectNamedStyles } from "./style-names.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 
 export type StyleInspectionOptions = Partial<Pick<DocxOperationArguments<"styles.get">, "name" | "json" | "limit">> & { readonly latent?: boolean };
@@ -89,13 +89,13 @@ export async function inspectDocumentStyles(input: Uint8Array, options: StyleIns
       resolved.set(current, value);
     }
   }
-  const selected = options.name === undefined || latent ? nodes : nodes.filter(n => styleStoredName(attr(child(n, "name"), "val") ?? "") === styleStoredName(options.name!));
+  const selected = options.name === undefined || latent ? nodes : selectNamedStyles(nodes, options.name, children, budget);
   if (!latent && options.name !== undefined && selected.length !== 1) throw new SelectionError(selected.length ? "ambiguous-selection" : "missing-selection");
   if (latent && options.name !== undefined && !xml) throw new SelectionError("missing-selection");
   const report = validateDocumentArchive(archive, {}, budget);
   const data: StyleInspectionData = { styles: selected.map(n => {
     const source = (tag: string) => child(n, tag) ? xml!.sourceXml(child(n, tag)!) : null;
-    return { id: attr(n, "styleId") ?? "", name: styleDisplayName(attr(child(n, "name"), "val") ?? ""), type: attr(n, "type") ?? "paragraph",
+    return { id: attr(n, "styleId") ?? "", name: styleDisplayName(attr(child(n, "name"), "val") ?? "", !["1", "true", "on"].includes(attr(n, "customStyle") ?? "0")), type: attr(n, "type") ?? "paragraph",
       builtin: !["1", "true", "on"].includes(attr(n, "customStyle") ?? "0"), base: name(attr(child(n, "basedOn"), "val")),
       next: name(attr(child(n, "next"), "val")) ?? ((attr(n, "type") ?? "paragraph") === "paragraph" ? attr(child(n, "name"), "val") ?? null : null),
       linkedStyle: name(attr(child(n, "link"), "val")), defaultForType: ["1", "true", "on"].includes(attr(n, "default") ?? "0"),
@@ -146,7 +146,7 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
   const child = (node: XmlElement | undefined, name: string) => styleChild(node, name, children);
   const nodes = children(xml.root).filter(n => n.namespace === w && n.localName === "style");
   const resolve = (name: string): XmlElement => {
-    const matches = nodes.filter(n => styleStoredName(attr(child(n, "name"), "val") ?? "") === styleStoredName(name));
+    const matches = selectNamedStyles(nodes, name, children, budget);
     if (matches.length !== 1) throw new SelectionError(matches.length ? "ambiguous-selection" : "missing-selection");
     return matches[0]!;
   };

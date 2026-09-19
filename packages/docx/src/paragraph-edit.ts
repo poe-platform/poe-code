@@ -25,7 +25,7 @@ import { resolveDocxSelection } from "./simple-selection.js";
 import { appendBodyBlocks, UnsupportedEditError } from "./xml-write.js";
 import { addDocumentStylesPart } from "./styles-part.js";
 import { activeXmlChildren } from "./xml-active-children.js";
-import { styleStoredName } from "./style-names.js";
+import { selectNamedStyles } from "./style-names.js";
 
 export type ParagraphEditOperation = "paragraphs.set" | "paragraphs.add" | "runs.add" | "tables.add";
 export type ParagraphEditRequest = { [K in ParagraphEditOperation]: { readonly operation: K; readonly options: DocxOperationArguments<K>; readonly input?: PublicationInput } }[ParagraphEditOperation];
@@ -58,7 +58,8 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
   const styleChildren = styles ? activeXmlChildren(styles, budget) : (node: import("./package-xml.js").XmlElement) => node.children;
   let styleId: string | undefined;
   if (opts.style !== undefined && request.operation !== "tables.add") {
-    const found = styles ? styleChildren(styles).filter(node => node.namespace === w && node.localName === "style" && (node.attributes.find(a => a.namespace === w && a.localName === "type")?.value ?? "paragraph") === (request.operation === "runs.add" ? "character" : "paragraph") && styleChildren(node).some(c => c.namespace === w && c.localName === "name" && c.attributes.some(a => a.namespace === w && a.localName === "val" && styleStoredName(a.value) === styleStoredName(opts.style!)))) : [];
+    const candidates = styles ? styleChildren(styles).filter(node => node.namespace === w && node.localName === "style" && (node.attributes.find(a => a.namespace === w && a.localName === "type")?.value ?? "paragraph") === (request.operation === "runs.add" ? "character" : "paragraph")) : [];
+    const found = selectNamedStyles(candidates, opts.style, styleChildren, budget);
     if (found.length !== 1) throw new InvalidValueError("Expected one existing style of the selected kind.");
     styleId = found[0]!.attributes.find(a => a.namespace === w && a.localName === "styleId")?.value;
     if (!styleId) throw new InvalidValueError("Selected style has no identifier.");

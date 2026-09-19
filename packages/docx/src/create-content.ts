@@ -62,19 +62,20 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
     const id = attribute(style, "styleId"), type = attribute(style, "type") ?? "paragraph";
     const name = children(style).find(c => c.namespace === w && c.localName === "name");
     const stored = name && attribute(name, "val");
-    const value = stored === undefined ? undefined : styleDisplayName(stored);
+    const builtin = !["1", "true", "on"].includes(attribute(style, "customStyle") ?? "");
+    const value = stored === undefined ? undefined : styleDisplayName(stored, builtin);
     if (id) ids.add(id);
     if (value && id && type) {
       if (styles.has(value)) throw new InvalidValueError("Ambiguous style name in template.");
       const properties = children(style).find(child => child.namespace === w && child.localName === "pPr");
       const outline = properties && children(properties).find(child => child.namespace === w && child.localName === "outlineLvl");
-      styles.set(value, { id, type, outline: outline ? attribute(outline, "val") : undefined, builtin: !["1", "true", "on"].includes(attribute(style, "customStyle") ?? "") });
+      styles.set(value, { id, type, outline: outline ? attribute(outline, "val") : undefined, builtin });
     }
   }
   const added: string[] = [];
   const allocate = () => { let n = 1; while (ids.has(`Style${n}`)) n++; const id = `Style${n}`; ids.add(id); return id; };
   for (const style of content.styles ?? []) {
-    const name = styleDisplayName(style.name);
+    const name = style.name;
     if (styles.has(name)) throw new InvalidValueError("A declared style name already exists.");
     const id = allocate();
     styles.set(name, { id, type: style.type });
@@ -86,7 +87,8 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
     added.push(`<w:style xmlns:w="${w}" w:type="${style.type}" w:customStyle="1" w:styleId="${id}"><w:name w:val="${xmlValue(style.name)}"/>${formatting ? `<w:rPr>${formatting}</w:rPr>` : ""}</w:style>`);
   }
   const resolve = (name: string, type: string): string => {
-    const style = styles.get(styleDisplayName(name));
+    const exact = styles.get(name), alias = styles.get(styleDisplayName(name));
+    const style = exact ?? (alias?.builtin ? alias : undefined);
     if (!style || style.type !== type) throw new InvalidValueError("Expected an existing style of the selected kind.");
     return style.id;
   };

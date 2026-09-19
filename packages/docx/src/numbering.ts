@@ -1,6 +1,6 @@
 import { InvalidValueError } from "./archive.js";
 import type { DocxOperationArguments } from "./operation-types.js";
-import { styleStoredName } from "./style-names.js";
+import { selectNamedStyles } from "./style-names.js";
 import { mergeStyleChildren } from "./style-properties.js";
 import { paragraphUnits, paragraphProperties } from "./paragraph-properties.js";
 import { plainLength } from "./formatting-values.js";
@@ -315,7 +315,7 @@ export class NumberingGraph {
     const w = this.xml.root.namespace, children = (node: XmlElement) => this.children(node);
     const scalar = (name: string, value: string | number) => `<nl:${name} xmlns:nl="${w}" nl:val="${xmlValue(String(value))}"/>`;
     const styleId = (name: string, type: string): string => {
-      const matches = this.children(this.styles).filter(node => node.namespace === w && node.localName === "style" && styleStoredName(numberingAttribute(this.child(node, "name")) ?? "") === styleStoredName(name));
+      const matches = selectNamedStyles(this.children(this.styles).filter(node => node.namespace === w && node.localName === "style"), name, children, this.budget);
       if (matches.length !== 1 || (numberingAttribute(matches[0], "type") ?? "paragraph") !== type) throw new InvalidValueError("Expected one named style of the required numbering relationship type.");
       const id = numberingAttribute(matches[0], "styleId");
       if (!id) throw new UnsupportedEditError("Numbering styles require a stored style ID.");

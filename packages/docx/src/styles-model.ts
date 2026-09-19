@@ -161,11 +161,12 @@ export class Styles implements Iterable<BaseStyle> {
   }
   has(name: string): boolean {
     if (typeof name !== "string") throw new TypeError("Styles are keyed by name.");
-    return [...this].some(style => style.name !== null && styleStoredName(style.name) === styleStoredName(name));
+    return [...this].some(style => style.name !== null && (style.name === name || style.builtin && styleStoredName(style.name) === styleStoredName(name)));
   }
   at(name: string): BaseStyle {
     if (typeof name !== "string") throw new TypeError("Styles are keyed by name.");
-    const matches = [...this].filter(style => style.name !== null && styleStoredName(style.name) === styleStoredName(name));
+    const styles = [...this], exact = styles.filter(style => style.name === name);
+    const matches = exact.length ? exact : styles.filter(style => style.builtin && style.name !== null && styleStoredName(style.name) === styleStoredName(name));
     if (matches.length === 1) return matches[0]!;
     if (matches.length > 1) throw new RangeError("Style name is ambiguous.");
     const byId = [...this].find(style => style.style_id === name);
@@ -195,7 +196,7 @@ export class Styles implements Iterable<BaseStyle> {
     const ids = new Set([...this].map(s => s.style_id));
     let serial = 1; while (ids.has(`Style${serial}`)) serial++;
     const namespace = this.rawElement.namespace;
-    return this.wrap(this.store.add(`<st:style xmlns:st="${namespace}" st:type="${type}" st:styleId="Style${serial}"${builtin ? "" : ' st:customStyle="1"'}><st:name st:val="${xmlValue(styleStoredName(name))}"/></st:style>`));
+    return this.wrap(this.store.add(`<st:style xmlns:st="${namespace}" st:type="${type}" st:styleId="Style${serial}"${builtin ? "" : ' st:customStyle="1"'}><st:name st:val="${xmlValue(styleStoredName(name, builtin))}"/></st:style>`));
   }
   default(style_type: DocxEnumValue<"WD_STYLE_TYPE">): BaseStyle | null {
     const type = typeName(style_type);
@@ -251,7 +252,7 @@ export class BaseStyle {
       }
     });
   }
-  get name(): string | null { const value = attr(this.store.readChild(this.rawElement, "name"), "val"); return value === undefined ? null : styleDisplayName(value); }
+  get name(): string | null { const value = attr(this.store.readChild(this.rawElement, "name"), "val"); return value === undefined ? null : styleDisplayName(value, this.builtin); }
   set name(value: string | null) { if (value !== null && typeof value !== "string") throw new TypeError("Expected a style name or null."); this.setValue("name", value); }
   get style_id(): string | null { return attr(this.rawElement, "styleId") ?? null; }
   set style_id(value: string | null) { if (value !== null && typeof value !== "string") throw new TypeError("Expected a style ID or null."); this.setAttribute("styleId", value); }

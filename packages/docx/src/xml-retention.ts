@@ -11,7 +11,7 @@ export function opaqueXmlContent(root: XmlElement, budget: DocumentBudget, profi
   const records: unknown[] = [];
   const nativeProperties = (node: XmlElement) =>
     (node.namespace === documentDialects.strict.w || node.namespace === documentDialects.transitional.w)
-    && ["pPr", "rPr", "sectPr"].includes(node.localName);
+    && ["pPr", "rPr", "sectPr", "tabs"].includes(node.localName);
   const visit = (node: XmlElement, path: (number | string)[], inherited: ReadonlyMap<string, readonly string[]>, propertyContext = false) => {
     budget.charge("work", 1 + node.attributes.length + inherited.size);
     budget.charge("retainedBytes", (inherited.size + 1) * 48);

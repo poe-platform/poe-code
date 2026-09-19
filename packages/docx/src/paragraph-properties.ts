@@ -119,7 +119,18 @@ export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElemen
   }
   if (Object.keys(spacing).length) set("spacing", spacing);
   if (options.tabStops !== undefined) set("tabs", options.tabStops === null || options.tabStops.length === 0 ? null : {}, options.tabStops?.slice().sort((a, b) => paragraphUnits(a.position) - paragraphUnits(b.position)).map(tab => element("tab", { pos: String(paragraphUnits(tab.position)), val: tabAlignmentXml(w, tab.alignment?.name ?? "LEFT"), leader: !tab.leader || tab.leader.name === "SPACES" ? spacesLeader : leaders[tab.leader.name] })).join(""));
-  if (options.tabStopsClear === true) set("tabs", null);
+  if (options.tabStopsClear === true) {
+    const container = find("tabs");
+    if (container) {
+      const stops = children(container).filter(c => c.namespace === w && c.localName === "tab");
+      if (container.attributes.every(a => a.namespace === "http://www.w3.org/2000/xmlns/") &&
+        container.content.every(c => c.kind === "element" && stops.includes(c))) set("tabs", null);
+      else {
+        const removals = new Map(stops.map(stop => [stop, ""]));
+        patches.set(container, runElementOpen(container) + xml.sourceXml(container, removals, true) + `</${container.name}>`);
+      }
+    }
+  }
   if (options.tabStopAdd !== undefined || options.tabStopDelete !== undefined) {
     const container = find("tabs");
     const stops = container ? children(container).filter(c => c.namespace === w && c.localName === "tab") : [];

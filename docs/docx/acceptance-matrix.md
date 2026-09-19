@@ -1041,3 +1041,15 @@ screenshot passed. Named observations and historical count preimages are in
 The newly discovered dependency cancelled partial whole/source checkpoints; their
 results remain historical, and expanded BDD/current stable reruns remain required.
 All F08–F15/F18 families remain open.
+
+### Native tab-clear dependency (2026-09-19)
+
+[Named native tab-clear evidence](text-style-family-acceptance-20260918/tab-clear-native-carriers-requirement-evidence.json)
+preserves the original 40 failing memfs cases and records 2,350 current focused
+passes. Active native stops can now be cleared while retaining compatibility
+carriers, inactive branches, foreign siblings and comments/PI; opaque selected
+stops still reject without publication. Every one of the 19 expanded tab BDD
+identities has 288 exact passing public model/SDK/actual opt-in CLI records.
+Package lint/build and the inspected Strict-template CLI screenshot passed.
+The surrounding public-owner replay and whole/source stable checkpoints remain
+pending; this entry does not establish full F13 or any other family acceptance.

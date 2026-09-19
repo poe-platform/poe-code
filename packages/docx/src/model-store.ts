@@ -5,7 +5,7 @@ import { originalModelDefaults } from "./default-model-styles.js";
 import type { DocumentArchive } from "./archive.js";
 import { InputTypeError, archiveSettings, type ArchiveLimits } from "./archive.js";
 import type { AdmittedModelContext } from "./model-context.js";
-import { appendBodyBlocks, DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { appendBodyBlocks, insertParagraphBefore, DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { PackageView, XmlPartView, StoryPart, DocumentPartView, StylesPart, packagePart, type SettingsPart, type CommentsPart, packageOwnerCheckpoint } from "./package-view.js";
 import { bindXmlElementView, type XmlElementView } from "./xml-element-view.js";
@@ -462,17 +462,19 @@ export class ModelStore {
       list.push({ before, count: children.length });
       insertions.set(node, list);
     };
-    const appendBody = candidate[appendBodyBlocks].bind(candidate);
-    candidate[appendBodyBlocks] = (body, markup) => {
-      const path = appendBody(body, markup);
-      let parent = candidate.root;
-      for (const index of path.slice(0, -1)) parent = parent.children[index]!;
-      const children = fragment(parent, markup);
-      const list = insertions.get(parent) ?? [];
-      list.push({before: parent.children[path.at(-1)!], count: children.length});
-      insertions.set(parent, list);
-      return path;
-    };
+    for (const authority of [appendBodyBlocks, insertParagraphBefore] as const) {
+      const insertOwned = candidate[authority].bind(candidate);
+      candidate[authority] = (owner, markup) => {
+        const path = insertOwned(owner, markup);
+        let parent = candidate.root;
+        for (const index of path.slice(0, -1)) parent = parent.children[index]!;
+        const children = fragment(parent, markup);
+        const list = insertions.get(parent) ?? [];
+        list.push({before: parent.children[path.at(-1)!], count: children.length});
+        insertions.set(parent, list);
+        return path;
+      };
+    }
     try {
       action(candidate);
       const bytes = candidate.serialize();

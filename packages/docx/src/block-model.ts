@@ -8,7 +8,7 @@ import { Hyperlink, RenderedPageBreak, markCommentRange } from "./review-model.j
 import type { DocxEnumValue } from "./operation-types.js";
 import type { ParagraphStyle, CharacterStyle } from "./styles-model.js";
 import { WD_STYLE_TYPE, WD_BREAK, isEnumMember } from "./formatting-values.js";
-import { UnsupportedEditError } from "./xml-write.js";
+import { insertParagraphBefore } from "./xml-write.js";
 import { insertModelImage, Drawing } from "./inline-shape-model.js";
 import type { ImageModelInput } from "./image-model-input.js";
 import { Image } from "./image-model.js";
@@ -185,28 +185,17 @@ export class Paragraph {
         style === undefined || style === null
           ? null
           : this.store.stylesForStory(this.ref.part).get_style_id(style, WD_STYLE_TYPE.PARAGRAPH);
-      const p = this.store.node(this.ref),
-        xml = this.store.xml(this.ref.part);
-      let parent: XmlElement | undefined;
-      const find = (node: XmlElement) => {
-        if (node.children.includes(p)) parent = node;
-        else for (const child of node.children) find(child);
-      };
-      find(xml.root);
-      if (!parent) throw new UnsupportedEditError("Detached paragraph has no insertion owner.");
-      const parentRef = this.store.ref(this.ref.part, parent),
-        index = parent.children.indexOf(p);
+      const p = this.store.node(this.ref);
+      let path: readonly number[] | undefined;
       this.store.change(this.ref.part, (editor) => {
-        const current = this.store.node(parentRef);
-        editor.insertChildren(
-          current,
-          `<bm:p xmlns:bm="${p.namespace}">${styleId ? `<bm:pPr><bm:pStyle bm:val="${xmlValue(styleId)}"/></bm:pPr>` : ""}${text ? paragraphTextRun(p.namespace, text) : ""}</bm:p>`,
-          this.store.node(this.ref)
+        path = editor[insertParagraphBefore](
+          this.store.node(this.ref),
+          `<bm:p xmlns:bm="${p.namespace}">${styleId ? `<bm:pPr><bm:pStyle bm:val="${xmlValue(styleId)}"/></bm:pPr>` : ""}${text ? paragraphTextRun(p.namespace, text) : ""}</bm:p>`
         );
       });
-      return this.store.paragraph(
-        this.store.ref(this.ref.part, this.store.node(parentRef).children[index]!)
-      );
+      let inserted = this.store.xml(this.ref.part).root;
+      for (const index of path!) inserted = inserted.children[index]!;
+      return this.store.paragraph(this.store.ref(this.ref.part, inserted));
     });
   }
 }

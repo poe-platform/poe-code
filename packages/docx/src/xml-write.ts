@@ -49,6 +49,9 @@ export const sourceRootEnvelope = Symbol("source-root-envelope");
 /** Internal typed body append; generic XML insertion retains its compatibility guard. */
 export const appendBodyBlocks = Symbol("append-body-blocks");
 
+/** Internal typed paragraph boundary insertion; opaque-parent XML guards remain closed. */
+export const insertParagraphBefore = Symbol("insert-paragraph-before");
+
 /** Internal style-domain authority for active native definitions. */
 export const replaceActiveStyleXml = Symbol("replace-active-style-xml");
 
@@ -710,6 +713,32 @@ export class DocumentXmlEditor {
     for (const index of insertionPath.slice(0, -1)) parent = parent.children[index]!;
     this.#stageInsertion(parent, xml, section);
     return insertionPath;
+  }
+
+  [insertParagraphBefore](paragraph: XmlElement, xml: string): readonly number[] {
+    if (typeof xml !== "string") throw new InputTypeError("Expected XML markup.");
+    this.#assertOwnedElement(paragraph);
+    if (!this.#dialect || paragraph.namespace !== documentDialects[this.#dialect].w ||
+      paragraph.localName !== "p" || !this.#canEdit(paragraph)) unsupported();
+    this.assertShapeEditAllowed(paragraph);
+    const fragment = parseDocumentXml(new TextEncoder().encode(`<root>${xml}</root>`), this.#limits, this.#budget);
+    if (fragment.root.children.length !== 1 || fragment.root.children[0]!.namespace !== paragraph.namespace ||
+      fragment.root.children[0]!.localName !== "p" || fragment.root.content.some(node => node.kind !== "element")) unsupported();
+    let path: readonly number[] | undefined;
+    let parent: XmlElement | undefined;
+    const locate = (node: XmlElement, current: readonly number[]): void => {
+      this.#budget.charge("work", 1);
+      for (const [index, child] of node.children.entries()) {
+        this.#budget.charge("retainedBytes", (current.length + 1) * 8);
+        if (child === paragraph) { path = [...current, index]; parent = node; return; }
+        locate(child, [...current, index]);
+        if (path) return;
+      }
+    };
+    locate(this.root, []);
+    if (!path || !parent) unsupported();
+    this.#stageInsertion(parent, xml, paragraph, true);
+    return path;
   }
 
   /** Inserts admitted markup at an owned child boundary, retaining source tokens. */

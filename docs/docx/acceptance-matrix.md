@@ -1000,3 +1000,12 @@ exact signatures and executed family evidence. Earlier observer failures and the
 first passing epoch remain preserved; the original limit guard remains effective.
 This completes the named enum behaviors, not the nine entire families or their
 still-running stable source/whole-DOCX checkpoints.
+
+### Public enum alias replay — 2026-09-19
+
+[Current alias evidence](text-style-family-acceptance-20260918/public-enum-aliases-current-requirement-evidence.json)
+records 1584 passing native/SDK/actual opt-in CLI cases after getter/receiver
+corrections, with exact lines for all eleven aliases. A missing distinct alias
+operation uses an actually executed canonical equivalent plus native identity
+proof; it is not fabricated or accepted from mapping alone. Underlying values
+and protocols have the separate complete-enum receipt. Family gates remain open.

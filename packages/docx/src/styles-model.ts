@@ -229,7 +229,10 @@ export class BaseStyle {
   get part(): StylesPart { void this.rawElement; return this.store.part; }
   equals(other: unknown): boolean { void this.rawElement; return other instanceof BaseStyle && other.store === this.store && other.token === this.token; }
   protected setValue(tag: string, value: string | null): void {
-    this.store.change(xml => { const node = this.store.node(xml, this.token); xml[replaceActiveStyleXml](node, mergeStyleChildren(xml, node, new Map([[tag, value === null ? "" : `<st:${tag} xmlns:st="${node.namespace}" st:val="${xmlValue(value)}"/>`]]), order)); });
+    this.store.change(xml => {
+      const node = this.store.node(xml, this.token), children = activeXmlChildren(xml, archiveSettings(this.store.context).budget);
+      xml[replaceActiveStyleXml](node, mergeStyleChildren(xml, node, new Map([[tag, value === null ? "" : `<st:${tag} xmlns:st="${node.namespace}" st:val="${xmlValue(value)}"/>`]]), order, {}, children));
+    });
   }
   protected setAttribute(name: string, value: string | null): void {
     this.store.change(xml => { const node = this.store.node(xml, this.token); xml[replaceActiveStyleXml](node, mergeStyleChildren(xml, node, new Map(), order, { [name]: value })); });

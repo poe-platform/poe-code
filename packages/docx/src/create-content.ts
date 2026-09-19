@@ -23,13 +23,12 @@ function lengthEmu(value: DocxLength, positive = true): number {
   const scale = { emu: 1, in: 914400, cm: 360000, mm: 36000, pt: 12700, twip: 635 }[value.unit];
   const emu = Math.round(value.value * scale);
   if (!Number.isSafeInteger(emu)) throw new InvalidValueError("Document length is outside the safe integer range.");
-  if (Math.round(emu / 635) > 31680) throw new InvalidValueError("Document length is outside the supported page range.");
   return emu;
 }
 
 export function twips(value: DocxLength, positive = true): number {
   const result = Math.round(lengthEmu(value, positive) / 635);
-  if (result < (positive ? 1 : 0))
+  if (result < (positive ? 1 : 0) || result > 31680)
     throw new InvalidValueError("Document length is outside the supported page range.");
   return result;
 }
@@ -80,7 +79,7 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
     const id = allocate();
     styles.set(name, { id, type: style.type });
     const size = style.size === undefined ? undefined : Math.round(lengthEmu(style.size) / 6350);
-    if (size !== undefined && size < 1) throw new InvalidValueError("Font size must round to a positive half-point value.");
+    if (size !== undefined && (size < 1 || size > 3276)) throw new InvalidValueError("Font size must round to 1 through 3276 half-points.");
     const formatting = (style.font === undefined ? "" : `<w:rFonts w:ascii="${xmlValue(style.font)}" w:hAnsi="${xmlValue(style.font)}"/>`) +
       (size === undefined ? "" : `<w:sz w:val="${size}"/>`) +
       (style.bold === undefined ? "" : `<w:b w:val="${Number(style.bold)}"/>`) + (style.italic === undefined ? "" : `<w:i w:val="${Number(style.italic)}"/>`);

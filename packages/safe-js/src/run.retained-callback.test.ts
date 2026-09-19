@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { Budget } from "./interp/budget.js";
 import { declareHostOperation } from "./interp/host-bridge.js";
@@ -242,6 +242,18 @@ const workflows = [
 ];
 
 describe.each(workflows.map(workflow => [workflow.name, workflow] as const))("CBI-001 retained callback: %s", (_name, workflow) => {
+  let first: Awaited<ReturnType<typeof execute>>;
+  let second: Awaited<ReturnType<typeof execute>>;
+  let successive: Awaited<ReturnType<typeof execute>>;
+  let finished: Awaited<ReturnType<typeof execute>>;
+
+  beforeAll(async () => {
+    first = await execute(workflow.source, makeHost(workflow.rate).bindings, undefined, "first");
+    second = await execute(workflow.source, makeHost(workflow.rate).bindings, undefined, "second");
+    successive = await execute(workflow.source, makeHost().bindings, first.saved, "second");
+    finished = await execute(workflow.source, makeHost().bindings, successive.saved);
+  });
+
   it("delivers repeated events uninterrupted", async () => {
     const host = makeHost(workflow.rate);
     const { result } = await execute(workflow.source, host.bindings);
@@ -252,12 +264,7 @@ describe.each(workflows.map(workflow => [workflow.name, workflow] as const))("CB
   });
 
   it.each(["first", "second"])("restores at %s without losing a new delivery", async (boundary) => {
-    const original = await execute(
-      workflow.source,
-      makeHost(workflow.rate).bindings,
-      undefined,
-      boundary
-    );
+    const original = boundary === "first" ? first : second;
     expect(original.result).toMatchObject({ ok: true, returnValue: workflow.expected });
     const registration = original.saved!.replay!.calls.find(
       (call) => call.operation === "register"
@@ -283,15 +290,8 @@ describe.each(workflows.map(workflow => [workflow.name, workflow] as const))("CB
   });
 
   it("preserves new callback history through successive and completed checkpoints", async () => {
-    const first = await execute(
-      workflow.source,
-      makeHost(workflow.rate).bindings,
-      undefined,
-      "first"
-    );
-    const second = await execute(workflow.source, makeHost().bindings, first.saved, "second");
-    expect(second.result).toMatchObject({ ok: true, returnValue: workflow.expected });
-    const finished = await execute(workflow.source, makeHost().bindings, second.saved);
+    expect(first.result).toMatchObject({ ok: true, returnValue: workflow.expected });
+    expect(successive.result).toMatchObject({ ok: true, returnValue: workflow.expected });
     expect(finished.result).toMatchObject({ ok: true, returnValue: workflow.expected });
     const completedHost = makeHost();
     const completed = await execute(

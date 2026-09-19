@@ -1,3 +1,4 @@
+import { compatibilityContainers } from "./compatibility.js";
 import { archiveSettings, type DocumentArchive } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
 import { validateDocxInvocation } from "./command.js";
@@ -16,7 +17,7 @@ import { relativePartTarget } from "./part-uri.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { runElementOpen } from "./run-properties.js";
 import { resolveDocxSelection } from "./simple-selection.js";
-import { DocumentXmlEditor, UnsupportedEditError, replaceListPropertyXml } from "./xml-write.js";
+import { DocumentXmlEditor, UnsupportedEditError, replaceListPropertyXml, insertParagraphAfter } from "./xml-write.js";
 import { findRelationshipPart } from "./relationship-part.js";
 
 export type ListEditOperation = "lists.add" | "lists.set";
@@ -61,9 +62,9 @@ export async function editDocumentLists(input: Uint8Array, request: ListEditRequ
     const part = packageGraph.getPart(before.value.part).name;
     let xml = editors.get(part);
     if (!xml) { xml = new DocumentXmlEditor(archive.members.find(m => m.name === part)!.bytes, {}, undefined, budget); editors.set(part, xml); graph.project(xml.root); }
-    let node = xml.root, parent = node;
+    let node = xml.root;
     const ancestors = [node];
-    for (const position of before.value.path) { parent = node; node = node.children[position]!; ancestors.push(node); }
+    for (const position of before.value.path) { node = node.children[position]!; ancestors.push(node); }
     if (ancestors.some(n => n.namespace === w && (["ins", "del", "moveFrom", "moveTo"].includes(n.localName) || graph.child(graph.child(n, "pPr"), "pPrChange"))))
       throw new UnsupportedEditError("Tracked list paragraphs require revision operations.");
     if (node.namespace !== w || !["p", "body", "tc", "hdr", "ftr", "footnote", "endnote", "comment", "txbxContent"].includes(node.localName)) throw new UnsupportedEditError("Expected a supported list paragraph or block container.");
@@ -97,10 +98,12 @@ export async function editDocumentLists(input: Uint8Array, request: ListEditRequ
       if (!id) id = graph.create(options.kind, options.start ?? 1, level);
       const markup = `<nl:p xmlns:nl="${w}">${listProperties(undefined, undefined, id, level, w)}${paragraphTextRun(w, options.text ?? "")}</nl:p>`;
       if (node.localName === "p") {
-        if (parent.namespace !== w || !["body", "tc", "hdr", "ftr", "footnote", "endnote", "comment", "txbxContent", "sdtContent"].includes(parent.localName)) throw new UnsupportedEditError("List insertion requires a supported block container.");
+        const carriers = new Set(xml.compatibility[compatibilityContainers]);
+        const container = ancestors.slice(0, -1).reverse().find(ancestor => !carriers.has(ancestor))!;
+        if (container.namespace !== w || !["body", "tc", "hdr", "ftr", "footnote", "endnote", "comment", "txbxContent", "sdtContent"].includes(container.localName)) throw new UnsupportedEditError("List insertion requires a supported block container.");
         if (child(child(node, "pPr"), "sectPr")) throw new UnsupportedEditError("Insert lists at a block container when the anchor ends a section.");
-        xml.insertChildren(parent, markup, parent.children[parent.children.indexOf(node) + 1]);
-        updates.push({ before, path: [...before.value.path.slice(0, -1), before.value.path.at(-1)! + 1], kind: "insert" });
+        const path = xml[insertParagraphAfter](node, markup, before.value.path);
+        updates.push({ before, path, kind: "insert" });
       } else {
         const section = child(node, "sectPr");
         xml.insertChildren(node, markup, section);

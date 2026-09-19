@@ -52,6 +52,7 @@ export const appendBodyBlocks = Symbol("append-body-blocks");
 
 /** Internal typed paragraph boundary insertion; opaque-parent XML guards remain closed. */
 export const insertParagraphBefore = Symbol("insert-paragraph-before");
+export const insertParagraphAfter = Symbol("insert-paragraph-after");
 
 /** Internal style-domain authority for active native definitions. */
 export const replaceActiveStyleXml = Symbol("replace-active-style-xml");
@@ -743,6 +744,28 @@ export class DocumentXmlEditor {
     if (!path || !parent) unsupported();
     this.#stageInsertion(parent, xml, paragraph, true);
     return path;
+  }
+
+  /** Insert beside an editable native anchor without rewriting its MCE carrier. */
+  [insertParagraphAfter](paragraph: XmlElement, xml: string, path: readonly number[]): readonly number[] {
+    if (typeof xml !== "string") throw new InputTypeError("Expected XML markup.");
+    this.#assertOwnedElement(paragraph);
+    if (!this.#dialect || paragraph.namespace !== documentDialects[this.#dialect].w ||
+      paragraph.localName !== "p" || !this.#canEdit(paragraph) || !path.length) unsupported();
+    this.assertShapeEditAllowed(paragraph);
+    const fragment = parseDocumentXml(new TextEncoder().encode(`<root>${xml}</root>`), this.#limits, this.#budget);
+    if (fragment.root.children.length !== 1 || fragment.root.children[0]!.namespace !== paragraph.namespace ||
+      fragment.root.children[0]!.localName !== "p" || fragment.root.content.some(node => node.kind !== "element")) unsupported();
+    let parent = this.root;
+    for (const index of path.slice(0, -1)) {
+      this.#budget.charge("work", 1);
+      if (!Number.isSafeInteger(index) || index < 0 || !parent.children[index]) unsupported();
+      parent = parent.children[index]!;
+    }
+    const index = path.at(-1)!;
+    if (!Number.isSafeInteger(index) || index < 0 || parent.children[index] !== paragraph) unsupported();
+    this.#stageInsertion(parent, xml, parent.children[index + 1], true);
+    return [...path.slice(0, -1), index + 1];
   }
 
   /** Inserts admitted markup at an owned child boundary, retaining source tokens. */

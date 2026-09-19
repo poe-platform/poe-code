@@ -196,7 +196,7 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
     }
   } else {
     const selected = resolve(opts.name), type = attr(selected, "type") ?? "paragraph";
-    if (!["paragraph", "character", "table"].includes(type!)) throw new UnsupportedEditError("Editing supports paragraph, character and table styles.");
+    if (!["paragraph", "character", "table", "numbering"].includes(type!)) throw new UnsupportedEditError("Unknown style type cannot be edited.");
     if (type === "character" && [opts.outlineLevel, opts.keepWithNext, opts.keepTogether, opts.widowControl, opts.pageBreakBefore, opts.spaceBefore, opts.spaceAfter, opts.alignment, opts.leftIndent, opts.rightIndent, opts.firstLineIndent, opts.lineSpacing, opts.lineSpacingRule, opts.tabStops, opts.tabStopAdd, opts.tabStopDelete, opts.tabStopsClear, opts.borders, opts.shading].some(v => v !== undefined))
       throw new InvalidValueError("Character styles cannot contain paragraph properties.");
     for (const [key, tag] of [["base", "basedOn"], ["next", "next"]] as const) {

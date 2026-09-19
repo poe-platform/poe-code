@@ -154,6 +154,8 @@ export class Paragraph {
             `<bm:pPr xmlns:bm="${p.namespace}">${replacement}</bm:pPr>`,
             p.children[0]
           );
+      } else if (!props) {
+        xml.insertChildren(p, `<bm:pPr xmlns:bm="${p.namespace}"/>`, p.children[0]);
       }
     });
   }

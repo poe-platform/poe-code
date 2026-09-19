@@ -1009,3 +1009,12 @@ corrections, with exact lines for all eleven aliases. A missing distinct alias
 operation uses an actually executed canonical equivalent plus native identity
 proof; it is not fabricated or accepted from mapping alone. Underlying values
 and protocols have the separate complete-enum receipt. Family gates remain open.
+
+### Contract-defined documentation errors — 2026-09-19
+
+[Current documentation-error evidence](text-style-family-acceptance-20260918/documentation-errors-current-requirement-evidence.json)
+records all 432 native/SDK/actual CLI outcomes for the three erroneous enum/style
+spellings or type placements, alongside independently executed required positive
+counterparts. Exact input, destination and package graph retention is observed;
+the first creating-getter publication-intent observer failure remains historical.
+These justified refusals complete their named requirements, not any entire family.

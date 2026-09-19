@@ -73,6 +73,19 @@ function target(targetId: string) {
 	});
 }
 
+test("CDP command timeout retains its original reason through bridge shutdown", async () => {
+	const privacy = coordinator({ commandTimeoutMs: 20 }, true);
+	const peer = client(privacy);
+	const wire = receive(peer.server);
+	peer.socket.send(JSON.stringify({ id: 1, method: "Browser.getVersion" }));
+	await wire;
+	await waitForBrowserSocketClose(peer.socket);
+	const failure = await privacy.close().catch((error: unknown) => error);
+	expect(failure).toBeInstanceOf(AggregateError);
+	expect((failure as AggregateError).errors.map((error: Error) => error.message))
+		.toContain("CDP Browser.getVersion timed out");
+});
+
 test("late secondary clients hide already-active private identities", async () => {
 	const privacy = coordinator({ maxPrivateTargets: 2, maxPrivateSessions: 2 });
 	const primary = client(privacy);

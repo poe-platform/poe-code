@@ -117,8 +117,10 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
     bufferedBytes = 0;
     upstream.onmessage = undefined;
     upstream.onclose = undefined;
-    try { upstream.close(); } catch {}
+    // Notify before upstream cleanup can synchronously stop the owning bridge.
+    // The failure and cleared state already prevent reentrant protocol work.
     try { transport.onclose?.(failure.message.slice(0, 1024)); } catch {}
+    try { upstream.close(); } catch {}
   }
 
   function snapshot(input: object): { message: Message; bytes: number } {

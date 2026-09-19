@@ -23,6 +23,23 @@ function attached(targetId: string, sessionId: string, parentSessionId?: string)
     params: { targetInfo: { targetId, type: 'page' }, sessionId, waitingForDebugger: true } };
 }
 
+test('retirement notifies the owner before upstream cleanup and remains closed during callbacks', () => {
+  const state = fixture();
+  const original = 'CDP Browser.getVersion timed out';
+  state.transport.onclose = reason => {
+    assert.equal(reason, original);
+    assert.equal(state.closes(), 0);
+    assert.throws(() => state.transport.send({ id: 2, method: 'Browser.getVersion' }), { message: original });
+    assert.throws(() => state.beginCreation(), { message: original });
+    state.transport.close();
+    throw new Error('Owner callback failed');
+  };
+  state.lose(original);
+  assert.equal(state.closes(), 1);
+  state.transport.close();
+  assert.equal(state.closes(), 1);
+});
+
 test('creation holds attachments AND native creation replies in order', () => {
   const state = fixture();
   const guard = state.beginCreation();

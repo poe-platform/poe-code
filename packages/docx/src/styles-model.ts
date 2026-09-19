@@ -235,7 +235,7 @@ export class BaseStyle {
   protected get rawElement(): XmlElement { const xml = this.store.editor(); return this.store.node(xml, this.token); }
   get element(): XmlElementView { void this.rawElement; return this.store.xmlView(`style:${this.token}`, xml => this.store.node(xml, this.token), () => this.delete()); }
   get part(): StylesPart { void this.rawElement; return this.store.part; }
-  equals(other: unknown): boolean { requireComparisonOperand(other); void this.rawElement; return other instanceof BaseStyle && other.store === this.store && other.token === this.token; }
+  equals(other: unknown): boolean { requireComparisonOperand(other); void this.rawElement; if (!(other instanceof BaseStyle) || other.store !== this.store) return false; void other.rawElement; return other.token === this.token; }
   protected setValue(tag: string, value: string | null): void {
     this.store.change(xml => {
       const node = this.store.node(xml, this.token), children = activeXmlChildren(xml, archiveSettings(this.store.context).budget);
@@ -358,7 +358,7 @@ export class LatentStyles implements Iterable<LatentStyle> {
   get element(): XmlElementView { void this.rawElement; return this.store.xmlView("latent-root", xml => { const node = this.store.readChild(xml.root, "latentStyles"); if (!node) throw new StaleHandleError("The XML owner is detached."); return node; }); }
   xmlView(token: number): XmlElementView { void this.entry(token); return this.store.xmlView(`latent:${token}`, xml => this.node(token, xml), () => this.remove(token)); }
   get part(): StylesPart { return this.store.part; }
-  equals(other: unknown): boolean { requireComparisonOperand(other); return other instanceof LatentStyles && other.store === this.store; }
+  equals(other: unknown): boolean { requireComparisonOperand(other); if (other instanceof LatentStyles && other.store === this.store) void other.rawElement; return other instanceof LatentStyles && other.store === this.store; }
   private info() { const xml = this.store.editor(); return readLatentStyles(xml.root, undefined, activeXmlChildren(xml, archiveSettings(this.store.context).budget))!; }
   get length(): number { return this.info().entries.length; }
   *[Symbol.iterator](): Iterator<LatentStyle> { for (const token of [...this.store.latentTokens]) yield new LatentStyle(this, token); }
@@ -414,7 +414,7 @@ export class LatentStyle {
   get name(): string { return this.collection.entry(this.token).name; }
   get part(): StylesPart { void this.name; return this.collection.part; }
   get element(): XmlElementView { return this.collection.xmlView(this.token); }
-  equals(other: unknown): boolean { requireComparisonOperand(other); void this.name; return other instanceof LatentStyle && this.collection.equals(other.collection) && this.token === other.token; }
+  equals(other: unknown): boolean { requireComparisonOperand(other); void this.name; if (other instanceof LatentStyle) void other.name; return other instanceof LatentStyle && this.collection.equals(other.collection) && this.token === other.token; }
   get priority(): number | null { return this.collection.entry(this.token).priority; }
   set priority(value: number | null) { nullableInteger(value); this.collection.change(this.token, "priority", value); }
   get hidden(): boolean | null { return this.collection.entry(this.token).hidden; }

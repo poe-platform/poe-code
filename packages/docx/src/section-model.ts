@@ -116,8 +116,7 @@ export class Section {
     return (
       other instanceof Section &&
       other.store === this.store &&
-      other.ref.part === this.ref.part &&
-      other.ref.id === this.ref.id
+      this.store.node(this.ref) === other.store.node(other.ref)
     );
   }
   private length(tag: string, attr: string): Length | null {

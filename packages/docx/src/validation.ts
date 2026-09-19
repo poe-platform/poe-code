@@ -208,6 +208,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     visit(view.content, "", "/", "/");
   }
   const definitions = new Map<string, Map<string, Node>>();
+  const styleDefinitions = new Map<string, Node[]>();
   const definitionNames: Record<string, string> = { style: "styleId", num: "numId", abstractNum: "abstractNumId", footnote: "id", endnote: "id", comment: "id" };
   for (const node of nodes) {
     if (node.element.source.namespace !== w) continue;
@@ -217,6 +218,12 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     const id = name === "style" ? raw : integer(raw, name === "footnote" || name === "endnote" ? -1 : 0);
     const key = `${node.part}:${name}`;
     const entries = definitions.get(key) ?? new Map<string, Node>();
+    if (name === "style") {
+      const styles = styleDefinitions.get(key) ?? [];
+      styles.push(node); styleDefinitions.set(key, styles);
+    }
+    // Native CT_Style permits an absent styleId; anonymous styles are not keys.
+    if (name === "style" && raw === undefined) {definitions.set(key, entries); continue;}
     if (id === undefined || id === "" || entries.has(id)) issue(node, name + "-id", "Missing, invalid or duplicate definition ID.");
     else entries.set(id, node);
     definitions.set(key, entries);
@@ -229,8 +236,9 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
   const completedStyles = new Set<Node>();
   for (const [key, entries] of definitions) {
     if (!key.endsWith(":style")) continue;
+    const styles = styleDefinitions.get(key)!;
     const defaults = new Set<string>();
-    for (const style of entries.values()) {
+    for (const style of styles) {
       const type = attr(style, "type") ?? "paragraph";
       if (["1", "true", "on"].includes(attr(style, "default") ?? "0")) {
         if (defaults.has(type)) issue(style, "style-default", "A style type has multiple defaults.");
@@ -247,7 +255,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
       }
     }
     const completedLinks = new Set<Node>();
-    for (const start of entries.values()) {
+    for (const start of styles) {
       const path = new Map<Node, number>();
       let current: Node | undefined = start;
       while (current && !completedLinks.has(current)) {
@@ -263,7 +271,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
       }
       for (const node of path.keys()) completedLinks.add(node);
     }
-    for (const start of entries.values()) {
+    for (const start of styles) {
       const chain = new Set<Node>();
       let current: Node | undefined = start;
       while (current && !completedStyles.has(current)) {

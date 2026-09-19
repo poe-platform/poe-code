@@ -26,8 +26,8 @@ export interface PlaywrightFrame {
 
 export interface PlaywrightPage {
   frames?(): PlaywrightFrame[];
-  on?(event: 'framenavigated' | 'close', listener: () => void): unknown;
-  off?(event: 'framenavigated' | 'close', listener: () => void): unknown;
+  on?(event: 'framenavigated' | 'close', listener: (frame?: PlaywrightFrame) => void): unknown;
+  off?(event: 'framenavigated' | 'close', listener: (frame?: PlaywrightFrame) => void): unknown;
   goto(url: string, options?: { timeout?: number }): Promise<unknown>;
   url(): string;
   locator(selector: string): PlaywrightLocator;

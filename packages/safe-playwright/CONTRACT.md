@@ -53,8 +53,10 @@ Each emitted ref binds an actual public element handle in its owning frame.
 Identical elements get distinct refs; guest strings are never evaluated as
 locators or programs. Plain `ariaSnapshot()` text cannot create usable refs.
 
-Capturing again, navigation events, tab changes and session retirement clear
-refs and await handle cleanup. Ref numbering is unique within a controller,
+Navigation events clear refs belonging to the navigated frame; refs in unaffected
+documents remain usable. Events without a frame clear all refs. Capturing again,
+tab changes and session retirement clear all refs and await handle cleanup.
+Ref numbering is unique within a controller,
 including replacement sessions. Detached nodes, destroyed frame contexts and
 handles in replaced documents fail as stale, without locator retargeting or
 replay. Externally observed tab additions/removals/reordering also invalidate

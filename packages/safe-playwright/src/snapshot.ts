@@ -1,4 +1,4 @@
-import type { PlaywrightPage, PlaywrightElementHandle } from './adapter.js';
+import type { PlaywrightPage, PlaywrightElementHandle, PlaywrightFrame } from './adapter.js';
 
 export interface SnapshotLimits { readonly maxSnapshotBytes: number; readonly maxSnapshotRefs: number }
 
@@ -12,11 +12,15 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
   let sequence = 0;
   let epoch = 0;
   const retirements = new Set<Promise<void>>();
-  const refs = new Map<string, PlaywrightElementHandle>();
-  const invalidate = async () => {
+  const refs = new Map<string, { handle: PlaywrightElementHandle; frame: PlaywrightFrame }>();
+  const invalidate = async (frame?: PlaywrightFrame) => {
     epoch++;
-    const handles = [...refs.values()];
-    refs.clear();
+    const handles: PlaywrightElementHandle[] = [];
+    for (const [ref, entry] of refs) {
+      if (frame !== undefined && entry.frame !== frame) continue;
+      handles.push(entry.handle);
+      refs.delete(ref);
+    }
     const tasks = [...new Set(handles)].map(handle => Promise.resolve().then(() => handle.dispose()));
     for (const task of tasks) { retirements.add(task); void task.then(() => retirements.delete(task), () => {}); }
     const results = await Promise.allSettled([...retirements]);
@@ -31,7 +35,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     await invalidate();
     const capturedEpoch = epoch;
     const acquired = new Set<PlaywrightElementHandle>();
-    const pending = new Map<string, PlaywrightElementHandle>();
+    const pending = new Map<string, { handle: PlaywrightElementHandle; frame: PlaywrightFrame }>();
     let text = '';
     let bytes = 0;
     try {
@@ -51,7 +55,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
           const line = `- ${JSON.stringify(summary.role).slice(1, -1)} ${JSON.stringify(summary.name.trim())} [ref=${ref}]\n`;
           bytes += new TextEncoder().encode(line).byteLength;
           if (bytes > maxSnapshotBytes) throw new Error('Snapshot byte limit exceeded');
-          pending.set(ref, handle);
+          pending.set(ref, { handle, frame });
           text += line;
         }
       }
@@ -67,13 +71,13 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     }
   };
   const resolve = async (ref: string): Promise<PlaywrightElementHandle> => {
-    const handle = refs.get(ref);
-    if (!handle) throw new Error(`Unknown or stale snapshot ref: ${ref}; snapshot again`);
-    const capturedEpoch = epoch;
+    const entry = refs.get(ref);
+    if (!entry) throw new Error(`Unknown or stale snapshot ref: ${ref}; snapshot again`);
+    const { handle } = entry;
     let connected = false;
     try { connected = await handle.evaluate(node => node.isConnected && (!node.ownerDocument || node.ownerDocument.defaultView?.document === node.ownerDocument)); }
     catch { /* Detached frames and destroyed execution contexts are stale. */ }
-    if (!connected || capturedEpoch !== epoch) throw new Error(`Snapshot ref stale: ${ref}; snapshot again`);
+    if (!connected || refs.get(ref) !== entry) throw new Error(`Snapshot ref stale: ${ref}; snapshot again`);
     return handle;
   };
   return { capture, resolve, invalidate };

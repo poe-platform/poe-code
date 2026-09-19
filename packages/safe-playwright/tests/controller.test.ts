@@ -2,6 +2,47 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createPlaywrightController } from '../src/index.js';
 import type { PlaywrightAdapter, PlaywrightLease, PlaywrightPage } from '../src/index.js';
+import type { PlaywrightFrame, SnapshotNode } from '../src/adapter.js';
+
+test('iframe navigation preserves unaffected refs without retargeting replaced or disconnected nodes', async () => {
+  const f = fixture();
+  const listeners = new Map<string, (frame?: PlaywrightFrame) => void>();
+  const fills: string[] = [];
+  const document = { defaultView: { document: undefined as unknown } };
+  document.defaultView.document = document;
+  const handles = ['Email', 'Child', 'Sibling'].map(name => ({
+    connected: true,
+    async evaluate<T>(fn: (node: SnapshotNode) => T): Promise<T> { return fn({ tagName: 'INPUT', textContent: name, isConnected: this.connected, ownerDocument: document, getAttribute: () => null }); },
+    async fill(value: string) { fills.push(`${name}:${value}`); },
+    async click() {}, async dispose() {},
+  }));
+  const frames = handles.map(handle => ({ locator: () => ({ elementHandles: async () => [handle] }) }));
+  const original = f.adapter.acquire.bind(f.adapter);
+  f.adapter.acquire = async request => {
+    const lease = await original(request);
+    const page = lease.context.pages()[0]!;
+    page.frames = () => frames;
+    page.on = (event, listener) => { listeners.set(event, listener); };
+    page.off = event => { listeners.delete(event); };
+    return lease;
+  };
+  try {
+    await f.run(['open']);
+    await f.run(['snapshot']);
+    listeners.get('framenavigated')!(frames[1]);
+    await f.run(['fill', 'e1', 'valid']);
+    await f.run(['fill', 'e3', 'also valid']);
+    await assert.rejects(f.run(['fill', 'e2', 'replaced']), /stale/);
+    handles[2]!.connected = false;
+    await assert.rejects(f.run(['fill', 'e3', 'detached']), /stale/);
+    document.defaultView.document = {};
+    await assert.rejects(f.run(['fill', 'e1', 'old document']), /stale/);
+    document.defaultView.document = document;
+    listeners.get('framenavigated')!(frames[0]);
+    await assert.rejects(f.run(['fill', 'e1', 'navigated']), /stale/);
+    assert.deepEqual(fills, ['Email:valid', 'Sibling:also valid']);
+  } finally { await f.controller.dispose(); }
+});
 
 function deferred<T>() {
   let resolve!: (value: T) => void;

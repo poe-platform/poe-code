@@ -1,4 +1,4 @@
-import type { PlaywrightAdapter, PlaywrightLease, PlaywrightPage } from './adapter.js';
+import type { PlaywrightAdapter, PlaywrightLease, PlaywrightPage, PlaywrightFrame } from './adapter.js';
 import { createSnapshotEngine } from './snapshot.js';
 import { parseInvocation, type PlaywrightInvocation } from './invocation.js';
 
@@ -77,9 +77,10 @@ export function createPlaywrightController(options: PlaywrightControllerOptions)
     session.page = page;
     if (page.on && page.off) {
       const invalidate = () => { void session.snapshot.invalidate().catch(() => {}); };
-      page.on('framenavigated', invalidate);
+      const navigated = (frame?: PlaywrightFrame) => { void session.snapshot.invalidate(frame).catch(() => {}); };
+      page.on('framenavigated', navigated);
       page.on('close', invalidate);
-      session.detachPage = () => { page.off!('framenavigated', invalidate); page.off!('close', invalidate); };
+      session.detachPage = () => { page.off!('framenavigated', navigated); page.off!('close', invalidate); };
     }
   };
   const run = async (invocation: PlaywrightInvocation): Promise<void> => {

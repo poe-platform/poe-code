@@ -89,3 +89,32 @@ test('cancelled snapshots stop admission before public handle acquisition', asyn
   await assert.rejects(engine.capture(f.page, abort.signal), /snapshot cancelled/);
   assert.deepEqual(f.actions, []);
 });
+
+test('frame invalidation during ref validation preserves unrelated handles and rejects the affected handle', async () => {
+  const f = fixture();
+  const engine = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 10 });
+  const frames = f.page.frames!();
+  f.page.frames = () => frames;
+  await engine.capture(f.page);
+  const original = f.nodes[0]!.evaluate.bind(f.nodes[0]);
+  f.nodes[0]!.evaluate = async fn => { await engine.invalidate(frames[1]); return original(fn); };
+  assert.equal(await engine.resolve('e1'), f.nodes[0]);
+  assert.deepEqual(f.actions, ['dispose:2']);
+  await assert.rejects(engine.resolve('e3'), /stale/);
+  f.nodes[0]!.evaluate = async fn => { await engine.invalidate(frames[0]); return original(fn); };
+  await assert.rejects(engine.resolve('e1'), /stale/);
+  await engine.invalidate();
+  assert.deepEqual(f.actions, ['dispose:2', 'dispose:0', 'dispose:1']);
+});
+
+test('frame navigation during capture rejects the partial snapshot and cleans up every acquired handle', async () => {
+  const f = fixture();
+  const engine = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 10 });
+  const frames = f.page.frames!();
+  f.page.frames = () => frames;
+  const original = f.nodes[0]!.evaluate.bind(f.nodes[0]);
+  f.nodes[0]!.evaluate = async fn => { await engine.invalidate(frames[1]); return original(fn); };
+  await assert.rejects(engine.capture(f.page), /stale/);
+  await assert.rejects(engine.resolve('e1'), /stale/);
+  assert.deepEqual(f.actions, ['dispose:0', 'dispose:1', 'dispose:2']);
+});

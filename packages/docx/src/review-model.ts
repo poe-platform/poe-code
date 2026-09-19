@@ -56,19 +56,28 @@ export class Comments implements Iterable<Comment> {
     text(value);
     text(author);
     if (initials !== null) text(initials);
-    const next = nextCommentId(this.nodes.map(id), this.store.context.budget);
-    const styles = this.store.stylesForStory(this.ref.part);
-    const style = styles.has("Comment Text")
-      ? styles.at("Comment Text")
-      : styles.add_style("Comment Text", WD_STYLE_TYPE.PARAGRAPH);
-    this.store.change(this.ref.part, (xml) => {
-      const root = this.store.node(this.ref);
-      xml.insertChildren(
-        root,
-        `<cm:comment xmlns:cm="${root.namespace}" cm:id="${next}" cm:author="${xmlValue(author)}" cm:date="${timestamp.toISOString()}"${initials === null ? "" : ` cm:initials="${xmlValue(initials)}"`}><cm:p><cm:pPr><cm:pStyle cm:val="${xmlValue(style.style_id!)}"/></cm:pPr>${paragraphTextRun(root.namespace, value)}</cm:p></cm:comment>`
-      );
+    return this.store.transaction(() => {
+      const next = nextCommentId(this.nodes.map(id), this.store.context.budget);
+      const styles = this.store.stylesForStory(this.ref.part);
+      const style = styles.has("Comment Text")
+        ? styles.at("Comment Text")
+        : styles.add_style("Comment Text", WD_STYLE_TYPE.PARAGRAPH);
+      const paragraphStyleId = styles.get_style_id(style, WD_STYLE_TYPE.PARAGRAPH) ?? style.style_id;
+      const reference = styles.has("Comment Reference")
+        ? styles.at("Comment Reference")
+        : styles.add_style("Comment Reference", WD_STYLE_TYPE.CHARACTER);
+      const referenceStyleId = styles.get_style_id(reference, WD_STYLE_TYPE.CHARACTER) ?? reference.style_id;
+      if (paragraphStyleId === null || referenceStyleId === null)
+        throw new InvalidValueError("Comment styles require scoped definition IDs.");
+      this.store.change(this.ref.part, (xml) => {
+        const root = this.store.node(this.ref);
+        const paragraphs = value.split("\n").map((line, index) =>
+          `<cm:p><cm:pPr><cm:pStyle cm:val="${xmlValue(paragraphStyleId)}"/></cm:pPr>${index === 0 ? `<cm:r><cm:rPr><cm:rStyle cm:val="${xmlValue(referenceStyleId)}"/></cm:rPr><cm:annotationRef/></cm:r>` : ""}${line ? paragraphTextRun(root.namespace, line) : ""}</cm:p>`).join("");
+        xml.insertChildren(root,
+          `<cm:comment xmlns:cm="${root.namespace}" cm:id="${next}" cm:author="${xmlValue(author)}" cm:date="${timestamp.toISOString()}"${initials === null ? "" : ` cm:initials="${xmlValue(initials)}"`}>${paragraphs}</cm:comment>`);
+      });
+      return this.get(next)!;
     });
-    return this.get(next)!;
   }
 }
 export class Comment {
@@ -416,12 +425,25 @@ function applyCommentRange(
   last: import("./block-model.js").Run,
   commentId: number
 ): void {
+  const owner = store.documentOwnerForStory(first.ref.part);
+  const dialect = dialectForNamespace(store.xml(owner).root.namespace)!;
+  const graph = new DocumentPackage(store.snapshot(), store.context.limits, store.context.budget);
+  let referenceStyleId = "CommentReference";
+  if (graph.relationships(owner).some(edge => edge.reltype === documentDialects[dialect].r + "/styles")) {
+    const styles = store.stylesForStory(first.ref.part);
+    if (styles.has("Comment Reference")) {
+      const reference = styles.at("Comment Reference");
+      const scoped = styles.get_style_id(reference, WD_STYLE_TYPE.CHARACTER) ?? reference.style_id;
+      if (scoped === null) throw new InvalidValueError("Comment reference styles require a scoped definition ID.");
+      referenceStyleId = scoped;
+    }
+  }
   store.change(first.ref.part, (editor) => {
     const begin = store.node(first.ref),
       finish = store.node(last.ref),
       w = begin.namespace;
     const beginMarkup = `<cm:commentRangeStart xmlns:cm="${w}" cm:id="${commentId}"/>`,
-      endMarkup = `<cm:commentRangeEnd xmlns:cm="${w}" cm:id="${commentId}"/><cm:r xmlns:cm="${w}"><cm:rPr><cm:rStyle cm:val="CommentReference"/></cm:rPr><cm:commentReference cm:id="${commentId}"/></cm:r>`;
+      endMarkup = `<cm:commentRangeEnd xmlns:cm="${w}" cm:id="${commentId}"/><cm:r xmlns:cm="${w}"><cm:rPr><cm:rStyle cm:val="${xmlValue(referenceStyleId)}"/></cm:rPr><cm:commentReference cm:id="${commentId}"/></cm:r>`;
     if (begin === finish)
       editor.replaceElement(begin, beginMarkup + editor.sourceXml(begin) + endMarkup);
     else {

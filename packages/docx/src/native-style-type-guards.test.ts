@@ -2,7 +2,7 @@ import { Volume } from "memfs";
 import { expect, it } from "vitest";
 import { Shell, MemoryFileSystem } from "virtual-bash";
 import { docxCommands } from "virtual-bash/commands/docx";
-import { Document, createDocxInspectionCommandEngine, editDocumentParagraphs, writeArchive } from "./index.js";
+import { Document, InvalidDocumentError, createDocxInspectionCommandEngine, editDocumentParagraphs, writeArchive } from "./index.js";
 import { textContext, textFixture, w } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
 
@@ -21,7 +21,7 @@ it(`${route} rejects ${type === undefined ? "omitted paragraph as run" : "explic
   if (route === "model") {
     const document = await Document(input, textContext), original = document.part.blob;
     if (type === undefined) expect(() => document.paragraphs[0]!.add_run("Added coast", "Coast")).toThrow(TypeError);
-    else expect(() => document.add_paragraph("Added coast", "Coast")).toThrow(TypeError);
+    else expect(() => document.add_paragraph("Added coast", "Coast")).toThrow(type === "" || type === "unrecognized" ? InvalidDocumentError : TypeError);
     expect(document.part.blob).toEqual(original); expect(document.styles.part.blob).toEqual(parts.get("word/styles.xml"));
   } else if (route === "sdk") {
     await expect(editDocumentParagraphs(input, {operation: type === undefined ? "runs.add" : "paragraphs.add", options: {text: "Added coast", style: "Coast", ...(type === undefined ? {paragraph: 1} : {}), output: "-"}}, {...textContext, encoding: {order: "input", compression: "store"}, stdout: {async write(bytes) {memory.appendFileSync("/output", bytes);}}})).rejects.toMatchObject({code: "usage"});

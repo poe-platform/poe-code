@@ -1,4 +1,5 @@
 import { storedBoolean } from "./stored-lexical.js";
+import { InvalidDocumentError } from "./document-error.js";
 import { styleLinkPatches } from "./style-links.js";
 import { admitDocumentModel } from "./model-admission.js";
 import { PackageView, StylesPart, packageBindStyles, packageAdmitImages } from "./package-view.js";
@@ -272,7 +273,7 @@ export class BaseStyle {
   get type(): DocxEnumValue<"WD_STYLE_TYPE"> {
     const type = attr(this.rawElement, "type") ?? "paragraph";
     const key = (Object.keys(types) as (keyof typeof types)[]).find(k => types[k] === type);
-    if (!key) throw new InvalidValueError("Unknown style type.");
+    if (!key) throw new InvalidDocumentError("Unknown stored style type.");
     return WD_STYLE_TYPE[key];
   }
   get builtin(): boolean { return !storedBoolean(attr(this.rawElement, "customStyle") ?? "0"); }

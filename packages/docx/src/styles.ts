@@ -12,7 +12,7 @@ import { DocumentArchiveEditor } from "./package-write.js";
 import { type XmlElement } from "./package-xml.js";
 import { paragraphProperties, newTabStopXml, paragraphUnits } from "./paragraph-properties.js";
 import { formattedRunProperties } from "./run-properties.js";
-import { inheritStyleProperties, mergeStyleChildren, readStyleProperties, styleAttribute as attr, styleChild, styleToggle, styleInteger, type StyleProperties } from "./style-properties.js";
+import { inheritStyleProperties, mergeStyleChildren, styleIds, readStyleProperties, styleAttribute as attr, styleChild, styleToggle, styleInteger, type StyleProperties } from "./style-properties.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { validateDocumentArchive, SemanticValidationError, type ValidationDiagnostic } from "./validation.js";
 import { DocumentXmlEditor, replaceActiveStyleXml, UnsupportedEditError, replaceNativeTabCollectionXml } from "./xml-write.js";
@@ -147,12 +147,7 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
       const stored = attr(styleChild(node, "name", children), "val");
       return stored !== undefined && styleDisplayName(stored, !["1", "true", "on"].includes(attr(node, "customStyle") ?? "0")) === opts.name;
     })) throw new InvalidValueError("A declared style name already exists.");
-    const ids = new Set<string>(), stack = [xml.root];
-    while (stack.length) {
-      const node = stack.pop()!; budget.charge("work", 1 + node.children.length);
-      if (node.namespace === xml.root.namespace && node.localName === "style") { const id = attr(node, "styleId"); if (id !== undefined) ids.add(id); }
-      stack.push(...node.children);
-    }
+    const ids = styleIds(xml.root, budget);
     let serial = 1; while (ids.has(`Style${serial}`)) { budget.charge("work", 1); serial++; }
     const w = xml.root.namespace;
     xml.insertChildren(xml.root, `<st:style xmlns:st="${w}" st:type="numbering" st:customStyle="1" st:styleId="Style${serial}"><st:name st:val="${xmlValue(opts.name)}"/></st:style>`);

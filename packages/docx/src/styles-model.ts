@@ -13,7 +13,7 @@ import { runElementOpen } from "./run-properties.js";
 import { renderContent, xmlValue } from "./create-content.js";
 import { Font, ParagraphFormat, formattingXmlOwners, type FormattingXmlOwner } from "./formatting-model.js";
 import { activeXmlChildren } from "./xml-active-children.js";
-import { styleAttribute as attr, styleChild as child, styleToggle, styleInteger, mergeStyleChildren } from "./style-properties.js";
+import { styleAttribute as attr, styleChild as child, styleToggle, styleInteger, mergeStyleChildren, styleIds } from "./style-properties.js";
 import { styleDisplayName, styleStoredName } from "./style-names.js";
 import { addDocumentStylesPart } from "./styles-part.js";
 import { editLatentStyles, readLatentStyles } from "./latent-styles.js";
@@ -193,7 +193,7 @@ export class Styles implements Iterable<BaseStyle> {
     if (typeof name !== "string" || !name.length || typeof builtin !== "boolean") throw new TypeError("Expected a style name and builtin flag.");
     const type = typeName(style_type);
     if ([...this].some(style => style.name === styleDisplayName(name, builtin))) throw new InvalidValueError("The style name already exists.");
-    const ids = new Set([...this].map(s => s.style_id));
+    const ids = styleIds(this.rawElement, archiveSettings(this.store.context).budget);
     let serial = 1; while (ids.has(`Style${serial}`)) serial++;
     const namespace = this.rawElement.namespace;
     return this.wrap(this.store.add(`<st:style xmlns:st="${namespace}" st:type="${type}" st:styleId="Style${serial}"${builtin ? "" : ' st:customStyle="1"'}><st:name st:val="${xmlValue(styleStoredName(name, builtin))}"/></st:style>`));

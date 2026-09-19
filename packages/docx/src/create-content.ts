@@ -4,6 +4,7 @@ import type { DocumentBudget } from "./budget.js";
 import type { DocxBlock, DocxContent, DocxLength, DocxRunInput, DocxThemeSettings } from "./operation-types.js";
 import type { XmlElement } from "./package-xml.js";
 import { activeXmlChildren } from "./xml-active-children.js";
+import { styleIds } from "./style-properties.js";
 import { styleDisplayName } from "./style-names.js";
 
 export function xmlValue(value: string): string {
@@ -54,7 +55,7 @@ export function pageGeometry(page: DocxContent["page"], existing?: XmlElement, w
 
 export function renderContent(content: DocxContent, w: string, budget: DocumentBudget, stylesRoot?: XmlElement, containerWidth = 9360) {
   const styles = new Map<string, { id: string; type: string; outline?: string | undefined; builtin?: boolean }>();
-  const ids = new Set<string>();
+  const ids = stylesRoot ? styleIds(stylesRoot, budget) : new Set<string>();
   const children = stylesRoot ? activeXmlChildren(stylesRoot, budget) : (node: XmlElement) => node.children;
   for (const style of stylesRoot ? children(stylesRoot) : []) {
     if (style.namespace !== w || style.localName !== "style") continue;
@@ -64,7 +65,6 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
     const stored = name && attribute(name, "val");
     const builtin = !["1", "true", "on"].includes(attribute(style, "customStyle") ?? "");
     const value = stored === undefined ? undefined : styleDisplayName(stored, builtin);
-    if (id) ids.add(id);
     if (value && id && type) {
       if (styles.has(value)) throw new InvalidValueError("Ambiguous style name in template.");
       const properties = children(style).find(child => child.namespace === w && child.localName === "pPr");

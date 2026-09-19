@@ -1,6 +1,7 @@
 import { styleFontFlags } from "./style-font-flags.js";
 export { styleFontFlags } from "./style-font-flags.js";
 import { Length } from "./formatting-values.js";
+import type { DocumentBudget } from "./budget.js";
 import type { XmlElement } from "./package-xml.js";
 import { xmlValue } from "./create-content.js";
 import { runElementOpen } from "./run-properties.js";
@@ -12,6 +13,21 @@ export function styleChild(node: XmlElement | undefined, name: string, children:
 export function styleAttribute(node: XmlElement | undefined, name: string): string | undefined {
   return node?.attributes.find(a => a.namespace === node.namespace && a.localName === name)?.value;
 }
+/** Reserve native storage identities without activating inert definitions. */
+export function styleIds(root: XmlElement, budget: DocumentBudget): Set<string> {
+  const ids = new Set<string>(), stack = [root];
+  while (stack.length) {
+    const node = stack.pop()!;
+    budget.charge("work", 1 + node.children.length);
+    if (node.namespace === root.namespace && node.localName === "style") {
+      const id = styleAttribute(node, "styleId");
+      if (id !== undefined) ids.add(id);
+    }
+    stack.push(...node.children);
+  }
+  return ids;
+}
+
 export function styleToggle(node: XmlElement | undefined): boolean | null {
   if (!node) return null;
   const value = styleAttribute(node, "val") ?? "1";

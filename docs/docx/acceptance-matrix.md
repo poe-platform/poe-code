@@ -988,3 +988,15 @@ and [alias/public getter evidence](text-style-family-acceptance-20260918/formatt
 These complete the named behaviors, not any entire family. Cancelled predecessor
 checkpoints are not passes; the new stable source and whole-DOCX checkpoints are
 running and require completed exact evidence before acceptance.
+
+### Complete enum value/protocol replay — 2026-09-19
+
+[Current exact enum evidence](text-style-family-acceptance-20260918/complete-enum-public-current-requirement-evidence.json)
+binds every one of the 262 literal named values in 19 families to 144 passing
+built native/SDK/actual CLI observations. The replay after getter/alias dependencies
+completed 37728 member records, 2736 observed family groups and 16368 separately
+counted real refusal assertions. The 71 member and 57 type protocol rows retain
+exact signatures and executed family evidence. Earlier observer failures and the
+first passing epoch remain preserved; the original limit guard remains effective.
+This completes the named enum behaviors, not the nine entire families or their
+still-running stable source/whole-DOCX checkpoints.

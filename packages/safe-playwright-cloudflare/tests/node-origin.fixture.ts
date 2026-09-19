@@ -13,8 +13,10 @@ export async function serveOrigin() {
   return {
     url: new URL(`http://127.0.0.1:${address.port}/`),
     async stop() {
-      server.closeAllConnections();
-      await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+      await new Promise<void>((resolve, reject) => {
+        server.close(error => error ? reject(error) : resolve());
+        server.closeAllConnections();
+      });
     },
   };
 }

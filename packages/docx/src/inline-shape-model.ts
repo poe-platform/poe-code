@@ -11,6 +11,7 @@ import { dialectForNamespace, documentDialects } from "./dialect.js";
 import { relativePartTarget } from "./part-uri.js";
 import { xmlValue } from "./create-content.js";
 import { inlineImageRun } from "./inline-image-xml.js";
+import { editInlineShapeExtentXml } from "./xml-write.js";
 import { isXmlContentType, parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { numericSequence } from "./numeric-index.js";
 import { ImagePartView, packageBindImage } from "./package-view.js";
@@ -143,10 +144,11 @@ export class InlineShape {
       const refs = [extent, ...(inner ? [inner] : [])].map((c) => this.store.ref(this.ref.part, c));
       for (const ref of refs)
         this.store.change(this.ref.part, (xml) =>
-          xml.setQualifiedAttribute(
+          xml[editInlineShapeExtentXml](
+            this.store.node(this.ref),
             this.store.node(ref),
-            { namespace: "", localName: axis },
-            String(value.emu)
+            axis,
+            value.emu
           )
         );
     });

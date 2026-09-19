@@ -73,6 +73,9 @@ export const replaceSplitParagraphXml = Symbol("replace-split-paragraph-xml");
 /** Copy supported paragraph properties to the suffix without duplicating inert data. */
 export const copiedSplitParagraphProperties = Symbol("copied-split-paragraph-properties");
 
+/** Internal native frame dimensions; retained alternate geometry stays protected. */
+export const editInlineShapeExtentXml = Symbol("edit-inline-shape-extent-xml");
+
 const cloneableRunProperties = new Set("rStyle rFonts b bCs i iCs caps smallCaps strike dstrike outline shadow emboss imprint noProof snapToGrid vanish webHidden color spacing w kern position sz szCs highlight u effect bdr shd fitText vertAlign rtl cs em lang eastAsianLayout specVanish oMath".split(" "));
 const cloneableParagraphProperties = new Set("pPr pStyle keepNext keepLines pageBreakBefore framePr widowControl numPr ilvl numId suppressLineNumbers pBdr top left bottom right between bar start end shd tabs tab suppressAutoHyphens kinsoku wordWrap overflowPunct topLinePunct autoSpaceDE autoSpaceDN bidi adjustRightInd snapToGrid spacing ind contextualSpacing mirrorIndents suppressOverlap jc textDirection textAlignment textboxTightWrap outlineLvl divId cnfStyle rPr sectPr headerReference footerReference footnotePr endnotePr type pgSz pgMar paperSrc pgBorders lnNumType pgNumType cols col formProt vAlign noEndnote titlePg textDirection bidi rtlGutter docGrid printerSettings".split(" "));
 
@@ -844,6 +847,50 @@ export class DocumentXmlEditor {
     const span = this.#spans.get(parent)!;
     const start = this.#spans.get(element)!.end;
     this.#acceptOwnedPatch(parent, this.#source.slice(span.start, start) + escapeValue(value ?? "", false) + this.#source.slice(end, span.end), value ? 1 : 0);
+  }
+
+  /** Native frame dimensions may edit an active branch with empty alternatives. */
+  [editInlineShapeExtentXml](inline: XmlElement, extent: XmlElement, axis: "cx" | "cy", value: number): void {
+    this.#assertOwnedElement(inline); this.#assertOwnedElement(extent);
+    if (!this.#dialect || this.#patches.size || !Number.isSafeInteger(value) || value < 0 || !["cx", "cy"].includes(axis)) unsupported();
+    const ns = documentDialects[this.#dialect], children = activeXmlChildren(this, this.#budget);
+    if (inline.namespace !== ns.wp || inline.localName !== "inline" || extent.children.length) unsupported();
+    const frames = children(inline).filter(node => node.namespace === ns.wp && node.localName === "extent");
+    if (frames.length !== 1) unsupported();
+    const transforms: XmlElement[] = [];
+    const visit = (node: XmlElement): void => {
+      this.#budget.charge("work", 1);
+      if (!this.#profile.understoodNamespaces.includes(node.namespace) || node.localName === "extLst") unsupported();
+      if (node.namespace === ns.a && node.localName === "xfrm") transforms.push(...children(node).filter(child => child.namespace === ns.a && child.localName === "ext"));
+      for (const child of children(node)) visit(child);
+    };
+    if (extent !== frames[0] && (extent.namespace !== ns.a || extent.localName !== "ext")) unsupported();
+    this.assertShapeEditAllowed(inline);
+    if (this.#canEdit(extent)) { this.setQualifiedAttribute(extent, { namespace: "", localName: axis }, String(value)); return; }
+    visit(inline);
+    if (transforms.length > 1 || extent !== frames[0] && transforms[0] !== extent) unsupported();
+    const ownerSpan = this.#spans.get(inline)!, extentSpan = this.#spans.get(extent)!;
+    let alternatives = 0;
+    for (const branch of this.compatibility.branches) {
+      this.#budget.charge("work", 1 + branch.alternateContent.children.length);
+      const span = this.#spans.get(branch.alternateContent)!;
+      if (!(span.start <= ownerSpan.start && ownerSpan.end <= span.end || ownerSpan.start <= span.start && span.end <= ownerSpan.end || span.start <= extentSpan.start && extentSpan.end <= span.end)) continue;
+      alternatives++;
+      if (!branch.selected || branch.alternateContent.children.some(node => node !== branch.selected && node.children.length)) unsupported();
+    }
+    if (!alternatives) unsupported();
+    for (const node of this.#elements) {
+      this.#budget.charge("work", 1);
+      const span = this.#spans.get(node)!;
+      if (span.start > ownerSpan.start || ownerSpan.end > span.end) continue;
+      if (node.namespace === mathNamespace(false) || node.namespace === mathNamespace(true) ||
+        node.namespace === ns.a && ["ext", "extLst"].includes(node.localName) ||
+        node.namespace === ns.w && ["pict", "object"].includes(node.localName)) unsupported();
+    }
+    const attributes = extent.attributes.filter(attribute => attribute.namespace === "" && attribute.localName === axis);
+    if (attributes.length !== 1) unsupported();
+    const attributeSpan = this.#spans.get(attributes[0]!)!;
+    this.#stageReplacement(extent, this.#source.slice(extentSpan.start, attributeSpan.start) + String(value) + this.#source.slice(attributeSpan.end, extentSpan.end));
   }
 
   /** Qualified attribute insertion/removal preserves unrelated lexical shells. */

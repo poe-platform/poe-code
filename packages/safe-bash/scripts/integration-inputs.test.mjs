@@ -2679,6 +2679,9 @@ test("Python native JSPI qualification inputs remain admitted without claiming e
     "tests/integration/python-jspi.test.mjs", "tests/integration/python-jspi.worker.mjs",
     "tests/integration/python-jspi-catalog.mjs", "tests/integration/python-jspi-catalog.test.mjs",
     "tests/integration/python-jspi-errors.mjs",
+    "tests/integration/python-object-io-781.test.mjs", "tests/integration/python-object-io-781.worker.mjs",
+    "tests/integration/python-object-io-781.runtime.mjs", "tests/integration/python-object-io-781.tooling.mjs",
+    "tests/integration/python-object-io-781.tooling.test.mjs",
     "tests/integration/python-managed.test.mjs"]) {
     assertAdmittedInputPath(path, boundaries);
     assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);

@@ -7,6 +7,7 @@ function check(condition, message) {
 export function createR2StagingFixture(bucket, { chunkBytes, delayed, spill }) {
   const memory = new MemoryFileSystem();
   const files = new Map();
+  const identityScope = {};
   const prefix = `${crypto.randomUUID()}/`;
   const events = { acquired: 0, released: 0, created: 0, closed: 0, publications: 0,
     stageWriteBytes: 0, stageReadBytes: 0, publishedBytes: 0, largestChunk: 0,
@@ -60,7 +61,10 @@ export function createR2StagingFixture(bucket, { chunkBytes, delayed, spill }) {
       const key = `${prefix}version-${revision}`;
       const stream = new globalThis.FixedLengthStream(options.size);
       const writer = stream.writable.getWriter();
-      const upload = bucket.put(key, stream.readable);
+      const upload = bucket.put(key, stream.readable).catch(async error => {
+        await writer.abort(error);
+        throw error;
+      });
       const pump = (async () => {
         let size = 0;
         try {
@@ -80,7 +84,8 @@ export function createR2StagingFixture(bucket, { chunkBytes, delayed, spill }) {
       options.signal?.throwIfAborted();
       if ((files.get(path)?.revision ?? null) !== expected) throw new FsError('EAGAIN');
       const file = { key, revision, stat: { type: 'file', size: options.size, mode: options.mode ?? 0o644,
-        ino: generation, revision: generation, dev: 1, mtimeMs: generation, atimeMs: generation, ctimeMs: generation } };
+        ino: generation, revision: generation, dev: 1, identityScope, nlink: 1, uid: 0, gid: 0,
+        mtimeMs: generation, atimeMs: generation, ctimeMs: generation } };
       files.set(path, file);
       events.publications++;
       events.publishedBytes += options.size;
@@ -91,6 +96,7 @@ export function createR2StagingFixture(bucket, { chunkBytes, delayed, spill }) {
     await pause(options);
     check(options.chunkBytes === chunkBytes, 'wrong page configuration');
     const stagePrefix = `${prefix}stage-${++events.created}/`;
+    const initialRevision = files.get(path)?.revision;
     let closing;
     return {
       async readPage(index, forwarded) {
@@ -110,7 +116,7 @@ export function createR2StagingFixture(bucket, { chunkBytes, delayed, spill }) {
         events.peakWrites = Math.max(events.peakWrites, events.activeWrites);
         try {
           await pause(forwarded);
-          check(files.get(path)?.stat.size === 0, 'premature namespace publication');
+          check(files.get(path)?.revision === initialRevision, 'premature namespace publication');
           await bucket.put(`${stagePrefix}${index}`, bytes);
           events.stageWriteBytes += bytes.length;
           forwarded?.signal?.throwIfAborted();
@@ -141,6 +147,19 @@ export function createR2StagingFixture(bucket, { chunkBytes, delayed, spill }) {
   };
   const fs = new Proxy(memory, { get(target, property) {
     if (property === 'open' || property === 'openReadFile') return undefined;
+    if (property === 'readFile') return async (path, options) => {
+      const file = files.get(path);
+      if (!file) return target.readFile(path, options);
+      check(file.stat.size <= chunkBytes * 4, 'whole-file fixture reads are limited to small conformance cases');
+      const version = lease(file);
+      try {
+        const bytes = new Uint8Array(file.stat.size);
+        for (let offset = 0; offset < bytes.length; offset += chunkBytes) {
+          bytes.set(await version.read(offset, Math.min(chunkBytes, bytes.length - offset), options), offset);
+        }
+        return bytes;
+      } finally { await version.close(); }
+    };
     if (property === 'stat' || property === 'lstat') return async (path, options) => {
       options?.signal?.throwIfAborted();
       return files.get(path)?.stat ?? target[property](path, options);

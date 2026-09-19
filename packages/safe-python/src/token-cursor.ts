@@ -159,6 +159,8 @@ export class TokenCursor {
   error(message = "invalid syntax", ErrorType: typeof PythonSyntaxError = PythonSyntaxError): PythonSyntaxError {
     const token = this.peek();
     this.meter?.checkpoint(0,160+2*message.length);
-    return new ErrorType(message, this.filename, token.start, token.end).withSource(this.sourceText, true,this.meter);
+    const error = new ErrorType(message, this.filename, token.start, token.end).withSource(this.sourceText, true,this.meter);
+    error.incompleteInput = token.kind === "end" || (token.kind === "dedent" && token.start.offset === this.sourceText.length);
+    return error;
   }
 }

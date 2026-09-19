@@ -1,4 +1,4 @@
-import {analyzeModule,analyzeExpression} from "../analysis.js";
+import {analyzeModule,analyzeExpression,analyzeInteractive} from "../analysis.js";
 import type {LexerOptions} from "../lexer.js";
 import type {ClassConstants} from "./class-compilation.js";
 import {snapshotCompilationFilename,type CodeCompilationOptions} from "./compilation-source.js";
@@ -15,7 +15,7 @@ export interface SourceCompilationOptions<Value=unknown> extends CodeCompilation
   /** Warnings belong to the compiled source, which can differ from its caller. */
   readonly onWarning?:(message:string,position:SourcePosition,filename:string)=>void;
   /** Module suites by default; eval preserves and returns one expression. */
-  readonly mode?:"exec"|"eval";
+  readonly mode?:"exec"|"eval"|"single";
   /** Additional byte-source codecs beyond UTF-8, Latin-1 and ASCII. */
   readonly decodeSource?:SourceByteDecoder;
   /** Native source codec faults resolve strict in the owning interpreter. */
@@ -43,7 +43,7 @@ export function compileSourceProgram<Value>(source:string|Uint8Array,options:Sou
     const enterRecursiveCall=options.enterRecursiveCall;
     if(typeof enterRecursiveCall!=="function")throw new TypeError("source compilation requires a recursion guard");
     const mode=options.mode??"exec";
-    if(mode!=="exec"&&mode!=="eval")throw new TypeError("unsupported source compilation mode");
+    if(mode!=="exec"&&mode!=="eval"&&mode!=="single")throw new TypeError("unsupported source compilation mode");
     const futureFlags=normalizeFutureFlags(options.futureFlags,meter);
     const optimize=compilationOptimization(options.optimize,meter);
     const filename=snapshotCompilationFilename(options.filename??"<string>",meter);
@@ -52,7 +52,7 @@ export function compileSourceProgram<Value>(source:string|Uint8Array,options:Sou
     const settings={filename:displayName,stripDocstring:options.stripDocstring||optimize===2,optimize,onWarning:warning===undefined?undefined:(message:string,position:SourcePosition)=>warning(message,position,displayName),onComment:options.onComment,enterRecursiveCall,meter,futureFlags};
     let compilation:CodeCompilationOptions<Value>=settings;
     if(typeof filename!=="string"){meter.checkpoint(1,56);compilation={filename,stripDocstring:settings.stripDocstring,optimize};}
-    const text=typeof source==="string"?source:decodeByteSource(source,settings.filename,meter,options.decodeSource,mode,options.sourceException,options.sourceDecodeRecovery);
+    const text=typeof source==="string"?source:decodeByteSource(source,settings.filename,meter,options.decodeSource,mode==="single"?"exec":mode,options.sourceException,options.sourceDecodeRecovery);
     if(typeof source==="string"&&source.startsWith("\ufeff")){
       meter.checkpoint(1+source.length);
       // The lexical cursor accepts file BOMs; compile(str) does not. NUL source
@@ -64,8 +64,8 @@ export function compileSourceProgram<Value>(source:string|Uint8Array,options:Sou
         throw new PythonSyntaxError("invalid non-printable character U+FEFF",settings.filename,{offset:0,line:1,column:0},{offset:0,line:1,column:0}).withSourceLine(source.slice(0,end),meter);
       }
     }
-    const analysis=mode==="eval"?analyzeExpression(text,settings):analyzeModule(text,settings);
-    return compileProgram(analysis,compilation,constants,meter);
+    const analysis=mode==="eval"?analyzeExpression(text,settings):mode==="single"?analyzeInteractive(text,settings):analyzeModule(text,settings);
+    return compileProgram(analysis,{...compilation,interactive:mode==="single"},constants,meter);
   } catch(error){fatal=error instanceof ExecutionLimitError;throw error;}
   finally {if(!fatal)meter.checkpoint();}
 }

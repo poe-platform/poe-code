@@ -9,6 +9,8 @@ export interface CompilationFilename<Value> {
 }
 
 export interface CodeCompilationOptions<Value=unknown> {
+  /** Root interactive single statement; nested scopes remain ordinary suites. */
+  readonly interactive?:boolean;
   readonly stripDocstring:boolean;
   readonly optimize?:0|1|2;
   /** Diagnostic identity only: no path resolution, normalization or file I/O. */

@@ -624,6 +624,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         statementHooks.position?.(site);
       },
       invocation: builtinCalls,
+      displayExpression: statementHooks.displayExpression?.bind(statementHooks),
       subscription: statementHooks.subscription ?? (specialMethods === undefined ? undefined : builtinCalls),
       get integerIndex() { return getIntegerIndex(); },
       deleteName: bindings.delete.bind(bindings),

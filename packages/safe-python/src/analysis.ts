@@ -71,6 +71,35 @@ export function analyzeModule(text: string, options: LexerOptions = {}): ModuleA
   } finally {options.meter?.checkpoint();}
 }
 
+/** Interactive single input: one compound statement or one logical simple
+ * statement line. A compound suite requires its real terminal newline; the
+ * normal module parser otherwise supplies an implicit EOF newline/dedent.
+ */
+export function analyzeInteractive(text: string, options: LexerOptions = {}): ModuleAnalysis {
+  const analysis = analyzeModule(text, options);
+  const body = analysis.module.body;
+  const compound = (statement: Module["body"][number]) => {
+    switch (statement.kind) {
+      case "if": case "while": case "for": case "try": case "with":
+      case "match": case "function": case "class": return true;
+      default: return false;
+    }
+  };
+  for (let index = 1; index < body.length; index++) {
+    options.meter?.checkpoint();
+    const prior = body[index - 1]!, current = body[index]!;
+    if (compound(prior) || compound(current) || current.start.line > prior.end.line) {
+      throw new PythonSyntaxError("multiple statements found while compiling a single statement", options.filename ?? "<string>", current.start, current.end).withSource(text, false, options.meter);
+    }
+  }
+  if (body[0] && compound(body[0]) && !text.endsWith("\n") && !text.endsWith("\r")) {
+    const error = new PythonSyntaxError("incomplete input", options.filename ?? "<string>", analysis.module.end);
+    error.incompleteInput = true;
+    throw error;
+  }
+  return analysis;
+}
+
 function analyzeTree(module:Module,options:LexerOptions):ModuleAnalysis {
     const futureFeatures = validateFutureImports(module, options.filename,options.meter);
     const functionKinds = validateControlFlow(module, options.filename,options.meter);

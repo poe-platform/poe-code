@@ -212,9 +212,14 @@ export class Interpolation {
       source.meter?.checkpoint(0,192);
       const error = new PythonSyntaxError("'{' was never closed", source.filename, mode.start, {...mode.start, column: -1});
       error.unclosedDelimiter = true;
+      error.incompleteInput = mode.owner.triple;
       throw error;
     }
-    if (mode) throw source.error(mode.mode === "literal" ? "unterminated interpolated string literal" : "expecting '}' in interpolated string", mode.start);
+    if (mode) {
+      const error = source.error(mode.mode === "literal" ? "unterminated interpolated string literal" : "expecting '}' in interpolated string", mode.start);
+      error.incompleteInput = mode.mode === "literal" ? mode.triple : mode.owner.triple;
+      throw error;
+    }
     } finally {source.meter?.checkpoint();}
   }
 }

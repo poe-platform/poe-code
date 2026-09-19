@@ -23,6 +23,8 @@ export type UnhandledRuntimeStatement = Exclude<LeafStatement, { kind: "expressi
 export interface RuntimeStatementBindings extends RuntimeReferenceWrites,
   Pick<StatementContext<RuntimeValue>, "position" | "assertions" | "managers" | "exceptions"> {
   readonly invocation?: BuiltinInvocationContext;
+  /** Interactive root expression display; absent in ordinary exec scopes. */
+  displayExpression?(value: RuntimeValue, invocation: BuiltinInvocationContext | undefined): void;
   readonly asyncIterate?:ResumableStatementContext<RuntimeValue>["asyncIterate"];
   readonly asyncManagers?:ResumableStatementContext<RuntimeValue>["asyncManagers"];
   /** Invoke the left type's in-place slot, returning NotImplemented when absent
@@ -108,7 +110,11 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
     execute(statement) {
       meter.checkpoint();
       switch (statement.kind) {
-        case "expression-statement": assignment.evaluate(statement.expression); return;
+        case "expression-statement": {
+          const value = assignment.evaluate(statement.expression);
+          bindings.displayExpression?.(value, bindings.invocation);
+          return;
+        }
         case "assignment": case "annotated-assignment": executeAssignment(statement, assignment, meter); return;
         case "augmented-assignment": executeAugmentedAssignment(statement, augmented, meter); return;
         case "delete": deleteTargets(statement.targets, deletion, meter); return;
@@ -128,7 +134,11 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
       function* executeLeaf(statement: LeafStatement): Generator<RuntimeValue, void, RuntimeValue> {
         meter.checkpoint(0);
         switch (statement.kind) {
-          case "expression-statement": yield* suspended.evaluate(statement.expression); return;
+          case "expression-statement": {
+            const value = yield* suspended.evaluate(statement.expression);
+            bindings.displayExpression?.(value, bindings.invocation);
+            return;
+          }
           case "assignment": case "annotated-assignment": yield* createAssignmentContinuation(statement, suspended, meter); return;
           case "augmented-assignment": yield* createAugmentedAssignmentContinuation(statement, inPlace, meter); return;
           case "delete": yield* createDeletionContinuation(statement.targets, remove, meter); return;

@@ -20,4 +20,4 @@ export type { Module, Statement, DeclaredName, ImportItem } from "./statement-as
 export type { InterpolatedPart } from "./ast.js";
 export type { Expression, SourceSpan, CallArgument, SubscriptItem, CollectionItem, DictionaryEntry, Parameter, ComprehensionClause } from "./ast.js";
 export { PythonSession } from "./session.js";
-export type { PythonSessionOptions, PythonRunOptions, PythonWarning, PythonUnraisable, PythonPrimitive, PythonValue, PythonNamespace, PythonDiagnostic, PythonFailure, PythonExecResult, PythonEvalResult } from "./session.js";
+export type { PythonSessionOptions, PythonRunOptions, PythonWarning, PythonUnraisable, PythonPrimitive, PythonValue, PythonNamespace, PythonDiagnostic, PythonFailure, PythonExecResult, PythonEvalResult, PythonInteractiveResult } from "./session.js";

@@ -102,9 +102,17 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
     if (character === "\\") {
       const start = source.position;
       source.advance();
-      if (source.peek() !== "\n") throw source.error("unexpected character after line continuation character", start);
+      if (source.peek() !== "\n") {
+        const error = source.error("unexpected character after line continuation character", start);
+        error.incompleteInput = source.done;
+        throw error;
+      }
       source.advance();
-      if (source.done) throw source.error("unexpected EOF after line continuation character", start);
+      if (source.done) {
+        const error = source.error("unexpected EOF after line continuation character", start);
+        error.incompleteInput = true;
+        throw error;
+      }
       continue;
     }
     // A backslash may join this prefix to a blank/comment-only physical line.
@@ -183,6 +191,7 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
       unclosed.start, {...unclosed.start, column: -1});
     error.tokenizerPriority = "earlier-line";
     error.unclosedDelimiter = true;
+    error.incompleteInput = true;
     throw error;
   }
   const end = source.position;

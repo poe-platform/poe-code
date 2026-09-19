@@ -15,6 +15,7 @@ import {compileGeneratorExpression,type CompiledGeneratorExpression} from "./gen
 import {compilationOptimization} from "./compilation-optimization.js";
 
 export interface CompiledModule<Value> {
+  readonly interactive?:boolean;
   /** Eval-mode root; never interpreted as a docstring or statement suite. */
   readonly expression?:Expression;
   readonly flags?:number;
@@ -49,7 +50,7 @@ export function compileProgram<Value>(
   try {
   meter.checkpoint(1, 448);
   const optimize=compilationOptimization(options.optimize,meter);
-  meter.checkpoint(0,64);options={filename:options.filename,stripDocstring:options.stripDocstring||optimize===2,optimize};
+  meter.checkpoint(0,64);options={filename:options.filename,stripDocstring:options.stripDocstring||optimize===2,optimize,interactive:options.interactive};
   if (analysis.scopes.scope.kind !== "module" || analysis.scopes.scope.node !== analysis.module)
     throw new Error("program compilation requires a matching analyzed module scope");
   const source=createCompilationSource(options.filename??"<string>",constants,meter);
@@ -61,11 +62,11 @@ export function compileProgram<Value>(
     if(analysis.module.body.length!==1||statement.kind!=="expression-statement"||statement.expression!==expression)throw new Error("expression compilation requires a matching analyzed expression");
     meter.checkpoint(1,80);
     module={flags:scopeFlags.get(analysis.scopes.scope),source,scope:analysis.scopes,expression,docstring:undefined,statements:[]};
-  }else module = { flags:scopeFlags.get(analysis.scopes.scope),source,scope: analysis.scopes, ...compileSuite(analysis.module.body, options.stripDocstring, constants, meter,optimize>0) };
+  }else module = { flags:scopeFlags.get(analysis.scopes.scope),source,scope: analysis.scopes, ...(options.interactive?{interactive:true}:{}), ...compileSuite(analysis.module.body, options.stripDocstring, constants, meter,optimize>0,options.interactive) };
   let literals:LiteralPool<Value>|undefined;
   if(constants.literal){
     meter.checkpoint(0,128);
-    literals=compileLiteralPool(analysis.module.body,constants.literal.bind(constants),meter,constants.tuple.bind(constants),expression===undefined,optimize===0);
+    literals=compileLiteralPool(analysis.module.body,constants.literal.bind(constants),meter,constants.tuple.bind(constants),expression===undefined&&!options.interactive,optimize===0);
   }
   const functions = new Map<FunctionNode, CompiledFunction<Value>>();
   const comprehensions = new Map<ComprehensionNode,ResolvedScope>();

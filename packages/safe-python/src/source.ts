@@ -17,6 +17,9 @@ export class PythonSyntaxError extends SyntaxError {
    * the parser's expression diagnostic. This is interpreter metadata. */
   tokenizerPriority?: "always" | "earlier-line" | "parser";
   unclosedDelimiter = false;
+  /** Parser/tokenizer metadata for an interactive collector; ordinary compile
+   * still reports the same syntax error. Never infer this from message text. */
+  incompleteInput = false;
   readonly filename: string;
   readonly position: SourcePosition;
   readonly endPosition: SourcePosition | undefined;

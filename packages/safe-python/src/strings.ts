@@ -67,7 +67,9 @@ export function readString(
     // In particular, malformed named escapes cannot consume a closing quote.
     if (character === "\\" && !source.done) source.advance();
   }
-  throw source.error(triple ? "unterminated triple-quoted string literal" : "unterminated string literal", start);
+  const error = source.error(triple ? "unterminated triple-quoted string literal" : "unterminated string literal", start);
+  error.incompleteInput = triple;
+  throw error;
   } finally {source.meter?.checkpoint();}
 }
 

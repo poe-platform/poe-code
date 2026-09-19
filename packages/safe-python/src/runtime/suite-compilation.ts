@@ -11,12 +11,12 @@ import {eliminateAssertions} from "./assertion-elimination.js";
  */
 export function compileSuite<Value>(
   body: readonly Statement[], stripDocstring: boolean,
-  constants: Pick<CodeConstants<Value>, "string">, meter: ExecutionMeter, removeAssertions=false
+  constants: Pick<CodeConstants<Value>, "string">, meter: ExecutionMeter, removeAssertions=false, preserveStringExpression=false
 ): { readonly docstring: { readonly value: Value } | undefined; readonly statements: readonly Statement[] } {
   try {
   meter.checkpoint(1, 80);
   const first = body[0];
-  const hasDocstring = first?.kind === "expression-statement" && first.expression.kind === "literal" && first.expression.literalKind === "string";
+  const hasDocstring = !preserveStringExpression && first?.kind === "expression-statement" && first.expression.kind === "literal" && first.expression.literalKind === "string";
   let docstring: { readonly value: Value } | undefined;
   if (hasDocstring && !stripDocstring) {
     const text = cleanDocstring(first.expression.value as Uint32Array, meter);

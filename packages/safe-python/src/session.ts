@@ -59,6 +59,7 @@ export type PythonFailure =
   | { readonly status: "diagnostic"; readonly diagnostic: PythonDiagnostic }
   | { readonly status: "terminated"; readonly reason: "steps" | "allocation" | "cancelled" | "capability" | "internal"; readonly message: string };
 export type PythonExecResult = { readonly status: "ok" } | PythonFailure;
+export type PythonInteractiveResult = { readonly status: "incomplete" } | PythonExecResult;
 export type PythonEvalResult = { readonly status: "ok"; readonly value: PythonValue } | PythonFailure;
 
 class MissingCapability extends Error {}
@@ -85,8 +86,11 @@ export class PythonSession {
   readonly #calls: CallStack<object>;
   readonly #namespaces = new WeakMap<PythonNamespace, RuntimeDictionaryNamespace>();
   readonly #options: PythonSessionOptions;
+  readonly #modules: Map<string, RuntimeValue>;
+  readonly #moduleType: ReturnType<RuntimeTypeRegistry["moduleType"]>;
   #closed = false;
   #running = false;
+  #bridgeDepth = 0;
   #filename = "<string>";
   #failure?: Extract<PythonFailure, { status: "terminated" }>;
   readonly globals: PythonNamespace;
@@ -112,7 +116,8 @@ export class PythonSession {
     });
     const codecs=new RuntimeCodecRegistry(values,meter,()=>{codecLibrary.load('codecs');});
     const codecModule=createRuntimeCodecModule(codecs,keys,registry.moduleType(),registry.encodingMapType.bind(registry));
-    const modules=new Map<string,RuntimeValue>([["_codecs",codecModule]]);
+    this.#moduleType = registry.moduleType();
+    const modules=this.#modules=new Map<string,RuntimeValue>([["_codecs",codecModule]]);
     builtins.set("__import__",createRuntimeModuleImport(modules,values,meter,name=>codecLibrary.load(name)));
     const types = { property: registry.propertyType(), super: registry.superType(), object: registry.object, type: registry.type, bool: registry.booleanType(), int: registry.integerType(), float: registry.floatType(), complex: registry.complexType(), str: registry.stringType(), bytes: registry.bytesType(), list: registry.listType(), tuple: registry.tupleType(), dict: registry.dictionaryType(), set: registry.setType("set"), frozenset: registry.setType("frozenset"), range: registry.rangeType(), slice: registry.sliceType(), staticmethod: registry.methodDecoratorType("staticmethod"), classmethod: registry.methodDecoratorType("classmethod"), BaseException: registry.baseExceptionType() };
     for (const [name, type] of Object.entries(types)) builtins.set(name, type);
@@ -175,7 +180,18 @@ export class PythonSession {
           const position = frame.executionPosition?.start;
           this.#warn({ category, message, filename, position: position === undefined ? undefined : Object.freeze({ ...position }) });
         } }),
-        statements: () => ({ setAttribute: unavailable, deleteAttribute: unavailable, executeUnhandled: unavailable }),
+        statements: frame => ({ setAttribute: unavailable, deleteAttribute: unavailable, executeUnhandled: unavailable,
+          displayExpression: frame instanceof ModuleFrame && frame.code && "interactive" in frame.code && frame.code.interactive ? (value, invocation) => {
+            if (value.kind === "none") return;
+            if (!this.#options.output) throw new MissingCapability("output capability is absent");
+            if (!invocation) throw new MissingCapability("interactive representation capability is absent");
+            builtinNamespace.store("_", values.none);
+            const rendered = invocation.call(builtins.get("repr")!, [value], dictionary());
+            this.#service(() => this.#options.output!.write(text(rendered)));
+            this.#service(() => this.#options.output!.write("\n"));
+            builtinNamespace.store("_", value);
+          } : undefined
+        }),
         callable: () => false,
         name: value => `${value.kind}()`,
         keywordName: text,
@@ -223,7 +239,7 @@ export class PythonSession {
   }
 
   value(value: PythonPrimitive): PythonValue {
-    this.#assertIdle();
+    this.#assertBridgeAccessible();
     switch (typeof value) {
       case "string": return this.#publish(this.#values.string(value));
       case "bigint": return this.#publish(this.#values.integer(value));
@@ -233,8 +249,90 @@ export class PythonSession {
     }
     throw new TypeError("only primitive values can cross the session boundary");
   }
+  /** Copy host sequences into guest storage; elements must belong to this session. */
+  list(items: readonly PythonValue[]): PythonValue {
+    this.#assertBridgeAccessible();
+    this.#meter.checkpoint(1, items.length * 8);
+    return this.#publish(this.#values.list(items.map(item => this.#owned(item))));
+  }
+  tuple(items: readonly PythonValue[]): PythonValue {
+    this.#assertBridgeAccessible();
+    return this.#publish(this.#values.tuple(items.length, index => this.#owned(items[index]!)));
+  }
+  dictionary(entries: readonly (readonly [PythonValue, PythonValue])[]): PythonValue {
+    this.#assertBridgeAccessible();
+    const items = new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.#context.keys, this.#meter);
+    for (const [key, value] of entries) {
+      this.#meter.checkpoint();
+      items.set(this.#owned(key), this.#owned(value));
+    }
+    return this.#publish(this.#values.dictionary(items));
+  }
+  /** Explicit synchronous host service. Only owned values cross the boundary;
+   * callbacks may construct values but cannot run source or access namespaces.
+   */
+  callable(callback: (args: readonly PythonValue[]) => PythonValue): PythonValue {
+    this.#assertIdle();
+    return this.#publish(this.#values.builtinFunction({ name: "injected", invoke: (args, keywords) => {
+      if (keywords.items.size) throw new PythonRuntimeError("TypeError", "injected() takes no keyword arguments");
+      this.#meter.checkpoint(1, args.length * 8);
+      this.#bridgeDepth++;
+      try {
+        const result = this.#service(() => callback(Object.freeze(args.map(value => this.#publish(value)))));
+        return this.#owned(result);
+      } finally { this.#bridgeDepth--; }
+    } }));
+  }
+  /** Publish an explicit guest namespace as an importable session-local module.
+   * The namespace remains live; no host module discovery is granted.
+   */
+  registerModule(name: string, namespace: PythonNamespace): PythonValue {
+    this.#assertIdle();
+    if (!name || name.split(".").some(part => !part)) throw new TypeError("module name must have nonempty components");
+    const owned = this.#namespaces.get(namespace);
+    if (!owned) throw new TypeError("namespace belongs to a different session");
+    if (this.#modules.has(name)) throw new TypeError(`module '${name}' is already registered`);
+    this.#meter.checkpoint(1, 48 + name.length * 2);
+    if (!owned.lookup("__name__")) owned.store("__name__", this.#values.string(name));
+    const object = owned.object;
+    if (object.kind !== "dict") throw new TypeError("expected namespace dictionary");
+    const module = this.#values.instance(this.#moduleType, object);
+    this.#modules.set(name, module);
+    return this.#publish(module);
+  }
+  /** Register a second import name for an already registered owned module.
+   * Aliases retain identity and never discover or expose host modules.
+   */
+  registerModuleAlias(name: string, module: PythonValue): PythonValue {
+    this.#assertIdle();
+    if (!name || name.split(".").some(part => !part)) throw new TypeError("module name must have nonempty components");
+    const owned = this.#owned(module);
+    let registered = false;
+    for (const candidate of this.#modules.values()) {
+      this.#meter.checkpoint();
+      if (candidate === owned) { registered = true; break; }
+    }
+    if (!registered) throw new TypeError("expected registered module");
+    if (this.#modules.has(name)) throw new TypeError(`module '${name}' is already registered`);
+    this.#meter.checkpoint(1, 48 + name.length * 2);
+    this.#modules.set(name, owned);
+    return module;
+  }
+  #owned(value: PythonValue): RuntimeValue {
+    const owned = this.#handles.get(value);
+    if (!owned) throw new TypeError("value belongs to a different session");
+    return owned;
+  }
   exec(source: string | Uint8Array, options: PythonRunOptions = {}): PythonExecResult {
     const result = this.#run(source, "exec", options);
+    return result.status === "ok" ? Object.freeze({ status: "ok" }) : result;
+  }
+  /** Compile and execute one interactive Python input. Incomplete input is not
+   * executed; the caller owns collection and prompts. Expressions use the
+   * canonical repr builtin and explicit output service, retaining builtins._.
+   */
+  interactive(source: string, options: PythonRunOptions = {}): PythonInteractiveResult {
+    const result = this.#run(source, "single", options);
     return result.status === "ok" ? Object.freeze({ status: "ok" }) : result;
   }
   eval(source: string | Uint8Array, options: PythonRunOptions = {}): PythonEvalResult {
@@ -246,6 +344,10 @@ export class PythonSession {
   #assertIdle(): void {
     if (this.#closed) throw new Error("session is closed");
     if (this.#running) throw new Error("session is running");
+  }
+  #assertBridgeAccessible(): void {
+    if (this.#closed) throw new Error("session is closed");
+    if (this.#running && this.#bridgeDepth === 0) throw new Error("session is running");
   }
   #service<T>(invoke: () => T): T {
     try {
@@ -275,12 +377,14 @@ export class PythonSession {
         default: throw new TypeError("guest value is not a primitive");
       }
     } });
-    const check = () => this.#assertIdle();
+    const check = () => this.#assertBridgeAccessible();
     const charge = (bytes: number) => this.#meter.checkpoint(1, bytes);
     this.#handles.set(handle, value); this.#published.set(value, handle);
     return handle;
   }
-  #run(source: string | Uint8Array, mode: "exec" | "eval", options: PythonRunOptions): PythonEvalResult {
+  #run(source: string | Uint8Array, mode: "exec" | "eval", options: PythonRunOptions): PythonEvalResult;
+  #run(source: string, mode: "single", options: PythonRunOptions): PythonEvalResult | { readonly status: "incomplete" };
+  #run(source: string | Uint8Array, mode: "exec" | "eval" | "single", options: PythonRunOptions): PythonEvalResult | { readonly status: "incomplete" } {
     this.#assertIdle();
     if (this.#failure) return this.#failure;
     const globals = options.globals === undefined ? this.#namespace : this.#namespaces.get(options.globals);
@@ -315,7 +419,10 @@ export class PythonSession {
       return Object.freeze({ status: "ok", value: this.#publish(value) });
     } catch (error) {
       let failure = error;
-      if (error instanceof PythonSyntaxError) return Object.freeze({ status: "diagnostic", diagnostic: Object.freeze({ name: error.name, message: error.message, filename: error.filename, position: error.position, endPosition: error.endPosition, sourceLine: error.sourceLine }) });
+      if (error instanceof PythonSyntaxError) {
+        if (mode === "single" && error.incompleteInput) return Object.freeze({ status: "incomplete" });
+        return Object.freeze({ status: "diagnostic", diagnostic: Object.freeze({ name: error.name, message: error.message, filename: error.filename, position: error.position, endPosition: error.endPosition, sourceLine: error.sourceLine }) });
+      }
       try {
         const prepared = error instanceof PythonRuntimeError ? this.#context.exceptions!.prepare(error) : error;
         if (prepared instanceof RuntimeRaisedException) return Object.freeze({ status: "exception", exception: this.#publish(prepared.value), filename: this.#filename });

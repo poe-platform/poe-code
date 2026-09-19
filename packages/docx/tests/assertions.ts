@@ -156,7 +156,8 @@ function nodes(root: XmlNode, name?: string): XmlNode[] {
   return [
     root,
     ...root.children.flatMap((child) => (typeof child === "string" ? [] : nodes(child)))
-  ].filter((node) => name === undefined || node.name === name);
+  ].filter((node) => node.name !== "#comment" && node.name !== "#pi" &&
+    (name === undefined || node.name === name));
 }
 function partXml(parts: Parts, name: string): XmlNode {
   const bytes = parts.get(name);

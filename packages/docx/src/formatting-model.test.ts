@@ -6,14 +6,16 @@ function owner(content: string) {
   const volume = Volume.fromJSON({ "/owner.xml": content });
   return { getXml: () => volume.readFileSync("/owner.xml", "utf8") as string, setXml: (xml: string) => { volume.writeFileSync("/owner.xml", xml); } };
 }
-it("exposes live neutral font flags and removes only its own baseline mode", () => {
+it("exposes live neutral font flags and distinguishes explicit baseline from inherited absence", () => {
   const backing = owner(`<w:r xmlns:w="${w}"><w:t>Bay</w:t></w:r>`);
   const font = new Font(backing);
   expect(font.all_caps).toBeNull(); font.all_caps = true; expect(font.all_caps).toBe(true);
   font.cs_bold = false; expect(font.cs_bold).toBe(false);
   font.all_caps = null; expect(font.all_caps).toBeNull();
-  font.subscript = true; font.superscript = false; expect(font.subscript).toBe(true);
-  font.subscript = false; expect(font.subscript).toBeNull();
+  font.subscript = true; font.superscript = false; expect(font.subscript).toBe(false); expect(font.superscript).toBe(false);
+  const baseline = font.element.children.find(node => node.localName === "rPr")?.children.find(node => node.localName === "vertAlign");
+  expect([...baseline!.attributes].find(([name]) => name.namespaceURI === w && name.localName === "val")?.[1]).toBe("baseline");
+  font.subscript = false; expect(font.subscript).toBe(false); expect(font.superscript).toBe(false);
   font.superscript = true; font.subscript = null; expect(font.superscript).toBeNull();
   expect(backing.getXml()).toContain("Bay");
 });

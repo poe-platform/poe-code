@@ -21,7 +21,7 @@ it.each(["subscript", "superscript"] as const)("preserves every raw and assigned
       const backing = owner("r", old === null ? null : old === "" ? "" : `<w:vertAlign w:val="${old}"/>`), font = new Font(backing);
       expect(font[mode]).toBe(old === null || old === "" ? null : old === mode);
       font[mode] = value;
-      const expected = value === true ? mode : value === null || old === mode ? null : old === "" ? null : old;
+      const expected = value === true ? mode : value === false ? "baseline" : null;
       expect(font.subscript).toBe(expected === null ? null : expected === "subscript");
       expect(font.superscript).toBe(expected === null ? null : expected === "superscript");
       expect(font.element.children.some(child => child.localName === "rPr")).toBe(true);

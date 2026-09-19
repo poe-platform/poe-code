@@ -2443,6 +2443,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/plugins/playwright-session-restore.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-session-restore-review.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-profile-admission.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-profile-configuration.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-snapshot.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-snapshot-transport.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-frame-snapshot.test.ts"));

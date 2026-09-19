@@ -121,7 +121,9 @@ export async function restoreBrowserProfile(options: {
   signal.throwIfAborted();
   const profile = parseBrowserProfile(encodeBrowserProfile(options.profile, limits), limits);
   const lease = await adapter.acquire({
-    acquisitionId: crypto.randomUUID(), session: name, browser: 'chromium', headless: true,
+    acquisitionId: crypto.randomUUID(), session: name,
+    browser: profile.configuration?.browserName ?? 'chromium',
+    headless: profile.configuration?.headless ?? true,
     contextOptions: { ...profile.contextOptions, storageState: profile.state }, signal,
   });
   try {

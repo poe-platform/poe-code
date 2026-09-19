@@ -215,7 +215,7 @@ test('restore accepts existing tabs within the combined limit and defers provide
   assert.deepEqual(restored.configuration, value.configuration);
   const acquired = item.acquire.mock.calls[0]!.arguments[0];
   assert.equal(acquired.browser, 'chromium');
-  assert.equal(acquired.headless, true);
+  assert.equal(acquired.headless, false);
   assert.equal(acquired.session, 'audit');
   assert.equal(typeof acquired.acquisitionId, 'string');
   assert.deepEqual(acquired.contextOptions, { locale: 'pl', storageState: state });

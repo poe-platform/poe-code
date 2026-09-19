@@ -125,7 +125,7 @@ export class Paragraph {
   get alignment() {
     return this.paragraph_format.alignment;
   }
-  set alignment(value) {
+  set alignment(value: DocxEnumValue<"WD_PARAGRAPH_ALIGNMENT"> | null) {
     this.paragraph_format.alignment = value;
   }
   get style(): ParagraphStyle | null {
@@ -281,7 +281,7 @@ export class Run {
   get underline() {
     return this.font.underline;
   }
-  set underline(value) {
+  set underline(value: boolean | DocxEnumValue<"WD_UNDERLINE"> | null) {
     this.font.underline = value;
   }
   clear(): this {

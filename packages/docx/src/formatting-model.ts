@@ -1,6 +1,6 @@
 import { bindXmlElementView, type XmlElementView, type XmlViewBinding } from "./xml-element-view.js";
 import { DocumentBudget } from "./budget.js";
-import { plainLength, Pt, Twips, Length } from "./formatting-values.js";
+import { plainLength, Pt, Twips, Length, enumFamilies, type EnumMember } from "./formatting-values.js";
 import { BoundsError, StaleHandleError } from "./model-errors.js";
 import { numericSequence, snapshotSequence } from "./numeric-index.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
@@ -159,17 +159,17 @@ export class Font {
   set name(value: string | null) { if (value !== null && typeof value !== "string") throw new TypeError("Expected a font name or null."); update(this.owner, "r", { font: value }); }
   get size(): Length | null { const value = attr(property(this.owner, "rPr", "sz")); return value === undefined ? null : Pt(Number(value) / 2); }
   set size(value: DocxLength | null) { value = value === null ? null : plainLength(value); if (value !== null && !validateDocxValue("Length", value)) throw new TypeError("Expected a font length or null."); update(this.owner, "r", { size: value === null ? null : { value: paragraphUnits(value, 1), unit: "emu" } }); }
-  get underline(): boolean | DocxEnumValue<"WD_UNDERLINE"> | null {
+  get underline(): boolean | EnumMember<"WD_UNDERLINE"> | null {
     const value = attr(property(this.owner, "rPr", "u")); if (value === undefined) return null;
     if (value === "single") return true; if (value === "none") return false;
     const name = Object.keys(underline).find(key => underline[key as keyof typeof underline] === value) as keyof typeof underline | undefined;
-    if (!name) throw new TypeError("Invalid underline value."); return { enum: "WD_UNDERLINE", name };
+    if (!name) throw new TypeError("Invalid underline value."); return enumFamilies.WD_UNDERLINE[name];
   }
   set underline(value: boolean | DocxEnumValue<"WD_UNDERLINE"> | null) { if (!validateDocxValue("boolean | WD_UNDERLINE | null", value) || value !== null && typeof value === "object" && !Object.hasOwn(underline, value.name)) throw new TypeError("Invalid underline value."); update(this.owner, "r", { underline: value }); }
-  get highlight_color(): DocxEnumValue<"WD_COLOR_INDEX"> | null {
+  get highlight_color(): EnumMember<"WD_COLOR_INDEX"> | null {
     const value = attr(property(this.owner, "rPr", "highlight")); if (value === undefined) return null;
     const name = Object.keys(highlights).find(key => highlights[key as keyof typeof highlights] === value) as keyof typeof highlights | undefined;
-    if (!name) throw new TypeError("Invalid highlight color."); return { enum: "WD_COLOR_INDEX", name };
+    if (!name) throw new TypeError("Invalid highlight color."); return enumFamilies.WD_COLOR_INDEX[name];
   }
   set highlight_color(value: DocxEnumValue<"WD_COLOR_INDEX"> | null) { if (!validateDocxValue("WD_COLOR_INDEX | null", value) || value !== null && !Object.hasOwn(highlights, value.name)) throw new TypeError("Invalid highlight color."); update(this.owner, "r", { highlight: value }); }
   get superscript(): boolean | null { const value = attr(property(this.owner, "rPr", "vertAlign")); return value === undefined ? null : value === "superscript"; }
@@ -200,11 +200,11 @@ export class ParagraphFormat {
   get part(): unknown { return this.owner.part ?? null; }
   equals(other: unknown): boolean { return other instanceof ParagraphFormat && (this.owner.identity ?? this.owner) === (other.owner.identity ?? other.owner); }
   get element(): XmlElementView { return ownerView(this.owner); }
-  get alignment(): DocxEnumValue<"WD_PARAGRAPH_ALIGNMENT"> | null {
+  get alignment(): EnumMember<"WD_PARAGRAPH_ALIGNMENT"> | null {
     const value = attr(property(this.owner, "pPr", "jc")); if (value === undefined) return null;
     const normalized = value === "start" ? "left" : value === "end" ? "right" : value;
     const name = Object.keys(paragraphAlignments).find(key => paragraphAlignments[key as keyof typeof paragraphAlignments] === normalized) as keyof typeof paragraphAlignments | undefined;
-    if (!name) throw new TypeError("Invalid paragraph alignment."); return { enum: "WD_PARAGRAPH_ALIGNMENT", name };
+    if (!name) throw new TypeError("Invalid paragraph alignment."); return enumFamilies.WD_PARAGRAPH_ALIGNMENT[name];
   }
   set alignment(value: DocxEnumValue<"WD_PARAGRAPH_ALIGNMENT"> | null) { if (!validateDocxValue("WD_PARAGRAPH_ALIGNMENT | null", value)) throw new TypeError("Invalid paragraph alignment."); update(this.owner, "p", { alignment: value }); }
   get right_indent(): Length | null { const node = property(this.owner, "pPr", "ind"), value = attr(node, "end") ?? attr(node, "right"); return value === undefined ? null : storedLength(value); }
@@ -218,10 +218,10 @@ export class ParagraphFormat {
   private length(option: "rightIndent" | "firstLineIndent" | "spaceBefore" | "spaceAfter", value: DocxLength | null): void { value = value === null ? null : plainLength(value); if (!validateDocxValue("Length | null", value)) throw new TypeError("Expected a length or null."); update(this.owner, "p", { [option]: value }); }
   get line_spacing(): Length | number | null { const node = property(this.owner, "pPr", "spacing"), value = attr(node, "line"); return value === undefined ? null : ["exact", "atLeast"].includes(attr(node, "lineRule") ?? "auto") ? storedLength(value) : Number(value) / 240; }
   set line_spacing(value: DocxLength | number | null) { value = value !== null && typeof value === "object" ? plainLength(value) : value; if (!validateDocxValue("Length | finite number | null", value)) throw new TypeError("Invalid line spacing."); update(this.owner, "p", { lineSpacing: value, ...(value !== null && typeof value === "object" && this.line_spacing_rule?.name === "AT_LEAST" ? { lineSpacingRule: { enum: "WD_LINE_SPACING", name: "AT_LEAST" } as const } : {}) }); }
-  get line_spacing_rule(): DocxEnumValue<"WD_LINE_SPACING"> | null {
+  get line_spacing_rule(): EnumMember<"WD_LINE_SPACING"> | null {
     const node = property(this.owner, "pPr", "spacing"), rule = attr(node, "lineRule"), line = attr(node, "line"); if (line === undefined && rule === undefined) return null;
     const name = rule === "exact" ? "EXACTLY" : rule === "atLeast" ? "AT_LEAST" : line === "240" ? "SINGLE" : line === "360" ? "ONE_POINT_FIVE" : line === "480" ? "DOUBLE" : "MULTIPLE";
-    return { enum: "WD_LINE_SPACING", name };
+    return enumFamilies.WD_LINE_SPACING[name];
   }
   set line_spacing_rule(value: DocxEnumValue<"WD_LINE_SPACING"> | null) { if (!validateDocxValue("WD_LINE_SPACING | null", value)) throw new TypeError("Invalid line spacing rule."); update(this.owner, "p", { lineSpacingRule: value }); }
   get left_indent(): Length | null { const ind = property(this.owner, "pPr", "ind"); const value = attr(ind, "start") ?? attr(ind, "left"); return value === undefined ? null : storedLength(value); }
@@ -368,9 +368,9 @@ export class TabStop {
   equals(other: unknown): boolean { this.collection.value(this.id); if (!(other instanceof TabStop)) return false; other.collection.value(other.id); return this.collection.equals(other.collection) && this.id === other.id; }
   get position(): Length { return Twips(paragraphUnits(this.collection.value(this.id).position)); }
   set position(value: DocxLength) { this.collection.change(this.id, { position: value }); }
-  get alignment(): DocxEnumValue<"WD_TAB_ALIGNMENT"> { return this.collection.value(this.id).alignment!; }
+  get alignment(): EnumMember<"WD_TAB_ALIGNMENT"> { return enumFamilies.WD_TAB_ALIGNMENT[this.collection.value(this.id).alignment!.name]; }
   set alignment(value: DocxEnumValue<"WD_TAB_ALIGNMENT">) { this.collection.change(this.id, { alignment: value }); }
-  get leader(): DocxEnumValue<"WD_TAB_LEADER"> { return this.collection.value(this.id).leader!; }
+  get leader(): EnumMember<"WD_TAB_LEADER"> { return enumFamilies.WD_TAB_LEADER[this.collection.value(this.id).leader!.name]; }
   set leader(value: DocxEnumValue<"WD_TAB_LEADER"> | null) { this.collection.change(this.id, { leader: value ?? { enum: "WD_TAB_LEADER", name: "SPACES" } }); }
 }
 
@@ -408,13 +408,13 @@ export class ColorFormat {
   get element(): XmlElementView { return ownerView(this.owner); }
   get rgb(): RGBColor | null { const value = attr(property(this.owner, "rPr", "color")); return value === undefined || value === "auto" ? null : RGBColor.from_string(value); }
   set rgb(value: RGBColor | null) { if (value !== null && !(value instanceof RGBColor)) throw new TypeError("Expected RGBColor or null."); if (value === null && !property(this.owner, "rPr", "color")) return; update(this.owner, "r", { color: value === null ? null : value.toString() }); }
-  get theme_color(): DocxEnumValue<"MSO_THEME_COLOR"> | null {
+  get theme_color(): EnumMember<"MSO_THEME_COLOR"> | null {
     const value = attr(property(this.owner, "rPr", "color"), "themeColor"); if (value === undefined) return null;
     const name = Object.keys(themes).find(key => themes[key as keyof typeof themes] === value) as keyof typeof themes | undefined;
-    if (!name) throw new TypeError("Invalid theme color."); return { enum: "MSO_THEME_COLOR", name };
+    if (!name) throw new TypeError("Invalid theme color."); return enumFamilies.MSO_THEME_COLOR[name];
   }
   set theme_color(value: DocxEnumValue<"MSO_THEME_COLOR"> | null) { if (!validateDocxValue("MSO_THEME_COLOR | null", value) || value !== null && !Object.hasOwn(themes, value.name)) throw new TypeError("Invalid theme color."); if (value === null && !property(this.owner, "rPr", "color")) return; if (value !== null && !property(this.owner, "rPr", "color")) {
       update(this.owner, "r", { color: "000000", themeColor: value });
     } else update(this.owner, "r", value === null ? { color: null } : { themeColor: value }); }
-  get type(): DocxEnumValue<"MSO_COLOR_TYPE"> | null { const node = property(this.owner, "rPr", "color"); return node === undefined ? null : { enum: "MSO_COLOR_TYPE", name: attr(node, "themeColor") !== undefined ? "THEME" : attr(node) === "auto" ? "AUTO" : "RGB" }; }
+  get type(): EnumMember<"MSO_COLOR_TYPE"> | null { const node = property(this.owner, "rPr", "color"); return node === undefined ? null : enumFamilies.MSO_COLOR_TYPE[attr(node, "themeColor") !== undefined ? "THEME" : attr(node) === "auto" ? "AUTO" : "RGB"]; }
 }

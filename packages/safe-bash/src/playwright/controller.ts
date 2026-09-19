@@ -9,7 +9,7 @@ import { createPlaywrightCommandBudget } from './command-budget.js';
 import { PlaywrightReportedError, playwrightCliCompatibilityVersion, playwrightCodeString, serializePlaywrightResult, type PlaywrightCommandResult, type PlaywrightResultSection } from './response.js';
 import { capabilityArtifactName } from './capability-result.js';
 import { isPlaywrightSnapshotRef, resolvePlaywrightTarget } from './targets.js';
-import type { PlaywrightElementHandle, PlaywrightStorageState } from './adapter.js';
+import type { PlaywrightElementHandle, PlaywrightFrame, PlaywrightStorageState } from './adapter.js';
 import { capturePlaywrightTargetScreenshot } from './target-screenshot.js';
 import { flushPlaywrightConsole, observePlaywrightCapabilities } from './capability-events.js';
 import { getPlaywrightModal, observePlaywrightModals, onPlaywrightModal } from './modal-capabilities.js';
@@ -230,9 +230,14 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     session.page = page;
     if (page.on && page.off) {
       const invalidate = () => { void session.snapshot.invalidate().catch(() => {}); };
+      const navigated = (frame?: PlaywrightFrame) => {
+        // Child documents validate their own node/context identity on resolution.
+        // Missing frame metadata retains conservative invalidation for adapters.
+        if (!frame || !page.mainFrame || frame === page.mainFrame()) invalidate();
+      };
       const closed = () => { if (session.page === page) delete session.page; invalidate(); };
-      session.detachPage = () => { page.off!('framenavigated', invalidate); page.off!('close', closed); };
-      page.on('framenavigated', invalidate);
+      session.detachPage = () => { page.off!('framenavigated', navigated); page.off!('close', closed); };
+      page.on('framenavigated', navigated);
       page.on('close', closed);
     }
   };

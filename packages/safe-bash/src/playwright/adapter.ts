@@ -98,8 +98,10 @@ export interface PlaywrightPage {
   mainFrame?(): PlaywrightFrame;
   frames?(): PlaywrightFrame[];
   evaluate?<Result, Argument>(callback: (argument: Argument) => Result, argument: Argument): Promise<Result>;
-  on?(event: 'framenavigated' | 'close', listener: () => void): unknown;
-  off?(event: 'framenavigated' | 'close', listener: () => void): unknown;
+  on?(event: 'framenavigated', listener: (frame?: PlaywrightFrame) => void): unknown;
+  off?(event: 'framenavigated', listener: (frame?: PlaywrightFrame) => void): unknown;
+  on?(event: 'close', listener: () => void): unknown;
+  off?(event: 'close', listener: () => void): unknown;
   on?(event: 'filechooser', listener: (chooser: PlaywrightFileChooser) => void): unknown;
   off?(event: 'filechooser', listener: (chooser: PlaywrightFileChooser) => void): unknown;
   on?(event: 'download', listener: (download: PlaywrightDownload) => void): unknown;

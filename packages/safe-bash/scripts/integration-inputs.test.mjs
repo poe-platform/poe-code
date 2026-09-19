@@ -2646,7 +2646,7 @@ test("Playwright session restoration public acceptance remains admitted current 
 test("Playwright standard capability native acceptance remains admitted current input", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const boundaries = loadBoundaries(root);
-  for (const path of ["tests/integration/playwright-capabilities.test.mjs", "tests/integration/playwright-snapshot-native.test.mjs", "tests/integration/playwright-native-types.test.mjs"]) {
+  for (const path of ["tests/integration/playwright-capabilities.test.mjs", "tests/integration/playwright-snapshot-native.test.mjs", "tests/integration/playwright-native-types.test.mjs", "tests/integration/playwright-snapshot-navigation.test.mjs"]) {
     assertAdmittedInputPath(path, boundaries);
     assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
   }

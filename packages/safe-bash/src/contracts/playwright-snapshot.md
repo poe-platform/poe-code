@@ -5,6 +5,12 @@ status, count and rendered text cross the transport; actions unwrap the retained
 node for a ref, not a fresh name-based locator. Renaming or duplicate names do not
 change ref identity. A failed capture publishes no partial snapshot or refs.
 
+Unrelated iframe navigation preserves refs to unchanged documents. Main-frame
+navigation, tab selection, snapshot replacement and cold restoration invalidate
+the snapshot. Refs to disconnected nodes or navigated child documents fail on
+resolution; they never select a replacement node by its name. Adapters without
+frame navigation metadata conservatively invalidate the whole snapshot.
+
 Names use a bounded accessibility-oriented subset. Roles such as navigation,
 search, group, region and img do not infer names from descendants. Roles that
 prohibit naming ignore author labels as well. Links, buttons and supported

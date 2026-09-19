@@ -160,7 +160,18 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
         const imageAction = imageBatchActions.get(item.operation), packageAction = packageViewBatchActions.get(item.operation);
         value = await (imageAction ? imageAction(resolve(item.receiver), args, settings) : packageAction ? packageAction(resolve(item.receiver), args, settings) : (structureModelBatchActions.get(item.operation) ?? styleModelBatchActions.get(item.operation))!(resolve(item.receiver), args));
       }
-      if (item.resultHandle) named.set(item.resultHandle, value);
+      if (item.resultHandle) {
+        if (value && typeof value === "object" && Symbol.iterator in value && "next" in value) {
+          const members: unknown[] = [];
+          for (const member of value as Iterable<unknown>) {
+            settings.budget.charge("work", 1);
+            settings.budget.charge("retainedBytes", 8);
+            members.push(member);
+          }
+          value = Object.freeze(members);
+        }
+        named.set(item.resultHandle, value);
+      }
       const encoded = resultValue ?? encode(value);
       results.push({ operation: item.operation, value: encoded });
       const nextRevision = currentRevision();

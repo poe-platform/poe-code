@@ -246,7 +246,9 @@ export class Section {
           xml,
           node,
           new Map([["titlePg", value ? `<sp:titlePg xmlns:sp="${node.namespace}"/>` : ""]]),
-          sectionPropertyOrder
+          sectionPropertyOrder,
+          {},
+          activeModelChildren(this.store, this.ref.part)
         )
       );
     });

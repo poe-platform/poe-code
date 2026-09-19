@@ -39,8 +39,8 @@ it("returns a real reverse iterator rather than an array snapshot", () => {
 it("keeps color zero distinct from false and clamps signed half-open slices", () => {
   const color = new api.RGBColor(0, 42, 0);
   expect(color.count(0)).toBe(2);
-  expect(color.count(false as unknown as number)).toBe(0);
-  expect(color.includes(false as unknown as number)).toBe(false);
+  expect(() => color.count(false as unknown as number)).toThrow(TypeError);
+  expect(() => color.includes(false as unknown as number)).toThrow(TypeError);
   expect(color.slice(-2)).toEqual([42, 0]);
   expect(color.slice(-100, 100)).toEqual([0, 42, 0]);
   expect(color.slice(2, 1)).toEqual([]);
